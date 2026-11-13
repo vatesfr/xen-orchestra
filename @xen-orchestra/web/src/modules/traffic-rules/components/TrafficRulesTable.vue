@@ -24,7 +24,7 @@
         </template>
       </I18nT>
     </UiAlert>
-    <VtsQueryBuilder :model-value="filter" :schema @search="filter = $event" />
+    <VtsQueryBuilder v-bind="searchBindings" :schema />
     <div class="container">
       <VtsTable :pagination-bindings :state sticky="right">
         <thead>
@@ -127,7 +127,7 @@ const enrichedRules = computed(() =>
     }
   })
 )
-const { filter, items: filteredRules } = useQueryBuilderFilter('trafficRule', () => enrichedRules.value)
+const { searchBindings, items: filteredRules } = useQueryBuilderFilter('trafficRule', () => enrichedRules.value)
 
 const { pageRecords: paginatedRules, paginationBindings } = usePagination('trafficRules', filteredRules)
 

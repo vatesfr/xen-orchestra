@@ -6,7 +6,7 @@
         <slot name="title-actions" />
       </template>
     </UiTitle>
-    <VtsQueryBuilder :model-value="filter" :schema @search="filter = $event" />
+    <VtsQueryBuilder v-bind="searchBindings" :schema />
     <div class="container">
       <VtsTable :state :pagination-bindings sticky="right">
         <thead>
@@ -69,7 +69,7 @@ const { getPifsByIds } = useXoPifCollection()
 
 const selectedNetworkId = useRouteQuery('id')
 
-const { items: filteredNetworks, filter } = useQueryBuilderFilter(internal ? 'inw' : 'nw', () => rawNetworks)
+const { items: filteredNetworks, searchBindings } = useQueryBuilderFilter(internal ? 'inw' : 'nw', () => rawNetworks)
 
 const schema = useQueryBuilderSchema<FrontXoNetwork>({
   '': useStringSchema(t('any-property')),

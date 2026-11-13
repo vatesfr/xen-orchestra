@@ -7,7 +7,7 @@
       </template>
     </UiTitle>
     <div class="filters">
-      <VtsQueryBuilder :model-value="filter" :schema @search="filter = $event" />
+      <VtsQueryBuilder v-bind="searchBindings" :schema />
       <BackupRepositoriesBulkActions :brs="selectedBrs" />
     </div>
 
@@ -68,7 +68,7 @@ const { t } = useI18n()
 
 const { useGetProxyById } = useXoProxyCollection()
 
-const { items: filteredBrs, filter } = useQueryBuilderFilter('brs', () => brs)
+const { items: filteredBrs, searchBindings } = useQueryBuilderFilter('brs', () => brs)
 
 const selectedBrId = useRouteQuery('id')
 

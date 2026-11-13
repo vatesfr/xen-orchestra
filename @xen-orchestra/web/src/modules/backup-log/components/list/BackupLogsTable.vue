@@ -2,7 +2,7 @@
   <UiTitle>
     {{ t('backup-logs') }}
   </UiTitle>
-  <VtsQueryBuilder :model-value="filter" :schema @search="filter = $event" />
+  <VtsQueryBuilder v-bind="searchBindings" :schema />
 
   <VtsTable :state :pagination-bindings sticky="right">
     <thead>
@@ -69,7 +69,7 @@ const filterableBackupLogs = computed(() =>
   backupLogs.map(log => ({ ...log, jobName: getBackupJobById(log.jobId)?.name }))
 )
 
-const { items: filteredBackupLogs, filter } = useQueryBuilderFilter<BackupLogFilterableData>(
+const { items: filteredBackupLogs, searchBindings } = useQueryBuilderFilter<BackupLogFilterableData>(
   'backup-logs',
   () => filterableBackupLogs.value
 )

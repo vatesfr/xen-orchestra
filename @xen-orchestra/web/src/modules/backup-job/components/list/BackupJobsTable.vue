@@ -3,7 +3,7 @@
     {{ t('backup-jobs') }}
   </UiTitle>
   <div class="search-and-filters">
-    <VtsQueryBuilder :model-value="filter" :schema @search="filter = $event" />
+    <VtsQueryBuilder v-bind="searchBindings" :schema />
     <BackupJobsFilters :status-select-id :last-runs-status-select-id :last-days-status-select-id />
   </div>
   <BackupJobsBulkActions :backup-jobs="selectedBackupJobs" />
@@ -66,7 +66,7 @@ const { buildXo5Route } = useXoRoutes()
 
 const { areBackupLogsReady } = useXoBackupLogCollection()
 
-const { items: queryFilteredBackupJobs, filter } = useQueryBuilderFilter('backup-jobs', () => backupJobs)
+const { items: queryFilteredBackupJobs, searchBindings } = useQueryBuilderFilter('backup-jobs', () => backupJobs)
 
 const { filteredBackupJobs, statusSelectId, lastRunsStatusSelectId, lastDaysStatusSelectId } =
   useXoBackupJobFilters(queryFilteredBackupJobs)

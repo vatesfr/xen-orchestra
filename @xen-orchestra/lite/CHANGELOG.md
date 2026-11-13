@@ -7,6 +7,7 @@
 - [Side panels] Values stay next to their label when they fit and move below it otherwise, fields with several values (IP addresses, bond devices) get a copy button per value and a "Copy all" action, and rows, links and statuses are more evenly spaced and sized (PR [#10733](https://github.com/vatesfr/xen-orchestra/pull/10733))
 - [Treeview] Fix translations of the tooltip for VM and host statuses in treeview (PR [#10643](https://github.com/vatesfr/xen-orchestra/pull/10643))
 - [Web-Core/UiDropdownButton] Update dropdown buttons design (PR [#9850](https://github.com/vatesfr/xen-orchestra/pull/9850))
+- [Tables] Tables are filtered as you type, half a second after the last keystroke, or right away with Enter; the "Search" button is removed (PR [#10797](https://github.com/vatesfr/xen-orchestra/pull/10797))
 
 ## **0.27.0** (2026-10-29)
 

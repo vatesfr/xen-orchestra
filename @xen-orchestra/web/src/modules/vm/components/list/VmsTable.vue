@@ -4,7 +4,7 @@
       {{ t('vms') }}
     </UiTitle>
     <div class="filters">
-      <VtsQueryBuilder :model-value="filter" :schema @search="filter = $event" />
+      <VtsQueryBuilder v-bind="searchBindings" :schema />
       <VmsBulkActions :vms="selectedVms" />
     </div>
     <div class="container">
@@ -56,7 +56,7 @@ const { t } = useI18n()
 
 const selectedVmId = useRouteQuery('id')
 
-const { items: filteredVms, filter, schema, getDisplayData } = useVmQueryBuilder('vms', () => rawVms)
+const { items: filteredVms, searchBindings, schema, getDisplayData } = useVmQueryBuilder('vms', () => rawVms)
 
 const state = useTableState({
   busy: () => busy,

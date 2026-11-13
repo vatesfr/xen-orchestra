@@ -18,7 +18,7 @@ export function useVmQueryBuilder(
 
   const { filterableVms, getDisplayData } = useVmEnhancedData(vms)
 
-  const { items, filter } = useQueryBuilderFilter(id, filterableVms, options)
+  const queryBuilderFilter = useQueryBuilderFilter(id, filterableVms, options)
 
   const schema = useQueryBuilderSchema<VmFilterableData>({
     '': useStringSchema(t('any-property')),
@@ -59,5 +59,5 @@ export function useVmQueryBuilder(
     tags: useStringSchema(t('tags')),
   })
 
-  return { items, filter, schema, getDisplayData }
+  return { ...queryBuilderFilter, schema, getDisplayData }
 }

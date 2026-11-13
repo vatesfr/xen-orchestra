@@ -1,6 +1,6 @@
 <!-- v3 -->
 <template>
-  <form class="ui-query-search-bar" @submit.prevent="emit('search', value)">
+  <form class="ui-query-search-bar" @submit.prevent="emit('search')">
     <label v-if="uiStore.isLarge" :for="id" class="typo-body-regular-small label">
       {{ t('query-search-bar:label') }}
     </label>
@@ -9,43 +9,37 @@
       v-model="value"
       type="text"
       accent="brand"
+      :busy
       :aria-label="uiStore.isSmall ? t('query-search-bar:label') : undefined"
       :placeholder="t('query-search-bar:placeholder')"
+      enterkeyhint="search"
     />
-    <template v-if="!uiStore.isSmall">
-      <UiButton size="medium" accent="brand" variant="secondary" type="submit" class="action-button">
-        {{ t('action:search') }}
-      </UiButton>
-    </template>
-
-    <!-- Mobile icons: search + filter -->
-    <template v-else>
-      <UiButtonIcon accent="brand" size="small" type="submit" icon="fa:magnifying-glass" class="action-button" />
-      <UiButtonIcon accent="brand" size="small" disabled icon="fa:filter" class="action-button" />
-    </template>
+    <UiButtonIcon v-if="uiStore.isSmall" accent="brand" size="small" disabled icon="fa:filter" class="action-button" />
   </form>
 </template>
 
 <script lang="ts" setup>
-import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiInput from '@core/components/ui/input/UiInput.vue'
 import { useUiStore } from '@core/stores/ui.store.ts'
 import { uniqueId } from '@core/utils/unique-id.util.ts'
-import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const emit = defineEmits<{
-  search: [value: string]
+defineProps<{
+  busy?: boolean
 }>()
+
+const emit = defineEmits<{
+  search: []
+}>()
+
+const value = defineModel<string>({ required: true })
 
 const { t } = useI18n()
 
 const id = uniqueId('search-input-')
 
 const uiStore = useUiStore()
-
-const value = ref<string>('')
 </script>
 
 <style lang="postcss" scoped>

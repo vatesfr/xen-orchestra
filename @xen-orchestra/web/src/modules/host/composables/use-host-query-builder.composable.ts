@@ -13,7 +13,7 @@ export function useHostQueryBuilder(
 ) {
   const { t } = useI18n()
 
-  const { items, filter } = useQueryBuilderFilter(id, hosts, options)
+  const queryBuilderFilter = useQueryBuilderFilter(id, hosts, options)
 
   const schema = useQueryBuilderSchema<FrontXoHost>({
     '': useStringSchema(t('any-property')),
@@ -28,5 +28,5 @@ export function useHostQueryBuilder(
     tags: useStringSchema(t('tags')),
   })
 
-  return { items, filter, schema }
+  return { ...queryBuilderFilter, schema }
 }
