@@ -1,8 +1,8 @@
 import { useXoBackupJobDeleteJob } from '@/modules/backup-job/jobs/xo-backup-job-delete.job.ts'
 import type { FrontAnyXoBackupJob } from '@/modules/backup-job/remote-resources/use-xo-backup-job-collection.ts'
+import { useDeleteModal } from '@core/composables/modals/use-delete-modal.ts'
 import { useTypeToConfirmModal } from '@core/composables/modals/use-type-to-confirm-modal.ts'
 import { useUnselectAfterDelete } from '@core/composables/unselect-after-delete.composable.ts'
-import { useOverlay } from '@core/packages/overlay/use-overlay.ts'
 import { toComputed } from '@core/utils/to-computed.util.ts'
 import type { MaybeRefOrGetter } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -32,13 +32,7 @@ export function useBackupJobDelete(rawBackupJobs: MaybeRefOrGetter<FrontAnyXoBac
     })
   }
 
-  const { open: openDeleteModal } = useOverlay({
-    component: () => import('@/modules/backup-job/components/modal/BackupJobDeleteModal.vue'),
-    events: {
-      onConfirm: runDelete,
-      onCancel: true,
-    },
-  })
+  const { open: openDeleteModal } = useDeleteModal()
 
   const { open: openTypeToConfirmModal } = useTypeToConfirmModal()
 
@@ -46,7 +40,17 @@ export function useBackupJobDelete(rawBackupJobs: MaybeRefOrGetter<FrontAnyXoBac
     const count = backupJobs.value.length
 
     if (count === 1) {
-      return openDeleteModal()
+      return openDeleteModal({
+        props: {
+          accent: 'danger',
+          subject: backupJobs.value[0].name ?? t('untitled'),
+          description: t('modal:backup-job-delete-message', { n: 1 }),
+          confirmLabel: t('action:delete-n-jobs', { n: 1 }),
+        },
+        events: {
+          onConfirm: runDelete,
+        },
+      })
     }
 
     return openTypeToConfirmModal({
