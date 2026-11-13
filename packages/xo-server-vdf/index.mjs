@@ -15,6 +15,7 @@ import {
   globalMembers,
   globalPart,
   hasGlobalPart,
+  hostEnforcement,
   hostStatus,
   inScope,
   isFresh,
@@ -34,6 +35,7 @@ import {
   supportsVdfLock,
   VDF_LOCKING_KEY,
   vdfLockEnforcement,
+  vmProtections,
 } from './global.mjs'
 import {
   appendEntry,
@@ -503,8 +505,13 @@ export const configurationSchema = {
   required: ['enableTechPreview'],
 }
 
+// who may start or move a protected VM onto a host that can't enforce
+// (bypassFirewallCheck): who may change what the firewall enforces there
+const BYPASS_RIGHT = 'XO administrators and users with the firewall publish privilege on the pool'
+
 class VdfPlugin {
   #unregisterRoutes
+  #unregisterPlacementGuard
   #xo
 
   // XO-wide configuration (global.mjs): { document, revision, scope,
@@ -585,6 +592,18 @@ class VdfPlugin {
 
     this.#xo.on(RESERVED_TAG_CHANGE_EVENT, this.#onReservedTagChange)
     this.#xo.on(RESERVED_TAGS_STRIPPED_EVENT, this.#onReservedTagsStripped)
+
+    // a protected VM doesn't start on, or move to, a host that can't enforce
+    if (this.#xo.registerPlacementGuard === undefined) {
+      log.warn('this xo-server has no placement guards: protected VMs may start where the firewall cannot enforce')
+    } else {
+      this.#unregisterPlacementGuard = this.#xo.registerPlacementGuard({
+        name: 'firewall',
+        bypassRight: BYPASS_RIGHT,
+        check: this.#placementCheck,
+        mayBypass: ({ user, pool }) => this.#can(user, pool.id, 'publish'),
+      })
+    }
   }
 
   unload() {
@@ -593,6 +612,8 @@ class VdfPlugin {
     }
     this.#unregisterRoutes?.()
     this.#unregisterRoutes = undefined
+    this.#unregisterPlacementGuard?.()
+    this.#unregisterPlacementGuard = undefined
     this.#xo.objects.removeListener('finish', this.#scheduleSync)
     this.#xo.removeListener(RESERVED_TAG_CHANGE_EVENT, this.#onReservedTagChange)
     this.#xo.removeListener(RESERVED_TAGS_STRIPPED_EVENT, this.#onReservedTagsStripped)
@@ -606,6 +627,138 @@ class VdfPlugin {
     clearTimeout(this.#syncTimer)
     this.#syncTimer = undefined
     await this.#sync()
+  }
+
+  // HOSTS THAT CAN'T ENFORCE (vdf#141 follow-up): XO refuses to start a
+  // protected VM on, or move it to, a host whose agent can't enforce
+  // (xo-server's placement guards), and says where one runs anyway (started
+  // or moved outside XO: xe, another XO, HA, an evacuation).
+
+  // What the firewall enforces in a pool: the document published there and,
+  // for a pool in this XO's scope that holds this XO's global part, the
+  // global configuration as it will be written there; and the published id.
+  #poolDocuments(poolId, xapi) {
+    const published = publishedPolicy(xapi.pool?.other_config ?? {})
+    const documents = [published.document]
+    if (this.#isInScope(poolId) && this.#otherOwner(xapi) === undefined) {
+      documents.push(compose(emptyDocument(), this.#global.document))
+    }
+    return { docId: published.docId, documents }
+  }
+
+  // A VM's interfaces by their network's tags in the pool it runs in or
+  // goes to: a migration's mapping (vifNetworks) wins, a VIF keeps its
+  // network in its own pool; elsewhere unknown, as a network without tags.
+  #interfacesIn(vm, poolId, vifNetworks) {
+    return this.#vifsOf(vm).map(vif => {
+      const networkId = vifNetworks?.[vif.id] ?? (vm.$pool === poolId ? vif.$network : undefined)
+      const network = networkId === undefined ? undefined : this.#networkOf({ $network: networkId })
+      return { netTags: network?.tags ?? [] }
+    })
+  }
+
+  #protections(vm, poolId, documents, vifNetworks) {
+    return vmProtections({ tags: vm.tags ?? [], ifaces: this.#interfacesIn(vm, poolId, vifNetworks), documents })
+  }
+
+  // the enabled, running hosts of a pool XAPI could start or resume a VM
+  // on (VM.get_possible_hosts); all of them if XAPI can't tell
+  async #possibleHosts(xapi, vm, poolId) {
+    const hosts = Object.values(this.#xo.getObjects({ filter: { type: 'host' } })).filter(
+      host => host.$pool === poolId && host.enabled !== false && host.power_state === 'Running'
+    )
+    let possible
+    try {
+      possible = new Set(await xapi.call('VM.get_possible_hosts', vm._xapiRef))
+    } catch (error) {
+      log.warn('the hosts a VM could start on are unknown: checking every host of its pool', { vm: vm.id, error })
+      return hosts
+    }
+    return hosts.filter(host => possible.has(host._xapiRef))
+  }
+
+  // The placement guard: why a VM the firewall protects in the pool may not
+  // run on the host, if it may not. Without a host (XAPI picks one), every
+  // host it could land on must enforce. What XO can't read (a pool it isn't
+  // connected to, a halted host XAPI refuses anyway) is not known to be
+  // broken: let through.
+  #placementCheck = async ({ vm, host, pool, vifNetworks }) => {
+    const xapi = this.#connectedXapi(pool.id)
+    if (xapi === undefined) {
+      return
+    }
+    const { docId: publishedDocId, documents } = this.#poolDocuments(pool.id, xapi)
+    if (this.#protections(vm, pool.id, documents, vifNetworks).length === 0) {
+      return
+    }
+    const now = Date.now()
+    const enforcementOf = host_ => hostEnforcement(host_, hostStatus(host_.otherConfig), publishedDocId, now)
+
+    if (host !== undefined) {
+      const enforcement = host.power_state === 'Running' ? enforcementOf(host) : undefined
+      return enforcement === undefined || enforcement.enforces ? undefined : { host, reason: enforcement.reason }
+    }
+
+    const candidates = (await this.#possibleHosts(xapi, vm, pool.id)).map(host_ => ({
+      host: host_,
+      enforcement: enforcementOf(host_),
+    }))
+    const failing = candidates.filter(({ enforcement }) => !enforcement.enforces)
+    if (failing.length === 0) {
+      return
+    }
+    const working = candidates
+      .filter(({ enforcement }) => enforcement.enforces)
+      .map(({ host: host_ }) => `"${host_.name_label ?? host_.id}"`)
+    return {
+      reason:
+        `XAPI could pick a host where the firewall can't protect it: ${failing.map(({ enforcement }) => enforcement.reason).join('; ')}` +
+        (working.length === 0 ? '' : ` (pick a host where it can: ${working.join(', ')})`),
+    }
+  }
+
+  // Per pool the user may read, the running hosts that can't enforce while
+  // VMs the firewall protects run there (paused ones too), with them.
+  async #unenforced(user) {
+    const now = Date.now()
+    const vms = Object.values(this.#xo.getObjects({ filter: { type: 'VM' } })).filter(
+      vm => vm.power_state === 'Running' || vm.power_state === 'Paused'
+    )
+    const hosts = Object.values(this.#xo.getObjects({ filter: { type: 'host' } }))
+    const pools = []
+    for (const pool of this.#pools()) {
+      const xapi = this.#connectedXapi(pool.id)
+      if (xapi === undefined || !(await this.#can(user, pool.id, 'read'))) {
+        continue
+      }
+      const { docId: publishedDocId, documents } = this.#poolDocuments(pool.id, xapi)
+      const unenforced = []
+      for (const host of hosts.filter(host => host.$pool === pool.id && host.power_state === 'Running')) {
+        const { enforces, state, reason, since } = hostEnforcement(
+          host,
+          hostStatus(host.otherConfig),
+          publishedDocId,
+          now
+        )
+        const exposed = enforces
+          ? []
+          : vms.filter(vm => vm.$container === host.id && this.#protections(vm, pool.id, documents).length > 0)
+        if (exposed.length > 0) {
+          unenforced.push({
+            id: host.id,
+            name: host.name_label,
+            state,
+            reason,
+            ...(since === undefined ? {} : { since }),
+            vms: exposed.map(vm => ({ id: vm.id, name: vm.name_label })),
+          })
+        }
+      }
+      if (unenforced.length > 0) {
+        pools.push({ id: pool.id, name: pool.name_label, hosts: unenforced })
+      }
+    }
+    return { pools }
   }
 
   // GLOBAL CONFIGURATION
@@ -2103,6 +2256,16 @@ class VdfPlugin {
         // other users see the configuration, and the pools they may view
         scope: 'acl',
         callback: ({ restApi }) => this.#globalStatus(restApi.getCurrentUser({ throwUnauthenticated: false })),
+      },
+      {
+        endpoint: '/unenforced',
+        method: 'get',
+        description:
+          "Per pool the user may read the firewall of, the running hosts whose agent can't enforce (none, stopped, not reporting, rejecting the published policy) while VMs the firewall protects run there: started or moved there outside XO, or with bypassFirewallCheck. Each host with why (state, reason, since) and those VMs.",
+        tags: ['vdf'],
+        responses: [{ status: 200, description: "Hosts that can't enforce, with the protected VMs they run" }],
+        scope: 'acl',
+        callback: ({ restApi }) => this.#unenforced(restApi.getCurrentUser({ throwUnauthenticated: false })),
       },
       {
         endpoint: '/global/actions/check',

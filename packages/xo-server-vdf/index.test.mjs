@@ -96,7 +96,16 @@ function fakeXo({
   const hostObjects = Object.fromEntries(
     Object.entries(hosts).map(([id, host]) => [
       id,
-      { id, type: 'host', name_label: id, power_state: 'Running', otherConfig: {}, ...host },
+      {
+        id,
+        type: 'host',
+        name_label: id,
+        power_state: 'Running',
+        enabled: true,
+        otherConfig: {},
+        _xapiRef: `OpaqueRef:${id}`,
+        ...host,
+      },
     ])
   )
   // `networks`: id → { defaultIsLocked, tags }
@@ -188,6 +197,21 @@ function fakeXo({
         if (method === 'SDN_controller.get_all') {
           return agent.sdn?.includes(id) ? ['OpaqueRef:sdn'] : []
         }
+        // the hosts a VM could start on: `agent.possibleHosts` (VM ref →
+        // host refs), every host of the pool by default; `agent.possibleHosts`
+        // false: XAPI fails
+        if (method === 'VM.get_possible_hosts') {
+          calls.push({ pool: id, method, args: [hostRef] })
+          if (agent.possibleHosts === false) {
+            throw new Error('XAPI is down')
+          }
+          return (
+            agent.possibleHosts?.[hostRef] ??
+            Object.values(hostObjects)
+              .filter(host => host.$pool === id)
+              .map(host => host._xapiRef)
+          )
+        }
         if (method.startsWith('VIF.')) {
           calls.push({ pool: id, method, args: [hostRef, plugin, fn].filter(arg => arg !== undefined) })
           return vifCall(method, hostRef, plugin, fn)
@@ -261,6 +285,12 @@ function fakeXo({
       return () => {
         routes = []
       }
+    },
+    // xo-server's placement guards: what the plugin registered
+    placementGuards: new Set(),
+    registerPlacementGuard(guard) {
+      xo.placementGuards.add(guard)
+      return () => xo.placementGuards.delete(guard)
     },
     addConfigManager(id, exporter, importer) {
       configManagers[id] = { exporter, importer }
@@ -1666,6 +1696,8 @@ describe('what the plugin writes in XAPI', () => {
   // and reads the VIF back from XAPI, not from XO's lagging object, and
   // whether an SDN controller is registered (XO's objects don't hold it)
   const VIF_READS = ['VIF.get_record', 'SDN_controller.get_all']
+  // the hosts XAPI could start a VM on, for the placement guard (vdf#141)
+  const VM_READS = ['VM.get_possible_hosts']
 
   test('in the code: host.call_plugin, pool.update_other_config of the owner key, the VDF lock', async () => {
     const { readFile } = await import('node:fs/promises')
@@ -1673,7 +1705,7 @@ describe('what the plugin writes in XAPI', () => {
       const code = await readFile(new URL(file, import.meta.url), 'utf8')
       for (const [, method, args] of code.matchAll(/\bxapi\.call\(\s*'([^']+)'([^)]*)\)/g)) {
         assert.ok(
-          ['host.call_plugin', ...VIF_WRITES, ...VIF_KEY_WRITES, ...VIF_READS].includes(method),
+          ['host.call_plugin', ...VIF_WRITES, ...VIF_KEY_WRITES, ...VIF_READS, ...VM_READS].includes(method),
           `${file}: ${method}`
         )
         if (VIF_KEY_WRITES.includes(method)) {
@@ -1776,6 +1808,7 @@ describe('what the plugin writes in XAPI', () => {
         ['post', '/global/actions/check', { body: global }],
         ['post', '/global/actions/publish', { body: { ...global, revision: 0 } }],
         ['get', '/global'],
+        ['get', '/unenforced'],
         ['get', '/global/history'],
         ['get', '/global/history/{entry}', { params: { entry: '1' } }],
         ['get', '/pools/{id}/policy', { params: pool }],
@@ -1800,6 +1833,9 @@ describe('what the plugin writes in XAPI', () => {
       for (const [method, endpoint, options] of routes) {
         await xo.route(method, endpoint, options)
       }
+      // the placement guard, where XAPI picks the host (vdf#141)
+      const [guard] = xo.placementGuards
+      await guard.check({ operation: 'start', vm: { ...vm, power_state: 'Halted' }, host: undefined, pool })
 
       assert.deepEqual(
         seen.filter(entry => entry.unexpected),
@@ -1815,8 +1851,9 @@ describe('what the plugin writes in XAPI', () => {
           }
           continue
         }
-        // a read: whether an SDN controller is registered (vdf#41)
-        if (entry.call === 'SDN_controller.get_all') {
+        // reads: whether an SDN controller is registered (vdf#41), the
+        // hosts a VM could start on (vdf#141)
+        if (entry.call === 'SDN_controller.get_all' || VM_READS.includes(entry.call)) {
           continue
         }
         assert.equal(entry.call, 'host.call_plugin')
@@ -3088,5 +3125,286 @@ describe('vdf: tags changed outside XO (vdf#141)', () => {
         [7]
       )
     })
+  })
+})
+
+// vdf#141 follow-up: a VM the firewall protects doesn't start on, or move
+// to, a host whose agent can't enforce (xo-server's placement guards)
+describe('hosts that can enforce', () => {
+  const POLICY = text(document())
+  // what a host's agent writes, `fields` over a current status enforcing `policy`
+  const status = (fields = {}, policy = POLICY) =>
+    JSON.stringify({
+      heartbeat: new Date().toISOString(),
+      heartbeatSec: 600,
+      published: docId(policy),
+      doc: docId(policy),
+      ...fields,
+    })
+  const hostIn = (poolId, vdfStatus, fields = {}) => ({
+    $pool: poolId,
+    otherConfig: vdfStatus === undefined ? {} : { 'vdf:status': vdfStatus },
+    ...fields,
+  })
+  const HOSTS = {
+    'h-ok': hostIn(POOL, status()),
+    'h-none': hostIn(POOL, undefined),
+    'h-stale': hostIn(POOL, status({ heartbeat: '2026-11-01T00:00:00.000Z' })),
+  }
+  const vmWith = (id, tags, fields = {}) => ({
+    id,
+    name_label: id,
+    $pool: POOL,
+    power_state: 'Halted',
+    tags,
+    _xapiRef: `OpaqueRef:${id}`,
+    ...fields,
+  })
+  const WEB = vmWith('web', ['vdf:role=web'])
+  const PLAIN = vmWith('plain', ['web'])
+  const QUARANTINED = vmWith('quarantined', ['vdf:quarantine'])
+  const NETWORKS = {
+    'net-0': {},
+    'net-u': { tags: ['vdf:unprotected'] },
+    'net-b': {},
+    'net-bu': { tags: ['vdf:unprotected'] },
+  }
+
+  function setUp({
+    pools = { [POOL]: { otherConfig: { 'vdf:policy': POLICY } } },
+    hosts = HOSTS,
+    vms = [],
+    ...rest
+  } = {}) {
+    const xo = fakeXo({ pools, hosts, vms, networks: NETWORKS, ...rest })
+    const pool = id => ({ id, type: 'pool', name_label: `Pool ${id}` })
+    const check = context => [...xo.placementGuards][0].check({ operation: 'start', pool: pool(POOL), ...context })
+    return { xo, check, pool }
+  }
+
+  test('registers its guard while loaded, and removes it once unloaded', async () => {
+    const { xo } = setUp()
+    const plugin = await loaded(xo)
+    assert.equal(xo.placementGuards.size, 1)
+    const [guard] = xo.placementGuards
+    assert.equal(guard.name, 'firewall')
+    assert.equal(guard.bypassRight, 'XO administrators and users with the firewall publish privilege on the pool')
+    plugin.unload()
+    assert.equal(xo.placementGuards.size, 0)
+  })
+
+  test('refuses a protected VM on a host whose agent is missing, stuck or rejecting the policy', async () => {
+    const rejecting = hostIn(POOL, status({ doc: 'older', rejected: 'unknown tier' }))
+    const { xo, check } = setUp({ hosts: { ...HOSTS, 'h-rejecting': rejecting }, vms: [WEB] })
+    const plugin = await loaded(xo)
+    try {
+      assert.equal(await check({ vm: WEB, host: xo.hosts['h-ok'] }), undefined)
+      assert.deepEqual(await check({ vm: WEB, host: xo.hosts['h-none'] }), {
+        host: xo.hosts['h-none'],
+        reason: 'no firewall agent on host "h-none"',
+      })
+      assert.equal(
+        (await check({ vm: WEB, host: xo.hosts['h-stale'] })).reason,
+        'the firewall agent on host "h-stale" has not reported since 2026-11-01T00:00:00.000Z'
+      )
+      assert.equal(
+        (await check({ vm: WEB, host: xo.hosts['h-rejecting'] })).reason,
+        'the firewall agent on host "h-rejecting" rejected the published policy (unknown tier)'
+      )
+    } finally {
+      plugin.unload()
+    }
+  })
+
+  test("doesn't refuse a VM it doesn't protect, nor a host it doesn't know to be broken", async () => {
+    const onlyUnprotected = vmWith('storage', ['vdf:role=web', 'vdf:quarantine'], { VIFs: ['storage/vif0'] })
+    const halted = hostIn(POOL, undefined, { power_state: 'Halted' })
+    const { xo, check } = setUp({
+      hosts: { ...HOSTS, 'h-halted': halted },
+      vms: [PLAIN, onlyUnprotected, WEB],
+      vifs: { 'storage/vif0': { $network: 'net-u' } },
+    })
+    const plugin = await loaded(xo)
+    try {
+      // no policy applies to it
+      assert.equal(await check({ vm: PLAIN, host: xo.hosts['h-none'] }), undefined)
+      // its only interface on a vdf:unprotected network
+      assert.equal(await check({ vm: onlyUnprotected, host: xo.hosts['h-none'] }), undefined)
+      // XAPI refuses a halted host itself
+      assert.equal(await check({ vm: WEB, host: xo.hosts['h-halted'] }), undefined)
+      // a pool XO isn't connected to
+      xo.disconnect(POOL)
+      assert.equal(await check({ vm: WEB, host: xo.hosts['h-none'] }), undefined)
+    } finally {
+      plugin.unload()
+    }
+  })
+
+  test('protects a quarantined VM even where nothing is published', async () => {
+    const { xo, check } = setUp({ pools: { [POOL]: {} }, vms: [QUARANTINED, WEB] })
+    const plugin = await loaded(xo)
+    try {
+      assert.equal(
+        (await check({ vm: QUARANTINED, host: xo.hosts['h-none'] })).reason,
+        'no firewall agent on host "h-none"'
+      )
+      assert.equal(await check({ vm: WEB, host: xo.hosts['h-none'] }), undefined)
+    } finally {
+      plugin.unload()
+    }
+  })
+
+  test("protects the members of the global configuration's groups in the pools in its scope", async () => {
+    const global = {
+      revision: 1,
+      document: {
+        groups: { db: { tags: ['vdf:role=db'] } },
+        policies: [{ name: 'db', appliedTo: 'db', default: 'drop' }],
+      },
+      scope: { all: true },
+    }
+    const db = vmWith('db', ['vdf:role=db'])
+    const { xo, check } = setUp({ pools: { [POOL]: {} }, vms: [db], store: fakeStore({ global }) })
+    const plugin = await loaded(xo)
+    try {
+      assert.equal((await check({ vm: db, host: xo.hosts['h-none'] })).reason, 'no firewall agent on host "h-none"')
+    } finally {
+      plugin.unload()
+    }
+  })
+
+  test('without a host, refuses if any enabled host XAPI could pick cannot enforce, and names those that can', async () => {
+    const disabled = hostIn(POOL, undefined, { enabled: false })
+    const { xo, check } = setUp({ hosts: { ...HOSTS, 'h-disabled': disabled }, vms: [WEB] })
+    const plugin = await loaded(xo)
+    try {
+      assert.deepEqual(await check({ vm: WEB, host: undefined }), {
+        reason:
+          'XAPI could pick a host where the firewall can\'t protect it: no firewall agent on host "h-none"; the firewall agent on host "h-stale" has not reported since 2026-11-01T00:00:00.000Z (pick a host where it can: "h-ok")',
+      })
+      assert.deepEqual(
+        xo.calls.filter(call => call.method === 'VM.get_possible_hosts'),
+        [{ pool: POOL, method: 'VM.get_possible_hosts', args: ['OpaqueRef:web'] }]
+      )
+    } finally {
+      plugin.unload()
+    }
+  })
+
+  test('without a host, lets through what XAPI can only start on hosts that enforce, and checks them all if XAPI cannot tell', async () => {
+    const { xo, check } = setUp({ vms: [WEB], agent: { possibleHosts: { 'OpaqueRef:web': ['OpaqueRef:h-ok'] } } })
+    const plugin = await loaded(xo)
+    try {
+      assert.equal(await check({ vm: WEB, host: undefined }), undefined)
+    } finally {
+      plugin.unload()
+    }
+
+    const failing = setUp({ vms: [WEB], agent: { possibleHosts: false } })
+    const plugin2 = await loaded(failing.xo)
+    try {
+      assert.match((await failing.check({ vm: WEB, host: undefined })).reason, /h-none.*h-stale/)
+    } finally {
+      plugin2.unload()
+    }
+  })
+
+  test("decides a migration to another pool on that pool's policy and the networks it maps", async () => {
+    const pools = { [POOL]: {}, B: { otherConfig: { 'vdf:policy': POLICY } } }
+    const hosts = { 'b-none': hostIn('B', undefined) }
+    const running = { ...WEB, power_state: 'Running' }
+    const { xo, check, pool } = setUp({ pools, hosts, vms: [running] })
+    const plugin = await loaded(xo)
+    try {
+      const migrate = vifNetworks =>
+        check({ operation: 'migrate', vm: running, host: xo.hosts['b-none'], pool: pool('B'), vifNetworks })
+      assert.equal((await migrate(undefined)).reason, 'no firewall agent on host "b-none"')
+      assert.equal((await migrate({ 'web/vif0': 'net-b' })).reason, 'no firewall agent on host "b-none"')
+      // onto a network the firewall leaves out there
+      assert.equal(await migrate({ 'web/vif0': 'net-bu' }), undefined)
+    } finally {
+      plugin.unload()
+    }
+  })
+
+  test('lets XO administrators and users with the firewall publish privilege on the pool override it', async () => {
+    const publisher = { id: 'publisher', permission: 'none' }
+    const reader = { id: 'reader', permission: 'none' }
+    const { xo, pool } = setUp({
+      users: [ADMIN, publisher, reader],
+      privileges: [
+        ['publisher', POOL, 'publish'],
+        ['reader', POOL, 'read'],
+      ],
+    })
+    const plugin = await loaded(xo)
+    try {
+      const [guard] = xo.placementGuards
+      assert.equal(await guard.mayBypass({ user: ADMIN, pool: pool(POOL) }), true)
+      assert.equal(await guard.mayBypass({ user: publisher, pool: pool(POOL) }), true)
+      assert.equal(await guard.mayBypass({ user: reader, pool: pool(POOL) }), false)
+    } finally {
+      plugin.unload()
+    }
+  })
+
+  test('lists, per pool the user may read, the hosts that cannot enforce while protected VMs run there', async () => {
+    const reader = { id: 'reader', permission: 'none' }
+    const pools = { [POOL]: { otherConfig: { 'vdf:policy': POLICY } }, B: { otherConfig: { 'vdf:policy': POLICY } } }
+    const hosts = { ...HOSTS, 'b-none': hostIn('B', undefined) }
+    const running = (vm, host) => ({ ...vm, power_state: 'Running', $container: host })
+    const vms = [
+      running(WEB, 'h-none'),
+      { ...running(QUARANTINED, 'h-stale'), power_state: 'Paused' },
+      running(PLAIN, 'h-none'),
+      running(vmWith('web-2', ['vdf:role=web']), 'h-ok'),
+      { ...running(vmWith('web-b', ['vdf:role=web']), 'b-none'), $pool: 'B' },
+      // halted: runs nowhere
+      { ...WEB, id: 'web-halted', $container: 'h-none' },
+    ]
+    const { xo } = setUp({ pools, hosts, vms, users: [ADMIN, reader], privileges: [['reader', POOL, 'read']] })
+    const plugin = await loaded(xo)
+    try {
+      const expected = {
+        id: POOL,
+        name: `Pool ${POOL}`,
+        hosts: [
+          {
+            id: 'h-none',
+            name: 'h-none',
+            state: 'missing',
+            reason: 'no firewall agent on host "h-none"',
+            vms: [{ id: 'web', name: 'web' }],
+          },
+          {
+            id: 'h-stale',
+            name: 'h-stale',
+            state: 'stale',
+            reason: 'the firewall agent on host "h-stale" has not reported since 2026-11-01T00:00:00.000Z',
+            since: '2026-11-01T00:00:00.000Z',
+            vms: [{ id: 'quarantined', name: 'quarantined' }],
+          },
+        ],
+      }
+      assert.deepEqual((await xo.route('get', '/unenforced', { user: reader })).result, { pools: [expected] })
+      assert.deepEqual((await xo.route('get', '/unenforced')).result.pools, [
+        expected,
+        {
+          id: 'B',
+          name: 'Pool B',
+          hosts: [
+            {
+              id: 'b-none',
+              name: 'b-none',
+              state: 'missing',
+              reason: 'no firewall agent on host "b-none"',
+              vms: [{ id: 'web-b', name: 'web-b' }],
+            },
+          ],
+        },
+      ])
+    } finally {
+      plugin.unload()
+    }
   })
 })
