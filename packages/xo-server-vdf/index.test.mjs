@@ -3350,6 +3350,57 @@ describe('hosts that can enforce', () => {
     }
   })
 
+  test('refuses nothing in a pool without VDF, but a quarantined VM moving into it', async () => {
+    // no host ever had an agent, nothing published
+    const pools = { [POOL]: {}, B: { otherConfig: { 'vdf:policy': POLICY } } }
+    const hosts = {
+      'h-none': hostIn(POOL, undefined),
+      'h-none-2': hostIn(POOL, undefined),
+      'b-ok': hostIn('B', status()),
+    }
+    const inB = vm => ({ ...vm, $pool: 'B', power_state: 'Running' })
+    const { xo, check, pool } = setUp({ pools, hosts, vms: [QUARANTINED, WEB] })
+    const plugin = await loaded(xo)
+    try {
+      for (const operation of ['start', 'resume']) {
+        for (const host of [xo.hosts['h-none'], undefined]) {
+          assert.equal(await check({ operation, vm: QUARANTINED, host }), undefined)
+        }
+      }
+      // within the pool: as unfiltered on either host
+      const running = { ...QUARANTINED, power_state: 'Running' }
+      assert.equal(await check({ operation: 'migrate', vm: running, host: xo.hosts['h-none-2'] }), undefined)
+
+      // into it from a pool with VDF: quarantined, it would lose its filter
+      const into = vm => check({ operation: 'migrate', vm: inB(vm), host: xo.hosts['h-none'], pool: pool(POOL) })
+      assert.equal((await into(QUARANTINED)).reason, 'no firewall agent on host "h-none"')
+      // protected in B by a group, but no policy applies to it here: stage 1's tag guard decides about its tags
+      assert.equal(await into(WEB), undefined)
+    } finally {
+      plugin.unload()
+    }
+  })
+
+  test('lists no host of a pool without VDF', async () => {
+    const pools = { [POOL]: {}, B: {} }
+    const hosts = { 'h-none': hostIn(POOL, undefined), 'b-none': hostIn('B', undefined), 'b-ok': hostIn('B', status()) }
+    const vms = [
+      { ...QUARANTINED, power_state: 'Running', $container: 'h-none' },
+      { ...QUARANTINED, id: 'q-b', name_label: 'q-b', $pool: 'B', power_state: 'Running', $container: 'b-none' },
+    ]
+    const { xo } = setUp({ pools, hosts, vms })
+    const plugin = await loaded(xo)
+    try {
+      // B: an agent on b-ok, so b-none is listed; the pool without VDF isn't
+      assert.deepEqual(
+        (await xo.route('get', '/unenforced')).result.pools.map(({ id, hosts }) => [id, hosts.map(host => host.id)]),
+        [['B', ['b-none']]]
+      )
+    } finally {
+      plugin.unload()
+    }
+  })
+
   test('lets XO administrators and users with the firewall publish privilege on the pool override it', async () => {
     const publisher = { id: 'publisher', permission: 'none' }
     const reader = { id: 'reader', permission: 'none' }

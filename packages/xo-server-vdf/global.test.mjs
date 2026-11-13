@@ -14,6 +14,7 @@ import {
   isFresh,
   keepGlobalPart,
   localPart,
+  managesVdf,
   memberConflicts,
   OWNER_KEY,
   poolOwner,
@@ -884,5 +885,23 @@ describe('protected VMs (vdf#141)', () => {
     assert.deepEqual(protections(['vdf:role=app'], [plain], [noNetworks]), ['app-in'])
     // a quarantine still counts
     assert.deepEqual(protections(['vdf:quarantine'], [plain], malformed), ['vdf:quarantine'])
+  })
+})
+
+describe('pools VDF manages (vdf#141)', () => {
+  test("a host's agent wrote a status there, or a policy is published", () => {
+    const host = otherConfig => ({ id: 'h', otherConfig })
+    assert.equal(managesVdf({}, [host({}), host({ 'vdf:status': '{}' })]), true)
+    // a status nobody can read is still an agent's
+    assert.equal(managesVdf({}, [host({ 'vdf:status': 'garbage' })]), true)
+    assert.equal(managesVdf({ 'vdf:policy.v9': '{}' }, [host({})]), true)
+    assert.equal(managesVdf({ 'vdf:policy': '' }, []), true)
+  })
+
+  test('otherwise, VDF never filtered anything there', () => {
+    assert.equal(managesVdf({}, [{ id: 'h', otherConfig: {} }, { id: 'h2' }]), false)
+    assert.equal(managesVdf(undefined, []), false)
+    // the owner key alone is no policy
+    assert.equal(managesVdf({ 'vdf:global.owner': '{}', 'xo:x': '1' }, []), false)
   })
 })

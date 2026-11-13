@@ -622,6 +622,14 @@ export function hasGlobalPart(document) {
 // on a network: its interfaces get no VDF flows (storage, transit…)
 export const UNPROTECTED_TAG = 'vdf:unprotected'
 
+// A pool VDF manages, as XO 6 reads it (useVdfAvailability): a host's agent
+// wrote a status there (once: a status outlives a stopped agent), or a
+// policy is published (vdf:policy, vdf:policy.v2…). In another, nothing
+// was ever filtered: no VM is less protected for starting there.
+export const managesVdf = (poolOtherConfig, poolHosts) =>
+  poolHosts.some(host => host.otherConfig?.[STATUS_KEY] !== undefined) ||
+  Object.keys(poolOtherConfig ?? {}).some(key => key.startsWith('vdf:policy'))
+
 /**
  * Whether a host's agent enforces a policy, from its status (hostStatus) and
  * the id of the document published in its pool (publishedPolicy().docId, ''

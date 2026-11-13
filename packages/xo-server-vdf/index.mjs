@@ -21,6 +21,7 @@ import {
   isFresh,
   isStopping,
   isVdfLocked,
+  managesVdf,
   sameAddresses,
   keepGlobalPart,
   localPart,
@@ -664,9 +665,7 @@ class VdfPlugin {
   // the enabled, running hosts of a pool XAPI could start or resume a VM
   // on (VM.get_possible_hosts); all of them if XAPI can't tell
   async #possibleHosts(xapi, vm, poolId) {
-    const hosts = Object.values(this.#xo.getObjects({ filter: { type: 'host' } })).filter(
-      host => host.$pool === poolId && host.enabled !== false && host.power_state === 'Running'
-    )
+    const hosts = this.#poolHosts(poolId).filter(host => host.enabled !== false && host.power_state === 'Running')
     let possible
     try {
       possible = new Set(await xapi.call('VM.get_possible_hosts', vm._xapiRef))
@@ -677,14 +676,24 @@ class VdfPlugin {
     return hosts.filter(host => possible.has(host._xapiRef))
   }
 
+  #poolHosts(poolId) {
+    return Object.values(this.#xo.getObjects({ filter: { type: 'host' } })).filter(host => host.$pool === poolId)
+  }
+
   // The placement guard: why a VM the firewall protects in the pool may not
   // run on the host, if it may not. Without a host (XAPI picks one), every
   // host it could land on must enforce. What XO can't read (a pool it isn't
   // connected to, a halted host XAPI refuses anyway) is not known to be
-  // broken: let through.
-  #placementCheck = async ({ vm, host, pool, vifNetworks }) => {
+  // broken: let through. In a pool without VDF (managesVdf), a start, a
+  // resume or a migration within it loses no protection: let through; a VM
+  // moving into it from another pool is decided as anywhere else.
+  #placementCheck = async ({ operation, vm, host, pool, vifNetworks }) => {
     const xapi = this.#connectedXapi(pool.id)
     if (xapi === undefined) {
+      return
+    }
+    const intoPool = operation === 'migrate' && vm.$pool !== pool.id
+    if (!intoPool && !managesVdf(xapi.pool?.other_config, this.#poolHosts(pool.id))) {
       return
     }
     const { docId: publishedDocId, documents } = this.#poolDocuments(pool.id, xapi)
@@ -718,7 +727,8 @@ class VdfPlugin {
   }
 
   // Per pool the user may read, the running hosts that can't enforce while
-  // VMs the firewall protects run there (paused ones too), with them.
+  // VMs the firewall protects run there (paused ones too), with them. None
+  // in a pool without VDF (managesVdf): nothing was ever filtered there.
   async #unenforced(user) {
     const now = Date.now()
     const vms = Object.values(this.#xo.getObjects({ filter: { type: 'VM' } })).filter(
@@ -728,7 +738,11 @@ class VdfPlugin {
     const pools = []
     for (const pool of this.#pools()) {
       const xapi = this.#connectedXapi(pool.id)
-      if (xapi === undefined || !(await this.#can(user, pool.id, 'read'))) {
+      if (
+        xapi === undefined ||
+        !managesVdf(xapi.pool?.other_config, this.#poolHosts(pool.id)) ||
+        !(await this.#can(user, pool.id, 'read'))
+      ) {
         continue
       }
       const { docId: publishedDocId, documents } = this.#poolDocuments(pool.id, xapi)
