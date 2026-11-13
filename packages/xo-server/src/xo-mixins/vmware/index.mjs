@@ -19,7 +19,7 @@ import {
   FIRST_BOOT_LEFT_TO_XO,
   isFirstBootLeftToXo,
   replaceRepairDescription,
-} from './_repairInputs.mjs'
+} from './_repairDescription.mjs'
 import { firstBootOfRepairedVm } from './_firstBoot.mjs'
 import { finished, PassThrough } from 'node:stream'
 import { Ref } from 'xen-api'
