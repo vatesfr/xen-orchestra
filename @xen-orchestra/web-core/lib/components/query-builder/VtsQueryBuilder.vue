@@ -85,6 +85,10 @@ function handleEnterKey(event: KeyboardEvent) {
     }
   }
 
+  .label {
+    color: var(--color-neutral-txt-secondary);
+  }
+
   .input-container {
     flex: 1;
     min-width: 0;
