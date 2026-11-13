@@ -287,7 +287,7 @@ for Windows, `bootmgfw.efi`.
 
 The orchestration is the [life cycle](#life-cycle-of-a-migrated-vm) above. Details that matter:
 
-- **The ISO** is the most recent `xo-repair-*.iso` (by name, which starts with the build date) of an
+- **The ISO** is the most recent `vates-autopilot-docking-*.iso` (by name, which starts with the build date and time) of an
   ISO SR of the pool, inserted in the CD drive of the VM (created when it has none) and ejected after
   the runs. `REPAIR_ISO_NOT_FOUND` when there is none.
 - **`platform:secureboot=false` is mandatory for every UEFI VM** on each boot on the ISO, even when XO
@@ -450,7 +450,7 @@ not fail the import: it is a warning of the task, `the guest could not be repair
 
 | Code                       | Meaning                                                                          | What to do                                                                                                                         |
 | -------------------------- | -------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| `REPAIR_ISO_NOT_FOUND`     | no `xo-repair-*.iso` in an ISO SR of the pool                                    | deploy the ISO, then import again                                                                                                  |
+| `REPAIR_ISO_NOT_FOUND`     | no `vates-autopilot-docking-*.iso` in an ISO SR of the pool                      | deploy the ISO, then import again                                                                                                  |
 | `REPAIR_ISO_TIMEOUT`       | no result within 30 minutes: most often the firmware did not boot the ISO        | [run the ISO by hand](#running-the-iso-by-hand) and watch the console: the UEFI Shell with `Access Denied` means Secure Boot is on |
 | `REPAIR_ISO_NO_RESULT`     | the VM halted without the ISO writing `done`, or without a report                | run the ISO by hand with `keep-running`, read `/run/xo-repair/xo-repair.log`                                                       |
 | `REPAIR_OS_DISK_NOT_FOUND` | the ISO found the OS on a disk the VM does not have                              | check the disks of the VM                                                                                                          |
@@ -500,7 +500,7 @@ master, with the VM halted:
 ```sh
 vm=<VM UUID>
 # the CD drive XO created; without one: xe vm-cd-add uuid=$vm cd-name=<ISO name> device=3
-xe vm-cd-insert uuid=$vm cd-name=<xo-repair-....iso>
+xe vm-cd-insert uuid=$vm cd-name=<vates-autopilot-docking-....iso>
 xe vm-param-set uuid=$vm HVM-boot-params:order=dc platform:secureboot=false
 xe vm-param-set uuid=$vm xenstore-data:vm-data/xo-repair/mode=diagnose \
   xenstore-data:vm-data/xo-repair/keep-running=1
@@ -562,12 +562,12 @@ On Debian trixie, as root, from this folder:
 
 ```sh
 apt-get install live-build
-scripts/build.sh               # produces dist/xo-repair-<version>.iso and its .sha256
+scripts/build.sh               # produces dist/vates-autopilot-docking-<version>.iso and its .sha256
 lb clean                       # auto/clean also removes generated config files
 ```
 
-`scripts/build.sh` writes the version (`YYYYMMDD-<sha>`, with `-dirty` if tracked files are modified,
-or `$XO_REPAIR_VERSION`) into the ISO, then runs `lb config`, `lb build` and `scripts/check-iso.sh`.
+`scripts/build.sh` writes the version (`YYYYMMDDTHHMMSSZ-<sha>`, with `-dirty` if tracked files are modified,
+or `YYYYMMDDTHHMMSSZ-$XO_REPAIR_VERSION`) into the ISO, then runs `lb config`, `lb build` and `scripts/check-iso.sh`.
 The build needs a privileged container (live-build mounts chroots), e.g.
 `podman run --rm --privileged -v "$PWD:/src" -w /src debian:trixie scripts/build.sh` after installing
 live-build in it.

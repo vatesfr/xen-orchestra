@@ -305,7 +305,7 @@ With the `startVm` option as well, XO then starts the VM and follows its first b
 
 ### Requirements
 
-- **The repair ISO** must be deployed on the destination pool, in an ISO storage repository, under the name its build gives it, `xo-repair-<date>-<commit>.iso`. When several are deployed, the most recent one by name is used.
+- **The repair ISO** must be deployed on the destination pool, in an ISO storage repository, under the name its build gives it, `vates-autopilot-docking-<date and time>-<commit>.iso`. When several are deployed, the most recent one by name is used.
 - **A complete import**: the source VM is powered off before the migration, or the `Stop source` option is enabled. A partial import of a running VM is not repaired. The REST API refuses this combination.
 - **A clean shutdown of Windows**: a Windows VM that was powered off, rather than shut down from the guest, cannot be repaired (`ntfs_unclean`): its volumes are left in a state that cannot be written offline. Keep the VMware Tools running so that `Stop source` shuts it down cleanly, or shut it down from Windows before the migration. Hibernation and Fast Startup are blocking too.
 - **A running source for Windows with several network cards in static addressing**: the static configuration of each old adapter is moved to the network card with the same MAC address, matched through the IP addresses that the VMware Tools report while the VM runs. Start the migration with the source VM running, its VMware Tools up, and the `Stop source` option enabled. Otherwise these adapters fall back to DHCP, and the task reports it. A single network card, or DHCP, does not need it, and neither does Linux.

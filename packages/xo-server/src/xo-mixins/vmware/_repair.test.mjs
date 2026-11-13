@@ -41,7 +41,11 @@ function fakeXapi({ failingRestores = new Set(), firmware = 'bios', platform = {
       fail(`platform.${key}=${value}`)
     },
   }
-  const iso = { $ref: 'OpaqueRef:iso', name_label: 'xo-repair-20261112-abcdef12.iso', $SR: { content_type: 'iso' } }
+  const iso = {
+    $ref: 'OpaqueRef:iso',
+    name_label: 'vates-autopilot-docking-20261112T084512Z-abcdef12.iso',
+    $SR: { content_type: 'iso' },
+  }
   return {
     calls,
     objects: { indexes: { type: { VDI: { [iso.$ref]: iso } } } },
@@ -117,17 +121,19 @@ test('findRepairIso', async t => {
 
   await t.test('takes the most recent build, release or not', async () => {
     const xapi = poolWith(
-      'xo-repair-20261112-abcdef12.iso',
-      'xo-repair-20261113-1.2.0.iso',
-      'xo-repair-20261101-12345678-dirty.iso'
+      'vates-autopilot-docking-20261113T084512Z-abcdef12.iso',
+      'vates-autopilot-docking-20261113T091030Z-1.2.0.iso',
+      'vates-autopilot-docking-20261101T120000Z-12345678-dirty.iso'
     )
-    assert.equal(findRepairIso(xapi, CONTEXT).name_label, 'xo-repair-20261113-1.2.0.iso')
+    assert.equal(findRepairIso(xapi, CONTEXT).name_label, 'vates-autopilot-docking-20261113T091030Z-1.2.0.iso')
   })
 
   await t.test('ignores a name it could not order', async () => {
     // would come last by name, before any dated build
-    const xapi = poolWith('xo-repair-20261112-abcdef12.iso', 'xo-repair-latest.iso')
-    assert.equal(findRepairIso(xapi, CONTEXT).name_label, 'xo-repair-20261112-abcdef12.iso')
-    assert.throws(() => findRepairIso(poolWith('xo-repair-latest.iso'), CONTEXT), { code: 'REPAIR_ISO_NOT_FOUND' })
+    const xapi = poolWith('vates-autopilot-docking-20261112T084512Z-abcdef12.iso', 'vates-autopilot-docking-latest.iso')
+    assert.equal(findRepairIso(xapi, CONTEXT).name_label, 'vates-autopilot-docking-20261112T084512Z-abcdef12.iso')
+    assert.throws(() => findRepairIso(poolWith('vates-autopilot-docking-latest.iso'), CONTEXT), {
+      code: 'REPAIR_ISO_NOT_FOUND',
+    })
   })
 })

@@ -58,6 +58,6 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: xo-repair-${{ steps.version.outputs.version }}
+          name: vates-autopilot-docking-${{ steps.version.outputs.version }}
           path: dist/
           retention-days: 30
