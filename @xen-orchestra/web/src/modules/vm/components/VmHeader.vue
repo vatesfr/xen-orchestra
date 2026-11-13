@@ -48,7 +48,7 @@
       </UiTabItem>
     </RouterLink>
     <RouterLink
-      v-if="isVdfEnabled && hasVdfAgent(vm.$pool)"
+      v-if="isVdfEnabled && hasVdfAgent(vm.$pool) && canReadFirewall('read')"
       v-slot="{ isActive, href }"
       :to="{ name: '/vm/[id]/firewall', params: { id: vm.id } }"
       custom
@@ -77,6 +77,7 @@
 
 <script lang="ts" setup>
 import { useVdfAvailability } from '@/modules/vdf/composables/vdf-availability.composable.ts'
+import { useVdfFirewallRights } from '@/modules/vdf/composables/vdf-rights.composable.ts'
 import VmMainActions from '@/modules/vm/components/actions/VmMainActions.vue'
 import { useXoVmUtils } from '@/modules/vm/composables/xo-vm-utils.composable.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
@@ -98,6 +99,9 @@ const { t } = useI18n()
 
 // tech preview: only while the vdf plugin is loaded, in pools with agents
 const { isVdfEnabled, hasVdfAgent } = useVdfAvailability()
+
+// and to who may see its pool's firewall (vdf#141)
+const { can: canReadFirewall } = useVdfFirewallRights(() => vm.$pool)
 
 const { buildXo5Route } = useXoRoutes()
 

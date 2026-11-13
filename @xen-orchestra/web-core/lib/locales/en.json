@@ -574,6 +574,7 @@
   "firewall:flow-map:summary": "Flow map: {allowed} open connections, {dropped} drops in the last minute",
   "firewall:gate:disabled": "The firewall is a tech preview, not enabled on this XO: an administrator enables it in Settings > Plugins (vdf).",
   "firewall:gate:no-agent": "No VDF agent on this pool's hosts: install the vdf agent on every host of the pool to use the firewall here.",
+  "firewall:gate:no-right": "You can't see this pool's firewall: it requires the firewall right to {right} on this pool.",
   "firewall:global": "Global",
   "firewall:global-name": "{name} · global",
   "firewall:global:attention": "Needs attention",

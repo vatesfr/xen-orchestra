@@ -4,7 +4,7 @@
       <VtsStateHero v-if="!areVmsReady" format="page" type="busy" size="medium" />
       <!-- vdf#40: what the pool's firewall does with each rule -->
       <VdfTrafficRuleStatuses
-        v-if="pool !== undefined && isVdfEnabled && hasVdfAgent(pool.id)"
+        v-if="pool !== undefined && isVdfEnabled && hasVdfAgent(pool.id) && canReadFirewall('read')"
         v-model="firewallLabels"
         :pool
         :rules="trafficRules"
@@ -29,6 +29,7 @@ import { useTrafficRules } from '@/modules/traffic-rules/composables/traffic-rul
 import type { RankedTrafficRule } from '@/modules/traffic-rules/types.ts'
 import VdfTrafficRuleStatuses from '@/modules/vdf/components/traffic-rules/VdfTrafficRuleStatuses.vue'
 import { useVdfAvailability } from '@/modules/vdf/composables/vdf-availability.composable.ts'
+import { useVdfFirewallRights } from '@/modules/vdf/composables/vdf-rights.composable.ts'
 import type { VdfTrafficRuleLabel } from '@/modules/vdf/types.ts'
 import { type FrontXoVif } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
 import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
@@ -50,6 +51,8 @@ const firewallLabels = ref<Record<string, VdfTrafficRuleLabel>>({})
 
 const { useGetPoolById } = useXoPoolCollection()
 const pool = useGetPoolById(() => vif.$pool)
+
+const { can: canReadFirewall } = useVdfFirewallRights(() => pool.value?.id)
 
 const { areVmsReady } = useXoVmCollection()
 

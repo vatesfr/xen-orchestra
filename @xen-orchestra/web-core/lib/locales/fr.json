@@ -574,6 +574,7 @@
   "firewall:flow-map:summary": "Carte des flux : {allowed} connexions ouvertes, {dropped} blocages dans la dernière minute",
   "firewall:gate:disabled": "Le pare-feu est en avant-première technique, non activé sur ce XO : un administrateur l'active dans Paramètres > Plugins (vdf).",
   "firewall:gate:no-agent": "Aucun agent VDF sur les hôtes de ce pool : installez l'agent vdf sur chaque hôte du pool pour utiliser le pare-feu ici.",
+  "firewall:gate:no-right": "Vous ne pouvez pas voir le pare-feu de ce pool : il faut le droit de pare-feu permettant de {right} sur ce pool.",
   "firewall:global": "Global",
   "firewall:global-name": "{name} · global",
   "firewall:global:attention": "À surveiller",
