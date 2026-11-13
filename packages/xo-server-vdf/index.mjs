@@ -922,7 +922,10 @@ class VdfPlugin {
     const global = this.#global
     const analysis = this.#analysis()
     const admin = isAdmin(user)
-    const canView = poolId => this.#can(user, poolId, 'read')
+    // a pool XO lost is no XO object any more: no ACL nor privilege can be
+    // evaluated on it (XO core throws no such object), administrators only
+    const lostIds = new Set(this.#lostPools().map(pool => pool.id))
+    const canView = poolId => (lostIds.has(poolId) ? admin : this.#can(user, poolId, 'read'))
     const poolName = Object.fromEntries([
       ...this.#lostPools().map(pool => [pool.id, pool.name]),
       ...this.#pools().map(pool => [pool.id, pool.name_label]),

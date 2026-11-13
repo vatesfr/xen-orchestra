@@ -321,12 +321,16 @@ function fakeXo({
     // xo-server's decision (reserved-tags mixin): an administrator or no
     // user (xo-server's own work), the legacy ACL that counts as the action
     // (view for read, administrate for all), or an RBAC privilege; the
-    // [userId, poolId, action] asked, in order
+    // [userId, poolId, action] asked, in order; throws no such object for a
+    // pool XO doesn't know, as XO core does for other users
     firewallRightsAsked: [],
     async hasFirewallRight(user, poolId, action) {
       xo.firewallRightsAsked.push([user?.id, poolId, action])
       if (user === undefined || user.permission === 'admin') {
         return true
+      }
+      if (poolObjects[poolId] === undefined) {
+        throw new Error('no such object')
       }
       const legacy = action === 'read' ? 'view' : 'administrate'
       const covers = granted => granted === '*' || granted === action || action.startsWith(`${granted}:`)
@@ -1386,6 +1390,31 @@ describe('firewall rights (vdf#141)', () => {
       const { rights, canEdit } = await rightsOf(viewer)
       assert.deepEqual(rights, { ...NO_RIGHT, read: true })
       assert.equal(canEdit, false)
+    } finally {
+      plugin.unload()
+    }
+  })
+
+  test('a pool XO lost leaves the global status to the pools a user may see', async () => {
+    const xo = fakeXo({
+      pools: { A: {}, B: {} },
+      acls: [
+        ['u1', 'A', 'view'],
+        ['u1', 'B', 'view'],
+      ],
+    })
+    const plugin = await loaded(xo)
+    try {
+      await xo.route('get', '/global')
+      xo.disconnect('A')
+      assert.deepEqual(
+        (await xo.route('get', '/global', { user })).result.pools.map(pool => pool.id),
+        ['B']
+      )
+      assert.deepEqual(
+        (await xo.route('get', '/global')).result.pools.map(pool => pool.id),
+        ['B', 'A']
+      )
     } finally {
       plugin.unload()
     }
