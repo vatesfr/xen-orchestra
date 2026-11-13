@@ -1,25 +1,13 @@
 import { useV2vVmLabels } from '@/modules/v2v/composables/use-v2v-vm-labels.composable.ts'
 import type { V2vVmRow } from '@/modules/v2v/types/v2v-vm-row.type.ts'
-import type { PropertySchema, QueryBuilderSchema } from '@core/packages/query-builder/types.ts'
-import { parseValues } from '@core/packages/query-builder/schema/parse-values.ts'
+import type { QueryBuilderSchema } from '@core/packages/query-builder/types.ts'
 import { useQueryBuilderSchema } from '@core/packages/query-builder/schema/use-query-builder-schema.ts'
+import { withEnumeratedValues } from '@core/packages/query-builder/schema/with-enumerated-values.ts'
 import { useQueryBuilderFilter } from '@core/packages/query-builder/use-query-builder-filter.ts'
 import { useBooleanSchema } from '@core/utils/query-builder/use-boolean-schema.ts'
 import { useStringSchema } from '@core/utils/query-builder/use-string-schema.ts'
-import { mapValues } from 'lodash-es'
 import { computed, type MaybeRefOrGetter, toValue } from 'vue'
 import { useI18n } from 'vue-i18n'
-
-function withEnumeratedValues(property: PropertySchema, values: string[]): PropertySchema {
-  const valueSchemas = parseValues(Object.fromEntries(values.map(value => [value, value])))
-
-  return {
-    ...property,
-    operators: mapValues(property.operators, operator =>
-      operator.values === undefined ? operator : { ...operator, values: valueSchemas }
-    ),
-  }
-}
 
 export function useV2vVmQueryBuilder(
   id: string,

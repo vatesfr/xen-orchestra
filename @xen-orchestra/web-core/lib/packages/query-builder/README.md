@@ -14,6 +14,7 @@ The Query Builder package is part of the core library and can be imported direct
 import { useQueryBuilder } from '@core/packages/query-builder/use-query-builder'
 import { useQueryBuilderFilter } from '@core/packages/query-builder/use-query-builder-filter'
 import { useQueryBuilderSchema } from '@core/packages/query-builder/schema/use-query-builder-schema'
+import { withEnumeratedValues } from '@core/packages/query-builder/schema/with-enumerated-values'
 import { setFilterProperty } from '@core/packages/query-builder/filter-string'
 ```
 
@@ -705,6 +706,28 @@ This leverages the catch-all `''` property defined in the schema to search all p
 When users write filter expressions that reference properties not defined in the schema, Query Builder gracefully handles this by falling back to the "any property" (`''`) filter. This allows for flexible search experiences where exact property names don't need to be known in advance.
 
 For example, if a schema doesn't define a `custom_field` property but a user types `custom_field:value`, the query parser will fall back to the catch-all property. The result will be no matches (since the property doesn't exist on your objects), which is the expected behavior.
+
+### Values Known Only at Runtime
+
+`useStringSchema` and its siblings call `useI18n`, so they run once, in `setup`. When a property's values come from loaded data, build the schema once and swap the values in a `computed` with `withEnumeratedValues(property, values)`: every operator that takes values (`is`, `isNot`…) gets one entry per value, its label being the value itself; the other operators are kept as they are.
+
+```typescript
+import { useQueryBuilderSchema } from '@core/packages/query-builder/schema/use-query-builder-schema'
+import { withEnumeratedValues } from '@core/packages/query-builder/schema/with-enumerated-values'
+import type { QueryBuilderSchema } from '@core/packages/query-builder/types'
+import { useStringSchema } from '@core/utils/query-builder/use-string-schema'
+import { computed } from 'vue'
+
+const staticSchema = useQueryBuilderSchema<Product>({
+  name: useStringSchema('Product Name'),
+  category: useStringSchema('Category', {}),
+})
+
+const schema = computed<QueryBuilderSchema>(() => ({
+  ...staticSchema,
+  category: withEnumeratedValues(staticSchema.category, categoryNames.value),
+}))
+```
 
 ### Reading and Editing a Filter String
 
