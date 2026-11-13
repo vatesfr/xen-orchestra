@@ -21,7 +21,7 @@
     ">2%"
   ],
   "engines": {
-    "node": ">=6"
+    "node": ">=18"
   },
   "dependencies": {
     "lodash": "^4.18.0"
