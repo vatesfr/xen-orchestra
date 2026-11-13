@@ -15,7 +15,7 @@ export function useXoBackupJobLastRuns(rawBackupJob: MaybeRefOrGetter<FrontAnyXo
   return computed(() =>
     getLastNBackupLogsByJobId(backupJob.value.id).map((backupLog, index) => ({
       status: backupLog.status,
-      tooltip: `${t('last-run-number', { n: index + 1 })}: ${formatDateTime(backupLog.end ?? backupLog.start)}, ${t(backupLog.status)}`,
+      tooltip: `${t('last-run-number', { n: index + 1 })}: ${formatDateTime(backupLog.end ?? backupLog.start)}, ${backupLog.status === 'pending' ? t('in-progress') : t(backupLog.status)}`,
     }))
   )
 }

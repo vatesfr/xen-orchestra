@@ -1,7 +1,6 @@
 import { useXoVmOperationLabel } from '@/modules/vm/composables/xo-vm-operation-label.composable.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
-import { TRACKED_OPERATIONS, isVmOperationPending } from '@/modules/vm/utils/xo-vm.util.ts'
-import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
+import { TRACKED_OPERATIONS, hasVmGuestTools, isVmOperationPending } from '@/modules/vm/utils/xo-vm.util.ts'
 import type { IconName } from '@core/icons'
 import { useTimeAgo } from '@core/composables/locale-time-ago.composable.ts'
 import { useMapper } from '@core/packages/mapper'
@@ -54,16 +53,12 @@ export function useXoVmUtils(rawVm: MaybeRefOrGetter<FrontXoVm>) {
     return formatDate(vm.value.installTime * 1000)
   })
 
-  const hasGuestTools = (vm: FrontXoVm) => {
-    return vm.managementAgentDetected && vm.pvDriversDetected
-  }
-
   const guestToolsDisplay = computed<GuestToolsDisplay>(() => {
     if (vm.value.power_state !== VM_POWER_STATE.RUNNING) {
       return { type: 'not-applicable', value: '-' } as const
     }
 
-    if (!hasGuestTools(vm.value)) {
+    if (!hasVmGuestTools(vm.value)) {
       return {
         type: 'missing',
         icon: 'status:halted-circle',
@@ -108,19 +103,13 @@ export function useXoVmUtils(rawVm: MaybeRefOrGetter<FrontXoVm>) {
 
   const iconTooltip = computed(() => getVmIconTooltip(vm.value))
 
-  const { buildXo5Route } = useXoRoutes()
-
-  const xo5VmAdvancedHref = computed(() => buildXo5Route(`/vms/${vm.value.id}/advanced`))
-
   return {
     powerState,
     installDateFormatted,
     relativeStartTime,
-    hasGuestTools,
     guestToolsDisplay,
     hasPendingOperation,
     currentOperation,
     iconTooltip,
-    xo5VmAdvancedHref,
   }
 }

@@ -82,7 +82,7 @@ const schema = useQueryBuilderSchema<BackupLogFilterableData>({
     skipped: t('skipped'),
     interrupted: t('interrupted'),
     failure: t('failure'),
-    pending: t('pending'),
+    pending: t('in-progress'),
   }),
 })
 

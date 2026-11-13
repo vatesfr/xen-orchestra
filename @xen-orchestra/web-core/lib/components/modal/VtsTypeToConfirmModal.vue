@@ -7,9 +7,7 @@
     <template #content>
       <div class="vts-type-to-confirm-modal">
         <p v-if="description">{{ description }}</p>
-        <p class="instruction">{{ t('type-below-to-continue') }}</p>
-        <UiTag :accent class="confirmation-text" variant="primary">{{ displayedConfirmationText }}</UiTag>
-        <UiInput v-model="typedText" accent="brand" />
+        <VtsTypeToConfirmInput v-model="isConfirmed" :confirmation-text />
       </div>
     </template>
 
@@ -25,15 +23,14 @@
 <script lang="ts" setup>
 import VtsOverlayCancelButton from '@core/components/overlay/VtsOverlayCancelButton.vue'
 import VtsOverlayConfirmButton from '@core/components/overlay/VtsOverlayConfirmButton.vue'
-import UiInput from '@core/components/ui/input/UiInput.vue'
+import VtsTypeToConfirmInput from '@core/components/type-to-confirm-input/VtsTypeToConfirmInput.vue'
 import type { ModalAccent } from '@core/components/ui/modal/UiModal.vue'
 import UiModal from '@core/components/ui/modal/UiModal.vue'
-import UiTag from '@core/components/ui/tag/UiTag.vue'
 import type { IconName } from '@core/icons'
-import { computed, ref } from 'vue'
+import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { confirmationText } = defineProps<{
+defineProps<{
   accent: ModalAccent
   title: string
   confirmationText: string
@@ -49,11 +46,7 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 
-const typedText = ref('')
-
-const displayedConfirmationText = computed(() => `[${confirmationText}]`)
-
-const isConfirmed = computed(() => typedText.value === confirmationText)
+const isConfirmed = ref(false)
 </script>
 
 <style lang="postcss" scoped>
@@ -61,13 +54,5 @@ const isConfirmed = computed(() => typedText.value === confirmationText)
   display: flex;
   flex-direction: column;
   gap: 2.4rem;
-
-  .instruction {
-    color: var(--color-neutral-txt-secondary);
-  }
-
-  .confirmation-text {
-    align-self: center;
-  }
 }
 </style>

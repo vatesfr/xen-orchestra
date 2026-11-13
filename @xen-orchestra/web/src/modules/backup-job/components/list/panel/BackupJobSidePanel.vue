@@ -1,11 +1,18 @@
 <template>
   <VtsSidePanel :has-selection="!!backupJob" @close="emit('close')">
+    <template v-if="backupJob" #actions>
+      <BackupJobDeleteButton :backup-job />
+    </template>
+    <template v-if="backupJob" #more-actions>
+      <BackupJobMoreActions :backup-job />
+    </template>
+
     <template v-if="backupJob" #default>
       <UiAlert v-if="schedules.length > 1" accent="warning">
         {{ t('multiple-schedules') }}
         <template #description>{{ t('multiple-schedules-advice') }}</template>
       </UiAlert>
-      <BackupJobInfosCard :backup-job />
+      <BackupJobInfosCard :backup-job :schedules />
       <BackupJobSchedulesCard v-if="schedules.length > 0" :schedules />
       <BackupJobLogsCard v-if="lastBackupLogs.length > 0" :backup-logs="lastBackupLogs" />
       <BackupJobBackedUpVmsCard v-if="backupJob.type === 'backup'" :backed-up-vms="backupJob.vms" />
@@ -16,6 +23,8 @@
 </template>
 
 <script lang="ts" setup>
+import BackupJobMoreActions from '@/modules/backup-job/components/actions/BackupJobMoreActions.vue'
+import BackupJobDeleteButton from '@/modules/backup-job/components/actions/delete/BackupJobDeleteButton.vue'
 import BackupJobBackedUpVmsCard from '@/modules/backup-job/components/list/panel/cards/BackupJobBackedUpVmsCard.vue'
 import BackupJobInfosCard from '@/modules/backup-job/components/list/panel/cards/BackupJobInfosCard.vue'
 import BackupJobLogsCard from '@/modules/backup-job/components/list/panel/cards/BackupJobLogsCard.vue'

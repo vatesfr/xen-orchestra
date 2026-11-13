@@ -1,14 +1,18 @@
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import {
-  areAllVmsHavingPowerState,
+  areAllVmsAllowingOperation,
   areVmsOperationPending,
   extractVmHostId,
   getVmIcon,
   getVmIpAddresses,
   getVmPendingPowerStateOperation,
+  getVmsAllowingOperation,
   getVmsPendingOperation,
+  hasVmGuestTools,
+  isVmAllowingOperation,
+  isVmMissingGuestToolsFor,
   isVmOperationPending,
-  notAllVmsHavingPowerState,
+  notAllVmsAllowingOperation,
 } from '@/modules/vm/utils/xo-vm.util.ts'
 import { createVm } from '@/test/create-vm.ts'
 import { objectIcon } from '@core/icons'
@@ -134,34 +138,84 @@ describe('getVmsPendingOperation', () => {
   })
 })
 
-describe('areAllVmsHavingPowerState', () => {
-  it('returns true when every VM matches one of the power states', () => {
+describe('areAllVmsAllowingOperation', () => {
+  it('returns true when every VM allows the operation', () => {
     const runningVm = createVm({ power_state: VM_POWER_STATE.RUNNING })
     const pausedVm = createVm({ power_state: VM_POWER_STATE.PAUSED })
 
-    expect(areAllVmsHavingPowerState([runningVm, pausedVm], [VM_POWER_STATE.RUNNING, VM_POWER_STATE.PAUSED])).toBe(true)
+    expect(areAllVmsAllowingOperation([runningVm, pausedVm], VM_OPERATIONS.CLEAN_REBOOT)).toBe(true)
   })
 
-  it('returns false when at least one VM does not match', () => {
+  it('returns false when at least one VM does not allow the operation', () => {
     const runningVm = createVm({ power_state: VM_POWER_STATE.RUNNING })
     const haltedVm = createVm({ power_state: VM_POWER_STATE.HALTED })
 
-    expect(areAllVmsHavingPowerState([runningVm, haltedVm], [VM_POWER_STATE.RUNNING])).toBe(false)
+    expect(areAllVmsAllowingOperation([runningVm, haltedVm], VM_OPERATIONS.CLEAN_SHUTDOWN)).toBe(false)
   })
 })
 
-describe('notAllVmsHavingPowerState', () => {
-  it('returns false when every VM matches one of the power states', () => {
+describe('notAllVmsAllowingOperation', () => {
+  it('returns false when every VM allows the operation', () => {
     const runningVm = createVm({ power_state: VM_POWER_STATE.RUNNING })
 
-    expect(notAllVmsHavingPowerState([runningVm], [VM_POWER_STATE.RUNNING])).toBe(false)
+    expect(notAllVmsAllowingOperation([runningVm], VM_OPERATIONS.CLEAN_SHUTDOWN)).toBe(false)
   })
 
-  it('returns true when at least one VM does not match', () => {
+  it('returns true when at least one VM does not allow the operation', () => {
     const runningVm = createVm({ power_state: VM_POWER_STATE.RUNNING })
     const haltedVm = createVm({ power_state: VM_POWER_STATE.HALTED })
 
-    expect(notAllVmsHavingPowerState([runningVm, haltedVm], [VM_POWER_STATE.RUNNING])).toBe(true)
+    expect(notAllVmsAllowingOperation([runningVm, haltedVm], VM_OPERATIONS.CLEAN_SHUTDOWN)).toBe(true)
+  })
+})
+
+describe('isVmAllowingOperation', () => {
+  it('allows an operation from one of its power states', () => {
+    expect(isVmAllowingOperation(createVm({ power_state: VM_POWER_STATE.PAUSED }), VM_OPERATIONS.CLEAN_REBOOT)).toBe(
+      true
+    )
+  })
+
+  it('forbids an operation from another power state', () => {
+    expect(isVmAllowingOperation(createVm({ power_state: VM_POWER_STATE.HALTED }), VM_OPERATIONS.CLEAN_REBOOT)).toBe(
+      false
+    )
+  })
+})
+
+describe('getVmsAllowingOperation', () => {
+  it('keeps only the VMs in a power state allowing the operation', () => {
+    const runningVm = createVm({ id: 'vm-running' as FrontXoVm['id'], power_state: VM_POWER_STATE.RUNNING })
+    const pausedVm = createVm({ id: 'vm-paused' as FrontXoVm['id'], power_state: VM_POWER_STATE.PAUSED })
+    const haltedVm = createVm({ id: 'vm-halted' as FrontXoVm['id'], power_state: VM_POWER_STATE.HALTED })
+
+    expect(getVmsAllowingOperation([runningVm, pausedVm, haltedVm], VM_OPERATIONS.CLEAN_REBOOT)).toEqual([
+      runningVm,
+      pausedVm,
+    ])
+    expect(getVmsAllowingOperation([runningVm, pausedVm, haltedVm], VM_OPERATIONS.START)).toEqual([haltedVm])
+  })
+})
+
+describe('hasVmGuestTools', () => {
+  it('requires both the management agent and the PV drivers', () => {
+    expect(hasVmGuestTools(createVm({ managementAgentDetected: true, pvDriversDetected: true }))).toBe(true)
+    expect(hasVmGuestTools(createVm({ managementAgentDetected: false, pvDriversDetected: true }))).toBe(false)
+    expect(hasVmGuestTools(createVm({ managementAgentDetected: true, pvDriversDetected: false }))).toBe(false)
+  })
+})
+
+describe('isVmMissingGuestToolsFor', () => {
+  it('flags a clean operation on a VM without guest tools', () => {
+    expect(isVmMissingGuestToolsFor(createVm({ pvDriversDetected: false }), VM_OPERATIONS.CLEAN_SHUTDOWN)).toBe(true)
+  })
+
+  it('does not flag a clean operation on a VM with guest tools', () => {
+    expect(isVmMissingGuestToolsFor(createVm(), VM_OPERATIONS.CLEAN_SHUTDOWN)).toBe(false)
+  })
+
+  it('does not flag an operation that does not need guest tools', () => {
+    expect(isVmMissingGuestToolsFor(createVm({ pvDriversDetected: false }), VM_OPERATIONS.HARD_SHUTDOWN)).toBe(false)
   })
 })
 
