@@ -8,6 +8,11 @@
         {{ t('jobs') }}
       </UiTabItem>
     </RouterLink>
+    <RouterLink v-slot="{ isActive, href }" :to="{ name: '/admin/backup-and-replication/archives' }" custom>
+      <UiTabItem :active="isActive" :href tag="a">
+        {{ t('archives') }}
+      </UiTabItem>
+    </RouterLink>
     <RouterLink
       v-slot="{ isExactActive, href }"
       :to="{ name: '/admin/backup-and-replication/backup-repositories' }"
