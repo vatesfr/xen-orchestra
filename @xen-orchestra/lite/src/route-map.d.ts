@@ -506,6 +506,13 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/story/web-core/panel/vts-side-panel': RouteRecordInfo<
+      '/story/web-core/panel/vts-side-panel',
+      '/story/web-core/panel/vts-side-panel',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
     '/story/web-core/resources/vts-resource': RouteRecordInfo<
       '/story/web-core/resources/vts-resource',
       '/story/web-core/resources/vts-resource',
@@ -1621,6 +1628,12 @@ declare module 'vue-router/auto-routes' {
     'src/stories/web-core/panel/vts-panel.story.vue': {
       routes:
         | '/story/web-core/panel/vts-panel'
+      views:
+        | never
+    }
+    'src/stories/web-core/panel/vts-side-panel.story.vue': {
+      routes:
+        | '/story/web-core/panel/vts-side-panel'
       views:
         | never
     }
