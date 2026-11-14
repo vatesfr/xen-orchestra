@@ -52,6 +52,8 @@ describe('planMigration', function () {
         nics: {},
         template: 'tpl-1',
         stopSource: false,
+        docking: false,
+        startVm: false,
       },
     ])
   })
@@ -77,18 +79,68 @@ describe('planMigration', function () {
       nics: { '4000': 'net-2' },
       template: 'tpl-2',
       stopSource: false,
+      docking: false,
+      startVm: false,
     })
+  })
+
+  it('docks the guest when asked, with the value of the VM over the defaults', function () {
+    const stoppedVm = { ...sourceVm('vm-1'), powerState: 'poweredOff' as const }
+    const result = planMigration(
+      makeBody({
+        defaults: { sr: 'sr-1', network: 'net-1', template: 'tpl-1', docking: true },
+        vms: [{ id: 'vm-1' }, { id: 'vm-2', docking: false }],
+      }),
+      makeContext({ vms: [stoppedVm, sourceVm('vm-2')] })
+    )
+
+    assert.deepEqual(result.problems, [])
+    assert.deepEqual(
+      result.plans.map(({ docking }) => docking),
+      [true, false]
+    )
+  })
+
+  it('refuses to dock a guest whose import would be partial', function () {
+    const runningVm = { ...sourceVm('vm-1'), powerState: 'poweredOn' as const }
+    const refused = planMigration(makeBody({ vms: [{ id: 'vm-1', docking: true }] }), makeContext({ vms: [runningVm] }))
+    const accepted = planMigration(
+      makeBody({ vms: [{ id: 'vm-1', docking: true, stopSource: true }] }),
+      makeContext({ vms: [runningVm] })
+    )
+
+    assert.deepEqual(
+      refused.problems.map(({ field }) => field),
+      ['docking']
+    )
+    assert.deepEqual(accepted.problems, [])
+  })
+
+  it('starts the VM only after a complete import', function () {
+    const runningVm = { ...sourceVm('vm-1'), powerState: 'poweredOn' as const }
+    const refused = planMigration(makeBody({ vms: [{ id: 'vm-1', startVm: true }] }), makeContext({ vms: [runningVm] }))
+    const accepted = planMigration(
+      makeBody({ defaults: { sr: 'sr-1', network: 'net-1', template: 'tpl-1', startVm: true, stopSource: true } }),
+      makeContext({ vms: [runningVm] })
+    )
+
+    assert.deepEqual(
+      refused.problems.map(({ field }) => field),
+      ['startVm']
+    )
+    assert.deepEqual(accepted.problems, [])
+    assert.equal(accepted.plans[0].startVm, true)
   })
 
   it('refuses the options the import does not support yet', function () {
     const result = planMigration(
-      makeBody({ vms: [{ id: 'vm-1', startVm: true, cleanup: true, tags: ['migrated-from:vmware'], keepMac: false }] }),
+      makeBody({ vms: [{ id: 'vm-1', cleanup: true, tags: ['migrated-from:vmware'], keepMac: false }] }),
       makeContext()
     )
 
     assert.deepEqual(
       result.problems.map(({ field }) => field),
-      ['startVm', 'cleanup', 'tags', 'keepMac']
+      ['cleanup', 'tags', 'keepMac']
     )
   })
 
@@ -121,7 +173,7 @@ describe('planMigration', function () {
   it('reports the problems of every VM, and plans only the valid ones', function () {
     const vms = [sourceVm('vm-1'), sourceVm('vm-2')]
     const result = planMigration(
-      makeBody({ vms: [{ id: 'vm-1', startVm: true }, { id: 'vm-2' }] }),
+      makeBody({ vms: [{ id: 'vm-1', cleanup: true }, { id: 'vm-2' }] }),
       makeContext({ vms })
     )
 

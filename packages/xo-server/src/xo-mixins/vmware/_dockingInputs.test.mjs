@@ -1,0 +1,276 @@
+import { strict as assert } from 'node:assert'
+import test from 'node:test'
+
+import {
+  buildLinuxNics,
+  buildDockingXenstoreData,
+  buildWindowsNics,
+  clearDockingXenstoreData,
+  describeFailures,
+  getBlockingFindings,
+  isFirstBootOver,
+  isDockingDone,
+  isFirstBootLeftToXo,
+  isDockingIsoName,
+  readFirstBootState,
+  readDockingOutput,
+  userdeviceOfXvd,
+} from './_dockingInputs.mjs'
+
+test('buildLinuxNics', async t => {
+  await t.test('names each NIC after its PCI slot', () => {
+    assert.equal(
+      buildLinuxNics([
+        { macAddress: '00:0C:29:D4:BF:19', pciSlotNumber: 192 },
+        { macAddress: '00:0c:29:d4:bf:23', pciSlotNumber: 224 },
+      ]),
+      'ens192=00:0c:29:d4:bf:19;ens224=00:0c:29:d4:bf:23'
+    )
+  })
+
+  await t.test('leaves a single NIC to the ISO', () => {
+    assert.equal(buildLinuxNics([{ macAddress: '00:0c:29:d4:bf:19', pciSlotNumber: 192 }]), undefined)
+    assert.equal(buildLinuxNics([]), undefined)
+  })
+
+  await t.test('skips the NICs without slot or MAC', () => {
+    assert.equal(
+      buildLinuxNics([
+        { macAddress: '00:0c:29:d4:bf:19', pciSlotNumber: 192 },
+        { macAddress: '00:0c:29:d4:bf:23' },
+        { pciSlotNumber: 256 },
+      ]),
+      'ens192=00:0c:29:d4:bf:19'
+    )
+    assert.equal(buildLinuxNics([{ macAddress: '00:0c:29:d4:bf:19' }, { macAddress: '00:0c:29:d4:bf:23' }]), undefined)
+  })
+})
+
+test('buildWindowsNics', async t => {
+  const networks = [{ macAddress: '00:0C:29:94:80:0D' }, { macAddress: '00:0c:29:94:80:17' }]
+  const guestNics = [
+    { macAddress: '00:0c:29:94:80:0d', addresses: ['192.168.1.10', 'fe80::1'] },
+    { macAddress: '00:0c:29:94:80:17', addresses: ['10.0.0.10', 'FD00::10'] },
+    // a card of the guest only, with an address of its own
+    { macAddress: '02:00:00:00:00:01', addresses: ['172.16.0.1'] },
+  ]
+  const adapter = (guid, addresses, dhcp = false) => ({ guid, addresses, dhcp })
+
+  await t.test('matches each static adapter with the card having its address', () => {
+    assert.equal(
+      buildWindowsNics({
+        guestNics,
+        networks,
+        reportNetwork: [adapter('{A}', ['192.168.1.10']), adapter('{B}', ['fd00::10'])],
+      }),
+      '00:0c:29:94:80:0d={A};00:0c:29:94:80:17={B}'
+    )
+  })
+
+  await t.test('leaves out the adapters in DHCP, unknown, or matching a card of the guest only', () => {
+    assert.equal(
+      buildWindowsNics({
+        guestNics,
+        networks,
+        reportNetwork: [
+          adapter('{A}', ['192.168.1.10'], true),
+          adapter('{B}', ['10.9.9.9']),
+          adapter('{C}', ['172.16.0.1']),
+          { addresses: ['10.0.0.10'], dhcp: false },
+        ],
+      }),
+      undefined
+    )
+  })
+
+  await t.test('leaves out adapters which match several cards, or a card claimed twice', () => {
+    const sharedAddress = [
+      { macAddress: '00:0c:29:94:80:0d', addresses: ['10.0.0.10'] },
+      { macAddress: '00:0c:29:94:80:17', addresses: ['10.0.0.10'] },
+    ]
+    assert.equal(
+      buildWindowsNics({ guestNics: sharedAddress, networks, reportNetwork: [adapter('{A}', ['10.0.0.10'])] }),
+      undefined
+    )
+    assert.equal(
+      buildWindowsNics({
+        guestNics,
+        networks,
+        reportNetwork: [adapter('{A}', ['192.168.1.10']), adapter('{B}', ['fe80::1']), adapter('{C}', ['10.0.0.10'])],
+      }),
+      '00:0c:29:94:80:17={C}'
+    )
+  })
+
+  await t.test('leaves a single NIC, or no capture, to the ISO', () => {
+    const reportNetwork = [adapter('{A}', ['192.168.1.10'])]
+    assert.equal(buildWindowsNics({ guestNics, networks: networks.slice(0, 1), reportNetwork }), undefined)
+    assert.equal(buildWindowsNics({ guestNics: [], networks, reportNetwork }), undefined)
+  })
+})
+
+test('buildDockingXenstoreData', async t => {
+  const previousRun = {
+    'vm-data/other': 'kept',
+    'vm-data/xo-docking': '',
+    'vm-data/xo-docking/mode': 'dock',
+    'vm-data/xo-docking/nics': 'ens192=00:0c:29:d4:bf:19;ens224=00:0c:29:d4:bf:23',
+    'vm-data/xo-docking/keep-running': '1',
+    'vm-data/xo-docking/out/state': 'done',
+    'vm-data/xo-docking/out/report': '{}',
+  }
+
+  await t.test('drops every key of a previous run, keeps the others', () => {
+    assert.deepEqual(buildDockingXenstoreData(previousRun, { mode: 'diagnose' }), {
+      'vm-data/other': 'kept',
+      'vm-data/xo-docking/mode': 'diagnose',
+    })
+  })
+
+  await t.test('sets the inputs given', () => {
+    assert.deepEqual(
+      buildDockingXenstoreData(
+        {},
+        {
+          mode: 'dock',
+          nics: 'ens192=00:0c:29:d4:bf:19',
+          windowsNics: '00:0c:29:94:80:0d={44FED271-EE81-4363-8CF0-893542F0734F}',
+          windowsReboot: 'xo',
+        }
+      ),
+      {
+        'vm-data/xo-docking/mode': 'dock',
+        'vm-data/xo-docking/nics': 'ens192=00:0c:29:d4:bf:19',
+        'vm-data/xo-docking/windows-nics': '00:0c:29:94:80:0d={44FED271-EE81-4363-8CF0-893542F0734F}',
+        'vm-data/xo-docking/windows-reboot': 'xo',
+      }
+    )
+  })
+
+  await t.test('clearDockingXenstoreData removes inputs and outputs', () => {
+    assert.deepEqual(clearDockingXenstoreData(previousRun), { 'vm-data/other': 'kept' })
+  })
+})
+
+test('readDockingOutput', async t => {
+  const report = {
+    result: 'error',
+    tools: 'xvdz',
+    os: { kind: 'linux' },
+    network: [],
+    findings: [
+      { level: 'warning', code: 'linux_interface_names' },
+      { level: 'error', code: 'boot_disk_not_first', data: { os_disk: 'xvdb' } },
+    ],
+    actions: [],
+  }
+  const xenstoreData = {
+    'vm-data/xo-docking/out/version': '20261012-1a2b3c4d',
+    'vm-data/xo-docking/out/mode': 'diagnose',
+    'vm-data/xo-docking/out/result': 'error',
+    'vm-data/xo-docking/out/state': 'done',
+    'vm-data/xo-docking/out/report': JSON.stringify(report),
+  }
+
+  await t.test('reads every output', () => {
+    assert.equal(isDockingDone(xenstoreData), true)
+    assert.deepEqual(readDockingOutput(xenstoreData, { vmId: 'vm' }), {
+      state: 'done',
+      result: 'error',
+      mode: 'diagnose',
+      version: '20261012-1a2b3c4d',
+      firstboot: undefined,
+      report,
+    })
+    assert.deepEqual(
+      getBlockingFindings(report).map(({ code }) => code),
+      ['boot_disk_not_first']
+    )
+  })
+
+  await t.test('is not done while running or before the ISO started', () => {
+    assert.equal(isDockingDone({ 'vm-data/xo-docking/out/state': 'running' }), false)
+    assert.equal(isDockingDone({}), false)
+  })
+
+  await t.test('reports an invalid report with its context', () => {
+    assert.throws(() => readDockingOutput({ 'vm-data/xo-docking/out/report': '{"trunc' }, { vmId: 'vm' }), {
+      code: 'DOCKING_REPORT_INVALID',
+      vmId: 'vm',
+      rawReport: '{"trunc',
+    })
+  })
+})
+
+test('isDockingIsoName', () => {
+  assert.equal(isDockingIsoName('vates-autopilot-docking-20261018T084512Z-0d5f013b.iso'), true)
+  assert.equal(isDockingIsoName('vates-autopilot-docking-20261018T084512Z-0d5f013b-dirty.iso'), true)
+  assert.equal(isDockingIsoName('vates-autopilot-docking-20261018T084512Z-1.2.0.iso'), true)
+  assert.equal(isDockingIsoName('vates-autopilot-docking-20261018T084512Z-0d5f013b.img'), false)
+  // without the date and time first, it could not be ordered with the others
+  assert.equal(isDockingIsoName('vates-autopilot-docking-1.2.0.iso'), false)
+  assert.equal(isDockingIsoName('vates-autopilot-docking-latest.iso'), false)
+  assert.equal(isDockingIsoName('vates-autopilot-docking-20261018-0d5f013b.iso'), false)
+  assert.equal(isDockingIsoName('vates-autopilot-docking-20261018T084512-0d5f013b.iso'), false)
+  // the former name
+  assert.equal(isDockingIsoName('xo-docking-20261018-0d5f013b.iso'), false)
+  assert.equal(isDockingIsoName('guest-tools.iso'), false)
+})
+
+test('first boot state', () => {
+  assert.equal(readFirstBootState({ 'vm-data/xo-docking/out/firstboot': 'drivers:running' }), 'drivers:running')
+  assert.equal(readFirstBootState({}), undefined)
+
+  assert.equal(isFirstBootOver('done'), true)
+  assert.equal(isFirstBootOver('drivers:failed'), true)
+  // retried at the next boot
+  assert.equal(isFirstBootOver('drivers:error'), false)
+  assert.equal(isFirstBootOver('finish:running'), false)
+  assert.equal(isFirstBootOver(undefined), false)
+})
+
+test('describeFailures', () => {
+  const report = {
+    findings: [
+      { level: 'warning', code: 'windows_static_ip' },
+      { level: 'error', code: 'action_failed', message: 'install_firstboot: [Errno 28] No space left on device' },
+      { level: 'error', code: 'bitlocker', message: 'C: is encrypted' },
+      { level: 'error', code: 'dynamic_disk' },
+    ],
+    actions: [
+      { code: 'enable_ide_boot', status: 'applied' },
+      { code: 'install_firstboot', status: 'failed', error: '[Errno 28] No space left on device' },
+      { code: 'disable_vmware_services', status: 'failed' },
+      { code: 'commit_registry', status: 'skipped' },
+    ],
+  }
+  assert.deepEqual(describeFailures(report), [
+    'install_firstboot: [Errno 28] No space left on device',
+    'disable_vmware_services',
+    'bitlocker: C: is encrypted',
+    'dynamic_disk',
+  ])
+  assert.deepEqual(
+    describeFailures({ truncated: true, findings: [{ level: 'error', code: 'ntfs_unclean' }], actions: [] }),
+    ['ntfs_unclean', 'details were dropped from the report to fit in xenstore']
+  )
+})
+
+test('userdeviceOfXvd', () => {
+  assert.equal(userdeviceOfXvd('xvda'), '0')
+  assert.equal(userdeviceOfXvd('xvdb'), '1')
+  assert.equal(userdeviceOfXvd('sda'), undefined)
+  assert.equal(userdeviceOfXvd('xvdaa'), undefined)
+})
+
+test('isFirstBootLeftToXo', () => {
+  const report = (actions = []) => ({ os: { kind: 'windows' }, findings: [], actions })
+  const firstBootInstalled = report([{ code: 'install_firstboot', status: 'applied' }])
+  assert.equal(isFirstBootLeftToXo({ dock: firstBootInstalled, windowsReboot: 'xo' }), true)
+  // the guest reboots itself
+  assert.equal(isFirstBootLeftToXo({ dock: firstBootInstalled, windowsReboot: 'guest' }), false)
+  // no first boot installed
+  assert.equal(isFirstBootLeftToXo({ dock: report(), windowsReboot: 'xo' }), false)
+  // the docking failed before its dock run
+  assert.equal(isFirstBootLeftToXo({ windowsReboot: 'xo' }), false)
+})

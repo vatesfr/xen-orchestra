@@ -25,6 +25,8 @@
 - [Web-Core/UiDropdownButton] Update dropdown buttons design and add a smaller size (PR [#9850](https://github.com/vatesfr/xen-orchestra/pull/9850))
 - [REST API] `PUT /rest/v0/acl-roles/:id/users/:userId` refuses to attach a role to an admin, and `GET /rest/v0/users/:id/acl-privileges` returns no privileges for an admin (PR [#10694](https://github.com/vatesfr/xen-orchestra/pull/10694))
 - [REST API/V2V] `POST /rest/v0/v2v/inventory` reads the inventory of a vCenter or ESXi (datacenters, clusters, hosts, datastores, networks and VMs with their disks and network cards), and `POST /rest/v0/pools/:id/actions/import_vms_from_vmware` imports a list of VMs into the pool, with an SR per disk and a network per network card, resuming partial imports with a delta. Restricted to administrators, credentials are never stored (PR [#10597](https://github.com/vatesfr/xen-orchestra/pull/10597))
+- [V2V] Optional `docking` of the guest once its import is complete: the VM boots on the docking ISO deployed on the pool (`vates-autopilot-docking-<build date and time>-<commit>.iso`), with the guest tools ISO, which prepares it to run on XCP-ng (Xen drivers, VMware tools disabled, guest agent, network interface names, Windows first boot). Off by default, available on `POST /rest/v0/pools/:id/actions/import_vms_from_vmware` (PR [#10621](https://github.com/vatesfr/xen-orchestra/pull/10621))
+- [V2V] Optional `startVm` once the import is complete: a docked guest is followed through its first boot (Windows drivers and agent installation, with a diagnosis of the VM when it does not complete), then Secure Boot is enabled again when the source had it (PR [#10621](https://github.com/vatesfr/xen-orchestra/pull/10621))
 - [REST API] Expose `GET /rest/v0/backup-archives/:id/disks/:diskId/partitions` (PR [#9941](https://github.com/vatesfr/xen-orchestra/pull/9941))
 - [REST API] Expose `GET /rest/v0/backup-archives/:id/disks/:diskId/partitions/:partitionId/files` (PR [#9941](https://github.com/vatesfr/xen-orchestra/pull/9941))
 - [REST API] Expose `GET /rest/v0/backup-archives/:id/disks/:diskId/files` (PR [#9941](https://github.com/vatesfr/xen-orchestra/pull/9941))
@@ -65,6 +67,7 @@
 
 - @vates/types minor
 - @xen-orchestra/acl minor
+- @xen-orchestra/autopilot-docking minor
 - @xen-orchestra/backups minor
 - @xen-orchestra/fs minor
 - @xen-orchestra/proxy minor

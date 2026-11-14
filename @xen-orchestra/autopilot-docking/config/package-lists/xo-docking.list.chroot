@@ -1,0 +1,22 @@
+# runtime of the docking tool
+python3
+python3-hivex
+xenstore-utils
+
+# keep-running: live-config autologin on the console needs the live user
+sudo
+user-setup
+
+# filesystems and storage stacks found on migrated VMs
+btrfs-progs
+dosfstools
+e2fsprogs
+lvm2
+mdadm
+ntfs-3g
+xfsprogs
+
+# lsinitramfs: read the guest's initramfs when it cannot be rebuilt (read-only root)
+lz4
+xz-utils
+zstd

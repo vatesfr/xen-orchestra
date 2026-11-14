@@ -190,8 +190,11 @@ export type XoV2vInventory = {
 
 export type XoV2vStartOptions = {
   stopSource: boolean
+  // once the import is complete, start the VM, following the first boot of a docked guest
   startVm: boolean
   cleanup: boolean
+  // once the import is complete, prepare the guest to boot on XCP-ng with the docking ISO of the pool, off by default
+  docking?: boolean
 }
 
 // A resumed import sends no disk or NIC map: the back end reads its mapping from the existing XCP-ng VM

@@ -1,0 +1,63 @@
+# Works on GitHub Actions and Gitea Actions (which also reads .github/workflows).
+#
+# Gitea notes:
+# - the build job needs a privileged container (live-build mounts chroots):
+#   set `container.privileged: true` in the act_runner configuration;
+# - nodejs is installed explicitly because JavaScript actions (checkout,
+#   upload-artifact) run inside the job container there;
+# - older Gitea releases only support actions/upload-artifact@v3.
+name: build
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+  schedule:
+    - cron: '0 3 * * 1' # weekly rebuild to pick up Debian security updates
+  workflow_dispatch:
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    container: debian:trixie
+    steps:
+      - name: Install dependencies
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends ca-certificates git nodejs python3 python3-hivex
+      - uses: actions/checkout@v4
+      - name: Unit tests
+        run: python3 -m unittest discover -s tests -v
+
+  iso:
+    needs: test
+    runs-on: ubuntu-latest
+    container:
+      image: debian:trixie
+      options: --privileged
+    steps:
+      - name: Install dependencies
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends \
+            ca-certificates git nodejs live-build squashfs-tools xorriso
+      - uses: actions/checkout@v4
+      - name: Build
+        id: version
+        run: |
+          # release builds take their version from the tag, others from the date and commit
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
+            export XO_DOCKING_VERSION="${GITHUB_REF_NAME#v}"
+          fi
+          scripts/build.sh
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: vates-autopilot-docking-${{ steps.version.outputs.version }}
+          path: dist/
+          retention-days: 30

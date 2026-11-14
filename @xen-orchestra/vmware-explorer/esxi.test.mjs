@@ -1340,34 +1340,39 @@ RW 67108864 VMFS "vm-000001-flat.vmdk"
     guestId: 'ubuntu64Guest',
     guestFullName: 'Ubuntu Linux (64-bit)',
     firmware: 'efi',
+    bootOptions: { efiSecureBootEnabled: 'true' },
     files: { vmPathName },
     hardware: {
       memoryMB: '2048',
       numCPU: '2',
-      device: {
-        attributes: { 'xsi:type': 'ArrayOfVirtualDevice' },
-        VirtualDevice: [
-          {
-            attributes: { 'xsi:type': 'VirtualVmxnet3' },
-            key: '4000',
-            deviceInfo: { label: 'Network adapter 1' },
-            macAddress: '00:0c:29:00:00:01',
-            addressType: 'generated',
-            backing: { network: moRef('Network', 'network-13') },
-          },
-          {
-            attributes: { 'xsi:type': 'VirtualE1000e' },
-            key: '4001',
-            deviceInfo: { label: 'Network adapter 2' },
-            macAddress: '00:50:56:00:00:02',
-            addressType: 'manual',
-          },
-        ],
-      },
+      // within `config`, the repeated `device` element, not an `ArrayOfVirtualDevice` as when it is read on its own
+      device: [
+        {
+          attributes: { 'xsi:type': 'VirtualVmxnet3' },
+          key: '4000',
+          deviceInfo: { label: 'Network adapter 1' },
+          macAddress: '00:0c:29:00:00:01',
+          addressType: 'generated',
+          backing: { network: moRef('Network', 'network-13') },
+          slotInfo: { pciSlotNumber: '192' },
+        },
+        {
+          attributes: { 'xsi:type': 'VirtualE1000e' },
+          key: '4001',
+          deviceInfo: { label: 'Network adapter 2' },
+          macAddress: '00:50:56:00:00:02',
+          addressType: 'manual',
+        },
+      ],
     },
   })
 
   const RUNTIME = { attributes: { 'xsi:type': 'VirtualMachineRuntimeInfo' }, powerState: 'poweredOn' }
+
+  const GUEST_NET = {
+    attributes: { 'xsi:type': 'ArrayOfGuestNicInfo' },
+    GuestNicInfo: { macAddress: '00:0c:29:00:00:01', deviceConfigId: '4000', ipAddress: '10.0.0.5' },
+  }
 
   const DATASTORE_SUMMARIES = [
     {
@@ -1380,8 +1385,13 @@ RW 67108864 VMFS "vm-000001-flat.vmdk"
    * @param {object} [options]
    * @param {string} [options.vmPathName] - `files.vmPathName` reported for the VM
    * @param {number} [options.vmsdStatus] - status of the response to the vmsd request
+   * @param {object | null} [options.guestNet] - `guest.net` of the VM, null when the guest does not report it
    */
-  const transferableEsxi = async ({ vmPathName = '[ds main] a.vm/a.vm.vmx', vmsdStatus = 404 } = {}) => {
+  const transferableEsxi = async ({
+    vmPathName = '[ds main] a.vm/a.vm.vmx',
+    vmsdStatus = 404,
+    guestNet = GUEST_NET,
+  } = {}) => {
     const requested = []
     const { esxi } = await connectedEsxi({
       responses: {
@@ -1393,6 +1403,12 @@ RW 67108864 VMFS "vm-000001-flat.vmdk"
           }
           if (type !== 'VirtualMachine') {
             return page(DATACENTERS)
+          }
+          if (pathSet[0] === 'guest.net') {
+            // vSphere leaves an unset property out of the answer
+            return guestNet === null
+              ? { returnval: { objects: [{ obj: moRef('VirtualMachine', 'vm-1') }] } }
+              : propertyOf('VirtualMachine', 'vm-1', 'guest.net', guestNet)
           }
           return pathSet[0] === 'runtime'
             ? propertyOf('VirtualMachine', 'vm-1', 'runtime', RUNTIME)
@@ -1436,10 +1452,12 @@ RW 67108864 VMFS "vm-000001-flat.vmdk"
     // used to be returned as a one element array
     assert.equal(metadata.guestFullName, 'Ubuntu Linux (64-bit)')
     assert.equal(metadata.firmware, 'uefi')
+    assert.equal(metadata.secureBoot, true)
     assert.equal(metadata.powerState, 'poweredOn')
     assert.equal(metadata.memory, 2048 * 1024 * 1024)
     assert.equal(metadata.nCpus, 2)
     assert.equal(metadata.cdrom, true)
+    assert.deepEqual(metadata.guestNics, [{ key: '4000', macAddress: '00:0c:29:00:00:01', addresses: ['10.0.0.5'] }])
     assert.deepEqual(metadata.networks, [
       {
         key: '4000',
@@ -1447,6 +1465,7 @@ RW 67108864 VMFS "vm-000001-flat.vmdk"
         macAddress: '00:0c:29:00:00:01',
         isGenerated: true,
         network: 'network-13',
+        pciSlotNumber: 192,
       },
       // a MAC set by hand is not in the vmx as a generated one: it used to be lost
       {
@@ -1455,8 +1474,15 @@ RW 67108864 VMFS "vm-000001-flat.vmdk"
         macAddress: '00:50:56:00:00:02',
         isGenerated: false,
         network: undefined,
+        pciSlotNumber: undefined,
       },
     ])
+  })
+
+  it('reports no guest network card when the guest runs without the tools', async function () {
+    const { esxi } = await transferableEsxi({ guestNet: null })
+
+    assert.deepEqual((await esxi.getTransferableVmMetadata('vm-1')).guestNics, [])
   })
 
   it('treats a missing vmsd as a VM without snapshot', async function () {

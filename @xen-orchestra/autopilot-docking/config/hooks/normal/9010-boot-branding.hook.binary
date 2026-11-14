@@ -1,0 +1,16 @@
+#!/bin/sh
+# The name of the ISO is drawn in the boot menu background (config/bootloaders/splash.svg):
+# remove the default menu titles, which would be drawn over it.
+# Runs in the binary/ directory, after the boot loader configuration is generated.
+set -e
+
+# isolinux (BIOS): the title of the main menu only, the Utilities submenu keeps its own.
+# The template ends it with a BEL character (^G, a beep when the menu shows): no `$` anchor
+if [ -f isolinux/menu.cfg ]; then
+	sed -i -E '/^menu title Boot menu/d' isolinux/menu.cfg
+fi
+
+# grub (UEFI): live-build only clears it for its own default background
+if [ -f boot/grub/live-theme/theme.txt ]; then
+	sed -i -E 's/^title-text:.*/title-text: ""/' boot/grub/live-theme/theme.txt
+fi
