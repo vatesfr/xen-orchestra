@@ -15,7 +15,8 @@ git() { command git -c safe.directory='*' "$@"; }
 version="$(date -u +%Y%m%dT%H%M%SZ)-${XO_REPAIR_VERSION:-}"
 if [ -z "${XO_REPAIR_VERSION:-}" ]; then
 	version="$version$(git rev-parse --short=8 HEAD)"
-	[ -z "$(git status --porcelain --untracked-files=no)" ] || version="$version-dirty"
+	# only this package: a change elsewhere in the monorepo does not end up in the ISO
+	[ -z "$(git status --porcelain --untracked-files=no -- .)" ] || version="$version-dirty"
 fi
 
 echo "$version" > config/includes.chroot/usr/lib/xo-repair/VERSION
