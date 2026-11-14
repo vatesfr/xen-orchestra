@@ -54,6 +54,9 @@ function fakeXapi(states) {
     async barrier() {},
     async call(method, ...args) {
       calls.push(method)
+      if (method === 'VM.set_xenstore_data') {
+        vm.xenstore_data = args[1]
+      }
       if (method === 'VM.start') {
         vm.power_state = 'Running'
         vm.$guest_metrics = { PV_drivers_detected: true, last_updated: `report ${++agentReports}` }
@@ -70,6 +73,7 @@ function fakeXapi(states) {
         throw Object.assign(new Error('timeout'), { code: 'TIMEOUT' })
       }
       vm.power_state = state.power_state
+      vm.xenstore_data = toVm(state).xenstore_data
       return toVm(state)
     },
   }
@@ -151,7 +155,7 @@ test('firstBootOfRepairedVm, Windows', async t => {
     const { calls, progresses } = await followFirstBoot({
       states: [{ power_state: 'Halted' }, { power_state: 'Running', firstboot: 'done' }],
     })
-    assert.deepEqual(calls, ['VM.start', 'VM.start'])
+    assert.deepEqual(calls, ['VM.start', 'VM.start', 'VM.set_xenstore_data'])
     assert.deepEqual(progresses, [
       { restartedAfter: ['drivers'], done: false },
       { restartedAfter: ['drivers'], done: true },
@@ -162,8 +166,23 @@ test('firstBootOfRepairedVm, Windows', async t => {
     const { calls, progresses } = await followFirstBoot({
       states: [{ power_state: 'Running', firstboot: 'done' }],
     })
-    assert.deepEqual(calls, ['VM.start'])
+    assert.deepEqual(calls, ['VM.start', 'VM.set_xenstore_data'])
     assert.deepEqual(progresses, [{ restartedAfter: [], done: true }])
+  })
+
+  await t.test('clears the state of the first boot once it is described', async () => {
+    const xapi = fakeXapi([{ power_state: 'Running', firstboot: 'done' }])
+    await firstBootOfRepairedVm({
+      xapi,
+      vmRef: VM_REF,
+      metadata: { vmId: '54', secureBoot: false },
+      reports: WINDOWS_REPORTS,
+      onProgress: async progress => {
+        xapi.calls.push(`described, done: ${progress.done}`)
+      },
+    })
+    assert.deepEqual(xapi.calls, ['VM.start', 'described, done: true', 'VM.set_xenstore_data'])
+    assert.deepEqual(xapi.getObject(VM_REF).xenstore_data, {})
   })
 
   await t.test('does not follow a guest without PV drivers, even when the report lost the finding', async () => {
