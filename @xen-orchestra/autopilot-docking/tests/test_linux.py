@@ -8,9 +8,9 @@ from unittest import mock
 
 from helpers import dev, lsblk_json, make_tree
 
-from xo_repair.blockdev import guest_disks, parse_lsblk
-from xo_repair.detect import OsCandidate
-from xo_repair.linux import (
+from xo_docking.blockdev import guest_disks, parse_lsblk
+from xo_docking.detect import OsCandidate
+from xo_docking.linux import (
     VMWARE_UNITS, LinuxGuest, agent_enabled, available_modules, detect_initramfs_tool, disable_units,
     enable_unit, extract_agent_tgz,
     guest_arch, initramfs_image, missing_initramfs_modules, interface_names, is_unstable_spec, kernel_versions, link_file,
@@ -18,8 +18,8 @@ from xo_repair.linux import (
     parse_os_release, pin_interface_names, rewrite_fstab, rhel_kdump_images, select_agent_package,
     selinux_enabled, services_not_started, stale_kdump_initrds, unstable_resume,
 )
-from xo_repair.report import Report
-from xo_repair.util import RepairError, guest_read, resolve_in_root
+from xo_docking.report import Report
+from xo_docking.util import DockingError, guest_read, resolve_in_root
 
 FSTAB = """\
 # /etc/fstab: static file system information.
@@ -151,7 +151,7 @@ class MountFstabTest(unittest.TestCase):
             ))
             mounts = mock.Mock()
             guest = LinuxGuest(OsCandidate("linux", devices[1]), devices, guest_disks(devices), mounts,
-                               Report("repair", "dev"), readonly=False)
+                               Report("dock", "dev"), readonly=False)
             guest.root = root
             guest._mount_fstab(parse_fstab("UUID=U-BOOT /boot ext4 defaults 0 2\n"))
             mounts.mount.assert_called_once_with("/dev/xvda1", "ext4", root / "guest-boot", readonly=False,
@@ -376,7 +376,7 @@ class GuestAgentTest(unittest.TestCase):
         with services_not_started(self.root):
             self.assertIn("exit 101", (self.root / "usr/sbin/policy-rc.d").read_text())
         self.assertEqual((self.root / "usr/sbin/policy-rc.d").read_text(), "#!/bin/sh\nexit 0\n")
-        self.assertFalse((self.root / "usr/sbin/policy-rc.d.xo-repair.bak").exists())
+        self.assertFalse((self.root / "usr/sbin/policy-rc.d.xo-docking.bak").exists())
 
     def test_services_not_started_removes_its_policy(self):
         make_tree(self.root, {"usr/sbin/dpkg": ""})
@@ -433,7 +433,7 @@ class LeapGuestTest(unittest.TestCase):
             dev("xvda1"), dev("xvda2", fstype="btrfs", uuid="root-uuid"), dev("xvda3", fstype="swap", uuid="swap-uuid"),
         ])))
         root_dev = next(d for d in devices if d.name == "xvda2")
-        self.report = Report("repair", "test")
+        self.report = Report("dock", "test")
         self.guest = LinuxGuest(OsCandidate("linux", root_dev), devices, guest_disks(devices),
                                 FakeMounts(self.root), self.report, readonly=False, tools=self.tools)
         self.guest.inspect()
@@ -460,7 +460,7 @@ class LeapGuestTest(unittest.TestCase):
         self.action("kdump_initrd_rebuild").apply()
         fstab = (self.root / "etc/fstab").read_text().splitlines()
         self.assertEqual([line.split()[0] for line in fstab], ["UUID=root-uuid", "UUID=root-uuid", "UUID=swap-uuid"])
-        self.assertTrue((self.root / "etc/fstab.xo-repair.bak").is_file())
+        self.assertTrue((self.root / "etc/fstab.xo-docking.bak").is_file())
         self.assertFalse((self.root / "var/lib/kdump/initrd").exists())
 
     def test_apply_guest_agent(self):
@@ -475,16 +475,16 @@ class LeapGuestTest(unittest.TestCase):
             make_tree(self.root, {"etc/systemd/system/multi-user.target.wants/xe-linux-distribution.service":
                                   ("symlink", "/usr/lib/systemd/system/xe-linux-distribution.service")})
 
-        with mock.patch("xo_repair.linux.chroot_run", chroot_run):
+        with mock.patch("xo_docking.linux.chroot_run", chroot_run):
             self.action("install_guest_agent").apply()
-        self.assertEqual(commands, [["rpm", "-U", "--replacepkgs", "/tmp/xo-repair/xe-guest-utilities-7.30.0-19.x86_64.rpm"]])
-        self.assertFalse((self.root / "tmp/xo-repair").exists())
+        self.assertEqual(commands, [["rpm", "-U", "--replacepkgs", "/tmp/xo-docking/xe-guest-utilities-7.30.0-19.x86_64.rpm"]])
+        self.assertFalse((self.root / "tmp/xo-docking").exists())
 
     def test_apply_guest_agent_not_enabled(self):
         for directory in ("dev/pts", "proc", "sys"):
             (self.root / directory).mkdir(parents=True)
-        with mock.patch("xo_repair.linux.chroot_run"):
-            with self.assertRaises(RepairError):
+        with mock.patch("xo_docking.linux.chroot_run"):
+            with self.assertRaises(DockingError):
                 self.action("install_guest_agent").apply()
 
 
@@ -512,10 +512,10 @@ class ReadonlyRootTest(unittest.TestCase):
             })
             tools_dir = make_tree(Path(tmp) / "tools", {f"Linux/{n}": "" for n in TOOLS_LINUX})
             devices = parse_lsblk(lsblk_json(dev("xvda", "disk", children=[dev("xvda3", fstype="ext4")])))
-            report = Report("repair", "test")
+            report = Report("dock", "test")
             guest = LinuxGuest(OsCandidate("linux", devices[1]), devices, guest_disks(devices),
                                FakeMounts(root), report, readonly=False, tools=tools_dir)
-            with mock.patch("xo_repair.linux.initramfs_files", return_value=initramfs_listing):
+            with mock.patch("xo_docking.linux.initramfs_files", return_value=initramfs_listing):
                 guest.inspect()
                 guest.finalize()
             return report

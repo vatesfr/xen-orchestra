@@ -1,7 +1,7 @@
 """xenstore access from inside the guest.
 
-XO -> ISO: VM.xenstore_data entries, readable at vm-data/xo-repair/*
-ISO -> XO: written under vm-data/xo-repair/out/*. XAPI only syncs the guest's
+XO -> ISO: VM.xenstore_data entries, readable at vm-data/xo-docking/*
+ISO -> XO: written under vm-data/xo-docking/out/*. XAPI only syncs the guest's
 vm-data/ subtree back into VM.xenstore_data (not data/), and keeps it after
 the VM halts.
 
@@ -15,10 +15,10 @@ import shutil
 import subprocess
 from pathlib import Path
 
-log = logging.getLogger("xo-repair")
+log = logging.getLogger("xo-docking")
 
-CONFIG_PREFIX = "vm-data/xo-repair"
-STATUS_PREFIX = "vm-data/xo-repair/out"
+CONFIG_PREFIX = "vm-data/xo-docking"
+STATUS_PREFIX = "vm-data/xo-docking/out"
 
 
 class Xenstore:

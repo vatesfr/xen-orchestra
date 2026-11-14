@@ -1,6 +1,0 @@
-#!/bin/sh
-# Enable the repair service in the live system.
-set -e
-
-chmod 0755 /usr/local/bin/xo-repair
-systemctl enable xo-repair.service

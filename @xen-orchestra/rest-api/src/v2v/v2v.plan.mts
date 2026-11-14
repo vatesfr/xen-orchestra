@@ -14,7 +14,7 @@ export type V2vVmPlan = {
   nics: Record<string, XoNetwork['id']>
   template: XoVmTemplate['id']
   stopSource: boolean
-  repair: boolean
+  docking: boolean
   startVm: boolean
 }
 
@@ -82,12 +82,12 @@ export function planMigration(
     }
 
     const stopSource = vm.stopSource ?? defaults.stopSource ?? false
-    const repair = vm.repair ?? defaults.repair ?? false
+    const docking = vm.docking ?? defaults.docking ?? false
     const startVm = vm.startVm ?? defaults.startVm ?? false
-    // the guest is only repaired, and the VM only started, once its import is complete: it would silently not be
+    // the guest is only docked, and the VM only started, once its import is complete: it would silently not be
     const isPartial = !stopSource && sourceVm.powerState !== 'poweredOff'
-    if (repair && isPartial) {
-      report('the guest can only be repaired by a complete import: stop the source, or use stopSource', 'repair')
+    if (docking && isPartial) {
+      report('the guest can only be docked by a complete import: stop the source, or use stopSource', 'docking')
     }
     if (startVm && isPartial) {
       report('the VM can only be started after a complete import: stop the source, or use stopSource', 'startVm')
@@ -111,7 +111,7 @@ export function planMigration(
       nics: (vm.nics ?? {}) as Record<string, XoNetwork['id']>,
       template: (vm.template ?? defaults.template) as XoVmTemplate['id'],
       stopSource,
-      repair,
+      docking,
       startVm,
     }
   }

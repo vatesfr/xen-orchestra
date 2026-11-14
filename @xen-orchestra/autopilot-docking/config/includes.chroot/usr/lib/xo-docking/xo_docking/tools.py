@@ -13,7 +13,7 @@ from pathlib import Path
 from .blockdev import BlockDev
 from .mounts import Mounts
 from .report import Report
-from .util import RepairError, find_ci
+from .util import DockingError, find_ci
 
 
 def find_tools(devices: list[BlockDev], mounts: Mounts, report: Report) -> Path | None:
@@ -23,7 +23,7 @@ def find_tools(devices: list[BlockDev], mounts: Mounts, report: Report) -> Path 
             continue
         try:
             mnt = mounts.mount(dev.path, dev.fstype, readonly=True)
-        except RepairError as exc:
+        except DockingError as exc:
             report.warning("tools_disk_mount_failed", str(exc), device=dev.path)
             continue
         if find_ci(mnt, "Linux") or find_ci(mnt, "Windows"):

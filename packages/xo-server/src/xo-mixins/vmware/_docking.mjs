@@ -4,21 +4,21 @@ import { Task } from '@xen-orchestra/mixins/Tasks.mjs'
 
 import {
   buildLinuxNics,
-  buildRepairXenstoreData,
+  buildDockingXenstoreData,
   buildWindowsNics,
-  clearRepairXenstoreData,
+  clearDockingXenstoreData,
   describeFailures,
   FINDING,
   findFinding,
   getBlockingFindings,
   guestLogsOf,
-  isRepairIsoName,
-  isRepairDone,
-  readRepairOutput,
+  isDockingIsoName,
+  isDockingDone,
+  readDockingOutput,
   userdeviceOfXvd,
-} from './_repairInputs.mjs'
+} from './_dockingInputs.mjs'
 
-const { warn } = createLogger('xo:mixins:vmware:repair')
+const { warn } = createLogger('xo:mixins:vmware:docking')
 
 // rebuilding the initramfs of every kernel of a large guest takes a few minutes, a boot on the ISO
 // which does not report anything by then will not
@@ -33,19 +33,19 @@ const OUTPUT_SYNC_TIMEOUT = 30e3
 const TOOLS_USERDEVICE = '25'
 
 /**
- * The most recent repair ISO deployed on the pool as an ISO SR VDI: its name starts with the date and time of its
+ * The most recent docking ISO deployed on the pool as an ISO SR VDI: its name starts with the date and time of its
  * build, `vates-autopilot-docking-<YYYYMMDDTHHMMSSZ>-<commit or version>.iso`, the last one by name is the most
  * recent. A name without that structure is ignored: it could not be ordered.
  */
-export function findRepairIso(xapi, context) {
+export function findDockingIso(xapi, context) {
   const isos = Object.values(xapi.objects.indexes.type.VDI ?? {}).filter(
-    vdi => isRepairIsoName(vdi.name_label) && !vdi.missing && vdi.$SR?.content_type === 'iso'
+    vdi => isDockingIsoName(vdi.name_label) && !vdi.missing && vdi.$SR?.content_type === 'iso'
   )
   if (isos.length === 0) {
     const error = new Error(
-      'no repair ISO vates-autopilot-docking-<YYYYMMDDTHHMMSSZ>-<commit or version>.iso in the pool'
+      'no docking ISO vates-autopilot-docking-<YYYYMMDDTHHMMSSZ>-<commit or version>.iso in the pool'
     )
-    error.code = 'REPAIR_ISO_NOT_FOUND'
+    error.code = 'DOCKING_ISO_NOT_FOUND'
     Object.assign(error, context)
     throw error
   }
@@ -74,107 +74,121 @@ async function insertCd(xapi, vm, iso) {
 }
 
 /**
- * The repair ISO in the CD drive and the guest tools ISO as a read-only disk, both released on dispose:
+ * The docking ISO in the CD drive and the guest tools ISO as a read-only disk, both released on dispose:
  * neither SR supports snapshots.
  */
-async function attachRepairDisks(xapi, vmRef, context) {
-  const iso = findRepairIso(xapi, context)
-  Task.info(`repair ISO: ${iso.name_label}`)
-  const vm = xapi.getObject(vmRef)
+async function attachDockingDisks(xapi, vmRef, context) {
+  const { cdDriveRef, isCreated, toolsVbdRef } = await Task.run(
+    { properties: { name: 'attaching the docking ISO' } },
+    async () => {
+      const iso = findDockingIso(xapi, context)
+      Task.info(`docking ISO: ${iso.name_label}`)
+      const vm = xapi.getObject(vmRef)
 
-  const { cdDriveRef, isCreated } = await insertCd(xapi, vm, iso)
+      const { cdDriveRef, isCreated } = await insertCd(xapi, vm, iso)
 
-  // optional: without it the ISO repairs everything but the guest agent
-  const toolsIso = findToolsIso(xapi)
-  let toolsVbdRef
-  if (toolsIso === undefined) {
-    Task.warning('no guest tools ISO in the pool: the guest agent will not be installed')
-  } else {
-    try {
-      const allowedUserdevices = await xapi.call('VM.get_allowed_VBD_devices', vmRef)
-      toolsVbdRef = await xapi.VBD_create({
-        bootable: false,
-        mode: 'RO',
-        type: 'Disk',
-        userdevice: allowedUserdevices.includes(TOOLS_USERDEVICE) ? TOOLS_USERDEVICE : allowedUserdevices.at(-1),
-        VDI: toolsIso.$ref,
-        VM: vmRef,
+      // optional: without it the ISO does everything but install the guest agent
+      const toolsIso = findToolsIso(xapi)
+      let toolsVbdRef
+      if (toolsIso === undefined) {
+        Task.warning('no guest tools ISO in the pool: the guest agent will not be installed')
+      } else {
+        try {
+          const allowedUserdevices = await xapi.call('VM.get_allowed_VBD_devices', vmRef)
+          toolsVbdRef = await xapi.VBD_create({
+            bootable: false,
+            mode: 'RO',
+            type: 'Disk',
+            userdevice: allowedUserdevices.includes(TOOLS_USERDEVICE) ? TOOLS_USERDEVICE : allowedUserdevices.at(-1),
+            VDI: toolsIso.$ref,
+            VM: vmRef,
+          })
+        } catch (error) {
+          warn('failed to attach the guest tools ISO', { ...context, error })
+          Task.warning(`the guest tools ISO could not be attached: ${error.message}`)
+        }
+      }
+      return { cdDriveRef, isCreated, toolsVbdRef }
+    }
+  )
+
+  return new Disposable(() =>
+    Task.run({ properties: { name: 'releasing the docking ISO' } }, async () => {
+      // the VM is imported anyway: failing to release these is not worth failing it
+      await (isCreated ? xapi.VBD_destroy(cdDriveRef) : xapi.callAsync('VBD.eject', cdDriveRef)).catch(error => {
+        warn('failed to release the docking ISO', { ...context, error })
+        Task.warning(`the docking ISO could not be released: ${error.message}`)
       })
-    } catch (error) {
-      warn('failed to attach the guest tools ISO', { ...context, error })
-      Task.warning(`the guest tools ISO could not be attached: ${error.message}`)
-    }
-  }
-
-  return new Disposable(async () => {
-    // the VM is imported anyway: failing to release these is not worth failing it
-    await (isCreated ? xapi.VBD_destroy(cdDriveRef) : xapi.callAsync('VBD.eject', cdDriveRef)).catch(error =>
-      warn('failed to release the repair ISO', { ...context, error })
-    )
-    if (toolsVbdRef !== undefined) {
-      await xapi
-        .VBD_destroy(toolsVbdRef)
-        .catch(error => warn('failed to detach the guest tools ISO', { ...context, error }))
-    }
-  })
+      if (toolsVbdRef !== undefined) {
+        await xapi.VBD_destroy(toolsVbdRef).catch(error => {
+          warn('failed to detach the guest tools ISO', { ...context, error })
+          Task.warning(`the guest tools ISO could not be detached: ${error.message}`)
+        })
+      }
+    })
+  )
 }
 
 /**
  * Boots the VM on the ISO and waits for its result.
  *
- * @returns {Promise<import('./_repairInputs.mjs').RepairOutput>}
+ * @returns {Promise<import('./_dockingInputs.mjs').DockingOutput>}
  */
-function runRepairIso(xapi, vmRef, inputs, context) {
-  return Task.run({ properties: { name: `repair ISO: ${inputs.mode}` } }, async () => {
-    await xapi.call('VM.set_xenstore_data', vmRef, buildRepairXenstoreData(xapi.getObject(vmRef).xenstore_data, inputs))
+function runDockingIso(xapi, vmRef, inputs, context) {
+  return Task.run({ properties: { name: `docking ISO: ${inputs.mode}` } }, async () => {
+    await xapi.call(
+      'VM.set_xenstore_data',
+      vmRef,
+      buildDockingXenstoreData(xapi.getObject(vmRef).xenstore_data, inputs)
+    )
     await xapi.call('VM.start', vmRef, false, false)
     // until then the cache may still show the VM halted, or the `done` of the previous run
     await xapi.barrier()
 
     let vm
     try {
-      vm = await xapi.waitObjectState(vmRef, vm => isRepairDone(vm.xenstore_data) || vm.power_state === 'Halted', {
+      vm = await xapi.waitObjectState(vmRef, vm => isDockingDone(vm.xenstore_data) || vm.power_state === 'Halted', {
         timeout: RUN_TIMEOUT,
       })
     } catch (cause) {
       await xapi
         .call('VM.hard_shutdown', vmRef)
-        .catch(error => warn('failed to stop the VM after the repair ISO timed out', { ...context, error }))
+        .catch(error => warn('failed to stop the VM after the docking ISO timed out', { ...context, error }))
       // most likely the firmware refused the ISO, which then never started
-      const error = new Error('the repair ISO did not report its result in time')
-      error.code = 'REPAIR_ISO_TIMEOUT'
+      const error = new Error('the docking ISO did not report its result in time')
+      error.code = 'DOCKING_ISO_TIMEOUT'
       error.cause = cause
       Object.assign(error, context)
       throw error
     }
 
-    if (!isRepairDone(vm.xenstore_data)) {
+    if (!isDockingDone(vm.xenstore_data)) {
       vm = await xapi
-        .waitObjectState(vmRef, vm => isRepairDone(vm.xenstore_data), { timeout: OUTPUT_SYNC_TIMEOUT })
+        .waitObjectState(vmRef, vm => isDockingDone(vm.xenstore_data), { timeout: OUTPUT_SYNC_TIMEOUT })
         .catch(cause => {
-          const error = new Error('the VM halted without a result from the repair ISO')
-          error.code = 'REPAIR_ISO_NO_RESULT'
+          const error = new Error('the VM halted without a result from the docking ISO')
+          error.code = 'DOCKING_ISO_NO_RESULT'
           error.cause = cause
           Object.assign(error, context, { mode: inputs.mode })
           throw error
         })
     }
-    const output = readRepairOutput(vm.xenstore_data, context)
+    const output = readDockingOutput(vm.xenstore_data, context)
 
     await xapi
       .waitObjectState(vmRef, vm => vm.power_state === 'Halted', { timeout: POWER_OFF_TIMEOUT })
       .catch(async error => {
-        warn('the repair ISO did not power the VM off, forcing it', { ...context, error })
+        warn('the docking ISO did not power the VM off, forcing it', { ...context, error })
         await xapi.call('VM.hard_shutdown', vmRef)
       })
 
     if (output.report === undefined) {
-      const error = new Error('the repair ISO reported no report')
-      error.code = 'REPAIR_ISO_NO_RESULT'
+      const error = new Error('the docking ISO reported no report')
+      error.code = 'DOCKING_ISO_NO_RESULT'
       Object.assign(error, context, { mode: inputs.mode })
       throw error
     }
-    Task.info(`repair ISO ${output.version}: ${output.mode} ${output.result}`, {
+    Task.info(`docking ISO ${output.version}: ${output.mode} ${output.result}`, {
       findings: output.report.findings.map(({ level, code }) => `${level}:${code}`),
       actions: output.report.actions.map(({ code, status }) => `${code}:${status}`),
       failures: describeFailures(output.report),
@@ -193,7 +207,7 @@ async function moveDiskFirst(xapi, vmRef, osDisk, context) {
   const osVbd = vbds.find(vbd => vbd.userdevice === userdevice)
   if (osVbd === undefined) {
     const error = new Error(`the OS is on ${osDisk}, which is not a disk of the VM`)
-    error.code = 'REPAIR_OS_DISK_NOT_FOUND'
+    error.code = 'DOCKING_OS_DISK_NOT_FOUND'
     Object.assign(error, context, { osDisk })
     throw error
   }
@@ -218,32 +232,32 @@ const isBlockedOnBootDisk = report =>
 
 function assertNotBlocked(report, context) {
   if (getBlockingFindings(report).length !== 0) {
-    const error = new Error(`the guest cannot be repaired: ${describeFailures(report).join('; ')}`)
-    error.code = 'REPAIR_BLOCKED'
+    const error = new Error(`the guest cannot be docked: ${describeFailures(report).join('; ')}`)
+    error.code = 'DOCKING_BLOCKED'
     Object.assign(error, context, { reports: { diagnose: report } })
     throw error
   }
 }
 
 /**
- * Runs `fn` with the VM booting on the repair ISO, then restores how it boots on its disks. `fn` is given a
+ * Runs `fn` with the VM booting on the docking ISO, then restores how it boots on its disks. `fn` is given a
  * function which boots the VM on the ISO with these inputs, and returns its outputs.
  *
  * Secure Boot stays disabled: the ISO is not signed, and it is enabled again only once the guest has
  * booted on XCP-ng. When `fn` fails, the guest is not booted by XO: it is restored as it was.
  */
-async function withRepairIso(xapi, vmRef, context, fn) {
+async function withDockingIso(xapi, vmRef, context, fn) {
   const vm = xapi.getObject(vmRef)
   const { order } = vm.HVM_boot_params
   const { start, start_on } = vm.blocked_operations
   const isUefi = vm.HVM_boot_params.firmware === 'uefi'
   const { secureboot } = vm.platform
 
-  const run = inputs => runRepairIso(xapi, vmRef, inputs, context)
+  const run = inputs => runDockingIso(xapi, vmRef, inputs, context)
 
   // not `Disposable.use(disposable, fn)`: it does not wait for an asynchronous dispose, and the VM is started
   // right after, with the disks still being released
-  const repairDisks = await attachRepairDisks(xapi, vmRef, context)
+  const dockingDisks = await attachDockingDisks(xapi, vmRef, context)
   try {
     try {
       await vm.update_blocked_operations({ start: null, start_on: null })
@@ -262,11 +276,11 @@ async function withRepairIso(xapi, vmRef, context, fn) {
       }
       throw error
     } finally {
-      // each one on its own: a failed restore must neither skip the others nor replace the error of the repair
+      // each one on its own: a failed restore must neither skip the others nor replace the error of the docking
       const current = xapi.getObject(vmRef)
       const restores = {
-        'the repair inputs and outputs': () =>
-          xapi.call('VM.set_xenstore_data', vmRef, clearRepairXenstoreData(current.xenstore_data)),
+        'the docking inputs and outputs': () =>
+          xapi.call('VM.set_xenstore_data', vmRef, clearDockingXenstoreData(current.xenstore_data)),
         'the boot order': () => current.update_HVM_boot_params('order', order),
         'the blocked operations': () =>
           current.update_blocked_operations({ start: start ?? null, start_on: start_on ?? null }),
@@ -275,28 +289,28 @@ async function withRepairIso(xapi, vmRef, context, fn) {
         try {
           await restore()
         } catch (error) {
-          warn(`failed to restore ${what} after the repair ISO`, { ...context, error })
+          warn(`failed to restore ${what} after the docking ISO`, { ...context, error })
         }
       }
     }
   } finally {
-    await repairDisks.dispose()
+    await dockingDisks.dispose()
   }
 }
 
 /**
  * A diagnose run on a halted VM, e.g. to read the state of a Windows first boot which could not report it.
  *
- * @returns {Promise<import('./_repairInputs.mjs').RepairReport>}
+ * @returns {Promise<import('./_dockingInputs.mjs').DockingReport>}
  */
 export async function diagnoseOffline({ xapi, vmRef, context }) {
-  const { report } = await withRepairIso(xapi, vmRef, context, run => run({ mode: 'diagnose' }))
+  const { report } = await withDockingIso(xapi, vmRef, context, run => run({ mode: 'diagnose' }))
   return report
 }
 
 /**
- * Prepares an imported VM to boot on XCP-ng with the repair ISO: a diagnose run, which modifies nothing,
- * then a repair run. The VM must be halted, and is left halted, booting on its disks.
+ * Prepares an imported VM to boot on XCP-ng with the docking ISO: a diagnose run, which modifies nothing,
+ * then a dock run. The VM must be halted, and is left halted, booting on its disks.
  *
  * @param {object} params
  * @param {import('xen-api').Xapi} params.xapi
@@ -304,15 +318,15 @@ export async function diagnoseOffline({ xapi, vmRef, context }) {
  * @param {object} params.metadata - from `getTransferableVmMetadata`
  * @param {boolean} [params.followFirstBoot] - whether XO starts the VM and follows its first boot: the
  * Windows first boot then leaves its reboots to XO
- * @returns {Promise<{ diagnose: object, repair: object, hasPvDrivers: boolean, windowsReboot?: string }>} the
+ * @returns {Promise<{ diagnose: object, dock: object, hasPvDrivers: boolean, windowsReboot?: string }>} the
  * reports of both runs, whether the guest got the PV drivers, and who restarts Windows between the phases of its
  * first boot: the first boot must follow the same decisions as the ISO
  */
-export async function repairImportedVm({ xapi, vmRef, metadata, followFirstBoot = false }) {
+export async function dockImportedVm({ xapi, vmRef, metadata, followFirstBoot = false }) {
   const vm = xapi.getObject(vmRef)
   const context = { vmId: vm.uuid, sourceVmId: metadata.vmId }
 
-  return withRepairIso(xapi, vmRef, context, async run => {
+  return withDockingIso(xapi, vmRef, context, async run => {
     let diagnose = await run({ mode: 'diagnose' })
     if (isBlockedOnBootDisk(diagnose.report)) {
       const osDisk = findFinding(diagnose.report, FINDING.BOOT_DISK_NOT_FIRST).data?.os_disk
@@ -342,10 +356,10 @@ export async function repairImportedVm({ xapi, vmRef, metadata, followFirstBoot 
     // without PV drivers the first boot cannot report its end: XO does not follow it, and a VM stopped
     // between two phases would stay stopped
     const windowsReboot = isWindows ? (followFirstBoot && hasPvDrivers ? 'xo' : 'guest') : undefined
-    const repair = await run(
+    const dock = await run(
       isWindows
         ? {
-            mode: 'repair',
+            mode: 'dock',
             windowsNics: buildWindowsNics({
               guestNics: metadata.guestNics,
               networks: metadata.networks,
@@ -353,26 +367,26 @@ export async function repairImportedVm({ xapi, vmRef, metadata, followFirstBoot 
             }),
             windowsReboot,
           }
-        : { mode: 'repair', nics: buildLinuxNics(metadata.networks) }
+        : { mode: 'dock', nics: buildLinuxNics(metadata.networks) }
     )
-    if (repair.result === 'error') {
-      const guestLogs = guestLogsOf(repair.report)
-      const details = describeFailures(repair.report).join('; ')
+    if (dock.result === 'error') {
+      const guestLogs = guestLogsOf(dock.report)
+      const details = describeFailures(dock.report).join('; ')
       const error = new Error(
         guestLogs === undefined
-          ? `the repair of the guest failed: ${details}`
-          : `the repair of the guest failed: ${details}. Full report and logs in ${guestLogs} in the guest`
+          ? `the docking of the guest failed: ${details}`
+          : `the docking of the guest failed: ${details}. Full report and logs in ${guestLogs} in the guest`
       )
-      error.code = 'REPAIR_FAILED'
+      error.code = 'DOCKING_FAILED'
       // an action applied before the failure may have installed the first boot all the same
-      Object.assign(error, context, { reports: { diagnose: diagnose.report, repair: repair.report, windowsReboot } })
+      Object.assign(error, context, { reports: { diagnose: diagnose.report, dock: dock.report, windowsReboot } })
       throw error
     }
-    if (findFinding(repair.report, FINDING.WINDOWS_STATIC_IP_UNMAPPED) !== undefined) {
+    if (findFinding(dock.report, FINDING.WINDOWS_STATIC_IP_UNMAPPED) !== undefined) {
       Task.warning('the static network configuration of some adapters could not be carried over, they use DHCP')
     }
-    if (repair.report.tools === null) {
-      Task.warning('the guest tools disk was not found by the repair ISO')
+    if (dock.report.tools === null) {
+      Task.warning('the guest tools disk was not found by the docking ISO')
     }
 
     if (isWindows) {
@@ -384,6 +398,6 @@ export async function repairImportedVm({ xapi, vmRef, metadata, followFirstBoot 
     }
 
     // the `network` of a later run is empty: the first run switched the static adapters to DHCP
-    return { diagnose: diagnose.report, repair: repair.report, hasPvDrivers, windowsReboot }
+    return { diagnose: diagnose.report, dock: dock.report, hasPvDrivers, windowsReboot }
   })
 }

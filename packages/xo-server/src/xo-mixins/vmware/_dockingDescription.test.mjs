@@ -2,13 +2,13 @@ import { strict as assert } from 'node:assert'
 import test from 'node:test'
 
 import {
-  describeRepair,
+  describeDocking,
   FIRST_BOOT_LEFT_TO_XO,
-  REPAIR_DESCRIPTION_MARKER,
-  replaceRepairDescription,
-} from './_repairDescription.mjs'
+  DOCKING_DESCRIPTION_MARKER,
+  replaceDockingDescription,
+} from './_dockingDescription.mjs'
 
-test('describeRepair', async t => {
+test('describeDocking', async t => {
   const report = ({ actions = [], findings = [], ...rest } = {}) => ({
     result: 'ok',
     firmware: 'uefi',
@@ -21,8 +21,8 @@ test('describeRepair', async t => {
     ...rest,
   })
 
-  await t.test('lists the actions and the findings worth a look of a repair', () => {
-    const repair = report({
+  await t.test('lists the actions and the findings worth a look of a docking', () => {
+    const dock = report({
       result: 'warning',
       actions: [
         { code: 'disable_vmware_services', status: 'done' },
@@ -35,10 +35,10 @@ test('describeRepair', async t => {
       ],
     })
     assert.equal(
-      describeRepair({ reports: { diagnose: report(), repair } }),
+      describeDocking({ reports: { diagnose: report(), dock } }),
       [
-        REPAIR_DESCRIPTION_MARKER,
-        'repair: warning',
+        DOCKING_DESCRIPTION_MARKER,
+        'docking: warning',
         'OS: Windows Server 2019 (uefi)',
         'actions:',
         '- disable_vmware_services: done',
@@ -57,13 +57,13 @@ test('describeRepair', async t => {
       findings: [{ level: 'error', code: 'dynamic_disk' }],
     })
     assert.equal(
-      describeRepair({
+      describeDocking({
         reports: { diagnose },
-        error: { message: 'the guest cannot be repaired: dynamic_disk' },
+        error: { message: 'the guest cannot be docked: dynamic_disk' },
       }),
       [
-        REPAIR_DESCRIPTION_MARKER,
-        'repair failed: the guest cannot be repaired: dynamic_disk',
+        DOCKING_DESCRIPTION_MARKER,
+        'docking failed: the guest cannot be docked: dynamic_disk',
         'OS: linux',
         'the guest was only diagnosed, nothing was changed in it',
         'findings:',
@@ -74,21 +74,21 @@ test('describeRepair', async t => {
 
   await t.test('keeps the error of a failure without any report', () => {
     assert.equal(
-      describeRepair({ error: { message: 'the repair ISO did not report its result in time' } }),
-      [REPAIR_DESCRIPTION_MARKER, 'repair failed: the repair ISO did not report its result in time'].join('\n')
+      describeDocking({ error: { message: 'the docking ISO did not report its result in time' } }),
+      [DOCKING_DESCRIPTION_MARKER, 'docking failed: the docking ISO did not report its result in time'].join('\n')
     )
   })
 
   await t.test('follows the first boot: the restarts done by XO, then its end or its failure', () => {
-    const reports = { diagnose: report(), repair: report() }
+    const reports = { diagnose: report(), dock: report() }
     const restarted = { restartedAfter: ['drivers'], done: false }
     assert.ok(
-      describeRepair({ reports, firstBoot: { ...restarted, done: true } }).endsWith(
+      describeDocking({ reports, firstBoot: { ...restarted, done: true } }).endsWith(
         ['first boot: drivers phase done, VM restarted by XO', 'first boot: done'].join('\n')
       )
     )
     assert.ok(
-      describeRepair({
+      describeDocking({
         reports,
         firstBoot: restarted,
         firstBootError: { message: 'the Windows first boot did not complete' },
@@ -98,11 +98,11 @@ test('describeRepair', async t => {
 
   await t.test('says the VM must be started again while a first boot left to XO is not done', () => {
     const firstBootInstalled = report({ actions: [{ code: 'install_firstboot', status: 'applied' }] })
-    const reports = { diagnose: report(), repair: firstBootInstalled, windowsReboot: 'xo' }
-    // written once repaired: XO may stop following without writing anything more
-    assert.ok(describeRepair({ reports }).endsWith(`\n${FIRST_BOOT_LEFT_TO_XO}`))
+    const reports = { diagnose: report(), dock: firstBootInstalled, windowsReboot: 'xo' }
+    // written once docked: XO may stop following without writing anything more
+    assert.ok(describeDocking({ reports }).endsWith(`\n${FIRST_BOOT_LEFT_TO_XO}`))
     assert.ok(
-      describeRepair({
+      describeDocking({
         reports,
         firstBoot: { restartedAfter: [], done: false },
         firstBootError: { message: 'aborted' },
@@ -110,19 +110,19 @@ test('describeRepair', async t => {
     )
 
     assert.ok(
-      !describeRepair({ reports, firstBoot: { restartedAfter: ['drivers'], done: true } }).includes(
+      !describeDocking({ reports, firstBoot: { restartedAfter: ['drivers'], done: true } }).includes(
         FIRST_BOOT_LEFT_TO_XO
       )
     )
     // the guest reboots itself
-    assert.ok(!describeRepair({ reports: { ...reports, windowsReboot: 'guest' } }).includes(FIRST_BOOT_LEFT_TO_XO))
+    assert.ok(!describeDocking({ reports: { ...reports, windowsReboot: 'guest' } }).includes(FIRST_BOOT_LEFT_TO_XO))
     // no first boot installed
-    assert.ok(!describeRepair({ reports: { ...reports, repair: report() } }).includes(FIRST_BOOT_LEFT_TO_XO))
+    assert.ok(!describeDocking({ reports: { ...reports, dock: report() } }).includes(FIRST_BOOT_LEFT_TO_XO))
   })
 
   await t.test('adds the failure of the first boot and says when details were dropped', () => {
-    const summary = describeRepair({
-      reports: { diagnose: report(), repair: report({ truncated: true }) },
+    const summary = describeDocking({
+      reports: { diagnose: report(), dock: report({ truncated: true }) },
       firstBootError: { message: 'the guest agent did not report in time' },
     })
     assert.ok(
@@ -133,16 +133,16 @@ test('describeRepair', async t => {
   })
 })
 
-test('replaceRepairDescription', async t => {
-  const summary = `${REPAIR_DESCRIPTION_MARKER}\nrepair: warning`
+test('replaceDockingDescription', async t => {
+  const summary = `${DOCKING_DESCRIPTION_MARKER}\ndocking: warning`
 
   await t.test('appends the summary to the description', () => {
-    assert.equal(replaceRepairDescription('from esxi', summary), `from esxi\n\n${summary}`)
-    assert.equal(replaceRepairDescription('', summary), summary)
+    assert.equal(replaceDockingDescription('from esxi', summary), `from esxi\n\n${summary}`)
+    assert.equal(replaceDockingDescription('', summary), summary)
   })
 
   await t.test('replaces the summary of a previous write', () => {
-    const previous = replaceRepairDescription('from esxi', `${REPAIR_DESCRIPTION_MARKER}\nrepair: ok`)
-    assert.equal(replaceRepairDescription(previous, summary), `from esxi\n\n${summary}`)
+    const previous = replaceDockingDescription('from esxi', `${DOCKING_DESCRIPTION_MARKER}\ndocking: ok`)
+    assert.equal(replaceDockingDescription(previous, summary), `from esxi\n\n${summary}`)
   })
 })

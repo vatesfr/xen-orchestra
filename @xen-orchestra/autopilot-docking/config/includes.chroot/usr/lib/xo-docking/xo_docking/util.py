@@ -8,7 +8,7 @@ import shlex
 import subprocess
 from pathlib import Path
 
-log = logging.getLogger("xo-repair")
+log = logging.getLogger("xo-docking")
 
 # Environment used for every command run inside the guest (chroot).
 CHROOT_ENV = {
@@ -19,7 +19,7 @@ CHROOT_ENV = {
 }
 
 
-class RepairError(Exception):
+class DockingError(Exception):
     """Error carrying a stable, machine-readable code for the report."""
 
     def __init__(self, code: str, message: str):
@@ -33,7 +33,7 @@ def _last_line(text: str) -> str:
 
 
 def run(cmd, *, check: bool = True, timeout: int = 3600, env: dict | None = None):
-    """Run a command, log its output at debug level, raise RepairError on failure."""
+    """Run a command, log its output at debug level, raise DockingError on failure."""
     cmd = [str(c) for c in cmd]
     log.info("$ %s", shlex.join(cmd))
     try:
@@ -46,15 +46,15 @@ def run(cmd, *, check: bool = True, timeout: int = 3600, env: dict | None = None
             env=env,
         )
     except FileNotFoundError as exc:
-        raise RepairError("missing_tool", f"{cmd[0]} is not available") from exc
+        raise DockingError("missing_tool", f"{cmd[0]} is not available") from exc
     except subprocess.TimeoutExpired as exc:
-        raise RepairError("command_timeout", f"{cmd[0]} timed out after {timeout}s") from exc
+        raise DockingError("command_timeout", f"{cmd[0]} timed out after {timeout}s") from exc
     for stream in (proc.stdout, proc.stderr):
         for line in stream.splitlines():
             log.debug("  %s", line)
     if check and proc.returncode != 0:
         detail = _last_line(proc.stderr) or _last_line(proc.stdout)
-        raise RepairError(
+        raise DockingError(
             "command_failed", f"{cmd[0]} exited with status {proc.returncode}: {detail}"
         )
     return proc
@@ -83,7 +83,7 @@ def resolve_in_root(root: Path, path: str) -> Path:
         if candidate.is_symlink():
             hops += 1
             if hops > 40:
-                raise RepairError("symlink_loop", f"too many symlinks while resolving {path}")
+                raise DockingError("symlink_loop", f"too many symlinks while resolving {path}")
             target = os.readlink(candidate)
             if target.startswith("/"):
                 resolved = []

@@ -1,12 +1,12 @@
-# XO repair - first boot on XCP-ng
+# XO docking - first boot on XCP-ng
 #
-# Started at every boot as LocalSystem by the temporary service XoRepairFirstboot
-# (created offline by xo-repair) until all phases are done:
+# Started at every boot as LocalSystem by the temporary service XoDockingFirstboot
+# (created offline by xo-docking) until all phases are done:
 #
 #   standard: drivers -> finish
 #   full:     drivers -> cleanup -> finish
 #
-#   drivers  install the Xen PV packages copied by xo-repair,
+#   drivers  install the Xen PV packages copied by xo-docking,
 #            uninstall VMware Tools (MSI),
 #            then reboot onto the PV drivers
 #   cleanup  remove VMware driver packages and VMware Tools files, then reboot
@@ -17,8 +17,8 @@
 #            remove VMware ghost devices (full mode, Windows 10 2004+ only),
 #            report "done" to XO, delete the service
 #
-# Progress is written to C:\xo-repair\firstboot.log and, once the PV drivers are
-# loaded, to xenstore (vm-data/xo-repair/out/firstboot = "<phase>:<state>").
+# Progress is written to C:\xo-docking\firstboot.log and, once the PV drivers are
+# loaded, to xenstore (vm-data/xo-docking/out/firstboot = "<phase>:<state>").
 #
 # Must stay compatible with Windows PowerShell 2.0 (Windows 7 / Server 2008 R2):
 # no ConvertFrom-Json, no CIM or PnpDevice cmdlets.
@@ -26,7 +26,7 @@
 $ErrorActionPreference = 'Continue'
 $Base = Split-Path -Parent $MyInvocation.MyCommand.Definition
 $LogFile = Join-Path $Base 'firstboot.log'
-$ServiceName = 'XoRepairFirstboot'
+$ServiceName = 'XoDockingFirstboot'
 $Phases = @{ 'standard' = @('drivers', 'finish'); 'full' = @('drivers', 'cleanup', 'finish') }
 $OkExitCodes = @(0, 1641, 3010)  # success, success + reboot initiated, success + reboot required
 
@@ -69,10 +69,10 @@ function Send-Status([string]$Value, [int]$Attempts = 1) {
             try {
                 $base = Get-WmiObject -Namespace root\wmi -Class $class -ErrorAction Stop | Select-Object -First 1
                 if (-not $base) { continue }
-                $sessionId = $base.AddSession('xo-repair').SessionId
+                $sessionId = $base.AddSession('xo-docking').SessionId
                 $sessionClass = $class -replace 'Base$', 'Session'
                 $session = Get-WmiObject -Namespace root\wmi -Query "select * from $sessionClass where SessionId=$sessionId"
-                $session.SetValue('vm-data/xo-repair/out/firstboot', $Value) | Out-Null
+                $session.SetValue('vm-data/xo-docking/out/firstboot', $Value) | Out-Null
                 $session.EndSession() | Out-Null
                 Write-Log "status sent: $Value"
                 return
@@ -102,7 +102,7 @@ function Remove-VmwareAutorun {
     }
 }
 
-# xo-repair wrote this folder through ntfs-3g, which leaves it writable by every user of the guest, while
+# xo-docking wrote this folder through ntfs-3g, which leaves it writable by every user of the guest, while
 # its script and packages run as LocalSystem: restricted to SYSTEM and the administrators, by SID since the
 # names of the groups are localized. At every run, before anything is read from the folder
 function Protect-Base {
@@ -128,11 +128,11 @@ function Restart-Now([string]$Reason) {
         # does not rely on it, a stopped VM is what it waits for
         Send-Status "$($script:Phase):reboot"
         Write-Log "shutting down, XO starts the VM again: $Reason"
-        & shutdown.exe /s /t 15 /c "XO repair: $Reason, XO starts the VM again"
+        & shutdown.exe /s /t 15 /c "XO docking: $Reason, XO starts the VM again"
         exit 0
     }
     Write-Log "rebooting: $Reason"
-    & shutdown.exe /r /t 15 /c "XO repair: $Reason"
+    & shutdown.exe /r /t 15 /c "XO docking: $Reason"
     exit 0
 }
 
@@ -147,12 +147,12 @@ function Stop-Attempt([string]$Reason) {
         # XO follows the first boot: the next attempt is now, not at a boot nobody does. A reboot and
         # not a shut down, which XO would take for the end of the phase
         Write-Log "rebooting for attempt $($script:Attempt + 1)"
-        & shutdown.exe /r /t 15 /c "XO repair: $Reason, retrying"
+        & shutdown.exe /r /t 15 /c "XO docking: $Reason, retrying"
     }
     exit 1
 }
 
-# Copied from the guest tools disk by xo-repair. Only from there: what is installed as LocalSystem must come
+# Copied from the guest tools disk by xo-docking. Only from there: what is installed as LocalSystem must come
 # from a folder only SYSTEM and the administrators can write, see Protect-Base
 function Find-Package([string]$Pattern) {
     $local = Join-Path $Base 'packages'
@@ -176,7 +176,7 @@ function Test-VMwareSigned([string]$Path) {
 Add-Type -ErrorAction SilentlyContinue -TypeDefinition @'
 using System;
 using System.Runtime.InteropServices;
-public static class XoRepairFile {
+public static class XoDockingFile {
     [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
     public static extern bool MoveFileEx(string existing, string replacement, int flags);
 }
@@ -187,7 +187,7 @@ function Remove-FileOrSchedule([string]$Path) {
         Remove-Item -LiteralPath $Path -Force -ErrorAction Stop
         Write-Log "deleted $Path"
     } catch {
-        if ([XoRepairFile]::MoveFileEx($Path, $null, 4)) { Write-Log "scheduled for deletion at reboot: $Path" }
+        if ([XoDockingFile]::MoveFileEx($Path, $null, 4)) { Write-Log "scheduled for deletion at reboot: $Path" }
         else { Write-Log "cannot delete $Path" }
     }
 }
@@ -289,7 +289,7 @@ function Invoke-CleanupPhase {
 }
 
 # Static IP configuration of the old (VMware) adapters, captured offline by
-# xo-repair, applied to the new adapter with the same MAC. network.ini: one
+# xo-docking, applied to the new adapter with the same MAC. network.ini: one
 # adapter per line, mac|addresses|masks|gateways|dns, lists comma-separated.
 function Set-StaticNetwork {
     $path = Join-Path $Base 'network.ini'

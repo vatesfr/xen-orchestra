@@ -625,8 +625,8 @@ export class PoolController extends XapiXoController<XoPool> {
    * the others to the defaults. A resumed import keeps the SRs and networks of its first run. An unknown
    * key fails the import of the VM before anything is done on either side.
    *
-   * With `repair`, the guest is prepared to boot on XCP-ng by the repair ISO of the pool once the import is
-   * complete, and with `startVm` the VM is started, its first boot followed when it was repaired.
+   * With `docking`, the guest is prepared to boot on XCP-ng by the docking ISO of the pool once the import is
+   * complete, and with `startVm` the VM is started, its first boot followed when it was docked.
    *
    * For now, the MAC addresses are kept, and `tags` and `cleanup` are refused.
    *

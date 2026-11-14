@@ -8,7 +8,7 @@ from unittest import mock
 
 import helpers  # noqa: F401  # import path
 
-from xo_repair.xenstore import STATUS_PREFIX, Xenstore
+from xo_docking.xenstore import STATUS_PREFIX, Xenstore
 
 # Mimics the xenstore CLI: without -R, values are unescaped on write
 # (\\ -> \, \xNN -> byte) and escaped on read.
@@ -61,14 +61,14 @@ class XenstoreTest(unittest.TestCase):
         self.assertEqual(stored, report)
 
     def test_config_with_backslash_read_raw(self):
-        self.xs.write("vm-data/xo-repair/windows-msi-patterns", r"drivers\xen-*.msi")
+        self.xs.write("vm-data/xo-docking/windows-msi-patterns", r"drivers\xen-*.msi")
         self.assertEqual(self.xs.config("windows-msi-patterns"), r"drivers\xen-*.msi")
 
     def test_clear_status(self):
         self.xs.status("state", "done")
-        self.xs.write("vm-data/xo-repair/mode", "repair")
+        self.xs.write("vm-data/xo-docking/mode", "dock")
         self.xs.clear_status()
-        self.assertEqual(json.loads(self.store.read_text()), {"vm-data/xo-repair/mode": "repair"})
+        self.assertEqual(json.loads(self.store.read_text()), {"vm-data/xo-docking/mode": "dock"})
 
 
 if __name__ == "__main__":

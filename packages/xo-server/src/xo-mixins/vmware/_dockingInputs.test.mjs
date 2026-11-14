@@ -3,18 +3,18 @@ import test from 'node:test'
 
 import {
   buildLinuxNics,
-  buildRepairXenstoreData,
+  buildDockingXenstoreData,
   buildWindowsNics,
-  clearRepairXenstoreData,
+  clearDockingXenstoreData,
   describeFailures,
   getBlockingFindings,
   isFirstBootOver,
-  isRepairDone,
-  isRepairIsoName,
+  isDockingDone,
+  isDockingIsoName,
   readFirstBootState,
-  readRepairOutput,
+  readDockingOutput,
   userdeviceOfXvd,
-} from './_repairInputs.mjs'
+} from './_dockingInputs.mjs'
 
 test('buildLinuxNics', async t => {
   await t.test('names each NIC after its PCI slot', () => {
@@ -108,50 +108,50 @@ test('buildWindowsNics', async t => {
   })
 })
 
-test('buildRepairXenstoreData', async t => {
+test('buildDockingXenstoreData', async t => {
   const previousRun = {
     'vm-data/other': 'kept',
-    'vm-data/xo-repair': '',
-    'vm-data/xo-repair/mode': 'repair',
-    'vm-data/xo-repair/nics': 'ens192=00:0c:29:d4:bf:19;ens224=00:0c:29:d4:bf:23',
-    'vm-data/xo-repair/keep-running': '1',
-    'vm-data/xo-repair/out/state': 'done',
-    'vm-data/xo-repair/out/report': '{}',
+    'vm-data/xo-docking': '',
+    'vm-data/xo-docking/mode': 'dock',
+    'vm-data/xo-docking/nics': 'ens192=00:0c:29:d4:bf:19;ens224=00:0c:29:d4:bf:23',
+    'vm-data/xo-docking/keep-running': '1',
+    'vm-data/xo-docking/out/state': 'done',
+    'vm-data/xo-docking/out/report': '{}',
   }
 
   await t.test('drops every key of a previous run, keeps the others', () => {
-    assert.deepEqual(buildRepairXenstoreData(previousRun, { mode: 'diagnose' }), {
+    assert.deepEqual(buildDockingXenstoreData(previousRun, { mode: 'diagnose' }), {
       'vm-data/other': 'kept',
-      'vm-data/xo-repair/mode': 'diagnose',
+      'vm-data/xo-docking/mode': 'diagnose',
     })
   })
 
   await t.test('sets the inputs given', () => {
     assert.deepEqual(
-      buildRepairXenstoreData(
+      buildDockingXenstoreData(
         {},
         {
-          mode: 'repair',
+          mode: 'dock',
           nics: 'ens192=00:0c:29:d4:bf:19',
           windowsNics: '00:0c:29:94:80:0d={44FED271-EE81-4363-8CF0-893542F0734F}',
           windowsReboot: 'xo',
         }
       ),
       {
-        'vm-data/xo-repair/mode': 'repair',
-        'vm-data/xo-repair/nics': 'ens192=00:0c:29:d4:bf:19',
-        'vm-data/xo-repair/windows-nics': '00:0c:29:94:80:0d={44FED271-EE81-4363-8CF0-893542F0734F}',
-        'vm-data/xo-repair/windows-reboot': 'xo',
+        'vm-data/xo-docking/mode': 'dock',
+        'vm-data/xo-docking/nics': 'ens192=00:0c:29:d4:bf:19',
+        'vm-data/xo-docking/windows-nics': '00:0c:29:94:80:0d={44FED271-EE81-4363-8CF0-893542F0734F}',
+        'vm-data/xo-docking/windows-reboot': 'xo',
       }
     )
   })
 
-  await t.test('clearRepairXenstoreData removes inputs and outputs', () => {
-    assert.deepEqual(clearRepairXenstoreData(previousRun), { 'vm-data/other': 'kept' })
+  await t.test('clearDockingXenstoreData removes inputs and outputs', () => {
+    assert.deepEqual(clearDockingXenstoreData(previousRun), { 'vm-data/other': 'kept' })
   })
 })
 
-test('readRepairOutput', async t => {
+test('readDockingOutput', async t => {
   const report = {
     result: 'error',
     tools: 'xvdz',
@@ -164,16 +164,16 @@ test('readRepairOutput', async t => {
     actions: [],
   }
   const xenstoreData = {
-    'vm-data/xo-repair/out/version': '20261012-1a2b3c4d',
-    'vm-data/xo-repair/out/mode': 'diagnose',
-    'vm-data/xo-repair/out/result': 'error',
-    'vm-data/xo-repair/out/state': 'done',
-    'vm-data/xo-repair/out/report': JSON.stringify(report),
+    'vm-data/xo-docking/out/version': '20261012-1a2b3c4d',
+    'vm-data/xo-docking/out/mode': 'diagnose',
+    'vm-data/xo-docking/out/result': 'error',
+    'vm-data/xo-docking/out/state': 'done',
+    'vm-data/xo-docking/out/report': JSON.stringify(report),
   }
 
   await t.test('reads every output', () => {
-    assert.equal(isRepairDone(xenstoreData), true)
-    assert.deepEqual(readRepairOutput(xenstoreData, { vmId: 'vm' }), {
+    assert.equal(isDockingDone(xenstoreData), true)
+    assert.deepEqual(readDockingOutput(xenstoreData, { vmId: 'vm' }), {
       state: 'done',
       result: 'error',
       mode: 'diagnose',
@@ -188,36 +188,36 @@ test('readRepairOutput', async t => {
   })
 
   await t.test('is not done while running or before the ISO started', () => {
-    assert.equal(isRepairDone({ 'vm-data/xo-repair/out/state': 'running' }), false)
-    assert.equal(isRepairDone({}), false)
+    assert.equal(isDockingDone({ 'vm-data/xo-docking/out/state': 'running' }), false)
+    assert.equal(isDockingDone({}), false)
   })
 
   await t.test('reports an invalid report with its context', () => {
-    assert.throws(() => readRepairOutput({ 'vm-data/xo-repair/out/report': '{"trunc' }, { vmId: 'vm' }), {
-      code: 'REPAIR_REPORT_INVALID',
+    assert.throws(() => readDockingOutput({ 'vm-data/xo-docking/out/report': '{"trunc' }, { vmId: 'vm' }), {
+      code: 'DOCKING_REPORT_INVALID',
       vmId: 'vm',
       rawReport: '{"trunc',
     })
   })
 })
 
-test('isRepairIsoName', () => {
-  assert.equal(isRepairIsoName('vates-autopilot-docking-20261018T084512Z-0d5f013b.iso'), true)
-  assert.equal(isRepairIsoName('vates-autopilot-docking-20261018T084512Z-0d5f013b-dirty.iso'), true)
-  assert.equal(isRepairIsoName('vates-autopilot-docking-20261018T084512Z-1.2.0.iso'), true)
-  assert.equal(isRepairIsoName('vates-autopilot-docking-20261018T084512Z-0d5f013b.img'), false)
+test('isDockingIsoName', () => {
+  assert.equal(isDockingIsoName('vates-autopilot-docking-20261018T084512Z-0d5f013b.iso'), true)
+  assert.equal(isDockingIsoName('vates-autopilot-docking-20261018T084512Z-0d5f013b-dirty.iso'), true)
+  assert.equal(isDockingIsoName('vates-autopilot-docking-20261018T084512Z-1.2.0.iso'), true)
+  assert.equal(isDockingIsoName('vates-autopilot-docking-20261018T084512Z-0d5f013b.img'), false)
   // without the date and time first, it could not be ordered with the others
-  assert.equal(isRepairIsoName('vates-autopilot-docking-1.2.0.iso'), false)
-  assert.equal(isRepairIsoName('vates-autopilot-docking-latest.iso'), false)
-  assert.equal(isRepairIsoName('vates-autopilot-docking-20261018-0d5f013b.iso'), false)
-  assert.equal(isRepairIsoName('vates-autopilot-docking-20261018T084512-0d5f013b.iso'), false)
+  assert.equal(isDockingIsoName('vates-autopilot-docking-1.2.0.iso'), false)
+  assert.equal(isDockingIsoName('vates-autopilot-docking-latest.iso'), false)
+  assert.equal(isDockingIsoName('vates-autopilot-docking-20261018-0d5f013b.iso'), false)
+  assert.equal(isDockingIsoName('vates-autopilot-docking-20261018T084512-0d5f013b.iso'), false)
   // the former name
-  assert.equal(isRepairIsoName('xo-repair-20261018-0d5f013b.iso'), false)
-  assert.equal(isRepairIsoName('guest-tools.iso'), false)
+  assert.equal(isDockingIsoName('xo-docking-20261018-0d5f013b.iso'), false)
+  assert.equal(isDockingIsoName('guest-tools.iso'), false)
 })
 
 test('first boot state', () => {
-  assert.equal(readFirstBootState({ 'vm-data/xo-repair/out/firstboot': 'drivers:running' }), 'drivers:running')
+  assert.equal(readFirstBootState({ 'vm-data/xo-docking/out/firstboot': 'drivers:running' }), 'drivers:running')
   assert.equal(readFirstBootState({}), undefined)
 
   assert.equal(isFirstBootOver('done'), true)

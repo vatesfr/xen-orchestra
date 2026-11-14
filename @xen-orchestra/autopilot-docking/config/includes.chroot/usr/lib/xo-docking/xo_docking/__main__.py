@@ -1,4 +1,4 @@
-"""xo-repair: prepare a VM migrated from VMware to boot on XCP-ng.
+"""xo-docking: prepare a VM migrated from VMware to boot on XCP-ng.
 
 Booted from the live ISO inside the migrated VM itself. Inputs come from
 xenstore (set by XO), results go back to xenstore, then the VM powers off.
@@ -18,14 +18,14 @@ from .linux import LinuxGuest, parse_nic_map
 from .mounts import Mounts
 from .report import Report
 from .tools import find_tools
-from .util import RepairError, kernel_cmdline_param, run
+from .util import DockingError, kernel_cmdline_param, run
 from .windows import WindowsGuest, parse_windows_nics
 from .xenstore import Xenstore
 
-log = logging.getLogger("xo-repair")
+log = logging.getLogger("xo-docking")
 
-MODES = ("diagnose", "repair")
-RUN_DIR = Path("/run/xo-repair")
+MODES = ("diagnose", "dock")
+RUN_DIR = Path("/run/xo-docking")
 VERSION_FILE = Path(__file__).resolve().parent.parent / "VERSION"
 
 
@@ -41,8 +41,8 @@ def setup_logging(verbose: bool) -> None:
     log.setLevel(logging.DEBUG)
     console = logging.StreamHandler(sys.stderr)
     console.setLevel(logging.DEBUG if verbose else logging.INFO)
-    console.setFormatter(logging.Formatter("xo-repair: %(levelname)s %(message)s"))
-    logfile = logging.FileHandler(RUN_DIR / "xo-repair.log")
+    console.setFormatter(logging.Formatter("xo-docking: %(levelname)s %(message)s"))
+    logfile = logging.FileHandler(RUN_DIR / "xo-docking.log")
     logfile.setLevel(logging.DEBUG)
     logfile.setFormatter(logging.Formatter("%(asctime)s %(levelname)s %(message)s"))
     log.addHandler(console)
@@ -50,7 +50,7 @@ def setup_logging(verbose: bool) -> None:
 
 
 def parse_args(argv):
-    parser = argparse.ArgumentParser(prog="xo-repair", description=__doc__)
+    parser = argparse.ArgumentParser(prog="xo-docking", description=__doc__)
     parser.add_argument("--mode", choices=MODES, help="overrides xenstore and the kernel command line")
     parser.add_argument("--service", action="store_true",
                         help="started by systemd: power off when done (unless keep-running is set)")
@@ -64,7 +64,7 @@ def is_true(value: str | None) -> bool:
 
 def execute(report: Report, mounts: Mounts, msi_patterns: list[str] | None, cleanup: str,
             nic_map: dict[str, str], windows_nics: dict[str, str], reboot: str = "guest") -> None:
-    readonly = report.mode != "repair"
+    readonly = report.mode != "dock"
     report.firmware = efi.firmware()
     activation_failures = activate_storage(readonly)
     devices = list_block_devices()
@@ -105,9 +105,9 @@ def execute(report: Report, mounts: Mounts, msi_patterns: list[str] | None, clea
         if not report.blocked:
             efi.plan(report, mounts, devices, disk, guest.kind, guest.os_ids, readonly)
             guest.finalize()
-        if report.mode == "repair":
+        if report.mode == "dock":
             if report.blocked:
-                report.info("repair_skipped", "blocking errors found: nothing was modified")
+                report.info("dock_skipped", "blocking errors found: nothing was modified")
             else:
                 report.apply_actions()
                 try:
@@ -123,7 +123,7 @@ def main(argv=None) -> int:
     setup_logging(args.verbose)
     xenstore = Xenstore.detect()
 
-    mode = args.mode or xenstore.config("mode") or kernel_cmdline_param("xo-repair.mode") or "diagnose"
+    mode = args.mode or xenstore.config("mode") or kernel_cmdline_param("xo-docking.mode") or "diagnose"
     # ";"-separated, installed in this order (e.g. drivers then management agent)
     # None: default patterns, which depend on the Windows build
     given_patterns = xenstore.config("windows-msi-patterns")
@@ -135,21 +135,21 @@ def main(argv=None) -> int:
     nic_map = parse_nic_map(xenstore.config("nics"))
     # Windows: VIF MAC -> GUID of the old adapter whose static configuration it gets
     windows_nics = parse_windows_nics(xenstore.config("windows-nics"))
-    keep_running = is_true(xenstore.config("keep-running")) or kernel_cmdline_param("xo-repair.keep-running") is not None
+    keep_running = is_true(xenstore.config("keep-running")) or kernel_cmdline_param("xo-docking.keep-running") is not None
 
     report = Report(mode, read_version())
     xenstore.clear_status()
     xenstore.status("version", report.version)
     xenstore.status("mode", mode)
     xenstore.status("state", "running")
-    log.info("xo-repair %s, mode %s", report.version, mode)
+    log.info("xo-docking %s, mode %s", report.version, mode)
 
     try:
         if mode not in MODES:
-            raise RepairError("invalid_mode", f"unknown mode {mode!r}, expected one of {', '.join(MODES)}")
+            raise DockingError("invalid_mode", f"unknown mode {mode!r}, expected one of {', '.join(MODES)}")
         with Mounts(RUN_DIR / "mnt") as mounts:
             execute(report, mounts, msi_patterns, cleanup, nic_map, windows_nics, reboot)
-    except RepairError as exc:
+    except DockingError as exc:
         report.error(exc.code, str(exc))
     except Exception as exc:  # noqa: BLE001 - XO must always get a result
         log.exception("unexpected error")

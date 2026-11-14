@@ -1,5 +1,5 @@
 #!/bin/sh
-# live-build configuration of the repair ISO. Run through `lb config`.
+# live-build configuration of the docking ISO. Run through `lb config`.
 set -e
 
 lb config noauto \
@@ -15,7 +15,7 @@ lb config noauto \
 	--memtest none \
 	--firmware-binary false \
 	--firmware-chroot false \
-	--iso-volume XO-REPAIR \
+	--iso-volume XO-DOCKING \
 	--iso-application "VAPD : VMS Auto-pilot docking" \
 	--iso-publisher "Vates" \
 	--bootappend-live "boot=live components live-media=removable noswap quiet" \

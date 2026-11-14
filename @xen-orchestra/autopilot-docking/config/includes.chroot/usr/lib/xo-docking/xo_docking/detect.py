@@ -12,7 +12,7 @@ from pathlib import Path
 from .blockdev import LDM_PARTTYPES, BlockDev
 from .mounts import Mounts
 from .report import Report
-from .util import RepairError, find_ci, guest_exists
+from .util import DockingError, find_ci, guest_exists
 
 LINUX_FSTYPES = {"ext2", "ext3", "ext4", "xfs", "btrfs"}
 # usual root subvolume names when the btrfs default subvolume is not the root
@@ -61,7 +61,7 @@ def probe(devices: list[BlockDev], mounts: Mounts, report: Report) -> list[OsCan
             continue
         try:
             mnt = mounts.mount(dev.path, dev.fstype, readonly=True)
-        except RepairError as exc:
+        except DockingError as exc:
             if exc.code == "windows_hibernated":
                 report.error(exc.code, str(exc), device=dev.path)
             else:

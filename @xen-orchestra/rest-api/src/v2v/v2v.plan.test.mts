@@ -52,7 +52,7 @@ describe('planMigration', function () {
         nics: {},
         template: 'tpl-1',
         stopSource: false,
-        repair: false,
+        docking: false,
         startVm: false,
       },
     ])
@@ -79,39 +79,39 @@ describe('planMigration', function () {
       nics: { '4000': 'net-2' },
       template: 'tpl-2',
       stopSource: false,
-      repair: false,
+      docking: false,
       startVm: false,
     })
   })
 
-  it('repairs the guest when asked, with the value of the VM over the defaults', function () {
+  it('docks the guest when asked, with the value of the VM over the defaults', function () {
     const stoppedVm = { ...sourceVm('vm-1'), powerState: 'poweredOff' as const }
     const result = planMigration(
       makeBody({
-        defaults: { sr: 'sr-1', network: 'net-1', template: 'tpl-1', repair: true },
-        vms: [{ id: 'vm-1' }, { id: 'vm-2', repair: false }],
+        defaults: { sr: 'sr-1', network: 'net-1', template: 'tpl-1', docking: true },
+        vms: [{ id: 'vm-1' }, { id: 'vm-2', docking: false }],
       }),
       makeContext({ vms: [stoppedVm, sourceVm('vm-2')] })
     )
 
     assert.deepEqual(result.problems, [])
     assert.deepEqual(
-      result.plans.map(({ repair }) => repair),
+      result.plans.map(({ docking }) => docking),
       [true, false]
     )
   })
 
-  it('refuses to repair a guest whose import would be partial', function () {
+  it('refuses to dock a guest whose import would be partial', function () {
     const runningVm = { ...sourceVm('vm-1'), powerState: 'poweredOn' as const }
-    const refused = planMigration(makeBody({ vms: [{ id: 'vm-1', repair: true }] }), makeContext({ vms: [runningVm] }))
+    const refused = planMigration(makeBody({ vms: [{ id: 'vm-1', docking: true }] }), makeContext({ vms: [runningVm] }))
     const accepted = planMigration(
-      makeBody({ vms: [{ id: 'vm-1', repair: true, stopSource: true }] }),
+      makeBody({ vms: [{ id: 'vm-1', docking: true, stopSource: true }] }),
       makeContext({ vms: [runningVm] })
     )
 
     assert.deepEqual(
       refused.problems.map(({ field }) => field),
-      ['repair']
+      ['docking']
     )
     assert.deepEqual(accepted.problems, [])
   })

@@ -3,7 +3,7 @@ import unittest
 
 from helpers import PACKAGE_DIR
 
-SCRIPT = PACKAGE_DIR / "xo_repair/assets/windows/firstboot.ps1"
+SCRIPT = PACKAGE_DIR / "xo_docking/assets/windows/firstboot.ps1"
 # "$name:" in a double-quoted string is parsed as a scope-qualified variable
 # ($env:X): anything but a real scope is a parse error that rejects the whole script.
 SCOPES = {"env", "script", "global", "local", "private", "using", "function", "variable"}
@@ -32,7 +32,7 @@ class FirstbootScriptTest(unittest.TestCase):
     def test_xenstore_classes(self):
         text = SCRIPT.read_text()
         self.assertIn("'XenProjectXenStoreBase'", text)
-        self.assertIn("'vm-data/xo-repair/out/firstboot'", text)
+        self.assertIn("'vm-data/xo-docking/out/firstboot'", text)
 
     def test_reboot_left_to_xo(self):
         # a VM started by hand is never left stopped: the guest reboots by default

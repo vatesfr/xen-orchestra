@@ -6,7 +6,7 @@ import json
 import re
 from dataclasses import dataclass
 
-from .util import RepairError, run
+from .util import DockingError, run
 
 LSBLK_COLUMNS = "NAME,PATH,TYPE,FSTYPE,UUID,PARTUUID,LABEL,PARTTYPE,PTTYPE,SIZE,RM"
 IGNORED_DISK_PREFIXES = ("loop", "sr", "zram", "ram", "fd")
@@ -114,6 +114,6 @@ def activate_storage(readonly: bool) -> list[str]:
     for cmd in (mdadm, ["vgchange", "-ay"], ["udevadm", "settle", "--timeout=30"]):
         try:
             run(cmd, timeout=120)
-        except RepairError as exc:
+        except DockingError as exc:
             failures.append(str(exc))
     return failures
