@@ -6,6 +6,7 @@ import { diagnoseOffline } from './_repair.mjs'
 import {
   ACTION,
   actionStatus,
+  clearRepairXenstoreData,
   FINDING,
   findFinding,
   isFirstBootOver,
@@ -109,6 +110,12 @@ async function followWindowsFirstBoot(xapi, vmRef, { context, onProgress }) {
   if (state === 'done') {
     progress.done = true
     await onProgress(progress)
+    // once described, nothing reads the state of the first boot anymore. Leaving it there fails nothing
+    try {
+      await xapi.call('VM.set_xenstore_data', vmRef, clearRepairXenstoreData(xapi.getObject(vmRef).xenstore_data))
+    } catch (error) {
+      warn('failed to clear the state of the first boot', { ...context, error })
+    }
     return
   }
 
