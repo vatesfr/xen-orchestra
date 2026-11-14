@@ -158,51 +158,39 @@ function recordSteps() {
 
 async function followFirstBoot({ states }) {
   const xapi = fakeXapi(states)
-  const progresses = []
   await firstBootOfDockedVm({
     xapi,
     vmRef: VM_REF,
     metadata: { vmId: '54', secureBoot: false },
     reports: WINDOWS_REPORTS,
-    onProgress: async progress => {
-      progresses.push(structuredClone(progress))
-    },
   })
-  return { calls: xapi.calls, progresses }
+  return { calls: xapi.calls }
 }
 
 test('firstBootOfDockedVm, Windows', async t => {
   await t.test('starts the VM again when the first boot stops it between two phases', async () => {
-    const { calls, progresses } = await followFirstBoot({
+    const { calls } = await followFirstBoot({
       states: [{ power_state: 'Halted' }, { power_state: 'Running', firstboot: 'done' }],
     })
     assert.deepEqual(calls, ['VM.start', 'VM.start', 'VM.set_xenstore_data'])
-    assert.deepEqual(progresses, [
-      { restartedAfter: ['drivers'], done: false },
-      { restartedAfter: ['drivers'], done: true },
-    ])
   })
 
   await t.test('follows a guest which reboots itself, as with an older ISO', async () => {
-    const { calls, progresses } = await followFirstBoot({
+    const { calls } = await followFirstBoot({
       states: [{ power_state: 'Running', firstboot: 'done' }],
     })
     assert.deepEqual(calls, ['VM.start', 'VM.set_xenstore_data'])
-    assert.deepEqual(progresses, [{ restartedAfter: [], done: true }])
   })
 
-  await t.test('clears the state of the first boot once it is described', async () => {
+  await t.test('clears the state of the first boot once it is done', async () => {
     const xapi = fakeXapi([{ power_state: 'Running', firstboot: 'done' }])
     await firstBootOfDockedVm({
       xapi,
       vmRef: VM_REF,
       metadata: { vmId: '54', secureBoot: false },
       reports: WINDOWS_REPORTS,
-      onProgress: async progress => {
-        xapi.calls.push(`described, done: ${progress.done}`)
-      },
     })
-    assert.deepEqual(xapi.calls, ['VM.start', 'described, done: true', 'VM.set_xenstore_data'])
+    assert.deepEqual(xapi.calls, ['VM.start', 'VM.set_xenstore_data'])
     assert.deepEqual(xapi.getObject(VM_REF).xenstore_data, {})
   })
 
@@ -214,7 +202,6 @@ test('firstBootOfDockedVm, Windows', async t => {
       vmRef: VM_REF,
       metadata: { vmId: '54', secureBoot: false },
       reports: { ...WINDOWS_REPORTS, hasPvDrivers: false },
-      onProgress: async () => {},
     })
     assert.deepEqual(xapi.calls, ['VM.start'])
   })
@@ -243,7 +230,6 @@ test('firstBootOfDockedVm, Windows', async t => {
         vmRef: VM_REF,
         metadata: { vmId: '54', secureBoot: false },
         reports: WINDOWS_REPORTS,
-        onProgress: async () => {},
       }),
       { code: 'FIRST_BOOT_FAILED', message: /\(finish:error: no network adapter\)/ }
     )
@@ -260,7 +246,6 @@ test('firstBootOfDockedVm, steps', async t => {
         vmRef: VM_REF,
         metadata: { vmId: '54', secureBoot: false },
         reports,
-        onProgress: async () => {},
       })
     )
 
@@ -339,7 +324,6 @@ test('firstBootOfDockedVm, abort', async t => {
         vmRef: VM_REF,
         metadata: { vmId: '54', secureBoot },
         reports: LINUX_REPORTS,
-        onProgress: async () => {},
       })
     )
 
@@ -366,7 +350,6 @@ test('firstBootOfDockedVm, abort', async t => {
           vmRef: VM_REF,
           metadata: { vmId: '54', secureBoot: true },
           reports: { ...LINUX_REPORTS, dock },
-          onProgress: async () => {},
         })
       )
       // nor reboots it for Secure Boot, which the agent should have confirmed

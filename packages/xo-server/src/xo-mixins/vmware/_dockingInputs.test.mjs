@@ -10,6 +10,7 @@ import {
   getBlockingFindings,
   isFirstBootOver,
   isDockingDone,
+  isFirstBootLeftToXo,
   isDockingIsoName,
   readFirstBootState,
   readDockingOutput,
@@ -260,4 +261,16 @@ test('userdeviceOfXvd', () => {
   assert.equal(userdeviceOfXvd('xvdb'), '1')
   assert.equal(userdeviceOfXvd('sda'), undefined)
   assert.equal(userdeviceOfXvd('xvdaa'), undefined)
+})
+
+test('isFirstBootLeftToXo', () => {
+  const report = (actions = []) => ({ os: { kind: 'windows' }, findings: [], actions })
+  const firstBootInstalled = report([{ code: 'install_firstboot', status: 'applied' }])
+  assert.equal(isFirstBootLeftToXo({ dock: firstBootInstalled, windowsReboot: 'xo' }), true)
+  // the guest reboots itself
+  assert.equal(isFirstBootLeftToXo({ dock: firstBootInstalled, windowsReboot: 'guest' }), false)
+  // no first boot installed
+  assert.equal(isFirstBootLeftToXo({ dock: report(), windowsReboot: 'xo' }), false)
+  // the docking failed before its dock run
+  assert.equal(isFirstBootLeftToXo({ windowsReboot: 'xo' }), false)
 })
