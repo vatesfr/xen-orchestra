@@ -22,7 +22,7 @@ binary.modified_timestamps
 chroot.files
 chroot.packages.*
 live-image-*
-config/includes.chroot/usr/lib/xo-repair/VERSION
+config/includes.chroot/usr/lib/xo-docking/VERSION
 
 # Python bytecode, written by the tests: it must not end up in the ISO either
 __pycache__/

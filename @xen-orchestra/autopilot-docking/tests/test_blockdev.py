@@ -3,10 +3,10 @@ from unittest import mock
 
 from helpers import dev, lsblk_json
 
-from xo_repair import __main__ as main
-from xo_repair.blockdev import activate_storage, guest_disks, parse_lsblk
-from xo_repair.report import Report
-from xo_repair.util import RepairError
+from xo_docking import __main__ as main
+from xo_docking.blockdev import activate_storage, guest_disks, parse_lsblk
+from xo_docking.report import Report
+from xo_docking.util import DockingError
 
 
 class ParseLsblkTest(unittest.TestCase):
@@ -62,9 +62,9 @@ class ActivateStorageTest(unittest.TestCase):
     def test_returns_the_failures(self):
         def run(cmd, **kwargs):
             if cmd[0] == "vgchange":
-                raise RepairError("command_failed", "vgchange exited with status 5: metadata unreadable")
+                raise DockingError("command_failed", "vgchange exited with status 5: metadata unreadable")
 
-        with mock.patch("xo_repair.blockdev.run", side_effect=run):
+        with mock.patch("xo_docking.blockdev.run", side_effect=run):
             self.assertEqual(activate_storage(readonly=True),
                              ["vgchange exited with status 5: metadata unreadable"])
 

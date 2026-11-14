@@ -1,13 +1,14 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
+import { Task } from '@xen-orchestra/mixins/Tasks.mjs'
 
-import { diagnoseOffline, findRepairIso, repairImportedVm } from './_repair.mjs'
+import { diagnoseOffline, findDockingIso, dockImportedVm } from './_docking.mjs'
 
 const VM_REF = 'OpaqueRef:vm'
 const CONTEXT = { vmId: 'vm-uuid', sourceVmId: '54' }
 
 /**
- * A pool with a repair ISO and a VM whose start fails: the repair stops there, only what is restored matters.
+ * A pool with a docking ISO and a VM whose start fails: the docking stops there, only what is restored matters.
  *
  * @param {object} [params]
  * @param {Set<string>} [params.failingRestores] - the restores which throw
@@ -72,8 +73,58 @@ function fakeXapi({ failingRestores = new Set(), firmware = 'bios', platform = {
   }
 }
 
-test('withRepairIso restores how the VM boots', async t => {
-  await t.test('every setting, even when one of them fails, and keeps the error of the repair', async () => {
+/**
+ * A task and its steps as `<name>: <status>`, in the order they end, with their warnings.
+ */
+function recordSteps() {
+  const names = new Map()
+  const steps = []
+  const task = new Task({
+    properties: { name: 'import' },
+    onProgress: event => {
+      if (event.type === 'start') {
+        names.set(event.id, event.properties.name)
+      } else if (event.type === 'end') {
+        steps.push(`${names.get(event.id)}: ${event.status}`)
+      } else if (event.type === 'warning') {
+        steps.push(`warning: ${event.message}`)
+      }
+    },
+  })
+  return { task, steps }
+}
+
+test('withDockingIso traces its steps', async t => {
+  await t.test('the docking ISO attached, run and released', async () => {
+    const { task, steps } = recordSteps()
+    const xapi = fakeXapi()
+    await assert.rejects(task.run(() => diagnoseOffline({ xapi, vmRef: VM_REF, context: CONTEXT })))
+    assert.deepEqual(steps, [
+      'warning: no guest tools ISO in the pool: the guest agent will not be installed',
+      'attaching the docking ISO: success',
+      'docking ISO: diagnose: failure',
+      'releasing the docking ISO: success',
+      'import: failure',
+    ])
+  })
+
+  await t.test('warns when the docking ISO could not be released', async () => {
+    const { task, steps } = recordSteps()
+    const xapi = fakeXapi()
+    xapi.VBD_destroy = async () => {
+      throw new Error('still attached')
+    }
+    await assert.rejects(task.run(() => diagnoseOffline({ xapi, vmRef: VM_REF, context: CONTEXT })))
+    assert.deepEqual(steps.slice(-3), [
+      'warning: the docking ISO could not be released: still attached',
+      'releasing the docking ISO: success',
+      'import: failure',
+    ])
+  })
+})
+
+test('withDockingIso restores how the VM boots', async t => {
+  await t.test('every setting, even when one of them fails, and keeps the error of the docking', async () => {
     const xapi = fakeXapi({ failingRestores: new Set(['xenstore_data cleared']) })
     await assert.rejects(diagnoseOffline({ xapi, vmRef: VM_REF, context: CONTEXT }), {
       message: 'the VM cannot start',
@@ -97,7 +148,7 @@ test('withRepairIso restores how the VM boots', async t => {
     assert.equal(xapi.calls.at(-1), 'VBD.eject OpaqueRef:cd')
   })
 
-  await t.test('releases the disks of the repair before returning', async () => {
+  await t.test('releases the disks of the docking before returning', async () => {
     // the VM is started right after: a disk still being released stays attached to the running VM
     const xapi = fakeXapi()
     xapi.VBD_destroy = async ref => {
@@ -108,7 +159,7 @@ test('withRepairIso restores how the VM boots', async t => {
     assert.equal(xapi.calls.at(-1), 'VBD.destroy OpaqueRef:created-cd')
   })
 
-  await t.test('Secure Boot as it was, when the repair fails', async () => {
+  await t.test('Secure Boot as it was, when the docking fails', async () => {
     // no key: the template leaves it to `auto`
     const xapi = fakeXapi({ firmware: 'uefi' })
     await assert.rejects(diagnoseOffline({ xapi, vmRef: VM_REF, context: CONTEXT }))
@@ -117,7 +168,7 @@ test('withRepairIso restores how the VM boots', async t => {
   })
 })
 
-test('findRepairIso', async t => {
+test('findDockingIso', async t => {
   const poolWith = (...names) => ({
     objects: {
       indexes: {
@@ -136,15 +187,15 @@ test('findRepairIso', async t => {
       'vates-autopilot-docking-20261113T091030Z-1.2.0.iso',
       'vates-autopilot-docking-20261101T120000Z-12345678-dirty.iso'
     )
-    assert.equal(findRepairIso(xapi, CONTEXT).name_label, 'vates-autopilot-docking-20261113T091030Z-1.2.0.iso')
+    assert.equal(findDockingIso(xapi, CONTEXT).name_label, 'vates-autopilot-docking-20261113T091030Z-1.2.0.iso')
   })
 
   await t.test('ignores a name it could not order', async () => {
     // would come last by name, before any dated build
     const xapi = poolWith('vates-autopilot-docking-20261112T084512Z-abcdef12.iso', 'vates-autopilot-docking-latest.iso')
-    assert.equal(findRepairIso(xapi, CONTEXT).name_label, 'vates-autopilot-docking-20261112T084512Z-abcdef12.iso')
-    assert.throws(() => findRepairIso(poolWith('vates-autopilot-docking-latest.iso'), CONTEXT), {
-      code: 'REPAIR_ISO_NOT_FOUND',
+    assert.equal(findDockingIso(xapi, CONTEXT).name_label, 'vates-autopilot-docking-20261112T084512Z-abcdef12.iso')
+    assert.throws(() => findDockingIso(poolWith('vates-autopilot-docking-latest.iso'), CONTEXT), {
+      code: 'DOCKING_ISO_NOT_FOUND',
     })
   })
 })
@@ -161,7 +212,7 @@ const reportOf = ({ kind = 'linux', findings = [], actions = [], ...os } = {}) =
 const blockedOn = (code, data) => reportOf({ findings: [{ level: 'error', code, data }] })
 
 /**
- * A pool where each boot of the VM on the repair ISO is the next of `runs`: the outputs of the ISO
+ * A pool where each boot of the VM on the docking ISO is the next of `runs`: the outputs of the ISO
  * (`{ result, report }`), `'timeout'` for an ISO which never reports, `'no result'` for one which halts the VM
  * without a result.
  *
@@ -223,7 +274,7 @@ function isoXapi({ runs, disks = [] }) {
         inputs.push(
           Object.fromEntries(
             INPUT_KEYS.flatMap(key => {
-              const value = vm.xenstore_data[`vm-data/xo-repair/${key}`]
+              const value = vm.xenstore_data[`vm-data/xo-docking/${key}`]
               return value === undefined ? [] : [[key, value]]
             })
           )
@@ -235,7 +286,7 @@ function isoXapi({ runs, disks = [] }) {
           const outputs = { state: 'done', mode, version: 'dev', result: currentRun.result }
           outputs.report = JSON.stringify(currentRun.report)
           for (const [key, value] of Object.entries(outputs)) {
-            vm.xenstore_data[`vm-data/xo-repair/out/${key}`] = value
+            vm.xenstore_data[`vm-data/xo-docking/out/${key}`] = value
           }
         }
         if (currentRun !== 'timeout') {
@@ -254,19 +305,19 @@ function isoXapi({ runs, disks = [] }) {
   }
 }
 
-const repair = (xapi, options) => repairImportedVm({ xapi, vmRef: VM_REF, metadata: METADATA, ...options })
+const dock = (xapi, options) => dockImportedVm({ xapi, vmRef: VM_REF, metadata: METADATA, ...options })
 
-test('repairImportedVm', async t => {
-  await t.test('runs a diagnose, then a repair', async () => {
+test('dockImportedVm', async t => {
+  await t.test('runs a diagnose, then a dock', async () => {
     const xapi = isoXapi({
       runs: [
         { result: 'ok', report: reportOf() },
         { result: 'ok', report: reportOf({ actions: [{ code: 'install_xen_drivers', status: 'applied' }] }) },
       ],
     })
-    const reports = await repair(xapi)
-    assert.deepEqual(xapi.inputs, [{ mode: 'diagnose' }, { mode: 'repair' }])
-    assert.equal(reports.repair.actions[0].code, 'install_xen_drivers')
+    const reports = await dock(xapi)
+    assert.deepEqual(xapi.inputs, [{ mode: 'diagnose' }, { mode: 'dock' }])
+    assert.equal(reports.dock.actions[0].code, 'install_xen_drivers')
     assert.equal(reports.hasPvDrivers, true)
     assert.equal(reports.windowsReboot, undefined)
   })
@@ -283,7 +334,7 @@ test('repairImportedVm', async t => {
         { result: 'ok', report: reportOf() },
       ],
     })
-    await repair(xapi)
+    await dock(xapi)
     // the first disk is parked on a free userdevice: they are unique
     assert.deepEqual(xapi.calls, [
       'xvda.userdevice=5',
@@ -294,14 +345,14 @@ test('repairImportedVm', async t => {
     ])
     assert.deepEqual(
       xapi.inputs.map(({ mode }) => mode),
-      ['diagnose', 'diagnose', 'repair']
+      ['diagnose', 'diagnose', 'dock']
     )
   })
 
   await t.test('stops before any change on a blocking finding', async () => {
     const xapi = isoXapi({ runs: [{ result: 'error', report: blockedOn('ntfs_unclean') }] })
-    await assert.rejects(repair(xapi), error => {
-      assert.equal(error.code, 'REPAIR_BLOCKED')
+    await assert.rejects(dock(xapi), error => {
+      assert.equal(error.code, 'DOCKING_BLOCKED')
       assert.equal(error.reports.diagnose.findings[0].code, 'ntfs_unclean')
       return true
     })
@@ -314,15 +365,15 @@ test('repairImportedVm', async t => {
       disks: [{ name: 'xvda', userdevice: '0' }],
       runs: [{ result: 'error', report: blockedOn('boot_disk_not_first', { os_disk: 'xvdc' }) }],
     })
-    await assert.rejects(repair(xapi), { code: 'REPAIR_OS_DISK_NOT_FOUND', osDisk: 'xvdc' })
+    await assert.rejects(dock(xapi), { code: 'DOCKING_OS_DISK_NOT_FOUND', osDisk: 'xvdc' })
     assert.deepEqual(xapi.calls, [])
 
     // dropped from a report too large for xenstore
     xapi = isoXapi({ runs: [{ result: 'error', report: blockedOn('boot_disk_not_first') }] })
-    await assert.rejects(repair(xapi), { code: 'REPAIR_BLOCKED' })
+    await assert.rejects(dock(xapi), { code: 'DOCKING_BLOCKED' })
   })
 
-  await t.test('fails with both reports when the repair fails', async () => {
+  await t.test('fails with both reports when the docking fails', async () => {
     const xapi = isoXapi({
       runs: [
         { result: 'ok', report: reportOf() },
@@ -332,10 +383,10 @@ test('repairImportedVm', async t => {
         },
       ],
     })
-    await assert.rejects(repair(xapi), error => {
-      assert.equal(error.code, 'REPAIR_FAILED')
-      assert.match(error.message, /rebuild_initramfs: dracut failed\. Full report and logs in \/var\/log\/xo-repair\//)
-      assert.ok(error.reports.diagnose !== undefined && error.reports.repair !== undefined)
+    await assert.rejects(dock(xapi), error => {
+      assert.equal(error.code, 'DOCKING_FAILED')
+      assert.match(error.message, /rebuild_initramfs: dracut failed\. Full report and logs in \/var\/log\/xo-docking\//)
+      assert.ok(error.reports.diagnose !== undefined && error.reports.dock !== undefined)
       return true
     })
   })
@@ -347,7 +398,7 @@ test('repairImportedVm', async t => {
         { result: 'ok', report: reportOf({ kind: 'windows' }) },
       ],
     })
-    const reports = await repair(xapi, { followFirstBoot: true })
+    const reports = await dock(xapi, { followFirstBoot: true })
     assert.equal(xapi.inputs[1]['windows-reboot'], 'xo')
     // what the first boot and the description of the VM rely on
     assert.equal(reports.windowsReboot, 'xo')
@@ -364,7 +415,7 @@ test('repairImportedVm', async t => {
         { result: 'warning', report: tooOld },
       ],
     })
-    const reports = await repair(xapi, { followFirstBoot: true })
+    const reports = await dock(xapi, { followFirstBoot: true })
     // XO could not tell when its first boot ends
     assert.equal(xapi.inputs[1]['windows-reboot'], 'guest')
     assert.equal(reports.windowsReboot, 'guest')
@@ -373,12 +424,12 @@ test('repairImportedVm', async t => {
 
   await t.test('stops the VM when the ISO does not report in time', async () => {
     const xapi = isoXapi({ runs: ['timeout'] })
-    await assert.rejects(repair(xapi), { code: 'REPAIR_ISO_TIMEOUT' })
+    await assert.rejects(dock(xapi), { code: 'DOCKING_ISO_TIMEOUT' })
     assert.deepEqual(xapi.calls, ['VM.hard_shutdown'])
   })
 
   await t.test('fails when the ISO halts the VM without a result', async () => {
     const xapi = isoXapi({ runs: ['no result'] })
-    await assert.rejects(repair(xapi), { code: 'REPAIR_ISO_NO_RESULT', mode: 'diagnose' })
+    await assert.rejects(dock(xapi), { code: 'DOCKING_ISO_NO_RESULT', mode: 'diagnose' })
   })
 })

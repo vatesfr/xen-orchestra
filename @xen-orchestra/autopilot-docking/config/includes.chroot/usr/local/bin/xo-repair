@@ -1,3 +1,0 @@
-#!/bin/sh
-export PYTHONPATH="/usr/lib/xo-repair${PYTHONPATH:+:$PYTHONPATH}"
-exec python3 -m xo_repair "$@"

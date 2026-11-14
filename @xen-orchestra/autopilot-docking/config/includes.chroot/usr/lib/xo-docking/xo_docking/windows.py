@@ -1,4 +1,4 @@
-"""Windows guests: inspection and repair planning.
+"""Windows guests: inspection and docking planning.
 
 Offline work covers what must happen before Windows can boot on XCP-ng, in
 every control set (so "Last Known Good Configuration" stays bootable too):
@@ -25,9 +25,9 @@ from .hive import Hive
 from .linux import MAC_RE, live_nics
 from .mounts import Mounts
 from .report import Report
-from .util import RepairError, find_ci
+from .util import DockingError, find_ci
 
-log = logging.getLogger("xo-repair")
+log = logging.getLogger("xo-docking")
 
 MIN_BUILD = 7601  # Windows 7 SP1 / Server 2008 R2 SP1
 # XCP-ng 9.x PV drivers: Windows 10 1607 / Server 2016 and later (their MSI
@@ -57,8 +57,8 @@ SERVICE_FS_DRIVER = 2
 NET_CLASS = "{4d36e972-e325-11ce-bfc1-08002be10318}"  # Control\Class\<network adapters>
 GUID_RE = re.compile(r"^\{[0-9a-fA-F-]{36}\}$")
 
-FIRSTBOOT_SERVICE = "XoRepairFirstboot"
-FIRSTBOOT_DIR = "xo-repair"  # at the root of the system volume
+FIRSTBOOT_SERVICE = "XoDockingFirstboot"
+FIRSTBOOT_DIR = "xo-docking"  # at the root of the system volume
 PACKAGES_DIR = "packages"  # under FIRSTBOOT_DIR: MSIs copied from the guest tools disk
 FIRSTBOOT_IMAGE_PATH = (
     r'%SystemRoot%\System32\cmd.exe /c start "" '
@@ -112,7 +112,7 @@ def current_control_set(system: Hive) -> int:
     number = system.dword(select, "Current") if select is not None else None
     node = system.node(f"ControlSet{number or 1:03d}")
     if node is None:
-        raise RepairError("no_control_set", "cannot find the current control set in the SYSTEM hive")
+        raise DockingError("no_control_set", "cannot find the current control set in the SYSTEM hive")
     return node
 
 
@@ -266,7 +266,7 @@ def clear_static_config(system: Hive, control_set: int, guids) -> int:
 
 
 def firstboot_state(directory: Path | None, log_lines: int = 5) -> dict | None:
-    """State left by firstboot.ps1 in \\xo-repair\\, read offline.
+    """State left by firstboot.ps1 in \\xo-docking\\, read offline.
 
     The first boot can only report through xenstore once the PV drivers are
     loaded: this is how XO learns why it did not finish.
@@ -321,7 +321,7 @@ def install_firstboot_service(system: Hive, services: int) -> None:
     system.set_dword(node, "Start", 2)  # automatic
     system.set_dword(node, "ErrorControl", 0)  # never block boot
     system.set_string(node, "ImagePath", FIRSTBOOT_IMAGE_PATH, expand=True)
-    system.set_string(node, "DisplayName", "XO repair first boot")
+    system.set_string(node, "DisplayName", "XO docking first boot")
     system.set_string(node, "Description", "Installs Xen PV drivers after a migration, then removes itself")
     system.set_string(node, "ObjectName", "LocalSystem")
 
@@ -406,7 +406,7 @@ class WindowsGuest:
         self.cleanup = cleanup
         self.reboot = reboot
         self.tools = tools  # mounted guest tools disk
-        self.packages: list[Path] = []  # copied into \xo-repair\packages\
+        self.packages: list[Path] = []  # copied into \xo-docking\packages\
         self.root: Path | None = None
         self.system: Hive | None = None
         self.system_path: Path | None = None
@@ -477,9 +477,9 @@ class WindowsGuest:
         target = self.root / FIRSTBOOT_DIR
         target.mkdir(exist_ok=True)
         (target / "report.json").write_text(report.full_json())
-        log_file = Path("/run/xo-repair/xo-repair.log")
+        log_file = Path("/run/xo-docking/xo-docking.log")
         if log_file.exists():
-            shutil.copyfile(log_file, target / "xo-repair.log")
+            shutil.copyfile(log_file, target / "xo-docking.log")
 
     # -- planning --
     def _for_each_services(self, function) -> None:
@@ -538,7 +538,7 @@ class WindowsGuest:
                          apply, critical=False)
 
     def _check_firstboot(self) -> None:
-        """Report the state of a previous first boot (read before repair resets it)."""
+        """Report the state of a previous first boot (read before docking resets it)."""
         state = firstboot_state(find_ci(self.root, FIRSTBOOT_DIR))
         if state is None:
             return
@@ -552,7 +552,7 @@ class WindowsGuest:
                                 attempts=state["attempts"], log=state["log"])
 
     def _plan_firstboot(self, current: int) -> None:
-        # repair run again on a migrated VM (XO retry): do not reinstall the drivers
+        # dock run again on a migrated VM (XO retry): do not reinstall the drivers
         if (self.report.os.get("firstboot") == "done"
                 and pv_drivers_installed(self.system, services_of(self.system, current))):
             self.report.info("windows_firstboot_already_done",
@@ -606,8 +606,8 @@ class WindowsGuest:
         self._for_each_services(lambda s: install_firstboot_service(self.system, s))
 
     def _commit(self) -> None:
-        backup = self.system_path.with_name(self.system_path.name + ".xo-repair.bak")
-        # the hive before the first repair: a later run would back up a hive it already modified
+        backup = self.system_path.with_name(self.system_path.name + ".xo-docking.bak")
+        # the hive before the first docking: a later run would back up a hive it already modified
         if not backup.exists():
             shutil.copyfile(self.system_path, backup)
         self.system.commit()

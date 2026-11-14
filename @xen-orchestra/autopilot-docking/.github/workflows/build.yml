@@ -52,7 +52,7 @@ jobs:
         run: |
           # release builds take their version from the tag, others from the date and commit
           if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
-            export XO_REPAIR_VERSION="${GITHUB_REF_NAME#v}"
+            export XO_DOCKING_VERSION="${GITHUB_REF_NAME#v}"
           fi
           scripts/build.sh
 

@@ -7,11 +7,11 @@ import sys
 import zlib
 from pathlib import Path
 
-PACKAGE_DIR = Path(__file__).resolve().parents[1] / "config/includes.chroot/usr/lib/xo-repair"
+PACKAGE_DIR = Path(__file__).resolve().parents[1] / "config/includes.chroot/usr/lib/xo-docking"
 sys.path.insert(0, str(PACKAGE_DIR))
 
 # keep test output readable
-logging.getLogger("xo-repair").addHandler(logging.NullHandler())
+logging.getLogger("xo-docking").addHandler(logging.NullHandler())
 
 # Empty registry hive ("minimal" image from the hivex test suite), zlib + base64.
 MINIMAL_HIVE = (

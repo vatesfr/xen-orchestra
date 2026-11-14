@@ -4,9 +4,9 @@ from pathlib import Path
 
 from helpers import dev, lsblk_json, make_tree
 
-from xo_repair.blockdev import parse_lsblk
-from xo_repair.report import Report
-from xo_repair.tools import find_tools
+from xo_docking.blockdev import parse_lsblk
+from xo_docking.report import Report
+from xo_docking.tools import find_tools
 
 
 class FakeMounts:

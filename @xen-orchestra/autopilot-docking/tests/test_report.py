@@ -6,9 +6,9 @@ from unittest import mock
 
 import helpers  # noqa: F401  # sets the import path
 
-from xo_repair.mounts import Mounts, is_readonly_mount, mount_options
-from xo_repair.util import RepairError
-from xo_repair.report import Report
+from xo_docking.mounts import Mounts, is_readonly_mount, mount_options
+from xo_docking.util import DockingError
+from xo_docking.report import Report
 
 
 class ReportTest(unittest.TestCase):
@@ -22,7 +22,7 @@ class ReportTest(unittest.TestCase):
         self.assertTrue(report.blocked)
 
     def test_critical_failure_stops(self):
-        report = Report("repair", "dev")
+        report = Report("dock", "dev")
         applied = []
 
         def boom():
@@ -61,7 +61,7 @@ class ReportTest(unittest.TestCase):
         self.assertNotIn("truncated", data)
 
     def test_compact_json_keeps_what_xo_relies_on(self):
-        report = Report("repair", "dev")
+        report = Report("dock", "dev")
         report.os = {"kind": "windows", "rtc_timeoffset": 3600, "vmware_services": [f"vm{i}" for i in range(100)]}
         report.network = [
             {"adapter": "vmxnet3 Ethernet Adapter " * 4, "guid": f"{{guid-{i}}}", "dhcp": i % 2 == 0,
@@ -88,7 +88,7 @@ class ReportTest(unittest.TestCase):
         self.assertIn({"code": "install_firstboot", "status": "applied"}, data["actions"])
 
     def test_compact_json_keeps_the_info_xo_acts_on(self):
-        report = Report("repair", "dev")
+        report = Report("dock", "dev")
         report.info("guest_agent_missing", "no guest tools disk")
         for i in range(100):
             report.info(f"info_{i}", "x" * 100)
@@ -96,7 +96,7 @@ class ReportTest(unittest.TestCase):
         self.assertEqual([f["code"] for f in data["findings"]], ["guest_agent_missing"])
 
     def test_compact_json_small_report_is_complete(self):
-        report = Report("repair", "dev")
+        report = Report("dock", "dev")
         report.warning("windows_static_ip", "static IP", addresses=["10.0.0.5"])
         data = json.loads(report.compact_json())
         self.assertEqual(data["findings"][0]["data"], {"addresses": ["10.0.0.5"]})
@@ -107,20 +107,20 @@ class MountOptionsTest(unittest.TestCase):
     def test_is_readonly_mount(self):
         with tempfile.TemporaryDirectory() as tmp:
             mounts = Path(tmp) / "mounts"
-            mounts.write_text("/dev/xvda3 /run/xo-repair/mnt/m1 fuseblk ro,relatime,user_id=0 0 0\n"
-                              "/dev/xvda2 /run/xo-repair/mnt/m2 fuseblk rw,relatime,user_id=0 0 0\n")
-            self.assertTrue(is_readonly_mount(Path("/run/xo-repair/mnt/m1"), str(mounts)))
-            self.assertFalse(is_readonly_mount(Path("/run/xo-repair/mnt/m2"), str(mounts)))
-            self.assertFalse(is_readonly_mount(Path("/run/xo-repair/mnt/m3"), str(mounts)))
+            mounts.write_text("/dev/xvda3 /run/xo-docking/mnt/m1 fuseblk ro,relatime,user_id=0 0 0\n"
+                              "/dev/xvda2 /run/xo-docking/mnt/m2 fuseblk rw,relatime,user_id=0 0 0\n")
+            self.assertTrue(is_readonly_mount(Path("/run/xo-docking/mnt/m1"), str(mounts)))
+            self.assertFalse(is_readonly_mount(Path("/run/xo-docking/mnt/m2"), str(mounts)))
+            self.assertFalse(is_readonly_mount(Path("/run/xo-docking/mnt/m3"), str(mounts)))
 
     def test_ntfs_read_only_fallback_is_an_error(self):
         """ntfs-3g mounts an unclean volume read-only, with success."""
         with tempfile.TemporaryDirectory() as tmp:
             mounts = Mounts(Path(tmp))
             ok = mock.Mock(returncode=0, stdout="", stderr="")
-            with mock.patch("xo_repair.mounts.run", return_value=ok), \
-                    mock.patch("xo_repair.mounts.is_readonly_mount", return_value=True):
-                with self.assertRaises(RepairError) as caught:
+            with mock.patch("xo_docking.mounts.run", return_value=ok), \
+                    mock.patch("xo_docking.mounts.is_readonly_mount", return_value=True):
+                with self.assertRaises(DockingError) as caught:
                     mounts.mount("/dev/xvda2", "ntfs", readonly=False)
             self.assertEqual(caught.exception.code, "ntfs_unclean")
             self.assertEqual(mounts._stack, [])  # unmounted again
@@ -139,7 +139,7 @@ class MountOptionsTest(unittest.TestCase):
 class MountsTest(unittest.TestCase):
     def test_mounted_reuses_existing_mount(self):
         ok = mock.Mock(returncode=0)
-        with tempfile.TemporaryDirectory() as tmp, mock.patch("xo_repair.mounts.run", return_value=ok):
+        with tempfile.TemporaryDirectory() as tmp, mock.patch("xo_docking.mounts.run", return_value=ok):
             mounts = Mounts(tmp)
             target = mounts.mount("/dev/xvda1", "vfat", Path(tmp) / "boot-efi")
             self.assertEqual(mounts.mounted("/dev/xvda1"), target)

@@ -1,5 +1,5 @@
 #!/bin/sh
-# Sanity checks on a built ISO: boot timeouts, boot menu background and presence of the repair tool.
+# Sanity checks on a built ISO: boot timeouts, boot menu background and presence of the docking tool.
 # Usage: scripts/check-iso.sh path/to/image.iso
 set -eu
 
@@ -50,15 +50,15 @@ grep -q '^title-text: ""$' "$work/grub/live-theme/theme.txt" \
 ! grep -q '^menu title Boot menu' "$work/isolinux/menu.cfg" \
 	|| fail "the isolinux menu title is drawn over the boot menu background"
 
-# the repair tool and its runtime are in the live system
+# the docking tool and its runtime are in the live system
 listing="$work/fs.list"
 unsquashfs -l "$work/fs.squashfs" > "$listing"
 for path in \
-	usr/local/bin/xo-repair \
-	usr/lib/xo-repair/VERSION \
-	usr/lib/xo-repair/xo_repair/__main__.py \
-	usr/lib/xo-repair/xo_repair/assets/windows/firstboot.ps1 \
-	etc/systemd/system/multi-user.target.wants/xo-repair.service; do
+	usr/local/bin/xo-docking \
+	usr/lib/xo-docking/VERSION \
+	usr/lib/xo-docking/xo_docking/__main__.py \
+	usr/lib/xo-docking/xo_docking/assets/windows/firstboot.ps1 \
+	etc/systemd/system/multi-user.target.wants/xo-docking.service; do
 	grep -q "/$path\$" "$listing" || fail "missing in the live system: /$path"
 done
 for tool in python3 xenstore-read xenstore-write xenstore-rm ntfs-3g; do

@@ -1,4 +1,4 @@
-# runtime of the repair tool
+# runtime of the docking tool
 python3
 python3-hivex
 xenstore-utils

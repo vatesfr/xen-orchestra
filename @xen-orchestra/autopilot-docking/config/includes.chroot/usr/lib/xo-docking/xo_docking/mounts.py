@@ -6,9 +6,9 @@ import logging
 import time
 from pathlib import Path
 
-from .util import RepairError, run
+from .util import DockingError, run
 
-log = logging.getLogger("xo-repair")
+log = logging.getLogger("xo-docking")
 
 # ntfs-3g exit codes worth explaining to the user
 NTFS3G_ERRORS = {
@@ -51,7 +51,7 @@ def is_readonly_mount(target: Path, mounts_file: str = "/proc/self/mounts") -> b
 
 
 class Mounts:
-    def __init__(self, base: str | Path = "/run/xo-repair/mnt"):
+    def __init__(self, base: str | Path = "/run/xo-docking/mnt"):
         self.base = Path(base)
         self._stack: list[tuple[Path, bool]] = []  # (target, is_fuse)
         self._devices: dict[Path, str] = {}  # target -> device, bind mounts excluded
@@ -81,18 +81,18 @@ class Mounts:
                     proc.returncode,
                     ("ntfs_mount_failed", f"ntfs-3g exited with status {proc.returncode}"),
                 )
-                raise RepairError(code, f"{device}: {message}")
+                raise DockingError(code, f"{device}: {message}")
         else:
             proc = run(["mount", "-t", fstype, "-o", ",".join(opts), device, str(target)], check=False)
             if proc.returncode != 0:
-                raise RepairError("mount_failed", f"cannot mount {device} ({fstype}) on {target}")
+                raise DockingError("mount_failed", f"cannot mount {device} ({fstype}) on {target}")
         self._stack.append((target, fstype == "ntfs"))
         self._devices[target] = device
         if fstype == "ntfs" and not readonly and is_readonly_mount(target):
             # ntfs-3g falls back to read-only, with success, on a volume left unclean by a power off:
             # every later write would fail, after the hives were already changed in memory
             self.umount(target)
-            raise RepairError("ntfs_unclean",
+            raise DockingError("ntfs_unclean",
                               f"{device}: the NTFS volume was not cleanly shut down (powered off, or the VM was "
                               "imported while running), ntfs-3g only mounts it read-only. Shut Windows down "
                               "cleanly on the source, or boot it once, then import it again")

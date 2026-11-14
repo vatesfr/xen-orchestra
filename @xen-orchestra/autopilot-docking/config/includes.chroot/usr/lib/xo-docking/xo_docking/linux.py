@@ -1,4 +1,4 @@
-"""Linux guests: inspection and repair planning.
+"""Linux guests: inspection and docking planning.
 
 Everything that touches the guest runs the guest's own tools through chroot
 (dracut, update-initramfs, mkinitcpio); the live system's Python only reads
@@ -21,9 +21,9 @@ from .blockdev import BlockDev
 from .detect import OsCandidate
 from .mounts import Mounts
 from .report import Report
-from .util import RepairError, chroot_run, find_ci, guest_exists, guest_read, resolve_in_root, run
+from .util import DockingError, chroot_run, find_ci, guest_exists, guest_read, resolve_in_root, run
 
-log = logging.getLogger("xo-repair")
+log = logging.getLogger("xo-docking")
 
 # xen-blkfront is critical: a PVHVM kernel unplugs the emulated disks at boot
 # whenever it is built with blkfront support, even as a module. If the module
@@ -82,9 +82,9 @@ AGENT_UNIT_FILE = f"{AGENT_SERVICE}.service"
 ELF_MACHINES = {0x3E: "x86_64", 0x03: "i386"}
 POLICY_RC_D = "/usr/sbin/policy-rc.d"
 TRANSACTIONAL_UPDATE = "/usr/sbin/transactional-update"
-STAGING_DIR = "/tmp/xo-repair"
+STAGING_DIR = "/tmp/xo-docking"
 
-MARKER = "# added by xo-repair"
+MARKER = "# added by xo-docking"
 
 
 # -- pure helpers (unit tested) --------------------------------------------
@@ -125,7 +125,7 @@ def mountable_entries(entries: list[FstabEntry]) -> list[FstabEntry]:
     """Entries to mount under the guest root, parents first.
 
     `noauto` entries are skipped: they are mounted on demand (CD drives,
-    removable disks, network shares) and may designate the repair CD itself.
+    removable disks, network shares) and may designate the docking CD itself.
     The fstype field can be a list ("udf,iso9660").
     """
     mountable = []
@@ -281,7 +281,7 @@ def readonly_root(root: Path, fstype: str | None, entries: list[FstabEntry]) -> 
             proc = run(["btrfs", "property", "get", "-ts", str(root), "ro"], check=False)
             if proc.stdout.strip() == "ro=true":
                 return True
-        except RepairError:
+        except DockingError:
             pass  # no btrfs-progs: fall back to fstab
     root_entry = next((e for e in entries if e.mountpoint == "/"), None)
     return (root_entry is not None and "ro" in root_entry.options.split(",")
@@ -292,7 +292,7 @@ def initramfs_files(image: Path) -> list[str]:
     """Paths inside an initramfs (early cpio and compressed main archive), [] if unreadable."""
     try:
         proc = run(["lsinitramfs", str(image)], check=False, timeout=300)
-    except RepairError:
+    except DockingError:
         return []
     return proc.stdout.splitlines() if proc.returncode == 0 else []
 
@@ -526,7 +526,7 @@ def services_not_started(root: Path):
     the daemon would start on the live system and keep the guest mounted.
     """
     policy = resolve_in_root(root, POLICY_RC_D)
-    backup = policy.with_name(policy.name + ".xo-repair.bak")
+    backup = policy.with_name(policy.name + ".xo-docking.bak")
     if policy.exists() or policy.is_symlink():
         policy.rename(backup)
     policy.write_text("#!/bin/sh\n" + MARKER + "\nexit 101\n")
@@ -625,12 +625,12 @@ class LinuxGuest:
         pass
 
     def write_report(self, report: Report) -> None:
-        target = resolve_in_root(self.root, "/var/log/xo-repair")
+        target = resolve_in_root(self.root, "/var/log/xo-docking")
         target.mkdir(parents=True, exist_ok=True)
         (target / "report.json").write_text(report.full_json())
-        log_file = Path("/run/xo-repair/xo-repair.log")
+        log_file = Path("/run/xo-docking/xo-docking.log")
         if log_file.exists():
-            shutil.copyfile(log_file, target / "xo-repair.log")
+            shutil.copyfile(log_file, target / "xo-docking.log")
 
     # -- fstab --
     def _resolve_spec(self, spec: str) -> BlockDev | None:
@@ -665,7 +665,7 @@ class LinuxGuest:
             extra = [o for o in entry.options.split(",") if o.startswith(("subvol=", "subvolid="))]
             try:
                 self.mounts.mount(dev.path, fstype, target, readonly=self.readonly, options=extra)
-            except RepairError as exc:
+            except DockingError as exc:
                 if essential:
                     self.report.error("fstab_mount_failed", str(exc), mountpoint=entry.mountpoint)
                 else:
@@ -692,7 +692,7 @@ class LinuxGuest:
 
         def apply() -> None:
             fstab = resolve_in_root(self.root, "/etc/fstab")
-            shutil.copy2(fstab, fstab.with_name("fstab.xo-repair.bak"))
+            shutil.copy2(fstab, fstab.with_name("fstab.xo-docking.bak"))
             # rewrite in place: keeps the inode, owner and SELinux label
             with fstab.open("w") as handle:
                 handle.write(new_text)
@@ -764,7 +764,7 @@ class LinuxGuest:
             def apply() -> None:
                 dropin = resolve_in_root(self.root, "/etc/mkinitcpio.conf.d")
                 dropin.mkdir(parents=True, exist_ok=True)
-                (dropin / "90-xo-repair.conf").write_text(f"{MARKER}\nMODULES+=({' '.join(common)})\n")
+                (dropin / "90-xo-docking.conf").write_text(f"{MARKER}\nMODULES+=({' '.join(common)})\n")
                 self._prepare_chroot()
                 chroot_run(self.root, ["mkinitcpio", "-P"])
 
@@ -817,7 +817,7 @@ class LinuxGuest:
         if not missing:
             return
         if target.exists():
-            shutil.copy2(target, target.with_name(target.name + ".xo-repair.bak"))
+            shutil.copy2(target, target.with_name(target.name + ".xo-docking.bak"))
         with target.open("a") as handle:
             if current and not current.endswith("\n"):
                 handle.write("\n")
@@ -829,7 +829,7 @@ class LinuxGuest:
         for source in ("/dev", "/dev/pts", "/proc", "/sys"):
             target = self.root / source.lstrip("/")
             if not target.is_dir():
-                raise RepairError("chroot_setup_failed", f"{source} is missing in the guest root")
+                raise DockingError("chroot_setup_failed", f"{source} is missing in the guest root")
             self.mounts.bind(source, target)
         self._chroot_ready = True
 
@@ -853,7 +853,7 @@ class LinuxGuest:
             directory = resolve_in_root(self.root, "/etc/systemd/network")
             directory.mkdir(parents=True, exist_ok=True)
             for name, (mac, driver) in pinned.items():
-                (directory / f"10-xo-repair-{name}.link").write_text(link_file(name, mac, driver))
+                (directory / f"10-xo-docking-{name}.link").write_text(link_file(name, mac, driver))
 
         self._plan("linux_pin_interface_names",
                          "keep the interface names " + ", ".join(f"{n} ({m})" for n, (m, _) in pinned.items())
@@ -918,7 +918,7 @@ class LinuxGuest:
         if not agent_enabled(self.root) and systemd:
             chroot_run(self.root, ["systemctl", "enable", f"{AGENT_SERVICE}.service"])
         if not agent_enabled(self.root):
-            raise RepairError("guest_agent_not_enabled", f"{AGENT_SERVICE} is installed but not enabled at boot")
+            raise DockingError("guest_agent_not_enabled", f"{AGENT_SERVICE} is installed but not enabled at boot")
 
     # -- checks only --
 

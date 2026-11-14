@@ -537,9 +537,9 @@ export type XoApp = EventEmitter & {
       stopSource: boolean
       /** VMware moref of the VM */
       vm: string
-      /** repair the guest once the import is complete, off by default. A failed repair does not fail the import */
-      repair?: boolean
-      /** start the VM once the import is complete, following the first boot of a repaired guest, off by default */
+      /** dock the guest once the import is complete, off by default. A failed docking does not fail the import */
+      docking?: boolean
+      /** start the VM once the import is complete, following the first boot of a docked guest, off by default */
       startVm?: boolean
     }
   ): Promise<XoVm['uuid']>

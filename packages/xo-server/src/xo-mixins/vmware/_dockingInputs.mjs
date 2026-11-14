@@ -1,26 +1,26 @@
-// The contract with the repair ISO (package @xen-orchestra/autopilot-docking): XO writes its inputs in `VM.xenstore_data`, the
+// The contract with the docking ISO (package @xen-orchestra/autopilot-docking): XO writes its inputs in `VM.xenstore_data`, the
 // ISO reads them from the guest and writes its outputs under `out/`, which XAPI syncs back into
 // `VM.xenstore_data`, where they stay after the VM halts.
 
 // `vates-autopilot-docking-<build date and time>-<suffix>.iso`, as `scripts/build.sh` names its builds: the date
 // and time in UTC, the suffix is the commit, maybe `-dirty`, or the version of a release. The date first: the most
 // recent ISO is the last one by name
-const REPAIR_ISO_NAME_RE = /^vates-autopilot-docking-\d{8}T\d{6}Z-(?:[0-9a-f]{8}(?:-dirty)?|\d+\.\d+\.\d+)\.iso$/
+const DOCKING_ISO_NAME_RE = /^vates-autopilot-docking-\d{8}T\d{6}Z-(?:[0-9a-f]{8}(?:-dirty)?|\d+\.\d+\.\d+)\.iso$/
 
 /**
- * Whether a VDI is the repair ISO: `vates-autopilot-docking-20261018T084512Z-0d5f013b.iso` or
+ * Whether a VDI is the docking ISO: `vates-autopilot-docking-20261018T084512Z-0d5f013b.iso` or
  * `vates-autopilot-docking-20261018T084512Z-1.2.0.iso`.
  *
  * @param {string} name - `name_label` of the VDI
  */
-export const isRepairIsoName = name => REPAIR_ISO_NAME_RE.test(name)
+export const isDockingIsoName = name => DOCKING_ISO_NAME_RE.test(name)
 
-const PREFIX = 'vm-data/xo-repair/'
+const PREFIX = 'vm-data/xo-docking/'
 const OUTPUT_PREFIX = PREFIX + 'out/'
-const PARENT_KEY = 'vm-data/xo-repair'
+const PARENT_KEY = 'vm-data/xo-docking'
 
-// where a repair run writes its full report and log, in the guest
-const GUEST_LOGS = { linux: '/var/log/xo-repair/', windows: 'C:\\xo-repair\\' }
+// where a dock run writes its full report and log, in the guest
+const GUEST_LOGS = { linux: '/var/log/xo-docking/', windows: 'C:\\xo-docking\\' }
 
 // where the first-boot script of Windows logs each of its phases
 export const WINDOWS_FIRST_BOOT_LOG = GUEST_LOGS.windows + 'firstboot.log'
@@ -42,14 +42,14 @@ export const ACTION = Object.freeze({
 })
 
 /**
- * @param {RepairReport} report
+ * @param {DockingReport} report
  * @param {string} code - from `FINDING`
- * @returns {RepairReport['findings'][number] | undefined}
+ * @returns {DockingReport['findings'][number] | undefined}
  */
 export const findFinding = (report, code) => report.findings.find(finding => finding.code === code)
 
 /**
- * @param {RepairReport} report
+ * @param {DockingReport} report
  * @param {string} code - from `ACTION`
  * @returns {string | undefined} `planned`, `applied`, `failed` or `skipped`, undefined when not planned
  */
@@ -129,7 +129,7 @@ export function buildWindowsNics({ guestNics, networks, reportNetwork }) {
  * @param {Readonly<Record<string, string>>} current
  * @returns {Record<string, string>}
  */
-export const clearRepairXenstoreData = current =>
+export const clearDockingXenstoreData = current =>
   // the parent node too, synced back by XAPI with an empty value
   Object.fromEntries(Object.entries(current).filter(([key]) => key !== PARENT_KEY && !key.startsWith(PREFIX)))
 
@@ -141,15 +141,15 @@ export const clearRepairXenstoreData = current =>
  *
  * @param {Readonly<Record<string, string>>} current - current `VM.xenstore_data`
  * @param {object} inputs - unset inputs use the default of the ISO
- * @param {'diagnose' | 'repair'} inputs.mode
+ * @param {'diagnose' | 'dock'} inputs.mode
  * @param {string} [inputs.nics]
  * @param {string} [inputs.windowsNics]
  * @param {'guest' | 'xo'} [inputs.windowsReboot] - `xo`: the first boot stops the VM between its phases, for XO
  * to start it again
  * @returns {Record<string, string>}
  */
-export function buildRepairXenstoreData(current, { mode, nics, windowsNics, windowsReboot }) {
-  const xenstoreData = clearRepairXenstoreData(current)
+export function buildDockingXenstoreData(current, { mode, nics, windowsNics, windowsReboot }) {
+  const xenstoreData = clearDockingXenstoreData(current)
   const inputs = {
     mode,
     nics,
@@ -165,17 +165,17 @@ export function buildRepairXenstoreData(current, { mode, nics, windowsNics, wind
 }
 
 /**
- * @typedef {object} RepairOutput
+ * @typedef {object} DockingOutput
  * @property {string | undefined} state - `running`, then `done` once every other output is final
  * @property {string | undefined} result - `ok`, `warning` or `error`
  * @property {string | undefined} mode
  * @property {string | undefined} version
  * @property {string | undefined} firstboot
- * @property {RepairReport | undefined} report
+ * @property {DockingReport | undefined} report
  */
 
 /**
- * @typedef {object} RepairReport - compact report of the ISO, details may have been dropped to fit in xenstore
+ * @typedef {object} DockingReport - compact report of the ISO, details may have been dropped to fit in xenstore
  * @property {string} result
  * @property {string | null} firmware
  * @property {string[]} disks
@@ -190,14 +190,14 @@ export function buildRepairXenstoreData(current, { mode, nics, windowsNics, wind
  * @param {Readonly<Record<string, string>>} xenstoreData - `VM.xenstore_data`
  * @returns {boolean}
  */
-export const isRepairDone = xenstoreData => xenstoreData[OUTPUT_PREFIX + 'state'] === 'done'
+export const isDockingDone = xenstoreData => xenstoreData[OUTPUT_PREFIX + 'state'] === 'done'
 
 /**
  * @param {Readonly<Record<string, string>>} xenstoreData - `VM.xenstore_data`
  * @param {object} context - attached to the error, e.g. `{ vmId }`
- * @returns {RepairOutput}
+ * @returns {DockingOutput}
  */
-export function readRepairOutput(xenstoreData, context) {
+export function readDockingOutput(xenstoreData, context) {
   const get = key => xenstoreData[OUTPUT_PREFIX + key]
   const rawReport = get('report')
   let report
@@ -205,8 +205,8 @@ export function readRepairOutput(xenstoreData, context) {
     try {
       report = JSON.parse(rawReport)
     } catch (cause) {
-      const error = new Error('the report of the repair ISO is not valid JSON')
-      error.code = 'REPAIR_REPORT_INVALID'
+      const error = new Error('the report of the docking ISO is not valid JSON')
+      error.code = 'DOCKING_REPORT_INVALID'
       error.cause = cause
       Object.assign(error, context, { rawReport })
       throw error
@@ -240,7 +240,7 @@ export const isFirstBootOver = state => state === 'done' || (state?.endsWith(':f
 /**
  * The findings which stopped the ISO from modifying anything.
  *
- * @param {RepairReport} report
+ * @param {DockingReport} report
  */
 export const getBlockingFindings = report => report.findings.filter(finding => finding.level === 'error')
 
@@ -249,7 +249,7 @@ export const getBlockingFindings = report => report.findings.filter(finding => f
  * when the report still has it. A failed critical action is also reported as an `action_failed` finding
  * repeating its error, left out here.
  *
- * @param {RepairReport} report
+ * @param {DockingReport} report
  * @returns {string[]}
  */
 export function describeFailures(report) {
@@ -267,9 +267,9 @@ export function describeFailures(report) {
 }
 
 /**
- * Where the full report and log of a repair run are in the guest. A diagnose run writes nothing.
+ * Where the full report and log of a dock run are in the guest. A diagnose run writes nothing.
  *
- * @param {RepairReport} report
+ * @param {DockingReport} report
  * @returns {string | undefined}
  */
 export const guestLogsOf = report => GUEST_LOGS[report.os?.kind]

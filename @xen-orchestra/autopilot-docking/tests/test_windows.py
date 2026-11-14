@@ -6,8 +6,8 @@ from unittest import mock
 
 from helpers import make_tree, write_empty_hive
 
-from xo_repair.efi import fallback_copies
-from xo_repair.windows import (
+from xo_docking.efi import fallback_copies
+from xo_docking.windows import (
     FIRSTBOOT_SERVICE, clear_static_config, control_sets, current_control_set, disable_services,
     enable_boot_drivers, firstboot_config, firstboot_msi_patterns, firstboot_state, install_firstboot_service, is_hibernated, match_packages,
     map_static_adapters, network_adapters, network_config, parse_windows_nics, pv_drivers_installed,
@@ -15,7 +15,7 @@ from xo_repair.windows import (
 )
 
 try:
-    from xo_repair.hive import Hive
+    from xo_docking.hive import Hive
     import hivex  # noqa: F401  # pyflakes: availability check
     HAVE_HIVEX = True
 except ImportError:
@@ -124,7 +124,7 @@ class SystemHiveTest(unittest.TestCase):
         self.assertEqual(rtc_timeoffset(hive, current), 0)
         hive.close()
 
-    def test_repair_applies_to_every_control_set(self):
+    def test_dock_applies_to_every_control_set(self):
         hive = Hive(self.path, write=True)
         services_current = hive.child(current_control_set(hive), "Services")
         names = vmware_services(hive, services_current)
@@ -148,7 +148,7 @@ class SystemHiveTest(unittest.TestCase):
             self.assertEqual(hive.dword(hive.child(services, "CbDefense"), "Start"), 2)
             firstboot = hive.child(services, FIRSTBOOT_SERVICE)
             self.assertEqual(hive.dword(firstboot, "Start"), 2)
-            self.assertIn(r"\xo-repair\firstboot.ps1", hive.string(firstboot, "ImagePath"))
+            self.assertIn(r"\xo-docking\firstboot.ps1", hive.string(firstboot, "ImagePath"))
             self.assertEqual(network_adapters(hive, control_set)[0]["addresses"], [])
             self.assertTrue(network_adapters(hive, control_set)[0]["dhcp"])
         hive.close()
@@ -318,16 +318,16 @@ class EfiFallbackTest(unittest.TestCase):
 
 
 class CommitTest(unittest.TestCase):
-    def test_backup_keeps_the_hive_before_the_first_repair(self):
+    def test_backup_keeps_the_hive_before_the_first_docking(self):
         with tempfile.TemporaryDirectory() as tmp:
             guest = WindowsGuest.__new__(WindowsGuest)
             guest.system_path = Path(tmp) / "SYSTEM"
             guest.system_path.write_bytes(b"original")
             guest.system = mock.Mock()
             guest._commit()
-            guest.system_path.write_bytes(b"repaired")  # what the first run wrote
+            guest.system_path.write_bytes(b"docked")  # what the first run wrote
             guest._commit()
-            self.assertEqual((Path(tmp) / "SYSTEM.xo-repair.bak").read_bytes(), b"original")
+            self.assertEqual((Path(tmp) / "SYSTEM.xo-docking.bak").read_bytes(), b"original")
 
 
 if __name__ == "__main__":

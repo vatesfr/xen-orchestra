@@ -1,7 +1,7 @@
 """Report model: findings, planned actions and their outcome.
 
 Detection never modifies anything: it records findings and *plans* actions.
-In diagnose mode the planned actions are only reported; in repair mode they
+In diagnose mode the planned actions are only reported; in dock mode they
 are applied in order.
 """
 
@@ -12,7 +12,7 @@ import logging
 from dataclasses import dataclass, field
 from typing import Callable
 
-log = logging.getLogger("xo-repair")
+log = logging.getLogger("xo-docking")
 
 # oxenstored (XCP-ng) refuses guest values over quota-maxsize = 2048 bytes:
 # the write fails and XO gets no report at all. Keep a safety margin.

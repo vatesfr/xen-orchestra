@@ -1,12 +1,12 @@
 [Unit]
-Description=Repair a VM migrated to XCP-ng
+Description=Docking a VM migrated to XCP-ng
 After=local-fs.target systemd-udev-settle.service
 Wants=systemd-udev-settle.service
-ConditionKernelCommandLine=!xo-repair.disable
+ConditionKernelCommandLine=!xo-docking.disable
 
 [Service]
 Type=oneshot
-ExecStart=/usr/local/bin/xo-repair --service
+ExecStart=/usr/local/bin/xo-docking --service
 StandardOutput=journal+console
 StandardError=journal+console
 # dracut on several kernels can be slow on an emulated disk

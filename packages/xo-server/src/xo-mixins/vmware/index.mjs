@@ -13,14 +13,14 @@ import { importDisksFromDatastore, importStream } from './importDisksfromDatasto
 import { buildDiskChainByNode } from './buildChainByNode.mjs'
 import { assertKnownDevices, resolveDestinations } from './_deviceMapping.mjs'
 import { getSourceId } from './_sourceId.mjs'
-import { findRepairIso, repairImportedVm } from './_repair.mjs'
+import { findDockingIso, dockImportedVm } from './_docking.mjs'
 import {
-  describeRepair,
+  describeDocking,
   FIRST_BOOT_LEFT_TO_XO,
   isFirstBootLeftToXo,
-  replaceRepairDescription,
-} from './_repairDescription.mjs'
-import { firstBootOfRepairedVm } from './_firstBoot.mjs'
+  replaceDockingDescription,
+} from './_dockingDescription.mjs'
+import { firstBootOfDockedVm } from './_firstBoot.mjs'
 import { finished, PassThrough } from 'node:stream'
 import { Ref } from 'xen-api'
 
@@ -32,8 +32,8 @@ const SOURCE_PLATFORM = 'vmware'
 const isFromThisPlatform = otherConfig => (otherConfig.sourcePlatform ?? SOURCE_PLATFORM) === SOURCE_PLATFORM
 
 /**
- * @typedef {{ isRepaired: true, reports: object }} RepairedGuest - with the reports of `repairImportedVm`
- * @typedef {{ isRepaired: false }} UnrepairedGuest - the repair failed, the task says why
+ * @typedef {{ isDocked: true, reports: object }} DockedGuest - with the reports of `dockImportedVm`
+ * @typedef {{ isDocked: false }} UndockedGuest - the docking failed, the task says why
  */
 
 // once XO stops following a first boot which waits for it, the user has to take over
@@ -229,7 +229,9 @@ export default class MigrateVm {
       [V2V_VM_OTHER_CONFIG.SOURCE_ID]: sourceId,
       [V2V_VM_OTHER_CONFIG.SOURCE_VM_INSTANCE_UUID]: metadata.instanceUuid,
     })
-    await vm.$snapshot({ name_label: `after ${isRunning ? 'partial' : 'complete'} import from V2V` })
+    await Task.run({ properties: { name: 'taking a snapshot of the imported VM' } }, async () => {
+      await vm.$snapshot({ name_label: `after ${isRunning ? 'partial' : 'complete'} import from V2V` })
+    })
     if (isRunning) {
       if (stopSource) {
         await Task.run({ properties: { name: 'stopping source VM' } }, async () => {
@@ -252,7 +254,9 @@ export default class MigrateVm {
           sourceVmId: vmId,
           sourceSnapshotId: null,
         })
-        await vm.$snapshot({ name_label: 'complete import from V2V' })
+        await Task.run({ properties: { name: 'taking a snapshot of the imported VM' } }, async () => {
+          await vm.$snapshot({ name_label: 'complete import from V2V' })
+        })
       } else {
         await Task.info(`VM was running, no stop source. We'll keep the partial import.`)
       }
@@ -260,33 +264,34 @@ export default class MigrateVm {
   }
 
   // once the import is complete, before the lock on start is removed: the VM cannot be started by somebody else
-  // between two runs of the ISO. A failed repair does not fail the import: the data is there, the snapshot of the
+  // between two runs of the ISO. A failed docking does not fail the import: the data is there, the snapshot of the
   // import is the rollback
-  /** @returns {Promise<RepairedGuest | UnrepairedGuest>} */
-  async #repairVm({ followFirstBoot, metadata, vm }) {
+  /** @returns {Promise<DockedGuest | UndockedGuest>} */
+  async #dockVm({ followFirstBoot, metadata, vm }) {
     const xapi = vm.$xapi
     try {
-      const reports = await Task.run({ properties: { name: 'repairing the guest for XCP-ng' } }, () =>
-        repairImportedVm({ xapi, vmRef: vm.$ref, metadata, followFirstBoot })
+      const reports = await Task.run(
+        { properties: { name: 'Autopilot docking: preparing the guest for XCP-ng' } },
+        () => dockImportedVm({ xapi, vmRef: vm.$ref, metadata, followFirstBoot })
       )
-      await this.#writeRepairDescription(vm, describeRepair({ reports }))
-      return { isRepaired: true, reports }
+      await this.#writeDockingDescription(vm, describeDocking({ reports }))
+      return { isDocked: true, reports }
     } catch (error) {
-      warn('the guest could not be repaired', { error, vmId: vm.uuid, sourceVmId: metadata.vmId })
-      Task.warning(withFirstBootHint(`the guest could not be repaired: ${error.message}`, error.reports))
-      await this.#writeRepairDescription(vm, describeRepair({ reports: error.reports, error }))
-      return { isRepaired: false }
+      warn('the guest could not be docked', { error, vmId: vm.uuid, sourceVmId: metadata.vmId })
+      Task.warning(withFirstBootHint(`the guest could not be docked: ${error.message}`, error.reports))
+      await this.#writeDockingDescription(vm, describeDocking({ reports: error.reports, error }))
+      return { isDocked: false }
     }
   }
 
-  // what the repair did, where a user looks first. It is only a summary: a failure to write it fails nothing
-  async #writeRepairDescription(vm, summary) {
+  // what the docking did, where a user looks first. It is only a summary: a failure to write it fails nothing
+  async #writeDockingDescription(vm, summary) {
     const xapi = vm.$xapi
     try {
       const description = await xapi.getField('VM', vm.$ref, 'name_description')
-      await xapi.setField('VM', vm.$ref, 'name_description', replaceRepairDescription(description, summary))
+      await xapi.setField('VM', vm.$ref, 'name_description', replaceDockingDescription(description, summary))
     } catch (error) {
-      warn('failed to write the repair summary in the description', { error, vmId: vm.uuid })
+      warn('failed to write the docking summary in the description', { error, vmId: vm.uuid })
     }
   }
 
@@ -302,28 +307,28 @@ export default class MigrateVm {
     }
   }
 
-  // starts a repaired guest and follows its first boot, which does not fail the import either
-  async #startRepairedVm({ metadata, reports, vm }) {
+  // starts a docked guest and follows its first boot, which does not fail the import either
+  async #startDockedVm({ metadata, reports, vm }) {
     const xapi = vm.$xapi
     // how far the first boot went, kept in the description when it fails
     let firstBoot
     try {
       await Task.run({ properties: { name: 'first boot on XCP-ng' } }, () =>
-        firstBootOfRepairedVm({
+        firstBootOfDockedVm({
           xapi,
           vmRef: vm.$ref,
           metadata,
           reports,
           onProgress: progress => {
             firstBoot = progress
-            return this.#writeRepairDescription(vm, describeRepair({ reports, firstBoot }))
+            return this.#writeDockingDescription(vm, describeDocking({ reports, firstBoot }))
           },
         })
       )
     } catch (error) {
-      warn('the first boot of the repaired guest failed', { error, vmId: vm.uuid, sourceVmId: metadata.vmId })
+      warn('the first boot of the docked guest failed', { error, vmId: vm.uuid, sourceVmId: metadata.vmId })
       Task.warning(withFirstBootHint(`the first boot on XCP-ng failed: ${error.message}`, reports))
-      await this.#writeRepairDescription(vm, describeRepair({ reports, firstBoot, firstBootError: error }))
+      await this.#writeDockingDescription(vm, describeDocking({ reports, firstBoot, firstBootError: error }))
     }
   }
 
@@ -343,9 +348,9 @@ export default class MigrateVm {
       vm: vmId,
       stopSource,
       template: templateId,
-      // prepare the guest to boot on XCP-ng with the repair ISO, once the import is complete. Off by default
-      repair = false,
-      // start the VM once the import is complete, and follow the first boot of a repaired guest. Off by default
+      // prepare the guest to boot on XCP-ng with the docking ISO, once the import is complete. Off by default
+      docking = false,
+      // start the VM once the import is complete, and follow the first boot of a docked guest. Off by default
       startVm = false,
     }
   ) {
@@ -365,9 +370,9 @@ export default class MigrateVm {
     // before anything is done on either side: a mapping which cannot be applied would import the
     // device to the default destination
     assertKnownDevices(metadata, { srIdsByNode, networkIdsByNic, vmId })
-    if (repair) {
-      // a repair which cannot run would only be known once the disks are transferred
-      findRepairIso(xapi, { sourceVmId: vmId })
+    if (docking) {
+      // a docking which cannot run would only be known once the disks are transferred
+      findDockingIso(xapi, { sourceVmId: vmId })
     }
     const { srsByNode, network, networksByNic } = resolveDestinations(app, {
       sr,
@@ -462,17 +467,17 @@ export default class MigrateVm {
     await this.#importDisks($defer, { esxi, metadata, sourceId, stopSource, vm, sr, srsByNode, vmId })
     Task.abortSignal?.throwIfAborted()
     const isComplete = stopSource || metadata.powerState === 'poweredOff'
-    // the guest is only repaired, and the VM only started, once the import is complete
-    if (!isComplete && (repair || startVm)) {
-      Task.info('the import is partial: the guest is neither repaired nor started until an import completes it')
+    // the guest is only docked, and the VM only started, once the import is complete
+    if (!isComplete && (docking || startVm)) {
+      Task.info('the import is partial: the guest is neither docked nor started until an import completes it')
     }
-    const isRepairing = repair && isComplete
+    const isDocking = docking && isComplete
     const isStarting = startVm && isComplete
-    /** @type {RepairedGuest | UnrepairedGuest | undefined} undefined when no repair is run */
-    let repairOutcome
-    if (isRepairing) {
-      // the VM is started once repaired, XO follows its first boot and does its reboots
-      repairOutcome = await this.#repairVm({ followFirstBoot: isStarting, metadata, vm })
+    /** @type {DockedGuest | UndockedGuest | undefined} undefined when no docking is run */
+    let dockingOutcome
+    if (isDocking) {
+      // the VM is started once docked, XO follows its first boot and does its reboots
+      dockingOutcome = await this.#dockVm({ followFirstBoot: isStarting, metadata, vm })
     }
     Task.abortSignal?.throwIfAborted()
     await Task.run({ properties: { name: 'Finishing transfer' } }, async () => {
@@ -486,16 +491,16 @@ export default class MigrateVm {
     })
 
     if (!isStarting) {
-      if (repairOutcome?.isRepaired && metadata.firmware === 'uefi' && metadata.secureBoot) {
-        // the repair disabled it, the first boot would have enabled it again
+      if (dockingOutcome?.isDocked && metadata.firmware === 'uefi' && metadata.secureBoot) {
+        // the docking disabled it, the first boot would have enabled it again
         Task.warning('Secure Boot was enabled on the source: enable it again once the VM has booted')
       }
-    } else if (repairOutcome === undefined) {
+    } else if (dockingOutcome === undefined) {
       await this.#startVm({ metadata, vm })
-    } else if (repairOutcome.isRepaired) {
-      await this.#startRepairedVm({ metadata, reports: repairOutcome.reports, vm })
+    } else if (dockingOutcome.isDocked) {
+      await this.#startDockedVm({ metadata, reports: dockingOutcome.reports, vm })
     } else {
-      Task.warning('the VM is not started: its guest could not be repaired')
+      Task.warning('the VM is not started: its guest could not be docked')
     }
 
     return vm.uuid

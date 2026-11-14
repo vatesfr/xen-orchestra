@@ -2,17 +2,17 @@ import { createLogger } from '@xen-orchestra/log'
 import { setTimeout as delay } from 'node:timers/promises'
 import { Task } from '@xen-orchestra/mixins/Tasks.mjs'
 
-import { diagnoseOffline } from './_repair.mjs'
+import { diagnoseOffline } from './_docking.mjs'
 import {
   ACTION,
   actionStatus,
-  clearRepairXenstoreData,
+  clearDockingXenstoreData,
   FINDING,
   findFinding,
   isFirstBootOver,
   readFirstBootState,
   WINDOWS_FIRST_BOOT_LOG,
-} from './_repairInputs.mjs'
+} from './_dockingInputs.mjs'
 
 const { warn } = createLogger('xo:mixins:vmware:first-boot')
 
@@ -22,11 +22,11 @@ const WINDOWS_FIRST_BOOT_TIMEOUT = 45 * 60e3
 const AGENT_TIMEOUT = 15 * 60e3
 const AGENT_POLL_INTERVAL = 5e3
 
-// the guest has no agent which could report: none was there, and the repair could not install one
-const isAgentNotInstalled = repair =>
-  findFinding(repair, FINDING.GUEST_AGENT_MISSING) !== undefined ||
-  findFinding(repair, FINDING.GUEST_AGENT_UNSUPPORTED) !== undefined ||
-  actionStatus(repair, ACTION.INSTALL_GUEST_AGENT) === 'failed'
+// the guest has no agent which could report: none was there, and the docking could not install one
+const isAgentNotInstalled = dock =>
+  findFinding(dock, FINDING.GUEST_AGENT_MISSING) !== undefined ||
+  findFinding(dock, FINDING.GUEST_AGENT_UNSUPPORTED) !== undefined ||
+  actionStatus(dock, ACTION.INSTALL_GUEST_AGENT) === 'failed'
 
 // the phases of the first-boot script: the VM is restarted between two of them
 const WINDOWS_FIRST_BOOT_PHASES = ['drivers', 'finish']
@@ -75,30 +75,37 @@ async function stopVm(xapi, vmRef) {
  * @param {string} vmRef
  * @param {object} params
  * @param {object} params.context
- * @param {(progress: import('./_repairInputs.mjs').FirstBootProgress) => Promise<void>} params.onProgress
+ * @param {(progress: import('./_dockingInputs.mjs').FirstBootProgress) => Promise<void>} params.onProgress
  */
 async function followWindowsFirstBoot(xapi, vmRef, { context, onProgress }) {
   const progress = { restartedAfter: [], done: false }
   const deadline = Date.now() + WINDOWS_FIRST_BOOT_TIMEOUT
   let state
   while (true) {
-    let vm
+    const phase = WINDOWS_FIRST_BOOT_PHASES[progress.restartedAfter.length]
+    const isLastPhase = progress.restartedAfter.length === WINDOWS_FIRST_BOOT_PHASES.length - 1
     try {
-      vm = await xapi.waitObjectState(
-        vmRef,
-        vm => isFirstBootOver(readFirstBootState(vm.xenstore_data)) || vm.power_state === 'Halted',
-        { timeout: Math.max(0, deadline - Date.now()) }
-      )
+      // fails when the first boot goes no further: no report in time, given up, or a VM stopped once more
+      await Task.run({ properties: { name: `${phase} phase of the Windows first boot` } }, async () => {
+        const vm = await xapi.waitObjectState(
+          vmRef,
+          vm => isFirstBootOver(readFirstBootState(vm.xenstore_data)) || vm.power_state === 'Halted',
+          { timeout: Math.max(0, deadline - Date.now()) }
+        )
+        state = readFirstBootState(vm.xenstore_data)
+        if (state !== 'done' && (isFirstBootOver(state) || isLastPhase)) {
+          throw new Error(`the ${phase} phase did not complete (${state ?? 'VM stopped without a state'})`)
+        }
+        return state
+      })
     } catch (error) {
-      warn('the Windows first boot did not report its end in time', { ...context, error })
+      warn('the Windows first boot did not complete', { ...context, phase, error })
       break
     }
-    state = readFirstBootState(vm.xenstore_data)
-    if (isFirstBootOver(state) || progress.restartedAfter.length >= WINDOWS_FIRST_BOOT_PHASES.length - 1) {
+    if (state === 'done') {
       break
     }
 
-    const phase = WINDOWS_FIRST_BOOT_PHASES[progress.restartedAfter.length]
     await Task.run({ properties: { name: `restarting the VM after the ${phase} phase of its first boot` } }, () =>
       xapi.call('VM.start', vmRef, false, false)
     )
@@ -112,7 +119,7 @@ async function followWindowsFirstBoot(xapi, vmRef, { context, onProgress }) {
     await onProgress(progress)
     // once described, nothing reads the state of the first boot anymore. Leaving it there fails nothing
     try {
-      await xapi.call('VM.set_xenstore_data', vmRef, clearRepairXenstoreData(xapi.getObject(vmRef).xenstore_data))
+      await xapi.call('VM.set_xenstore_data', vmRef, clearDockingXenstoreData(xapi.getObject(vmRef).xenstore_data))
     } catch (error) {
       warn('failed to clear the state of the first boot', { ...context, error })
     }
@@ -179,32 +186,34 @@ async function enableSecureBoot(xapi, vmRef, context) {
 }
 
 /**
- * Starts a repaired VM and follows its first boot on XCP-ng, then enables Secure Boot again when the source
+ * Starts a docked VM and follows its first boot on XCP-ng, then enables Secure Boot again when the source
  * had it. The VM is left running, unless its first boot failed.
  *
  * @param {object} params
  * @param {import('xen-api').Xapi} params.xapi
  * @param {string} params.vmRef
  * @param {object} params.metadata - from `getTransferableVmMetadata`
- * @param {{ diagnose: object, repair: object, hasPvDrivers: boolean }} params.reports - from `repairImportedVm`
- * @param {(progress: import('./_repairInputs.mjs').FirstBootProgress) => Promise<void>} params.onProgress - called
+ * @param {{ diagnose: object, dock: object, hasPvDrivers: boolean }} params.reports - from `dockImportedVm`
+ * @param {(progress: import('./_dockingInputs.mjs').FirstBootProgress) => Promise<void>} params.onProgress - called
  * each time the Windows first boot moves forward, e.g. to describe it on the VM. Must not throw
  */
-export async function firstBootOfRepairedVm({ xapi, vmRef, metadata, reports, onProgress }) {
+export async function firstBootOfDockedVm({ xapi, vmRef, metadata, reports, onProgress }) {
   const vm = xapi.getObject(vmRef)
   const context = { vmId: vm.uuid, sourceVmId: metadata.vmId }
-  // older Windows: no PV drivers, the first boot cannot report anything. Decided by the repair, not read again
+  // older Windows: no PV drivers, the first boot cannot report anything. Decided by the docking, not read again
   // from its report, where the finding may have been dropped to fit in xenstore
-  const { repair, hasPvDrivers } = reports
-  const isWindows = repair.os.kind === 'windows'
+  const { dock, hasPvDrivers } = reports
+  const isWindows = dock.os.kind === 'windows'
 
   // the VM is halted: nothing reports until it starts
   const previousReport = lastAgentReport(xapi, vmRef)
-  await xapi.call('VM.start', vmRef, false, false)
-  // until then the cache may still show the VM halted
-  await xapi.barrier()
+  await Task.run({ properties: { name: 'starting the VM' } }, async () => {
+    await xapi.call('VM.start', vmRef, false, false)
+    // until then the cache may still show the VM halted
+    await xapi.barrier()
+  })
 
-  const firstBootScheduled = actionStatus(repair, ACTION.INSTALL_FIRSTBOOT) === 'applied'
+  const firstBootScheduled = actionStatus(dock, ACTION.INSTALL_FIRSTBOOT) === 'applied'
   if (isWindows && firstBootScheduled && hasPvDrivers) {
     await Task.run({ properties: { name: 'Windows first boot' } }, () =>
       followWindowsFirstBoot(xapi, vmRef, { context, onProgress })
@@ -219,15 +228,19 @@ export async function firstBootOfRepairedVm({ xapi, vmRef, metadata, reports, on
     return
   }
   // nothing to wait for
-  if (isAgentNotInstalled(repair)) {
+  if (isAgentNotInstalled(dock)) {
     Task.warning(
-      `the guest has no agent, which the repair could not install: install it after the first boot${needsSecureBoot ? ', then enable Secure Boot again, as on the source' : ''}`
+      `the guest has no agent, which the docking could not install: install it after the first boot${needsSecureBoot ? ', then enable Secure Boot again, as on the source' : ''}`
     )
     return
   }
 
   try {
-    await waitGuestAgent(xapi, vmRef, { previousReport, timeout: AGENT_TIMEOUT, context })
+    // a step started once the task is aborted would not be aborted with it
+    Task.abortSignal?.throwIfAborted()
+    await Task.run({ properties: { name: 'waiting for the guest agent' } }, () =>
+      waitGuestAgent(xapi, vmRef, { previousReport, timeout: AGENT_TIMEOUT, context })
+    )
   } catch (error) {
     if (Task.abortSignal?.aborted) {
       throw error

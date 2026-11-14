@@ -15,7 +15,7 @@ from pathlib import Path
 from .blockdev import BIOS_BOOT_PARTTYPE, BlockDev
 from .mounts import Mounts
 from .report import Report
-from .util import RepairError, find_ci
+from .util import DockingError, find_ci
 
 SKIPPED_VENDOR_DIRS = {"boot", "microsoft"}
 # os-release ID -> directory name used on the ESP
@@ -92,7 +92,7 @@ def plan(report: Report, mounts: Mounts, devices: list[BlockDev], disk: BlockDev
         return
     try:
         mnt = mounts.mounted(esp.path) or mounts.mount(esp.path, "vfat", readonly=readonly)
-    except RepairError as exc:
+    except DockingError as exc:
         report.error("esp_mount_failed", str(exc), device=esp.path)
         return
     efi_dir = find_ci(mnt, "EFI")
