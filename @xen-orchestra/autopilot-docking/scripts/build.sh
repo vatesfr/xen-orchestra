@@ -9,7 +9,8 @@ set -eu
 cd "$(dirname "$0")/.."
 
 # root does not own the checkout: let git read it anyway
-git() { command git -c safe.directory="$PWD" "$@"; }
+# '*' and not "$PWD": the checkout is the root of the monorepo, not this package folder
+git() { command git -c safe.directory='*' "$@"; }
 
 version="$(date -u +%Y%m%dT%H%M%SZ)-${XO_REPAIR_VERSION:-}"
 if [ -z "${XO_REPAIR_VERSION:-}" ]; then
