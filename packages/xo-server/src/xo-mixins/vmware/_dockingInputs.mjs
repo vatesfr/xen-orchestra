@@ -267,6 +267,26 @@ export function describeFailures(report) {
 }
 
 /**
+ * An action or a finding of a report, for humans, in the tasks of the import.
+ */
+export const describeAction = ({ code, status, error }) =>
+  error === undefined ? `${code}: ${status}` : `${code}: ${status} (${error})`
+
+export const describeFinding = ({ level, code, message }) =>
+  message === undefined ? `${level} ${code}` : `${level} ${code}: ${message}`
+
+/**
+ * @param {DockingReport} report
+ * @returns {string | undefined} the guest OS and its firmware
+ */
+export function describeOs(report) {
+  const osName = report.os?.name ?? report.os?.kind
+  if (osName !== undefined) {
+    return report.firmware ? `OS: ${osName} (${report.firmware})` : `OS: ${osName}`
+  }
+}
+
+/**
  * Where the full report and log of a dock run are in the guest. A diagnose run writes nothing.
  *
  * @param {DockingReport} report
@@ -275,10 +295,16 @@ export function describeFailures(report) {
 export const guestLogsOf = report => GUEST_LOGS[report.os?.kind]
 
 /**
- * @typedef {object} FirstBootProgress - of the Windows first boot followed by XO
- * @property {string[]} restartedAfter - the phases after which XO started the VM again, in order
- * @property {boolean} done - whether the first boot reported its end
+ * Whether the guest waits for XO to start it again between the phases of its Windows first boot (`windows-reboot`
+ * `xo`): when XO no longer follows it (failed start, cancelled task, restart of XO), each phase ends with the VM
+ * stopped, which must be started again by hand.
+ *
+ * @param {{ dock?: DockingReport, windowsReboot?: string }} reports - from `dockImportedVm`
  */
+export const isFirstBootLeftToXo = ({ dock, windowsReboot }) =>
+  windowsReboot === 'xo' && dock !== undefined && actionStatus(dock, ACTION.INSTALL_FIRSTBOOT) === 'applied'
+
+export const FIRST_BOOT_LEFT_TO_XO = `Windows stops between the phases of its first boot for XO to start it again: unless XO completed it, start the VM again until ${WINDOWS_FIRST_BOOT_LOG} says it is done`
 
 /**
  * The `userdevice` of a disk named by the ISO, `xvdb` → `1`.

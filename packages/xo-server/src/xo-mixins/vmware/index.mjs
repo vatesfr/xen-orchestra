@@ -14,12 +14,7 @@ import { buildDiskChainByNode } from './buildChainByNode.mjs'
 import { assertKnownDevices, resolveDestinations } from './_deviceMapping.mjs'
 import { getSourceId } from './_sourceId.mjs'
 import { findDockingIso, dockImportedVm } from './_docking.mjs'
-import {
-  describeDocking,
-  FIRST_BOOT_LEFT_TO_XO,
-  isFirstBootLeftToXo,
-  replaceDockingDescription,
-} from './_dockingDescription.mjs'
+import { FIRST_BOOT_LEFT_TO_XO, isFirstBootLeftToXo } from './_dockingInputs.mjs'
 import { firstBootOfDockedVm } from './_firstBoot.mjs'
 import { finished, PassThrough } from 'node:stream'
 import { Ref } from 'xen-api'
@@ -46,8 +41,9 @@ export default class MigrateVm {
   }
 
   async #connectToEsxi(host, user, password, sslVerify) {
-    const esxi = await Task.run({ properties: { name: `connecting to ${host}` } }, async () => {
-      const esxi = new Esxi(host, user, password, sslVerify)
+    const esxi = new Esxi(host, user, password, sslVerify)
+    // returns nothing: what a step returns is kept as the result of its task
+    await Task.run({ properties: { name: `connecting to ${host}` } }, async () => {
       try {
         await fromEvent(esxi, 'ready')
       } catch (error) {
@@ -56,7 +52,6 @@ export default class MigrateVm {
         await this.#closeEsxi(esxi, host)
         throw error
       }
-      return esxi
     })
     return new Disposable(() => this.#closeEsxi(esxi, host), esxi)
   }
@@ -123,9 +118,11 @@ export default class MigrateVm {
       return this.#updateVmMetadata(existingVm, metadata)
     }
     // no reliable candidate : create a new VM
-    return await Task.run({ properties: { name: 'creating VM on XCP side' } }, async () => {
+    let vm
+    // returns nothing: the whole VM would be kept as the result of the task
+    await Task.run({ properties: { name: 'creating VM on XCP side' } }, async () => {
       // got data, ready to start creating
-      const vm = await xapi._getOrWaitObject(
+      vm = await xapi._getOrWaitObject(
         await xapi.VM_create({
           ...OTHER_CONFIG_TEMPLATE,
           memory_dynamic_max: memory,
@@ -173,9 +170,8 @@ export default class MigrateVm {
         const ref = await xapi.VBD_create({ type: 'CD', VM: vm.$ref, VDI: Ref.EMPTY })
         $defer.onFailure(() => xapi.call('VBD.destroy', ref))
       }
-
-      return vm
     })
+    return vm
   }
 
   async #importDisks($defer, { esxi, metadata, sourceId, sr, srsByNode, stopSource, vm, vmId }) {
@@ -186,12 +182,9 @@ export default class MigrateVm {
     if (isRunning && !stopSource) {
       Task.warning(`Data after the last snapshot on vmware won't be migrated to XCP-ng`)
     }
-    const chainsByNodes = await Task.run(
-      { properties: { name: `build disks and snapshots chains for ${vmId}` } },
-      async () => {
-        return buildDiskChainByNode(disks, snapshots)
-      }
-    )
+    const chainsByNodes = await Task.run({ properties: { name: 'build disks and snapshots chains' } }, async () => {
+      return buildDiskChainByNode(disks, snapshots)
+    })
 
     const coldChainsByNodes = {}
     const runningChainByNodes = {}
@@ -270,28 +263,16 @@ export default class MigrateVm {
   async #dockVm({ followFirstBoot, metadata, vm }) {
     const xapi = vm.$xapi
     try {
-      const reports = await Task.run(
-        { properties: { name: 'Autopilot docking: preparing the guest for XCP-ng' } },
-        () => dockImportedVm({ xapi, vmRef: vm.$ref, metadata, followFirstBoot })
-      )
-      await this.#writeDockingDescription(vm, describeDocking({ reports }))
+      let reports
+      // returns nothing: each run of the ISO already traces its report in its own task
+      await Task.run({ properties: { name: 'Autopilot docking: preparing the guest for XCP-ng' } }, async () => {
+        reports = await dockImportedVm({ xapi, vmRef: vm.$ref, metadata, followFirstBoot })
+      })
       return { isDocked: true, reports }
     } catch (error) {
       warn('the guest could not be docked', { error, vmId: vm.uuid, sourceVmId: metadata.vmId })
       Task.warning(withFirstBootHint(`the guest could not be docked: ${error.message}`, error.reports))
-      await this.#writeDockingDescription(vm, describeDocking({ reports: error.reports, error }))
       return { isDocked: false }
-    }
-  }
-
-  // what the docking did, where a user looks first. It is only a summary: a failure to write it fails nothing
-  async #writeDockingDescription(vm, summary) {
-    const xapi = vm.$xapi
-    try {
-      const description = await xapi.getField('VM', vm.$ref, 'name_description')
-      await xapi.setField('VM', vm.$ref, 'name_description', replaceDockingDescription(description, summary))
-    } catch (error) {
-      warn('failed to write the docking summary in the description', { error, vmId: vm.uuid })
     }
   }
 
@@ -310,25 +291,13 @@ export default class MigrateVm {
   // starts a docked guest and follows its first boot, which does not fail the import either
   async #startDockedVm({ metadata, reports, vm }) {
     const xapi = vm.$xapi
-    // how far the first boot went, kept in the description when it fails
-    let firstBoot
     try {
       await Task.run({ properties: { name: 'first boot on XCP-ng' } }, () =>
-        firstBootOfDockedVm({
-          xapi,
-          vmRef: vm.$ref,
-          metadata,
-          reports,
-          onProgress: progress => {
-            firstBoot = progress
-            return this.#writeDockingDescription(vm, describeDocking({ reports, firstBoot }))
-          },
-        })
+        firstBootOfDockedVm({ xapi, vmRef: vm.$ref, metadata, reports })
       )
     } catch (error) {
       warn('the first boot of the docked guest failed', { error, vmId: vm.uuid, sourceVmId: metadata.vmId })
       Task.warning(withFirstBootHint(`the first boot on XCP-ng failed: ${error.message}`, reports))
-      await this.#writeDockingDescription(vm, describeDocking({ reports, firstBoot, firstBootError: error }))
     }
   }
 
@@ -364,7 +333,7 @@ export default class MigrateVm {
     const template = app.getXapiObject(templateId)
     const xapi = sr.$xapi
 
-    let metadata = await Task.run({ properties: { name: `get metadata of ${vmId}` } }, async () => {
+    let metadata = await Task.run({ properties: { name: 'get metadata' } }, async () => {
       return esxi.getTransferableVmMetadata(vmId)
     })
     // before anything is done on either side: a mapping which cannot be applied would import the
@@ -389,7 +358,7 @@ export default class MigrateVm {
     let isChangeTrackingEnabled = false
     let isChangeTrackingNew = false
     try {
-      isChangeTrackingNew = await Task.run({ properties: { name: `enabling change tracking on ${vmId}` } }, () =>
+      isChangeTrackingNew = await Task.run({ properties: { name: 'enabling change tracking' } }, () =>
         esxi.enableChangeTracking(vmId)
       )
       isChangeTrackingEnabled = true
@@ -424,7 +393,7 @@ export default class MigrateVm {
     if (isSnapshotRequired || isSnapshotUseful) {
       let snapshotTaskInfo
       try {
-        snapshotTaskInfo = await Task.run({ properties: { name: `taking a snapshot of ${vmId}` } }, () => {
+        snapshotTaskInfo = await Task.run({ properties: { name: 'taking a snapshot of the source VM' } }, () => {
           return esxi.snapshot(vmId, '[V2V] migration to XCP-ng', 'created automatically during migration')
         })
       } catch (error) {
@@ -441,7 +410,7 @@ export default class MigrateVm {
       if (!isRunning && snapshotId !== undefined) {
         // only taken to start the tracking, which outlives it: a powered off VM is read as it is,
         // nothing would ever remove this snapshot from the source
-        await Task.run({ properties: { name: `removing the snapshot of ${vmId}` } }, () =>
+        await Task.run({ properties: { name: 'removing the snapshot of the source VM' } }, () =>
           esxi.removeSnapshot(snapshotId)
         ).catch(error => {
           Task.abortSignal?.throwIfAborted()
@@ -452,9 +421,8 @@ export default class MigrateVm {
       }
 
       if (snapshotTaskInfo !== undefined) {
-        metadata = await Task.run(
-          { properties: { name: `updating metadata of ${vmId} after taking a snapshot` } },
-          () => esxi.getTransferableVmMetadata(vmId)
+        metadata = await Task.run({ properties: { name: 'updating metadata after taking a snapshot' } }, () =>
+          esxi.getTransferableVmMetadata(vmId)
         )
       }
     }

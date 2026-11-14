@@ -322,6 +322,58 @@ test('dockImportedVm', async t => {
     assert.equal(reports.windowsReboot, undefined)
   })
 
+  await t.test('traces what each run of the ISO found and did, as the description of the VM does', async () => {
+    const xapi = isoXapi({
+      runs: [
+        {
+          result: 'warning',
+          report: reportOf({
+            name: 'Debian 13',
+            actions: [{ code: 'install_xen_drivers', status: 'planned' }],
+            findings: [{ level: 'warning', code: 'guest_agent_missing' }],
+          }),
+        },
+        {
+          result: 'warning',
+          report: reportOf({
+            name: 'Debian 13',
+            actions: [
+              { code: 'install_xen_drivers', status: 'applied' },
+              { code: 'install_guest_agent', status: 'failed', error: 'no package' },
+            ],
+            findings: [
+              { level: 'warning', code: 'static_ip', message: 'eth0 is static' },
+              { level: 'info', code: 'selinux_relabel' },
+              // repeats the failed action
+              { level: 'warning', code: 'action_failed', message: 'no package' },
+            ],
+          }),
+        },
+      ],
+    })
+    const traces = []
+    const task = new Task({
+      properties: { name: 'import' },
+      onProgress: event => {
+        if ((event.type === 'info' || event.type === 'warning') && /^(OS|action|finding)/.test(event.message)) {
+          traces.push(`${event.type}: ${event.message}`)
+        }
+      },
+    })
+    await task.run(() => dock(xapi))
+    assert.deepEqual(traces, [
+      // a diagnose is a plan: nothing in it is a warning of the import yet
+      'info: OS: Debian 13',
+      'info: action install_xen_drivers: planned',
+      'info: finding warning guest_agent_missing',
+      'info: OS: Debian 13',
+      'info: action install_xen_drivers: applied',
+      'warning: action install_guest_agent: failed (no package)',
+      'warning: finding warning static_ip: eth0 is static',
+      'info: finding info selinux_relabel',
+    ])
+  })
+
   await t.test('moves the OS disk first, then diagnoses again', async () => {
     const xapi = isoXapi({
       disks: [

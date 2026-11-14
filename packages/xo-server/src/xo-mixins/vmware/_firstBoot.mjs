@@ -75,15 +75,15 @@ async function stopVm(xapi, vmRef) {
  * @param {string} vmRef
  * @param {object} params
  * @param {object} params.context
- * @param {(progress: import('./_dockingInputs.mjs').FirstBootProgress) => Promise<void>} params.onProgress
  */
-async function followWindowsFirstBoot(xapi, vmRef, { context, onProgress }) {
-  const progress = { restartedAfter: [], done: false }
+async function followWindowsFirstBoot(xapi, vmRef, { context }) {
+  // how many times XO started the VM again: the phase the first boot is in
+  let restarts = 0
   const deadline = Date.now() + WINDOWS_FIRST_BOOT_TIMEOUT
   let state
   while (true) {
-    const phase = WINDOWS_FIRST_BOOT_PHASES[progress.restartedAfter.length]
-    const isLastPhase = progress.restartedAfter.length === WINDOWS_FIRST_BOOT_PHASES.length - 1
+    const phase = WINDOWS_FIRST_BOOT_PHASES[restarts]
+    const isLastPhase = restarts === WINDOWS_FIRST_BOOT_PHASES.length - 1
     try {
       // fails when the first boot goes no further: no report in time, given up, or a VM stopped once more
       await Task.run({ properties: { name: `${phase} phase of the Windows first boot` } }, async () => {
@@ -111,13 +111,10 @@ async function followWindowsFirstBoot(xapi, vmRef, { context, onProgress }) {
     )
     // until then the cache may still show the VM halted, and it would be started again
     await xapi.barrier()
-    progress.restartedAfter.push(phase)
-    await onProgress(progress)
+    restarts++
   }
   if (state === 'done') {
-    progress.done = true
-    await onProgress(progress)
-    // once described, nothing reads the state of the first boot anymore. Leaving it there fails nothing
+    // nothing reads the state of the first boot anymore. Leaving it there fails nothing
     try {
       await xapi.call('VM.set_xenstore_data', vmRef, clearDockingXenstoreData(xapi.getObject(vmRef).xenstore_data))
     } catch (error) {
@@ -194,10 +191,8 @@ async function enableSecureBoot(xapi, vmRef, context) {
  * @param {string} params.vmRef
  * @param {object} params.metadata - from `getTransferableVmMetadata`
  * @param {{ diagnose: object, dock: object, hasPvDrivers: boolean }} params.reports - from `dockImportedVm`
- * @param {(progress: import('./_dockingInputs.mjs').FirstBootProgress) => Promise<void>} params.onProgress - called
- * each time the Windows first boot moves forward, e.g. to describe it on the VM. Must not throw
  */
-export async function firstBootOfDockedVm({ xapi, vmRef, metadata, reports, onProgress }) {
+export async function firstBootOfDockedVm({ xapi, vmRef, metadata, reports }) {
   const vm = xapi.getObject(vmRef)
   const context = { vmId: vm.uuid, sourceVmId: metadata.vmId }
   // older Windows: no PV drivers, the first boot cannot report anything. Decided by the docking, not read again
@@ -216,7 +211,7 @@ export async function firstBootOfDockedVm({ xapi, vmRef, metadata, reports, onPr
   const firstBootScheduled = actionStatus(dock, ACTION.INSTALL_FIRSTBOOT) === 'applied'
   if (isWindows && firstBootScheduled && hasPvDrivers) {
     await Task.run({ properties: { name: 'Windows first boot' } }, () =>
-      followWindowsFirstBoot(xapi, vmRef, { context, onProgress })
+      followWindowsFirstBoot(xapi, vmRef, { context })
     )
   }
 

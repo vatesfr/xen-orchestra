@@ -363,7 +363,7 @@ Also validated: BIOS and UEFI, SELinux enforcing, btrfs with snapper, LVM over s
 - **Without `startVm`, the VM is left powered off.** Start it: Linux boots directly. Windows runs its first-boot phases, installs the PV drivers and the management agent, and restarts on its own once.
 - **Secure Boot** is disabled during the docking, since the docking ISO is not signed. Without `startVm`, if the source VM had Secure Boot enabled, enable it again once the VM has booted, with the pool certificates installed.
 - **The VMware Tools** stay installed on the migrated VM, disabled. Remove them when convenient.
-- **A summary** of the docking, and of the first boot with `startVm`, is written in the description of the VM. The full report and log of the docking are in the guest: `/var/log/xo-docking/` on Linux, `C:\xo-docking\` on Windows (with the first-boot and installation logs).
+- **The detail** of the docking, and of the first boot with `startVm`, is in the task of the import: each action and finding of the ISO, and each step of the first boot. The full report and log of the docking are in the guest: `/var/log/xo-docking/` on Linux, `C:\xo-docking\` on Windows (with the first-boot and installation logs).
 
 ## Troubleshooting migration issues {#-troubleshooting-migration-issues}
 

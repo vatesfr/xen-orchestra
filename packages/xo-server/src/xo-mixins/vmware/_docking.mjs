@@ -7,7 +7,10 @@ import {
   buildDockingXenstoreData,
   buildWindowsNics,
   clearDockingXenstoreData,
+  describeAction,
   describeFailures,
+  describeFinding,
+  describeOs,
   FINDING,
   findFinding,
   getBlockingFindings,
@@ -130,6 +133,43 @@ async function attachDockingDisks(xapi, vmRef, context) {
 }
 
 /**
+ * What a run of the ISO found and did, in its task. A diagnose is a plan, nothing in it is a warning of the
+ * import yet.
+ *
+ * @param {import('./_dockingInputs.mjs').DockingOutput} output
+ */
+function traceReport({ mode, report }) {
+  const isPlan = mode === 'diagnose'
+  const os = describeOs(report)
+  if (os !== undefined) {
+    Task.info(os)
+  }
+  for (const action of report.actions) {
+    const message = `action ${describeAction(action)}`
+    if (action.status === 'failed') {
+      Task.warning(message)
+    } else {
+      Task.info(message)
+    }
+  }
+  for (const finding of report.findings) {
+    // a failed action is already in the actions
+    if (finding.code === FINDING.ACTION_FAILED) {
+      continue
+    }
+    const message = `finding ${describeFinding(finding)}`
+    if (isPlan || finding.level === 'info') {
+      Task.info(message)
+    } else {
+      Task.warning(message)
+    }
+  }
+  if (report.truncated) {
+    Task.info('details were dropped from the report to fit in xenstore')
+  }
+}
+
+/**
  * Boots the VM on the ISO and waits for its result.
  *
  * @returns {Promise<import('./_dockingInputs.mjs').DockingOutput>}
@@ -188,11 +228,8 @@ function runDockingIso(xapi, vmRef, inputs, context) {
       Object.assign(error, context, { mode: inputs.mode })
       throw error
     }
-    Task.info(`docking ISO ${output.version}: ${output.mode} ${output.result}`, {
-      findings: output.report.findings.map(({ level, code }) => `${level}:${code}`),
-      actions: output.report.actions.map(({ code, status }) => `${code}:${status}`),
-      failures: describeFailures(output.report),
-    })
+    Task.info(`docking ISO ${output.version}: ${output.mode} ${output.result}`)
+    traceReport(output)
     return output
   })
 }
