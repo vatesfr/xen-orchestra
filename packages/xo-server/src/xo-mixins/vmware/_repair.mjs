@@ -241,7 +241,10 @@ async function withRepairIso(xapi, vmRef, context, fn) {
 
   const run = inputs => runRepairIso(xapi, vmRef, inputs, context)
 
-  return Disposable.use(attachRepairDisks(xapi, vmRef, context), async () => {
+  // not `Disposable.use(disposable, fn)`: it does not wait for an asynchronous dispose, and the VM is started
+  // right after, with the disks still being released
+  const repairDisks = await attachRepairDisks(xapi, vmRef, context)
+  try {
     try {
       await vm.update_blocked_operations({ start: null, start_on: null })
       await vm.update_HVM_boot_params('order', 'dc')
@@ -276,7 +279,9 @@ async function withRepairIso(xapi, vmRef, context, fn) {
         }
       }
     }
-  })
+  } finally {
+    await repairDisks.dispose()
+  }
 }
 
 /**

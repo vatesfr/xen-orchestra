@@ -97,6 +97,17 @@ test('withRepairIso restores how the VM boots', async t => {
     assert.equal(xapi.calls.at(-1), 'VBD.eject OpaqueRef:cd')
   })
 
+  await t.test('releases the disks of the repair before returning', async () => {
+    // the VM is started right after: a disk still being released stays attached to the running VM
+    const xapi = fakeXapi()
+    xapi.VBD_destroy = async ref => {
+      await new Promise(resolve => setTimeout(resolve, 10))
+      xapi.calls.push(`VBD.destroy ${ref}`)
+    }
+    await assert.rejects(diagnoseOffline({ xapi, vmRef: VM_REF, context: CONTEXT }))
+    assert.equal(xapi.calls.at(-1), 'VBD.destroy OpaqueRef:created-cd')
+  })
+
   await t.test('Secure Boot as it was, when the repair fails', async () => {
     // no key: the template leaves it to `auto`
     const xapi = fakeXapi({ firmware: 'uefi' })
