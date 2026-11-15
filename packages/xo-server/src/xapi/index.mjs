@@ -1241,10 +1241,15 @@ export default class Xapi extends XapiBase {
     }
   }
 
+  // does nothing if the VM has no CD drive or if its drive is already empty
   async _ejectCdFromVm(vm) {
     const cdDrive = this._getVmCdDrive(vm)
     if (cdDrive) {
-      await this.callAsync('VBD.eject', cdDrive.$ref)
+      await this.callAsync('VBD.eject', cdDrive.$ref).catch(error => {
+        if (error.code !== 'VBD_IS_EMPTY') {
+          throw error
+        }
+      })
     }
   }
 
