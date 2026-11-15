@@ -972,19 +972,7 @@ export async function convertToTemplate({ vm }) {
   // Convert to a template requires pool admin permission.
   await this.checkPermissions([[vm.$pool, 'administrate']])
 
-  const xapi = this.getXapi(vm)
-  const xapiVm = xapi.getObjectByRef(vm._xapiRef)
-
-  // Attempts to eject all removable media
-  const ignoreNotRemovable = error => {
-    const { code } = error
-    if (code !== 'VBD_IS_EMPTY' && code !== 'VBD_NOT_REMOVABLE_MEDIA') {
-      throw error
-    }
-  }
-  await asyncEach(xapiVm.VBDs, ref => xapi.callAsync('VBD.eject', ref).catch(ignoreNotRemovable))
-
-  await xapiVm.set_is_a_template(true)
+  await this.getXapi(vm).VM_convertToTemplate(vm._xapiRef)
 }
 
 convertToTemplate.params = {

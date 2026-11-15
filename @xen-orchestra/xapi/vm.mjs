@@ -5,6 +5,7 @@ import pRetry from 'promise-toolbox/retry'
 import pickBy from 'lodash/pickBy.js'
 import omit from 'lodash/omit.js'
 import pCatch from 'promise-toolbox/catch'
+import { asyncEach } from '@vates/async-each'
 import { asyncMap } from '@xen-orchestra/async-map'
 import { createLogger } from '@xen-orchestra/log'
 import { decorateClass } from '@vates/decorate-with'
@@ -809,6 +810,23 @@ class Vm {
     }
 
     return ref
+  }
+
+  // ejects all removable media (e.g. CDs) then flags the VM as a template
+  async convertToTemplate(vmRef) {
+    const vbdRefs = await this.getField('VM', vmRef, 'VBDs')
+    await asyncEach(vbdRefs, async vbdRef => {
+      try {
+        await this.callAsync('VBD.eject', vbdRef)
+      } catch (error) {
+        const { code } = error
+        if (code !== 'VBD_IS_EMPTY' && code !== 'VBD_NOT_REMOVABLE_MEDIA') {
+          throw error
+        }
+      }
+    })
+
+    await this.setField('VM', vmRef, 'is_a_template', true)
   }
 
   async disableChangedBlockTracking(vmRef) {

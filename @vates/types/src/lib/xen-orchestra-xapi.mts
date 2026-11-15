@@ -480,6 +480,8 @@ export interface Xapi {
       MAC?: string
     }
   ): Promise<XenApiVif['$ref']>
+  /** ejects all removable media (e.g. CDs) then flags the VM as a template */
+  VM_convertToTemplate(vmRef: XenApiVm['$ref']): Promise<void>
   VM_createCloudInitConfig(
     vmRef: XenApiVm['$ref'],
     cloudConfig: string,
