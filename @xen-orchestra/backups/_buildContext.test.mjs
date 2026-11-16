@@ -1,7 +1,13 @@
 import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
 
-import { buildRunContext, buildVmContext, buildSrContext, buildBackupRepositoryContext } from './_buildContext.mjs'
+import {
+  buildRunContext,
+  buildVmContext,
+  buildSrContext,
+  buildBackupRepositoryContext,
+  buildPoolContext,
+} from './_buildContext.mjs'
 import { BACKUP_EXPRESSION_CONTEXT } from '@vates/types/backup-expression-context'
 
 describe('buildContext', () => {
@@ -143,5 +149,40 @@ describe('buildContext', () => {
       Object.keys(backupRepositoryContext2.backupRepository).sort(),
       Object.keys(BACKUP_EXPRESSION_CONTEXT.backupRepository).sort()
     )
+  })
+
+  it('buildPoolContext', () => {
+    const pool1 = {
+      name_label: 'name_label',
+      name_description: 'description',
+      ignored: 'ignored',
+    }
+    const poolContext1 = buildPoolContext(pool1, runContext)
+    assert.deepEqual(poolContext1, {
+      pool: {
+        name_label: 'name_label',
+        description: 'description',
+        tags: [],
+      },
+      run: expectedRunContext,
+    })
+    assert.deepEqual(Object.keys(poolContext1.pool).sort(), Object.keys(BACKUP_EXPRESSION_CONTEXT.pool).sort())
+
+    const pool2 = {
+      name_label: 'name_label',
+      name_description: 'description',
+      tags: ['tag'],
+      ignored: 'ignored',
+    }
+    const poolContext2 = buildPoolContext(pool2, runContext)
+    assert.deepEqual(poolContext2, {
+      pool: {
+        name_label: 'name_label',
+        description: 'description',
+        tags: ['tag'],
+      },
+      run: expectedRunContext,
+    })
+    assert.deepEqual(Object.keys(poolContext2.pool).sort(), Object.keys(BACKUP_EXPRESSION_CONTEXT.pool).sort())
   })
 })

@@ -29,7 +29,7 @@ type VmBackupJobScheduleSettings = {
 
 type UnbrandedXoVmBackupJob = Omit<XoVmBackupJob, 'settings' | 'remotes' | 'vms' | 'srs'> & {
   remotes?: CMType.IdOr<string> | string
-  vms: CMType.IdOr<string> | Record<string, unknown>
+  vms: CMType.IdOr<string> | Record<string, unknown> | string
   srs?: CMType.IdOr<string> | string
   settings: {
     '': XoVmBackupJobGeneralSettings
@@ -39,7 +39,7 @@ type UnbrandedXoVmBackupJob = Omit<XoVmBackupJob, 'settings' | 'remotes' | 'vms'
 export type UnbrandXoVmBackupJob = Unbrand<UnbrandedXoVmBackupJob>
 
 type UnbrandedXoMetadataBackupJob = Omit<XoMetadataBackupJob, 'settings' | 'pools' | 'remotes'> & {
-  pools?: CMType.IdOr<string>
+  pools?: CMType.IdOr<string> | string
   remotes: CMType.IdOr<string>
   settings: {
     ''?: XoMetadataBackupJobGeneralSettings

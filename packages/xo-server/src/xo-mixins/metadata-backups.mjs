@@ -6,7 +6,7 @@ import { createRunner } from '@xen-orchestra/backups/Backup.mjs'
 import { parseMetadataBackupId } from '@xen-orchestra/backups/parseMetadataBackupId.mjs'
 import { RestoreMetadataBackup } from '@xen-orchestra/backups/RestoreMetadataBackup.mjs'
 import { isExpression } from '@xen-orchestra/backups/_expressionPredicate.mjs'
-import { resolveBackupRepositories } from './backups-ng/_resolveBackupTargets.mjs'
+import { resolveBackupPools, resolveBackupRepositories } from './backups-ng/_resolveBackupTargets.mjs'
 import { buildRunContext } from '@xen-orchestra/backups/_buildContext.mjs'
 import { Task } from '@vates/task'
 
@@ -51,6 +51,10 @@ export default class metadataBackup {
     }
 
     const app = this._app
+    const runContext = buildRunContext(
+      new Date(),
+      job.settings[schedule.id]?.timezone ?? job.settings['']?.timezone ?? schedule.timezone
+    )
 
     if (job.xoMetadata) {
       const config = await app.exportConfig()
@@ -58,10 +62,6 @@ export default class metadataBackup {
     }
 
     if (isExpression(job.remotes)) {
-      const runContext = buildRunContext(
-        new Date(),
-        job.settings[schedule.id]?.timezone ?? job.settings['']?.timezone ?? schedule.timezone
-      )
       const { backupRepositoryIds: remoteIds, invalidUrlIds } = resolveBackupRepositories(
         job,
         await app.getAllRemotes(),
@@ -80,6 +80,20 @@ export default class metadataBackup {
       }
 
       job.remotes = { id: { __or: remoteIds } }
+    }
+
+    if (isExpression(job.pools)) {
+      const poolIds = resolveBackupPools(job, Object.values(app.getObjects({ filter: { type: 'pool' } })), runContext)
+
+      if (poolIds.length === 0) {
+        jobsLogger.warning('no matching pool found', {
+          event: 'task.warning',
+          taskId: runJobId,
+          data: { pools: job.pools },
+        })
+      }
+
+      job.pools = { id: { __or: poolIds } }
     }
 
     const remoteIds = unboxIdsFromPattern(job.remotes)
