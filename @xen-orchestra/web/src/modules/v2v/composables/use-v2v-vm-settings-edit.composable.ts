@@ -1,7 +1,6 @@
 import { useV2vConnection } from '@/modules/v2v/composables/use-v2v-connection.composable.ts'
-import type { V2vVmUpdate } from '@/modules/v2v/composables/use-v2v-migration-list.composable.ts'
 import type { V2vVmTargetsOptions } from '@/modules/v2v/types/v2v-mapping.type.ts'
-import type { V2vVmOverrides } from '@/modules/v2v/types/v2v-migration-list.type.ts'
+import type { V2vVmOverrides, V2vVmUpdate } from '@/modules/v2v/types/v2v-migration-list.type.ts'
 import { useOverlay } from '@core/packages/overlay/use-overlay.ts'
 import { toComputed } from '@core/utils/to-computed.util.ts'
 import type { XoV2vVm } from '@vates/types'

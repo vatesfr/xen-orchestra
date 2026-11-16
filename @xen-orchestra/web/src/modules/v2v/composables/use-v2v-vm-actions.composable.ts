@@ -1,4 +1,3 @@
-import type { V2vVmUpdate } from '@/modules/v2v/composables/use-v2v-migration-list.composable.ts'
 import { useV2vVmSettingsEdit } from '@/modules/v2v/composables/use-v2v-vm-settings-edit.composable.ts'
 import type {
   V2vMappingStepVm,
@@ -6,6 +5,7 @@ import type {
   V2vNotFoundMappingStepVm,
   V2vResumedMappingStepVm,
 } from '@/modules/v2v/types/v2v-mapping-step.type.ts'
+import type { V2vVmUpdate } from '@/modules/v2v/types/v2v-migration-list.type.ts'
 import { useVmDelete } from '@/modules/vm/composables/use-vm-delete.composable.ts'
 import type { LeafActionItem } from '@core/components/menu/VtsActionsMenu.vue'
 import { toComputed } from '@core/utils/to-computed.util.ts'

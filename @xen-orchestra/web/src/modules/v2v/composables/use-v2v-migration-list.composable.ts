@@ -133,5 +133,3 @@ export function useV2vMigrationList(
 
   return { list, isStoredByNewerVersion, vmCount, hasVms, saveDefaults, addVms, removeVm, updateVm, clearVms }
 }
-
-export type V2vVmUpdate = ReturnType<typeof useV2vMigrationList>['updateVm']

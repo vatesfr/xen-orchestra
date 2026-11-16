@@ -18,8 +18,8 @@
 
 <script lang="ts" setup>
 import V2vMappingRowMenu from '@/modules/v2v/components/mapping/V2vMappingRowMenu.vue'
-import type { V2vVmUpdate } from '@/modules/v2v/composables/use-v2v-migration-list.composable.ts'
 import type { V2vMappingStepRow } from '@/modules/v2v/types/v2v-mapping-step.type.ts'
+import type { V2vVmUpdate } from '@/modules/v2v/types/v2v-migration-list.type.ts'
 import { renderInlinePartsCell } from '@/modules/v2v/utils/v2v-inline-parts-cell.util.ts'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
@@ -48,7 +48,6 @@ const state = useTableState({
   empty: () => (rows.length === 0 ? t('v2v:no-vm-in-list') : false),
 })
 
-// The kind of a VM changes once the import VM of a resumed VM is deleted: its row menu reads the actions of its kind
 const { HeadCells, BodyCells } = useV2vMappingColumns({
   body: (row: V2vMappingStepRow) => ({
     vm: renderer => renderer(row.item.name),
