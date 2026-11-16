@@ -1,25 +1,26 @@
-import { useBrowserMediaSessions } from '@/modules/browser-media/composables/use-browser-media-sessions.composable.ts'
+import { xoBrowserMediaIsoFileArg } from '@/modules/browser-media/jobs/xo-browser-media-args.ts'
 import { useXoBrowserMediaCollection } from '@/modules/browser-media/remote-resources/use-xo-browser-media-collection.ts'
+import { useBrowserMediaSessionsStore } from '@/modules/browser-media/stores/browser-media-sessions.store.ts'
 import { isValidIsoSize } from '@/modules/browser-media/utils/xo-browser-media.util.ts'
 import { useXoVbdCollection } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
 import { xoVmArg } from '@/modules/vm/jobs/xo-vm-args.ts'
-import { defineJob, defineJobArg, JobError, JobRunningError } from '@core/packages/job'
-import { VM_POWER_STATE } from '@vates/types'
+import { useXoTaskUtils } from '@/shared/composables/xo-task-utils.composable.ts'
+import { fetchPost } from '@/shared/utils/fetch.util.ts'
+import { defineJob, JobError, JobRunningError } from '@core/packages/job'
+import { VM_POWER_STATE, type XoTask } from '@vates/types'
 import { useI18n } from 'vue-i18n'
 
 const INSERTABLE_POWER_STATES: VM_POWER_STATE[] = [VM_POWER_STATE.RUNNING, VM_POWER_STATE.HALTED]
-
-// picked when running the job, so it is not part of its identity
-const fileArg = defineJobArg<File | undefined>({ identify: false, toArray: false })
 
 /**
  * Serve an ISO from this browser tab, and insert it in the CD drive of the VM.
  *
  * Without a file, only tells whether an ISO can be inserted, e.g. before picking one.
  */
-export const useXoBrowserMediaInsertJob = defineJob('browser-media.insert', [xoVmArg, fileArg], () => {
+export const useXoBrowserMediaInsertJob = defineJob('browser-media.insert', [xoVmArg, xoBrowserMediaIsoFileArg], () => {
   const { t } = useI18n()
-  const { getLocalSession, hasEnded, insert } = useBrowserMediaSessions()
+  const { getLocalSession, hasEnded, insert } = useBrowserMediaSessionsStore()
+  const { monitorTask } = useXoTaskUtils()
   const { getBrowserMediaByVmId } = useXoBrowserMediaCollection()
   const { getVbdsByIds, areVbdsReady } = useXoVbdCollection()
 
@@ -29,7 +30,13 @@ export const useXoBrowserMediaInsertJob = defineJob('browser-media.insert', [xoV
         throw new JobError(t('job:arg:file-required'))
       }
 
-      return insert(vm.id, file)
+      return insert(vm.id, file, async browserMediaId => {
+        // xo-server checks the VM before creating the task: a refusal comes with its reason
+        const { taskId } = await fetchPost<{ taskId: XoTask['id'] }>(`vms/${vm.id}/actions/insert_browser_iso`, {
+          browserMediaId,
+        })
+        await monitorTask(taskId)
+      })
     },
 
     validate(isRunning, vm, file) {
@@ -63,7 +70,7 @@ export const useXoBrowserMediaInsertJob = defineJob('browser-media.insert', [xoV
 
       // what the CD drives allow is not known yet
       if (!areVbdsReady.value || vbds.length !== vm.$VBDs.length) {
-        throw new JobError(t('loading'))
+        throw new JobError(t('job:browser-media-insert:cd-drives-loading'))
       }
 
       const cdDrives = vbds.filter(vbd => vbd.is_cd_drive)

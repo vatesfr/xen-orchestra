@@ -1,3 +1,4 @@
+import { useXoCollectionState } from '@/shared/composables/xo-collection-state/use-xo-collection-state.ts'
 import { BASE_URL } from '@/shared/utils/fetch.util.ts'
 import { defineRemoteResource } from '@core/packages/remote-resource/define-remote-resource.ts'
 import type { XoBrowserMediaSession, XoVm } from '@vates/types'
@@ -20,16 +21,14 @@ const browserMediaFields = [
   'error',
 ] as const satisfies readonly (keyof XoBrowserMediaSession)[]
 
-// not in the event stream of XO: polled, often enough for the bytes read to be meaningful
-const POLLING_INTERVAL_MS = 5_000
-
 /**
  * The browser media sessions of every administrator, whichever browser serves them.
+ *
+ * Not in the event stream of XO, so polled: the ISOs served by this tab are followed from the tab itself, and a
+ * change of the CD drive is a reason to reload it (see `useBrowserMediaCdDrive`).
  */
 export const useXoBrowserMediaCollection = defineRemoteResource({
   url: `${BASE_URL}/browser-media?fields=${browserMediaFields.join(',')}`,
-  pollingIntervalMs: POLLING_INTERVAL_MS,
-  cacheExpirationMs: POLLING_INTERVAL_MS,
   initialData: () => [] as FrontXoBrowserMedia[],
   state: (browserMediaSessions, context) => {
     /** The session whose ISO is inserted in the VM, or being inserted or ejected. */
@@ -38,10 +37,12 @@ export const useXoBrowserMediaCollection = defineRemoteResource({
     }
 
     return {
-      browserMediaSessions,
+      ...useXoCollectionState(browserMediaSessions, {
+        context,
+        baseName: ['browserMedia', 'browserMediaSessions'],
+      }),
       getBrowserMediaByVmId,
       reloadBrowserMediaSessions: context.forceReload,
-      hasBrowserMediaFetchError: context.hasError,
     }
   },
 })

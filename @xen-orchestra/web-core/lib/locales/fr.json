@@ -667,6 +667,7 @@
   "job:browser-media-insert:already-inserted": "Une ISO d'un navigateur est déjà insérée dans cette VM",
   "job:browser-media-insert:bad-power-state": "La VM doit être démarrée ou arrêtée",
   "job:browser-media-insert:cd-drive-requires-halted-vm": "La VM n'a pas de lecteur CD branché : arrêtez-la pour insérer une ISO",
+  "job:browser-media-insert:cd-drives-loading": "Les lecteurs CD de la VM sont encore en cours de chargement",
   "job:browser-media-insert:cd-not-empty": "Éjectez d'abord l'ISO actuelle",
   "job:browser-media-insert:high-availability": "Indisponible pour une VM protégée par la haute disponibilité",
   "job:browser-media-insert:in-progress": "Insertion en cours…",

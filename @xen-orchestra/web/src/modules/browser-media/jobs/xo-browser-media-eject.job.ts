@@ -1,13 +1,14 @@
-import { useBrowserMediaSessions } from '@/modules/browser-media/composables/use-browser-media-sessions.composable.ts'
 import {
   type FrontXoBrowserMedia,
   useXoBrowserMediaCollection,
 } from '@/modules/browser-media/remote-resources/use-xo-browser-media-collection.ts'
+import { useBrowserMediaSessionsStore } from '@/modules/browser-media/stores/browser-media-sessions.store.ts'
 import { xoVmArg } from '@/modules/vm/jobs/xo-vm-args.ts'
+import { useXoTaskUtils } from '@/shared/composables/xo-task-utils.composable.ts'
 import { ApiError } from '@/shared/error/api.error.ts'
 import { fetchPost } from '@/shared/utils/fetch.util.ts'
 import { defineJob, JobError, JobRunningError } from '@core/packages/job'
-import type { XoVm } from '@vates/types'
+import type { XoBrowserMediaSession, XoTask, XoVm } from '@vates/types'
 import { useI18n } from 'vue-i18n'
 
 /**
@@ -15,8 +16,21 @@ import { useI18n } from 'vue-i18n'
  */
 export const useXoBrowserMediaEjectJob = defineJob('browser-media.eject', [xoVmArg], () => {
   const { t } = useI18n()
-  const { getLocalSession, eject } = useBrowserMediaSessions()
+  const { getLocalSession, eject } = useBrowserMediaSessionsStore()
+  const { monitorTask } = useXoTaskUtils()
   const { getBrowserMediaByVmId, reloadBrowserMediaSessions } = useXoBrowserMediaCollection()
+
+  async function requestEject(sessionId: XoBrowserMediaSession['id']) {
+    try {
+      const { taskId } = await fetchPost<{ taskId: XoTask['id'] }>(`browser-media/${sessionId}/actions/eject`)
+      await monitorTask(taskId)
+    } catch (error) {
+      // already released by xo-server, e.g. ejected from elsewhere meanwhile
+      if (!(error instanceof ApiError && error.status === 404)) {
+        throw error
+      }
+    }
+  }
 
   function getRemoteSession(vmId: XoVm['id']): FrontXoBrowserMedia | undefined {
     const session = getBrowserMediaByVmId(vmId)
@@ -30,17 +44,12 @@ export const useXoBrowserMediaEjectJob = defineJob('browser-media.eject', [xoVmA
 
       try {
         if (getLocalSession(vmId) !== undefined) {
-          await eject(vmId)
+          await eject(vmId, requestEject)
         } else {
           const session = getRemoteSession(vmId)
 
           if (session !== undefined) {
-            await fetchPost(`browser-media/${session.id}/actions/eject?sync=true`).catch(error => {
-              // already released by xo-server, e.g. ejected from its own tab meanwhile
-              if (!(error instanceof ApiError && error.status === 404)) {
-                throw error
-              }
-            })
+            await requestEject(session.id)
           }
         }
       } finally {
