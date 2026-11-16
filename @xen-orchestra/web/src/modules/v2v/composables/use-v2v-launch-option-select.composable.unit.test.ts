@@ -14,40 +14,45 @@ function mountSelect(modelValue: boolean | undefined, initialDefaultValue = true
     return { allOptions, selectedLabel, labels: useV2vReviewLabels() }
   })
 
-  return { vm: wrapper.vm, defaultValue }
+  return { vm: wrapper.vm, model, defaultValue }
 }
 
 describe('allOptions', () => {
-  it('offers the default, on, then off', () => {
-    const { vm } = mountSelect(undefined)
+  it.each([true, false])('offers the default of %s, then the other value', defaultValue => {
+    const { vm } = mountSelect(undefined, defaultValue)
 
     expect(vm.allOptions.map(({ properties: { value, label } }) => ({ value, label }))).toEqual([
-      { value: undefined, label: vm.labels.getLaunchOptionLabel(undefined, true) },
-      { value: true, label: vm.labels.getLaunchOptionLabel(true, true) },
-      { value: false, label: vm.labels.getLaunchOptionLabel(false, true) },
+      { value: undefined, label: vm.labels.getLaunchOptionLabel(undefined, defaultValue) },
+      { value: !defaultValue, label: vm.labels.getLaunchOptionLabel(!defaultValue, defaultValue) },
     ])
   })
 })
 
 describe('selectedLabel', () => {
-  it.each([true, false])('shows an option following its default of %s as that default', defaultValue => {
-    const { vm } = mountSelect(undefined, defaultValue)
-
-    expect(vm.selectedLabel).toBe(vm.labels.getLaunchOptionLabel(undefined, defaultValue))
-  })
-
   it.each([true, false])('shows an option set to %s as that value', value => {
     const { vm } = mountSelect(value, !value)
 
     expect(vm.selectedLabel).toBe(vm.labels.getLaunchOptionLabel(value, !value))
   })
 
-  it('follows a default that changes', async () => {
-    const { vm, defaultValue } = mountSelect(undefined)
+  // The select starts on a default of true, then the default takes each of `defaultValues`
+  it.each([
+    { value: undefined, defaultValues: [] },
+    { value: undefined, defaultValues: [false] },
+    { value: false, defaultValues: [false] },
+    { value: false, defaultValues: [false, true] },
+  ])(
+    'shows an option set to $value as the default, then leaves it to the default, after the defaults $defaultValues',
+    async ({ value, defaultValues }) => {
+      const { vm, model, defaultValue } = mountSelect(value)
 
-    defaultValue.value = false
-    await flushPromises()
+      for (const nextDefaultValue of defaultValues) {
+        defaultValue.value = nextDefaultValue
+        await flushPromises()
+      }
 
-    expect(vm.selectedLabel).toBe(vm.labels.getLaunchOptionLabel(undefined, false))
-  })
+      expect(vm.selectedLabel).toBe(vm.labels.getLaunchOptionLabel(undefined, defaultValue.value))
+      expect(model.value).toBeUndefined()
+    }
+  )
 })
