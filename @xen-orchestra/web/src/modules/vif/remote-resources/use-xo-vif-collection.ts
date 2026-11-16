@@ -9,6 +9,8 @@ export type FrontXoVif = Pick<XoVif, (typeof vifFields)[number]>
 const vifFields = [
   '$VM',
   '$network',
+  'allowedIpv4Addresses',
+  'allowedIpv6Addresses',
   'attached',
   'device',
   'txChecksumming',

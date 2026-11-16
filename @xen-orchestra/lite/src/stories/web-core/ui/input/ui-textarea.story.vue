@@ -10,9 +10,11 @@
       prop('placeholder').str().widget(),
       prop('required').bool().widget(),
       slot(),
+      slot('hint'),
       slot('info'),
       slot('message'),
       setting('defaultSlot').widget(text()).preset('Some label'),
+      setting('hint').widget(text()).preset('Lorem ipsum dolor sit amet, consectetur adipiscing elit.'),
       setting('info').widget(text()).preset('Lorem ipsum dolor sit amet, consectetur adipiscing elit.'),
       setting('message').widget(text()).preset('Lorem ipsum dolor sit amet, consectetur adipiscing elit.'),
     ]"
@@ -22,6 +24,7 @@
       <template v-if="settings.characterLimit" #character-limit>
         <UiCharacterLimit :count="properties.modelValue.length" :max="200" />
       </template>
+      <template v-if="settings.hint" #hint>{{ settings.hint }}</template>
       <template v-if="settings.info" #info>{{ settings.info }}</template>
       <template v-if="settings.message" #message>{{ settings.message }}</template>
     </UiTextarea>

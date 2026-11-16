@@ -16,7 +16,7 @@ import { useMapper } from '@core/packages/mapper'
 import { IK_INFO_SIZE } from '@core/utils/injection-keys.util.ts'
 import { inject } from 'vue'
 
-export type InfoAccent = 'info' | 'success' | 'warning' | 'danger' | 'muted'
+export type InfoAccent = 'info' | 'brand' | 'success' | 'warning' | 'danger' | 'muted'
 export type InfoSize = 'small' | 'medium'
 
 const { accent, size } = defineProps<{
@@ -33,6 +33,7 @@ const icon = useMapper<InfoAccent, IconName>(
   () => accent,
   {
     info: 'status:info-circle',
+    brand: 'status:info-circle-brand',
     success: 'status:success-circle',
     warning: 'status:warning-circle',
     danger: 'status:danger-circle',

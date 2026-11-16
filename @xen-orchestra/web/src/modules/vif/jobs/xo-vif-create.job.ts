@@ -18,9 +18,12 @@ export type BaseVifPayload = {
   other_config: Record<string, string>
 }
 
-export type NewVifPayload = BaseVifPayload & {
-  vmId: FrontXoVm['id']
+export type VifPayload = BaseVifPayload & {
   networkId: FrontXoNetwork['id']
+}
+
+export type NewVifPayload = VifPayload & {
+  vmId: FrontXoVm['id']
 }
 
 export const useXoVifCreateJob = defineJob('vif.create', [payloadArg], () => {
