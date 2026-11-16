@@ -1,4 +1,5 @@
-import type { Branded, XapiXoRecord } from '@vates/types'
+import type { Branded, XapiXoRecord, XoUser } from '@vates/types'
+import type { AnyPrivilege } from '@xen-orchestra/acl'
 
 export type SubscriberId = Branded<'Subscriber'>
 
@@ -28,3 +29,5 @@ export type ListenerType = XoListenerType | 'ping'
 export type CollectionEventType = 'add' | 'update' | 'remove'
 
 export type EventType = CollectionEventType | 'ping'
+
+export type UserPrivileges = { user: XoUser; userPrivileges: AnyPrivilege[] }

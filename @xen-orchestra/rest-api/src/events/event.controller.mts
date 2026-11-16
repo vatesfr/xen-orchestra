@@ -70,8 +70,8 @@ export class EventController extends Controller {
    * - **remove**: Triggered when an object has been removed.
    *   Data: the removed object.
    *
-   * Events are filtered according to the privileges of the user: when they change, the objects of the subscribed
-   * collections the user can now see are sent as **add**, and the ones they can no longer see as **remove**.
+   * Events are filtered according to the privileges of the user: when what they can see in a subscribed collection
+   * changes, the connection is closed, and the client must reconnect and fetch the collections again.
    */
   @Extension('x-mcp-exposure', 'allow')
   @Get('')
