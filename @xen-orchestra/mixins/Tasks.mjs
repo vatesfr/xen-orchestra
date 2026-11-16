@@ -12,6 +12,9 @@ const { warn } = createLogger('xo:mixins:Tasks')
 
 const noop = Function.prototype
 
+// a copy, as the store returns: a live log keeps changing, and must not be changed by the caller
+const copyLog = log => JSON.parse(JSON.stringify(log))
+
 const DEFAULT_BACKUP_LOG_KEEP_DURATION = 31 * 24 * 60 * 60 * 1000
 
 const BACKUP_LOG_NAMES = ['backup run', 'restore', 'metadataRestore']
@@ -246,8 +249,8 @@ export default class Tasks extends EventEmitter {
    * so the caller's hooks run and may change the status (for backups,
    * `handleBackupLog` recomputes it). Hook errors are rethrown once every open
    * task is ended. Once `end()` has ended the open tasks, later events are
-   * dropped with a warning; called before the first event or after the root
-   * task ended, it does nothing.
+   * dropped: the first one with a warning, the next ones silently. Called
+   * before the first event or after the root task ended, it does nothing.
    */
   createExternalProgressHandler({ abort, onRootTaskEnd, onRootTaskStart, onTaskUpdate } = {}) {
     // error thrown by the caller's onRootTaskEnd: the final state must still be buffered (see onTaskUpdate below)
@@ -451,10 +454,18 @@ export default class Tasks extends EventEmitter {
   async get(id) {
     const liveLog = this.#liveLogs.get(id)
     if (liveLog !== undefined) {
-      // a copy, as the store returns: the live log keeps changing, and must not be changed by the caller
-      return JSON.parse(JSON.stringify(liveLog))
+      return copyLog(liveLog)
     }
-    return this.#getStored(id)
+    try {
+      return await this.#getStored(id)
+    } catch (error) {
+      // the first event of the task may have arrived while the store was read
+      const liveLog = this.#liveLogs.get(id)
+      if (liveLog !== undefined && noSuchObject.is(error)) {
+        return copyLog(liveLog)
+      }
+      throw error
+    }
   }
 
   async #getStored(id) {
@@ -498,29 +509,36 @@ export default class Tasks extends EventEmitter {
         }
       })
 
-    // live task whose final state is already known, even if not yet persisted
-    const liveLog = this.#liveLogs.get(id)
-    if (liveLog !== undefined && liveLog.status !== 'pending') {
-      callLater(liveLog)
-      return noop
+    // returns the function to stop watching if the task is live, undefined otherwise
+    const watchLive = () => {
+      // live task whose final state is already known, even if not yet persisted
+      const liveLog = this.#liveLogs.get(id)
+      if (liveLog !== undefined && liveLog.status !== 'pending') {
+        callLater(liveLog)
+        return noop
+      }
+
+      // live task
+      if (liveLog !== undefined || this.#tasks.has(id)) {
+        // the flush of updates may run before the caller gets the return value of watch()
+        this.on(id, callLater)
+
+        return () => {
+          stopped = true
+          this.off(id, callLater)
+        }
+      }
     }
 
-    // live task
-    if (liveLog !== undefined || this.#tasks.has(id)) {
-      // the flush of updates may run before the caller gets the return value of watch()
-      this.on(id, callLater)
-
-      return () => {
-        stopped = true
-        this.off(id, callLater)
-      }
+    const stop = watchLive()
+    if (stop !== undefined) {
+      return stop
     }
 
     // unknown task will throw noSuchObject
     const taskLog = await this.get(id)
 
-    // finished task
-    callLater(taskLog)
-    return noop
+    // the first event of the task may have arrived while the store was read: watch it until it ends
+    return watchLive() ?? (callLater(taskLog), noop)
   }
 }

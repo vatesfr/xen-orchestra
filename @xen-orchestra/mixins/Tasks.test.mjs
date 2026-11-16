@@ -33,8 +33,14 @@ function makeApp() {
   const pending = []
   const failing = new Set()
   const failingGets = new Set()
+  const heldGets = new Map()
   const store = {
     async get(id) {
+      const held = heldGets.get(id)
+      if (held !== undefined) {
+        heldGets.delete(id)
+        await held
+      }
       if (failingGets.delete(id)) {
         throw new Error(`read of ${id} failed`)
       }
@@ -81,6 +87,12 @@ function makeApp() {
     // the next get of `id` fails with an error other than NotFoundError
     failGet(id) {
       failingGets.add(id)
+    },
+    // the next get of `id` waits until the returned function is called, then reads the store
+    holdGet(id) {
+      let release
+      heldGets.set(id, new Promise(resolve => (release = resolve)))
+      return () => release()
     },
     holdPut(id) {
       let release
@@ -923,6 +935,51 @@ describe('Tasks', () => {
       assert.equal(fake.data.get(id).status, 'pending')
       const result = await Promise.race([finalState(tasks, id), sleep(200).then(() => 'timeout')])
       assert.equal(result.status, 'success')
+    })
+
+    describe('first event arriving while the store is read', () => {
+      it('get() answers the live task instead of noSuchObject', async () => {
+        const fake = makeApp()
+        const tasks = new Tasks(fake.app)
+        await fake.start()
+
+        const id = 'ext-get-race'
+        const onLogFct = tasks.createExternalProgressHandler()
+        const release = fake.holdGet(id)
+        const pGet = tasks.get(id)
+
+        onLogFct({ type: 'start', id, timestamp: Date.now(), properties: { name: 'backup run' } })
+        release()
+
+        assert.equal((await pGet).status, 'pending')
+      })
+
+      it('watch() follows the live task until it ends', async () => {
+        const fake = makeApp()
+        const tasks = new Tasks(fake.app)
+        await fake.start()
+
+        const id = 'ext-watch-race'
+        const onLogFct = tasks.createExternalProgressHandler()
+        const release = fake.holdGet(id)
+        let resolveFinal
+        const pFinal = new Promise(resolve => (resolveFinal = resolve))
+        const pStop = tasks.watch(id, log => {
+          if (log.status !== 'pending') {
+            resolveFinal(log)
+          }
+        })
+
+        const timestamp = Date.now()
+        onLogFct({ type: 'start', id, timestamp, properties: { name: 'backup run' } })
+        release()
+        const stop = await pStop
+
+        onLogFct({ type: 'end', id, timestamp: timestamp + 1, status: 'success', result: 'done' })
+        const result = await Promise.race([pFinal, sleep(200).then(() => 'timeout')])
+        stop()
+        assert.equal(result.status, 'success')
+      })
     })
 
     describe('deleteLog', () => {
