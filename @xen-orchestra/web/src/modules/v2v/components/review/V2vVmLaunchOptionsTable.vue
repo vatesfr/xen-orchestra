@@ -21,7 +21,9 @@
 
 <script lang="ts" setup>
 import V2vLaunchOptionSelect from '@/modules/v2v/components/review/V2vLaunchOptionSelect.vue'
+import V2vPreviewLabel from '@/modules/v2v/components/review/V2vPreviewLabel.vue'
 import type { V2vLaunchSettings, V2vVmLaunchOptionsRow } from '@/modules/v2v/types/v2v-launch.type.ts'
+import VtsHeaderCell from '@core/components/table/cells/VtsHeaderCell.vue'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
@@ -43,6 +45,9 @@ const emit = defineEmits<{
 const { t } = useI18n()
 
 const { HeadCells, BodyCells } = useV2vVmLaunchOptionsColumns({
+  head: () => ({
+    cleanup: () => h(VtsHeaderCell, () => h(V2vPreviewLabel, () => t('v2v:clean-up'))),
+  }),
   body: (row: V2vVmLaunchOptionsRow) => ({
     vm: renderer => renderer(row.name),
     stopSource: () =>

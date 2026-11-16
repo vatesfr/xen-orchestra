@@ -6,7 +6,7 @@ import { formatDateTime } from '@core/utils/time.util.ts'
 describe('getLaunchGroupHeading', () => {
   it.each([
     ['excluded', 'v2v:launch-group:excluded', 'danger'],
-    ['migrated', 'v2v:already-fully-migrated', 'warning'],
+    ['migrated', 'v2v:launch-group:migrated', 'warning'],
     ['resumed', 'v2v:launch-group:resumed', 'brand'],
     ['new', 'v2v:launch-group:new', 'success'],
   ] as const)('heads the %s group with its label and accent', (type, labelKey, accent) => {

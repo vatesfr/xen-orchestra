@@ -1,7 +1,7 @@
 import V2vLaunchOptionsCard from '@/modules/v2v/components/review/V2vLaunchOptionsCard.vue'
-
+import V2vPreviewLabel from '@/modules/v2v/components/review/V2vPreviewLabel.vue'
 import FormCheckbox from '@/shared/components/form/FormCheckbox.vue'
-import { findAccentedInfos, findAccentedTags } from '@/test/find-accented-labels.ts'
+import { findAccentedInfos } from '@/test/find-accented-labels.ts'
 import { findCardTitle } from '@/test/find-card-title.ts'
 import { getCheckbox } from '@/test/get-checkbox.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
@@ -61,7 +61,9 @@ it('shows starting then cleaning up the VM in between, off and disabled, as not 
 })
 
 it('tags cleaning up the VM as a preview', () => {
-  expect(findAccentedTags(mountCard().wrapper)).toEqual([{ label: t('preview'), accent: 'warning' }])
+  expect(mountCard().wrapper.getComponent(V2vPreviewLabel).getComponent(FormCheckbox).props('label')).toBe(
+    t('v2v:clean-up-vm')
+  )
 })
 
 it('tells the tags and the Keep MAC addresses option are not applied yet', () => {

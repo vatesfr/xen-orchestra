@@ -37,7 +37,7 @@ export function useV2vReviewLabels() {
 
   const launchGroupLabels = computed<Record<V2vLaunchGroupType, string>>(() => ({
     excluded: t('v2v:launch-group:excluded'),
-    migrated: t('v2v:already-fully-migrated'),
+    migrated: t('v2v:launch-group:migrated'),
     resumed: t('v2v:launch-group:resumed'),
     new: t('v2v:launch-group:new'),
   }))

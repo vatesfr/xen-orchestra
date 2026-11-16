@@ -18,6 +18,8 @@ const OVERRIDDEN_ROW = createV2vVmLaunchOptionsRow({
 
 const ROWS = [DEFAULT_ROW, OVERRIDDEN_ROW]
 
+const CLEANUP_HEADER = `${t('v2v:clean-up')}${t('preview')}`
+
 function mountTable() {
   return mount(V2vVmLaunchOptionsTable, {
     props: { rows: ROWS, defaultStopSource: true },
@@ -33,12 +35,12 @@ it('shows its title and that "Default" follows the default options', () => {
   expect(findCardTitle(mountTable())).toBe(`${t('per-vm-options')} ${t('v2v:per-vm-options-info')}`)
 })
 
-it('shows the VM, then whether to stop its source, to start it and to clean it up, in this order', () => {
+it('shows the VM, then whether to stop its source, to start it and to clean it up as a preview, in this order', () => {
   expect(findTableHeaders(mountTable())).toEqual([
     t('vm'),
     t('v2v:stop-source'),
     t('v2v:start-on-xcp-ng'),
-    t('v2v:clean-up-preview'),
+    CLEANUP_HEADER,
   ])
 })
 
@@ -64,6 +66,6 @@ it.each([
   expect(wrapper.emitted('changeStopSource')).toEqual([[ROWS[rowIndex].id, value]])
 })
 
-it.each([t('v2v:start-on-xcp-ng'), t('v2v:clean-up-preview')])('tells %s is not supported yet for any VM', header => {
+it.each([t('v2v:start-on-xcp-ng'), CLEANUP_HEADER])('tells %s is not supported yet for any VM', header => {
   expect(findTableColumn(mountTable(), header)).toEqual([t('not-supported-yet'), t('not-supported-yet')])
 })
