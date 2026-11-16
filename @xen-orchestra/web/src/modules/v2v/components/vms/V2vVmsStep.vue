@@ -30,7 +30,7 @@
         </UiButton>
       </V2vWizardStepActions>
     </div>
-    <V2vSelectedVmsPanel v-bind="panel" @remove="id => remove(id)" @clear="clear()" />
+    <V2vSelectedVmsPanel :items :is-busy :readiness-tags :list-pair @remove="id => remove(id)" @clear="clear()" />
   </VtsContentSidePanel>
 </template>
 
@@ -72,7 +72,7 @@ const {
   selectedVms,
 } = useV2vVmsStep()
 
-const { count, panel, remove, clear } = selectedVms
+const { items, count, isBusy, readinessTags, listPair, remove, clear } = selectedVms
 </script>
 
 <style lang="postcss" scoped>

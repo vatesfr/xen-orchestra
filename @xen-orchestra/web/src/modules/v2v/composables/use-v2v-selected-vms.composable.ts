@@ -43,13 +43,6 @@ export type V2vSelectedVm = {
   isSelected: boolean
 }
 
-export type V2vSelectedVmsPanelProps = {
-  items: V2vSelectedVm[]
-  isBusy: boolean
-  readinessTags: V2vAccentedLabel<TagAccent>[]
-  listPair: V2vListPair
-}
-
 // A VM of the list, as the mapping step tells it apart, with its item of the panel
 export type V2vListedVm = {
   kind: V2vSelectedVmKind
@@ -129,8 +122,6 @@ export function useV2vSelectedVms({ migrationList, rows, areRowsReady, poolId, s
 
   const count = computed(() => vms.value.length)
 
-  const isEmpty = computed(() => count.value === 0)
-
   // Until the rows are ready, the import state of a VM is unknown: a warm one would read as new and ready. Until the
   // choices of the pool are, its mapping would read incomplete
   const isBusy = computed(() => !toValue(areRowsReady) || !areOffersReady.value)
@@ -142,15 +133,6 @@ export function useV2vSelectedVms({ migrationList, rows, areRowsReady, poolId, s
   })
 
   const listPair = computed((): V2vListPair => ({ sourceHost: sourceHost.value, poolName: poolName.value }))
-
-  const panel = computed(
-    (): V2vSelectedVmsPanelProps => ({
-      items: items.value,
-      isBusy: isBusy.value,
-      readinessTags: readinessTags.value,
-      listPair: listPair.value,
-    })
-  )
 
   // One confirmation for removing one VM or all of them: either way, only the list changes
   async function confirmListChange(subject: string, confirmLabel: string) {
@@ -188,11 +170,9 @@ export function useV2vSelectedVms({ migrationList, rows, areRowsReady, poolId, s
     items,
     vms,
     count,
-    isEmpty,
     isBusy,
     readinessTags,
     listPair,
-    panel,
     confirmRemove,
     remove,
     clear,

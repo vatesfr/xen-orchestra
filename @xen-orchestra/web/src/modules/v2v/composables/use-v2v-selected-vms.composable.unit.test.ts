@@ -246,15 +246,6 @@ describe('items', () => {
   })
 })
 
-describe('panel', () => {
-  it('gathers what the selected VMs panel shows', async () => {
-    const { result } = await mountSelectedVms()
-    const { items, isBusy, readinessTags, listPair } = result
-
-    expect(result.panel).toEqual({ items, isBusy, readinessTags, listPair })
-  })
-})
-
 describe('count', () => {
   it('counts the VMs of the list', async () => {
     const { result } = await mountSelectedVms()
@@ -269,23 +260,6 @@ describe('count', () => {
     const { result } = await mountSelectedVms({ list })
 
     expect(result.count).toBe(0)
-  })
-})
-
-describe('isEmpty', () => {
-  it('is false while the list holds VMs', async () => {
-    const { result } = await mountSelectedVms()
-
-    expect(result.isEmpty).toBe(false)
-  })
-
-  it.each([
-    ['an empty list', V2V_EMPTY_LIST],
-    ['no stored list', null],
-  ])('is true for %s', async (_, list) => {
-    const { result } = await mountSelectedVms({ list })
-
-    expect(result.isEmpty).toBe(true)
   })
 })
 
