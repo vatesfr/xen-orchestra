@@ -39,7 +39,7 @@ By contributing, you confirm that you authored 100% of the content, that you hav
 
 Using the GitHub fork/pull-request feature, you may send us fixes or enhancements. Please explain what you are fixing (issue number if available) and how you did it.
 
-Documentation, code and commit messages must be written in **American English**.
+In order to keep their uniformity, documentation, code and commit messages must be written in **American English**.
 
 ### Pull requests
 

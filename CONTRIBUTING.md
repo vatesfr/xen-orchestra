@@ -106,7 +106,7 @@ Enhancement suggestions are tracked as [GitHub issues](https://github.com/vatesf
 
 ### Language
 
-Documentation, code and commit messages must be written in **American English**.
+In order to keep their uniformity, documentation, code and commit messages must be written in **American English**.
 
 ## Attribution
 
