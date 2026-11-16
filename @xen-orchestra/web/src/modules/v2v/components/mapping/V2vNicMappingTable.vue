@@ -15,9 +15,9 @@
 
 <script lang="ts" setup>
 import type { FrontXoNetwork } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
-import { renderV2vTargetCells } from '@/modules/v2v/components/mapping/v2v-target-cells.ts'
 import type { V2vNicMappingRow, V2vTargetOption } from '@/modules/v2v/types/v2v-mapping.type.ts'
-import { renderInlinePartsCell } from '@/shared/utils/inline-parts-cell.util.ts'
+import { renderInlinePartsCell } from '@/modules/v2v/utils/v2v-inline-parts-cell.util.ts'
+import { renderV2vTargetCells } from '@/modules/v2v/utils/v2v-target-cells.util.ts'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
 import { defineColumns } from '@core/packages/table/define-columns.ts'

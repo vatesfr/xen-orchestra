@@ -15,8 +15,8 @@
 
 <script lang="ts" setup>
 import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
-import { renderV2vTargetCells } from '@/modules/v2v/components/mapping/v2v-target-cells.ts'
 import type { V2vDiskMappingRow, V2vTargetOption } from '@/modules/v2v/types/v2v-mapping.type.ts'
+import { renderV2vTargetCells } from '@/modules/v2v/utils/v2v-target-cells.util.ts'
 import { renderSizeCell } from '@/shared/utils/size-cell.util.ts'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'

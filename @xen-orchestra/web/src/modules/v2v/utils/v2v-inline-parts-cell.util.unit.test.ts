@@ -1,4 +1,4 @@
-import { renderInlinePartsCell } from '@/shared/utils/inline-parts-cell.util.ts'
+import { renderInlinePartsCell } from '@/modules/v2v/utils/v2v-inline-parts-cell.util.ts'
 import { findParts } from '@/test/find-parts.ts'
 import { mount } from '@vue/test-utils'
 
