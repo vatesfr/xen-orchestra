@@ -39,7 +39,7 @@ const objects = {
 const RECONFIGURE_ERROR = new Error('management_reconfigure failed')
 const ROLLBACK_ERROR = new Error('management_reconfigure rollback failed')
 
-function createRestApi({ failRollback = false } = {}) {
+function createRestApi({ failRollback = false, managementMoved = false, failRead = false } = {}) {
   const calls: unknown[][] = []
 
   const xapi = {
@@ -53,7 +53,10 @@ function createRestApi({ failRollback = false } = {}) {
       }
     },
     async getField() {
-      return false
+      if (failRead) {
+        throw new Error('Failed to read field')
+      }
+      return managementMoved
     },
   }
 
@@ -101,6 +104,41 @@ describe('HostService.moveManagementIp', () => {
       ],
       ['host.management_reconfigure', 'OpaqueRef:target-pif'],
       ['PIF.reconfigure_ip', 'OpaqueRef:target-pif', 'None', '', '', '', ''],
+    ])
+  })
+  it('should complete the move when the management interface moved despite the error', async () => {
+    const { calls, restApi } = createRestApi({ managementMoved: true })
+    const hostService = new HostService(restApi)
+    await hostService.moveManagementIp(HOST_ID, TARGET_PIF_ID)
+    assert.deepEqual(calls, [
+      [
+        'PIF.reconfigure_ip',
+        'OpaqueRef:target-pif',
+        'Static',
+        '192.168.1.1',
+        '255.255.255.0',
+        '192.168.1.254',
+        '192.168.1.1',
+      ],
+      ['host.management_reconfigure', 'OpaqueRef:target-pif'],
+      ['PIF.reconfigure_ip', 'OpaqueRef:management-pif', 'None', '', '', '', ''],
+    ])
+  })
+  it('should not roll back and rethrow the original error when the management flag cannot be read', async () => {
+    const { calls, restApi } = createRestApi({ failRead: true })
+    const hostService = new HostService(restApi)
+    await assert.rejects(hostService.moveManagementIp(HOST_ID, TARGET_PIF_ID), RECONFIGURE_ERROR)
+    assert.deepEqual(calls, [
+      [
+        'PIF.reconfigure_ip',
+        'OpaqueRef:target-pif',
+        'Static',
+        '192.168.1.1',
+        '255.255.255.0',
+        '192.168.1.254',
+        '192.168.1.1',
+      ],
+      ['host.management_reconfigure', 'OpaqueRef:target-pif'],
     ])
   })
 })
