@@ -1,6 +1,7 @@
 import type { FrontXoNetwork } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
 import {
   getNetworkRules,
+  getNewTrafficRulePriority,
   getOrdinalSuffix,
   getTrafficRulePriority,
   getTrafficRuleProtocolLabel,
@@ -23,6 +24,56 @@ describe('getTrafficRulePriority', () => {
 
   it('defaults to the OpenFlow priority when the rule has none', () => {
     expect(getTrafficRulePriority(createTrafficRule({ priority: undefined }))).toBe(32768)
+  })
+})
+
+describe('getNewTrafficRulePriority', () => {
+  it('goes below the OpenFlow default on a network without rules', () => {
+    expect(getNewTrafficRulePriority([])).toBe(32758)
+  })
+
+  it('goes below the rules without a priority', () => {
+    expect(getNewTrafficRulePriority([createTrafficRule({ priority: undefined })])).toBe(32758)
+  })
+
+  it('goes below the lowest priority of the network', () => {
+    const rules = [createTrafficRule({ priority: 120 }), createTrafficRule({ priority: 100 })]
+
+    expect(getNewTrafficRulePriority(rules)).toBe(90)
+  })
+
+  it('goes below the lowest priority even when it is above the OpenFlow default', () => {
+    expect(getNewTrafficRulePriority([createTrafficRule({ priority: 40000 })])).toBe(39990)
+  })
+
+  it('goes down to the lowest allowed priority', () => {
+    expect(getNewTrafficRulePriority([createTrafficRule({ priority: 11 })])).toBe(1)
+  })
+
+  it('goes below the lowest priority among rules with and without one', () => {
+    const rules = [
+      createTrafficRule({ priority: undefined }),
+      createTrafficRule({ priority: 40000 }),
+      createTrafficRule({ priority: 500 }),
+    ]
+
+    expect(getNewTrafficRulePriority(rules)).toBe(490)
+  })
+
+  it('steps down by one when there is no room for a step', () => {
+    expect(getNewTrafficRulePriority([createTrafficRule({ priority: 5 })])).toBe(4)
+  })
+
+  it('steps down by one to the lowest allowed priority', () => {
+    expect(getNewTrafficRulePriority([createTrafficRule({ priority: 2 })])).toBe(1)
+  })
+
+  it('returns undefined when a rule already has the lowest allowed priority', () => {
+    expect(getNewTrafficRulePriority([createTrafficRule({ priority: 1 })])).toBeUndefined()
+  })
+
+  it('returns undefined when a rule still has the priority 0 that XAPI reserves', () => {
+    expect(getNewTrafficRulePriority([createTrafficRule({ priority: 0 })])).toBeUndefined()
   })
 })
 

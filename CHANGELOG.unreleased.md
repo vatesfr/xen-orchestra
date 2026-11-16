@@ -37,7 +37,8 @@
 - [Backups] VM backups on S3 and Azure repositories now lock the VM's folder like on other repositories: two jobs, or a job and the cleanup that follows a deletion, no longer modify the same VM's folder at the same time, and the second one fails with "Lock file is already being held". On S3, buckets with Object Lock enabled are not locked yet (PR [#10549](https://github.com/vatesfr/xen-orchestra/pull/10549))
 - [VMs] Select multiple VMs in VM tables to change their power state, snapshot or delete them at once (PR [#10780](https://github.com/vatesfr/xen-orchestra/pull/10780))
 - [XO6/Backups] Add filters and actions on backup jobs (PR [#10772](https://github.com/vatesfr/xen-orchestra/pull/10772))
-- [REST API/VM] Experimental, administrators only: insert an ISO selected in a browser in the CD drive of a VM, without uploading it and without installing anything on the hosts (`POST /vms/{id}/actions/insert_browser_iso` and `/browser-media`). The ISO is ejected once the browser disconnects or stops being read. Enabled by default, `browserMedia.enabled = false` disables it (PR [#10426](https://github.com/vatesfr/xen-orchestra/pull/10426))
+- [Logs] The syslog transport (`[logs.transport.syslog]` in xo-server configuration) supports TLS (`tls://`), and the facility, application name and framing can be configured (PR [#10619](https://github.com/vatesfr/xen-orchestra/pull/10619))
+- [Logs] **Breaking:** logs are now sent to syslog as RFC 5424 messages, with their namespace as message ID, instead of RFC 3164 messages: set `format = 'rfc3164'` in `[logs.transport.syslog]` to keep the previous format (PR [#10619](https://github.com/vatesfr/xen-orchestra/pull/10619))
 
 ### Bug fixes
 
@@ -49,6 +50,7 @@
 - [Replication] Fix `Cannot read properties of undefined (reading 'uuid')` error when an orphan replica snapshot exists on the target SR (PR [#10732](https://github.com/vatesfr/xen-orchestra/pull/10732))
 - [XO6/Modals] Modals no longer stretch across the screen: their width is limited to a third of the screen, up to 550px (PR [#10800](https://github.com/vatesfr/xen-orchestra/pull/10800))
 - [Backup/Live mount] Fix mounts failing when xo-server runs without root on a system using iptables-legacy, instead of leaving the firewall alone (PR [#10426](https://github.com/vatesfr/xen-orchestra/pull/10426))
+- [Logs] Fix the syslog transport sending every log with the _informational_ severity, splitting a log with line breaks into several messages, keeping the previous connection open when the configuration changes, and accumulating connections and memory when the syslog server is unreachable or does not read (PR [#10619](https://github.com/vatesfr/xen-orchestra/pull/10619))
 
 ### Packages to release
 
@@ -66,10 +68,12 @@
 
 <!--packages-start-->
 
+- @vates/syslog minor
 - @vates/types minor
 - @xen-orchestra/acl minor
 - @xen-orchestra/backups minor
 - @xen-orchestra/fs minor
+- @xen-orchestra/log major
 - @xen-orchestra/mixins minor
 - @xen-orchestra/proxy minor
 - @xen-orchestra/qa-test minor
