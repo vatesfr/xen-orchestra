@@ -26,8 +26,7 @@ import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
-import { defineColumns } from '@core/packages/table/define-columns.ts'
-import { useTextColumn } from '@core/tables/column-definitions/text-column.ts'
+import { useV2vVmLaunchOptionsColumns } from '@core/tables/column-sets/v2v-vm-launch-options-columns.ts'
 import { renderBodyCell } from '@core/tables/helpers/render-body-cell.ts'
 import { h } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -43,14 +42,7 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 
-const useVmLaunchOptionsColumns = defineColumns(() => ({
-  vm: useTextColumn({ headerLabel: () => t('vm') }),
-  stopSource: useTextColumn({ headerLabel: () => t('v2v:stop-source') }),
-  startVm: useTextColumn({ headerLabel: () => t('v2v:start-on-xcp-ng') }),
-  cleanup: useTextColumn({ headerLabel: () => t('v2v:clean-up-preview') }),
-}))
-
-const { HeadCells, BodyCells } = useVmLaunchOptionsColumns({
+const { HeadCells, BodyCells } = useV2vVmLaunchOptionsColumns({
   body: (row: V2vVmLaunchOptionsRow) => ({
     vm: renderer => renderer(row.name),
     stopSource: () =>
