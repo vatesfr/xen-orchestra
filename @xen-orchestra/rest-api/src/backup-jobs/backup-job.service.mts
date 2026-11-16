@@ -77,8 +77,14 @@ export class BackupJobService {
       assertValidExpression('vms', vms)
       assertValidSettingsExpression(settings, ['healthCheckVmsWithTags', 'fullInterval'])
     } else if (type === 'mirrorBackup') {
-      assertValidSettingsExpression(job.settings, ['healthCheckVmsWithTags', 'vmFilter'])
-      assertValidExpression('remotes', job.remotes)
+      const { filter, remotes, settings } = job as Extract<UpdateBackupJobBody, { sourceRemote?: unknown }>
+      assertValidSettingsExpression(settings, ['healthCheckVmsWithTags', 'vmFilter'])
+      assertValidExpression('remotes', remotes)
+      if (filter != null && filter.vm.uuid.__or.length === 0) {
+        throw invalidParameters('filter must contain at least one VM', [
+          { instancePath: '/filter/vm/uuid/__or', message: 'must NOT have fewer than 1 items' },
+        ])
+      }
     } else if (type === 'metadataBackup') {
       const { remotes, pools } = job as Extract<UpdateBackupJobBody, { pools?: unknown }>
       assertValidExpression('remotes', remotes)

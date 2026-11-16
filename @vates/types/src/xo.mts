@@ -631,6 +631,7 @@ export type XoMirrorBackupJob = BaseXoJob & {
   sourceRemote: XoBackupRepository['id']
   remotes: CMType.IdOr<XoBackupRepository['id']>
   proxy?: XoProxy['id']
+  filter?: { vm: { uuid: { __or: XoVm['id'][] } } } | null
   settings: {
     '': XoMirrorBackupGeneralSettings
     [scheduleId: XoSchedule['id']]: XoMirrorBackupScheduleSettings | undefined
