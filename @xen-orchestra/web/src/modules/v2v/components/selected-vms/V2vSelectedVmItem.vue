@@ -15,16 +15,16 @@
         />
       </template>
     </UiPanelCardTitle>
-    <InlineParts v-if="item.mappingParts.length > 0" class="mapping typo-body-regular-small">
+    <VtsInlineParts v-if="item.mappingParts.length > 0" class="mapping typo-body-regular-small">
       <span v-for="part of item.mappingParts" :key="part">{{ part }}</span>
-    </InlineParts>
+    </VtsInlineParts>
     <UiInfo :accent="item.check.accent" size="small">{{ item.check.label }}</UiInfo>
   </UiPanelCard>
 </template>
 
 <script lang="ts" setup>
 import type { V2vSelectedVm } from '@/modules/v2v/composables/use-v2v-selected-vms.composable.ts'
-import InlineParts from '@/shared/components/InlineParts.vue'
+import VtsInlineParts from '@core/components/inline-parts/VtsInlineParts.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'

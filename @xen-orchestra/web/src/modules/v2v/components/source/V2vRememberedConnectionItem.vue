@@ -6,7 +6,7 @@
         {{ connection.host }}
         <UiTag accent="neutral" variant="secondary">{{ t('vmware') }}</UiTag>
       </div>
-      <InlineParts class="description typo-body-regular-small">
+      <VtsInlineParts class="description typo-body-regular-small">
         <span v-if="connection.product">{{ connection.product }} {{ connection.version }}</span>
         <span>{{ connection.username }}</span>
         <I18nT v-if="connection.lastUsedAt !== undefined" keypath="used-relative-time" tag="span" scope="global">
@@ -15,11 +15,11 @@
           </template>
         </I18nT>
         <span v-if="connection.skipSslCheck">{{ t('ssl-check-skipped') }}</span>
-      </InlineParts>
-      <InlineParts v-if="progressLabels !== undefined" class="stats typo-body-regular-small">
+      </VtsInlineParts>
+      <VtsInlineParts v-if="progressLabels !== undefined" class="stats typo-body-regular-small">
         <span v-if="connection.vmCount !== undefined">{{ t('n-vms', { n: connection.vmCount }) }}</span>
         <span v-for="label of progressLabels" :key="label">{{ label }}</span>
-      </InlineParts>
+      </VtsInlineParts>
     </div>
     <UiButton accent="brand" variant="primary" size="medium" :disabled @click="emit('connect', connection)">
       {{ t('action:connect') }}
@@ -58,8 +58,8 @@ import { useV2vSourceStats } from '@/modules/v2v/composables/use-v2v-source-stat
 import { useV2vVmLabels } from '@/modules/v2v/composables/use-v2v-vm-labels.composable.ts'
 import type { V2vRememberedConnection } from '@/modules/v2v/types/v2v-remembered-connection.type.ts'
 import { isV2vVcenter } from '@/modules/v2v/utils/v2v-source.util.ts'
-import InlineParts from '@/shared/components/InlineParts.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
+import VtsInlineParts from '@core/components/inline-parts/VtsInlineParts.vue'
 import MenuItem from '@core/components/menu/MenuItem.vue'
 import MenuList from '@core/components/menu/MenuList.vue'
 import VtsRelativeTime from '@core/components/relative-time/VtsRelativeTime.vue'

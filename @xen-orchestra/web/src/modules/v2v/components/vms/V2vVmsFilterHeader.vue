@@ -8,25 +8,25 @@
       </UiButton>
     </template>
     <template #description>
-      <InlineParts>
+      <VtsInlineParts>
         <span v-for="label of datastoreSummary.summaryLabels" :key="label">{{ label }}</span>
-      </InlineParts>
+      </VtsInlineParts>
     </template>
   </UiCardTitle>
   <UiCardTitle v-else>
     {{ t('all-vms') }}
     <template #description>
-      <InlineParts>
+      <VtsInlineParts>
         <span v-if="sourceHost">{{ sourceHost }}</span>
         <span>{{ t('v2v:filter-vms-info') }}</span>
-      </InlineParts>
+      </VtsInlineParts>
     </template>
   </UiCardTitle>
 </template>
 
 <script lang="ts" setup>
 import type { V2vDatastoreSummary } from '@/modules/v2v/composables/use-v2v-vms-step.composable.ts'
-import InlineParts from '@/shared/components/InlineParts.vue'
+import VtsInlineParts from '@core/components/inline-parts/VtsInlineParts.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiChip from '@core/components/ui/chip/UiChip.vue'

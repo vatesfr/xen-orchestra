@@ -1,6 +1,6 @@
 import type { VueWrapper } from '@vue/test-utils'
 
-// Each element an `InlineParts` lays out is one part, whatever its tag
+// Each element a `VtsInlineParts` lays out is one part, whatever its tag
 export function findParts(wrapper: Pick<VueWrapper, 'find'>, selector: string) {
   return wrapper
     .find(selector)

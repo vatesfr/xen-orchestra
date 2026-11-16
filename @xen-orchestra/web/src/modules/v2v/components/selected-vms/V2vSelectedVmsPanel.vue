@@ -18,10 +18,10 @@
         :label="t('selected-vms')"
         :counter="{ value: items.length, accent: 'brand' }"
       />
-      <InlineParts class="storage-info typo-body-regular-small">
+      <VtsInlineParts class="storage-info typo-body-regular-small">
         <span>{{ t('v2v:saved-in-this-browser') }}</span>
         <span>{{ t('v2v:sent-to-xo-at-launch') }}</span>
-      </InlineParts>
+      </VtsInlineParts>
       <V2vListPairSummary v-bind="listPair" />
       <UiTagsList v-if="areItemsShown">
         <UiTag v-for="tag of readinessTags" :key="tag.label" :accent="tag.accent" variant="secondary">
@@ -41,7 +41,7 @@ import V2vListPairSummary from '@/modules/v2v/components/selected-vms/V2vListPai
 import V2vSelectedVmItem from '@/modules/v2v/components/selected-vms/V2vSelectedVmItem.vue'
 import type { V2vListPair, V2vSelectedVm } from '@/modules/v2v/composables/use-v2v-selected-vms.composable.ts'
 import type { V2vAccentedLabel } from '@/modules/v2v/composables/use-v2v-vm-labels.composable.ts'
-import InlineParts from '@/shared/components/InlineParts.vue'
+import VtsInlineParts from '@core/components/inline-parts/VtsInlineParts.vue'
 import VtsSidePanel from '@core/components/panel/VtsSidePanel.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'

@@ -394,6 +394,13 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/story/web-core/inline-parts/vts-inline-parts': RouteRecordInfo<
+      '/story/web-core/inline-parts/vts-inline-parts',
+      '/story/web-core/inline-parts/vts-inline-parts',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
     '/story/web-core/input-wrapper/vts-input-wrapper': RouteRecordInfo<
       '/story/web-core/input-wrapper/vts-input-wrapper',
       '/story/web-core/input-wrapper/vts-input-wrapper',
@@ -1532,6 +1539,12 @@ declare module 'vue-router/auto-routes' {
     'src/stories/web-core/form-error-summary/vts-form-error-summary.story.vue': {
       routes:
         | '/story/web-core/form-error-summary/vts-form-error-summary'
+      views:
+        | never
+    }
+    'src/stories/web-core/inline-parts/vts-inline-parts.story.vue': {
+      routes:
+        | '/story/web-core/inline-parts/vts-inline-parts'
       views:
         | never
     }
