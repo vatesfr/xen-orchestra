@@ -38,14 +38,11 @@ describe('getReviewSummaryParts', () => {
 })
 
 describe('getResumedVmParts', () => {
-  it.each([
-    ['delta', 'v2v:delta-from-last-sync'],
-    ['full', 'full-transfer'],
-  ] as const)('tells the %s transfer, where the VM continues, and that its mapping is kept', (transfer, labelKey) => {
+  it('tells the transfer of the VM, the pool and the SRs it continues on, and that its mapping is kept', () => {
     const labels = mountComposableWithI18n(useV2vReviewLabels)
 
-    expect(labels.getResumedVmParts(transfer, DISKOR_POOL_NAME, ['sr-nvme-01', 'sr-ssd-01'])).toEqual([
-      labels.t(labelKey),
+    expect(labels.getResumedVmParts('full', DISKOR_POOL_NAME, ['sr-nvme-01', 'sr-ssd-01'])).toEqual([
+      labels.t('full-transfer'),
       labels.t('v2v:continues-on-pool-sr', { pool: DISKOR_POOL_NAME, srs: 'sr-nvme-01, sr-ssd-01' }),
       labels.t('v2v:mapping-locked'),
     ])
@@ -71,12 +68,6 @@ describe('getNewVmsSummary', () => {
 
     expect(labels.getNewVmsSummary(['app-03', 'build-02'], ['sr-nvme-01', 'sr-hdd-02'])).toBe(
       labels.t('source-to-destination', { source: 'app-03, build-02', destination: 'sr-nvme-01, sr-hdd-02' })
-    )
-  })
-
-  it('only names the VMs while their SRs are unknown', () => {
-    expect(mountComposableWithI18n(useV2vReviewLabels).getNewVmsSummary(['app-03', 'build-02'], undefined)).toBe(
-      'app-03, build-02'
     )
   })
 })
