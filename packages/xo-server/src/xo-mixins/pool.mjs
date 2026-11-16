@@ -227,7 +227,7 @@ export default class Pools {
           error.message +=
             items === null
               ? ': the record of the rolling pool update cannot be read, set `force` to finalize anyway'
-              : ': the rolling pool update left items unrestored, restore them and finalize again, or set `force` to abandon them'
+              : ': the rolling pool update left items unrestored, resume it to finish a host updated but not rebooted, restore the others and finalize again, or set `force` to abandon them'
           throw error
         }
       }

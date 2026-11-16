@@ -209,7 +209,7 @@ describe('Pools.finalizeRollingUpdate', function () {
     )
     assert.equal(incorrectState.is(error, { property: 'unrestoredItems' }), true)
     // the answer points at the forced path
-    assert.match(error.message, /^incorrect state: .*`force` to abandon them$/)
+    assert.match(error.message, /^incorrect state: .*resume it to finish a host.*`force` to abandon them$/)
     assert.deepEqual(error.data, {
       actual: [{ type: 'ha', id: 'pool-1' }],
       expected: [],
