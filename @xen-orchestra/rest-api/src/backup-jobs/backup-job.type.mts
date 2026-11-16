@@ -59,8 +59,9 @@ type MirrorBackupJobScheduleSettings = {
   [key: string]: unknown
 }
 
-type UnbrandedXoMirrorBackupJob = Omit<XoMirrorBackupJob, 'settings' | 'remotes'> & {
+type UnbrandedXoMirrorBackupJob = Omit<XoMirrorBackupJob, 'settings' | 'remotes' | 'filter'> & {
   remotes: CMType.IdOr<string>
+  filter?: { vm: { uuid: { __or: string[] } } } | null
   settings: {
     '': XoMirrorBackupGeneralSettings
     [scheduleId: string]: MirrorBackupJobScheduleSettings | undefined
