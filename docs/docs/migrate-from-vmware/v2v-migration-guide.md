@@ -332,7 +332,7 @@ On Linux, the network configuration of the guest is not modified: static and DHC
 
 | Family | Validated versions |
 | --- | --- |
-| Debian | 13 (BIOS, UEFI) |
+| Debian | 10, 11, 12 (BIOS), 13 (BIOS, UEFI) |
 | Ubuntu | 22.04, 24.04, 26.04 |
 | RHEL family | CentOS 7.3, Rocky Linux 8.10, 9.8, 10.2, Oracle Linux 9.8 (UEK and RHCK kernels). RHEL itself is expected to behave like Rocky Linux, but is not tested |
 | SUSE | SLES 15 SP7, SLES 16.0, openSUSE Leap 15.6 |

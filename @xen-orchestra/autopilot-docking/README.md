@@ -124,7 +124,7 @@ and the IP addresses.
 
 | Family      | Validated                                                                  | Initramfs                 | Guest agent                      | Network configuration                 |
 | ----------- | -------------------------------------------------------------------------- | ------------------------- | -------------------------------- | ------------------------------------- |
-| Debian      | 13 (BIOS, UEFI)                                                            | initramfs-tools           | `.deb`                           | ifupdown                              |
+| Debian      | 10, 11, 12 (BIOS), 13 (BIOS, UEFI)                                         | initramfs-tools           | `.deb`                           | ifupdown                              |
 | Ubuntu      | 22.04 (UEFI), 24.04 (BIOS), 26.04 desktop (UEFI)                           | initramfs-tools           | `.deb`                           | netplan, NetworkManager               |
 | RHEL family | CentOS 7.3, Rocky 8.10, 9.8, 10.2, Oracle Linux 9.8 (UEK and RHCK kernels) | dracut                    | `.rpm`                           | ifcfg, NetworkManager                 |
 | SUSE        | SLES 16.0, openSUSE Leap 15.6 (BIOS, UEFI), SLES 15 SP7 (UEFI)             | dracut                    | `.rpm`                           | NetworkManager, wicked                |
