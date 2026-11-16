@@ -777,8 +777,10 @@ export default class Esxi extends EventEmitter {
     }
 
     // the cards are read from the devices and not from the vmx: they carry the key the inventory names
-    // them by, the vmx only has the address of a generated MAC, and lists the cards which are not present
-    const networks = parseDevices(config.hardware?.device).nics.map(
+    // them by, the vmx only has the address of a generated MAC, and lists the cards which are not present.
+    // In the whole `config` they are the `device` elements themselves, not wrapped in a `VirtualDevice`
+    // as the value of `config.hardware.device` is
+    const networks = parseDevices({ VirtualDevice: config.hardware?.device }).nics.map(
       ({ key, label, macAddress, addressType, network }) => ({
         key,
         label,

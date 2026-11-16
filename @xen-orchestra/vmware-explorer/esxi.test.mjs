@@ -1334,37 +1334,34 @@ createType="vmfs"
 RW 67108864 VMFS "vm-000001-flat.vmdk"
 `
 
-  const config = vmPathName => ({
+  const VMXNET3 = {
+    attributes: { 'xsi:type': 'VirtualVmxnet3' },
+    key: '4000',
+    deviceInfo: { label: 'Network adapter 1' },
+    macAddress: '00:0c:29:00:00:01',
+    addressType: 'generated',
+    backing: { network: moRef('Network', 'network-13') },
+  }
+
+  const E1000E = {
+    attributes: { 'xsi:type': 'VirtualE1000e' },
+    key: '4001',
+    deviceInfo: { label: 'Network adapter 2' },
+    macAddress: '00:50:56:00:00:02',
+    addressType: 'manual',
+  }
+
+  // in the whole `config`, the devices are the repeated `device` elements of the hardware: the
+  // `ArrayOfVirtualDevice` holding `VirtualDevice` elements is only the value of
+  // `config.hardware.device` read on its own
+  const config = (vmPathName, device) => ({
     attributes: { 'xsi:type': 'VirtualMachineConfigInfo' },
     name: 'a vm',
     guestId: 'ubuntu64Guest',
     guestFullName: 'Ubuntu Linux (64-bit)',
     firmware: 'efi',
     files: { vmPathName },
-    hardware: {
-      memoryMB: '2048',
-      numCPU: '2',
-      device: {
-        attributes: { 'xsi:type': 'ArrayOfVirtualDevice' },
-        VirtualDevice: [
-          {
-            attributes: { 'xsi:type': 'VirtualVmxnet3' },
-            key: '4000',
-            deviceInfo: { label: 'Network adapter 1' },
-            macAddress: '00:0c:29:00:00:01',
-            addressType: 'generated',
-            backing: { network: moRef('Network', 'network-13') },
-          },
-          {
-            attributes: { 'xsi:type': 'VirtualE1000e' },
-            key: '4001',
-            deviceInfo: { label: 'Network adapter 2' },
-            macAddress: '00:50:56:00:00:02',
-            addressType: 'manual',
-          },
-        ],
-      },
-    },
+    hardware: { memoryMB: '2048', numCPU: '2', device },
   })
 
   const RUNTIME = { attributes: { 'xsi:type': 'VirtualMachineRuntimeInfo' }, powerState: 'poweredOn' }
@@ -1380,8 +1377,13 @@ RW 67108864 VMFS "vm-000001-flat.vmdk"
    * @param {object} [options]
    * @param {string} [options.vmPathName] - `files.vmPathName` reported for the VM
    * @param {number} [options.vmsdStatus] - status of the response to the vmsd request
+   * @param {object | object[]} [options.device] - `hardware.device` of the config of the VM
    */
-  const transferableEsxi = async ({ vmPathName = '[ds main] a.vm/a.vm.vmx', vmsdStatus = 404 } = {}) => {
+  const transferableEsxi = async ({
+    vmPathName = '[ds main] a.vm/a.vm.vmx',
+    vmsdStatus = 404,
+    device = [VMXNET3, E1000E],
+  } = {}) => {
     const requested = []
     const { esxi } = await connectedEsxi({
       responses: {
@@ -1396,7 +1398,7 @@ RW 67108864 VMFS "vm-000001-flat.vmdk"
           }
           return pathSet[0] === 'runtime'
             ? propertyOf('VirtualMachine', 'vm-1', 'runtime', RUNTIME)
-            : propertyOf('VirtualMachine', 'vm-1', 'config', config(vmPathName))
+            : propertyOf('VirtualMachine', 'vm-1', 'config', config(vmPathName, device))
         },
       },
       fetch: async (url, options) => {
@@ -1457,6 +1459,18 @@ RW 67108864 VMFS "vm-000001-flat.vmdk"
         network: undefined,
       },
     ])
+  })
+
+  it('reads the card of a VM with a single device', async function () {
+    // the SOAP library returns a lone element as the element itself
+    const { esxi } = await transferableEsxi({ device: VMXNET3 })
+
+    const { networks } = await esxi.getTransferableVmMetadata('vm-1')
+
+    assert.deepEqual(
+      networks.map(({ key, macAddress }) => ({ key, macAddress })),
+      [{ key: '4000', macAddress: '00:0c:29:00:00:01' }]
+    )
   })
 
   it('treats a missing vmsd as a VM without snapshot', async function () {
