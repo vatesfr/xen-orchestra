@@ -49,7 +49,8 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 
-const { general, details, detailsTitle, hasMixedTypes, validateAndBuildPayloads } = useBulkEditBackupRepositoriesForm(brs)
+const { general, details, detailsTitle, hasMixedTypes, validateAndBuildPayloads } =
+  useBulkEditBackupRepositoriesForm(brs)
 
 async function handleConfirm() {
   const payloads = await validateAndBuildPayloads()

@@ -604,6 +604,13 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/story/web-core/tags-input/vts-tags-input': RouteRecordInfo<
+      '/story/web-core/tags-input/vts-tags-input',
+      '/story/web-core/tags-input/vts-tags-input',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
     '/story/web-core/tree/vts-tree-item': RouteRecordInfo<
       '/story/web-core/tree/vts-tree-item',
       '/story/web-core/tree/vts-tree-item',
@@ -1733,6 +1740,12 @@ declare module 'vue-router/auto-routes' {
     'src/stories/web-core/tabular-key-value-row/vts-tabular-key-value-row.story.vue': {
       routes:
         | '/story/web-core/tabular-key-value-row/vts-tabular-key-value-row'
+      views:
+        | never
+    }
+    'src/stories/web-core/tags-input/vts-tags-input.story.vue': {
+      routes:
+        | '/story/web-core/tags-input/vts-tags-input'
       views:
         | never
     }

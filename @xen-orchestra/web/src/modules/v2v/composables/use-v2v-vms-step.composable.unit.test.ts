@@ -10,7 +10,7 @@ import { getV2vVmsQuery, V2V_VMS_FILTER_QUERY_KEY } from '@/test/create-v2v-wiza
 import { writeLocalStorageFromAnotherTab } from '@/test/local-storage.ts'
 import { v2vVmRowsCollectionsMock } from '@/test/mock-xo-v2v-vm-rows-collections.ts'
 import { mountV2vVmsStep } from '@/test/mount-v2v-vms-step.ts'
-import { readV2vMigrationListStorage } from '@/test/v2v-migration-list-storage.ts'
+import { readV2vMigrationListVmIds } from '@/test/v2v-migration-list-storage.ts'
 import {
   V2V_DATASTORE_A_FILTER,
   V2V_DATASTORE_B,
@@ -50,6 +50,11 @@ vi.mock(
   import('@/modules/network/remote-resources/use-xo-network-collection.ts'),
   () => import('@/test/mock-xo-collections.ts')
 )
+vi.mock(
+  import('@/modules/vm/remote-resources/use-xo-vm-template-collection.ts'),
+  () => import('@/test/mock-xo-collections.ts')
+)
+vi.mock(import('@core/composables/modals/use-delete-modal.ts'), () => import('@/test/mock-delete-modal.ts'))
 
 async function mountVmsStep({
   filter,
@@ -79,10 +84,6 @@ function findPageRow(result: VmsStep, id: XoV2vVm['id']) {
   }
 
   return row
-}
-
-function findListedIds() {
-  return getV2vVmIds(readV2vMigrationListStorage().vms)
 }
 
 // The VMs on the datastore B: the DB one (warm), the RDM one and the listed one (not migrated)
@@ -254,7 +255,7 @@ describe('addSelected', () => {
     result.selection.toggle(V2V_DB_VM.id)
     result.addSelected()
 
-    expect(findListedIds()).toEqual([V2V_LISTED_VM.id, V2V_WEB_VM.id, V2V_DB_VM.id])
+    expect(readV2vMigrationListVmIds()).toEqual([V2V_LISTED_VM.id, V2V_WEB_VM.id, V2V_DB_VM.id])
     expect(result.selection.bindings.selectedCount).toBe(0)
   })
 
@@ -276,7 +277,7 @@ describe('addSelected', () => {
 
     result.addSelected()
 
-    expect(findListedIds()).toEqual([V2V_LISTED_VM.id])
+    expect(readV2vMigrationListVmIds()).toEqual([V2V_LISTED_VM.id])
   })
 })
 
@@ -376,6 +377,21 @@ describe('tableState', () => {
     const { result } = await mountVmsStep({ filter: 'name:nothing' })
 
     expect(result.tableState?.type).toBe('no-result')
+  })
+})
+
+describe('selectedVms', () => {
+  it('lists the VMs of the list', async () => {
+    const { result } = await mountVmsStep()
+
+    expect(getV2vVmIds(result.selectedVms.items.value)).toEqual(getV2vVmIds(V2V_LIST_WITH_LISTED_VM.vms))
+  })
+
+  it('is busy until the rows are ready', async () => {
+    v2vVmRowsCollectionsMock.areVmsReady.value = false
+    const { result } = await mountVmsStep()
+
+    expect(result.selectedVms.isBusy.value).toBe(true)
   })
 })
 

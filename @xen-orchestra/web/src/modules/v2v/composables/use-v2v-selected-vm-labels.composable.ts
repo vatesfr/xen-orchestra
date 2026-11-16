@@ -1,9 +1,11 @@
-import { useV2vVmLabels, type V2vAccentedLabel } from '@/modules/v2v/composables/use-v2v-vm-labels.composable.ts'
+import { useV2vVmLabels } from '@/modules/v2v/composables/use-v2v-vm-labels.composable.ts'
+import type { V2vAccentedLabel } from '@/modules/v2v/types/v2v-accented-label.type.ts'
 import type {
   V2vMappingSummary,
   V2vReadinessLevel,
   V2vSelectedVmCheck,
   V2vSelectedVmKind,
+  V2vVmCheck,
 } from '@/modules/v2v/types/v2v-selected-vm.type.ts'
 import { V2V_READINESS_LEVELS } from '@/modules/v2v/utils/v2v-selected-vm.util.ts'
 import { mapCountedKeys } from '@/shared/utils/count.util.ts'
@@ -40,7 +42,7 @@ export function useV2vSelectedVmLabels() {
   }
 
   // A pool still loading is named by its id rather than not at all
-  function getCheckLabel(check: V2vSelectedVmCheck, poolName: string | undefined): string {
+  function getCheckLabel(check: V2vSelectedVmCheck | V2vVmCheck, poolName: string | undefined): string {
     switch (check.type) {
       case 'not-found':
         return t('v2v:not-found-in-source')
@@ -50,19 +52,29 @@ export function useV2vSelectedVmLabels() {
         return t('import-in-progress')
       case 'partial-on-other-pool':
         return t('v2v:partial-import-on-pool', { pool: poolName ?? check.poolId })
+      case 'mapping-incomplete':
+        return t('v2v:check:mapping-incomplete')
       case 'already-migrated':
         return t('v2v:already-migrated-confirm-at-launch')
       case 'ready':
         return t('ready')
+      case 'no-unsupported-disk':
+        return t('v2v:check:no-unsupported-disk')
+      case 'snapshots':
+        return t('v2v:check:n-snapshots', { n: check.count })
+      case 'no-snapshot':
+        return t('v2v:check:no-snapshot')
     }
   }
 
-  function getCheckInfo(check: V2vSelectedVmCheck, poolName?: string): V2vAccentedLabel<InfoAccent> {
+  function getCheckInfo(check: V2vSelectedVmCheck | V2vVmCheck, poolName?: string): V2vAccentedLabel<InfoAccent> {
     return { label: getCheckLabel(check, poolName), accent: READINESS_ACCENTS[check.level] }
   }
 
-  function withTarget(countLabel: string, target: string | undefined): string {
-    return target === undefined ? countLabel : t('source-to-destination', { source: countLabel, destination: target })
+  function withTargets(countLabel: string, targets: string[] | undefined): string {
+    return targets === undefined
+      ? countLabel
+      : t('source-to-destination', { source: countLabel, destination: targets.join(', ') })
   }
 
   function getMappingParts(summary: V2vMappingSummary | undefined): string[] {
@@ -74,11 +86,11 @@ export function useV2vSelectedVmLabels() {
       return [t('v2v:delta-from-last-sync'), t('v2v:mapping-locked')]
     }
 
-    const { diskCount, srName, nicCount, networkName } = summary
+    const { diskCount, srNames, nicCount, networkNames } = summary
 
     return [
-      ...(diskCount > 0 ? [withTarget(t('n-disks', { n: diskCount }), srName)] : []),
-      ...(nicCount > 0 ? [withTarget(t('n-nics', { n: nicCount }), networkName)] : []),
+      ...(diskCount > 0 ? [withTargets(t('n-disks', { n: diskCount }), srNames)] : []),
+      ...(nicCount > 0 ? [withTargets(t('n-nics', { n: nicCount }), networkNames)] : []),
     ]
   }
 

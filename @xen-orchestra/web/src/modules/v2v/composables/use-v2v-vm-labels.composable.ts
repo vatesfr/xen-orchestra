@@ -1,3 +1,4 @@
+import type { V2vAccentedLabel } from '@/modules/v2v/types/v2v-accented-label.type.ts'
 import type { V2vUnsupportedReason, V2vVmRow } from '@/modules/v2v/types/v2v-vm-row.type.ts'
 import type { V2vVmPresetId } from '@/modules/v2v/utils/v2v-vm-presets.util.ts'
 import { V2V_VM_STATUSES, type V2vVmStatus } from '@/modules/v2v/utils/v2v-vm-status.util.ts'
@@ -10,11 +11,6 @@ import { useI18n } from 'vue-i18n'
 export type V2vVmStatusSummary = {
   total: number
   counts: Record<V2vVmStatus, number>
-}
-
-export type V2vAccentedLabel<TAccent extends string> = {
-  label: string
-  accent: TAccent
 }
 
 const STATUS_ACCENTS: Record<V2vVmStatus, TagAccent> = {
