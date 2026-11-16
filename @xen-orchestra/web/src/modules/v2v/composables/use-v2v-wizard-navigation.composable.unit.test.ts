@@ -1,5 +1,5 @@
 import { useV2vWizardNavigation } from '@/modules/v2v/composables/use-v2v-wizard-navigation.composable.ts'
-import { createV2vWizardRouter, V2V_VMS_FILTER_QUERY_KEY } from '@/test/create-v2v-wizard-router.ts'
+import { createV2vWizardRouter, findV2vRouteQuery, V2V_VMS_FILTER_QUERY_KEY } from '@/test/create-v2v-wizard-router.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
 
 async function mountNavigation() {
@@ -15,7 +15,7 @@ describe('goToStep', () => {
 
     await navigation.goToStep('vms')
 
-    expect(router.currentRoute.value.query).toEqual({
+    expect(findV2vRouteQuery(router)).toEqual({
       step: 'vms',
       pool: 'pool-1',
       [V2V_VMS_FILTER_QUERY_KEY]: 'name:web',
@@ -27,7 +27,7 @@ describe('goToStep', () => {
 
     await navigation.goToStep('vms', { pool: 'pool-2' })
 
-    expect(router.currentRoute.value.query).toEqual({
+    expect(findV2vRouteQuery(router)).toEqual({
       step: 'vms',
       pool: 'pool-2',
       [V2V_VMS_FILTER_QUERY_KEY]: 'name:web',
@@ -52,6 +52,6 @@ describe('getStepLocation', () => {
 
     navigation.getStepLocation('vms')
 
-    expect(router.currentRoute.value.query.step).toBe('destination')
+    expect(findV2vRouteQuery(router).step).toBe('destination')
   })
 })

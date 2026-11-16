@@ -5,7 +5,12 @@ import {
 } from '@/modules/v2v/utils/v2v-start-payload.util.ts'
 import { createApiError } from '@/test/create-api-error.ts'
 import { createV2vConnection } from '@/test/create-v2v-connection.ts'
-import { createV2vLaunchSettings, createV2vStartPayloadInput, createV2vStartVm } from '@/test/create-v2v-launch.ts'
+import {
+  createV2vLaunchSettings,
+  createV2vStartPayloadInput,
+  createV2vStartRefusal,
+  createV2vStartVm,
+} from '@/test/create-v2v-launch.ts'
 import { createV2vDestinationDefaults } from '@/test/create-v2v-migration-list.ts'
 import { getV2vVmIds } from '@/test/create-v2v-vm-row.ts'
 import type { XoNetwork, XoSr, XoV2vVm, XoVmTemplate } from '@vates/types'
@@ -20,9 +25,9 @@ function buildPayload(overrides?: Partial<V2vStartPayloadInput>) {
   return buildV2vStartPayload(createV2vStartPayloadInput(overrides))
 }
 
-// The body of the 422 the REST API answers a refused launch with
+// What `fetchRequest` throws for a refused launch
 function createRefusedLaunchError(errors: unknown) {
-  return createApiError(422, { error: 'the migration cannot be started', data: { errors } })
+  return createApiError(422, createV2vStartRefusal(errors))
 }
 
 describe('buildV2vStartPayload', () => {

@@ -34,10 +34,6 @@ function mountVmSettingsEdit() {
   return { result, updateVm }
 }
 
-function getOverlayOptions(): OverlayOptions {
-  return overlayMock.getOverlay<OverlayOptions>()
-}
-
 describe('editVmSettings', () => {
   it('opens the drawer with the VM, its list and the inventory of the connected source', () => {
     const { result } = mountVmSettingsEdit()
@@ -52,7 +48,7 @@ describe('editVmSettings', () => {
   it('closes the drawer when it is cancelled', () => {
     mountVmSettingsEdit()
 
-    expect(getOverlayOptions().events.onCancel).toBe(true)
+    expect(overlayMock.getOverlay<OverlayOptions>().events.onCancel).toBe(true)
   })
 })
 
@@ -61,7 +57,7 @@ describe('onConfirm', () => {
     const { updateVm } = mountVmSettingsEdit()
     const overrides: V2vVmOverrides = { disks: V2V_DISK_OVERRIDES, template: V2V_DEBIAN_TEMPLATE.id }
 
-    const response = getOverlayOptions().events.onConfirm(overrides)
+    const response = overlayMock.getOverlay<OverlayOptions>().events.onConfirm(overrides)
 
     expect(updateVm).toHaveBeenCalledOnce()
     expect(readV2vStoredListVm()).toStrictEqual({ id: V2V_MAPPED_VM.id, ...overrides })

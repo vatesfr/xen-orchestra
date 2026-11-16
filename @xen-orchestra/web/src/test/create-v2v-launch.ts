@@ -72,7 +72,12 @@ export function stubV2vStartAccepted() {
   return stubFetchResponse(202, { taskId: V2V_START_TASK_ID })
 }
 
+// The body of the 422 the start route refuses a launch with: its problems, any value to build a malformed one
+export function createV2vStartRefusal(errors: unknown) {
+  return { error: 'the migration cannot be started', data: { errors } }
+}
+
 // The start route refuses the launch for these problems, each of one VM or of the whole launch
 export function stubV2vStartProblems(errors: { vm?: string; message: string }[]) {
-  return stubFetchResponse(422, { error: 'the migration cannot be started', data: { errors } })
+  return stubFetchResponse(422, createV2vStartRefusal(errors))
 }

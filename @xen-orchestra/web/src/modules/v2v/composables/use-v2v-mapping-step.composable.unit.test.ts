@@ -274,7 +274,7 @@ describe('remove', () => {
     await removeOnceConfirmed(step, V2V_WEB_VM.id)
 
     expect(readV2vMigrationListVmIds()).toEqual([])
-    expect(step.router.currentRoute.value.query.step).toBe('vms')
+    expect(findV2vRouteQuery(step.router).step).toBe('vms')
   })
 })
 
@@ -284,7 +284,7 @@ describe('navigation', () => {
 
     await step.result.back()
 
-    expect(step.router.currentRoute.value.query.step).toBe('vms')
+    expect(findV2vRouteQuery(step.router).step).toBe('vms')
   })
 
   it('goes on to the review, even with an incomplete mapping', async () => {
@@ -293,6 +293,6 @@ describe('navigation', () => {
     xoCollectionsMock.srs.value = []
     await step.result.next()
 
-    expect(step.router.currentRoute.value.query.step).toBe('review')
+    expect(findV2vRouteQuery(step.router).step).toBe('review')
   })
 })

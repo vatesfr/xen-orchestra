@@ -55,10 +55,6 @@ function mountEditBackupRepository(br: FrontXoBackupRepository = createBr()) {
   return mountComposable(() => useEditBackupRepository(br)).wrapper.vm
 }
 
-function getOverlayOptions(): OverlayOptions {
-  return overlayMock.getOverlay<OverlayOptions>()
-}
-
 function getJobArgs() {
   const [br, payload] = useEditJob.mock.calls[0] as [Ref<FrontXoBackupRepository>, Ref<EditBackupRepositoryPayload>]
 
@@ -107,7 +103,7 @@ describe('editBackupRepository', () => {
   it('closes the drawer when it is cancelled', () => {
     mountEditBackupRepository()
 
-    expect(getOverlayOptions().events.onCancel).toBe(true)
+    expect(overlayMock.getOverlay<OverlayOptions>().events.onCancel).toBe(true)
   })
 })
 
@@ -116,7 +112,7 @@ describe('onConfirm', () => {
     run.mockImplementation(async () => expect(getJobArgs().payload.value).toEqual(PAYLOAD))
     mountEditBackupRepository()
 
-    const response = await getOverlayOptions().events.onConfirm(PAYLOAD)
+    const response = await overlayMock.getOverlay<OverlayOptions>().events.onConfirm(PAYLOAD)
 
     expect(run).toHaveBeenCalledOnce()
     expect(response).toBeUndefined()
@@ -126,7 +122,7 @@ describe('onConfirm', () => {
     run.mockRejectedValue(new Error('Edition failed'))
     mountEditBackupRepository()
 
-    const response = await getOverlayOptions().events.onConfirm(PAYLOAD)
+    const response = await overlayMock.getOverlay<OverlayOptions>().events.onConfirm(PAYLOAD)
 
     expect(response).toBe(KEEP_OVERLAY_OPEN)
   })

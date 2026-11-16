@@ -5,12 +5,12 @@ import type { V2vAccentedLabel } from '@/modules/v2v/types/v2v-accented-label.ty
 import { createV2vListPair, createV2vSelectedVm } from '@/test/create-v2v-selected-vms.ts'
 import { findAccentedTags } from '@/test/find-accented-labels.ts'
 import { findParts } from '@/test/find-parts.ts'
+import { findStateHeroTypes } from '@/test/find-state-hero-types.ts'
 import { findButton, getButton } from '@/test/get-button.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import type { TagAccent } from '@core/components/ui/tag/UiTag.vue'
 import VtsSidePanel from '@core/components/panel/VtsSidePanel.vue'
-import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
 import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
@@ -52,10 +52,6 @@ function getHeaderClearButton(wrapper: VueWrapper) {
 
 function getSummaryCard(wrapper: VueWrapper) {
   return wrapper.getComponent(UiPanelCard)
-}
-
-function findStateHeroTypes(wrapper: VueWrapper) {
-  return wrapper.findAllComponents(VtsStateHero).map(stateHero => stateHero.props('type'))
 }
 
 describe.each([

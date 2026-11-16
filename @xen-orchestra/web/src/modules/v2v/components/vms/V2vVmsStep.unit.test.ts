@@ -10,7 +10,7 @@ import { applyV2vPreset, V2V_VM_PRESETS } from '@/modules/v2v/utils/v2v-vm-prese
 import { createV2vConnection } from '@/test/create-v2v-connection.ts'
 import { createV2vListPair } from '@/test/create-v2v-selected-vms.ts'
 import { getV2vVmIds, getV2vVmNames } from '@/test/create-v2v-vm-row.ts'
-import { getV2vVmsQuery } from '@/test/create-v2v-wizard-router.ts'
+import { findV2vRouteQuery, getV2vVmsQuery } from '@/test/create-v2v-wizard-router.ts'
 import { getButton, getUiButton } from '@/test/get-button.ts'
 import { t } from '@/test/i18n.ts'
 import { deleteModalMock } from '@/test/mock-delete-modal.ts'
@@ -304,7 +304,7 @@ describe('navigation', () => {
     await flushPromises()
 
     expect(nextButton.props('disabled')).toBe(false)
-    expect(router.currentRoute.value.query.step).toBe('mapping')
+    expect(findV2vRouteQuery(router).step).toBe('mapping')
   })
 
   it('goes back to the destination', async () => {
@@ -313,6 +313,6 @@ describe('navigation', () => {
     await getButton(wrapper, t('action:back')).trigger('click')
     await flushPromises()
 
-    expect(router.currentRoute.value.query.step).toBe('destination')
+    expect(findV2vRouteQuery(router).step).toBe('destination')
   })
 })

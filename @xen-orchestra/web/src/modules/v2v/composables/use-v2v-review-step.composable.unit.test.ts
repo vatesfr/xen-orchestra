@@ -5,15 +5,15 @@ import { useV2vSelectedVmLabels } from '@/modules/v2v/composables/use-v2v-select
 import type { V2vStartVm } from '@/modules/v2v/types/v2v-launch.type.ts'
 import { buildV2vStartPayload } from '@/modules/v2v/utils/v2v-start-payload.util.ts'
 import { DISKOR_POOL_NAME } from '@/test/create-pool.ts'
-import { createV2vConnection } from '@/test/create-v2v-connection.ts'
 import {
-  createV2vLaunchSettings,
+  createV2vStartPayloadInput,
   createV2vStartVm,
   getV2vStartEndpoint,
   stubV2vStartAccepted,
   stubV2vStartProblems,
   V2V_START_TASK_ID,
 } from '@/test/create-v2v-launch.ts'
+import { findV2vRouteQuery } from '@/test/create-v2v-wizard-router.ts'
 import { hasRequested } from '@/test/fetch-requests.ts'
 import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
 import { v2vVmRowsCollectionsMock } from '@/test/mock-xo-v2v-vm-rows-collections.ts'
@@ -31,7 +31,6 @@ import {
   V2V_MIGRATED_VM_POOL,
   V2V_MIGRATED_VM_SR,
   V2V_REVIEW_STEP_EXCLUDED_LIST,
-  V2V_REVIEW_STEP_LIST,
 } from '@/test/v2v-review-step-fixtures.ts'
 import { V2V_SELECTED_VM_CHECK } from '@/test/v2v-selected-vm-checks.ts'
 import { V2V_DB_VM, V2V_LISTED_VM, V2V_WEB_VM } from '@/test/v2v-vms-fixtures.ts'
@@ -118,12 +117,7 @@ type ReviewStep = Awaited<ReturnType<typeof mountReviewStep>>['result']
 
 // The launch of the new and the resumed VMs of the list, on the settings a launch starts with
 function buildPayload(vms: V2vStartVm[] = [NEW_VM, RESUMED_VM]) {
-  return buildV2vStartPayload({
-    connection: createV2vConnection(),
-    defaults: V2V_REVIEW_STEP_LIST.defaults,
-    settings: createV2vLaunchSettings(),
-    vms,
-  })
+  return buildV2vStartPayload(createV2vStartPayloadInput({ vms }))
 }
 
 async function launch(result: ReviewStep) {
@@ -514,7 +508,7 @@ describe('navigation', () => {
 
     await result.back()
 
-    expect(router.currentRoute.value.query.step).toBe('mapping')
+    expect(findV2vRouteQuery(router).step).toBe('mapping')
   })
 
   it('goes back to the VMs step', async () => {
@@ -522,6 +516,6 @@ describe('navigation', () => {
 
     await result.backToVms()
 
-    expect(router.currentRoute.value.query.step).toBe('vms')
+    expect(findV2vRouteQuery(router).step).toBe('vms')
   })
 })

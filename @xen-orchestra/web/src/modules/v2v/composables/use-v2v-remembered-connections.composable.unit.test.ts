@@ -11,9 +11,8 @@ import {
   createOldAndRecentV2vRememberedConnections,
   createV2vRememberedConnection,
 } from '@/test/create-v2v-connection.ts'
-import { writeLocalStorageFromAnotherTab } from '@/test/local-storage.ts'
+import { failLocalStorageWrites, writeLocalStorageFromAnotherTab } from '@/test/local-storage.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
-import { silenceConsoleError } from '@/test/silence-console-error.ts'
 import {
   readV2vRememberedConnectionsStorage,
   seedV2vRememberedConnections,
@@ -32,17 +31,6 @@ function seedXo5Connection() {
 
 function mountRememberedConnections() {
   return mountComposable(() => useV2vRememberedConnections()).wrapper.vm
-}
-
-// The composable logs every storage failure: returns the silenced `console.error` to assert on it
-function failStorageWrites() {
-  const setItem = vi.spyOn(localStorage, 'setItem').mockImplementation(() => {
-    throw new Error('Storage is full')
-  })
-
-  onTestFinished(() => setItem.mockRestore())
-
-  return silenceConsoleError()
 }
 
 describe('connections', () => {
@@ -100,7 +88,7 @@ describe('connections', () => {
 
   it('stays usable when the XO 5 connection cannot be imported', () => {
     seedXo5Connection()
-    const consoleError = failStorageWrites()
+    const consoleError = failLocalStorageWrites()
 
     expect(mountRememberedConnections().connections).toEqual([])
     expect(consoleError).toHaveBeenCalledWith('Failed to import the XO 5 remembered connection', expect.any(Error))
@@ -131,7 +119,7 @@ describe('remember', () => {
   it('keeps the connection for the page when the browser storage cannot be written', async () => {
     seedV2vRememberedConnections([])
     const result = mountRememberedConnections()
-    const consoleError = failStorageWrites()
+    const consoleError = failLocalStorageWrites()
     const connection = createV2vRememberedConnection()
 
     result.remember(connection)

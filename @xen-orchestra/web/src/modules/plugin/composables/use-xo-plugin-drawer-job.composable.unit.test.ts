@@ -43,10 +43,6 @@ function mountDrawerJob(plugin: FrontXoPlugin = createPlugin()) {
   ).wrapper.vm
 }
 
-function getOverlayOptions(): OverlayOptions {
-  return overlayMock.getOverlay<OverlayOptions>()
-}
-
 function getJobArgs() {
   const [plugin, payload] = useJob.mock.calls[0] as [Ref<FrontXoPlugin>, Ref<unknown>]
 
@@ -80,14 +76,14 @@ describe('openDrawer', () => {
 
     mountDrawerJob(plugin).openDrawer()
 
-    expect(getOverlayOptions().component).toBe(drawer)
+    expect(overlayMock.getOverlay<OverlayOptions>().component).toBe(drawer)
     expect(overlayMock.getOverlay().open).toHaveBeenCalledWith({ props: expect.objectContaining({ plugin }) })
   })
 
   it('closes the drawer when it is cancelled', () => {
     mountDrawerJob()
 
-    expect(getOverlayOptions().events.onCancel).toBe(true)
+    expect(overlayMock.getOverlay<OverlayOptions>().events.onCancel).toBe(true)
   })
 })
 
@@ -96,7 +92,7 @@ describe('onConfirm', () => {
     run.mockImplementation(async () => expect(getJobArgs().payload.value).toEqual(PAYLOAD))
     mountDrawerJob()
 
-    const response = await getOverlayOptions().events.onConfirm(PAYLOAD)
+    const response = await overlayMock.getOverlay<OverlayOptions>().events.onConfirm(PAYLOAD)
 
     expect(run).toHaveBeenCalledOnce()
     expect(response).toBeUndefined()
@@ -106,7 +102,7 @@ describe('onConfirm', () => {
     run.mockRejectedValue(new Error('SMTP connection refused'))
     mountDrawerJob()
 
-    const response = await getOverlayOptions().events.onConfirm(PAYLOAD)
+    const response = await overlayMock.getOverlay<OverlayOptions>().events.onConfirm(PAYLOAD)
 
     expect(response).toBe(KEEP_OVERLAY_OPEN)
   })

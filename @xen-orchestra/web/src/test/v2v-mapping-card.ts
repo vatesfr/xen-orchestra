@@ -1,9 +1,9 @@
 import { DISKOR_POOL_NAME } from '@/test/create-pool.ts'
 import { findPanelCardTitles } from '@/test/find-card-title.ts'
 import { findCardLabelledValues } from '@/test/find-rendered-values.ts'
+import { findStateHeroTypes } from '@/test/find-state-hero-types.ts'
 import { t } from '@/test/i18n.ts'
 import VtsDivider from '@core/components/divider/VtsDivider.vue'
-import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import type { VueWrapper } from '@vue/test-utils'
 
 type V2vMappingCardLayoutCase = {
@@ -42,7 +42,7 @@ export function describeV2vMappingCardLayout({ mountCard, title }: V2vMappingCar
   it('shows the devices busy, the pool alone, while loading', () => {
     const wrapper = mountCard({ loading: true })
 
-    expect(wrapper.getComponent(VtsStateHero).props('type')).toBe('busy')
+    expect(findStateHeroTypes(wrapper)).toEqual(['busy'])
     expect([findPanelCardTitles(wrapper), findCardLabelledValues(wrapper), countDividers(wrapper)]).toEqual([
       [title],
       { [t('pool')]: DISKOR_POOL_NAME },

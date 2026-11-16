@@ -12,3 +12,10 @@ export const V2V_LIST_WITH_VMS = createV2vMigrationList({ vms: createV2vMigratio
 export const V2V_LIST_POOL = createPool({ id: V2V_EMPTY_LIST.poolId, name_label: DISKOR_POOL_NAME })
 
 export const V2V_OTHER_POOL = createPool({ id: OTHER_POOL_ID, name_label: 'pool other' })
+
+// What the destination step tells of a list this browser already holds for the chosen source and pool
+export const V2V_EXISTING_LIST = {
+  sourceHost: V2V_WIZARD_SOURCE.connection.host,
+  poolName: DISKOR_POOL_NAME,
+  vmCount: 4,
+}

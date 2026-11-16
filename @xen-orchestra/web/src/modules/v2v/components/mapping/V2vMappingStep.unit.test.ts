@@ -2,6 +2,7 @@ import V2vMappingStep from '@/modules/v2v/components/mapping/V2vMappingStep.vue'
 import V2vMappingTable from '@/modules/v2v/components/mapping/V2vMappingTable.vue'
 import V2vVmSidePanel from '@/modules/v2v/components/panel/V2vVmSidePanel.vue'
 import { findV2vRouteQuery } from '@/test/create-v2v-wizard-router.ts'
+import { findStateHeroTypes } from '@/test/find-state-hero-types.ts'
 import { getButton, getUiButton } from '@/test/get-button.ts'
 import { t } from '@/test/i18n.ts'
 import { deleteModalMock } from '@/test/mock-delete-modal.ts'
@@ -15,7 +16,6 @@ import { V2V_GONE_VM_ID } from '@/test/v2v-mapping-step-fixtures.ts'
 import { readV2vMigrationListVmIds } from '@/test/v2v-migration-list-storage.ts'
 import { V2V_DB_VM, V2V_WEB_VM } from '@/test/v2v-vms-fixtures.ts'
 import VtsContentSidePanel from '@core/components/layout/VtsContentSidePanel.vue'
-import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import { flushPromises, type VueWrapper } from '@vue/test-utils'
 
 vi.mock(
@@ -105,7 +105,7 @@ describe('table', () => {
 
     const { wrapper } = await mountStep(V2V_WEB_VM.id)
 
-    expect(wrapper.getComponent(VtsStateHero).props('type')).toBe('busy')
+    expect(findStateHeroTypes(wrapper)).toEqual(['busy'])
     expect(wrapper.findComponent(V2vMappingTable).exists()).toBe(false)
   })
 })

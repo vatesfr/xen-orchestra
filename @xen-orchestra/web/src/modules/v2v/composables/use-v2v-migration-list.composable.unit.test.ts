@@ -9,9 +9,8 @@ import {
   createV2vMigrationList,
   createV2vMigrationListVms,
 } from '@/test/create-v2v-migration-list.ts'
-import { writeLocalStorageFromAnotherTab } from '@/test/local-storage.ts'
+import { failLocalStorageWrites, writeLocalStorageFromAnotherTab } from '@/test/local-storage.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
-import { silenceConsoleError } from '@/test/silence-console-error.ts'
 import { V2V_DISK_OVERRIDES } from '@/test/v2v-mapping-fixtures.ts'
 import { readV2vMigrationListStorage, seedV2vMigrationList } from '@/test/v2v-migration-list-storage.ts'
 import { V2V_EMPTY_LIST, V2V_LIST_WITH_VMS } from '@/test/v2v-wizard-fixtures.ts'
@@ -227,11 +226,7 @@ describe('saveDefaults', () => {
   itKeepsListOfNewerVersion(result => result.saveDefaults(NEW_DEFAULTS))
 
   it('keeps the list in memory when the storage cannot be written', () => {
-    const consoleError = silenceConsoleError()
-    const setItem = vi.spyOn(localStorage, 'setItem').mockImplementation(() => {
-      throw new Error('Storage is full')
-    })
-    onTestFinished(() => setItem.mockRestore())
+    const consoleError = failLocalStorageWrites()
     const result = mountMigrationList()
 
     result.saveDefaults(NEW_DEFAULTS)

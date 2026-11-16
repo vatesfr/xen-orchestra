@@ -5,6 +5,7 @@ import V2vSourceStep from '@/modules/v2v/components/source/V2vSourceStep.vue'
 import V2vVmsStep from '@/modules/v2v/components/vms/V2vVmsStep.vue'
 import V2vMigrationWizard from '@/modules/v2v/components/wizard/V2vMigrationWizard.vue'
 import V2vWizardHeader from '@/modules/v2v/components/wizard/V2vWizardHeader.vue'
+import { findShownComponents } from '@/test/find-shown-components.ts'
 import { t } from '@/test/i18n.ts'
 import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
 import { mountComponentOnV2vWizard, type V2vWizardSetup } from '@/test/mount-on-v2v-wizard.ts'
@@ -62,9 +63,13 @@ it.each([
 ])('shows the %s step alone', async (_, setup: V2vWizardSetup, stepComponent) => {
   const wrapper = await mountWizard(setup)
 
-  const shownSteps = [V2vSourceStep, V2vDestinationStep, V2vVmsStep, V2vMappingStep, V2vReviewStep].filter(step =>
-    wrapper.findComponent(step).exists()
-  )
+  const shownSteps = findShownComponents(wrapper, [
+    V2vSourceStep,
+    V2vDestinationStep,
+    V2vVmsStep,
+    V2vMappingStep,
+    V2vReviewStep,
+  ])
 
   expect(shownSteps).toEqual([stepComponent])
 })

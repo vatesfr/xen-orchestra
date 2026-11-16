@@ -3,6 +3,7 @@ import { useV2vMigrationListRows } from '@/modules/v2v/composables/use-v2v-migra
 import { useV2vSelectedVmLabels } from '@/modules/v2v/composables/use-v2v-selected-vm-labels.composable.ts'
 import { useV2vSelectedVms } from '@/modules/v2v/composables/use-v2v-selected-vms.composable.ts'
 import type { V2vMigrationList, V2vMigrationListVm } from '@/modules/v2v/types/v2v-migration-list.type.ts'
+import type { V2vMappingSummary } from '@/modules/v2v/types/v2v-selected-vm.type.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { createV2vImportVm } from '@/test/create-v2v-import-vm.ts'
 import {
@@ -75,7 +76,7 @@ const WEB_MAPPING = {
   srNames: [V2V_DEFAULT_SR.name_label],
   nicCount: 0,
   networkNames: [],
-}
+} satisfies V2vMappingSummary
 
 const DB_MAPPING = { type: 'locked' }
 
@@ -107,15 +108,9 @@ async function mountSelectedVms({
 
 type SelectedVms = Awaited<ReturnType<typeof mountSelectedVms>>['result']
 
-// The web VM has one disk and no NIC
+// The mapping of the web VM, its one disk on that SR
 function getWebVmMappingParts(result: SelectedVms, srName: string) {
-  return result.labels.getMappingParts({
-    type: 'mapped',
-    diskCount: 1,
-    srNames: [srName],
-    nicCount: 0,
-    networkNames: [],
-  })
+  return result.labels.getMappingParts({ ...WEB_MAPPING, srNames: [srName] })
 }
 
 function findItemIds(result: SelectedVms) {

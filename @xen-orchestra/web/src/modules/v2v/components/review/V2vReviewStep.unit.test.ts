@@ -6,8 +6,10 @@ import V2vMigratedVmItem from '@/modules/v2v/components/review/V2vMigratedVmItem
 import V2vReviewStep from '@/modules/v2v/components/review/V2vReviewStep.vue'
 import V2vVmLaunchOptionsTable from '@/modules/v2v/components/review/V2vVmLaunchOptionsTable.vue'
 import { stubV2vStartAccepted, stubV2vStartProblems, V2V_START_TASK_ID } from '@/test/create-v2v-launch.ts'
+import { findV2vRouteQuery } from '@/test/create-v2v-wizard-router.ts'
 import { findCardTitleLabel } from '@/test/find-card-title.ts'
 import { findInlineParts } from '@/test/find-parts.ts'
+import { findStateHeroTypes } from '@/test/find-state-hero-types.ts'
 import { findTitle } from '@/test/find-titles.ts'
 import { getButton, getUiButton } from '@/test/get-button.ts'
 import { t } from '@/test/i18n.ts'
@@ -116,8 +118,7 @@ it.each([
   },
   {
     case: 'without a destination pool',
-    makeBusy: ({ router }: MountedStep) =>
-      router.replace({ query: { ...router.currentRoute.value.query, pool: undefined } }),
+    makeBusy: ({ router }: MountedStep) => router.replace({ query: { ...findV2vRouteQuery(router), pool: undefined } }),
   },
 ])('shows the step busy $case', async ({ makeBusy }) => {
   const mounted = await mountStep()
@@ -126,7 +127,7 @@ it.each([
   await makeBusy(mounted)
   await flushPromises()
 
-  expect(wrapper.getComponent(VtsStateHero).props('type')).toBe('busy')
+  expect(findStateHeroTypes(wrapper)).toEqual(['busy'])
   expect(wrapper.findComponent(V2vLaunchOptionsCard).exists()).toBe(false)
 })
 
@@ -283,7 +284,7 @@ describe('once launched', () => {
     await getButton(wrapper, t('action:back-to-vms')).trigger('click')
     await flushPromises()
 
-    expect(router.currentRoute.value.query.step).toBe('vms')
+    expect(findV2vRouteQuery(router).step).toBe('vms')
   })
 })
 
@@ -293,5 +294,5 @@ it('goes back to the mapping step', async () => {
   await getButton(wrapper, t('action:back')).trigger('click')
   await flushPromises()
 
-  expect(router.currentRoute.value.query.step).toBe('mapping')
+  expect(findV2vRouteQuery(router).step).toBe('mapping')
 })

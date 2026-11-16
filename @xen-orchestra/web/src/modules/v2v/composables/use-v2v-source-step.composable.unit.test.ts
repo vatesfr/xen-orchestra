@@ -4,7 +4,7 @@ import type { V2vRememberedConnection } from '@/modules/v2v/types/v2v-remembered
 import { getV2vSourceId } from '@/modules/v2v/utils/v2v-source.util.ts'
 import { createV2vConnection, createV2vRememberedConnection } from '@/test/create-v2v-connection.ts'
 import { createV2vInventory } from '@/test/create-v2v-inventory.ts'
-import { createV2vWizardRouter } from '@/test/create-v2v-wizard-router.ts'
+import { createV2vWizardRouter, findV2vRouteQuery } from '@/test/create-v2v-wizard-router.ts'
 import { fillV2vConnectionForm } from '@/test/fill-v2v-connection-form.ts'
 import { invalidCredentialsMessage } from '@/test/form-messages.ts'
 import { deleteModalMock } from '@/test/mock-delete-modal.ts'
@@ -72,7 +72,7 @@ describe('submit', () => {
     await result.submit()
 
     expect(fetchMock).not.toHaveBeenCalled()
-    expect(router.currentRoute.value.query.step).toBe('source')
+    expect(findV2vRouteQuery(router).step).toBe('source')
   })
 
   it('does not connect while the prerequisites are not met', async () => {
@@ -95,7 +95,7 @@ describe('submit', () => {
 
     expect(result.context.connection.value).toEqual(connection)
     expect(result.context.inventory.value).toEqual(inventory)
-    expect(router.currentRoute.value.query.step).toBe('destination')
+    expect(findV2vRouteQuery(router).step).toBe('destination')
   })
 
   it('remembers the connection with what the inventory told about the source when asked to', async () => {
@@ -154,7 +154,7 @@ describe('submit', () => {
     expect(result.form.passwordInputBindings.error).toEqual(invalidCredentialsMessage())
     expect(result.connectionError).toBeUndefined()
     expect(result.context.connection.value).toBeUndefined()
-    expect(router.currentRoute.value.query.step).toBe('source')
+    expect(findV2vRouteQuery(router).step).toBe('source')
   })
 
   it('reports any other failure as a connection error', async () => {
@@ -165,7 +165,7 @@ describe('submit', () => {
     await submitConnection(result)
 
     expect(result.connectionError).toBe(SERVER_ERROR_MESSAGE)
-    expect(router.currentRoute.value.query.step).toBe('source')
+    expect(findV2vRouteQuery(router).step).toBe('source')
   })
 
   it('is connecting while the inventory loads', async () => {
@@ -191,7 +191,7 @@ describe('connectRemembered', () => {
     await flushPromises()
 
     expect(result.context.inventory.value).toEqual(inventory)
-    expect(router.currentRoute.value.query.step).toBe('destination')
+    expect(findV2vRouteQuery(router).step).toBe('destination')
   })
 
   it('marks the remembered connection as just used', async () => {
