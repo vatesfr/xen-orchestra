@@ -48,9 +48,11 @@ impl Transcript {
         self.line(&format!("{place} tls {version:?} {}", suite_name(suite)));
     }
 
-    /// That the data port refused the ECDHE suites and is asked again without them.
-    pub fn fallback(&self) {
-        self.line("first session tls fallback: host refused ECDHE, retrying with RSA key exchange");
+    /// That the data port refused the ECDHE suites at `place` and is asked again.
+    pub fn fallback(&self, place: &str) {
+        self.line(&format!(
+            "{place} tls fallback: host refused ECDHE, retrying with RSA key exchange"
+        ));
     }
 
     /// A dialogue line sent to the host, without its line end; never the ticket.

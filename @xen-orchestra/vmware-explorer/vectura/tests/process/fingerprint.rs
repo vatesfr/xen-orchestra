@@ -199,6 +199,10 @@ fn an_rsa_only_data_port_is_fingerprinted_through_the_fallback() {
         "nothing is sent after the TLS handshake: {accepted:?}"
     );
     let expected = verbose_line(host.management_port, &host.management())
+        + &format!(
+            "{} tls fallback: host refused ECDHE, retrying with RSA key exchange\n",
+            host.data_port
+        )
         + &verbose_line(host.data_port, &accepted);
     assert_eq!(text(&output.stderr), expected);
 }
