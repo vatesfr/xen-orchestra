@@ -60,13 +60,13 @@
       <span class="hint typo-body-regular-small">{{ t('browser-media:eject-first') }}</span>
     </div>
 
-    <div v-else-if="!areCdDrivesKnown" class="state">
+    <div v-else-if="!areVmVbdsReady" class="state">
       <span class="typo-body-regular-small">{{ t('loading') }}</span>
     </div>
 
     <template v-else>
       <div class="state">
-        <span class="typo-body-regular-small">{{ cdDrives.length === 0 ? t('no-cd-drive') : t('empty') }}</span>
+        <span class="typo-body-regular-small">{{ cdDriveVbds.length === 0 ? t('no-cd-drive') : t('empty') }}</span>
       </div>
       <UiButton
         v-tooltip="!canInsert ? insertErrorMessage : undefined"
@@ -89,8 +89,8 @@ import { useXoBrowserMediaEjectJob } from '@/modules/browser-media/jobs/xo-brows
 import { useXoBrowserMediaInsertJob } from '@/modules/browser-media/jobs/xo-browser-media-insert.job.ts'
 import { useXoBrowserMediaCollection } from '@/modules/browser-media/remote-resources/use-xo-browser-media-collection.ts'
 import { useXoUserCollection } from '@/modules/user/remote-resources/use-xo-user-collection.ts'
-import { useXoVbdCollection } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
 import { useXoVdiCollection } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
+import { useXoVmVbdsUtils } from '@/modules/vm/composables/xo-vm-vbd-utils.composable.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import UiAlert from '@core/components/ui/alert/UiAlert.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
@@ -111,7 +111,7 @@ const { t } = useI18n()
 
 const { getLocalSession, hasEnded, cancel, dismiss } = useBrowserMediaSessions()
 const { getBrowserMediaByVmId, reloadBrowserMediaSessions } = useXoBrowserMediaCollection()
-const { getVbdsByIds, areVbdsReady } = useXoVbdCollection()
+const { areVmVbdsReady, cdDriveVbds } = useXoVmVbdsUtils(() => vm)
 const { getVdiById } = useXoVdiCollection()
 const { getUserById } = useXoUserCollection()
 
@@ -130,14 +130,7 @@ watch(
   () => reloadBrowserMediaSessions().catch(error => console.error('Failed to reload the browser media:', error))
 )
 
-const vbds = computed(() => getVbdsByIds(vm.$VBDs))
-
-// the collection may be ready a moment before it has the drives of this VM
-const areCdDrivesKnown = computed(() => areVbdsReady.value && vbds.value.length === vm.$VBDs.length)
-
-const cdDrives = computed(() => vbds.value.filter(vbd => vbd.is_cd_drive))
-
-const insertedVdiId = computed(() => cdDrives.value.find(vbd => vbd.VDI !== undefined)?.VDI)
+const insertedVdiId = computed(() => cdDriveVbds.value.find(vbd => vbd.VDI !== undefined)?.VDI)
 
 const insertedVdiName = computed(() => {
   const vdiId = insertedVdiId.value

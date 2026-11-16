@@ -26,7 +26,7 @@ export const useXoBrowserMediaInsertJob = defineJob('browser-media.insert', [xoV
   return {
     run(vm, file) {
       if (file === undefined) {
-        throw new JobError(t('job:browser-media-insert:missing-file'))
+        throw new JobError(t('job:arg:file-required'))
       }
 
       return insert(vm.id, file)

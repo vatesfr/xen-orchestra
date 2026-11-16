@@ -671,7 +671,6 @@
   "job:browser-media-insert:high-availability": "Not available for a VM protected by high availability",
   "job:browser-media-insert:in-progress": "Insertion in progress…",
   "job:browser-media-insert:invalid-file": "The ISO size must be between 32 KiB and 128 GiB, and a multiple of 512 bytes",
-  "job:browser-media-insert:missing-file": "No ISO selected",
   "job:connect:in-progress": "Connect in progress…",
   "job:create:in-progress": "Create in progress…",
   "job:delete:in-progress": "Delete in progress…",

@@ -6,16 +6,18 @@ import { createVm } from '@/test/create-vm.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
 import { ref } from 'vue'
 
-const { getVbdsByIds } = vi.hoisted(() => ({
+const { getVbdsByIds, areVbdsReady } = vi.hoisted(() => ({
   getVbdsByIds: vi.fn(),
+  areVbdsReady: { value: true },
 }))
 
 vi.mock(import('@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'), () => ({
-  useXoVbdCollection: (() => ({ getVbdsByIds })) as unknown as typeof useXoVbdCollection,
+  useXoVbdCollection: (() => ({ getVbdsByIds, areVbdsReady })) as unknown as typeof useXoVbdCollection,
 }))
 
 beforeEach(() => {
   getVbdsByIds.mockReset()
+  areVbdsReady.value = true
 })
 
 describe('notCdDriveVbds', () => {
@@ -41,5 +43,45 @@ describe('notCdDriveVbds', () => {
     vm.value = createVm({ $VBDs: ['vbd-cd'] as FrontXoVm['$VBDs'] })
 
     expect(wrapper.vm.notCdDriveVbds).toHaveLength(0)
+  })
+})
+
+describe('cdDriveVbds', () => {
+  it('keeps only the CD-drive VBDs', () => {
+    getVbdsByIds.mockReturnValue([createVbd({ is_cd_drive: false }), createVbd({ is_cd_drive: true })])
+
+    const { wrapper } = mountComposable(() => useXoVmVbdsUtils(createVm()))
+
+    expect(wrapper.vm.cdDriveVbds).toHaveLength(1)
+    expect(wrapper.vm.cdDriveVbds[0].is_cd_drive).toBe(true)
+  })
+})
+
+describe('areVmVbdsReady', () => {
+  it('is true once the collection has every VBD of the VM', () => {
+    getVbdsByIds.mockReturnValue([createVbd(), createVbd()])
+
+    const vm = createVm({ $VBDs: ['vbd-1', 'vbd-2'] as FrontXoVm['$VBDs'] })
+    const { wrapper } = mountComposable(() => useXoVmVbdsUtils(vm))
+
+    expect(wrapper.vm.areVmVbdsReady).toBe(true)
+  })
+
+  it('is false while the collection is not ready', () => {
+    areVbdsReady.value = false
+    getVbdsByIds.mockReturnValue([])
+
+    const { wrapper } = mountComposable(() => useXoVmVbdsUtils(createVm({ $VBDs: [] as FrontXoVm['$VBDs'] })))
+
+    expect(wrapper.vm.areVmVbdsReady).toBe(false)
+  })
+
+  it('is false while some VBDs of the VM are missing from the collection', () => {
+    getVbdsByIds.mockReturnValue([createVbd()])
+
+    const vm = createVm({ $VBDs: ['vbd-1', 'vbd-2'] as FrontXoVm['$VBDs'] })
+    const { wrapper } = mountComposable(() => useXoVmVbdsUtils(vm))
+
+    expect(wrapper.vm.areVmVbdsReady).toBe(false)
   })
 })

@@ -2,6 +2,7 @@ import { BASE_URL } from '@/shared/utils/fetch.util.ts'
 import { defineRemoteResource } from '@core/packages/remote-resource/define-remote-resource.ts'
 import type { XoBrowserMediaSession, XoVm } from '@vates/types'
 
+// not a `Pick`: the fields below are all of them, and a `Pick` would lose the union of the session statuses
 export type FrontXoBrowserMedia = XoBrowserMediaSession
 
 const browserMediaFields = [

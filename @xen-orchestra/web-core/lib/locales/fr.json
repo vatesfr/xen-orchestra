@@ -671,7 +671,6 @@
   "job:browser-media-insert:high-availability": "Indisponible pour une VM protégée par la haute disponibilité",
   "job:browser-media-insert:in-progress": "Insertion en cours…",
   "job:browser-media-insert:invalid-file": "La taille de l'ISO doit être comprise entre 32 Kio et 128 Gio, et être un multiple de 512 octets",
-  "job:browser-media-insert:missing-file": "Aucune ISO sélectionnée",
   "job:connect:in-progress": "Connexion en cours…",
   "job:create:in-progress": "Création en cours…",
   "job:delete:in-progress": "Suppression en cours…",

@@ -4,6 +4,7 @@ import {
   useXoBrowserMediaCollection,
 } from '@/modules/browser-media/remote-resources/use-xo-browser-media-collection.ts'
 import { xoVmArg } from '@/modules/vm/jobs/xo-vm-args.ts'
+import { ApiError } from '@/shared/error/api.error.ts'
 import { fetchPost } from '@/shared/utils/fetch.util.ts'
 import { defineJob, JobError, JobRunningError } from '@core/packages/job'
 import type { XoVm } from '@vates/types'
@@ -34,7 +35,12 @@ export const useXoBrowserMediaEjectJob = defineJob('browser-media.eject', [xoVmA
           const session = getRemoteSession(vmId)
 
           if (session !== undefined) {
-            await fetchPost(`browser-media/${session.id}/actions/eject?sync=true`)
+            await fetchPost(`browser-media/${session.id}/actions/eject?sync=true`).catch(error => {
+              // already released by xo-server, e.g. ejected from its own tab meanwhile
+              if (!(error instanceof ApiError && error.status === 404)) {
+                throw error
+              }
+            })
           }
         }
       } finally {

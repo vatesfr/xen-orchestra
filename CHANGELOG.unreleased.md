@@ -39,7 +39,7 @@
 - [XO6/Backups] Add filters and actions on backup jobs (PR [#10772](https://github.com/vatesfr/xen-orchestra/pull/10772))
 - [Logs] The syslog transport (`[logs.transport.syslog]` in xo-server configuration) supports TLS (`tls://`), and the facility, application name and framing can be configured (PR [#10619](https://github.com/vatesfr/xen-orchestra/pull/10619))
 - [Logs] **Breaking:** logs are now sent to syslog as RFC 5424 messages, with their namespace as message ID, instead of RFC 3164 messages: set `format = 'rfc3164'` in `[logs.transport.syslog]` to keep the previous format (PR [#10619](https://github.com/vatesfr/xen-orchestra/pull/10619))
-- [XO6/VM/Console] Experimental: a CD drive card on the console page inserts an ISO from this computer, without uploading it, while the VM is halted or running. Keep the tab open while the VM reads the ISO: closing it ejects the ISO (PR [#10466](https://github.com/vatesfr/xen-orchestra/pull/10466))
+- [XO6/VM/Console] Insert an ISO from this computer in the CD drive of a VM, without uploading it, from the console page (experimental). Keep the tab open while the VM uses the ISO: closing it ejects the ISO (PR [#10466](https://github.com/vatesfr/xen-orchestra/pull/10466))
 
 ### Bug fixes
 
