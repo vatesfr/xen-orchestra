@@ -6,6 +6,19 @@ import Tasks from './Tasks.mjs'
 import { Task } from '@vates/task'
 import { forbiddenOperation, noSuchObject } from 'xo-common/api-errors.js'
 
+// runs fn with the logs sent to `logs` instead of the current transport
+async function withLogs(fn) {
+  const symbol = Symbol.for('@xen-orchestra/log')
+  const previous = global[symbol]
+  const logs = []
+  global[symbol] = log => logs.push(log)
+  try {
+    await fn(logs)
+  } finally {
+    global[symbol] = previous
+  }
+}
+
 function makeApp() {
   const listeners = {}
   const hooks = {
@@ -19,8 +32,12 @@ function makeApp() {
   const puts = []
   const pending = []
   const failing = new Set()
+  const failingGets = new Set()
   const store = {
     async get(id) {
+      if (failingGets.delete(id)) {
+        throw new Error(`read of ${id} failed`)
+      }
       if (!data.has(id)) {
         throw Object.assign(new Error(`no such task ${id}`), { type: 'NotFoundError' })
       }
@@ -60,6 +77,10 @@ function makeApp() {
     // the next put of `id` fails
     failPut(id) {
       failing.add(id)
+    },
+    // the next get of `id` fails with an error other than NotFoundError
+    failGet(id) {
+      failingGets.add(id)
     },
     holdPut(id) {
       let release
@@ -515,6 +536,28 @@ describe('Tasks', () => {
         assert.equal(fake.data.get(id).infos, undefined)
       })
 
+      it('warns only for the first event sent after end()', async () => {
+        const fake = makeApp()
+        const tasks = new Tasks(fake.app)
+        await fake.start()
+
+        const onLogFct = tasks.createExternalProgressHandler()
+        const id = 'root-after-warn'
+        const timestamp = Date.now()
+        onLogFct({ type: 'start', id, timestamp, properties: { name: 'backup run' } })
+        onLogFct.end(undefined, 'source lost')
+
+        await withLogs(logs => {
+          for (let i = 0; i < 3; ++i) {
+            onLogFct({ type: 'info', id, timestamp: timestamp + 2 + i, message: 'late' })
+          }
+          const warnings = logs.filter(log =>
+            log.message.startsWith('event received after the external task was ended')
+          )
+          assert.equal(warnings.length, 1)
+        })
+      })
+
       it('no longer calls the abort option once ended with end()', async () => {
         const fake = makeApp()
         const tasks = new Tasks(fake.app)
@@ -880,6 +923,65 @@ describe('Tasks', () => {
       assert.equal(fake.data.get(id).status, 'pending')
       const result = await Promise.race([finalState(tasks, id), sleep(200).then(() => 'timeout')])
       assert.equal(result.status, 'success')
+    })
+
+    describe('deleteLog', () => {
+      it('keeps the live log of a clear-on-success task when reading the store fails on delete', async () => {
+        const fake = makeApp()
+        const tasks = new Tasks(fake.app)
+        await fake.start()
+
+        const task = tasks.create({ name: 'clear on success' }, { clearLogOnSuccess: true })
+        const id = task.id
+        await task.run(async () => {
+          await flush()
+          assert.equal(fake.data.get(id).status, 'pending')
+          fake.failGet(id)
+          return 'ok'
+        })
+        await flush()
+
+        // the store still holds the pending state: the answer must come from the live log
+        assert.equal(fake.data.get(id).status, 'pending')
+        const result = await Promise.race([finalState(tasks, id), sleep(200).then(() => 'timeout')])
+        assert.equal(result.status, 'success')
+      })
+
+      it('deletes the live log of an external task whose first write failed', async () => {
+        const fake = makeApp()
+        const tasks = new Tasks(fake.app)
+        await fake.start()
+
+        const id = 'ext-delete-live'
+        const onLogFct = tasks.createExternalProgressHandler()
+        fake.failPut(id)
+        onLogFct({ type: 'start', id, timestamp: Date.now(), properties: { name: 'backup run' } })
+        await flush()
+
+        assert.equal(fake.data.has(id), false)
+        assert.equal((await tasks.get(id)).status, 'pending')
+
+        const removed = []
+        tasks.on('remove', log => removed.push(log.id))
+        await tasks.deleteLog(id)
+
+        assert.deepEqual(removed, [id])
+        await assert.rejects(tasks.get(id), error => noSuchObject.is(error))
+      })
+
+      it('rethrows a store error other than not found', async () => {
+        const fake = makeApp()
+        const tasks = new Tasks(fake.app)
+        await fake.start()
+
+        const task = tasks.create({ name: 'stored' })
+        await task.run(() => 'ok')
+        await flush()
+
+        fake.failGet(task.id)
+        await assert.rejects(tasks.deleteLog(task.id), /read of .* failed/)
+        assert.equal(fake.data.get(task.id).status, 'success')
+      })
     })
 
     describe('abort errors', () => {

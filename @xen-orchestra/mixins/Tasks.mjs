@@ -73,7 +73,10 @@ export default class Tasks extends EventEmitter {
           this.#emitSafely(id, taskLog)
           if (deleteAfterNotify) {
             try {
-              await this.deleteLog(id)
+              const storedLog = await this.#deleteStored(id)
+              if (storedLog !== undefined) {
+                this.emit('remove', storedLog)
+              }
               written = true
             } catch (error) {
               warn('failure on deleting task log from store', { error, taskLog })
@@ -187,7 +190,18 @@ export default class Tasks extends EventEmitter {
       const deleteEntry = data => {
         ++count
 
-        this.deleteLog(data.key, cb)
+        // cb may already have been called by the store if the error comes after the deletion
+        let done = false
+        const once = () => {
+          if (!done) {
+            done = true
+            cb()
+          }
+        }
+        this.deleteLog(data.key, once).catch(error => {
+          warn('failure on deleting task log from store', { error, id: data.key })
+          once()
+        })
       }
 
       const stream = db.createReadStream({
@@ -241,6 +255,8 @@ export default class Tasks extends EventEmitter {
     // ids of the tasks accepted by makeOnProgress and not yet ended, in start order
     const openIds = new Set()
     let closed = false
+    // a source that keeps sending events after end() is reported once
+    let warnedAfterClose = false
 
     const onProgress = makeOnProgress({
       onRootTaskEnd: (taskLog, event) => {
@@ -307,7 +323,10 @@ export default class Tasks extends EventEmitter {
 
     function handler(event) {
       if (closed) {
-        warn('event received after the external task was ended', { event })
+        if (!warnedAfterClose) {
+          warnedAfterClose = true
+          warn('event received after the external task was ended, later ones are dropped silently', { event })
+        }
         return
       }
       feed(event)
@@ -394,13 +413,35 @@ export default class Tasks extends EventEmitter {
     return task
   }
 
+  /**
+   * Deletes the log of a task, stored or live: a live task may not be stored yet, or only in an older state if its
+   * last write failed.
+   */
   async deleteLog(id, cb) {
-    const log = await this.#getStored(id).catch(noop)
+    const storedLog = await this.#deleteStored(id, cb)
 
+    const liveLog = this.#liveLogs.get(id)
+    this.#liveLogs.delete(id)
+
+    const log = liveLog ?? storedLog
     if (log !== undefined) {
-      await this.#store.del(id, cb)
       this.emit('remove', log)
     }
+  }
+
+  // deletes the stored log of a task and returns it, undefined if there is none; other store errors are thrown
+  async #deleteStored(id, cb) {
+    let log
+    try {
+      log = await this.#getStored(id)
+    } catch (error) {
+      if (noSuchObject.is(error)) {
+        return
+      }
+      throw error
+    }
+    await this.#store.del(id, cb)
+    return log
   }
 
   /**
