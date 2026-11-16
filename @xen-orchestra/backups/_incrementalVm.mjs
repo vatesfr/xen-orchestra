@@ -5,27 +5,13 @@ import { compareVersions } from 'compare-versions'
 import { defer } from 'golike-defer'
 import { Task } from '@vates/task'
 
+import { abortableMap } from './_abortableMap.mjs'
 import pick from 'lodash/pick.js'
 import { BASE_DELTA_VDI, CONTENT_KEY, COPY_OF, VM_UUID } from './_otherConfig.mjs'
 
 import { VHD_MAX_SIZE, XapiDiskSource } from '@xen-orchestra/xapi'
 import { toVhdStream } from 'vhd-lib/disk-consumer/index.mjs'
 import { toQcow2Stream } from '@xen-orchestra/qcow2'
-
-// Similar to `Promise.all` + `map` but passes an abort signal to the callback
-//
-// If any of the executions fails, the signal is aborted (it also follows the optional parent `signal`) and the first
-// reason is rejected, without waiting for the other executions.
-export async function abortableMap(signal, iterable, callback) {
-  const controller = new AbortController()
-  const childSignal = signal === undefined ? controller.signal : AbortSignal.any([signal, controller.signal])
-  try {
-    return await Promise.all(Array.from(iterable, item => callback(childSignal, item)))
-  } catch (error) {
-    controller.abort(error)
-    throw error
-  }
-}
 
 const ensureArray = value => (value === undefined ? [] : Array.isArray(value) ? value : [value])
 
