@@ -10,6 +10,7 @@
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
 - [REST API] Get the state of a proxy appliance updater: `GET /rest/v0/proxies/:id/appliance_updater_state` (PR [#10773](https://github.com/vatesfr/xen-orchestra/pull/10773))
+- [V2V] Import from ESXi 6.5 hosts whose data port only accepts RSA key exchange (PR [#10802](https://github.com/vatesfr/xen-orchestra/pull/10802))
 
 ### Bug fixes
 
@@ -44,6 +45,7 @@
 - @vates/types minor
 - @xen-orchestra/backups patch
 - @xen-orchestra/rest-api minor
+- @xen-orchestra/vmware-explorer minor
 - @xen-orchestra/web patch
 - @xen-orchestra/web-core patch
 - xo-collection patch
