@@ -12,8 +12,12 @@ import { formatSize } from '@core/utils/size.util.ts'
 import { formatDateTime } from '@core/utils/time.util.ts'
 import { toComputed } from '@core/utils/to-computed.util.ts'
 import type { XoUser, XoVdi } from '@vates/types'
+import { useIntervalFn } from '@vueuse/core'
 import { computed, type MaybeRefOrGetter, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+
+// how often a session xo-server is inserting or ejecting is reloaded: it settles within seconds
+const SETTLING_RELOAD_INTERVAL_MS = 2_000
 
 type ServedIsoStatus = 'connecting' | 'inserting' | 'inserted-here' | 'inserted-elsewhere' | 'ejecting'
 
@@ -62,8 +66,19 @@ export function useBrowserMediaCdDrive(rawVm: MaybeRefOrGetter<FrontXoVm>) {
 
   // the browser media are polled: reloaded as soon as they may have changed, when a session of this tab changes, or
   // when the CD drive does, e.g. as another tab inserts an ISO (the drives are in the event stream)
-  watch([() => localSession.value?.status, insertedVdiId], () =>
+  function reload() {
     reloadBrowserMediaSessions().catch(error => console.error('Failed to reload the browser media:', error))
+  }
+
+  watch([() => localSession.value?.status, insertedVdiId], reload)
+
+  // e.g. the CD drive is already empty while xo-server still releases the ISO: followed until it is over
+  const { pause, resume } = useIntervalFn(reload, SETTLING_RELOAD_INTERVAL_MS, { immediate: false })
+
+  watch(
+    () => serverSession.value?.status === 'inserting' || serverSession.value?.status === 'ejecting',
+    isSettling => (isSettling ? resume() : pause()),
+    { immediate: true }
   )
 
   const servedIso = computed((): ServedIso | undefined => {

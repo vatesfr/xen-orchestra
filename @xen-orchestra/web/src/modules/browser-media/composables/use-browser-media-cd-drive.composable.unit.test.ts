@@ -206,3 +206,16 @@ describe('reloading the browser media', () => {
     expect(reloadBrowserMediaSessions).toHaveBeenCalled()
   })
 })
+
+describe('following a session another browser is ejecting', () => {
+  it('reloads the browser media until xo-server has released it', async () => {
+    vi.useFakeTimers()
+    getBrowserMediaByVmId.mockReturnValue(createServerSession({ status: 'ejecting' } as Partial<FrontXoBrowserMedia>))
+
+    mountCdDrive(createVmWithCdDrive())
+    await vi.advanceTimersByTimeAsync(4_100)
+
+    expect(reloadBrowserMediaSessions).toHaveBeenCalledTimes(2)
+    vi.useRealTimers()
+  })
+})
