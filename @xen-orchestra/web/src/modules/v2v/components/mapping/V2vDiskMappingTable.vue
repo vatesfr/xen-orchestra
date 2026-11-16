@@ -1,0 +1,48 @@
+<template>
+  <VtsTable>
+    <thead>
+      <tr>
+        <HeadCells />
+      </tr>
+    </thead>
+    <tbody>
+      <VtsRow v-for="row of rows" :key="row.key">
+        <BodyCells :item="row" />
+      </VtsRow>
+    </tbody>
+  </VtsTable>
+</template>
+
+<script lang="ts" setup>
+import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
+import type { V2vDiskMappingRow, V2vTargetOption } from '@/modules/v2v/types/v2v-mapping.type.ts'
+import { renderV2vTargetCells } from '@/modules/v2v/utils/v2v-target-cells.util.ts'
+import { renderSizeCell } from '@/shared/utils/size-cell.util.ts'
+import VtsRow from '@core/components/table/VtsRow.vue'
+import VtsTable from '@core/components/table/VtsTable.vue'
+import { useV2vDiskMappingColumns } from '@core/tables/column-sets/v2v-disk-mapping-columns.ts'
+
+const { srOptions, loading } = defineProps<{
+  rows: V2vDiskMappingRow[]
+  srOptions: V2vTargetOption<FrontXoSr['id']>[]
+  loading: boolean
+}>()
+
+const emit = defineEmits<{
+  changeSr: [key: V2vDiskMappingRow['key'], srId: FrontXoSr['id'] | undefined]
+}>()
+
+const { HeadCells, BodyCells } = useV2vDiskMappingColumns({
+  body: (row: V2vDiskMappingRow) => ({
+    disk: renderer => renderer(row.label),
+    datastore: renderer => renderer(row.datastore),
+    size: renderer => renderSizeCell(row.size, renderer),
+    ...renderV2vTargetCells(() => ({
+      target: row.sr,
+      options: srOptions,
+      loading,
+      onChange: srId => emit('changeSr', row.key, srId),
+    })),
+  }),
+})
+</script>

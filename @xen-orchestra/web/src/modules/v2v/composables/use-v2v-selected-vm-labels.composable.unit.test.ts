@@ -1,5 +1,5 @@
 import { useV2vSelectedVmLabels } from '@/modules/v2v/composables/use-v2v-selected-vm-labels.composable.ts'
-import type { V2vSelectedVmCheck } from '@/modules/v2v/types/v2v-selected-vm.type.ts'
+import type { V2vMappingSummary, V2vSelectedVmCheck, V2vVmCheck } from '@/modules/v2v/types/v2v-selected-vm.type.ts'
 import { DISKOR_POOL_NAME, OTHER_POOL_ID } from '@/test/create-pool.ts'
 import { mountComposableWithI18n } from '@/test/mount-composable.ts'
 
@@ -29,7 +29,15 @@ describe('getCheckInfo', () => {
       'v2v:already-migrated-confirm-at-launch',
       'warning',
     ],
-  ] as const)('tells %s VM', (_, check: V2vSelectedVmCheck, labelKey, accent) => {
+    [
+      'an incompletely mapped',
+      { type: 'mapping-incomplete', level: 'blocking' },
+      'v2v:check:mapping-incomplete',
+      'danger',
+    ],
+    ['a fully supported', { type: 'no-unsupported-disk', level: 'ready' }, 'v2v:check:no-unsupported-disk', 'success'],
+    ['a snapshot-free', { type: 'no-snapshot', level: 'ready' }, 'v2v:check:no-snapshot', 'success'],
+  ] as const)('tells %s VM', (_, check: V2vSelectedVmCheck | V2vVmCheck, labelKey, accent) => {
     const labels = mountLabels()
 
     expect(labels.getCheckInfo(check)).toEqual({ label: labels.t(labelKey), accent })
@@ -45,6 +53,15 @@ describe('getCheckInfo', () => {
     expect(labels.getCheckInfo({ type: 'unsupported', level: 'blocking', reason })).toEqual({
       label: labels.t(labelKey),
       accent: 'danger',
+    })
+  })
+
+  it('counts the snapshots of a VM', () => {
+    const labels = mountLabels()
+
+    expect(labels.getCheckInfo({ type: 'snapshots', level: 'warning', count: 2 })).toEqual({
+      label: labels.t('v2v:check:n-snapshots', { n: 2 }),
+      accent: 'warning',
     })
   })
 
@@ -66,19 +83,22 @@ describe('getCheckInfo', () => {
 })
 
 describe('getMappingParts', () => {
-  const DEFAULTS_SUMMARY = {
-    type: 'defaults',
+  const MAPPED_SUMMARY: Extract<V2vMappingSummary, { type: 'mapped' }> = {
+    type: 'mapped',
     diskCount: 2,
-    srName: 'sr-nvme-01',
+    srNames: ['sr-nvme-01', 'sr-ssd-01'],
     nicCount: 1,
-    networkName: 'VLAN 10',
-  } as const
+    networkNames: ['VLAN 10'],
+  }
 
-  it('maps the disks to the SR and the NICs to the network', () => {
+  it('maps the disks to their SRs and the NICs to their networks', () => {
     const labels = mountLabels()
 
-    expect(labels.getMappingParts(DEFAULTS_SUMMARY)).toEqual([
-      labels.t('source-to-destination', { source: labels.t('n-disks', { n: 2 }), destination: 'sr-nvme-01' }),
+    expect(labels.getMappingParts(MAPPED_SUMMARY)).toEqual([
+      labels.t('source-to-destination', {
+        source: labels.t('n-disks', { n: 2 }),
+        destination: 'sr-nvme-01, sr-ssd-01',
+      }),
       labels.t('source-to-destination', { source: labels.t('n-nics', { n: 1 }), destination: 'VLAN 10' }),
     ])
   })
@@ -86,7 +106,7 @@ describe('getMappingParts', () => {
   it('only counts the disks and the NICs while their targets are unknown', () => {
     const labels = mountLabels()
 
-    expect(labels.getMappingParts({ ...DEFAULTS_SUMMARY, srName: undefined, networkName: undefined })).toEqual([
+    expect(labels.getMappingParts({ ...MAPPED_SUMMARY, srNames: undefined, networkNames: undefined })).toEqual([
       labels.t('n-disks', { n: 2 }),
       labels.t('n-nics', { n: 1 }),
     ])
@@ -95,7 +115,7 @@ describe('getMappingParts', () => {
   it('leaves out the disks of a VM without disk', () => {
     const labels = mountLabels()
 
-    expect(labels.getMappingParts({ ...DEFAULTS_SUMMARY, diskCount: 0 })).toEqual([
+    expect(labels.getMappingParts({ ...MAPPED_SUMMARY, diskCount: 0, srNames: [] })).toEqual([
       labels.t('source-to-destination', { source: labels.t('n-nics', { n: 1 }), destination: 'VLAN 10' }),
     ])
   })
@@ -103,8 +123,11 @@ describe('getMappingParts', () => {
   it('leaves out the NICs of a VM without NIC', () => {
     const labels = mountLabels()
 
-    expect(labels.getMappingParts({ ...DEFAULTS_SUMMARY, nicCount: 0 })).toEqual([
-      labels.t('source-to-destination', { source: labels.t('n-disks', { n: 2 }), destination: 'sr-nvme-01' }),
+    expect(labels.getMappingParts({ ...MAPPED_SUMMARY, nicCount: 0, networkNames: [] })).toEqual([
+      labels.t('source-to-destination', {
+        source: labels.t('n-disks', { n: 2 }),
+        destination: 'sr-nvme-01, sr-ssd-01',
+      }),
     ])
   })
 

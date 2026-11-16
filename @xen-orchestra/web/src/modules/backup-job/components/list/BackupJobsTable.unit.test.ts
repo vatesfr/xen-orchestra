@@ -1,7 +1,6 @@
 import BackupJobsTable from '@/modules/backup-job/components/list/BackupJobsTable.vue'
 import type { FrontAnyXoBackupJob } from '@/modules/backup-job/remote-resources/use-xo-backup-job-collection.ts'
 import type { useXoBackupLogCollection } from '@/modules/backup-log/remote-resources/use-xo-backup-log-collection.ts'
-import type { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import { createMetadataBackupJob, createMirrorBackupJob, createVmBackupJob } from '@/test/create-backup-job.ts'
 import { createBackupLog } from '@/test/create-backup-log.ts'
 import { createTestRouter } from '@/test/create-test-router.ts'
@@ -21,11 +20,7 @@ const { areBackupLogsReady, getLastNBackupLogsByJobId } = vi.hoisted(() => ({
   getLastNBackupLogsByJobId: vi.fn(),
 }))
 
-vi.mock(import('@/shared/remote-resources/use-xo-routes.ts'), () => ({
-  useXoRoutes: (() => ({
-    buildXo5Route: (path: string) => `https://xo5.example.com/#${path}`,
-  })) as unknown as typeof useXoRoutes,
-}))
+vi.mock(import('@/shared/remote-resources/use-xo-routes.ts'), () => import('@/test/mock-xo-routes.ts'))
 
 vi.mock(import('@/modules/backup-log/remote-resources/use-xo-backup-log-collection.ts'), () => ({
   useXoBackupLogCollection: (() => ({

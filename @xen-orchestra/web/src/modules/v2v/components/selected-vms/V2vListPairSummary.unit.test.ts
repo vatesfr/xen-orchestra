@@ -1,5 +1,5 @@
 import V2vListPairSummary from '@/modules/v2v/components/selected-vms/V2vListPairSummary.vue'
-import type { V2vListPair } from '@/modules/v2v/composables/use-v2v-selected-vms.composable.ts'
+import type { V2vListPair } from '@/modules/v2v/types/v2v-selected-vm.type.ts'
 import { createV2vListPair } from '@/test/create-v2v-selected-vms.ts'
 import { findCardLabelledValues } from '@/test/find-rendered-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'

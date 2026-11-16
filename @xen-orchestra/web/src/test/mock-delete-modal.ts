@@ -8,6 +8,10 @@ export const deleteModalMock = {
   answer(event: DeleteModalEvent) {
     this.open.mockResolvedValue({ event })
   },
+  // For a confirmation that runs its `onConfirm` event instead of awaiting the answer
+  confirm() {
+    this.open.mock.lastCall?.[0].events.onConfirm()
+  },
   reset() {
     this.open.mockReset()
   },

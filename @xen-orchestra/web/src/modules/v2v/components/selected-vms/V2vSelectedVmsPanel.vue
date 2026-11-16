@@ -39,8 +39,8 @@
 <script lang="ts" setup>
 import V2vListPairSummary from '@/modules/v2v/components/selected-vms/V2vListPairSummary.vue'
 import V2vSelectedVmItem from '@/modules/v2v/components/selected-vms/V2vSelectedVmItem.vue'
-import type { V2vListPair, V2vSelectedVm } from '@/modules/v2v/composables/use-v2v-selected-vms.composable.ts'
-import type { V2vAccentedLabel } from '@/modules/v2v/composables/use-v2v-vm-labels.composable.ts'
+import type { V2vAccentedLabel } from '@/modules/v2v/types/v2v-accented-label.type.ts'
+import type { V2vListPair, V2vSelectedVm } from '@/modules/v2v/types/v2v-selected-vm.type.ts'
 import VtsInlineParts from '@core/components/inline-parts/VtsInlineParts.vue'
 import VtsSidePanel from '@core/components/panel/VtsSidePanel.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'

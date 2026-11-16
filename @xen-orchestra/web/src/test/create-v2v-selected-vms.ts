@@ -1,4 +1,4 @@
-import type { V2vListPair, V2vSelectedVm } from '@/modules/v2v/composables/use-v2v-selected-vms.composable.ts'
+import type { V2vListPair, V2vSelectedVm } from '@/modules/v2v/types/v2v-selected-vm.type.ts'
 import { DISKOR_POOL_NAME } from '@/test/create-pool.ts'
 import { createV2vConnection } from '@/test/create-v2v-connection.ts'
 import type { XoV2vVm } from '@vates/types'
@@ -14,6 +14,7 @@ export function createV2vSelectedVm(overrides: Partial<V2vSelectedVm> = {}): V2v
     mappingParts: ['1 disk → sr-nvme-01', '1 NIC → VLAN 10'],
     check: { label: 'Ready', accent: 'success' },
     mappingRoute: { query: { step: 'mapping', vm: id } },
+    isSelected: false,
     ...overrides,
   }
 }

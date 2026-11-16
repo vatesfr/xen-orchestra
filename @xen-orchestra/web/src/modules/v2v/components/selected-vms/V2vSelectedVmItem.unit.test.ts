@@ -1,5 +1,5 @@
 import V2vSelectedVmItem from '@/modules/v2v/components/selected-vms/V2vSelectedVmItem.vue'
-import type { V2vSelectedVm } from '@/modules/v2v/composables/use-v2v-selected-vms.composable.ts'
+import type { V2vSelectedVm } from '@/modules/v2v/types/v2v-selected-vm.type.ts'
 import { createV2vSelectedVm } from '@/test/create-v2v-selected-vms.ts'
 import { createV2vWizardRouter } from '@/test/create-v2v-wizard-router.ts'
 import { findAccentedInfos, findAccentedTags } from '@/test/find-accented-labels.ts'
@@ -47,6 +47,11 @@ it('tells its check with its accent', async () => {
   const check = { label: 'Import in progress', accent: 'danger' } as const
 
   expect(findAccentedInfos(await mountItem(createV2vSelectedVm({ check })))).toEqual([check])
+})
+
+// The router alone marks every mapping link as current: they only differ by their query
+it('does not mark its link as the current page', async () => {
+  expect((await mountItem()).get('a').attributes('aria-current')).toBe('false')
 })
 
 it('removes the VM from the list', async () => {

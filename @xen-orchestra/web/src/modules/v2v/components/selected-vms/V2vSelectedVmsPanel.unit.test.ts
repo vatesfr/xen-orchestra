@@ -1,7 +1,7 @@
 import V2vListPairSummary from '@/modules/v2v/components/selected-vms/V2vListPairSummary.vue'
 import V2vSelectedVmItem from '@/modules/v2v/components/selected-vms/V2vSelectedVmItem.vue'
 import V2vSelectedVmsPanel from '@/modules/v2v/components/selected-vms/V2vSelectedVmsPanel.vue'
-import type { V2vAccentedLabel } from '@/modules/v2v/composables/use-v2v-vm-labels.composable.ts'
+import type { V2vAccentedLabel } from '@/modules/v2v/types/v2v-accented-label.type.ts'
 import { createV2vListPair, createV2vSelectedVm } from '@/test/create-v2v-selected-vms.ts'
 import { findAccentedTags } from '@/test/find-accented-labels.ts'
 import { findParts } from '@/test/find-parts.ts'
