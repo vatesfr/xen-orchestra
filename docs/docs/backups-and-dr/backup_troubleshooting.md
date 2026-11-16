@@ -146,9 +146,13 @@ On S3 repositories, the lock is an object named `xo-vm-backups/<VM UUID>.lock`, 
 
 On Azure repositories, the lock is a blob named `xo-vm-backups/<VM UUID>.lock`, which its holder leases for 60 seconds and renews every 15 seconds. If XO stops while holding it, the lease expires, and the next job can take the lock within 60 seconds.
 
-## Error: HTTP connection has timed out
+## Error: HTTP connection has timed out or BodyTimeoutError {#error-http-connection-has-timed-out}
 
-This error occurs when XO fetches disk data from a host via an HTTP GET request, and the host (the dom0 specifically) stops responding after being asked to expose the disk to export. It's usually a symptom of an overloaded dom0: not enough resources to answer the request, or trouble attaching the disk to expose it.
+Both messages report the same problem. Depending on how XO connects to the host, the backup log shows either `HTTP connection has timed out`, or `BodyTimeoutError: Body Timeout Error` (code `UND_ERR_BODY_TIMEOUT`).
+
+This error occurs when XO fetches disk data from a host via an HTTP GET request, and the host (the dom0 specifically) stops sending data for longer than the inactivity timeout, either before the export starts or in the middle of the transfer. It's not a network, credentials or backup repository failure: XO is connected to the host, but the host sent nothing for too long, so XO stopped waiting.
+
+It's usually a symptom of an overloaded dom0: not enough resources to answer the request, or trouble attaching the disk to expose it. If only full backups are affected, see [Full backups fail but delta backups succeed](#full-backups-fail-but-delta-backups-succeed).
 
 :::warning
 As a temporary workaround, you can raise the inactivity timeout above the default value (5 minutes) to give the host more time to respond. But you still need to diagnose the root cause of the slow host response, or the issue will come back.
@@ -169,6 +173,14 @@ httpInactivityTimeout = 1800000 # 30 mins
 ```
 
 Then restart the `xo-server` service to apply the change.
+
+### Full backups fail but delta backups succeed
+
+If the error only affects full backups, on VMs that delta backups save without problems, and these VMs have large disks or a lot of free disk space, the backup repository is most likely not the cause. Look at the export compression instead.
+
+When compression (zstd or gzip) is enabled on a full backup job, the host compresses the whole disk during the export, including its free space. While it works through large empty areas, it doesn't send any data to XO, and the inactivity timeout can expire. Delta backups don't go through this compression, so the same VMs back up fine.
+
+This is a known issue, tracked in [issue #9181](https://github.com/vatesfr/xen-orchestra/issues/9181). Until it's fixed, you can raise the inactivity timeout as described above.
 
 ## Error: Expected values to be strictly equal
 
