@@ -3,9 +3,10 @@
 </template>
 
 <script lang="ts" setup>
-import type { V2vNewMappingStepVm } from '@/modules/v2v/composables/use-v2v-mapping-step.composable.ts'
 import type { V2vVmUpdate } from '@/modules/v2v/composables/use-v2v-migration-list.composable.ts'
-import { useV2vNewVmActions, type V2vVmActionList } from '@/modules/v2v/composables/use-v2v-vm-actions.composable.ts'
+import { useV2vNewVmActions } from '@/modules/v2v/composables/use-v2v-vm-actions.composable.ts'
+import type { V2vNewMappingStepVm } from '@/modules/v2v/types/v2v-mapping-step.type.ts'
+import type { V2vVmActionList } from '@/modules/v2v/types/v2v-vm-actions.type.ts'
 import type { XoV2vVm } from '@vates/types'
 
 const { vm, updateVm } = defineProps<{

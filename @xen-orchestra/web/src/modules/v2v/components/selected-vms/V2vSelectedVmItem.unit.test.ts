@@ -1,5 +1,5 @@
 import V2vSelectedVmItem from '@/modules/v2v/components/selected-vms/V2vSelectedVmItem.vue'
-import type { V2vSelectedVm } from '@/modules/v2v/composables/use-v2v-selected-vms.composable.ts'
+import type { V2vSelectedVm } from '@/modules/v2v/types/v2v-selected-vm.type.ts'
 import { createV2vSelectedVm } from '@/test/create-v2v-selected-vms.ts'
 import { createV2vWizardRouter } from '@/test/create-v2v-wizard-router.ts'
 import { findAccentedInfos, findAccentedTags } from '@/test/find-accented-labels.ts'

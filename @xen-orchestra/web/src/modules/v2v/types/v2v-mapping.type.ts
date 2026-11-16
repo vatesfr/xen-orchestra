@@ -1,7 +1,9 @@
 import type { FrontXoNetwork } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
 import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
+import type { V2vMigrationList } from '@/modules/v2v/types/v2v-migration-list.type.ts'
 import type { FrontXoVmTemplate } from '@/modules/vm/remote-resources/use-xo-vm-template-collection.ts'
-import type { XoV2vDisk, XoV2vNic } from '@vates/types'
+import type { XoV2vDisk, XoV2vInventory, XoV2vNic } from '@vates/types'
+import type { MaybeRefOrGetter } from 'vue'
 
 export type V2vTargetOrigin = 'default' | 'overridden'
 
@@ -78,4 +80,10 @@ export type V2vActiveMappingRow = {
   key: XoV2vDisk['key'] | XoV2vNic['key']
   sourceParts: string[]
   destination?: string
+}
+
+// The inventory the disks and NICs are located in: handed in, since the settings drawer renders outside the wizard
+export type V2vVmTargetsOptions = {
+  list: MaybeRefOrGetter<V2vMigrationList>
+  inventory: MaybeRefOrGetter<XoV2vInventory | undefined>
 }

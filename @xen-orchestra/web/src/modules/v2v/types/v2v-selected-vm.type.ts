@@ -1,6 +1,11 @@
 import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
+import type { V2vAccentedLabel } from '@/modules/v2v/types/v2v-accented-label.type.ts'
 import type { V2vUnsupportedReason } from '@/modules/v2v/types/v2v-vm-row.type.ts'
 import type { V2V_READINESS_LEVELS } from '@/modules/v2v/utils/v2v-selected-vm.util.ts'
+import type { InfoAccent } from '@core/components/ui/info/UiInfo.vue'
+import type { TagAccent } from '@core/components/ui/tag/UiTag.vue'
+import type { XoV2vVm } from '@vates/types'
+import type { RouteLocationRaw } from 'vue-router'
 
 export type V2vReadinessLevel = (typeof V2V_READINESS_LEVELS)[number]
 
@@ -34,3 +39,25 @@ export type V2vSelectedVmState = {
 export type V2vMappingSummary =
   | { type: 'locked' }
   | { type: 'mapped'; diskCount: number; srNames?: string[]; nicCount: number; networkNames?: string[] }
+
+export type V2vSelectedVm = {
+  id: XoV2vVm['id']
+  name: string
+  kind?: V2vAccentedLabel<TagAccent>
+  mappingParts: string[]
+  check: V2vAccentedLabel<InfoAccent>
+  mappingRoute: RouteLocationRaw
+  isSelected: boolean
+}
+
+// A VM of the list, as the mapping step tells it apart, with its item of the panel
+export type V2vListedVm = {
+  kind: V2vSelectedVmKind
+  check: V2vSelectedVmCheck
+  item: V2vSelectedVm
+}
+
+export type V2vListPair = {
+  sourceHost?: string
+  poolName?: string
+}

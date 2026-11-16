@@ -1,6 +1,6 @@
 import V2vMappingTable from '@/modules/v2v/components/mapping/V2vMappingTable.vue'
 import V2vVmKindActions from '@/modules/v2v/components/panel/V2vVmKindActions.vue'
-import type { V2vMappingStepRow } from '@/modules/v2v/composables/use-v2v-mapping-step.composable.ts'
+import type { V2vMappingStepRow } from '@/modules/v2v/types/v2v-mapping-step.type.ts'
 import { getV2vVmMenuActions } from '@/modules/v2v/utils/v2v-vm-actions.util.ts'
 import {
   V2V_NEW_STEP_VM,

@@ -14,9 +14,9 @@
 import V2vNewVmActions from '@/modules/v2v/components/panel/V2vNewVmActions.vue'
 import V2vNotFoundVmActions from '@/modules/v2v/components/panel/V2vNotFoundVmActions.vue'
 import V2vResumedVmActions from '@/modules/v2v/components/panel/V2vResumedVmActions.vue'
-import type { V2vMappingStepVm } from '@/modules/v2v/composables/use-v2v-mapping-step.composable.ts'
 import type { V2vVmUpdate } from '@/modules/v2v/composables/use-v2v-migration-list.composable.ts'
-import type { V2vVmActionList } from '@/modules/v2v/composables/use-v2v-vm-actions.composable.ts'
+import type { V2vMappingStepVm } from '@/modules/v2v/types/v2v-mapping-step.type.ts'
+import type { V2vVmActionList } from '@/modules/v2v/types/v2v-vm-actions.type.ts'
 import type { XoV2vVm } from '@vates/types'
 
 // The actions of the kind of the VM, for the caller to lay out: the side panel header and a table row menu read the

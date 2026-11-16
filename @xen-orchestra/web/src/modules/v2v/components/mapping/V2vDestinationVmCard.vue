@@ -18,7 +18,7 @@
 </template>
 
 <script lang="ts" setup>
-import type { V2vDestinationVm } from '@/modules/v2v/composables/use-v2v-resumed-vm.composable.ts'
+import type { V2vDestinationVm } from '@/modules/v2v/types/v2v-destination-vm.type.ts'
 import VtsInlineParts from '@core/components/inline-parts/VtsInlineParts.vue'
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'

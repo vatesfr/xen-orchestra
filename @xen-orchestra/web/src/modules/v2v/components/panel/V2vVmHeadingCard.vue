@@ -21,7 +21,7 @@
 </template>
 
 <script lang="ts" setup>
-import type { V2vMappingVmHeading } from '@/modules/v2v/composables/use-v2v-mapping-step.composable.ts'
+import type { V2vMappingVmHeading } from '@/modules/v2v/types/v2v-mapping-step.type.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsInlineParts from '@core/components/inline-parts/VtsInlineParts.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'

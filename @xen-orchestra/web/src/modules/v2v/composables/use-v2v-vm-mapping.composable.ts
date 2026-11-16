@@ -4,28 +4,26 @@ import { useV2vConnection } from '@/modules/v2v/composables/use-v2v-connection.c
 import { useV2vPoolDestinationChoices } from '@/modules/v2v/composables/use-v2v-pool-destination-choices.composable.ts'
 import { useV2vPoolName } from '@/modules/v2v/composables/use-v2v-pool-name.composable.ts'
 import { useV2vSelectedVmLabels } from '@/modules/v2v/composables/use-v2v-selected-vm-labels.composable.ts'
-import { useV2vVmLabels, type V2vAccentedLabel } from '@/modules/v2v/composables/use-v2v-vm-labels.composable.ts'
-import type { V2vDiskMappingRow, V2vNicMappingRow, V2vTargetOption } from '@/modules/v2v/types/v2v-mapping.type.ts'
-import type { V2vMigrationList, V2vMigrationListVm } from '@/modules/v2v/types/v2v-migration-list.type.ts'
+import { useV2vVmLabels } from '@/modules/v2v/composables/use-v2v-vm-labels.composable.ts'
+import type { V2vAccentedLabel } from '@/modules/v2v/types/v2v-accented-label.type.ts'
+import type {
+  V2vVmTargetsOptions,
+  V2vDiskMappingRow,
+  V2vNicMappingRow,
+  V2vTargetOption,
+} from '@/modules/v2v/types/v2v-mapping.type.ts'
+import type { V2vMigrationListVm } from '@/modules/v2v/types/v2v-migration-list.type.ts'
 import { getV2vVmMapping, V2V_DEFAULT_KEEP_MAC, V2V_DEFAULT_TAGS } from '@/modules/v2v/utils/v2v-mapping.util.ts'
 import { findV2vMigrationListVm } from '@/modules/v2v/utils/v2v-migration-list.util.ts'
 import { findV2vPortGroup, findV2vVmHost, getV2vDatastoreName } from '@/modules/v2v/utils/v2v-source.util.ts'
 import { getV2vVmChecks } from '@/modules/v2v/utils/v2v-vm-checks.util.ts'
 import type { InfoAccent } from '@core/components/ui/info/UiInfo.vue'
 import { toComputed } from '@core/utils/to-computed.util.ts'
-import type { XoV2vInventory, XoV2vVm } from '@vates/types'
+import type { XoV2vVm } from '@vates/types'
 import { computed, type MaybeRefOrGetter, toValue } from 'vue'
 
-export type V2vVmOverrides = Omit<V2vMigrationListVm, 'id'>
-
-// The inventory the disks and NICs are located in: handed in, since the settings drawer renders outside the wizard
-export type V2vVmTargetsOptions = {
-  list: MaybeRefOrGetter<V2vMigrationList>
-  inventory: MaybeRefOrGetter<XoV2vInventory | undefined>
-}
-
 // The issue of the VM in the list, if any, is told with the checks of its source
-export type V2vVmMappingOptions = {
+type V2vVmMappingOptions = {
   list: V2vVmTargetsOptions['list']
   listIssue?: MaybeRefOrGetter<V2vAccentedLabel<InfoAccent> | undefined>
 }

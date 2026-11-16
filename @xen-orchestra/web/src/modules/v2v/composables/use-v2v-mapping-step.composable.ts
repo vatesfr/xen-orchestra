@@ -1,62 +1,18 @@
 import { useV2vConnection } from '@/modules/v2v/composables/use-v2v-connection.composable.ts'
 import { useV2vIdQuery } from '@/modules/v2v/composables/use-v2v-id-query.composable.ts'
 import { useV2vMigrationListRows } from '@/modules/v2v/composables/use-v2v-migration-list-rows.composable.ts'
-import {
-  useV2vSelectedVms,
-  type V2vListedVm,
-  type V2vSelectedVm,
-} from '@/modules/v2v/composables/use-v2v-selected-vms.composable.ts'
-import { useV2vVmLabels, type V2vAccentedLabel } from '@/modules/v2v/composables/use-v2v-vm-labels.composable.ts'
+import { useV2vSelectedVms } from '@/modules/v2v/composables/use-v2v-selected-vms.composable.ts'
+import { useV2vVmLabels } from '@/modules/v2v/composables/use-v2v-vm-labels.composable.ts'
 import { useV2vWizardNavigation } from '@/modules/v2v/composables/use-v2v-wizard-navigation.composable.ts'
+import type { V2vMappingStepRow, V2vMappingStepVm } from '@/modules/v2v/types/v2v-mapping-step.type.ts'
 import type { V2vMigrationList } from '@/modules/v2v/types/v2v-migration-list.type.ts'
+import type { V2vListedVm } from '@/modules/v2v/types/v2v-selected-vm.type.ts'
 import type { V2vVmRow } from '@/modules/v2v/types/v2v-vm-row.type.ts'
 import { isV2vListIssue } from '@/modules/v2v/utils/v2v-selected-vm.util.ts'
 import { getV2vVmDatacenterName } from '@/modules/v2v/utils/v2v-source.util.ts'
-import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
-import type { InfoAccent } from '@core/components/ui/info/UiInfo.vue'
-import type { TagAccent } from '@core/components/ui/tag/UiTag.vue'
 import type { XoV2vVm } from '@vates/types'
 import { compact } from 'lodash-es'
 import { computed } from 'vue'
-
-// Where the VM is on the source (host, datacenter, datastores), its name and its migration status
-export type V2vMappingVmHeading = {
-  locationParts: string[]
-  name: string
-  statusTag?: V2vAccentedLabel<TagAccent>
-}
-
-// A new VM is mapped on the list, a resumed one keeps the mapping of its first sync, a VM gone from the source has none
-export type V2vMappingStepVm =
-  | { kind: 'not-found'; id: XoV2vVm['id']; heading: V2vMappingVmHeading }
-  | {
-      kind: 'new'
-      id: XoV2vVm['id']
-      heading: V2vMappingVmHeading
-      vm: XoV2vVm
-      list: V2vMigrationList
-      listIssue?: V2vAccentedLabel<InfoAccent>
-    }
-  | {
-      kind: 'resume'
-      id: XoV2vVm['id']
-      heading: V2vMappingVmHeading
-      vm: XoV2vVm
-      importVm: FrontXoVm
-      lastSyncAt?: number
-    }
-
-export type V2vNewMappingStepVm = Extract<V2vMappingStepVm, { kind: 'new' }>
-
-export type V2vResumedMappingStepVm = Extract<V2vMappingStepVm, { kind: 'resume' }>
-
-export type V2vNotFoundMappingStepVm = Extract<V2vMappingStepVm, { kind: 'not-found' }>
-
-// A row of the mapping table: the VM of the list, its item of the selected VMs beside it
-export type V2vMappingStepRow = {
-  item: V2vSelectedVm
-  vm: V2vMappingStepVm
-}
 
 // The mapping step lists the VMs of the list, the one of the route selected, if any
 export function useV2vMappingStep() {

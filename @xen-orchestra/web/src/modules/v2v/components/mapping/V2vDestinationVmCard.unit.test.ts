@@ -1,5 +1,5 @@
 import V2vDestinationVmCard from '@/modules/v2v/components/mapping/V2vDestinationVmCard.vue'
-import type { V2vDestinationVm } from '@/modules/v2v/composables/use-v2v-resumed-vm.composable.ts'
+import type { V2vDestinationVm } from '@/modules/v2v/types/v2v-destination-vm.type.ts'
 import { DISKOR_POOL_NAME } from '@/test/create-pool.ts'
 import { findAccentedInfos } from '@/test/find-accented-labels.ts'
 import { findPanelCardTitle } from '@/test/find-card-title.ts'

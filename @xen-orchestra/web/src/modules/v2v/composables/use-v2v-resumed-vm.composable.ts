@@ -4,6 +4,7 @@ import { useV2vConnection } from '@/modules/v2v/composables/use-v2v-connection.c
 import { useV2vPoolName } from '@/modules/v2v/composables/use-v2v-pool-name.composable.ts'
 import { useV2vTargetNameGetters } from '@/modules/v2v/composables/use-v2v-target-name-getters.composable.ts'
 import { useV2vVmLabels } from '@/modules/v2v/composables/use-v2v-vm-labels.composable.ts'
+import type { V2vDestinationVm } from '@/modules/v2v/types/v2v-destination-vm.type.ts'
 import type { V2vActiveMappingRow } from '@/modules/v2v/types/v2v-mapping.type.ts'
 import { getV2vActiveMapping } from '@/modules/v2v/utils/v2v-active-mapping.util.ts'
 import { getV2vTargetName } from '@/modules/v2v/utils/v2v-mapping.util.ts'
@@ -14,18 +15,11 @@ import { useXoVdiCollection } from '@/modules/vdi/remote-resources/use-xo-vdi-co
 import { useXoVifCollection } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
 import { useXoVmUtils } from '@/modules/vm/composables/xo-vm-utils.composable.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
-import { type IconName, objectIcon } from '@core/icons'
+import { objectIcon } from '@core/icons'
 import { toComputed } from '@core/utils/to-computed.util.ts'
 import type { XoV2vVm } from '@vates/types'
 import { toLower } from 'lodash-es'
 import { computed, type MaybeRefOrGetter } from 'vue'
-
-export type V2vDestinationVm = {
-  id: FrontXoVm['id']
-  name: string
-  icon: IconName
-  powerLabel: string
-}
 
 // A device the import has not paired has no target to name
 function getTargetName<TId extends string>(

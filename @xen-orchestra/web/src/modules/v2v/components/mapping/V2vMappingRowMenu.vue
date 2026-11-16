@@ -6,8 +6,8 @@
 
 <script lang="ts" setup>
 import V2vVmKindActions from '@/modules/v2v/components/panel/V2vVmKindActions.vue'
-import type { V2vMappingStepVm } from '@/modules/v2v/composables/use-v2v-mapping-step.composable.ts'
 import type { V2vVmUpdate } from '@/modules/v2v/composables/use-v2v-migration-list.composable.ts'
+import type { V2vMappingStepVm } from '@/modules/v2v/types/v2v-mapping-step.type.ts'
 import { getV2vVmMenuActions } from '@/modules/v2v/utils/v2v-vm-actions.util.ts'
 import VtsActionItems from '@core/components/menu/VtsActionItems.vue'
 import type { XoV2vVm } from '@vates/types'

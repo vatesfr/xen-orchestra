@@ -13,7 +13,7 @@
 </template>
 
 <script lang="ts" setup>
-import type { V2vListPair } from '@/modules/v2v/composables/use-v2v-selected-vms.composable.ts'
+import type { V2vListPair } from '@/modules/v2v/types/v2v-selected-vm.type.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import { useI18n } from 'vue-i18n'
 

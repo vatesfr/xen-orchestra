@@ -1,11 +1,11 @@
+import type { V2vVmUpdate } from '@/modules/v2v/composables/use-v2v-migration-list.composable.ts'
+import { useV2vVmSettingsEdit } from '@/modules/v2v/composables/use-v2v-vm-settings-edit.composable.ts'
 import type {
   V2vMappingStepVm,
   V2vNewMappingStepVm,
   V2vNotFoundMappingStepVm,
   V2vResumedMappingStepVm,
-} from '@/modules/v2v/composables/use-v2v-mapping-step.composable.ts'
-import type { V2vVmUpdate } from '@/modules/v2v/composables/use-v2v-migration-list.composable.ts'
-import { useV2vVmSettingsEdit } from '@/modules/v2v/composables/use-v2v-vm-settings-edit.composable.ts'
+} from '@/modules/v2v/types/v2v-mapping-step.type.ts'
 import { useVmDelete } from '@/modules/vm/composables/use-vm-delete.composable.ts'
 import type { LeafActionItem } from '@core/components/menu/VtsActionsMenu.vue'
 import { toComputed } from '@core/utils/to-computed.util.ts'
@@ -15,13 +15,7 @@ import { computed, type ComputedRef, type MaybeRefOrGetter } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 // The caller confirms the removal, and knows what to show once the VM left the list
-export type V2vVmRemove = (id: XoV2vVm['id']) => unknown
-
-// The settings edit, if any, comes first, the other actions apart: the panel as a button, a row menu above a separator
-export type V2vVmActionList = {
-  mainAction?: LeafActionItem
-  moreActions: LeafActionItem[]
-}
+type V2vVmRemove = (id: XoV2vVm['id']) => unknown
 
 // Every kind with a mapping shows its settings edit, a resumed VM's one disabled
 function useEditSettingsAction(getState: () => Pick<LeafActionItem, 'onClick' | 'disabled' | 'hint'>) {

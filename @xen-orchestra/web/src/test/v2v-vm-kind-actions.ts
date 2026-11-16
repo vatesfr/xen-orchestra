@@ -1,5 +1,5 @@
-import type { V2vMappingStepVm } from '@/modules/v2v/composables/use-v2v-mapping-step.composable.ts'
-import type { V2vVmActionList } from '@/modules/v2v/composables/use-v2v-vm-actions.composable.ts'
+import type { V2vMappingStepVm } from '@/modules/v2v/types/v2v-mapping-step.type.ts'
+import type { V2vVmActionList } from '@/modules/v2v/types/v2v-vm-actions.type.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import type { LeafActionItem } from '@core/components/menu/VtsActionsMenu.vue'
 import { mount, type VueWrapper } from '@vue/test-utils'

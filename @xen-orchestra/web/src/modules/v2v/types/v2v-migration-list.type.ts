@@ -29,3 +29,5 @@ export type V2vMigrationList = {
 }
 
 export type V2vMigrationListKey = Pick<V2vMigrationList, 'sourceId' | 'poolId'>
+
+export type V2vVmOverrides = Omit<V2vMigrationListVm, 'id'>

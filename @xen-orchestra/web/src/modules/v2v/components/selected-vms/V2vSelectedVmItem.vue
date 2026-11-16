@@ -29,7 +29,7 @@
 </template>
 
 <script lang="ts" setup>
-import type { V2vSelectedVm } from '@/modules/v2v/composables/use-v2v-selected-vms.composable.ts'
+import type { V2vSelectedVm } from '@/modules/v2v/types/v2v-selected-vm.type.ts'
 import VtsInlineParts from '@core/components/inline-parts/VtsInlineParts.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiInfo from '@core/components/ui/info/UiInfo.vue'

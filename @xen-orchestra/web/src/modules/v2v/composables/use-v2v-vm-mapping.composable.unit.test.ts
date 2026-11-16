@@ -1,6 +1,6 @@
 import { useXoSrUtils } from '@/modules/storage-repository/composables/xo-sr-utils.composable.ts'
-import type { V2vAccentedLabel } from '@/modules/v2v/composables/use-v2v-vm-labels.composable.ts'
 import { useV2vVmMapping } from '@/modules/v2v/composables/use-v2v-vm-mapping.composable.ts'
+import type { V2vAccentedLabel } from '@/modules/v2v/types/v2v-accented-label.type.ts'
 import { createV2vDisk, createV2vVm } from '@/test/create-v2v-inventory.ts'
 import { createV2vMigrationListVm } from '@/test/create-v2v-migration-list.ts'
 import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'

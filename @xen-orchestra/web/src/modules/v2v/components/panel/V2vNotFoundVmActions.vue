@@ -3,11 +3,9 @@
 </template>
 
 <script lang="ts" setup>
-import type { V2vNotFoundMappingStepVm } from '@/modules/v2v/composables/use-v2v-mapping-step.composable.ts'
-import {
-  useV2vNotFoundVmActions,
-  type V2vVmActionList,
-} from '@/modules/v2v/composables/use-v2v-vm-actions.composable.ts'
+import { useV2vNotFoundVmActions } from '@/modules/v2v/composables/use-v2v-vm-actions.composable.ts'
+import type { V2vNotFoundMappingStepVm } from '@/modules/v2v/types/v2v-mapping-step.type.ts'
+import type { V2vVmActionList } from '@/modules/v2v/types/v2v-vm-actions.type.ts'
 import type { XoV2vVm } from '@vates/types'
 
 const { vm } = defineProps<{

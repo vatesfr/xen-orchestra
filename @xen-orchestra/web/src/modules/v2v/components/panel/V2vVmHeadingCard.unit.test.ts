@@ -1,5 +1,5 @@
 import V2vVmHeadingCard from '@/modules/v2v/components/panel/V2vVmHeadingCard.vue'
-import type { V2vMappingVmHeading } from '@/modules/v2v/composables/use-v2v-mapping-step.composable.ts'
+import type { V2vMappingVmHeading } from '@/modules/v2v/types/v2v-mapping-step.type.ts'
 import { createV2vNewMappingStepVm } from '@/test/create-v2v-mapping-step-vm.ts'
 import { createV2vMappingVmHeading } from '@/test/create-v2v-mapping-vm-heading.ts'
 import { findAccentedTags } from '@/test/find-accented-labels.ts'

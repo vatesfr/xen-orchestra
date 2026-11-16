@@ -16,7 +16,7 @@
 </template>
 
 <script lang="ts" setup>
-import type { V2vVmActionList } from '@/modules/v2v/composables/use-v2v-vm-actions.composable.ts'
+import type { V2vVmActionList } from '@/modules/v2v/types/v2v-vm-actions.type.ts'
 import VtsActionsMenu from '@core/components/menu/VtsActionsMenu.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'

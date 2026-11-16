@@ -4,9 +4,8 @@ import { useV2vPoolDestinationChoices } from '@/modules/v2v/composables/use-v2v-
 import { useV2vSelectedVmLabels } from '@/modules/v2v/composables/use-v2v-selected-vm-labels.composable.ts'
 import { useV2vSourceAndDestination } from '@/modules/v2v/composables/use-v2v-source-and-destination.composable.ts'
 import { useV2vTargetNameGetters } from '@/modules/v2v/composables/use-v2v-target-name-getters.composable.ts'
-import type { V2vAccentedLabel } from '@/modules/v2v/composables/use-v2v-vm-labels.composable.ts'
 import { useV2vWizardNavigation } from '@/modules/v2v/composables/use-v2v-wizard-navigation.composable.ts'
-import type { V2vSelectedVmCheck, V2vSelectedVmKind } from '@/modules/v2v/types/v2v-selected-vm.type.ts'
+import type { V2vListedVm, V2vListPair, V2vSelectedVmCheck } from '@/modules/v2v/types/v2v-selected-vm.type.ts'
 import type { V2vVmRow } from '@/modules/v2v/types/v2v-vm-row.type.ts'
 import { getV2vVmMapping } from '@/modules/v2v/utils/v2v-mapping.util.ts'
 import {
@@ -15,44 +14,19 @@ import {
   V2V_READINESS_LEVELS,
 } from '@/modules/v2v/utils/v2v-selected-vm.util.ts'
 import { countOccurrences } from '@/shared/utils/count.util.ts'
-import type { InfoAccent } from '@core/components/ui/info/UiInfo.vue'
-import type { TagAccent } from '@core/components/ui/tag/UiTag.vue'
 import { useDeleteModal } from '@core/composables/modals/use-delete-modal.ts'
 import type { XoV2vVm } from '@vates/types'
 import { computed, type MaybeRefOrGetter, toValue } from 'vue'
 import { useI18n } from 'vue-i18n'
-import type { RouteLocationRaw } from 'vue-router'
 
 // What the step owns: the panel reads the same list and rows, never instances of its own. The mapping step selects
 // one VM of the list at most
-export type V2vSelectedVmsContext = {
+type V2vSelectedVmsContext = {
   migrationList: Pick<ReturnType<typeof useV2vMigrationList>, 'list' | 'removeVm' | 'clearVms'>
   rows: MaybeRefOrGetter<V2vVmRow[]>
   areRowsReady: MaybeRefOrGetter<boolean>
   poolId: MaybeRefOrGetter<FrontXoPool['id'] | undefined>
   selectedVmId?: MaybeRefOrGetter<XoV2vVm['id'] | undefined>
-}
-
-export type V2vSelectedVm = {
-  id: XoV2vVm['id']
-  name: string
-  kind?: V2vAccentedLabel<TagAccent>
-  mappingParts: string[]
-  check: V2vAccentedLabel<InfoAccent>
-  mappingRoute: RouteLocationRaw
-  isSelected: boolean
-}
-
-// A VM of the list, as the mapping step tells it apart, with its item of the panel
-export type V2vListedVm = {
-  kind: V2vSelectedVmKind
-  check: V2vSelectedVmCheck
-  item: V2vSelectedVm
-}
-
-export type V2vListPair = {
-  sourceHost?: string
-  poolName?: string
 }
 
 export function useV2vSelectedVms({ migrationList, rows, areRowsReady, poolId, selectedVmId }: V2vSelectedVmsContext) {

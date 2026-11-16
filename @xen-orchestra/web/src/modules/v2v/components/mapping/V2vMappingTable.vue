@@ -18,8 +18,8 @@
 
 <script lang="ts" setup>
 import V2vMappingRowMenu from '@/modules/v2v/components/mapping/V2vMappingRowMenu.vue'
-import type { V2vMappingStepRow } from '@/modules/v2v/composables/use-v2v-mapping-step.composable.ts'
 import type { V2vVmUpdate } from '@/modules/v2v/composables/use-v2v-migration-list.composable.ts'
+import type { V2vMappingStepRow } from '@/modules/v2v/types/v2v-mapping-step.type.ts'
 import { renderInlinePartsCell } from '@/modules/v2v/utils/v2v-inline-parts-cell.util.ts'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'

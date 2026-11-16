@@ -4,8 +4,8 @@ import type {
   V2vNewMappingStepVm,
   V2vNotFoundMappingStepVm,
   V2vResumedMappingStepVm,
-} from '@/modules/v2v/composables/use-v2v-mapping-step.composable.ts'
-import type { V2vSelectedVm } from '@/modules/v2v/composables/use-v2v-selected-vms.composable.ts'
+} from '@/modules/v2v/types/v2v-mapping-step.type.ts'
+import type { V2vSelectedVm } from '@/modules/v2v/types/v2v-selected-vm.type.ts'
 import { createV2vMappingVmHeading } from '@/test/create-v2v-mapping-vm-heading.ts'
 import { createV2vMigrationList, createV2vMigrationListVm } from '@/test/create-v2v-migration-list.ts'
 import { createV2vSelectedVm } from '@/test/create-v2v-selected-vms.ts'

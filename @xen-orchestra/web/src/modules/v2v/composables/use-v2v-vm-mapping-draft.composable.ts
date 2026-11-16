@@ -1,11 +1,8 @@
 import type { FrontXoNetwork } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
 import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
-import {
-  useV2vVmTargets,
-  type V2vVmOverrides,
-  type V2vVmTargetsOptions,
-} from '@/modules/v2v/composables/use-v2v-vm-mapping.composable.ts'
-import type { V2vMigrationListVm } from '@/modules/v2v/types/v2v-migration-list.type.ts'
+import { useV2vVmTargets } from '@/modules/v2v/composables/use-v2v-vm-mapping.composable.ts'
+import type { V2vVmTargetsOptions } from '@/modules/v2v/types/v2v-mapping.type.ts'
+import type { V2vVmOverrides, V2vMigrationListVm } from '@/modules/v2v/types/v2v-migration-list.type.ts'
 import {
   getV2vOverride,
   setV2vOverride,
