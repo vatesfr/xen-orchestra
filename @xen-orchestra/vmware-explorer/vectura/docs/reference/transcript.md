@@ -32,7 +32,10 @@ is never delayed by the transcript.
 | `summary: bytes served <n>, wire bytes <n>, host reads <n>, elapsed <s> s`        | When the session ends, before `Logout`.                                                                                                         | Bytes served to the client, bytes received from the host for them, host reads issued, and the seconds since negotiation began, with one decimal. |
 
 `fingerprint --verbose` writes `<port> tls <version> <suite>` per port,
-with `443` or the value of `--nfc-port` as the port.
+with `443` or the value of `--nfc-port` as the port, as each handshake
+completes. When the data port refuses ECDHE, `<port> tls fallback: host
+refused ECDHE, retrying with RSA key exchange` comes before that port's
+line.
 
 ## Ratios
 

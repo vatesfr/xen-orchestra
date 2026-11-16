@@ -129,3 +129,8 @@ and Ubuntu 20.04. It needs [zig](https://ziglang.org/download/) 0.16.0 and:
 ```sh
 cargo install --locked cargo-zigbuild@0.23.4
 ```
+
+OpenSSL is compiled from its sources, which takes perl, to run its
+`Configure` script, and make. Debian and Ubuntu install both with
+`build-essential`; on Fedora and RHEL, `perl-core` brings the perl modules
+`Configure` loads.

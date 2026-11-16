@@ -336,15 +336,21 @@ pub fn read_greeting<R: Read>(reader: &mut R) -> Result<greeting::Greeting, Erro
 ///
 /// TLS starts on the same connection right after the greeting line,
 /// whatever capabilities it announces. A host that refuses the ECDHE suites
-/// is asked again on a new connection, with RSA key exchange.
+/// is asked again on a new connection, with RSA key exchange, which
+/// `transcript` says under the port's number.
 ///
 /// # Errors
 /// When connecting, reading the greeting or the TLS handshake fails.
-pub(crate) fn capture(host: &str, port: u16) -> Result<tls::Presented, Error> {
+pub(crate) fn capture(
+    host: &str,
+    port: u16,
+    transcript: Transcript,
+) -> Result<tls::Presented, Error> {
     let mut stream = tls::connect(host, port)?;
     read_greeting(&mut stream)?;
     match tls::capture(&mut stream, host) {
         Err(error) if error.refused_suites() => {
+            transcript.fallback(&port.to_string());
             let (stream, _) = greet_again(host, port)?;
             Ok(tls::capture_rsa_kx(&stream)?)
         }
@@ -432,7 +438,7 @@ impl Connection {
         let mut first = match client.handshake(&mut stream, host) {
             Ok(connection) => tls::Session::Ecdhe(Box::new(connection)),
             Err(error) if error.refused_suites() => {
-                transcript.fallback();
+                transcript.fallback("first session");
                 let (reopened, again) = greet_again(host, port)?;
                 // The dialect and transport were chosen from the first
                 // greeting: another one means another peer or another state.

@@ -38,6 +38,12 @@ const SUITES: &str = "AES256-GCM-SHA384:AES128-GCM-SHA256";
 /// with the client.
 const HANDSHAKE_FAILURE_ALERT: i32 = 1040;
 
+/// OpenSSL's number for its SSL library, `ERR_LIB_SSL`.
+///
+/// Reason codes are numbered per library: 1040 names the alert only in an
+/// error the SSL library raised.
+const SSL_LIBRARY: i32 = 20;
+
 /// Runs the TLS handshake on a clone of `stream` and returns the session.
 ///
 /// With a `pin`, the certificate presented must match it; without one any
@@ -125,7 +131,7 @@ fn failure(error: HandshakeError<TcpStream>) -> Error {
                 stack
                     .errors()
                     .iter()
-                    .any(|entry| entry.reason_code() == HANDSHAKE_FAILURE_ALERT)
+                    .any(|entry| is_refusal(entry.library_code(), entry.reason_code()))
             });
             if refused {
                 Error::NoCommonSuite
@@ -134,6 +140,11 @@ fn failure(error: HandshakeError<TcpStream>) -> Error {
             }
         }
     }
+}
+
+/// Whether an error stack entry is the peer's `handshake_failure` alert.
+fn is_refusal(library: i32, reason: i32) -> bool {
+    library == SSL_LIBRARY && reason == HANDSHAKE_FAILURE_ALERT
 }
 
 #[cfg(test)]
@@ -287,6 +298,14 @@ mod tests {
             error.to_string(),
             "host refused every supported TLS suite (ECDHE, then RSA key exchange with AES-GCM)"
         );
+    }
+
+    #[test]
+    fn the_alert_reason_code_is_a_refusal_only_from_the_ssl_library() {
+        // 6 is ERR_LIB_EVP, whose reason codes are numbered on their own.
+        assert!(is_refusal(SSL_LIBRARY, HANDSHAKE_FAILURE_ALERT));
+        assert!(!is_refusal(6, HANDSHAKE_FAILURE_ALERT));
+        assert!(!is_refusal(SSL_LIBRARY, HANDSHAKE_FAILURE_ALERT + 1));
     }
 
     #[test]
