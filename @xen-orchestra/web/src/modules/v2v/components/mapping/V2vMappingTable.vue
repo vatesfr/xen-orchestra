@@ -26,11 +26,7 @@ import VtsTable from '@core/components/table/VtsTable.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { usePagination } from '@core/composables/pagination.composable.ts'
 import { useTableState } from '@core/composables/table-state.composable.ts'
-import { defineColumns } from '@core/packages/table/define-columns.ts'
-import { useActionColumn } from '@core/tables/column-definitions/action-column.ts'
-import { useInfoColumn } from '@core/tables/column-definitions/info-column.ts'
-import { useTagColumn } from '@core/tables/column-definitions/tag-column.ts'
-import { useTextColumn } from '@core/tables/column-definitions/text-column.ts'
+import { useV2vMappingColumns } from '@core/tables/column-sets/v2v-mapping-columns.ts'
 import type { XoV2vVm } from '@vates/types'
 import { useI18n } from 'vue-i18n'
 
@@ -52,16 +48,8 @@ const state = useTableState({
   empty: () => (rows.length === 0 ? t('v2v:no-vm-in-list') : false),
 })
 
-const useMappingColumns = defineColumns(() => ({
-  vm: useTextColumn({ headerLabel: () => t('vm') }),
-  kind: useTagColumn({ headerLabel: () => t('type') }),
-  mapping: useTextColumn({ headerLabel: () => t('mapping') }),
-  check: useInfoColumn({ headerLabel: () => t('checks') }),
-  actions: useActionColumn({}),
-}))
-
 // The kind of a VM changes once the import VM of a resumed VM is deleted: its row menu reads the actions of its kind
-const { HeadCells, BodyCells } = useMappingColumns({
+const { HeadCells, BodyCells } = useV2vMappingColumns({
   body: (row: V2vMappingStepRow) => ({
     vm: renderer => renderer(row.item.name),
     kind: renderer => renderer(row.item.kind?.label ?? [], row.item.kind?.accent),

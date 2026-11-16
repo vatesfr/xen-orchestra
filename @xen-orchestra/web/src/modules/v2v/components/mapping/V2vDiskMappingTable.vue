@@ -20,10 +20,7 @@ import { renderV2vTargetCells } from '@/modules/v2v/utils/v2v-target-cells.util.
 import { renderSizeCell } from '@/shared/utils/size-cell.util.ts'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
-import { defineColumns } from '@core/packages/table/define-columns.ts'
-import { useNumberColumn } from '@core/tables/column-definitions/number-column.ts'
-import { useTextColumn } from '@core/tables/column-definitions/text-column.ts'
-import { useI18n } from 'vue-i18n'
+import { useV2vDiskMappingColumns } from '@core/tables/column-sets/v2v-disk-mapping-columns.ts'
 
 const { srOptions, loading } = defineProps<{
   rows: V2vDiskMappingRow[]
@@ -35,19 +32,7 @@ const emit = defineEmits<{
   changeSr: [key: V2vDiskMappingRow['key'], srId: FrontXoSr['id'] | undefined]
 }>()
 
-const useDiskMappingColumns = defineColumns(() => {
-  const { t } = useI18n()
-
-  return {
-    disk: useTextColumn({ headerLabel: () => t('disk') }),
-    datastore: useTextColumn({ headerLabel: () => t('datastore') }),
-    size: useNumberColumn({ headerLabel: () => t('size') }),
-    target: useTextColumn({ headerLabel: () => t('target-sr') }),
-    origin: useTextColumn({ headerLabel: () => t('value-from') }),
-  }
-})
-
-const { HeadCells, BodyCells } = useDiskMappingColumns({
+const { HeadCells, BodyCells } = useV2vDiskMappingColumns({
   body: (row: V2vDiskMappingRow) => ({
     disk: renderer => renderer(row.label),
     datastore: renderer => renderer(row.datastore),

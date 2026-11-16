@@ -20,9 +20,7 @@ import { renderInlinePartsCell } from '@/modules/v2v/utils/v2v-inline-parts-cell
 import { renderV2vTargetCells } from '@/modules/v2v/utils/v2v-target-cells.util.ts'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
-import { defineColumns } from '@core/packages/table/define-columns.ts'
-import { useTextColumn } from '@core/tables/column-definitions/text-column.ts'
-import { useI18n } from 'vue-i18n'
+import { useV2vNicMappingColumns } from '@core/tables/column-sets/v2v-nic-mapping-columns.ts'
 
 const { networkOptions, loading } = defineProps<{
   rows: V2vNicMappingRow[]
@@ -34,19 +32,7 @@ const emit = defineEmits<{
   changeNetwork: [key: V2vNicMappingRow['key'], networkId: FrontXoNetwork['id'] | undefined]
 }>()
 
-const useNicMappingColumns = defineColumns(() => {
-  const { t } = useI18n()
-
-  return {
-    adapter: useTextColumn({ headerLabel: () => t('adapter') }),
-    portGroup: useTextColumn({ headerLabel: () => t('port-group') }),
-    mac: useTextColumn({ headerLabel: () => t('mac-address') }),
-    target: useTextColumn({ headerLabel: () => t('target-network') }),
-    origin: useTextColumn({ headerLabel: () => t('value-from') }),
-  }
-})
-
-const { HeadCells, BodyCells } = useNicMappingColumns({
+const { HeadCells, BodyCells } = useV2vNicMappingColumns({
   body: (row: V2vNicMappingRow) => ({
     adapter: renderer => renderer(row.label),
     portGroup: () => renderInlinePartsCell(row.portGroupParts),
