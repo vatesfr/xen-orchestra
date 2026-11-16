@@ -506,6 +506,12 @@ export class HostController extends XapiXoController<XoHost> {
     @Query() sync?: boolean
   ): CreateActionReturnType<void> {
     const hostId = id as XoHost['id']
+    const pif = this.restApi.getObject<XoPif>(body.pifId as XoPif['id'], 'PIF')
+
+    if (pif.$host !== hostId) {
+      throw invalidParameters(`the PIF ${pif.id} does not belong to host ${hostId}`)
+    }
+
     const action = async () => {
       await this.#hostService.moveManagementIp(hostId, body.pifId as XoPif['id'])
     }

@@ -11,7 +11,7 @@ import {
   type XoPif,
   IP_CONFIGURATION_MODE,
 } from '@vates/types'
-import { incorrectState, invalidParameters } from 'xo-common/api-errors.js'
+import { incorrectState } from 'xo-common/api-errors.js'
 import { parseXml, ensureArray } from '../helpers/utils.helper.mjs'
 import type {
   MissingPatchesInfo,
@@ -184,9 +184,6 @@ export class HostService {
     }
 
     const pif = this.#restApi.getObject<XoPif>(pifId, 'PIF')
-    if (pif.$host !== hostId) {
-      throw invalidParameters(`the PIF ${pifId} does not belong to host ${hostId}`)
-    }
 
     if (!pif.attached) {
       throw incorrectState({
