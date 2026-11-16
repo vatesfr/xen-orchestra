@@ -40,6 +40,11 @@ export const CONTENT_KEY = 'xo:backup:contentKey'
 // with a clean full. Named after the specific fix so future fixes get their own flag.
 export const INCLUDE_NON_NBD_QCOW2_FIX = 'xo:backup:includeNonNbdQcow2Fix'
 
+// in `other_config` of a VIF of a restored or replicated VM
+// contains the JSON list of VLANs the source VIF was restricted to, when the target could not honour it (a network with
+// a VLAN, a pool without VLAN filtering): the VIF sees every VLAN there, and this keeps what was dropped
+export const DROPPED_TRUNKS = 'xo:backup:droppedTrunks'
+
 async function listVdiRefs(xapi, vmRef) {
   return xapi.VM_getDisks(vmRef)
 }

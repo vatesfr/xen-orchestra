@@ -3,6 +3,8 @@ import { invalidParameters } from 'xo-common/api-errors.js'
 import { isVlanNetwork } from '@xen-orchestra/xapi'
 import { Task } from '@vates/task'
 
+import { DROPPED_TRUNKS } from './_otherConfig.mjs'
+
 // Creates a VIF of a restored or replicated VM. A VIF whose VLAN filtering can't be honoured is created without it
 // (the VM is restored anyway) and the task log says so
 export async function createVif({ xapi, vif, network, vmRef, newMacAddresses }) {
@@ -21,6 +23,10 @@ export async function createVif({ xapi, vif, network, vmRef, newMacAddresses }) 
         ...vif,
         network: network.$ref,
         trunks,
+        other_config:
+          trunks === undefined && vif.trunks?.length > 0
+            ? { ...vif.other_config, [DROPPED_TRUNKS]: JSON.stringify(vif.trunks) }
+            : vif.other_config,
         VM: vmRef,
       },
       {
