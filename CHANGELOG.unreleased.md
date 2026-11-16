@@ -8,6 +8,7 @@
 - Fix authentication token validation
 - [Backup/File restore] Symbolic links are no longer followed: browsing or downloading a path that goes through one is refused, and the links met inside a restored folder are skipped (PR [#9941](https://github.com/vatesfr/xen-orchestra/pull/9941))
 - [Backup/Live mount] The iSCSI target of a mount only accepts connections from the host it is mounted on. **If the hosts reach XO or the proxy through a NAT**, set `iscsi.restrictToHost = false`, or live mounts fail (PR [#10426](https://github.com/vatesfr/xen-orchestra/pull/10426))
+- [Plugins/audit] Redact more sensitive values from new audit records (created API tokens, credentials and encryption keys in URLs, one-time download/upload links) (PR [#10618](https://github.com/vatesfr/xen-orchestra/pull/10618))
 
 ### Enhancements
 
@@ -40,6 +41,7 @@
 - [Logs] The syslog transport (`[logs.transport.syslog]` in xo-server configuration) supports TLS (`tls://`), and the facility, application name and framing can be configured (PR [#10619](https://github.com/vatesfr/xen-orchestra/pull/10619))
 - [Logs] **Breaking:** logs are now sent to syslog as RFC 5424 messages, with their namespace as message ID, instead of RFC 3164 messages: set `format = 'rfc3164'` in `[logs.transport.syslog]` to keep the previous format (PR [#10619](https://github.com/vatesfr/xen-orchestra/pull/10619))
 - [XO6/VM/Console] Insert an ISO from this computer in the CD drive of a VM, without uploading it, from the console page (experimental). Keep the tab open while the VM uses the ISO: closing it ejects the ISO (PR [#10466](https://github.com/vatesfr/xen-orchestra/pull/10466))
+- [Plugins/audit] Forward a copy of each new audit record, as JSON, to a remote syslog server (e.g. a SIEM) over UDP, TCP or TLS, configurable in the plugin settings (PR [#10618](https://github.com/vatesfr/xen-orchestra/pull/10618))
 
 ### Bug fixes
 
@@ -70,6 +72,7 @@
 
 <!--packages-start-->
 
+- @vates/obfuscate minor
 - @vates/syslog minor
 - @vates/types minor
 - @xen-orchestra/acl minor
@@ -84,6 +87,7 @@
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
 - xo-server minor
+- xo-server-audit minor
 - xo-server-load-balancer patch
 - xo-web minor
 
