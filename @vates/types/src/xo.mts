@@ -199,6 +199,7 @@ export type XoVmBackupArchive = {
   mode: XoVmBackupJob['mode']
   scheduleId: XoSchedule['id']
   size: number
+  tags: string[]
   timestamp: number
   vm: {
     uuid: XoVm['uuid']

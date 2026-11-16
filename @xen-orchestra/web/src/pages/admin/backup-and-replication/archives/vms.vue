@@ -25,6 +25,7 @@ import { useXoBackupRepositoryCollection } from '@/modules/backup-repository/rem
 import VtsContentSidePanel from '@core/components/layout/VtsContentSidePanel.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
+import { watchEffect } from 'vue'
 
 const { backupRepositories, areBackupRepositoriesReady, hasBackupRepositoryFetchError } =
   useXoBackupRepositoryCollection()
@@ -37,6 +38,16 @@ const { backupArchives, areBackupArchivesReady, hasBackupArchiveFetchError, getB
 const selectedBackupArchive = useRouteQuery<FrontXoVmBackupArchive | undefined>('id', {
   toData: id => getBackupArchiveById(id as FrontXoVmBackupArchive['id']),
   toQuery: backupArchive => backupArchive?.id ?? '',
+})
+
+watchEffect(() => {
+  console.log('[DEBUG archives]', {
+    backupRepositories: backupRepositories.value.map(br => ({ id: br.id, name: br.name, url: br.url })),
+    areBackupRepositoriesReady: areBackupRepositoriesReady.value,
+    areBackupArchivesReady: areBackupArchivesReady.value,
+    hasBackupArchiveFetchError: hasBackupArchiveFetchError.value,
+    backupArchives: JSON.parse(JSON.stringify(backupArchives.value)),
+  })
 })
 </script>
 

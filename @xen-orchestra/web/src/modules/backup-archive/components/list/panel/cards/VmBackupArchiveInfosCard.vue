@@ -9,6 +9,15 @@
     />
     <VtsCardRowList>
       <VtsCardRowKeyValue>
+        <template #key>{{ t('id') }}</template>
+        <template #value>
+          <div v-tooltip class="text-ellipsis">{{ backupArchive.id }}</div>
+        </template>
+        <template #addons>
+          <VtsCopyButton :value="backupArchive.id" />
+        </template>
+      </VtsCardRowKeyValue>
+      <VtsCardRowKeyValue>
         <template #key>{{ t('date') }}</template>
         <template #value>{{ formattedDate }}</template>
         <template #addons>
@@ -77,12 +86,18 @@
       <VtsCardRowKeyValue align-top>
         <template #key>{{ t('tags') }}</template>
         <template #value>
-          <UiTagsList v-if="backupArchive.vm.tags.length > 0">
-            <VtsTag v-for="tag in backupArchive.vm.tags" :key="tag" :value="tag" />
+          <UiTagsList v-if="backupArchive.tags.length > 0">
+            <VtsTag v-for="tag in backupArchive.tags" :key="tag" :value="tag" />
           </UiTagsList>
         </template>
-        <template v-if="backupArchive.vm.tags.length > 0" #addons>
-          <VtsCopyButton :value="backupArchive.vm.tags.join(', ')" />
+        <template v-if="backupArchive.tags.length > 0" #addons>
+          <VtsCopyButton :value="backupArchive.tags.join(', ')" />
+        </template>
+      </VtsCardRowKeyValue>
+      <VtsCardRowKeyValue>
+        <template #key>{{ t('immutable') }}</template>
+        <template #value>
+          <VtsStatus :status="backupArchive.isImmutable === true" />
         </template>
       </VtsCardRowKeyValue>
     </VtsCardRowList>
@@ -101,11 +116,13 @@ import { getVmIcon } from '@/modules/vm/utils/xo-vm.util.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCardRowList from '@core/components/card/VtsCardRowList.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
+import VtsStatus from '@core/components/status/VtsStatus.vue'
 import VtsTag from '@core/components/tag/VtsTag.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
 import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
+import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { formatDateTime } from '@core/utils/time.util.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
