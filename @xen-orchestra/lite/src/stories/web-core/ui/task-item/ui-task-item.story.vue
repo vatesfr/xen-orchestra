@@ -5,6 +5,8 @@
     :params="[
       prop('task').type('object').required().widget().preset(pendingBackupTask),
       prop('showEyeIcon').type('boolean').widget(boolean()).preset(true),
+      prop('showUnread').bool().widget().help('Reserves the unread dot column'),
+      prop('unread').bool().widget(),
       event('select').args({ id: 'string' }),
     ]"
   >

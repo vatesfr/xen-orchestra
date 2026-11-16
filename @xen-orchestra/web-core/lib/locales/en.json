@@ -1489,6 +1489,7 @@
   "task-type": "Task type",
   "task:ended": "@:ended",
   "task:started": "@:started",
+  "task:unread": "Unread",
   "tasks": "Tasks",
   "tasks-page": "Tasks page",
   "tasks:all": "@:all",
