@@ -12,6 +12,7 @@ import { useV2vLaunchForm } from '@/modules/v2v/form/use-v2v-launch-form.ts'
 import { useXoV2vStartJob } from '@/modules/v2v/jobs/xo-v2v-start.job.ts'
 import type {
   V2vLaunchGroupType,
+  V2vMigratedVm,
   V2vStartProblem,
   V2vStartVm,
   V2vVmLaunchOptionsRow,
@@ -30,33 +31,23 @@ import { computed, reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { RouteLocationRaw } from 'vue-router'
 
-export type V2vExcludedVm = {
+type V2vExcludedVm = {
   id: XoV2vVm['id']
   name: string
   route: RouteLocationRaw
   reason: string
 }
 
-export type V2vMigratedVm = {
-  id: XoV2vVm['id']
-  name: string
-  importVm: { id: FrontXoVm['id']; name: string }
-  poolName: string
-  srNames: string
-  cutoverLabel?: string
-  isConfirmed: boolean
-}
-
-export type V2vResumedVm = {
+type V2vResumedVm = {
   id: XoV2vVm['id']
   name: string
   parts: string[]
 }
 
 // A refused launch tells every problem at once, so the user fixes them all before launching again
-export type V2vLaunchError = { title: string; messages: string[] }
+type V2vLaunchError = { title: string; messages: string[] }
 
-export type V2vLaunched = {
+type V2vLaunched = {
   count: number
   taskRoute: RouteLocationRaw
 }

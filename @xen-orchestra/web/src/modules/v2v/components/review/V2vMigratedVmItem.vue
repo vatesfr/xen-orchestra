@@ -24,7 +24,7 @@
 
 <script lang="ts" setup>
 import V2vLaunchGroupVm from '@/modules/v2v/components/review/V2vLaunchGroupVm.vue'
-import type { V2vMigratedVm } from '@/modules/v2v/composables/use-v2v-review-step.composable.ts'
+import type { V2vMigratedVm } from '@/modules/v2v/types/v2v-launch.type.ts'
 import FormCheckbox from '@/shared/components/form/FormCheckbox.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import { I18nT, useI18n } from 'vue-i18n'

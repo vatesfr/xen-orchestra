@@ -1,5 +1,6 @@
 import type { V2vMigrationListVm } from '@/modules/v2v/types/v2v-migration-list.type.ts'
 import type { V2vSelectedVmState } from '@/modules/v2v/types/v2v-selected-vm.type.ts'
+import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import type { XoV2vStartOptions, XoV2vStartPayload, XoV2vVm } from '@vates/types'
 
 // What the user sets for the whole launch: starting the VM and cleaning it up are not supported yet
@@ -27,4 +28,14 @@ export type V2vVmLaunchOptionsRow = Pick<XoV2vVm, 'id' | 'name'> & Pick<V2vStart
 export type V2vStartProblem = {
   vmId?: XoV2vVm['id']
   message: string
+}
+
+export type V2vMigratedVm = {
+  id: XoV2vVm['id']
+  name: string
+  importVm: { id: FrontXoVm['id']; name: string }
+  poolName: string
+  srNames: string
+  cutoverLabel?: string
+  isConfirmed: boolean
 }

@@ -1,6 +1,6 @@
 import V2vLaunchGroupVm from '@/modules/v2v/components/review/V2vLaunchGroupVm.vue'
 import V2vMigratedVmItem from '@/modules/v2v/components/review/V2vMigratedVmItem.vue'
-import type { V2vMigratedVm } from '@/modules/v2v/composables/use-v2v-review-step.composable.ts'
+import type { V2vMigratedVm } from '@/modules/v2v/types/v2v-launch.type.ts'
 import FormCheckbox from '@/shared/components/form/FormCheckbox.vue'
 import { createV2vMigratedVm } from '@/test/create-v2v-launch.ts'
 import { getCheckbox } from '@/test/get-checkbox.ts'

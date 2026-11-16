@@ -1,8 +1,8 @@
 import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
-import type { V2vMigratedVm } from '@/modules/v2v/composables/use-v2v-review-step.composable.ts'
 import type {
   V2vLaunchPlanItem,
   V2vLaunchSettings,
+  V2vMigratedVm,
   V2vStartVm,
   V2vVmLaunchOptionsRow,
 } from '@/modules/v2v/types/v2v-launch.type.ts'
