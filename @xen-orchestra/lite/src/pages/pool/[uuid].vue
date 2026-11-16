@@ -1,10 +1,7 @@
 <template>
-  <div class="pool-root-view">
-    <PoolHeader />
-    <PoolTabBar />
-
-    <RouterView />
-  </div>
+  <PoolHeader />
+  <PoolTabBar />
+  <RouterView />
 </template>
 
 <script lang="ts" setup>

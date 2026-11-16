@@ -3,7 +3,9 @@
     <UiCard class="container">
       <VdisTable v-if="vm" :vdis :vbds />
     </UiCard>
-    <VdiSidePanel :vdi="selectedVdi" :vbd="selectedVbd" @close="selectedVdi = undefined" />
+    <template #panel>
+      <VdiSidePanel :vdi="selectedVdi" :vbd="selectedVbd" @close="selectedVdi = undefined" />
+    </template>
   </VtsContentSidePanel>
 </template>
 

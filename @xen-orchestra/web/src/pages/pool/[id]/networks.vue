@@ -40,7 +40,9 @@
         </template>
       </NetworksTable>
     </UiCard>
-    <NetworkSidePanel :network="selectedNetwork" @close="selectedNetwork = undefined" />
+    <template #panel>
+      <NetworkSidePanel :network="selectedNetwork" @close="selectedNetwork = undefined" />
+    </template>
   </VtsContentSidePanel>
 </template>
 
