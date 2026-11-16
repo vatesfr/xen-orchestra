@@ -320,19 +320,29 @@ export default class Tasks extends EventEmitter {
       }
       closed = true
 
-      let firstError
-      // children were started after their parents: end them first
+      // the root task was started first
+      const [rootId] = openIds
+      let thrown
+      // children were started after their parents: end them first, the root last
       for (const id of [...openIds].reverse()) {
         try {
           feed({ type: 'end', id, timestamp: Date.now(), status, result: reason })
         } catch (error) {
-          firstError ??= { error }
+          // the root end error carries the result of the task: it wins, like in feed(); the others are logged
+          if (thrown === undefined) {
+            thrown = { error, id }
+          } else if (id === rootId) {
+            warn('failure in task end hook, superseded by the root task error', thrown)
+            thrown = { error, id }
+          } else {
+            warn('failure in task end hook', { error, id })
+          }
         }
         openIds.delete(id)
       }
 
-      if (firstError !== undefined) {
-        throw firstError.error
+      if (thrown !== undefined) {
+        throw thrown.error
       }
     }
 

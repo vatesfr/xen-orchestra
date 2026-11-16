@@ -89,10 +89,10 @@ describe('Tasks', () => {
     const log = fake.data.get(task.id)
     assert.equal(log.status, 'success')
     assert.equal(log.result, 'ok')
-    assert.notEqual(log.end, undefined)
+    assert.ok(log.end >= log.start && log.end <= Date.now(), `unexpected end: ${log.end}`)
   })
 
-  it('persists the final state of a failed external root task whose end hook throws (B2)', async () => {
+  it('persists the final state of a failed external root task whose end hook throws', async () => {
     const fake = makeApp()
     const tasks = new Tasks(fake.app)
     await fake.start()
@@ -119,11 +119,11 @@ describe('Tasks', () => {
 
     const log = fake.data.get(id)
     assert.equal(log.status, 'failure')
-    assert.notEqual(log.end, undefined)
+    assert.equal(log.end, timestamp + 1)
     assert.deepEqual(updates, ['start:pending', 'end:failure'])
   })
 
-  describe('watch and live logs (2.1, 2.2)', () => {
+  describe('watch and live logs', () => {
     const finalState = (tasks, id) =>
       new Promise((resolve, reject) => {
         tasks
@@ -226,7 +226,7 @@ describe('Tasks', () => {
       assert.equal(fake.data.get(id).status, 'success')
     })
 
-    it('keeps a live task answerable when an end arrives while an earlier state is being written (B1)', async () => {
+    it('keeps a live task answerable when an end arrives while an earlier state is being written', async () => {
       const fake = makeApp()
       const tasks = new Tasks(fake.app)
       await fake.start()
@@ -421,7 +421,7 @@ describe('Tasks', () => {
       assert.deepEqual(calls, [])
     })
 
-    describe('handler.end() (5.1)', () => {
+    describe('handler.end()', () => {
       const startRootAndChild = (onLogFct, id, timestamp) => {
         onLogFct({ type: 'start', id, timestamp, properties: { name: 'backup run' } })
         onLogFct({
@@ -443,12 +443,14 @@ describe('Tasks', () => {
         startRootAndChild(onLogFct, 'root-end', timestamp)
 
         const pFinal = finalState(tasks, 'root-end')
+        const before = Date.now()
         onLogFct.end(undefined, 'source lost')
+        const after = Date.now()
 
         const final = await pFinal
         assert.equal(final.status, 'interrupted')
         assert.equal(final.result, 'source lost')
-        assert.notEqual(final.end, undefined)
+        assert.ok(final.end >= before && final.end <= after, `unexpected end: ${final.end}`)
 
         await flush()
         const stored = fake.data.get('root-end')
@@ -566,9 +568,35 @@ describe('Tasks', () => {
         assert.equal(stored.status, 'interrupted')
         assert.equal(stored.tasks[0].status, 'interrupted')
       })
+
+      it('throws the root end hook error, not an earlier subtask hook error', async () => {
+        const fake = makeApp()
+        const tasks = new Tasks(fake.app)
+        await fake.start()
+
+        const onLogFct = tasks.createExternalProgressHandler({
+          onRootTaskEnd: () => {
+            throw new Error('root hook boom')
+          },
+          onTaskUpdate: (log, event) => {
+            if (event.type === 'end' && log.$root !== log) {
+              throw new Error('child hook boom')
+            }
+          },
+        })
+        const timestamp = Date.now()
+        startRootAndChild(onLogFct, 'root-wins', timestamp)
+
+        assert.throws(() => onLogFct.end(undefined, 'source lost'), /root hook boom/)
+        await flush()
+
+        const stored = fake.data.get('root-wins')
+        assert.equal(stored.status, 'interrupted')
+        assert.equal(stored.tasks[0].status, 'interrupted')
+      })
     })
 
-    describe('real caller shapes of a failing root task (5.2)', () => {
+    describe('real caller shapes of a failing root task', () => {
       const failingRootEnd = log => {
         if (log.status === 'failure') {
           throw new Error('hook boom')
@@ -667,8 +695,8 @@ describe('Tasks', () => {
       })
     })
 
-    describe('code review fixes', () => {
-      it('notifies every watcher of a task even if an earlier listener throws (3)', async () => {
+    describe('edge cases', () => {
+      it('notifies every watcher of a task even if an earlier listener throws', async () => {
         const fake = makeApp()
         const tasks = new Tasks(fake.app)
         await fake.start()
@@ -684,7 +712,7 @@ describe('Tasks', () => {
         assert.equal(result.status, 'success')
       })
 
-      it('REST-style wait resolves when the final state is flushed before its await returns (8)', async () => {
+      it('REST-style wait resolves when the final state is flushed before its await returns', async () => {
         const fake = makeApp()
         const tasks = new Tasks(fake.app)
         await fake.start()
@@ -709,7 +737,7 @@ describe('Tasks', () => {
         assert.equal(result.status, 'success')
       })
 
-      it('throws the root end error, not the update hook error, and not again on a later event (4)', async () => {
+      it('throws the root end error, not the update hook error, and not again on a later event', async () => {
         const fake = makeApp()
         const tasks = new Tasks(fake.app)
         await fake.start()
@@ -738,7 +766,7 @@ describe('Tasks', () => {
         )
       })
 
-      it('ignores the end of a subtask whose start was rejected for an unknown parent (7)', async () => {
+      it('ignores the end of a subtask whose start was rejected for an unknown parent', async () => {
         const fake = makeApp()
         const tasks = new Tasks(fake.app)
         await fake.start()
@@ -833,7 +861,7 @@ describe('Tasks', () => {
       })
     })
 
-    it('keeps answering with the final state when its write to the store failed (5)', async () => {
+    it('keeps answering with the final state when its write to the store failed', async () => {
       const fake = makeApp()
       const tasks = new Tasks(fake.app)
       await fake.start()
@@ -854,7 +882,7 @@ describe('Tasks', () => {
       assert.equal(result.status, 'success')
     })
 
-    describe('abort errors (4.3)', () => {
+    describe('abort errors', () => {
       it('refuses to abort a running external task without abort option, with forbiddenOperation', async () => {
         const fake = makeApp()
         const tasks = new Tasks(fake.app)
