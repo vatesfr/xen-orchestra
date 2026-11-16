@@ -1023,13 +1023,19 @@ export default class XenServers {
    * @returns {Promise<void>}
    */
   async restoreRpuLeftovers(pool, { record, items, recorder }) {
-    const xapi = this.getXapi(pool)
     const idsOf = type => items.filter(item => item.type === type).map(item => item.id)
 
-    await xapi.restoreRpuLeftovers({ record, items, recorder })
+    await this.getXapi(pool).restoreRpuLeftovers({ record, items, recorder })
 
     if (idsOf('wlb').length > 0) {
-      await this._restoreRpuWlb(xapi, pool, recorder)
+      await restoreRpuSetting(recorder, 'wlb', async () => {
+        // the restoration of the pool may have lasted minutes, and the master
+        // reconnected meanwhile
+        const xapi = this.getXapi(pool)
+        await xapi.call('pool.set_wlb_enabled', pool._xapiRef, true)
+        // the caller reads the outcome from the cache of the XAPI objects
+        await xapi.barrier()
+      })
     }
     if (idsOf('loadBalancer').length > 0) {
       await restoreRpuSetting(recorder, 'loadBalancer', () =>

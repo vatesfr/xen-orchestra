@@ -887,6 +887,25 @@ describe('restoreRpuLeftovers', function () {
     assert.equal(xapi.vms[0].$resident_on.uuid, 'host-B')
   })
 
+  it('leaves without its VMs a host disabled before the run, which updated and did not reboot it', async function () {
+    const { events, items, restore, xapi } = setup()
+    // not disabled by the run: not listed
+    await restore(
+      items.filter(({ type }) => type !== 'host'),
+      {
+        hosts: {
+          'host-A': {
+            enabledBeforeUpdate: false,
+            steps: { update: { status: 'observed-succeeded' }, reboot: { status: 'running' } },
+          },
+        },
+      }
+    )
+    assert.deepEqual(events, restorationsAfterTheHost.slice(3))
+    assert.equal(xapi.hosts[0].enabled, false)
+    assert.equal(xapi.vms[0].$resident_on.uuid, 'host-B')
+  })
+
   it('enables the hosts at once', async function () {
     const { events, restore, xapi } = setup()
     xapi.hosts[1].enabled = false

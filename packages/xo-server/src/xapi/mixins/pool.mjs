@@ -512,8 +512,11 @@ const methods = {
     }
 
     // A host updated but not rebooted stays disabled, without its VMs: back in
-    // service, nothing would tell it still has to reboot. A resume finishes it
-    const hostIdsAwaitingReboot = new Set(idsOf('host').filter(hostId => isRpuHostAwaitingReboot(record, hostId)))
+    // service, nothing would tell it still has to reboot. A resume finishes it.
+    // Every host of the run: one an operator disabled before it is not listed
+    const hostIdsAwaitingReboot = new Set(
+      Object.keys(record.hosts ?? {}).filter(hostId => isRpuHostAwaitingReboot(record, hostId))
+    )
     if (hostIdsAwaitingReboot.size > 0) {
       log.warn('hosts updated but not rebooted by the rolling pool update are left disabled', {
         hostIds: Array.from(hostIdsAwaitingReboot),

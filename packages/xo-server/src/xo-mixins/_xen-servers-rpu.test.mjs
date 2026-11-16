@@ -157,6 +157,9 @@ function createXenServers({
         throw new Error('WLB unreachable')
       }
     },
+    async barrier() {
+      calls.push(['xapi.barrier'])
+    },
     async rollingPoolUpdate(task, { acceptCurrentStateAsBaseline, rebootVm, shutdownPinnedVms, resume }) {
       calls.push(['xapi.rollingPoolUpdate', { acceptCurrentStateAsBaseline, rebootVm, shutdownPinnedVms }])
       if (resume !== noRpuResume) {
@@ -605,6 +608,8 @@ describe('XenServers.restoreRpuLeftovers', function () {
     assert.deepEqual(calls, [
       ['xapi.restoreRpuLeftovers', items],
       ['xapi.call', 'pool.set_wlb_enabled', true],
+      // the caller rechecks WLB from the cache
+      ['xapi.barrier'],
       ['recorder.settingRestored', 'wlb', undefined],
       ['loadPlugin', 'load-balancer'],
       ['recorder.settingRestored', 'loadBalancer', undefined],
@@ -622,6 +627,29 @@ describe('XenServers.restoreRpuLeftovers', function () {
       ['xapi.call', 'pool.set_wlb_enabled', true],
       ['updateSchedule', 'schedule-1', true],
       ['recorder.settingRestored', 'schedules', 'schedule-1'],
+    ])
+  })
+
+  it('restores WLB through the connection the pool has once it is restored', async function () {
+    const { calls, recorder, xenServers } = setup()
+    const getXapi = xenServers.getXapi
+    xenServers.getXapi = () => ({
+      ...getXapi(),
+      // the master reconnects while the pool is restored
+      async restoreRpuLeftovers() {
+        xenServers.getXapi = () => ({
+          ...getXapi(),
+          async call(method) {
+            calls.push(['reconnected xapi.call', method])
+          },
+        })
+      },
+    })
+    await xenServers.restoreRpuLeftovers(pool, { record: makeRecord(false), items: [items[0]], recorder })
+    assert.deepEqual(calls, [
+      ['reconnected xapi.call', 'pool.set_wlb_enabled'],
+      ['xapi.barrier'],
+      ['recorder.settingRestored', 'wlb', undefined],
     ])
   })
 
