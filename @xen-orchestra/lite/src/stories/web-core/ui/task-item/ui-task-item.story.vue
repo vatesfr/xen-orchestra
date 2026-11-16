@@ -20,7 +20,6 @@ import { event, prop } from '@/libs/story/story-param.ts'
 import { boolean } from '@/libs/story/story-widget.ts'
 import {
   completedWithRootLinkTask,
-  deepNestedTask,
   failedWithWarningsTask,
   migrationNamePartsTask,
   pendingBackupTask,
@@ -54,12 +53,6 @@ const presets: Record<
   'Migration (nameParts)': {
     props: {
       task: migrationNamePartsTask,
-      showEyeIcon: true,
-    },
-  },
-  'Deep nested': {
-    props: {
-      task: deepNestedTask,
       showEyeIcon: true,
     },
   },
