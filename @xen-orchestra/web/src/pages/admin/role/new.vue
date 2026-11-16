@@ -73,11 +73,11 @@ async function createRole(role: NewRolePayload) {
   }
 
   try {
-    await createRoleJob()
+    const { id } = await createRoleJob()
 
     $context.forceReload()
 
-    await router.push(ROLES_ROUTE)
+    await router.push({ ...ROLES_ROUTE, query: { id } })
   } catch (_error) {
     error.value = _error as ApiError | Error
   }

@@ -1,6 +1,7 @@
 import { useXoUserCreateJob } from '@/modules/user/jobs/xo-user-create.job.ts'
 import type { NewUserPayload } from '@/modules/user/types.ts'
 import { ApiError } from '@/shared/error/api.error.ts'
+import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { KEEP_OVERLAY_OPEN } from '@core/packages/overlay/symbols.ts'
 import { useOverlay } from '@core/packages/overlay/use-overlay.ts'
 import { reactiveComputed } from '@vueuse/core'
@@ -14,6 +15,8 @@ export function useUserCreate() {
 
   const errorMessage = ref<string>()
 
+  const selectedUserId = useRouteQuery('id')
+
   const { run } = useXoUserCreateJob(newUser)
 
   const { open } = useOverlay({
@@ -24,7 +27,7 @@ export function useUserCreate() {
         errorMessage.value = undefined
 
         try {
-          await run()
+          selectedUserId.value = await run()
         } catch (error) {
           console.error('Error when creating user:', error)
 
