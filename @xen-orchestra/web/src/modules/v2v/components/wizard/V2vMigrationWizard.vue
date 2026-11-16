@@ -7,7 +7,7 @@
     <div v-else class="content">
       <V2vSourceStep v-if="currentStep === 'source'" />
       <V2vDestinationStep v-else-if="currentStep === 'destination'" />
-      <V2vReviewStep v-else />
+      <V2vReviewStep v-else-if="poolId !== undefined" :pool-id />
     </div>
   </div>
 </template>
@@ -21,7 +21,7 @@ import V2vVmsStep from '@/modules/v2v/components/vms/V2vVmsStep.vue'
 import V2vWizardHeader from '@/modules/v2v/components/wizard/V2vWizardHeader.vue'
 import { useV2vWizard } from '@/modules/v2v/composables/use-v2v-wizard.composable.ts'
 
-const { currentStep, summary } = useV2vWizard()
+const { currentStep, summary, poolId } = useV2vWizard()
 </script>
 
 <style lang="postcss" scoped>

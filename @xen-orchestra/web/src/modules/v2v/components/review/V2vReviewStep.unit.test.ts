@@ -78,14 +78,12 @@ async function mountStep(options?: Parameters<typeof mountV2vListStep>[2]) {
     setup =>
       mountComponentOnV2vWizard(
         V2vReviewStep,
-        { stubs: { V2vLaunchOptionsCard: true, V2vVmLaunchOptionsTable: true } },
+        { props: { poolId: V2V_LIST_POOL.id }, stubs: { V2vLaunchOptionsCard: true, V2vVmLaunchOptionsTable: true } },
         setup
       ),
     options
   )
 }
-
-type MountedStep = Awaited<ReturnType<typeof mountStep>>
 
 // A group by its heading
 function getGroup(wrapper: VueWrapper, headingKey: string) {
@@ -109,22 +107,10 @@ beforeEach(() => {
   resetV2vCollectionMocks()
 })
 
-it.each([
-  {
-    case: 'while the VMs load',
-    makeBusy: () => {
-      v2vVmRowsCollectionsMock.areVmsReady.value = false
-    },
-  },
-  {
-    case: 'without a destination pool',
-    makeBusy: ({ router }: MountedStep) => router.replace({ query: { ...findV2vRouteQuery(router), pool: undefined } }),
-  },
-])('shows the step busy $case', async ({ makeBusy }) => {
-  const mounted = await mountStep()
-  const { wrapper } = mounted
+it('shows the step busy while the VMs load', async () => {
+  const { wrapper } = await mountStep()
 
-  await makeBusy(mounted)
+  v2vVmRowsCollectionsMock.areVmsReady.value = false
   await flushPromises()
 
   expect(findStateHeroTypes(wrapper)).toEqual(['busy'])

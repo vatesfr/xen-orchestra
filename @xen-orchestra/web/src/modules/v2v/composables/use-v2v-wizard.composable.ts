@@ -45,5 +45,5 @@ export function useV2vWizard() {
     return showsDestination ? t('source-to-destination', { source, destination }) : source
   })
 
-  return { currentStep, summary }
+  return { currentStep, summary, poolId }
 }

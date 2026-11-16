@@ -51,12 +51,9 @@ export function useV2vReviewLabels() {
     unconfirmed: count => t('n-need-confirmation', { n: count }),
   }
 
-  // No pool in the route: the summary names none rather than an empty one
-  function getReviewSummaryParts(poolName: string | undefined, vmCount: number, counts: V2vReviewCounts): string[] {
-    const poolParts = poolName === undefined ? [] : [t('destination-pool-named', { name: poolName })]
-
+  function getReviewSummaryParts(poolName: string, vmCount: number, counts: V2vReviewCounts): string[] {
     return [
-      ...poolParts,
+      t('destination-pool-named', { name: poolName }),
       t('n-vms-in-list', { n: vmCount }),
       ...mapCountedKeys(V2V_REVIEW_COUNTED, counts, (key, count) => reviewCountLabelGetters[key](count)),
     ]

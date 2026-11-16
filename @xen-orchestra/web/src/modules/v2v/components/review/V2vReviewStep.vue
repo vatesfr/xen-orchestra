@@ -1,5 +1,5 @@
 <template>
-  <VtsStateHero v-if="isBusy || destinationPoolName === undefined" format="page" type="busy" size="medium" />
+  <VtsStateHero v-if="isBusy" format="page" type="busy" size="medium" />
   <VtsSuccessStateHero v-else-if="launched !== undefined">
     <template #title>{{ t('v2v:n-vms-launched', { n: launched.count }) }}</template>
     {{ t('v2v:launch-success') }}
@@ -76,6 +76,7 @@
 </template>
 
 <script lang="ts" setup>
+import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import V2vLaunchGroup from '@/modules/v2v/components/review/V2vLaunchGroup.vue'
 import V2vLaunchGroupVm from '@/modules/v2v/components/review/V2vLaunchGroupVm.vue'
 import V2vLaunchOptionsCard from '@/modules/v2v/components/review/V2vLaunchOptionsCard.vue'
@@ -91,6 +92,10 @@ import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import { useI18n } from 'vue-i18n'
+
+const { poolId } = defineProps<{
+  poolId: FrontXoPool['id']
+}>()
 
 const { t } = useI18n()
 
@@ -116,7 +121,7 @@ const {
   launch,
   back,
   backToVms,
-} = useV2vReviewStep()
+} = useV2vReviewStep(() => poolId)
 </script>
 
 <style lang="postcss" scoped>

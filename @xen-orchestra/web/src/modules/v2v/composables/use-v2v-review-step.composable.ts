@@ -1,4 +1,4 @@
-import { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
+import { type FrontXoPool, useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import { getTaskRoute } from '@/modules/task/utils/xo-task.util.ts'
 import { useV2vConnection } from '@/modules/v2v/composables/use-v2v-connection.composable.ts'
 import { useV2vImportVm } from '@/modules/v2v/composables/use-v2v-import-vm.composable.ts'
@@ -27,7 +27,7 @@ import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collecti
 import { useApiErrorMessage } from '@/shared/composables/api-error-message.composable.ts'
 import type { XoV2vStartPayload, XoV2vVm } from '@vates/types'
 import { compact, uniq } from 'lodash-es'
-import { computed, reactive, ref } from 'vue'
+import { computed, type MaybeRefOrGetter, reactive, ref, toValue } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { RouteLocationRaw } from 'vue-router'
 
@@ -53,7 +53,7 @@ type V2vLaunched = {
 }
 
 // Grouped by the checks of the selected VMs panel: the review never launches a VM the panel shows blocked
-export function useV2vReviewStep() {
+export function useV2vReviewStep(rawPoolId: MaybeRefOrGetter<FrontXoPool['id']>) {
   const { t } = useI18n()
 
   const { getErrorMessage } = useApiErrorMessage()
@@ -66,7 +66,7 @@ export function useV2vReviewStep() {
 
   const listRows = useV2vMigrationListRows()
 
-  const { poolId, migrationList } = listRows
+  const { migrationList } = listRows
 
   const { vmStates, getRow, getName, isBusy } = useV2vSelectedVms(listRows)
 
@@ -86,9 +86,9 @@ export function useV2vReviewStep() {
 
   const plan = computed(() => getV2vLaunchPlan(vmStates.value, confirmedIds))
 
-  const destinationPool = computed(() => getPoolById(poolId.value))
+  const destinationPool = computed(() => getPoolById(toValue(rawPoolId)))
 
-  const destinationPoolName = useV2vPoolName(poolId)
+  const destinationPoolName = useV2vPoolName(rawPoolId)
 
   // Where the disks of an import are, read from the import itself: one SR may hold several of them
   function getImportSrNames(row: V2vVmRow, importVm: FrontXoVm): string[] {

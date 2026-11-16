@@ -17,22 +17,23 @@ describe('getLaunchGroupHeading', () => {
 })
 
 describe('getReviewSummaryParts', () => {
-  it('names the destination pool, counts the VMs of the list, then the excluded ones and those to confirm', () => {
+  it.each([
+    {
+      case: 'counts the VMs of the list, then the excluded ones and those to confirm',
+      counts: { excluded: 2, unconfirmed: 1 },
+      countKeys: [
+        ['v2v:n-excluded', 2],
+        ['n-need-confirmation', 1],
+      ] as const,
+    },
+    { case: 'leaves out the counts at zero', counts: { excluded: 0, unconfirmed: 0 }, countKeys: [] },
+  ])('names the destination pool and $case', ({ counts, countKeys }) => {
     const labels = mountComposableWithI18n(useV2vReviewLabels)
 
-    expect(labels.getReviewSummaryParts(DISKOR_POOL_NAME, 7, { excluded: 2, unconfirmed: 1 })).toEqual([
+    expect(labels.getReviewSummaryParts(DISKOR_POOL_NAME, 7, counts)).toEqual([
       labels.t('destination-pool-named', { name: DISKOR_POOL_NAME }),
       labels.t('n-vms-in-list', { n: 7 }),
-      labels.t('v2v:n-excluded', { n: 2 }),
-      labels.t('n-need-confirmation', { n: 1 }),
-    ])
-  })
-
-  it('leaves out the counts at zero and a pool still unknown', () => {
-    const labels = mountComposableWithI18n(useV2vReviewLabels)
-
-    expect(labels.getReviewSummaryParts(undefined, 3, { excluded: 0, unconfirmed: 0 })).toEqual([
-      labels.t('n-vms-in-list', { n: 3 }),
+      ...countKeys.map(([key, n]) => labels.t(key, { n })),
     ])
   })
 })

@@ -106,7 +106,11 @@ function mountReviewStep(options?: Parameters<typeof mountV2vListStep>[2]) {
     'review',
     setup =>
       mountComposableOnV2vWizard(
-        () => ({ ...useV2vReviewStep(), labels: useV2vReviewLabels(), selectedVmLabels: useV2vSelectedVmLabels() }),
+        () => ({
+          ...useV2vReviewStep(V2V_LIST_POOL.id),
+          labels: useV2vReviewLabels(),
+          selectedVmLabels: useV2vSelectedVmLabels(),
+        }),
         setup
       ),
     options

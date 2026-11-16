@@ -74,6 +74,12 @@ it.each([
   expect(shownSteps).toEqual([stepComponent])
 })
 
+it('shows the review step on the pool of the route', async () => {
+  const wrapper = await mountWizard({ step: 'review', source: V2V_WIZARD_SOURCE, list: V2V_LIST_WITH_VMS })
+
+  expect(wrapper.getComponent(V2vReviewStep).props('poolId')).toBe(V2V_LIST_WITH_VMS.poolId)
+})
+
 // Their side panel sits flush with the page edges: the step lays out its own padding
 it.each([
   ['VMs', { step: 'vms', source: V2V_WIZARD_SOURCE, list: V2V_EMPTY_LIST }],
