@@ -3,7 +3,7 @@
 use std::net::TcpListener;
 use std::process::{Command, Output};
 
-use crate::support::{DataPort, GREETING, GREETING_WITHOUT_SHA256, Host, Observed, text};
+use crate::support::{DataPort, GREETING, GREETING_WITHOUT_SHA256, Host, Observed, Scenario, text};
 
 /// Runs the built binary with `args` and waits for it.
 fn vectura(args: &[&str]) -> Output {
@@ -160,4 +160,66 @@ fn a_refused_data_port_fails_naming_its_address() {
 
     failure_naming(&output, &format!("127.0.0.1:{data}"));
     assert!(host.management().handshake_completed);
+}
+
+/// A host whose data port accepts `suites` alone, like an ESXi 6.5 one.
+fn restricted_to(suites: &'static str) -> Host {
+    Host::start(Scenario {
+        data: DataPort::Greeting(GREETING_WITHOUT_SHA256),
+        data_suites: Some(suites),
+        ..Scenario::default()
+    })
+}
+
+#[test]
+fn an_rsa_only_data_port_is_fingerprinted_through_the_fallback() {
+    let host = restricted_to("AES256-GCM-SHA384");
+
+    let output = fingerprint(&host, true);
+
+    assert_eq!(
+        output.status.code(),
+        Some(0),
+        "stderr: {}",
+        text(&output.stderr)
+    );
+    assert_eq!(text(&output.stdout), expected_stdout(&host));
+    let refused = host.data();
+    assert!(
+        refused.handshake_started && !refused.handshake_completed,
+        "the ECDHE offer is refused first: {refused:?}"
+    );
+    let accepted = host.data();
+    assert_eq!(
+        accepted.suite.as_deref(),
+        Some("TLS_RSA_WITH_AES_256_GCM_SHA384")
+    );
+    assert_eq!(
+        accepted.bytes_after_tls_handshake, 0,
+        "nothing is sent after the TLS handshake: {accepted:?}"
+    );
+    let expected = verbose_line(host.management_port, &host.management())
+        + &verbose_line(host.data_port, &accepted);
+    assert_eq!(text(&output.stderr), expected);
+}
+
+#[test]
+fn a_data_port_with_no_common_suite_fails_naming_the_cause() {
+    // CBC with RSA key exchange: neither rustls nor the fallback offers it.
+    let host = restricted_to("AES256-SHA256");
+
+    let output = fingerprint(&host, false);
+
+    let stderr = failure_naming(&output, &format!("127.0.0.1:{}", host.data_port));
+    assert!(
+        stderr.contains(
+            "host refused every supported TLS suite (ECDHE, then RSA key exchange with AES-GCM)"
+        ),
+        "{stderr}"
+    );
+    assert!(!stderr.contains("HandshakeFailure"), "{stderr}");
+    for _ in 0..2 {
+        let refused = host.data();
+        assert!(!refused.handshake_completed, "{refused:?}");
+    }
 }
