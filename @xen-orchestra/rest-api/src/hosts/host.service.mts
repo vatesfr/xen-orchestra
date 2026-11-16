@@ -9,6 +9,7 @@ import {
   XsPatches,
   type XoHost,
   type XoPif,
+  type XenApiPif,
   IP_CONFIGURATION_MODE,
 } from '@vates/types'
 import { incorrectState } from 'xo-common/api-errors.js'
@@ -249,17 +250,32 @@ export class HostService {
     try {
       await xapi.callAsync('host.management_reconfigure', pif._xapiRef)
     } catch (error) {
+      let isManagement: boolean
       try {
-        await this.#removePifIp(xapi, pif)
-      } catch (rollbackError) {
-        Task.warning('The target PIF still has the copied IP: please remove it manually', {
-          pifId: pif.id,
-          rollbackError,
-        })
+        isManagement = await xapi.getField<XenApiPif, 'management'>(
+          'PIF',
+          pif._xapiRef as XenApiPif['$ref'],
+          'management'
+        )
+      } catch (readError) {
+        Task.warning(
+          'Could not check whether the management interface moved: please check the host, and remove the IP from the target PIF if it is not the management PIF',
+          { pifId: pif.id, readError }
+        )
+        throw error
       }
-      throw error
+      if (!isManagement) {
+        try {
+          await this.#removePifIp(xapi, pif)
+        } catch (rollbackError) {
+          Task.warning('The target PIF still has the copied IP: please remove it manually', {
+            pifId: pif.id,
+            rollbackError,
+          })
+        }
+        throw error
+      }
     }
-
     try {
       await this.#removePifIp(xapi, managementPif)
     } catch (error) {

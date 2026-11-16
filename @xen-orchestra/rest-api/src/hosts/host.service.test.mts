@@ -52,6 +52,9 @@ function createRestApi({ failRollback = false } = {}) {
         throw ROLLBACK_ERROR
       }
     },
+    async getField() {
+      return false
+    },
   }
 
   const restApi = {
