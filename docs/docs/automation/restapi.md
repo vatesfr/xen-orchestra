@@ -197,8 +197,8 @@ A `DELETE` on `/rest/v0/events/<connection id>/subscriptions/VM` unsubscribes.
 
 :::note
 
-- Collections also support a pull-based alternative: `GET` with both `ndjson=true` and `watch=true` streams `[event, object]` entries as changes happen.
 - The server buffers events for slow consumers, up to `maxRamAllocatedPerSseClient` (MiB, set in the `[rest-api]` section of `xo-server`'s configuration, 20 by default). A client exceeding it is disconnected and must reconnect.
+- Events are filtered according to the privileges of the user. When what the user can see in a subscribed collection changes (privileges, roles, groups or permission), the stream is closed: reconnect, then subscribe and fetch the collections again. Subscribe to a collection before fetching it, otherwise a change made in between may be missed.
 
 :::
 

@@ -69,13 +69,16 @@ export class EventController extends Controller {
    *
    * - **remove**: Triggered when an object has been removed.
    *   Data: the removed object.
+   *
+   * Events are filtered according to the privileges of the user: when what they can see in a subscribed collection
+   * changes, the connection is closed, and the client must reconnect and fetch the collections again.
    */
   @Extension('x-mcp-exposure', 'allow')
   @Get('')
   @Security('*', ['acl'])
   @SuccessResponse(200, 'OK')
-  openSseConnection(@Request() req: AuthenticatedRequest) {
-    this.#eventService.createSseSubscriber(req.res)
+  async openSseConnection(@Request() req: AuthenticatedRequest): Promise<void> {
+    await this.#eventService.createSseSubscriber(req.res)
   }
 
   /**
