@@ -25,9 +25,10 @@
       v-else-if="displayedTasks.length > 0"
       class="tasks"
       :tasks="displayedTasks"
-      :selected-task-id="selectedTaskId"
+      :selected-task-id="openedTaskId"
       :expand-all="hasFilter"
-      @select="id => selectTask(id)"
+      :show-eye-icon="false"
+      :unread-task-ids
     />
     <VtsStateHero v-else format="card" type="no-result" size="medium">
       {{ hasFilter ? t('no-result') : t('no-task') }}
@@ -36,25 +37,23 @@
 </template>
 
 <script lang="ts" setup>
-import { useXoTaskCollection, type FrontXoTask } from '@/modules/task/remote-resources/use-xo-task-collection.ts'
-import { getTaskRoute } from '@/modules/task/utils/xo-task.util.ts'
+import { useXoTasksUnread } from '@/modules/task/composables/xo-tasks-unread.composable.ts'
+import { useXoTaskCollection } from '@/modules/task/remote-resources/use-xo-task-collection.ts'
 import VtsLayoutSidebar from '@core/components/layout/VtsLayoutSidebar.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import VtsTaskList from '@core/components/task/VtsTaskList.vue'
 import UiInput from '@core/components/ui/input/UiInput.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import { useDebouncedRef } from '@core/composables/debounced-ref.composable.ts'
-import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { useRightSidebarStore } from '@core/packages/sidebar'
 import { useUiStore } from '@core/stores/ui.store.ts'
 import { filterTasksByName } from '@core/utils/task.util.ts'
 import { computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useRoute, useRouter } from 'vue-router'
+import { useRoute } from 'vue-router'
 
 const { t } = useI18n()
 
-const router = useRouter()
 const route = useRoute()
 const rightSidebar = useRightSidebarStore()
 const uiStore = useUiStore()
@@ -72,17 +71,11 @@ const { value: filter, debouncedValue: debouncedFilter, isDebouncing: isSearchin
 
 const hasFilter = computed(() => debouncedFilter.value.trim().length > 0)
 
-const routeTaskId = useRouteQuery('id')
-
-const selectedTaskId = computed(() => (route.name === '/(site)/tasks' ? routeTaskId.value : undefined))
-
 const { lastDayTasks, areTasksReady } = useXoTaskCollection()
 
 const displayedTasks = computed(() => filterTasksByName(lastDayTasks.value, debouncedFilter.value))
 
-const selectTask = (id: string) => {
-  router.push(getTaskRoute(id as FrontXoTask['id']))
-}
+const { openedTaskId, unreadTaskIds } = useXoTasksUnread()
 </script>
 
 <style lang="postcss" scoped>

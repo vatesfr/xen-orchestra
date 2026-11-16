@@ -1559,6 +1559,7 @@
   "task-type": "Type de tâche",
   "task:ended": "Terminée",
   "task:started": "Démarrée",
+  "task:unread": "Non lue",
   "tasks": "Tâches",
   "tasks-page": "page des Tâches",
   "tasks:all": "Toutes",

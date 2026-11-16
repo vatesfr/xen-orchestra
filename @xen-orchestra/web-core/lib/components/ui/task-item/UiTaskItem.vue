@@ -19,14 +19,21 @@
       <div class="progress">
         <UiCircleProgressBar :accent="progressAccent" size="small" :value="progress" />
       </div>
-      <div v-if="showEyeIcon" class="actions">
-        <UiButtonIcon icon="fa:eye" size="small" accent="brand" @click="emit('select', task.id)" />
+      <div v-if="showEyeIcon || showUnread" class="actions">
+        <UiButtonIcon v-if="showEyeIcon" icon="fa:eye" size="small" accent="brand" @click="emit('select', task.id)" />
+        <span v-if="showUnread" class="unread">
+          <template v-if="unread">
+            <VtsIcon name="fa:circle" size="current" />
+            <span class="visually-hidden">{{ t('task:unread') }}</span>
+          </template>
+        </span>
       </div>
     </div>
   </div>
 </template>
 
 <script lang="ts" setup>
+import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsTaskName from '@core/components/task/VtsTaskName.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiCircleProgressBar from '@core/components/ui/circle-progress-bar/UiCircleProgressBar.vue'
@@ -65,6 +72,8 @@ export type Task = {
 const { task, showEyeIcon = false } = defineProps<{
   task: Task
   showEyeIcon?: boolean
+  showUnread?: boolean
+  unread?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -147,6 +156,15 @@ const progress = computed(() => {
   .actions {
     grid-area: actions;
     display: flex;
+    align-items: center;
+    gap: 0.8rem;
+  }
+
+  .unread {
+    display: flex;
+    width: 0.8rem;
+    font-size: 0.8rem;
+    color: var(--color-info-item-base);
   }
 
   .progress:not(:has(+ .actions)) {

@@ -9,6 +9,7 @@
       :selected-task-id
       :auto-collapse-completed
       :expand-all
+      :unread-task-ids
       @select="id => emit('select', id)"
       @expand="task.toggleFlag('expanded')"
     />
@@ -35,6 +36,7 @@ const {
   showEyeIcon?: boolean
   autoCollapseCompleted?: boolean
   expandAll?: boolean
+  unreadTaskIds?: ReadonlySet<string>
 }>()
 
 const emit = defineEmits<{
