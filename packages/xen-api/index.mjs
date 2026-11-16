@@ -459,8 +459,7 @@ export class Xapi extends EventEmitter {
   // ===========================================================================
 
   computeCacheKey(...args) {
-    // `undefined` (an empty signal slot) cannot be hashed
-    return jsonHash(args.map(arg => (arg === undefined ? null : arg)))
+    return jsonHash(args)
   }
 
   // this should be used for instantaneous calls; otherwise, use `callAsync`
@@ -488,7 +487,14 @@ export class Xapi extends EventEmitter {
     const destroyTask = () => ignoreErrors.call(this._sessionCall('task.destroy', [taskRef]))
     promise.then(destroyTask, destroyTask)
 
-    return promise
+    try {
+      return await promise
+    } catch (error) {
+      // once the signal is aborted, the call rejects with its reason, as when it is aborted before the call, instead
+      // of the error of the cancelled task
+      signal?.throwIfAborted()
+      throw error
+    }
   }
 
   // ===========================================================================
@@ -585,15 +591,22 @@ export class Xapi extends EventEmitter {
   // HTTP requests
   // ===========================================================================
 
-  // cancels the task when `signal` is aborted, until the task settles
+  // stops the task when `signal` is aborted (right away if it already is), until the task settles
   //
-  // the signal may already be aborted when this is called (aborted while the task
-  // was being created): the task is then cancelled right away
-  _cancelTaskOnAbort(signal, taskRef, pTaskResult) {
+  // `task.cancel` only stops a task that XAPI drives (an `Async.*` task, the task of a transfer whose request has been
+  // sent) and leaves a task that nothing drives pending forever: while `isDriven()` returns false, the task is marked as
+  // cancelled instead
+  _cancelTaskOnAbort(signal, taskRef, pTaskResult, isDriven = () => true) {
     if (signal === undefined) {
       return
     }
-    const onAbort = () => ignoreErrors.call(this._sessionCall('task.cancel', [taskRef]))
+    const onAbort = () => {
+      if (isDriven()) {
+        ignoreErrors.call(this._sessionCall('task.cancel', [taskRef]))
+      } else {
+        this._setTaskCancelled(taskRef)
+      }
+    }
     signal.addEventListener('abort', onAbort, { once: true })
     const removeListener = () => signal.removeEventListener('abort', onAbort)
     pTaskResult.then(removeListener, removeListener)
@@ -602,10 +615,14 @@ export class Xapi extends EventEmitter {
     }
   }
 
+  // marks as cancelled a task that nothing drives, see `_cancelTaskOnAbort()`
+  _setTaskCancelled(taskRef) {
+    ignoreErrors.call(this._sessionCall('task.set_status', [taskRef, 'cancelled']))
+  }
+
   // rejects if `signal` is already aborted, before any task or request is created
   //
-  // a task passed by the caller will never be driven by a request: it is marked as
-  // cancelled, because `task.cancel` on such a task leaves it pending forever
+  // a task passed by the caller will never be driven by a request: it is marked as cancelled
   async _throwIfAbortedBeforeTransfer(signal, task) {
     if (signal === undefined || !signal.aborted) {
       return
@@ -613,7 +630,7 @@ export class Xapi extends EventEmitter {
     if (task !== undefined && typeof task !== 'boolean') {
       const taskRef = await Promise.resolve(task).catch(noop)
       if (taskRef !== undefined) {
-        ignoreErrors.call(this._sessionCall('task.set_status', [taskRef, 'cancelled']))
+        this._setTaskCancelled(taskRef)
       }
     }
     signal.throwIfAborted()
@@ -626,6 +643,9 @@ export class Xapi extends EventEmitter {
 
     query = { ...query, session_id: this.sessionId }
 
+    // whether a request that drives the task has been sent, see `_cancelTaskOnAbort()`
+    let requestSent = false
+
     let pTaskResult
     if (taskRef !== undefined) {
       query.task_id = taskRef
@@ -634,7 +654,7 @@ export class Xapi extends EventEmitter {
       // the promise will be used later
       pTaskResult.catch(noop)
 
-      this._cancelTaskOnAbort(signal, taskRef, pTaskResult)
+      this._cancelTaskOnAbort(signal, taskRef, pTaskResult, () => requestSent)
     }
 
     let url = new URL('http://localhost')
@@ -644,6 +664,11 @@ export class Xapi extends EventEmitter {
     const response = await this._addSyncStackTrace(
       pRetry(
         async () => {
+          // aborted while the task was created, the host address resolved or before following a redirection: no
+          // request has been sent, the task has been marked as cancelled
+          signal?.throwIfAborted()
+          requestSent = true
+
           return request(url, {
             dispatcher: this._undiciDispatcher,
             maxRedirections: 0,
@@ -664,6 +689,9 @@ export class Xapi extends EventEmitter {
         {
           when: error => error.response !== undefined && error.response.statusCode === 302,
           onRetry: async error => {
+            // the host has redirected the request, it does not drive the task
+            requestSent = false
+
             const response = error.response
             if (response === undefined || response.body === undefined) {
               throw error
@@ -697,6 +725,9 @@ export class Xapi extends EventEmitter {
 
     query = { ...query, session_id: this.sessionId }
 
+    // whether the request that drives the task has been sent, see `_cancelTaskOnAbort()`
+    let requestSent = false
+
     let pTaskResult
     if (taskRef !== undefined) {
       query.task_id = taskRef
@@ -705,7 +736,7 @@ export class Xapi extends EventEmitter {
       // the promise will be used later
       pTaskResult.catch(noop)
 
-      this._cancelTaskOnAbort(signal, taskRef, pTaskResult)
+      this._cancelTaskOnAbort(signal, taskRef, pTaskResult, () => requestSent)
     }
 
     const headers = {}
@@ -748,6 +779,16 @@ export class Xapi extends EventEmitter {
         ...opts,
       })
 
+    // sends the request that drives the task
+    const doTaskRequest = url => {
+      // aborted while the task was created, the host address resolved or the redirections probed: no request has been
+      // sent, the task has been marked as cancelled
+      signal?.throwIfAborted()
+      requestSent = true
+
+      return doRequest(url)
+    }
+
     const dummyUrl = new URL(url)
     dummyUrl.searchParams.delete('task_id')
 
@@ -762,7 +803,7 @@ export class Xapi extends EventEmitter {
           }).then(
             response => {
               response.destroy()
-              return doRequest(url)
+              return doTaskRequest(url)
             },
             async error => {
               let response
@@ -777,14 +818,14 @@ export class Xapi extends EventEmitter {
                   // ensure the original query is sent
                   const newUrl = new URL(location, url)
                   newUrl.searchParams.set('task_id', query.task_id)
-                  return doRequest(await this._replaceHostAddressInUrl(newUrl))
+                  return doTaskRequest(await this._replaceHostAddressInUrl(newUrl))
                 }
               }
 
               throw error
             }
           )
-        : doRequest(url)
+        : doTaskRequest(url)
     )
 
     if (pTaskResult !== undefined) {
@@ -817,6 +858,14 @@ export class Xapi extends EventEmitter {
         await new Promise((resolve, reject) => {
           req.on('finish', resolve)
           response.on('error', reject)
+
+          // `nodeRequest()` forwards the request errors to the response, which does not emit them once it has
+          // ended: XAPI sends a complete 200 at the start of some uploads (e.g. `/import_raw_vdi/`), and an aborted
+          // upload would never settle
+          req.on('error', reject)
+          req.on('close', () =>
+            reject(Object.assign(new Error('Premature close'), { code: 'ERR_STREAM_PREMATURE_CLOSE' }))
+          )
         })
       }
 
@@ -1833,14 +1882,17 @@ function abortable(fn) {
   }
 }
 
-function cachable(fn, getCache) {
+// `getCache(args)` removes the cache (if any) from the arguments and returns it
+//
+// the cache key is computed from `getKeyArgs(args)`, the arguments which identify the call
+function cachable(fn, getCache, getKeyArgs = args => args) {
   return async function (...args) {
     const cache = getCache(args)
     if (cache === undefined) {
       return fn.apply(this, args)
     }
 
-    const key = this.computeCacheKey(...args)
+    const key = this.computeCacheKey(...getKeyArgs(args))
     if (cache.has(key)) {
       return cache.get(key)
     }
@@ -1864,6 +1916,7 @@ decorateClass(Xapi, {
       }
     },
   ],
+  // arguments: `[signal, cache?, method, ...args]`, the signal slot is filled by `abortable`
   callAsync: compose([
     [
       cachable,
@@ -1874,6 +1927,8 @@ decorateClass(Xapi, {
           return maybeCache
         }
       },
+      // the signal does not identify the call: same key as `call()`, with or without a signal
+      args => args.slice(1),
     ],
     abortable,
   ]),
