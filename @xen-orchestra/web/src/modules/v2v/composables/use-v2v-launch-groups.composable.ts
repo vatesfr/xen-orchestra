@@ -4,7 +4,12 @@ import { useV2vReviewLabels } from '@/modules/v2v/composables/use-v2v-review-lab
 import type { useV2vSelectedVms } from '@/modules/v2v/composables/use-v2v-selected-vms.composable.ts'
 import { useV2vTargetNameGetters } from '@/modules/v2v/composables/use-v2v-target-name-getters.composable.ts'
 import { useV2vWizardNavigation } from '@/modules/v2v/composables/use-v2v-wizard-navigation.composable.ts'
-import type { V2vLaunchGroupType, V2vMigratedVm } from '@/modules/v2v/types/v2v-launch.type.ts'
+import type {
+  V2vExcludedVm,
+  V2vLaunchGroupType,
+  V2vMigratedVm,
+  V2vResumedVm,
+} from '@/modules/v2v/types/v2v-launch.type.ts'
 import type { V2vVmRow } from '@/modules/v2v/types/v2v-vm-row.type.ts'
 import { getV2vLaunchPlan } from '@/modules/v2v/utils/v2v-launch-plan.util.ts'
 import { getV2vTargetName } from '@/modules/v2v/utils/v2v-mapping.util.ts'
@@ -13,20 +18,6 @@ import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collecti
 import type { XoV2vVm } from '@vates/types'
 import { compact, uniq } from 'lodash-es'
 import { computed, reactive } from 'vue'
-import type { RouteLocationRaw } from 'vue-router'
-
-type V2vExcludedVm = {
-  id: XoV2vVm['id']
-  name: string
-  route: RouteLocationRaw
-  reason: string
-}
-
-type V2vResumedVm = {
-  id: XoV2vVm['id']
-  name: string
-  parts: string[]
-}
 
 // Grouped by the checks of the selected VMs panel: the review never launches a VM the panel shows blocked
 export function useV2vLaunchGroups({

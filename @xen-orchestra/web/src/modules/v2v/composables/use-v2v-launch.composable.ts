@@ -5,7 +5,9 @@ import { useV2vReviewLabels } from '@/modules/v2v/composables/use-v2v-review-lab
 import { useV2vLaunchForm } from '@/modules/v2v/form/use-v2v-launch-form.ts'
 import { useXoV2vStartJob } from '@/modules/v2v/jobs/xo-v2v-start.job.ts'
 import type {
-  V2vLaunchPlanItem,
+  V2vLaunchableVm,
+  V2vLaunched,
+  V2vLaunchError,
   V2vStartProblem,
   V2vStartVm,
   V2vVmLaunchOptionsRow,
@@ -18,22 +20,11 @@ import { useApiErrorMessage } from '@/shared/composables/api-error-message.compo
 import type { XoV2vStartPayload, XoV2vVm } from '@vates/types'
 import { computed, type MaybeRefOrGetter, reactive, ref, toValue } from 'vue'
 import { useI18n } from 'vue-i18n'
-import type { RouteLocationRaw } from 'vue-router'
-
-type V2vLaunchableVm = Pick<V2vLaunchPlanItem, 'id' | 'kind'> & Pick<XoV2vVm, 'name'>
 
 type V2vLaunchContext = {
   launchableVms: MaybeRefOrGetter<V2vLaunchableVm[]>
   list: MaybeRefOrGetter<V2vMigrationList | undefined>
   getName: (id: XoV2vVm['id']) => string
-}
-
-// A refused launch tells every problem at once, so the user fixes them all before launching again
-type V2vLaunchError = { title: string; messages: string[] }
-
-type V2vLaunched = {
-  count: number
-  taskRoute: RouteLocationRaw
 }
 
 export function useV2vLaunch(
