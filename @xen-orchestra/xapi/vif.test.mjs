@@ -4,12 +4,15 @@ import { invalidParameters } from 'xo-common/api-errors.js'
 
 import Vif from './vif.mjs'
 
-function createXapi(record) {
+function createXapi(record, { destroyError } = {}) {
   const calls = []
   const xapi = {
     pool: { uuid: 'pool-1' },
     async call(method) {
       calls.push(method)
+      if (method === 'VIF.destroy' && destroyError !== undefined) {
+        throw destroyError
+      }
       return method === 'VIF.create' ? 'OpaqueRef:vif-1' : undefined
     },
     async callAsync(method) {
@@ -37,6 +40,14 @@ describe('Vif.create', () => {
       invalidParameters.is(error, { errors: [{ field: 'trunks' }] })
     )
     assert.deepEqual(calls, ['VIF.create', 'getRecord', 'VIF.destroy'])
+  })
+
+  it('still reports the trunks error when the VIF cannot be destroyed', async () => {
+    const { xapi } = createXapi({}, { destroyError: new Error('boom') })
+
+    await assert.rejects(Vif.prototype.create.call(xapi, { ...params, trunks: [10] }), error =>
+      invalidParameters.is(error, { errors: [{ field: 'trunks' }] })
+    )
   })
 
   it('keeps the VIF when the pool honours trunks', async () => {

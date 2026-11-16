@@ -1,6 +1,9 @@
+import { createLogger } from '@xen-orchestra/log'
 import { invalidParameters } from 'xo-common/api-errors.js'
 
 import isVmRunning from './_isVmRunning.mjs'
+
+const { warn } = createLogger('xo:xapi:vif')
 
 export default class Vif {
   // A pool without VLAN filtering (xapi < 26.1.16) ignores the unknown `trunks` field, and its records lack it: the
@@ -61,7 +64,12 @@ export default class Vif {
     })
 
     if (trunks !== undefined && trunks.length !== 0 && (await this.getRecord('VIF', vifRef)).trunks === undefined) {
-      await this.call('VIF.destroy', vifRef)
+      // the caller needs to know why the VIF is refused: a failed destroy must not replace that error
+      try {
+        await this.call('VIF.destroy', vifRef)
+      } catch (error) {
+        warn('could not destroy the VIF created without VLAN filtering', { error, vifRef })
+      }
       throw invalidParameters('VLAN filtering needs XCP-ng 8.3 with xapi 26.1.16 or later', [
         { field: 'trunks', message: `pool ${this.pool.uuid} has no VLAN filtering` },
       ])
