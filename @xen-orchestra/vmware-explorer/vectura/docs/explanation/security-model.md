@@ -69,15 +69,20 @@ host answers the first handshake with a `handshake_failure` alert, and
 only then, Vectura connects again and offers TLS 1.2 with RSA key
 exchange and AES-GCM. The certificate is judged as before: its thumbprint
 is compared with the ticket's before anything is written, and the second
-session must present it again. With RSA key exchange the host signs
+session must present it again. That second session, which carries the
+disk, is not served by the daemon that refused: `PROXY` hands the
+connection to another service of the host, with its own TLS server, so it
+is offered ECDHE as on any host and never RSA key exchange. With RSA key
+exchange the host signs
 nothing: it proves it holds the private key by decrypting the secret the
 client sent, which the `Finished` messages confirm, so the pinned
 certificate still authenticates it. Two things are given up, on such a
-host and on port 902 only:
+host and in the first session on port 902 only:
 
 - **Forward secrecy.** With RSA key exchange the session keys are sent
   encrypted to the host's key. Whoever records the session and later
-  obtains that private key can read the disk that was carried.
+  obtains that private key can read the ticket it carried. The disk
+  travels in the second session, which has forward secrecy.
 - **The choice of suites.** An attacker on the network can forge the
   alert, which is not authenticated, and so make Vectura offer RSA key
   exchange to a host that has ECDHE. They gain nothing at once, since

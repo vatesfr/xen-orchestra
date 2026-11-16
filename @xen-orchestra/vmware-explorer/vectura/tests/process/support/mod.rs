@@ -827,8 +827,6 @@ fn fault(text: &str) -> String {
 /// The disk session as the mock carries it: TLS or the socket in clear.
 enum Plane<'a> {
     Tls(&'a mut ServerConnection, &'a mut TcpStream),
-    /// TLS as OpenSSL serves it, on its own clone of the socket.
-    Restricted(SslStream<TcpStream>),
     Clear(&'a mut TcpStream),
 }
 
@@ -837,13 +835,6 @@ impl Plane<'_> {
     fn message(&mut self) -> Option<Vec<u8>> {
         match self {
             Plane::Tls(connection, stream) => next_record(connection, stream),
-            // OpenSSL hands over the plaintext of one record per read.
-            Plane::Restricted(session) => {
-                let mut message = vec![0_u8; 1 << 14];
-                let length = session.read(&mut message).ok().filter(|read| *read > 0)?;
-                message.truncate(length);
-                Some(message)
-            }
             Plane::Clear(stream) => {
                 let mut message = vec![0_u8; MESSAGE_LEN];
                 stream.read_exact(&mut message).ok()?;
@@ -861,7 +852,6 @@ impl Plane<'_> {
     fn send(&mut self, bytes: &[u8]) -> Option<()> {
         match self {
             Plane::Tls(connection, stream) => send_record(connection, stream, bytes),
-            Plane::Restricted(session) => send(session, bytes),
             Plane::Clear(stream) => send(stream, bytes),
         }
     }
@@ -872,9 +862,6 @@ impl Plane<'_> {
             Plane::Tls(connection, stream) => {
                 connection.send_close_notify();
                 let _ = connection.complete_io(stream);
-            }
-            Plane::Restricted(mut session) => {
-                let _ = session.shutdown();
             }
             Plane::Clear(_) => {}
         }
@@ -887,7 +874,6 @@ impl Read for Plane<'_> {
             Plane::Tls(connection, stream) => {
                 Stream::new(&mut **connection, &mut **stream).read(buffer)
             }
-            Plane::Restricted(session) => session.read(buffer),
             Plane::Clear(stream) => stream.read(buffer),
         }
     }
@@ -899,7 +885,6 @@ impl Write for Plane<'_> {
             Plane::Tls(connection, stream) => {
                 Stream::new(&mut **connection, &mut **stream).write(buffer)
             }
-            Plane::Restricted(session) => session.write(buffer),
             Plane::Clear(stream) => stream.write(buffer),
         }
     }
@@ -907,7 +892,6 @@ impl Write for Plane<'_> {
     fn flush(&mut self) -> io::Result<()> {
         match self {
             Plane::Tls(connection, stream) => Stream::new(&mut **connection, &mut **stream).flush(),
-            Plane::Restricted(session) => session.flush(),
             Plane::Clear(stream) => stream.flush(),
         }
     }
@@ -971,7 +955,10 @@ fn accept(stream: &TcpStream, context: &SslContext) -> Option<SslStream<TcpStrea
 /// [`serve_data`] past the greeting, for a data port whose suites are restricted.
 ///
 /// A client offering none of them is answered with a `handshake_failure`
-/// alert and the connection ends there, as on a host.
+/// alert and the connection ends there, as on a host. The restriction is the
+/// first session's alone: as on an ESXi 6.5 host, the service `PROXY nfcssl`
+/// hands the connection to runs its own TLS server, which offers ECDHE and
+/// shares no suite with a client that asks it for RSA key exchange.
 fn serve_restricted(
     mut stream: TcpStream,
     mock: &Mock,
@@ -998,34 +985,27 @@ fn serve_restricted(
     };
     // No close notify, as on the other path: the socket goes on.
     drop(first);
+    let socket = stream.try_clone().expect("the socket clones");
+    let mut second;
     let mut plane = if transport == "nfc" {
         Plane::Clear(&mut stream)
     } else {
-        let Some(second) = accept(&stream, context) else {
+        second = ServerConnection::new(Arc::clone(&mock.config))
+            .expect("the server configuration is valid");
+        if handshake_by_record(&mut second, &mut stream).is_none() {
             return;
-        };
+        }
         observed.second_handshake = true;
-        Plane::Restricted(second)
+        Plane::Tls(&mut second, &mut stream)
     };
     if mock.legacy() {
         if legacy_shake(&mut plane, mock).is_some() {
             legacy_messages(&mut plane, mock);
         }
     } else if shake(&mut plane, mock).is_some() {
-        let socket = stream_clone(&plane);
-        if let Some(socket) = socket {
-            records(&mut plane, &socket, mock, observed);
-        }
+        records(&mut plane, &socket, mock, observed);
     }
     plane.close();
-}
-
-/// A handle on the socket under `plane`, to set its timeouts.
-fn stream_clone(plane: &Plane<'_>) -> Option<TcpStream> {
-    match plane {
-        Plane::Tls(_, stream) | Plane::Clear(stream) => stream.try_clone().ok(),
-        Plane::Restricted(session) => session.get_ref().try_clone().ok(),
-    }
 }
 
 /// Runs the ticket dialogue: the bytes read, and the transport `PROXY` was granted, if any.

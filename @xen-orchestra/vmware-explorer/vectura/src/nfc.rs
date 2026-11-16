@@ -409,8 +409,10 @@ impl Connection {
     /// `secret` is the ticket presented in that session. With `nfcssl` the
     /// second TLS session must present the same certificate; with `nfc` the
     /// connection goes on in clear. A host that refuses the ECDHE suites is
-    /// connected to again and both sessions use RSA key exchange, under the
-    /// same pin. The handshake, hello, version and
+    /// connected to again and the first session uses RSA key exchange, under
+    /// the same pin; the second one is always offered ECDHE, because `PROXY`
+    /// hands the connection to another service of the host, with its own TLS
+    /// server. The handshake, hello, version and
     /// capabilities exchanges follow, each waiting for its reply; a legacy
     /// host gets the start of the handshake alone.
     ///
@@ -466,16 +468,13 @@ impl Connection {
         // The PROXY reply is the last thing the host sends in the first
         // session, so nothing of it is left unread; dropping the connection
         // without a close notify keeps the stream clear for what follows.
-        let fallback = matches!(first, tls::Session::RsaKx(_));
         drop(first);
         let plane = match transport {
             Transport::Nfcssl => {
-                // The host that refused ECDHE once is not offered it again.
-                let session = if fallback {
-                    tls::rsa_kx(&stream, pin)?
-                } else {
-                    tls::Session::Ecdhe(Box::new(client.handshake(&mut stream, host)?))
-                };
+                // The refusal of ECDHE was the authentication daemon's. This
+                // session is served by the service it proxied to, which on an
+                // ESXi 6.5 host closes the connection on RSA key exchange.
+                let session = tls::Session::Ecdhe(Box::new(client.handshake(&mut stream, host)?));
                 let (version, suite) = session.negotiated()?;
                 transcript.tls("second session", version, suite);
                 if session.certificate()? != certificate {

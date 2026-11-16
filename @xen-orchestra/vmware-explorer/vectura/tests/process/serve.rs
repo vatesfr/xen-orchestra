@@ -595,7 +595,7 @@ fn rsa_only(ticket_thumbprint: Thumbprint) -> Scenario {
 }
 
 #[test]
-fn a_host_that_refuses_ecdhe_serves_the_disk_over_rsa_key_exchange_in_both_sessions() {
+fn a_host_whose_data_port_refuses_ecdhe_serves_the_disk_once_proxied_to_a_service_that_offers_it() {
     let capacity = Scenario::default().capacity;
     let host = Host::start(rsa_only(Thumbprint::Own));
     let mut child = spawn(&host, Some(PASSWORD), &pinned(&host, &["--verbose"]));
@@ -626,7 +626,8 @@ fn a_host_that_refuses_ecdhe_serves_the_disk_over_rsa_key_exchange_in_both_sessi
     let lines = [
         "first session tls fallback: host refused ECDHE, retrying with RSA key exchange\n\
          first session tls TLSv1_2 TLS_RSA_WITH_AES_256_GCM_SHA384\n",
-        "second session tls TLSv1_2 TLS_RSA_WITH_AES_256_GCM_SHA384\n",
+        // The service proxied to is the mock's rustls server: no RSA key exchange.
+        "second session tls TLSv1_3 TLS13_AES_256_GCM_SHA384\n",
     ];
     for line in lines {
         assert!(stderr.contains(line), "{stderr}");
