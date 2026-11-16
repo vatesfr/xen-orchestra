@@ -1,6 +1,5 @@
 import { useXoVmUtils } from '@/modules/vm/composables/xo-vm-utils.composable.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
-import type { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import { createVm } from '@/test/create-vm.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
 import { getRelativeTime } from '@core/composables/relative-time.composable.ts'
@@ -8,18 +7,6 @@ import { formatDate } from '@core/utils/time.util.ts'
 import { VM_OPERATIONS, VM_POWER_STATE } from '@vates/types'
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-
-const { buildXo5Route } = vi.hoisted(() => ({
-  buildXo5Route: vi.fn(),
-}))
-
-vi.mock(import('@/shared/remote-resources/use-xo-routes.ts'), () => ({
-  useXoRoutes: (() => ({ buildXo5Route })) as unknown as typeof useXoRoutes,
-}))
-
-beforeEach(() => {
-  buildXo5Route.mockReset()
-})
 
 function mountVmUtils(overrides: Partial<FrontXoVm> = {}) {
   return mountComposable(() => {
@@ -92,16 +79,6 @@ describe('installDateFormatted', () => {
     const result = mountVmUtils({ installTime })
 
     expect(result.installDateFormatted).toBe(formatDate(installTime * 1000))
-  })
-})
-
-describe('hasGuestTools', () => {
-  it('requires both management agent and PV drivers to be detected', () => {
-    const result = mountVmUtils()
-
-    expect(result.hasGuestTools(createVm({ managementAgentDetected: true, pvDriversDetected: true }))).toBe(true)
-    expect(result.hasGuestTools(createVm({ managementAgentDetected: false, pvDriversDetected: true }))).toBe(false)
-    expect(result.hasGuestTools(createVm({ managementAgentDetected: true, pvDriversDetected: false }))).toBe(false)
   })
 })
 
@@ -250,15 +227,5 @@ describe('iconTooltip', () => {
     const result = mountVmUtils({ current_operations: { task1: VM_OPERATIONS.SNAPSHOT } })
 
     expect(result.iconTooltip).toBe('')
-  })
-})
-
-describe('xo5VmAdvancedHref', () => {
-  it('builds the XO5 advanced route for the VM id', () => {
-    buildXo5Route.mockImplementation((path: string) => `https://xo5.example.com/#${path}`)
-
-    const result = mountVmUtils({ id: 'vm-42' as FrontXoVm['id'] })
-
-    expect(result.xo5VmAdvancedHref).toBe('https://xo5.example.com/#/vms/vm-42/advanced')
   })
 })

@@ -67,10 +67,10 @@
 
 <script lang="ts" setup>
 import VmMainActions from '@/modules/vm/components/actions/VmMainActions.vue'
+import { useXo5VmRoute } from '@/modules/vm/composables/xo-vm-route-xo5.composable.ts'
 import { useXoVmUtils } from '@/modules/vm/composables/xo-vm-utils.composable.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { getVmIcon } from '@/modules/vm/utils/xo-vm.util.ts'
-import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import TabList from '@core/components/tab-list/TabList.vue'
 import UiHeadBar from '@core/components/ui/head-bar/UiHeadBar.vue'
@@ -85,9 +85,7 @@ const { vm } = defineProps<{ vm: FrontXoVm }>()
 
 const { t } = useI18n()
 
-const { buildXo5Route } = useXoRoutes()
-
-const xo5VmStatsHref = computed(() => buildXo5Route(`/vms/${vm.id}/stats`))
+const { xo5VmStatsHref } = useXo5VmRoute(() => vm)
 
 const { hasPendingOperation, currentOperation, iconTooltip } = useXoVmUtils(() => vm)
 

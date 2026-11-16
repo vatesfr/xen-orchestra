@@ -20,8 +20,8 @@
 <script lang="ts" setup>
 import VmMoreActions from '@/modules/vm/components/actions/VmMoreActions.vue'
 import VmPowerStateActions from '@/modules/vm/components/actions/VmPowerStateActions.vue'
+import { useXo5VmRoute } from '@/modules/vm/composables/xo-vm-route-xo5.composable.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
-import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import MenuItem from '@core/components/menu/MenuItem.vue'
 import VtsActionsMenu from '@core/components/menu/VtsActionsMenu.vue'
 import VtsChangeStateMenu from '@core/components/menu/VtsChangeStateMenu.vue'
@@ -47,9 +47,7 @@ const arePanelActionsCompact = inject(
 
 const isCompact = computed(() => uiStore.isSmall || arePanelActionsCompact.value)
 
-const { buildXo5Route } = useXoRoutes()
-
-const xo5VmGeneralHref = computed(() => buildXo5Route(`/vms/${vm.id}/general`))
+const { xo5VmGeneralHref } = useXo5VmRoute(() => vm)
 </script>
 
 <style lang="postcss" scoped>

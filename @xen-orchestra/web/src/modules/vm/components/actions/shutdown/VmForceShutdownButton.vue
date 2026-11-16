@@ -5,14 +5,15 @@
 </template>
 
 <script setup lang="ts">
-import { useXoVmUtils } from '@/modules/vm/composables/xo-vm-utils.composable.ts'
+import { useVmActionModal } from '@/modules/vm/composables/use-vm-action-modal.composable.ts'
+import { useXo5VmRoute } from '@/modules/vm/composables/xo-vm-route-xo5.composable.ts'
 import { useXoVmForceShutdownJob } from '@/modules/vm/jobs/xo-vm-force-shutdown.job.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
+import { isVmAllowingOperation } from '@/modules/vm/utils/xo-vm.util.ts'
 import MenuItem from '@core/components/menu/MenuItem.vue'
-import { useActionModal } from '@core/composables/modals/use-action-modal.ts'
 import { useBlockedModal } from '@core/composables/modals/use-blocked-modal.ts'
-import { VM_POWER_STATE } from '@vates/types'
-import { logicOr } from '@vueuse/math'
+import { VM_OPERATIONS } from '@vates/types'
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { vm } = defineProps<{
@@ -23,16 +24,11 @@ const { t } = useI18n()
 
 const { run: forceShutdown, canRun, isRunning } = useXoVmForceShutdownJob(() => [vm])
 
-const { xo5VmAdvancedHref } = useXoVmUtils(() => vm)
+const { xo5VmAdvancedHref } = useXo5VmRoute(() => vm)
 
-const canDisplay = logicOr(
-  () => canRun.value,
-  vm.power_state === VM_POWER_STATE.RUNNING,
-  vm.power_state === VM_POWER_STATE.SUSPENDED,
-  vm.power_state === VM_POWER_STATE.PAUSED
-)
+const canDisplay = computed(() => canRun.value || isVmAllowingOperation(vm, VM_OPERATIONS.HARD_SHUTDOWN))
 
-const { open: openForceShutdownModal } = useActionModal()
+const { openVmActionModal } = useVmActionModal()
 
 const { open: openBlockedModal } = useBlockedModal()
 
@@ -41,11 +37,6 @@ const openModal = () => {
     return openBlockedModal({ props: { blockedOperation: 'hard_shutdown', href: xo5VmAdvancedHref.value } })
   }
 
-  return openForceShutdownModal({
-    props: { accent: 'info', action: 'force-shutdown', object: 'vm', vmName: vm.name_label, icon: 'status:info-picto' },
-    events: {
-      onConfirm: () => forceShutdown({ detached: true }),
-    },
-  })
+  return openVmActionModal('force-shutdown', [vm], () => forceShutdown({ detached: true }))
 }
 </script>

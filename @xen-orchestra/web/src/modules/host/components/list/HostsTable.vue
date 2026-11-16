@@ -1,7 +1,7 @@
 <template>
   <div class="hosts-table">
     <UiTitle>{{ t('hosts') }}</UiTitle>
-    <VtsQueryBuilder :model-value="filter" :schema @search="filter = $event" />
+    <VtsQueryBuilder v-bind="searchBindings" :schema />
     <div class="container">
       <VtsTable :pagination-bindings :state sticky="right">
         <thead>
@@ -68,7 +68,7 @@ const isReady = logicAnd(() => !busy, arePifsReady)
 
 const hasError = logicOr(() => error, hasPifFetchError)
 
-const { items: filteredHosts, filter, schema } = useHostQueryBuilder('hosts', () => rawHosts)
+const { items: filteredHosts, searchBindings, schema } = useHostQueryBuilder('hosts', () => rawHosts)
 
 const state = useTableState({
   busy: logicNot(isReady),

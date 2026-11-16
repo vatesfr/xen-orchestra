@@ -80,7 +80,7 @@ provide(
     display: flex;
     flex-direction: column;
     min-width: min(40rem, calc(100% - 2rem));
-    max-width: min(95vw, 120rem);
+    max-width: min(33vw, 55rem);
     max-height: min(90vh, 80rem);
     padding: 3.2rem 2.4rem 2.4rem;
     gap: 2.4rem;
@@ -112,6 +112,7 @@ provide(
       gap: 2.4rem;
       text-align: center;
       overflow: auto;
+      overflow-wrap: break-word;
 
       .icon {
         font-size: 4.8rem;

@@ -6,6 +6,13 @@ import { SDN_CONTROLLER_OF_METHOD_KEY, type TrafficRule } from '@vates/types'
 // OpenFlow default, applied to rules stored without a priority
 const DEFAULT_TRAFFIC_RULE_PRIORITY = 32768
 
+// XAPI reserves 0
+export const MIN_TRAFFIC_RULE_PRIORITY = 1
+
+export const MAX_TRAFFIC_RULE_PRIORITY = 65535
+
+const TRAFFIC_RULE_PRIORITY_STEP = 10
+
 export function isNetworkRuleSupported(pool: FrontXoPool | undefined): boolean {
   const ofMethod = pool?.otherConfig[SDN_CONTROLLER_OF_METHOD_KEY]
 
@@ -18,6 +25,25 @@ export function getTrafficRulePriority(rule: TrafficRule): number {
   }
 
   return rule.priority
+}
+
+export function getNewTrafficRulePriority(networkRules: TrafficRule[]): number | undefined {
+  if (networkRules.length === 0) {
+    return DEFAULT_TRAFFIC_RULE_PRIORITY - TRAFFIC_RULE_PRIORITY_STEP
+  }
+
+  const priorities = networkRules.map(rule => getTrafficRulePriority(rule))
+  const lowestPriority = Math.min(...priorities)
+
+  if (lowestPriority >= MIN_TRAFFIC_RULE_PRIORITY + TRAFFIC_RULE_PRIORITY_STEP) {
+    return lowestPriority - TRAFFIC_RULE_PRIORITY_STEP
+  }
+
+  if (lowestPriority > MIN_TRAFFIC_RULE_PRIORITY) {
+    return lowestPriority - 1
+  }
+
+  return undefined
 }
 
 export function getTrafficRuleProtocolLabel(rule: TrafficRule): string {

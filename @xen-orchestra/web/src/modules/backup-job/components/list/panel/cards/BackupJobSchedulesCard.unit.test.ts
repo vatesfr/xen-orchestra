@@ -7,10 +7,11 @@ import { findCardLabelledValues } from '@/test/find-rendered-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import VtsDivider from '@core/components/divider/VtsDivider.vue'
+import VtsStatus from '@core/components/status/VtsStatus.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
 import { formatDateTime } from '@core/utils/time.util.ts'
-import { mount } from '@vue/test-utils'
+import { mount, type VueWrapper } from '@vue/test-utils'
 
 vi.mock(import('@/shared/remote-resources/use-xo-routes.ts'), () => ({
   useXoRoutes: (() => ({
@@ -34,7 +35,7 @@ function mountSchedulesCard(schedules: FrontXoSchedule[]) {
   })
 }
 
-it('shows the name, id, status, cron pattern and next run of a schedule', () => {
+it('shows the name, id, cron pattern and next run of a single schedule, without its status', () => {
   const schedule = createSchedule({ name: 'Nightly', cron: '0 1 * * *' })
   const nextRun = getScheduleNextRun(schedule)
   const wrapper = mountSchedulesCard([schedule])
@@ -42,7 +43,6 @@ it('shows the name, id, status, cron pattern and next run of a schedule', () => 
   expect(findCardLabelledValues(wrapper)).toEqual({
     [t('name')]: 'Nightly',
     [t('id')]: schedule.id,
-    [t('status')]: t('enabled'),
     [t('cron-pattern')]: '0 1 * * *',
     [t('next-run')]: nextRun !== undefined ? formatDateTime(nextRun) : '',
   })
@@ -62,8 +62,18 @@ it('names a schedule without name as untitled', () => {
 it('has no next run for a disabled schedule', () => {
   const labelledValues = findCardLabelledValues(mountSchedulesCard([createSchedule({ enabled: false })]))
 
-  expect(labelledValues[t('status')]).toBe(t('disabled'))
   expect(labelledValues[t('next-run')]).toBe('')
+})
+
+it('shows the status of each schedule when there are several', () => {
+  const wrapper = mountSchedulesCard([
+    createSchedule({ id: 'schedule-1' as FrontXoSchedule['id'], enabled: true }),
+    createSchedule({ id: 'schedule-2' as FrontXoSchedule['id'], enabled: false }),
+  ])
+
+  const statuses = wrapper.findAllComponents(VtsStatus) as VueWrapper<InstanceType<typeof VtsStatus>>[]
+
+  expect(statuses.map(status => status.props('status'))).toEqual([true, false])
 })
 
 it('counts the schedules and separates them', () => {

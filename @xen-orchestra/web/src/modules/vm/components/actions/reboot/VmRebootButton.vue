@@ -13,14 +13,14 @@
 </template>
 
 <script setup lang="ts">
-import { useXoVmUtils } from '@/modules/vm/composables/xo-vm-utils.composable.ts'
+import { useVmActionModal } from '@/modules/vm/composables/use-vm-action-modal.composable.ts'
+import { useXo5VmRoute } from '@/modules/vm/composables/xo-vm-route-xo5.composable.ts'
 import { useXoVmRebootJob } from '@/modules/vm/jobs/xo-vm-reboot.job.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
+import { isVmAllowingOperation, isVmMissingGuestToolsFor } from '@/modules/vm/utils/xo-vm.util.ts'
 import MenuItem from '@core/components/menu/MenuItem.vue'
-import { useActionModal } from '@core/composables/modals/use-action-modal.ts'
 import { useBlockedModal } from '@core/composables/modals/use-blocked-modal.ts'
-import { VM_POWER_STATE } from '@vates/types'
-import { logicOr } from '@vueuse/math'
+import { VM_OPERATIONS } from '@vates/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -31,17 +31,13 @@ const { vm } = defineProps<{
 const { t } = useI18n()
 
 const { run: reboot, canRun, isRunning } = useXoVmRebootJob(() => [vm])
-const { hasGuestTools, xo5VmAdvancedHref } = useXoVmUtils(() => vm)
+const { xo5VmAdvancedHref } = useXo5VmRoute(() => vm)
 
-const canReboot = computed(() => hasGuestTools(vm))
+const canReboot = computed(() => !isVmMissingGuestToolsFor(vm, VM_OPERATIONS.CLEAN_REBOOT))
 
-const canDisplay = logicOr(
-  () => canRun.value,
-  vm.power_state === VM_POWER_STATE.RUNNING,
-  vm.power_state === VM_POWER_STATE.PAUSED
-)
+const canDisplay = computed(() => canRun.value || isVmAllowingOperation(vm, VM_OPERATIONS.CLEAN_REBOOT))
 
-const { open: openRebootModal } = useActionModal()
+const { openVmActionModal } = useVmActionModal()
 
 const { open: openBlockedModal } = useBlockedModal()
 
@@ -52,11 +48,6 @@ const openModal = () => {
     })
   }
 
-  return openRebootModal({
-    props: { accent: 'info', action: 'reboot', object: 'vm', vmName: vm.name_label, icon: 'status:info-picto' },
-    events: {
-      onConfirm: () => reboot({ detached: true }),
-    },
-  })
+  return openVmActionModal('reboot', [vm], () => reboot({ detached: true }))
 }
 </script>
