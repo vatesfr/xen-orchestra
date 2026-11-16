@@ -1,6 +1,6 @@
 [package]
 name = "vectura"
-version = "0.2.1"
+version = "0.3.0"
 edition = "2024"
 description = "Standalone client for VMware's NFC disk-read protocol"
 # The license of the Xen Orchestra application components, see LICENSE.md at
@@ -15,11 +15,19 @@ publish = false
 aws-lc-rs = "1.18.1"
 clap = { version = "4.6.6", features = ["derive"] }
 flate2 = { version = "1.1.10", default-features = false, features = ["rust_backend"] }
+openssl = { version = "0.10.82", features = ["vendored"] }
 quick-xml = "0.42.0"
 rustls = "0.23"
 rustls-native-certs = "0.8.4"
 rustls-pki-types = "1.15.1"
 thiserror = "2.0.20"
+
+[build-dependencies]
+# Not used by a build script: the entry only turns on a feature of the
+# OpenSSL build `openssl` asks for. Without DSO support OpenSSL cannot load
+# an engine or a provider from a file at run time, whatever a configuration
+# file or the environment asks.
+openssl-src = { version = "300.6.1", features = ["no-dso"] }
 
 [dev-dependencies]
 rcgen = { version = "0.14.10", default-features = false, features = ["aws_lc_rs"] }

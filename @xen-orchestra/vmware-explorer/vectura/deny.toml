@@ -29,8 +29,10 @@ unmaintained = "workspace"
 unsound = "workspace"
 
 [licenses]
-# What may enter the binary. OpenSSL is on the list for aws-lc-sys, which the
-# default rustls crypto provider builds on; nothing else needs it.
+# What may enter the binary. The OpenSSL license is on the list for
+# aws-lc-sys, which the default rustls crypto provider builds on; nothing else
+# needs it. The OpenSSL 3 sources the RSA key exchange fallback links are
+# under Apache-2.0.
 allow = [
   "0BSD",
   "Apache-2.0",

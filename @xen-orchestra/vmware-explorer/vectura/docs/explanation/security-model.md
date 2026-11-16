@@ -64,6 +64,42 @@ presenting the same certificate. There is no flag to accept or refuse
 this: a 6.x host is served like any other, and the management port, which
 carries the password, is verified the same way on every host.
 
+The data port of some ESXi 6.5 hosts accepts no ECDHE suite. When the
+host answers the first handshake with a `handshake_failure` alert, and
+only then, Vectura connects again and offers TLS 1.2 with RSA key
+exchange and AES-GCM. The certificate is judged as before: its thumbprint
+is compared with the ticket's before anything is written, and the second
+session must present it again. That second session, which carries the
+disk, is not served by the daemon that refused: `PROXY` hands the
+connection to another service of the host, with its own TLS server, so it
+is offered ECDHE as on any host and never RSA key exchange. With RSA key
+exchange the host signs
+nothing: it proves it holds the private key by decrypting the secret the
+client sent, which the `Finished` messages confirm, so the pinned
+certificate still authenticates it. Two things are given up, on such a
+host and in the first session on port 902 only:
+
+- **Forward secrecy.** With RSA key exchange the session keys are sent
+  encrypted to the host's key. Whoever records the session and later
+  obtains that private key can read the ticket it carried. The disk
+  travels in the second session, which has forward secrecy.
+- **The choice of suites.** An attacker on the network can forge the
+  alert, which is not authenticated, and so make Vectura offer RSA key
+  exchange to a host that has ECDHE. They gain nothing at once, since
+  the handshake still needs the host's private key, but the session
+  they record loses forward secrecy.
+
+There is no flag to forbid the retry, as there is none for the 6.x
+dialect. The transcript says when it happened, and the management port,
+which carries the password, never uses it.
+
+OpenSSL is in the binary, built without the means to load code from a
+file. When the retry opens it, it still reads its configuration file if
+one exists: `/usr/local/ssl/openssl.cnf`, or the file `OPENSSL_CONF`
+names. Vectura sets the protocol version and the two suites itself after
+that. Whoever can write that file or set the environment of the process
+is already trusted with the password.
+
 An attacker who controls the network between Vectura and the host sees
 TLS on 443 and TLS on 902, and can complete neither handshake without the
 host's private key. What they can do is drop the connection, which ends

@@ -21,7 +21,7 @@ use std::net::TcpStream;
 use std::num::NonZeroUsize;
 use std::str::FromStr;
 
-use rustls::{ClientConnection, Stream};
+use rustls::Stream;
 use rustls_pki_types::CertificateDer;
 
 use crate::transcript::Transcript;
@@ -171,6 +171,11 @@ pub enum Error {
         /// The SHA-256 thumbprint of the certificate the first session verified.
         presented: String,
     },
+    /// The connection reopened for RSA key exchange was greeted differently.
+    #[error(
+        "greeting: the host announced other capabilities on the connection reopened for RSA key exchange"
+    )]
+    GreetingChanged,
     /// The second TLS session did not present the certificate the first one did.
     #[error("the second tls session presented another certificate than the first")]
     Certificate,
@@ -330,14 +335,47 @@ pub fn read_greeting<R: Read>(reader: &mut R) -> Result<greeting::Greeting, Erro
 /// Reads a host's data-port greeting, then captures the certificate TLS presents.
 ///
 /// TLS starts on the same connection right after the greeting line,
-/// whatever capabilities it announces.
+/// whatever capabilities it announces. A host that refuses the ECDHE suites
+/// is asked again on a new connection, with RSA key exchange, which
+/// `transcript` says under the port's number.
 ///
 /// # Errors
 /// When connecting, reading the greeting or the TLS handshake fails.
-pub(crate) fn capture(host: &str, port: u16) -> Result<tls::Presented, Error> {
+pub(crate) fn capture(
+    host: &str,
+    port: u16,
+    transcript: Transcript,
+) -> Result<tls::Presented, Error> {
     let mut stream = tls::connect(host, port)?;
     read_greeting(&mut stream)?;
-    Ok(tls::capture(&mut stream, host)?)
+    match tls::capture(&mut stream, host) {
+        Err(error) if error.refused_suites() => {
+            transcript.fallback(&port.to_string());
+            let (stream, _) = greet_again(host, port)?;
+            Ok(tls::capture_rsa_kx(&stream)?)
+        }
+        presented => Ok(presented?),
+    }
+}
+
+/// Opens a new connection to a host that refused the ECDHE suites, past its greeting.
+///
+/// The refusal is a fatal alert, after which the host closes the connection,
+/// so the RSA key exchange retry cannot reuse it. The greeting read on the
+/// new connection is returned for the caller to compare with the first one.
+fn greet_again(host: &str, port: u16) -> Result<(TcpStream, greeting::Greeting), Error> {
+    let mut stream = tls::connect(host, port)?;
+    let greeted = read_greeting(&mut stream)?;
+    Ok((stream, greeted))
+}
+
+/// The byte stream of `session`, whose records travel on `stream`.
+fn wire<'a>(session: &'a mut tls::Session, stream: &'a mut TcpStream) -> Box<dyn Wire + 'a> {
+    match session {
+        tls::Session::Ecdhe(connection) => Box::new(Stream::new(&mut **connection, stream)),
+        // The session owns its clone of the socket.
+        tls::Session::RsaKx(session) => Box::new(session),
+    }
 }
 
 /// An established data session, ready to open a disk.
@@ -353,7 +391,7 @@ pub struct Connection {
 /// What carries the disk session: the second TLS session, or the socket in clear.
 #[derive(Debug)]
 enum Plane {
-    Tls(Box<ClientConnection>),
+    Tls(tls::Session),
     Clear,
 }
 
@@ -370,7 +408,11 @@ impl Connection {
     /// present the certificate `pin` names, which is the ticket's thumbprint;
     /// `secret` is the ticket presented in that session. With `nfcssl` the
     /// second TLS session must present the same certificate; with `nfc` the
-    /// connection goes on in clear. The handshake, hello, version and
+    /// connection goes on in clear. A host that refuses the ECDHE suites is
+    /// connected to again and the first session uses RSA key exchange, under
+    /// the same pin; the second one is always offered ECDHE, because `PROXY`
+    /// hands the connection to another service of the host, with its own TLS
+    /// server. The handshake, hello, version and
     /// capabilities exchanges follow, each waiting for its reply; a legacy
     /// host gets the start of the handshake alone.
     ///
@@ -395,13 +437,27 @@ impl Connection {
             greeted.require(greeting::NFCSSL_SUPPORTED)?;
         }
         let client = tls::Client::new(&tls::Trust::Pin(pin.clone()))?;
-        let mut first = client.handshake(&mut stream, host)?;
-        let (version, suite) = tls::negotiated(&first)?;
+        let mut first = match client.handshake(&mut stream, host) {
+            Ok(connection) => tls::Session::Ecdhe(Box::new(connection)),
+            Err(error) if error.refused_suites() => {
+                transcript.fallback("first session");
+                let (reopened, again) = greet_again(host, port)?;
+                // The dialect and transport were chosen from the first
+                // greeting: another one means another peer or another state.
+                if again != greeted {
+                    return Err(Error::GreetingChanged);
+                }
+                stream = reopened;
+                tls::rsa_kx(&stream, pin)?
+            }
+            Err(error) => return Err(error.into()),
+        };
+        let (version, suite) = first.negotiated()?;
         transcript.tls("first session", version, suite);
-        let certificate = tls::peer_certificate(&first)?;
+        let certificate = first.certificate()?;
         let tag = draw_tag()?;
         dialogue(
-            &mut Stream::new(&mut first, &mut stream),
+            &mut wire(&mut first, &mut stream),
             secret,
             &tag,
             &certificate,
@@ -415,13 +471,16 @@ impl Connection {
         drop(first);
         let plane = match transport {
             Transport::Nfcssl => {
-                let session = client.handshake(&mut stream, host)?;
-                let (version, suite) = tls::negotiated(&session)?;
+                // The refusal of ECDHE was the authentication daemon's. This
+                // session is served by the service it proxied to, which on an
+                // ESXi 6.5 host closes the connection on RSA key exchange.
+                let session = tls::Session::Ecdhe(Box::new(client.handshake(&mut stream, host)?));
+                let (version, suite) = session.negotiated()?;
                 transcript.tls("second session", version, suite);
-                if tls::peer_certificate(&session)? != certificate {
+                if session.certificate()? != certificate {
                     return Err(Error::Certificate);
                 }
-                Plane::Tls(Box::new(session))
+                Plane::Tls(session)
             }
             Transport::Nfc => Plane::Clear,
         };
@@ -587,7 +646,7 @@ impl Connection {
 
     fn data(&mut self) -> Box<dyn Wire + '_> {
         match &mut self.plane {
-            Plane::Tls(session) => Box::new(Stream::new(&mut **session, &mut self.stream)),
+            Plane::Tls(session) => wire(session, &mut self.stream),
             Plane::Clear => Box::new(&mut self.stream),
         }
     }
@@ -1130,9 +1189,50 @@ mod tests {
     use super::*;
     use greeting::ESXI_8;
     use std::io::Cursor;
+    use std::net::TcpListener;
+    use std::thread;
 
     const TAG: &[u8; 16] = b"ABCDEFGHIJKLMNOP";
     const QUIET: Transcript = Transcript::new(false);
+
+    /// A fatal `handshake_failure` alert, as one TLS 1.2 record.
+    const HANDSHAKE_FAILURE: [u8; 7] = [0x15, 0x03, 0x03, 0x00, 0x02, 0x02, 0x28];
+
+    #[test]
+    fn a_host_greeting_differently_after_refusing_ecdhe_is_not_offered_rsa_key_exchange() {
+        let listener = TcpListener::bind("127.0.0.1:0").unwrap();
+        let port = listener.local_addr().unwrap().port();
+        let host = thread::spawn(move || {
+            let (mut first, _) = listener.accept().unwrap();
+            first.write_all(ESXI_8).unwrap();
+            let mut header = [0_u8; 5];
+            first.read_exact(&mut header).unwrap();
+            let mut hello = vec![0_u8; usize::from(u16::from_be_bytes([header[3], header[4]]))];
+            first.read_exact(&mut hello).unwrap();
+            first.write_all(&HANDSHAKE_FAILURE).unwrap();
+            drop(first);
+            let (mut second, _) = listener.accept().unwrap();
+            second
+                .write_all(b"220 VMware Authentication Daemon Version 1.10: SSL Required, NFCSSL supported/t\r\n")
+                .unwrap();
+            let mut received = Vec::new();
+            // The client leaves at once; whatever it wrote first is returned.
+            let _ = second.read_to_end(&mut received);
+            received
+        });
+        let pin = tls::Pin::sha256(&tls::sha256(b"a certificate")).unwrap();
+
+        let error =
+            Connection::establish("127.0.0.1", port, "ticket", &pin, Transport::Nfcssl, QUIET)
+                .unwrap_err();
+
+        assert!(matches!(error, Error::GreetingChanged), "{error:?}");
+        assert_eq!(
+            error.to_string(),
+            "greeting: the host announced other capabilities on the connection reopened for RSA key exchange"
+        );
+        assert!(host.join().unwrap().is_empty(), "no handshake was started");
+    }
 
     /// A scripted peer: replies come from `input`, each write the client makes lands in `writes`.
     ///
