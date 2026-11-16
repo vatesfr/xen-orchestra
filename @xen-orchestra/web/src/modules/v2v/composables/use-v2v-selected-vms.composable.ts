@@ -96,18 +96,6 @@ export function useV2vSelectedVms({ migrationList, rows, areRowsReady, poolId, s
 
   const items = computed(() => vms.value.map(vm => vm.item))
 
-  // What the launch plan reads of each VM, rather than what the panel shows of it
-  const vmStates = computed(() =>
-    vms.value.map(({ kind, check, mapping, item }) => ({
-      id: item.id,
-      name: item.name,
-      kind,
-      check,
-      checkInfo: item.check,
-      mapping,
-    }))
-  )
-
   const count = computed(() => vms.value.length)
 
   // Until the rows are ready, the import state of a VM is unknown: a warm one would read as new and ready. Until the
@@ -154,7 +142,6 @@ export function useV2vSelectedVms({ migrationList, rows, areRowsReady, poolId, s
   }
 
   return {
-    vmStates,
     getRow,
     getName,
     items,

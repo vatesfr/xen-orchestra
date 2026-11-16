@@ -15,11 +15,11 @@ export function useV2vReviewStep(rawPoolId: MaybeRefOrGetter<FrontXoPool['id']>)
 
   const listRows = useV2vMigrationListRows()
 
-  const { vmStates, getRow, getName, isBusy } = useV2vSelectedVms(listRows)
+  const { vms, getRow, getName, isBusy } = useV2vSelectedVms(listRows)
 
   const destinationPoolName = useV2vPoolName(rawPoolId)
 
-  const { plan, unconfirmedCount, ...groups } = useV2vLaunchGroups({ vmStates, getRow })
+  const { plan, unconfirmedCount, ...groups } = useV2vLaunchGroups({ vms, getRow })
 
   const launch = useV2vLaunch(rawPoolId, {
     launchableVms: () => plan.value.launchable,
@@ -28,7 +28,7 @@ export function useV2vReviewStep(rawPoolId: MaybeRefOrGetter<FrontXoPool['id']>)
   })
 
   const summaryParts = computed(() =>
-    labels.getReviewSummaryParts(destinationPoolName.value, vmStates.value.length, {
+    labels.getReviewSummaryParts(destinationPoolName.value, vms.value.length, {
       excluded: plan.value.excluded.length,
       unconfirmed: unconfirmedCount.value,
     })

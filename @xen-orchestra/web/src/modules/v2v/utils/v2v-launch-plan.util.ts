@@ -17,20 +17,20 @@ export function getV2vLaunchGroupType({ kind, check }: V2vSelectedVmState): V2vL
 
 // An already migrated VM is imported again as a second VM: only once the user confirms it
 export function getV2vLaunchPlan<TItem extends V2vLaunchPlanItem>(
-  items: TItem[],
+  vms: TItem[],
   confirmedIds: ReadonlySet<XoV2vVm['id']>
 ): V2vLaunchPlan<TItem> {
   const plan: V2vLaunchPlan<TItem> = { excluded: [], migrated: [], resumed: [], new: [], launchable: [] }
 
-  for (const item of items) {
-    const groupType = getV2vLaunchGroupType(item)
+  for (const vm of vms) {
+    const groupType = getV2vLaunchGroupType(vm)
 
-    plan[groupType].push(item)
+    plan[groupType].push(vm)
 
-    const isLaunchable = groupType !== 'excluded' && (groupType !== 'migrated' || confirmedIds.has(item.id))
+    const isLaunchable = groupType !== 'excluded' && (groupType !== 'migrated' || confirmedIds.has(vm.item.id))
 
     if (isLaunchable) {
-      plan.launchable.push(item)
+      plan.launchable.push(vm)
     }
   }
 

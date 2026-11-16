@@ -22,7 +22,7 @@ export function createV2vLaunchSettings(overrides: Partial<V2vLaunchSettings> = 
 
 // A new VM, ready to launch
 export function createV2vLaunchPlanItem(overrides: Partial<V2vLaunchPlanItem> = {}): V2vLaunchPlanItem {
-  return { id: V2V_VM_ID, kind: 'new', check: V2V_SELECTED_VM_CHECK.ready, ...overrides }
+  return { kind: 'new', check: V2V_SELECTED_VM_CHECK.ready, item: { id: V2V_VM_ID }, ...overrides }
 }
 
 // A new VM on the list defaults, without launch override

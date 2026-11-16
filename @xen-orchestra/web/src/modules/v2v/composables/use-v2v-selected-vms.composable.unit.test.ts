@@ -319,31 +319,6 @@ describe('vms', () => {
   })
 })
 
-describe('vmStates', () => {
-  it('tells what the launch plan reads of each VM of the list, in the list order', async () => {
-    const { result } = await mountSelectedVms({ list: WEB_AND_DB_LIST })
-
-    expect(result.vmStates).toEqual([
-      {
-        id: V2V_WEB_VM.id,
-        name: V2V_WEB_VM.name,
-        kind: 'new',
-        check: V2V_SELECTED_VM_CHECK.ready,
-        checkInfo: result.items[0].check,
-        mapping: WEB_MAPPING,
-      },
-      {
-        id: V2V_DB_VM.id,
-        name: V2V_DB_VM.name,
-        kind: 'resume',
-        check: V2V_SELECTED_VM_CHECK.ready,
-        checkInfo: result.items[1].check,
-        mapping: DB_MAPPING,
-      },
-    ])
-  })
-})
-
 describe('readinessTags', () => {
   it('counts the VMs of each readiness level', async () => {
     const { result } = await mountSelectedVms({

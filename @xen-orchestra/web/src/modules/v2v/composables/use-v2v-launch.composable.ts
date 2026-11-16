@@ -49,14 +49,14 @@ export function useV2vLaunch(
 
   const vmLaunchOptionsRows = computed(() =>
     toValue(launchableVms).map(
-      ({ id, name }): V2vVmLaunchOptionsRow => ({ id, name, overrides: overridesById.get(id) })
+      ({ item: { id, name } }): V2vVmLaunchOptionsRow => ({ id, name, overrides: overridesById.get(id) })
     )
   )
 
   const launchCount = computed(() => toValue(launchableVms).length)
 
   const startVms = computed(() =>
-    toValue(launchableVms).flatMap(({ id, kind }): V2vStartVm[] => {
+    toValue(launchableVms).flatMap(({ kind, item: { id } }): V2vStartVm[] => {
       const listVm = toValue(list)?.vms.find(vm => vm.id === id)
 
       if (listVm === undefined) {

@@ -1,5 +1,5 @@
 import type { V2vMigrationListVm } from '@/modules/v2v/types/v2v-migration-list.type.ts'
-import type { V2vSelectedVmState } from '@/modules/v2v/types/v2v-selected-vm.type.ts'
+import type { V2vSelectedVm, V2vSelectedVmState } from '@/modules/v2v/types/v2v-selected-vm.type.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import type { XoV2vStartOptions, XoV2vStartPayload, XoV2vVm } from '@vates/types'
 import type { RouteLocationRaw } from 'vue-router'
@@ -10,9 +10,9 @@ export type V2vLaunchSettings = Pick<XoV2vStartOptions, 'stopSource'> &
 
 export type V2vLaunchGroupType = 'excluded' | 'migrated' | 'resumed' | 'new'
 
-export type V2vLaunchPlanItem = V2vSelectedVmState & { id: XoV2vVm['id'] }
+export type V2vLaunchPlanItem = V2vSelectedVmState & { item: Pick<V2vSelectedVm, 'id'> }
 
-export type V2vLaunchableVm = Pick<V2vLaunchPlanItem, 'id' | 'kind'> & Pick<XoV2vVm, 'name'>
+export type V2vLaunchableVm = Pick<V2vSelectedVmState, 'kind'> & { item: Pick<V2vSelectedVm, 'id' | 'name'> }
 
 export type V2vLaunchPlan<TItem extends V2vLaunchPlanItem> = Record<V2vLaunchGroupType, TItem[]> & {
   launchable: TItem[]

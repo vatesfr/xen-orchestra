@@ -1,3 +1,4 @@
+import type { V2vLaunchPlanItem } from '@/modules/v2v/types/v2v-launch.type.ts'
 import { getV2vLaunchGroupType, getV2vLaunchPlan } from '@/modules/v2v/utils/v2v-launch-plan.util.ts'
 import { createV2vLaunchPlanItem } from '@/test/create-v2v-launch.ts'
 import { getV2vVmIds } from '@/test/create-v2v-vm-row.ts'
@@ -10,7 +11,11 @@ const { ready, notFound, unsupported, running, partialOnOtherPool, mappingIncomp
 const NO_CONFIRMATION = new Set<XoV2vVm['id']>()
 
 function createItem(id: string, overrides: Parameters<typeof createV2vLaunchPlanItem>[0] = {}) {
-  return createV2vLaunchPlanItem({ id: id as XoV2vVm['id'], ...overrides })
+  return createV2vLaunchPlanItem({ item: { id: id as XoV2vVm['id'] }, ...overrides })
+}
+
+function getPlannedIds(vms: V2vLaunchPlanItem[]) {
+  return getV2vVmIds(vms.map(({ item }) => item))
 }
 
 describe('getV2vLaunchGroupType', () => {
@@ -51,25 +56,25 @@ describe('getV2vLaunchPlan', () => {
   it('groups the VMs in list order', () => {
     const plan = getV2vLaunchPlan(items, NO_CONFIRMATION)
 
-    expect(getV2vVmIds(plan.excluded)).toEqual(['excluded-1'])
-    expect(getV2vVmIds(plan.migrated)).toEqual(['migrated-1', 'migrated-2'])
-    expect(getV2vVmIds(plan.resumed)).toEqual(['resumed-1'])
-    expect(getV2vVmIds(plan.new)).toEqual(['new-1', 'new-2'])
+    expect(getPlannedIds(plan.excluded)).toEqual(['excluded-1'])
+    expect(getPlannedIds(plan.migrated)).toEqual(['migrated-1', 'migrated-2'])
+    expect(getPlannedIds(plan.resumed)).toEqual(['resumed-1'])
+    expect(getPlannedIds(plan.new)).toEqual(['new-1', 'new-2'])
   })
 
   it('launches the resumed and new VMs in list order, not the unconfirmed already migrated ones', () => {
-    expect(getV2vVmIds(getV2vLaunchPlan(items, NO_CONFIRMATION).launchable)).toEqual(['new-1', 'resumed-1', 'new-2'])
+    expect(getPlannedIds(getV2vLaunchPlan(items, NO_CONFIRMATION).launchable)).toEqual(['new-1', 'resumed-1', 'new-2'])
   })
 
   it('launches an already migrated VM once confirmed, in list order', () => {
     const plan = getV2vLaunchPlan(items, new Set(['migrated-1' as XoV2vVm['id']]))
 
-    expect(getV2vVmIds(plan.launchable)).toEqual(['new-1', 'resumed-1', 'migrated-1', 'new-2'])
-    expect(getV2vVmIds(plan.migrated)).toEqual(['migrated-1', 'migrated-2'])
+    expect(getPlannedIds(plan.launchable)).toEqual(['new-1', 'resumed-1', 'migrated-1', 'new-2'])
+    expect(getPlannedIds(plan.migrated)).toEqual(['migrated-1', 'migrated-2'])
   })
 
   it('never launches a confirmed VM that is excluded', () => {
-    expect(getV2vVmIds(getV2vLaunchPlan(items, new Set(['excluded-1' as XoV2vVm['id']])).launchable)).not.toContain(
+    expect(getPlannedIds(getV2vLaunchPlan(items, new Set(['excluded-1' as XoV2vVm['id']])).launchable)).not.toContain(
       'excluded-1'
     )
   })

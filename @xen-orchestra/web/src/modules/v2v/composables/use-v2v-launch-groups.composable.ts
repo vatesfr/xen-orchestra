@@ -10,6 +10,7 @@ import type {
   V2vMigratedVm,
   V2vResumedVm,
 } from '@/modules/v2v/types/v2v-launch.type.ts'
+import type { V2vListedVm } from '@/modules/v2v/types/v2v-selected-vm.type.ts'
 import type { V2vVmRow } from '@/modules/v2v/types/v2v-vm-row.type.ts'
 import { getV2vLaunchPlan } from '@/modules/v2v/utils/v2v-launch-plan.util.ts'
 import { getV2vTargetName } from '@/modules/v2v/utils/v2v-mapping.util.ts'
@@ -20,10 +21,7 @@ import { compact, uniq } from 'lodash-es'
 import { computed, reactive } from 'vue'
 
 // Grouped by the checks of the selected VMs panel: the review never launches a VM the panel shows blocked
-export function useV2vLaunchGroups({
-  vmStates,
-  getRow,
-}: Pick<ReturnType<typeof useV2vSelectedVms>, 'vmStates' | 'getRow'>) {
+export function useV2vLaunchGroups({ vms, getRow }: Pick<ReturnType<typeof useV2vSelectedVms>, 'vms' | 'getRow'>) {
   const { getStepLocation } = useV2vWizardNavigation()
 
   const labels = useV2vReviewLabels()
@@ -36,7 +34,7 @@ export function useV2vLaunchGroups({
 
   const confirmedIds = reactive(new Set<XoV2vVm['id']>())
 
-  const plan = computed(() => getV2vLaunchPlan(vmStates.value, confirmedIds))
+  const plan = computed(() => getV2vLaunchPlan(vms.value, confirmedIds))
 
   // Where the disks of an import are, read from the import itself: one SR may hold several of them
   function getImportSrNames(row: V2vVmRow, importVm: FrontXoVm): string[] {
@@ -46,8 +44,8 @@ export function useV2vLaunchGroups({
   }
 
   // Each group VM with the import its row holds and where it is: only a VM with an import is migrated or resumed
-  function withImports<TItem extends { id: XoV2vVm['id'] }>(items: TItem[]) {
-    return items.flatMap(item => {
+  function withImports(listedVms: V2vListedVm[]) {
+    return listedVms.flatMap(({ item }) => {
       const row = getRow(item.id)
       const importVm = row?.importVm
 
@@ -67,7 +65,7 @@ export function useV2vLaunchGroups({
     })
   }
 
-  const unconfirmedCount = computed(() => plan.value.migrated.filter(({ id }) => !confirmedIds.has(id)).length)
+  const unconfirmedCount = computed(() => plan.value.migrated.filter(({ item }) => !confirmedIds.has(item.id)).length)
 
   const groupHeadings = computed(
     () =>
@@ -81,11 +79,11 @@ export function useV2vLaunchGroups({
 
   const excludedVms = computed(() =>
     plan.value.excluded.map(
-      ({ id, name, checkInfo }): V2vExcludedVm => ({
+      ({ item: { id, name, check } }): V2vExcludedVm => ({
         id,
         name,
         route: getStepLocation('mapping', { vm: id }),
-        reason: checkInfo.label,
+        reason: check.label,
       })
     )
   )
@@ -125,7 +123,7 @@ export function useV2vLaunchGroups({
 
   const newVmsSummary = computed(() =>
     labels.getNewVmsSummary(
-      plan.value.new.map(({ name }) => name),
+      plan.value.new.map(({ item }) => item.name),
       newVmsSrNames.value
     )
   )
