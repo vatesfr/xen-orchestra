@@ -45,7 +45,7 @@
 </template>
 
 <script lang="ts" setup>
-import { useV2vVmLabels } from '@/modules/v2v/composables/use-v2v-vm-labels.composable.ts'
+import { useV2vMappingLabels } from '@/modules/v2v/composables/use-v2v-mapping-labels.composable.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsInlineParts from '@core/components/inline-parts/VtsInlineParts.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
@@ -62,7 +62,7 @@ defineProps<{
 
 const { t } = useI18n()
 
-const { getPowerLabel, getDisksParts, getSnapshotCountLabel } = useV2vVmLabels()
+const { getPowerLabel, getDisksParts, getSnapshotCountLabel } = useV2vMappingLabels()
 </script>
 
 <style lang="postcss" scoped>

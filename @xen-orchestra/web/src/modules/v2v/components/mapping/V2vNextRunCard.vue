@@ -17,7 +17,7 @@
 </template>
 
 <script lang="ts" setup>
-import { useV2vVmLabels } from '@/modules/v2v/composables/use-v2v-vm-labels.composable.ts'
+import { useV2vMappingLabels } from '@/modules/v2v/composables/use-v2v-mapping-labels.composable.ts'
 import type { V2vNextTransfer } from '@/modules/v2v/utils/v2v-vm-status.util.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
@@ -34,7 +34,7 @@ const { lastSyncAt } = defineProps<{
 
 const { t } = useI18n()
 
-const { nextTransferLabels } = useV2vVmLabels()
+const { nextTransferLabels } = useV2vMappingLabels()
 
 const lastSync = computed(() => (lastSyncAt === undefined ? undefined : formatDateTime(lastSyncAt)))
 </script>

@@ -14,7 +14,7 @@
 </template>
 
 <script lang="ts" setup>
-import { useV2vVmLabels } from '@/modules/v2v/composables/use-v2v-vm-labels.composable.ts'
+import { useV2vMappingLabels } from '@/modules/v2v/composables/use-v2v-mapping-labels.composable.ts'
 import type { V2vTargetOrigin } from '@/modules/v2v/types/v2v-mapping.type.ts'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiTag from '@core/components/ui/tag/UiTag.vue'
@@ -32,7 +32,7 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 
-const { getOriginTag } = useV2vVmLabels()
+const { getOriginTag } = useV2vMappingLabels()
 
 const tag = computed(() => getOriginTag(origin))
 </script>
