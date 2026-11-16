@@ -66,7 +66,6 @@ const filterableBackupArchives = computed(() =>
     ...backupArchive,
     vmName: backupArchive.vm.name_label,
     backupRepositoryName: getBackupRepositoryById(backupArchive.backupRepository)?.name,
-    tags: backupArchive.vm.tags,
   }))
 )
 
