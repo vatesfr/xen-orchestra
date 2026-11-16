@@ -472,7 +472,7 @@ export class HostController extends XapiXoController<XoHost> {
    * @example body { "pifId": "d9e42451-3794-089f-de81-4ee0e6137bee" }
    */
   @Example(taskLocation)
-  @Extension('x-mcp-exposure', 'confirm')
+  @Extension('x-mcp-exposure', 'deny')
   @Post('{id}/actions/move_management_ip')
   @Middlewares([
     json(),
