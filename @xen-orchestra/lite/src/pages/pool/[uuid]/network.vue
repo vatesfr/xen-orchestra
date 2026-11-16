@@ -28,7 +28,9 @@
         </template>
       </PoolHostInternalNetworksTable>
     </UiCard>
-    <PoolNetworkSidePanel :network="selectedNetwork" @close="selectedNetwork = undefined" />
+    <template #panel>
+      <PoolNetworkSidePanel :network="selectedNetwork" @close="selectedNetwork = undefined" />
+    </template>
   </VtsContentSidePanel>
 </template>
 

@@ -7,7 +7,10 @@
       toggling: isToggling,
     }"
   >
-    <slot />
+    <div class="content">
+      <slot />
+    </div>
+    <slot name="panel" />
   </div>
 </template>
 
@@ -16,6 +19,11 @@ import { PANEL_TRANSITION_DURATION, usePanelStore } from '@core/stores/panel.sto
 import { useUiStore } from '@core/stores/ui.store.ts'
 import { refAutoReset } from '@vueuse/core'
 import { computed, watch } from 'vue'
+
+defineSlots<{
+  default(): any
+  panel(): any
+}>()
 
 const panelStore = usePanelStore()
 const uiStore = useUiStore()
@@ -33,20 +41,23 @@ const columnTransition = `grid-template-columns ${PANEL_TRANSITION_DURATION}ms`
 
 <style scoped lang="postcss">
 .vts-content-side-panel {
-  &:not(.mobile) {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) 0;
-    align-items: start;
-    overflow-x: clip;
-    min-height: min-content;
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 0;
+  grid-template-rows: minmax(0, 1fr);
+  overflow: hidden;
 
-    &.has-panel-column {
-      grid-template-columns: minmax(0, 1fr) v-bind('panelStore.cssWidth');
-    }
+  .content {
+    overflow-y: auto;
+  }
 
-    &.toggling {
-      transition: v-bind(columnTransition);
-    }
+  &.has-panel-column {
+    grid-template-columns: minmax(0, 1fr) v-bind('panelStore.cssWidth');
+  }
+
+  &.toggling:not(.mobile) {
+    transition: v-bind(columnTransition);
   }
 }
 </style>

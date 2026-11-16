@@ -3,13 +3,15 @@
     <UiCard class="container">
       <StorageRepositoriesTable v-if="pool && host && scope" :srs :pool :scope :busy="!isReady" :error="hasError" />
     </UiCard>
-    <StorageRepositorySidePanel
-      v-if="pool && host && scope"
-      :sr="selectedSr"
-      :pool
-      :scope
-      @close="selectedSr = undefined"
-    />
+    <template #panel>
+      <StorageRepositorySidePanel
+        v-if="pool && host && scope"
+        :sr="selectedSr"
+        :pool
+        :scope
+        @close="selectedSr = undefined"
+      />
+    </template>
   </VtsContentSidePanel>
 </template>
 

@@ -3,7 +3,9 @@
     <UiCard class="container">
       <TasksList :tasks="convertedTasks" :title="t('run')" :has-error="false" :busy="false" auto-collapse-toggle />
     </UiCard>
-    <BackupLogTaskSidePanel :task="selectedTask" @close="selectedTask = undefined" />
+    <template #panel>
+      <BackupLogTaskSidePanel :task="selectedTask" @close="selectedTask = undefined" />
+    </template>
   </VtsContentSidePanel>
 </template>
 
