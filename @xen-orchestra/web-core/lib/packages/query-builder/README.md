@@ -14,6 +14,8 @@ The Query Builder package is part of the core library and can be imported direct
 import { useQueryBuilder } from '@core/packages/query-builder/use-query-builder'
 import { useQueryBuilderFilter } from '@core/packages/query-builder/use-query-builder-filter'
 import { useQueryBuilderSchema } from '@core/packages/query-builder/schema/use-query-builder-schema'
+import { withEnumeratedValues } from '@core/packages/query-builder/schema/with-enumerated-values'
+import { setFilterProperty } from '@core/packages/query-builder/filter-string'
 ```
 
 ### Quick Start Example
@@ -704,3 +706,61 @@ This leverages the catch-all `''` property defined in the schema to search all p
 When users write filter expressions that reference properties not defined in the schema, Query Builder gracefully handles this by falling back to the "any property" (`''`) filter. This allows for flexible search experiences where exact property names don't need to be known in advance.
 
 For example, if a schema doesn't define a `custom_field` property but a user types `custom_field:value`, the query parser will fall back to the catch-all property. The result will be no matches (since the property doesn't exist on your objects), which is the expected behavior.
+
+### Values Known Only at Runtime
+
+`useStringSchema` and its siblings call `useI18n`, so they run once, in `setup`: their labels are translated once too, which is enough because the apps reload on a language change. When a property's values come from loaded data, build the schema once and swap the values in a `computed` with `withEnumeratedValues(property, values)`: every operator that takes values (`is`, `isNot`…) gets one entry per value, its label being the value itself; the other operators are kept as they are.
+
+```typescript
+import { useQueryBuilderSchema } from '@core/packages/query-builder/schema/use-query-builder-schema'
+import { withEnumeratedValues } from '@core/packages/query-builder/schema/with-enumerated-values'
+import type { QueryBuilderSchema } from '@core/packages/query-builder/types'
+import { useStringSchema } from '@core/utils/query-builder/use-string-schema'
+import { computed } from 'vue'
+
+const staticSchema = useQueryBuilderSchema<Product>({
+  name: useStringSchema('Product Name'),
+  category: useStringSchema('Category', {}),
+})
+
+const schema = computed<QueryBuilderSchema>(() => ({
+  ...staticSchema,
+  category: withEnumeratedValues(staticSchema.category, categoryNames.value),
+}))
+```
+
+### Reading and Editing a Filter String
+
+`filter-string` reads and edits the filter string itself, outside the query builder UI: a preset button, a field bound to one property of the filter, a count per preset. Each function parses the filter with Complex Matcher; an unparsable filter is never edited, it is returned unchanged.
+
+| Function                                   | Returns                                                                                                       |
+| ------------------------------------------ | ------------------------------------------------------------------------------------------------------------- |
+| `tryParseFilter(filter)`                   | The root Complex Matcher node, or `undefined` when the filter is unparsable                                   |
+| `isFilterParsable(filter)`                 | Whether Complex Matcher can parse the filter                                                                  |
+| `getFilterPropertyValues(filter, name)`    | The values the filter matches for `name` (`[]` when unparsable)                                               |
+| `getFilterPropertyClauses(filter, name)`   | The top-level clauses on `name`, every form: `name:…`, `name?` and their `!` negations (`[]` when unparsable) |
+| `countFilterPropertyClauses(filter, name)` | The number of clauses on `name`, those nested in a group included (`0` when unparsable)                       |
+| `setFilterProperty(filter, name, value)`   | The filter with its `name:…` clauses replaced by the "is" clause of `value`, or removed when `undefined`      |
+| `removeFilterProperty(filter, name)`       | The filter without its top-level clauses on `name`, every form                                                |
+| `addFilterClause(filter, clause)`          | The filter with `clause` appended (unchanged when `clause` is unparsable)                                     |
+
+```typescript
+import {
+  getFilterPropertyValues,
+  removeFilterProperty,
+  setFilterProperty,
+} from '@core/packages/query-builder/filter-string'
+
+const { filter } = useQueryBuilderFilter('products', () => products.value)
+
+const category = computed({
+  get: () => getFilterPropertyValues(filter.value, 'category')[0],
+  set: value => {
+    filter.value = setFilterProperty(filter.value, 'category', value)
+  },
+})
+
+category.value = 'Electronics' // filter: "price:>100 category:/^Electronics$/"
+
+filter.value = removeFilterProperty(filter.value, 'category') // filter: "price:>100"
+```

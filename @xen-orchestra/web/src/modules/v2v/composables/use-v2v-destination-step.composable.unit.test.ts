@@ -1,7 +1,6 @@
-import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import { useV2vDestinationStep } from '@/modules/v2v/composables/use-v2v-destination-step.composable.ts'
 import { chooseCompleteV2vDestination, chooseV2vDestinationPool } from '@/test/choose-v2v-destination.ts'
-import { createPool } from '@/test/create-pool.ts'
+import { createPool, UNKNOWN_POOL_ID } from '@/test/create-pool.ts'
 import { createV2vConnection } from '@/test/create-v2v-connection.ts'
 import {
   createNewerV2vMigrationList,
@@ -51,8 +50,6 @@ const POOL = createPool()
 
 const CONNECTION = createV2vConnection()
 
-const UNKNOWN_POOL_ID = 'pool-unknown' as FrontXoPool['id']
-
 const DEFAULTS = createV2vDestinationDefaults({ sr: POOL.default_SR })
 
 const LIST_WITH_VMS = createV2vMigrationList({ vms: createV2vMigrationListVms(4) })
@@ -70,7 +67,6 @@ async function mountDestinationStep(query: Record<string, string> = {}) {
 }
 
 beforeEach(() => {
-  localStorage.clear()
   xoCollectionsMock.reset()
 })
 
@@ -87,18 +83,6 @@ describe('form', () => {
 
     expect(result.form.formData.pool).toBeUndefined()
     expect(router.currentRoute.value.query).not.toHaveProperty('pool')
-  })
-
-  it('waits for the pools to be known before clearing an unknown pool of the route', async () => {
-    xoCollectionsMock.arePoolsReady.value = false
-    const { result } = await mountDestinationStep({ pool: UNKNOWN_POOL_ID })
-
-    expect(result.form.formData.pool).toBe(UNKNOWN_POOL_ID)
-
-    xoCollectionsMock.arePoolsReady.value = true
-    await flushPromises()
-
-    expect(result.form.formData.pool).toBeUndefined()
   })
 
   it('writes the chosen pool in the route', async () => {

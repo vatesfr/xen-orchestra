@@ -12,15 +12,19 @@ export type SelectionBindings = {
   onClearSelection: () => void
 }
 
-export function useTableSelection<TItem>(config: {
+export function useTableSelection<TItem, TId extends CollectionItemId>(config: {
   items: MaybeRefOrGetter<TItem[]>
   filteredItems: MaybeRefOrGetter<NoInfer<TItem>[]>
   pageItems: MaybeRefOrGetter<NoInfer<TItem>[]>
-  getItemId: (item: TItem) => CollectionItemId
+  getItemId: (item: TItem) => TId
 }) {
-  const filteredIds = computed(() => new Set(toValue(config.filteredItems).map(item => config.getItemId(item))))
+  const filteredIds = computed(
+    () => new Set<CollectionItemId>(toValue(config.filteredItems).map(item => config.getItemId(item)))
+  )
 
-  const pageIds = computed(() => new Set(toValue(config.pageItems).map(item => config.getItemId(item))))
+  const pageIds = computed(
+    () => new Set<CollectionItemId>(toValue(config.pageItems).map(item => config.getItemId(item)))
+  )
 
   const { useFlag, useSubset, clearFlag } = useCollection(config.items, {
     itemId: config.getItemId,

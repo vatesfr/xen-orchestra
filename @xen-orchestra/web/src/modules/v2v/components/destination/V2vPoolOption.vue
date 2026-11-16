@@ -1,16 +1,17 @@
 <template>
   <span class="v2v-pool-option">
     <span class="label">{{ label }}</span>
-    <span v-if="counts !== undefined" class="typo-body-regular-small counts interpunct-list">
+    <VtsInlineParts v-if="counts !== undefined" class="typo-body-regular-small counts">
       <span>{{ t('n-hosts', { n: counts.hosts }) }}</span>
       <span>{{ t('n-srs', { n: counts.srs }) }}</span>
       <span>{{ t('n-networks', { n: counts.networks }) }}</span>
-    </span>
+    </VtsInlineParts>
   </span>
 </template>
 
 <script lang="ts" setup>
 import type { V2vPoolResourceCounts } from '@/modules/v2v/utils/v2v-destination.util.ts'
+import VtsInlineParts from '@core/components/inline-parts/VtsInlineParts.vue'
 import { useI18n } from 'vue-i18n'
 
 defineProps<{
