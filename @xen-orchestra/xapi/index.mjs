@@ -10,6 +10,7 @@ import * as Mixins from './_Mixins.mjs'
 const { warn } = createLogger('xo:xapi')
 
 export { default as isDefaultTemplate } from './isDefaultTemplate.mjs'
+export { default as isVlanNetwork } from './isVlanNetwork.mjs'
 export { XapiDiskSource } from './disks/Xapi.mjs'
 
 // VDI formats. (Raw is not available for delta vdi.)

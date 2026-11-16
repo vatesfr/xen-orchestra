@@ -1,6 +1,7 @@
 import { createLogger } from '@xen-orchestra/log'
 import { ignoreErrors } from 'promise-toolbox'
 import { invalidParameters } from 'xo-common/api-errors.js'
+import { isVlanNetwork } from '@xen-orchestra/xapi'
 
 import { diffItems } from '../utils.mjs'
 
@@ -112,7 +113,7 @@ export async function set({
     // XAPI refuses trunks on a network with a VLAN (NETWORK_INCOMPATIBLE_WITH_TRUNKS), and the delete+create
     // fallback below passes `trunks: vif.trunks`: the VIF would be deleted, then XAPI would refuse to recreate it.
     // Refuse before touching the VIF
-    if (isNetworkChanged && vif.trunks?.length > 0 && xapi.getObject(network.id).$PIFs.some(pif => +pif.VLAN !== -1)) {
+    if (isNetworkChanged && vif.trunks?.length > 0 && isVlanNetwork(xapi.getObject(network.id))) {
       throw invalidParameters(
         `VIF ${vif.id} is restricted to some VLANs, which a network with a VLAN refuses: clear them first ` +
           `(PATCH /rest/v0/vifs/${vif.id} with { "trunks": [] }), then move it`
