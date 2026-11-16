@@ -29,9 +29,11 @@ import {
   ejectIso,
   findTaggedCds,
   findTaggedSrs,
+  finishEjectedCd,
   forgetSr,
   getInsertionHost,
   insertIso,
+  isEjectedCd,
   unblockOperations,
 } from './_xapi.mjs'
 
@@ -133,6 +135,8 @@ export default class BrowserMedia {
   #missingPools = new Set()
   // sessions of a previous run whose recovery failed, reported once: retried at each reconciliation
   #failedRecoveries = new Set()
+  // opaque refs of the CD drives of ejected ISOs being released, see #finishEjectedCd()
+  #finishingCds = new Set()
 
   #store
   #webSockets
@@ -725,6 +729,26 @@ export default class BrowserMedia {
       log.info('the browser ISO was ejected by another client', { session: session.id })
       session.close(CLOSE_EJECTED, 'ejected')
     }
+    // e.g. the VM of an ISO ejected while it was running has halted or rebooted
+    if (vbd?.currently_attached === false && isEjectedCd(vbd.$ref, vbd.other_config)) {
+      this.#finishEjectedCd(vbd.$xapi, vbd.$ref)
+    }
+  }
+
+  /**
+   * Release the CD drive of an ISO ejected while its VM was running, now that it is unplugged, see
+   * `ejectIso()`. Retried at each reconciliation if it fails.
+   */
+  #finishEjectedCd(xapi, vbdRef) {
+    if (this.#stopping || this.#finishingCds.has(vbdRef)) {
+      return
+    }
+    this.#finishingCds.add(vbdRef)
+    finishEjectedCd(xapi, vbdRef)
+      .catch(error =>
+        log.warn('could not release the CD drive of an ejected browser ISO, will retry', { error, vbd: vbdRef })
+      )
+      .finally(() => this.#finishingCds.delete(vbdRef))
   }
 
   #onVbdRemoved = (_, vbd) => {
@@ -750,6 +774,14 @@ export default class BrowserMedia {
       return
     }
     this.#retryGivenUpReleases()
+    // the drives whose unplug was missed, e.g. while xo-server was not running
+    for (const xapi of Object.values(this.#app.getAllXapis())) {
+      for (const vbd of Object.values(xapi.objects.indexes.type.VBD ?? {})) {
+        if (!vbd.currently_attached && isEjectedCd(vbd.$ref, vbd.other_config)) {
+          this.#finishEjectedCd(xapi, vbd.$ref)
+        }
+      }
+    }
     const store = await this.#getStore()
     // one read per key rather than createReadStream(): a value which fails to decode would error the
     // whole stream, here it only skips that entry

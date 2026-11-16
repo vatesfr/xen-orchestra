@@ -24,8 +24,11 @@ const blockedReason = sessionId =>
 /**
  * The session a CD drive was changed for, from its tag.
  *
- * @returns {{ session: string, created: boolean, backendKind: boolean } | undefined} undefined if
- * the drive is not tagged, or if its tag is invalid, e.g. edited by hand
+ * `ejected` is set once the ISO is ejected from a drive still plugged in a running VM: what remains
+ * to undo waits for the drive to be unplugged, see `finishEjectedCd()`.
+ *
+ * @returns {{ session: string, created: boolean, backendKind: boolean, ejected?: true } | undefined}
+ * undefined if the drive is not tagged, or if its tag is invalid, e.g. edited by hand
  */
 function parseCdTag(vbdRef, otherConfig) {
   const tag = otherConfig[TAG]
@@ -137,14 +140,20 @@ export async function insertIso(xapi, { vmRef, cdRef, vdiRef, sessionId }) {
     })
   }
   const otherConfig = await xapi.getField('VBD', cdRef, 'other_config')
-  const backendKind = otherConfig['backend-kind'] === undefined
+  const previousTag = parseCdTag(cdRef, otherConfig)
+  // the drive of an ISO ejected while the VM runs: what remains to undo is taken over by this session
+  const ejected = previousTag?.ejected ? previousTag : undefined
+  const backendKind = ejected?.backendKind ?? otherConfig['backend-kind'] === undefined
+  if (otherConfig[TAG] !== undefined) {
+    await xapi.call('VBD.remove_from_other_config', cdRef, TAG)
+  }
   await xapi.call(
     'VBD.add_to_other_config',
     cdRef,
     TAG,
-    JSON.stringify({ session: sessionId, created: false, backendKind })
+    JSON.stringify({ session: sessionId, created: ejected?.created ?? false, backendKind })
   )
-  if (backendKind) {
+  if (otherConfig['backend-kind'] === undefined) {
     await xapi.call('VBD.add_to_other_config', cdRef, 'backend-kind', 'vbd')
   }
   await xapi.call('VBD.insert', cdRef, vdiRef)
@@ -155,6 +164,11 @@ export async function insertIso(xapi, { vmRef, cdRef, vdiRef, sessionId }) {
  * Eject the ISO of `sessionId` from its CD drive, if it is still there, and undo what was changed
  * on the drive: a drive created for the ISO is destroyed if the VM is halted, and is otherwise left
  * empty.
+ *
+ * A drive still plugged keeps `backend-kind` until it is unplugged, e.g. as the VM halts or reboots:
+ * removed while the VM runs, it makes XAPI hand the drive over to xenopsd as a tapdisk one, which
+ * xenopsd then does not find when the VM stops, and the blkback device it really is is never
+ * closed: the shutdown or reboot of the VM hangs on it, until xenopsd gives up after minutes.
  *
  * Nothing is done to a drive which was not changed for this session, and only one of `vdiRefs` is
  * ejected: another client may have replaced the ISO meanwhile.
@@ -175,8 +189,46 @@ export async function ejectIso(xapi, { vbdRef, vdiRefs, sessionId }) {
   }
   if (!vbd.empty && vdiRefs.includes(vbd.VDI)) {
     await xapi.call('VBD.eject', vbdRef)
+    vbd = { ...vbd, empty: true }
   }
-  if (tag.created && (await xapi.getField('VM', vbd.VM, 'power_state')) === 'Halted') {
+  if (vbd.currently_attached) {
+    if (!tag.ejected) {
+      await xapi.call('VBD.remove_from_other_config', vbdRef, TAG)
+      await xapi.call('VBD.add_to_other_config', vbdRef, TAG, JSON.stringify({ ...tag, ejected: true }))
+    }
+    return
+  }
+  await undoCdChanges(xapi, vbdRef, vbd, tag)
+}
+
+/** Whether a CD drive waits for being unplugged to be entirely released, see `ejectIso()`. */
+export function isEjectedCd(vbdRef, otherConfig) {
+  return parseCdTag(vbdRef, otherConfig)?.ejected === true
+}
+
+/**
+ * Undo what remains changed on the drive of an ISO ejected while the VM was running, once the drive
+ * is unplugged. Nothing is done while it is still plugged, or if its tag changed meanwhile.
+ */
+export async function finishEjectedCd(xapi, vbdRef) {
+  let vbd
+  try {
+    vbd = await xapi.getRecord('VBD', vbdRef)
+  } catch (error) {
+    if (error.code === 'HANDLE_INVALID') {
+      return // the drive is gone, e.g. with its VM
+    }
+    throw error
+  }
+  const tag = parseCdTag(vbdRef, vbd.other_config)
+  if (tag?.ejected !== true || vbd.currently_attached) {
+    return
+  }
+  await undoCdChanges(xapi, vbdRef, vbd, tag)
+}
+
+async function undoCdChanges(xapi, vbdRef, vbd, tag) {
+  if (tag.created && vbd.empty && (await xapi.getField('VM', vbd.VM, 'power_state')) === 'Halted') {
     await xapi.call('VBD.destroy', vbdRef)
     return
   }

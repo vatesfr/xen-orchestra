@@ -36,7 +36,17 @@ function makeXapi({ powerState = 'Halted', cd = true, insertError } = {}) {
         VBDs: cd ? [CD_REF] : [],
       },
     },
-    VBD: cd ? { [CD_REF]: { VM: VM_REF, VDI: 'OpaqueRef:NULL', empty: true, other_config: {} } } : {},
+    VBD: cd
+      ? {
+          [CD_REF]: {
+            VM: VM_REF,
+            VDI: 'OpaqueRef:NULL',
+            empty: true,
+            currently_attached: powerState === 'Running',
+            other_config: {},
+          },
+        }
+      : {},
     SR: {},
     PBD: {},
     VDI: {},
@@ -73,6 +83,9 @@ function makeXapi({ powerState = 'Halted', cd = true, insertError } = {}) {
       case 'VDI.get_by_uuid':
         return `OpaqueRef:vdi-${ref}`
       case 'VBD.add_to_other_config':
+        if (key in get('VBD', ref).other_config) {
+          throw new XapiError('MAP_DUPLICATE_KEY')
+        }
         get('VBD', ref).other_config[key] = value
         return
       case 'VBD.remove_from_other_config':
@@ -107,11 +120,28 @@ function makeXapi({ powerState = 'Halted', cd = true, insertError } = {}) {
         throw new Error(`unexpected call: ${method}`)
     }
   }
-  return {
+  const xapi = {
     calls,
     records,
     pool: { uuid: POOL_UUID },
-    objects: { allIndexes: { type: { getEventEmitterByType } } },
+    objects: {
+      allIndexes: { type: { getEventEmitterByType } },
+      get indexes() {
+        const vbds = {}
+        for (const [$ref, vbd] of Object.entries(records.VBD)) {
+          vbds[$ref] = { ...vbd, $ref, $xapi: xapi }
+        }
+        return { type: { VBD: vbds } }
+      },
+    },
+    /** The VM of the drive halts or reboots: XAPI unplugs the drive. */
+    unplug(vbdRef, { emit = true } = {}) {
+      const previous = { ...records.VBD[vbdRef], $ref: vbdRef, $xapi: xapi }
+      records.VBD[vbdRef].currently_attached = false
+      if (emit) {
+        getEventEmitterByType('VBD').emit('update', { ...records.VBD[vbdRef], $ref: vbdRef, $xapi: xapi }, previous)
+      }
+    },
     emit: (type, event, ...args) => getEventEmitterByType(type).emit(event, ...args),
     async call(...args) {
       return handle(...args)
@@ -127,11 +157,18 @@ function makeXapi({ powerState = 'Halted', cd = true, insertError } = {}) {
     },
     async VBD_create({ VM, VDI, other_config }) {
       calls.push(['VBD_create', { VM, VDI, other_config }])
-      records.VBD['OpaqueRef:new-cd'] = { VM, VDI, empty: false, other_config: { ...other_config } }
+      records.VBD['OpaqueRef:new-cd'] = {
+        VM,
+        VDI,
+        empty: false,
+        currently_attached: get('VM', VM).power_state === 'Running',
+        other_config: { ...other_config },
+      }
       get('VM', VM).VBDs.push('OpaqueRef:new-cd')
       return 'OpaqueRef:new-cd'
     },
   }
+  return xapi
 }
 
 /**
@@ -511,6 +548,55 @@ describe('end of an insertion', () => {
     assert.equal(media.getBrowserMediaSession(session).status, 'inserted')
   })
 
+  describe('in a running VM', () => {
+    // see ejectIso(): removing `backend-kind` from a plugged drive hangs the next shutdown of the VM
+    const assertWaitsForUnplug = ({ liveMount, media, store, xapi }) => {
+      const cd = xapi.records.VBD[CD_REF]
+      assert.equal(cd.empty, true)
+      assert.equal(cd.other_config['backend-kind'], 'vbd')
+      assert.equal(JSON.parse(cd.other_config[TAG]).ejected, true)
+      assert.deepEqual(xapi.records.VM[VM_REF].blocked_operations, {})
+      assert.equal(liveMount.mounts.size, 0)
+      assert.equal(store.map.size, 0)
+      assert.deepEqual(media.getAllBrowserMediaSessions(), [])
+    }
+
+    it('keeps the CD drive on blkback until it is unplugged', async () => {
+      const context = await insert({ xapi: makeXapi({ powerState: 'Running' }) })
+
+      await context.media.ejectBrowserMedia(context.session)
+      assertWaitsForUnplug(context)
+
+      context.xapi.unplug(CD_REF)
+      await until(() => Object.keys(context.xapi.records.VBD[CD_REF].other_config).length === 0)
+    })
+
+    it('releases at the next reconciliation a drive unplugged while no event was received', async () => {
+      const context = await insert({ xapi: makeXapi({ powerState: 'Running' }), reconcileInterval: 10 })
+      await context.media.ejectBrowserMedia(context.session)
+      assertWaitsForUnplug(context)
+
+      context.xapi.unplug(CD_REF, { emit: false })
+      await until(() => Object.keys(context.xapi.records.VBD[CD_REF].other_config).length === 0)
+    })
+
+    it('leaves the release of the drive to the next ISO inserted in it', async () => {
+      const context = await insert({ xapi: makeXapi({ powerState: 'Running' }) })
+      await context.media.ejectBrowserMedia(context.session)
+
+      const browser = await connect(context.url)
+      await context.media.insertBrowserMedia({ id: browser.session, vmId: VM_ID })
+      const tag = JSON.parse(context.xapi.records.VBD[CD_REF].other_config[TAG])
+      assert.equal(tag.session, browser.session)
+      assert.equal(tag.backendKind, true)
+      assert.equal(tag.ejected, undefined)
+
+      await context.media.ejectBrowserMedia(browser.session)
+      context.xapi.unplug(CD_REF)
+      await until(() => Object.keys(context.xapi.records.VBD[CD_REF].other_config).length === 0)
+    })
+  })
+
   it('ejects an ISO which has not been read for too long', async () => {
     const context = await insert({ config: { 'browserMedia.idleTimeout': 0 }, tickInterval: 10 })
     const [code] = await once(context.socket, 'close')
@@ -744,9 +830,13 @@ describe('recovery', () => {
     const ejectIndex = xapi.calls.findIndex(([method]) => method === 'VBD.eject')
     const forgetIndex = xapi.calls.findIndex(([method]) => method === 'SR.forget')
     assert.ok(ejectIndex !== -1 && ejectIndex < forgetIndex)
-    assert.deepEqual(xapi.records.VBD[CD_REF].other_config, {})
     assert.deepEqual(xapi.records.VM[VM_REF].blocked_operations, { destroy: 'protected by someone else' })
     assert.deepEqual(xapi.records.SR, {})
+
+    // the drive is still plugged in the running VM: it stays on blkback until it is unplugged
+    assert.equal(xapi.records.VBD[CD_REF].other_config['backend-kind'], 'vbd')
+    xapi.unplug(CD_REF)
+    await until(() => Object.keys(xapi.records.VBD[CD_REF].other_config).length === 0)
   })
 
   it('drops the journal entries which are invalid, and recovers the others', async () => {
