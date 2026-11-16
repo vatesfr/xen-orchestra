@@ -1,13 +1,13 @@
-import V2vNewVmActions from '@/modules/v2v/components/panel/V2vNewVmActions.vue'
-import V2vNotFoundVmActions from '@/modules/v2v/components/panel/V2vNotFoundVmActions.vue'
-import V2vResumedVmActions from '@/modules/v2v/components/panel/V2vResumedVmActions.vue'
 import V2vVmKindActions from '@/modules/v2v/components/panel/V2vVmKindActions.vue'
 import type { V2vMappingStepVm } from '@/modules/v2v/types/v2v-mapping-step.type.ts'
+import type { V2vVmActionList } from '@/modules/v2v/types/v2v-vm-actions.type.ts'
 import { V2V_NEW_STEP_VM, V2V_RESUMED_STEP_VM, V2V_NOT_FOUND_STEP_VM } from '@/test/create-v2v-mapping-step-vm.ts'
-import { findShownComponents } from '@/test/find-shown-components.ts'
+import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { v2vVmActionsMock } from '@/test/mock-v2v-vm-actions.ts'
-import { mountV2vVmKindActions, findV2vVmSlotActions, getV2vVmKindActionList } from '@/test/v2v-vm-kind-actions.ts'
-import { type VueWrapper } from '@vue/test-utils'
+import { getV2vVmKindActionList } from '@/test/v2v-vm-kind-actions.ts'
+import type { LeafActionItem } from '@core/components/menu/VtsActionsMenu.vue'
+import { mount, type VueWrapper } from '@vue/test-utils'
+import { defineComponent, h, type PropType, toValue } from 'vue'
 
 vi.mock(
   import('@/modules/v2v/composables/use-v2v-vm-actions.composable.ts'),
@@ -18,54 +18,64 @@ beforeEach(() => {
   v2vVmActionsMock.reset()
 })
 
+// Stands for what the caller lays the actions out as
+const ActionListStub = defineComponent({
+  props: {
+    mainAction: Object as PropType<LeafActionItem>,
+    moreActions: Array as PropType<LeafActionItem[]>,
+  },
+  setup: () => () => null,
+})
+
 const updateVm = vi.fn()
 
 function mountKindActions(vm: V2vMappingStepVm) {
-  return mountV2vVmKindActions(V2vVmKindActions, { vm, updateVm })
+  return mount(V2vVmKindActions, {
+    props: { vm, updateVm },
+    slots: { default: (actions: V2vVmActionList) => h(ActionListStub, actions) },
+    global: createGlobalTestConfig(),
+  })
 }
 
-const KIND_ACTIONS = [V2vNewVmActions, V2vResumedVmActions, V2vNotFoundVmActions]
-
-function findKindActions(wrapper: VueWrapper) {
-  return findShownComponents(wrapper, KIND_ACTIONS)
+function findSlotActions(wrapper: VueWrapper) {
+  return wrapper.getComponent(ActionListStub).props()
 }
 
-it.each([
-  ['a new VM, stored through the list', V2V_NEW_STEP_VM, V2vNewVmActions, { vm: V2V_NEW_STEP_VM, updateVm }],
-  ['a resumed VM', V2V_RESUMED_STEP_VM, V2vResumedVmActions, { vm: V2V_RESUMED_STEP_VM }],
-  ['a VM not found in the source', V2V_NOT_FOUND_STEP_VM, V2vNotFoundVmActions, { vm: V2V_NOT_FOUND_STEP_VM }],
-] as const)('runs the actions of %s', (_, vm, kindActions, props) => {
-  const wrapper = mountKindActions(vm)
+const { useV2vNewVmActions, useV2vResumedVmActions, useV2vNotFoundVmActions } = v2vVmActionsMock
 
-  expect(findKindActions(wrapper)).toEqual([kindActions])
-  expect(wrapper.getComponent(kindActions).props()).toEqual(props)
+const KINDS = [
+  ['a new VM', V2V_NEW_STEP_VM, useV2vNewVmActions],
+  ['a resumed VM', V2V_RESUMED_STEP_VM, useV2vResumedVmActions],
+  ['a VM not found in the source', V2V_NOT_FOUND_STEP_VM, useV2vNotFoundVmActions],
+] as const
+
+it.each(KINDS)('runs the actions of %s on it, and those alone', (_, vm, useActions) => {
+  mountKindActions(vm)
+
+  expect(toValue(useActions.mock.lastCall?.[0])).toEqual(vm)
+  expect(KINDS.map(([, , useKind]) => useKind).filter(useKind => useKind.mock.calls.length > 0)).toEqual([useActions])
+})
+
+it.each(KINDS)(
+  'hands its slot the settings edit of %s, if any, as main action, then the others',
+  (_, vm, useActions) => {
+    expect(findSlotActions(mountKindActions(vm))).toEqual(getV2vVmKindActionList(useActions))
+  }
+)
+
+it('stores the settings of a new VM through the list', () => {
+  mountKindActions(V2V_NEW_STEP_VM)
+
+  expect(useV2vNewVmActions.mock.lastCall?.[1].updateVm).toBe(updateVm)
 })
 
 it.each([
-  ['a new VM', V2V_NEW_STEP_VM, v2vVmActionsMock.useV2vNewVmActions],
-  ['a resumed VM', V2V_RESUMED_STEP_VM, v2vVmActionsMock.useV2vResumedVmActions],
-  ['a VM not found in the source', V2V_NOT_FOUND_STEP_VM, v2vVmActionsMock.useV2vNotFoundVmActions],
-] as const)('hands its slot the actions of %s', (_, vm, useActions) => {
+  ['a new VM', V2V_NEW_STEP_VM, () => useV2vNewVmActions.mock.lastCall?.[1].remove],
+  ['a VM not found in the source', V2V_NOT_FOUND_STEP_VM, () => useV2vNotFoundVmActions.mock.lastCall?.[1].remove],
+] as const)('emits the removal of %s, for the caller to confirm it', (_, vm, getRemove) => {
   const wrapper = mountKindActions(vm)
 
-  expect(findV2vVmSlotActions(wrapper)).toEqual(getV2vVmKindActionList(useActions))
-})
-
-it('switches to the actions of the new VM a resumed one becomes once its import VM is deleted', async () => {
-  const wrapper = mountKindActions(V2V_RESUMED_STEP_VM)
-
-  await wrapper.setProps({ vm: V2V_NEW_STEP_VM })
-
-  expect(findKindActions(wrapper)).toEqual([V2vNewVmActions])
-})
-
-it.each([
-  ['a new VM', V2V_NEW_STEP_VM, V2vNewVmActions],
-  ['a VM not found in the source', V2V_NOT_FOUND_STEP_VM, V2vNotFoundVmActions],
-] as const)('emits the removal of %s', async (_, vm, kindActions) => {
-  const wrapper = mountKindActions(vm)
-
-  await wrapper.getComponent(kindActions).vm.$emit('remove', vm.id)
+  getRemove()?.(vm.id)
 
   expect(wrapper.emitted('remove')).toEqual([[vm.id]])
 })

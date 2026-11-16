@@ -1,5 +1,11 @@
 <template>
-  <V2vVmKindActions v-slot="{ mainAction, moreActions }" :vm :update-vm @remove="id => emit('remove', id)">
+  <V2vVmKindActions
+    :key="vm.kind"
+    v-slot="{ mainAction, moreActions }"
+    :vm
+    :update-vm
+    @remove="id => emit('remove', id)"
+  >
     <VtsActionItems :actions="getV2vVmMenuActions(mainAction, moreActions)" />
   </V2vVmKindActions>
 </template>

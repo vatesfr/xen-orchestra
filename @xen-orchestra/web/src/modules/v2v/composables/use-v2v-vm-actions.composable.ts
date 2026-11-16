@@ -39,7 +39,7 @@ function useRemoveAction(vm: ComputedRef<V2vMappingStepVm>, remove: V2vVmRemove)
 }
 
 // Each kind of VM has its own actions, a composable each: a resumed VM has an import VM to delete, the other kinds have
-// none. The component calling one is chosen by `v-if` on the kind of its VM, which changes once the import VM is
+// none. `V2vVmKindActions` calls the one of the kind of its VM, keyed by that kind, which changes once the import VM is
 // deleted. The menu actions carry no separator: the panel menu opens on them, a row menu sets them apart itself
 export function useV2vNewVmActions(
   rawVm: MaybeRefOrGetter<V2vNewMappingStepVm>,

@@ -50,6 +50,11 @@ function findKindActionsVm(wrapper: VueWrapper) {
   return wrapper.getComponent(V2vVmKindActions).props('vm')
 }
 
+// The actions the panel lays out as a main button and a menu
+function findPanelActions(wrapper: VueWrapper) {
+  return wrapper.getComponent(V2vVmActions).props()
+}
+
 function findNotFoundHero(wrapper: VueWrapper) {
   return wrapper.findAllComponents(VtsStateHero).find(hero => hero.props('type') === 'not-found')
 }
@@ -92,9 +97,7 @@ it('closes on request', async () => {
 it('lays the actions of the VM out as a main button and a menu', () => {
   const wrapper = mountPanel(V2V_NEW_STEP_VM)
 
-  expect(wrapper.getComponent(V2vVmActions).props()).toEqual(
-    getV2vVmKindActionList(v2vVmActionsMock.useV2vNewVmActions)
-  )
+  expect(findPanelActions(wrapper)).toEqual(getV2vVmKindActionList(v2vVmActionsMock.useV2vNewVmActions))
 })
 
 describe('new VM', () => {
@@ -124,12 +127,13 @@ describe('resumed VM', () => {
     expect(findKindComponents(wrapper)).toEqual([V2vResumedVmCards])
   })
 
-  it('switches to the cards of the new VM it becomes once its import VM is deleted', async () => {
+  it('switches to the cards and the actions of the new VM it becomes once its import VM is deleted', async () => {
     const wrapper = mountPanel(V2V_RESUMED_STEP_VM)
 
     await wrapper.setProps({ vm: V2V_NEW_STEP_VM })
 
     expect(findKindComponents(wrapper)).toEqual([V2vNewVmCards])
+    expect(findPanelActions(wrapper)).toEqual(getV2vVmKindActionList(v2vVmActionsMock.useV2vNewVmActions))
   })
 })
 

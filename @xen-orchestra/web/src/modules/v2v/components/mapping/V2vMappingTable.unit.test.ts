@@ -6,6 +6,7 @@ import {
   V2V_NEW_STEP_VM,
   V2V_NOT_FOUND_STEP_VM,
   createV2vMappingStepRow,
+  createV2vNewMappingStepVm,
   createV2vResumedMappingStepVm,
 } from '@/test/create-v2v-mapping-step-vm.ts'
 import { findAccentedInfos, findAccentedTags } from '@/test/find-accented-labels.ts'
@@ -73,6 +74,13 @@ async function openRowMenu(wrapper: VueWrapper, rowIndex: number) {
   return wrapper.getComponent(VtsActionItems)
 }
 
+// A row menu leads with the settings edit, the other actions set apart
+function getKindMenuActions(useActions: Parameters<typeof getV2vVmKindActionList>[0]) {
+  const { mainAction, moreActions } = getV2vVmKindActionList(useActions)
+
+  return getV2vVmMenuActions(mainAction, moreActions)
+}
+
 it('heads the columns of the VMs of the list', () => {
   expect(findTableHeaders(mountTable())).toEqual([t('vm'), t('type'), t('mapping'), t('checks'), ''])
 })
@@ -127,11 +135,24 @@ describe('row menu', () => {
     ['a new VM', 0, v2vVmActionsMock.useV2vNewVmActions],
     ['a resumed VM', 1, v2vVmActionsMock.useV2vResumedVmActions],
   ] as const)('leads with the settings edit of %s, the other actions set apart', async (_, rowIndex, useActions) => {
-    const wrapper = mountTable()
-    const items = await openRowMenu(wrapper, rowIndex)
-    const { mainAction, moreActions } = getV2vVmKindActionList(useActions)
+    const items = await openRowMenu(mountTable(), rowIndex)
 
-    expect(items.props('actions')).toEqual(getV2vVmMenuActions(mainAction, moreActions))
+    expect(items.props('actions')).toEqual(getKindMenuActions(useActions))
+  })
+
+  it('switches its open menu to the actions of the new VM a resumed one becomes once its import VM is deleted', async () => {
+    const wrapper = mountTable()
+
+    await openRowMenu(wrapper, 1)
+    await wrapper.setProps({
+      rows: ROWS.map(row =>
+        row.vm === RESUMED_VM ? { ...row, vm: createV2vNewMappingStepVm({ id: RESUMED_VM.id }) } : row
+      ),
+    })
+
+    expect(wrapper.getComponent(VtsActionItems).props('actions')).toEqual(
+      getKindMenuActions(v2vVmActionsMock.useV2vNewVmActions)
+    )
   })
 
   it('offers the actions of a VM not found in the source, without separator', async () => {

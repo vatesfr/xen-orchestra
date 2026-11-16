@@ -1,7 +1,7 @@
 <template>
   <VtsSidePanel :has-selection="!!vm" @close="emit('close')">
     <template v-if="vm" #actions>
-      <V2vVmKindActions v-slot="actions" :vm :update-vm @remove="id => emit('remove', id)">
+      <V2vVmKindActions :key="vm.kind" v-slot="actions" :vm :update-vm @remove="id => emit('remove', id)">
         <V2vVmActions v-bind="actions" />
       </V2vVmKindActions>
     </template>
