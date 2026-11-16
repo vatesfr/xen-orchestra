@@ -110,11 +110,12 @@ export async function set({
     const xapi = this.getXapi(vif)
 
     // XAPI refuses trunks on a network with a VLAN (NETWORK_INCOMPATIBLE_WITH_TRUNKS), and the delete+create
-    // fallback below would recreate the VIF without them: moved back later to a network without VLAN, it would
-    // see every VLAN. Refuse, as XAPI does
-    if (isNetworkChanged && vif.trunks?.length > 0 && xapi.getObject(network.id).$PIFs.some(pif => pif.VLAN !== -1)) {
+    // fallback below passes `trunks: vif.trunks`: the VIF would be deleted, then XAPI would refuse to recreate it.
+    // Refuse before touching the VIF
+    if (isNetworkChanged && vif.trunks?.length > 0 && xapi.getObject(network.id).$PIFs.some(pif => +pif.VLAN !== -1)) {
       throw invalidParameters(
-        `remove the VLANs VIF ${vif.id} is restricted to before moving it to a network with a VLAN`
+        `VIF ${vif.id} is restricted to some VLANs, which a network with a VLAN refuses: clear them first ` +
+          `(PATCH /rest/v0/vifs/${vif.id} with { "trunks": [] }), then move it`
       )
     }
 
