@@ -102,15 +102,18 @@ export async function getLinstorIssues(xapi) {
 export async function waitLinstorHealthy(xapi, { timeout, interval = 5e3 }) {
   const deadline = Date.now() + timeout
   while (true) {
-    let issues
+    let cause, issues
     try {
       issues = await getLinstorIssues(xapi)
     } catch (error) {
       if (error.code === 'UNKNOWN_XENAPI_PLUGIN_FUNCTION') {
         throw error
       }
-      // the plugin fails while the controller is not started yet
-      issues = [`LINSTOR health check failed: ${error.message}`]
+      // the plugin fails while the controller is not started yet. It is the
+      // one which finds the controller: only the host it ran on, the master,
+      // can be named
+      cause = error
+      issues = [`LINSTOR health check failed on host ${xapi.pool.$master.name_label}: ${error.message}`]
     }
     if (issues.length === 0) {
       return
@@ -120,7 +123,9 @@ export async function waitLinstorHealthy(xapi, { timeout, interval = 5e3 }) {
       if (issues.length > reported.length) {
         reported.push(`and ${issues.length - reported.length} more`)
       }
-      throw new Error(`LINSTOR is not healthy after ${Math.round(timeout / 1e3)} seconds: ${reported.join('; ')}`)
+      throw new Error(`LINSTOR is not healthy after ${Math.round(timeout / 1e3)} seconds: ${reported.join('; ')}`, {
+        cause,
+      })
     }
     await setTimeout(interval)
   }

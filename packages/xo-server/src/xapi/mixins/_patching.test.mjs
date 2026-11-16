@@ -852,6 +852,15 @@ describe('rollingPoolUpdate', function () {
       assert.equal(error, undefined)
       assert.deepEqual(xapi.linstorEvents, ['wait', 'reboot host-B', 'wait'])
     })
+
+    it('does not wait for LINSTOR when no host is left to update or reboot', async function () {
+      const xapi = new FakeXapi([0, 0], { linstor: true })
+
+      const error = await rollingPoolUpdate(xapi, { resume: resumeOf(true) })
+
+      assert.equal(error, undefined)
+      assert.deepEqual(xapi.linstorEvents, [])
+    })
   })
 })
 
@@ -878,6 +887,11 @@ describe('_updateLinstorPackages()', function () {
         assert.equal(method, 'host.call_plugin')
         if (fn === 'hasControllerRunning') {
           assert.equal(plugin, 'linstor-manager')
+          if (controllerHosts === undefined) {
+            throw Object.assign(new Error('UNKNOWN_XENAPI_PLUGIN_FUNCTION(hasControllerRunning)'), {
+              code: 'UNKNOWN_XENAPI_PLUGIN_FUNCTION',
+            })
+          }
           calls.push(`${hostRef} ${fn}`)
           // Python's `str(bool)`
           return controllerHosts.includes(hostRef) ? 'True' : 'False'
@@ -910,6 +924,15 @@ describe('_updateLinstorPackages()', function () {
     assert.deepEqual(await updateLinstorPackages([]), [
       ...onEveryHost('hasControllerRunning'),
       ...UPDATES,
+      ...onEveryHost('restart_service linstor-satellite'),
+      'wait',
+    ])
+  })
+
+  it('stops the controller on every host when the plugin is too old to look for it', async function () {
+    assert.deepEqual(await updateLinstorPackages(undefined), [
+      ...UPDATES,
+      ...onEveryHost('stop_service linstor-controller'),
       ...onEveryHost('restart_service linstor-satellite'),
       'wait',
     ])

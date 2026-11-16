@@ -153,7 +153,7 @@ describe('getLinstorBlockingIssues()', function () {
 const fakeXapi = (results, groupNames = ['linstor_group/thin_device']) => {
   const xapi = {
     healthChecks: [],
-    pool: { master: 'OpaqueRef:host-A' },
+    pool: { master: 'OpaqueRef:host-A', $master: { name_label: 'host A' } },
     objects: {
       indexes: {
         type: {
@@ -264,10 +264,13 @@ describe('waitLinstorHealthy()', function () {
   })
 
   it('gives up on the timeout with the failure of the plugin', async function () {
-    const xapi = fakeXapi([new Error('XENAPI_PLUGIN_FAILURE')])
+    const failure = new Error('XENAPI_PLUGIN_FAILURE')
+    const xapi = fakeXapi([failure])
 
     await assert.rejects(waitLinstorHealthy(xapi, { timeout: 0 }), {
-      message: 'LINSTOR is not healthy after 0 seconds: LINSTOR health check failed: XENAPI_PLUGIN_FAILURE',
+      message:
+        'LINSTOR is not healthy after 0 seconds: LINSTOR health check failed on host host A: XENAPI_PLUGIN_FAILURE',
+      cause: failure,
     })
   })
 })

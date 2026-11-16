@@ -802,15 +802,26 @@ const methods = {
       // has to be stopped to be started again with its new version. Looked for
       // before anything is changed: a failure leaves the pool as it was. The
       // plugin answers with a Python boolean
-      const hasController = await callPluginOnAllHost('linstor-manager', 'hasControllerRunning', {})
-      const controllerHosts = hosts.filter((_, i) => hasController[i] === 'True')
-      if (controllerHosts.length > 1) {
-        throw new Error(
-          `LINSTOR controller running on several hosts: ${controllerHosts.map(host => host.uuid).join(', ')}`
-        )
-      }
-      if (controllerHosts.length === 0) {
-        log.warn(`no running LINSTOR controller found on pool ${this.pool.uuid}`)
+      let controllerHosts
+      try {
+        const hasController = await callPluginOnAllHost('linstor-manager', 'hasControllerRunning', {})
+        controllerHosts = hosts.filter((_, i) => hasController[i] === 'True')
+        if (controllerHosts.length > 1) {
+          throw new Error(
+            `LINSTOR controller running on several hosts: ${controllerHosts.map(host => host.uuid).join(', ')}`
+          )
+        }
+        if (controllerHosts.length === 0) {
+          log.warn(`no running LINSTOR controller found on pool ${this.pool.uuid}`)
+        }
+      } catch (error) {
+        if (error.code !== 'UNKNOWN_XENAPI_PLUGIN_FUNCTION') {
+          throw error
+        }
+        // a plugin too old to tell, which this update replaces: the controller
+        // is stopped on every host, as it was before it was looked for
+        log.warn(`the LINSTOR controller cannot be looked for on pool ${this.pool.uuid}`, { error })
+        controllerHosts = hosts
       }
 
       for (const [plugin, fn, args] of steps) {
@@ -995,14 +1006,31 @@ const methods = {
     // nor again once a host started with them
     const needsUpdate = some(hasMissingPatchesByHost)
     const hasLinstor = some(this.objects.indexes.type.SR, { type: 'linstor' })
-    if (hasLinstor) {
+
+    // an unfinished host the run patched and which did not reboot since: only
+    // its reboot is left. boot_time, unlike agent_start_time, is not changed by
+    // a toolstack restart
+    const needsRebootOnly = hostId => {
+      // may have been forgotten while its patches were listed
+      const host = this.getObject(hostId, undefined)
+      return (
+        host !== undefined &&
+        !hasMissingPatchesByHost[hostId] &&
+        resume.patchedHostIds.has(hostId) &&
+        +host.other_config.boot_time <= +unfinishedHosts[hostId].agentStartedAtBeforeUpdate
+      )
+    }
+
+    // with no host left to update or reboot, the state of LINSTOR changes
+    // nothing to the run
+    if (hasLinstor && (needsUpdate || Object.keys(unfinishedHosts).some(needsRebootOnly))) {
       // the previous attempt may have stopped while LINSTOR was recovering from
       // what it did, a restart of its services or the reboot of a host: it is
       // waited for. On a first attempt, an unhealthy LINSTOR is not the doing
       // of the run: it is refused before anything is changed
       if (resume !== noRpuResume) {
         await this._waitLinstorHealthy()
-      } else if (needsUpdate) {
+      } else {
         await this._assertLinstorHealthy()
       }
     }
@@ -1022,7 +1050,7 @@ const methods = {
       }
     }
     const rebootOnlyHostIds = new Set()
-    for (const [hostId, { agentStartedAtBeforeUpdate, enabledBeforeUpdate }] of Object.entries(unfinishedHosts)) {
+    for (const [hostId, { enabledBeforeUpdate }] of Object.entries(unfinishedHosts)) {
       const host = this.getObject(hostId, undefined)
       // forgotten while its patches were listed: nothing left to do
       if (host === undefined) {
@@ -1040,8 +1068,7 @@ const methods = {
       if (hasMissingPatchesByHost[hostId]) {
         continue
       }
-      // boot_time, unlike agent_start_time, is not changed by a toolstack restart
-      if (resume.patchedHostIds.has(hostId) && +host.other_config.boot_time <= +agentStartedAtBeforeUpdate) {
+      if (needsRebootOnly(hostId)) {
         rebootOnlyHostIds.add(hostId)
         continue
       }
