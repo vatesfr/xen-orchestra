@@ -46,6 +46,7 @@
 - [V2V] Keep the MAC address of a network card set by hand on VMware, instead of generating a new one, and no longer create a network interface for a card which is not present (PR [#10597](https://github.com/vatesfr/xen-orchestra/pull/10597))
 - [Replication] Fix `Cannot read properties of undefined (reading 'uuid')` error when an orphan replica snapshot exists on the target SR (PR [#10732](https://github.com/vatesfr/xen-orchestra/pull/10732))
 - [XO6/Modals] Modals no longer stretch across the screen: their width is limited to a third of the screen, up to 550px (PR [#10800](https://github.com/vatesfr/xen-orchestra/pull/10800))
+- [SDN Controller] With the XAPI plugin, a traffic rule a host fails to apply or remove reports which host failed and why (e.g. `XENAPI_MISSING_PLUGIN(sdncontroller.py) on host-2`) instead of an empty error (PR [#10693](https://github.com/vatesfr/xen-orchestra/pull/10693))
 
 ### Packages to release
 
@@ -75,6 +76,7 @@
 - @xen-orchestra/web-core minor
 - xo-server minor
 - xo-server-load-balancer patch
+- xo-server-sdn-controller patch
 - xo-web minor
 
 <!--packages-end-->
