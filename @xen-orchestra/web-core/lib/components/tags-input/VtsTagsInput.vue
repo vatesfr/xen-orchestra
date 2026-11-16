@@ -2,7 +2,7 @@
   <div class="vts-tags-input">
     <UiInput v-model="draft" :accent :placeholder @keydown="(event: KeyboardEvent) => handleKeydown(event)" />
     <div v-if="tags.length > 0" class="chips">
-      <UiChip v-for="(tag, index) of tags" :key="index" accent="info" @remove="removeTag(index)">
+      <UiChip v-for="tag of tags" :key="tag" accent="info" @remove="removeTag(tag)">
         {{ tag }}
       </UiChip>
     </div>
@@ -52,8 +52,8 @@ function handleKeydown(event: KeyboardEvent) {
   addDraftTags()
 }
 
-function removeTag(index: number) {
-  tags.value = tags.value.filter((_tag, tagIndex) => tagIndex !== index)
+function removeTag(tag: string) {
+  tags.value = tags.value.filter(currentTag => currentTag !== tag)
 }
 </script>
 
