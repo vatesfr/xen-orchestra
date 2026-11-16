@@ -1,7 +1,7 @@
 import { getTaskRoute } from '@/modules/task/utils/xo-task.util.ts'
+import { useV2vReviewLabels } from '@/modules/v2v/composables/use-v2v-review-labels.composable.ts'
 import { useV2vReviewStep } from '@/modules/v2v/composables/use-v2v-review-step.composable.ts'
 import { useV2vSelectedVmLabels } from '@/modules/v2v/composables/use-v2v-selected-vm-labels.composable.ts'
-import { useV2vVmLabels } from '@/modules/v2v/composables/use-v2v-vm-labels.composable.ts'
 import type { V2vStartVm } from '@/modules/v2v/types/v2v-launch.type.ts'
 import { buildV2vStartPayload } from '@/modules/v2v/utils/v2v-start-payload.util.ts'
 import { DISKOR_POOL_NAME } from '@/test/create-pool.ts'
@@ -107,7 +107,7 @@ function mountReviewStep(options?: Parameters<typeof mountV2vListStep>[2]) {
     'review',
     setup =>
       mountComposableOnV2vWizard(
-        () => ({ ...useV2vReviewStep(), labels: useV2vVmLabels(), selectedVmLabels: useV2vSelectedVmLabels() }),
+        () => ({ ...useV2vReviewStep(), labels: useV2vReviewLabels(), selectedVmLabels: useV2vSelectedVmLabels() }),
         setup
       ),
     options

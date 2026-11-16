@@ -1,5 +1,5 @@
 import { useV2vLaunchOptionSelect } from '@/modules/v2v/composables/use-v2v-launch-option-select.composable.ts'
-import { useV2vVmLabels } from '@/modules/v2v/composables/use-v2v-vm-labels.composable.ts'
+import { useV2vReviewLabels } from '@/modules/v2v/composables/use-v2v-review-labels.composable.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
 import { flushPromises } from '@vue/test-utils'
 import { ref } from 'vue'
@@ -11,7 +11,7 @@ function mountSelect(modelValue: boolean | undefined, initialDefaultValue = true
   const { wrapper } = mountComposable(() => {
     const { allOptions, selectedLabel } = useV2vLaunchOptionSelect(model, defaultValue)
 
-    return { allOptions, selectedLabel, labels: useV2vVmLabels() }
+    return { allOptions, selectedLabel, labels: useV2vReviewLabels() }
   })
 
   return { vm: wrapper.vm, defaultValue }

@@ -4,9 +4,9 @@ import { useV2vConnection } from '@/modules/v2v/composables/use-v2v-connection.c
 import { useV2vImportVm } from '@/modules/v2v/composables/use-v2v-import-vm.composable.ts'
 import { useV2vMigrationListRows } from '@/modules/v2v/composables/use-v2v-migration-list-rows.composable.ts'
 import { useV2vPoolName, useV2vPoolNameGetter } from '@/modules/v2v/composables/use-v2v-pool-name.composable.ts'
+import { useV2vReviewLabels } from '@/modules/v2v/composables/use-v2v-review-labels.composable.ts'
 import { useV2vSelectedVms } from '@/modules/v2v/composables/use-v2v-selected-vms.composable.ts'
 import { useV2vTargetNameGetters } from '@/modules/v2v/composables/use-v2v-target-name-getters.composable.ts'
-import { useV2vVmLabels } from '@/modules/v2v/composables/use-v2v-vm-labels.composable.ts'
 import { useV2vWizardNavigation } from '@/modules/v2v/composables/use-v2v-wizard-navigation.composable.ts'
 import { useV2vLaunchForm } from '@/modules/v2v/form/use-v2v-launch-form.ts'
 import { useXoV2vStartJob } from '@/modules/v2v/jobs/xo-v2v-start.job.ts'
@@ -71,7 +71,7 @@ export function useV2vReviewStep() {
 
   const { goToStep, getStepLocation } = useV2vWizardNavigation()
 
-  const labels = useV2vVmLabels()
+  const labels = useV2vReviewLabels()
 
   const listRows = useV2vMigrationListRows()
 

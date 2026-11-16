@@ -1,11 +1,11 @@
 import { useV2vLaunchOptionSelection } from '@/modules/v2v/composables/use-v2v-launch-option-selection.composable.ts'
-import { useV2vVmLabels } from '@/modules/v2v/composables/use-v2v-vm-labels.composable.ts'
+import { useV2vReviewLabels } from '@/modules/v2v/composables/use-v2v-review-labels.composable.ts'
 import { useFormSelect } from '@core/packages/form-select'
 import { type MaybeRefOrGetter, type Ref, toValue } from 'vue'
 
 // `undefined` follows the default value
 export function useV2vLaunchOptionSelect(model: Ref<boolean | undefined>, defaultValue: MaybeRefOrGetter<boolean>) {
-  const { getLaunchOptionLabel } = useV2vVmLabels()
+  const { getLaunchOptionLabel } = useV2vReviewLabels()
 
   return useFormSelect([true, false], {
     model: useV2vLaunchOptionSelection(model),

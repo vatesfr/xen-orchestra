@@ -14,7 +14,8 @@ const ORIGIN_ACCENTS: Record<V2vTargetOrigin, TagAccent> = {
   overridden: 'warning',
 }
 
-// The text of the mapping side panel: the source VM, its devices, where a target comes from and the next transfer
+// The text of a mapping: the source VM, its devices, where a target comes from, the next transfer and the mapping
+// summary of a VM
 export function useV2vMappingLabels() {
   const { t } = useI18n()
 
@@ -68,6 +69,22 @@ export function useV2vMappingLabels() {
     full: t('full-transfer'),
   }))
 
+  // The panel and the review word a resumed VM alike: its transfer, then where it goes, then its kept mapping
+  const resumedTransferLabels = computed<Record<V2vNextTransfer, string>>(() => ({
+    delta: t('v2v:delta-from-last-sync'),
+    full: nextTransferLabels.value.full,
+  }))
+
+  function getResumedParts(transfer: V2vNextTransfer, ...details: string[]): string[] {
+    return [resumedTransferLabels.value[transfer], ...details, t('v2v:mapping-locked')]
+  }
+
+  function withTargets(countLabel: string, targets: string[] | undefined): string {
+    return targets === undefined
+      ? countLabel
+      : t('source-to-destination', { source: countLabel, destination: targets.join(', ') })
+  }
+
   return {
     getOriginTag,
     getPowerLabel,
@@ -77,5 +94,7 @@ export function useV2vMappingLabels() {
     getDiskDetailParts,
     getNicDetailParts,
     nextTransferLabels,
+    getResumedParts,
+    withTargets,
   }
 }
