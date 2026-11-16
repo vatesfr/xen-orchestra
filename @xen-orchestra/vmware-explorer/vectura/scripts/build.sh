@@ -59,6 +59,9 @@ export CARGO_TARGET_DIR=$build/target
 export CARGO_ZIGBUILD_CACHE_DIR=$build/zigbuild
 export SOURCE_DATE_EPOCH=1
 
-cargo zigbuild --locked --release --target x86_64-unknown-linux-gnu.2.31
+# cargo-zigbuild names the directory of that wrapper after its own path, which
+# depends on the home directory: it runs from a copy at a fixed path.
+install -m 755 "$(command -v cargo-zigbuild)" "$build/cargo-zigbuild"
+"$build/cargo-zigbuild" zigbuild --locked --release --target x86_64-unknown-linux-gnu.2.31
 # the glibc suffix is for zig only: the binary lands under the plain triple
 install -m 755 "$CARGO_TARGET_DIR/x86_64-unknown-linux-gnu/release/vectura" "$out"
