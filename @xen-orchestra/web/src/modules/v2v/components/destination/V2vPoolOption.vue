@@ -1,7 +1,7 @@
 <template>
   <span class="v2v-pool-option">
     <span class="label">{{ label }}</span>
-    <VtsInlineParts v-if="counts !== undefined" class="typo-body-regular-small counts">
+    <VtsInlineParts v-if="counts !== undefined" separator="bullet" class="typo-body-regular-small counts">
       <span>{{ t('n-hosts', { n: counts.hosts }) }}</span>
       <span>{{ t('n-srs', { n: counts.srs }) }}</span>
       <span>{{ t('n-networks', { n: counts.networks }) }}</span>

@@ -18,7 +18,7 @@
         :rows="section.rows"
       >
         <template #key="{ row }">
-          <VtsInlineParts>
+          <VtsInlineParts separator="bullet">
             <span v-for="part of row.sourceParts" :key="part">{{ part }}</span>
           </VtsInlineParts>
         </template>

@@ -6,7 +6,7 @@
         <UiLink size="medium" :icon="vm.icon" :to="{ name: '/vm/[id]/dashboard', params: { id: vm.id } }">
           {{ vm.name }}
         </UiLink>
-        <VtsInlineParts class="typo-body-regular-small">
+        <VtsInlineParts separator="bullet" class="typo-body-regular-small">
           <span>{{ t('pool-named', { name: poolName }) }}</span>
           <span>{{ vm.powerLabel }}</span>
           <span>{{ t('v2v:start-blocked-partial') }}</span>

@@ -6,7 +6,7 @@
         {{ connection.host }}
         <UiTag accent="neutral" variant="secondary">{{ t('vmware') }}</UiTag>
       </div>
-      <VtsInlineParts class="description typo-body-regular-small">
+      <VtsInlineParts separator="bullet" class="description typo-body-regular-small">
         <span v-if="connection.product">{{ connection.product }} {{ connection.version }}</span>
         <span>{{ connection.username }}</span>
         <I18nT v-if="connection.lastUsedAt !== undefined" keypath="used-relative-time" tag="span" scope="global">
@@ -16,7 +16,7 @@
         </I18nT>
         <span v-if="connection.skipSslCheck">{{ t('ssl-check-skipped') }}</span>
       </VtsInlineParts>
-      <VtsInlineParts v-if="progressLabels !== undefined" class="stats typo-body-regular-small">
+      <VtsInlineParts v-if="progressLabels !== undefined" separator="bullet" class="stats typo-body-regular-small">
         <span v-if="connection.vmCount !== undefined">{{ t('n-vms', { n: connection.vmCount }) }}</span>
         <span v-for="label of progressLabels" :key="label">{{ label }}</span>
       </VtsInlineParts>

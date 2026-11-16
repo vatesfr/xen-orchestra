@@ -18,7 +18,7 @@
         :label="t('selected-vms')"
         :counter="{ value: items.length, accent: 'brand' }"
       />
-      <VtsInlineParts class="storage-info typo-body-regular-small">
+      <VtsInlineParts separator="bullet" class="storage-info typo-body-regular-small">
         <span>{{ t('v2v:saved-in-this-browser') }}</span>
         <span>{{ t('v2v:sent-to-xo-at-launch') }}</span>
       </VtsInlineParts>

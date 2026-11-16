@@ -3,5 +3,7 @@ import { renderBodyCell } from '@core/tables/helpers/render-body-cell.ts'
 import { h } from 'vue'
 
 export function renderInlinePartsCell(parts: string[]) {
-  return renderBodyCell(() => h(VtsInlineParts, () => parts.map(part => h('span', { key: part }, part))))
+  return renderBodyCell(() =>
+    h(VtsInlineParts, { separator: 'bullet' }, () => parts.map(part => h('span', { key: part }, part)))
+  )
 }

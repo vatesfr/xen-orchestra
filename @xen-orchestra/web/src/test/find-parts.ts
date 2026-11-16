@@ -8,7 +8,7 @@ export function findParts(wrapper: Pick<VueWrapper, 'find'>, selector: string) {
     .map(part => part.text())
 }
 
-// The parts of the first `InlineParts` the wrapper renders
+// The parts of the first `VtsInlineParts` the wrapper renders
 export function findInlineParts(wrapper: Pick<VueWrapper, 'find'>) {
-  return findParts(wrapper, '.inline-parts')
+  return findParts(wrapper, '.vts-inline-parts')
 }

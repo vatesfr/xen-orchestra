@@ -14,7 +14,7 @@
     <UiCardTitle>
       {{ t('review-and-launch') }}
       <template #description>
-        <VtsInlineParts>
+        <VtsInlineParts separator="bullet">
           <span v-for="part of summaryParts" :key="part">{{ part }}</span>
         </VtsInlineParts>
       </template>
@@ -46,7 +46,7 @@
     <V2vLaunchGroup :heading="groupHeadings.resumed" :count="resumedVms.length">
       <V2vLaunchGroupVm v-for="vm of resumedVms" :key="vm.id">
         <template #name>{{ vm.name }}</template>
-        <VtsInlineParts>
+        <VtsInlineParts separator="bullet">
           <span v-for="part of vm.parts" :key="part">{{ part }}</span>
         </VtsInlineParts>
       </V2vLaunchGroupVm>

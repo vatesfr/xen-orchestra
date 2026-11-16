@@ -27,7 +27,7 @@
       <VtsCardRowKeyValue>
         <template #key>{{ t('disks') }}</template>
         <template #value>
-          <VtsInlineParts>
+          <VtsInlineParts separator="bullet">
             <span v-for="part of getDisksParts(vm.disks)" :key="part">{{ part }}</span>
           </VtsInlineParts>
         </template>

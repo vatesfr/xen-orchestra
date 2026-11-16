@@ -3,6 +3,7 @@
     v-slot="{ properties }"
     :params="[
       prop('separator')
+        .required()
         .enum('bullet', 'chevron')
         .preset('bullet')
         .widget()
