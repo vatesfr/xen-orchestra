@@ -42,14 +42,14 @@ export class EventStore {
    xapi -> DB
    The events classes are supposed to be in the correct case.
    * @param {Client} dbClient
-   * @param {{token, events:[FromEvent], valid_ref_counts}} eventResult
+   * @param {{token, events:[FromEvent], valid_ref_counts}} eventBatch
    * @param sessionId
    * @return {Promise<Set<string>>} a set of the references we couldn't resolve
    */
-  async ingestEvents(dbClient, eventResult, sessionId) {
+  async ingestEvents(dbClient, eventBatch, sessionId) {
     const refStore = this.refStore
-    const currentToken = eventResult.token
-    let events = eventResult.events
+    const currentToken = eventBatch.token
+    let events = eventBatch.events
     // some classes are ignored because of API filtering
     events = events.filter(event => event.class in this.classesDict)
     const addEvents = events.filter(e => e.operation === 'add')
@@ -88,7 +88,7 @@ export class EventStore {
       await dbClient.query(
         `INSERT INTO ${this.eventTableName} (token, content)
                             VALUES ($1, $2) ON CONFLICT (token) DO NOTHING`,
-        [currentToken, JSON.stringify({ ...eventResult, events: [] })]
+        [currentToken, JSON.stringify({ ...eventBatch, events: [] })]
       )
       for (const [className, evts] of groupByEntries(filteredEvents, e => e.class)) {
         await recordEventsForClass(dbClient, evts, className, this.historyTableName, currentToken)
@@ -317,19 +317,19 @@ export class EventStore {
  */
 export function createClassNameFixer(classesDict) {
   const lowercase2XapiCase = Object.fromEntries(Object.entries(classesDict).map(([k, _v]) => [k.toLowerCase(), k]))
-  return eventResult => {
+  return eventBatch => {
     const copiedEvents = []
-    for (const e of eventResult.events) {
+    for (const e of eventBatch.events) {
       const newEvent = { ...e, class: lowercase2XapiCase[e.class] }
       copiedEvents.push(newEvent)
     }
-    const entries = Object.entries(eventResult.valid_ref_counts).map(([k, v]) => {
+    const entries = Object.entries(eventBatch.valid_ref_counts).map(([k, v]) => {
       if (lowercase2XapiCase[k] === undefined) {
         return undefined
       }
       return [lowercase2XapiCase[k], v]
     })
     const newValidCounts = Object.fromEntries(entries.filter(e => e !== undefined))
-    return { ...eventResult, events: copiedEvents, valid_ref_counts: newValidCounts }
+    return { ...eventBatch, events: copiedEvents, valid_ref_counts: newValidCounts }
   }
 }

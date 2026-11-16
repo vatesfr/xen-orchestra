@@ -96,7 +96,7 @@ suite('EventStore tests', function () {
   })
 
   test('ingestEvents can add a new record', async function () {
-    const eventResult = {
+    const eventBatch = {
       token: 'token1',
       events: [
         {
@@ -116,7 +116,7 @@ suite('EventStore tests', function () {
       valid_ref_counts: { VM: 1 },
     }
 
-    const unknownRefs = await eventStore.ingestEvents(dbClient, eventResult, 'session1')
+    const unknownRefs = await eventStore.ingestEvents(dbClient, eventBatch, 'session1')
     assert.strictEqual(unknownRefs.size, 1) // Host ref is unknown
     assert.ok(unknownRefs.has('OpaqueRef:host1'))
 
@@ -154,7 +154,7 @@ suite('EventStore tests', function () {
     )
 
     // Then modify
-    const modEventResult = {
+    const modEventBatch = {
       token: 'token2',
       events: [
         {
@@ -173,7 +173,7 @@ suite('EventStore tests', function () {
       valid_ref_counts: { VM: 1 },
     }
 
-    await eventStore.ingestEvents(dbClient, modEventResult, 'session1')
+    await eventStore.ingestEvents(dbClient, modEventBatch, 'session1')
 
     const records = (await dbClient.query(`SELECT * FROM ${xapiDbClasses.VM.getTableNameEsc()}`)).rows
     assert.strictEqual(records.length, 1)
@@ -205,7 +205,7 @@ suite('EventStore tests', function () {
     )
 
     // Then delete
-    const delEventResult = {
+    const delEvenBatch = {
       token: 'token2',
       events: [
         {
@@ -219,7 +219,7 @@ suite('EventStore tests', function () {
       valid_ref_counts: { VM: 0 },
     }
 
-    await eventStore.ingestEvents(dbClient, delEventResult, 'session1')
+    await eventStore.ingestEvents(dbClient, delEvenBatch, 'session1')
 
     const records = (await dbClient.query(`SELECT * FROM ${xapiDbClasses.VM.getTableNameEsc()}`)).rows
     assert.strictEqual(records.length, 0)
@@ -273,7 +273,7 @@ suite('EventStore tests', function () {
   })
 
   test('ingestEvents filters events with unknown classes', async function () {
-    const eventResult = {
+    const eventBatch = {
       token: 'token1',
       events: [
         {
@@ -296,7 +296,7 @@ suite('EventStore tests', function () {
       valid_ref_counts: { VM: 1 },
     }
 
-    await eventStore.ingestEvents(dbClient, eventResult, 'session1')
+    await eventStore.ingestEvents(dbClient, eventBatch, 'session1')
 
     // VM should be ingested, UNKNOWN_CLASS should be ignored
     const records = (await dbClient.query(`SELECT * FROM ${xapiDbClasses.VM.getTableNameEsc()}`)).rows

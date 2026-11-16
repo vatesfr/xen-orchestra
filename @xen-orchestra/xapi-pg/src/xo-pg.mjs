@@ -65,11 +65,11 @@ export async function createPgTransport(pgUrl, createRealTransport) {
       // we need to do an initial load with events.from(), because pulling the objects class by class with
       // get_all_records() doesn't allow keeping all the foreign constraints intact during the insert.
       info('refilling event store... ', { token: lastTokenFromDB, timeout })
-      const initialLoad = await realTransport('event.from', [sessionId, classNames, lastTokenFromDB || '', timeout])
-      const fixedNames = classNameFixer(initialLoad)
+      const batch = await realTransport('event.from', [sessionId, classNames, lastTokenFromDB || '', timeout])
+      const fixedNames = classNameFixer(batch)
       await withClient(dbPool, async dbClient => {
         await eventStore.ingestEvents(dbClient, fixedNames, sessionId)
-        info('refill done', fixedNames.token)
+        info('refill done', { token: fixedNames.token, changeCount: fixedNames.events.length })
       })
     }
 
