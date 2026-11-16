@@ -1,5 +1,6 @@
 import { useV2vVmLabels } from '@/modules/v2v/composables/use-v2v-vm-labels.composable.ts'
-import type { V2vUnsupportedReason, V2vVmStatus } from '@/modules/v2v/types/v2v-vm-row.type.ts'
+import type { V2vUnsupportedReason } from '@/modules/v2v/types/v2v-vm-row.type.ts'
+import type { V2vVmStatus } from '@/modules/v2v/utils/v2v-vm-status.util.ts'
 import { mountComposableWithI18n } from '@/test/mount-composable.ts'
 import { V2V_VM_POWER_STATE } from '@vates/types'
 

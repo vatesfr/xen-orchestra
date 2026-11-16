@@ -1,6 +1,5 @@
 import type { FrontXoVmSnapshot } from '@/modules/snapshot/components/remote-resources/use-xo-vm-snapshot-collection.ts'
 import type { FrontXoTask } from '@/modules/task/remote-resources/use-xo-task-collection.ts'
-import type { V2vVmStatus } from '@/modules/v2v/types/v2v-vm-row.type.ts'
 import { getV2vImportState, type V2vImportVm } from '@/modules/v2v/utils/v2v-import-markers.util.ts'
 import { V2V_SNAPSHOT_NAME, V2V_TASK_PROPERTY, type XoV2vVm } from '@vates/types'
 
@@ -9,6 +8,8 @@ export type V2vImportSnapshot = Pick<FrontXoVmSnapshot, '$snapshot_of' | 'name_l
 // From the start of a migration to its end: the order statuses are listed in. `getV2vVmStatus` returning a
 // `V2vVmStatus` keeps every import state listed
 export const V2V_VM_STATUSES = ['none', 'running', 'warm', 'cold'] as const
+
+export type V2vVmStatus = (typeof V2V_VM_STATUSES)[number]
 
 // Task properties are untyped: the ids are only trusted when they are strings
 export function getRunningV2vSourceVmIds(tasks: Pick<FrontXoTask, 'status' | 'properties'>[]): Set<XoV2vVm['id']> {

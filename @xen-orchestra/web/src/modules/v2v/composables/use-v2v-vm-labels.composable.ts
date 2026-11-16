@@ -1,6 +1,6 @@
-import type { V2vUnsupportedReason, V2vVmRow, V2vVmStatus } from '@/modules/v2v/types/v2v-vm-row.type.ts'
+import type { V2vUnsupportedReason, V2vVmRow } from '@/modules/v2v/types/v2v-vm-row.type.ts'
 import type { V2vVmPresetId } from '@/modules/v2v/utils/v2v-vm-presets.util.ts'
-import { V2V_VM_STATUSES } from '@/modules/v2v/utils/v2v-vm-status.util.ts'
+import { V2V_VM_STATUSES, type V2vVmStatus } from '@/modules/v2v/utils/v2v-vm-status.util.ts'
 import { mapCountedKeys } from '@/shared/utils/count.util.ts'
 import type { TagAccent } from '@core/components/ui/tag/UiTag.vue'
 import { V2V_VM_POWER_STATE } from '@vates/types'

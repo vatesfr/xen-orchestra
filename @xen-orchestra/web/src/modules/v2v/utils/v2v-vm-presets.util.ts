@@ -1,6 +1,6 @@
-import type { V2vVmRow, V2vVmStatus } from '@/modules/v2v/types/v2v-vm-row.type.ts'
+import type { V2vVmRow } from '@/modules/v2v/types/v2v-vm-row.type.ts'
 import { countV2vRowsByStatus } from '@/modules/v2v/utils/v2v-vm-rows.util.ts'
-import { V2V_VM_STATUSES } from '@/modules/v2v/utils/v2v-vm-status.util.ts'
+import { V2V_VM_STATUSES, type V2vVmStatus } from '@/modules/v2v/utils/v2v-vm-status.util.ts'
 import {
   addFilterClause,
   countFilterPropertyClauses,

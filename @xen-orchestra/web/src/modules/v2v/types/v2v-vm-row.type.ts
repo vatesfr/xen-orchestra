@@ -1,8 +1,6 @@
-import type { V2V_VM_STATUSES } from '@/modules/v2v/utils/v2v-vm-status.util.ts'
+import type { V2vVmStatus } from '@/modules/v2v/utils/v2v-vm-status.util.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import type { XoV2vVm } from '@vates/types'
-
-export type V2vVmStatus = (typeof V2V_VM_STATUSES)[number]
 
 export type V2vUnsupportedReason = 'rdm' | 'independent' | 'encrypted'
 

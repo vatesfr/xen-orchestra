@@ -1,10 +1,11 @@
-import type { V2vVmRow, V2vVmStatus, V2vVmsTableView } from '@/modules/v2v/types/v2v-vm-row.type.ts'
+import type { V2vVmRow, V2vVmsTableView } from '@/modules/v2v/types/v2v-vm-row.type.ts'
 import { getV2vUnsupportedReason } from '@/modules/v2v/utils/v2v-vm-checks.util.ts'
 import {
   getV2vLastSyncAt,
   getV2vVmStatus,
   V2V_VM_STATUSES,
   type V2vImportSnapshot,
+  type V2vVmStatus,
 } from '@/modules/v2v/utils/v2v-vm-status.util.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { countOccurrences } from '@/shared/utils/count.util.ts'

@@ -1,4 +1,3 @@
-import type { V2vVmStatus } from '@/modules/v2v/types/v2v-vm-row.type.ts'
 import {
   buildV2vVmRows,
   buildV2vVmsTableView,
@@ -8,6 +7,7 @@ import {
   isV2vVmRowSelectable,
   type V2vVmRowsInput,
 } from '@/modules/v2v/utils/v2v-vm-rows.util.ts'
+import type { V2vVmStatus } from '@/modules/v2v/utils/v2v-vm-status.util.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { ONE_GB } from '@/shared/constants.ts'
 import { createV2vImportVm, createV2vPartialImportSnapshot } from '@/test/create-v2v-import-vm.ts'
