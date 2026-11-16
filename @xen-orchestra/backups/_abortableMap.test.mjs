@@ -1,9 +1,12 @@
 import { describe, it } from 'node:test'
 import { strict as assert } from 'node:assert'
 
-import { abortableMap } from './_incrementalVm.mjs'
+import { abortableMap } from './_abortableMap.mjs'
 
 const tick = () => new Promise(resolve => setImmediate(resolve))
+
+// resolves once `signal` is aborted
+const aborted = signal => new Promise(resolve => signal.addEventListener('abort', resolve, { once: true }))
 
 describe('abortableMap()', () => {
   it('works without a parent signal', async () => {
@@ -17,9 +20,10 @@ describe('abortableMap()', () => {
     assert.ok(signals.every(signal => signal instanceof AbortSignal && !signal.aborted))
   })
 
-  it('aborts the other items and rejects with the first failure', async () => {
+  it('aborts the other items and rejects with the first failure once they have settled', async () => {
     const error = new Error('first failure')
     const signals = []
+    const stopped = []
 
     await assert.rejects(
       abortableMap(undefined, [1, 2, 3], async (signal, item) => {
@@ -27,13 +31,40 @@ describe('abortableMap()', () => {
         if (item === 2) {
           throw error
         }
-        await new Promise(() => {}) // never settles, siblings are not waited for
+        await aborted(signal)
+        await tick() // winds down after the abort
+        stopped.push(item)
+        throw new Error(`item ${item} aborted`)
       }),
       error
     )
 
     assert.equal(signals.length, 3)
     assert.ok(signals.every(signal => signal.aborted))
+    // the other items have stopped before the rejection
+    assert.deepEqual(stopped.sort(), [1, 3])
+  })
+
+  it('stops at a synchronous failure, and aborts and waits for the items already started', async () => {
+    const error = new Error('synchronous failure')
+    const started = []
+    const stopped = []
+
+    await assert.rejects(
+      abortableMap(undefined, [1, 2, 3], (signal, item) => {
+        if (item === 2) {
+          throw error
+        }
+        started.push(item)
+        return aborted(signal).then(() => {
+          stopped.push(item)
+        })
+      }),
+      error
+    )
+
+    assert.deepEqual(started, [1])
+    assert.deepEqual(stopped, [1])
   })
 
   it('aborts every item when the parent signal is aborted', async () => {
