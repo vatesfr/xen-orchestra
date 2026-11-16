@@ -1,4 +1,4 @@
-import { useV2vMappingLabels } from '@/modules/v2v/composables/use-v2v-mapping-labels.composable.ts'
+import { useV2vMappingSummaryLabels } from '@/modules/v2v/composables/use-v2v-mapping-summary-labels.composable.ts'
 import type { V2vAccentedLabel } from '@/modules/v2v/types/v2v-accented-label.type.ts'
 import type { V2vLaunchGroupType } from '@/modules/v2v/types/v2v-launch.type.ts'
 import type { V2vNextTransfer } from '@/modules/v2v/utils/v2v-vm-status.util.ts'
@@ -24,7 +24,7 @@ const LAUNCH_GROUP_ACCENTS: Record<V2vLaunchGroupType, CounterAccent> = {
 export function useV2vReviewLabels() {
   const { t } = useI18n()
 
-  const { getResumedParts, withTargets } = useV2vMappingLabels()
+  const { getResumedParts, withTargets } = useV2vMappingSummaryLabels()
 
   function getOnOffLabel(value: boolean): string {
     return value ? t('option-on') : t('option-off')

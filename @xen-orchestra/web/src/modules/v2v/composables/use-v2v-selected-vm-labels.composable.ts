@@ -1,4 +1,4 @@
-import { useV2vMappingLabels } from '@/modules/v2v/composables/use-v2v-mapping-labels.composable.ts'
+import { useV2vMappingSummaryLabels } from '@/modules/v2v/composables/use-v2v-mapping-summary-labels.composable.ts'
 import { useV2vVmLabels } from '@/modules/v2v/composables/use-v2v-vm-labels.composable.ts'
 import type { V2vAccentedLabel } from '@/modules/v2v/types/v2v-accented-label.type.ts'
 import type {
@@ -33,7 +33,7 @@ export function useV2vSelectedVmLabels() {
 
   const { unsupportedReasonLabels } = useV2vVmLabels()
 
-  const { getResumedParts, withTargets } = useV2vMappingLabels()
+  const { getResumedParts, withTargets } = useV2vMappingSummaryLabels()
 
   const kindLabels = computed<Record<V2vSelectedVmKind, string>>(() => ({
     new: t('new'),
