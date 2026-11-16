@@ -2,6 +2,7 @@ import { createServer } from 'node:http'
 import { PassThrough } from 'node:stream'
 import { test } from 'node:test'
 import { strict as assert } from 'node:assert'
+import { Cancel } from 'promise-toolbox'
 
 import { Xapi } from './index.mjs'
 
@@ -52,8 +53,20 @@ test('signal + cache + method: the cache is used and the signal is not forwarded
   const cache = new Map()
 
   assert.equal(await xapi.callAsync(signal, cache, 'VM.start', 'ref'), 'result')
-  assert.equal(cache.size, 1)
+  assert.deepEqual([...cache.keys()], [xapi.computeCacheKey('VM.start', 'ref')])
   assert.deepEqual(calls[0], ['Async.VM.start', 'ref'])
+})
+
+test('the signal is not part of the cache key: calls with and without a signal share the entry', async () => {
+  const { calls, xapi } = createXapi()
+  const cache = new Map()
+
+  await xapi.callAsync(cache, 'VM.start', 'ref')
+  await xapi.callAsync(new AbortController().signal, cache, 'VM.start', 'ref')
+  await xapi.callAsync(undefined, cache, 'VM.start', 'ref')
+
+  assert.equal(cache.size, 1)
+  assert.equal(calls.filter(([method]) => method === 'Async.VM.start').length, 1)
 })
 
 test('a leading CancelToken is rejected with a clear error and nothing is called', async () => {
@@ -76,7 +89,7 @@ test('cache only: the cache is used', async () => {
   const cache = new Map()
 
   assert.equal(await xapi.callAsync(cache, 'VM.start', 'ref'), 'result')
-  assert.equal(cache.size, 1)
+  assert.deepEqual([...cache.keys()], [xapi.computeCacheKey('VM.start', 'ref')])
   assert.deepEqual(calls[0], ['Async.VM.start', 'ref'])
 })
 
@@ -92,23 +105,71 @@ function deferred() {
   return { promise, reject: _reject, resolve: _resolve }
 }
 
-test('callAsync: abort while the task is pending sends task.cancel', async () => {
+// lets the pending promise callbacks run
+const tick = () => new Promise(resolve => setImmediate(resolve))
+
+test('callAsync: abort while the task is pending sends task.cancel and rejects with the abort reason', async () => {
   const { calls, xapi } = createXapi()
   const task = deferred()
   xapi.watchTask = () => task.promise
   const controller = new AbortController()
 
   const promise = xapi.callAsync(controller.signal, 'VM.snapshot', 'ref', 'name')
-  await new Promise(resolve => setImmediate(resolve))
-  controller.abort()
+  await tick()
+  const reason = new Error('aborted by the caller')
+  controller.abort(reason)
 
   assert.deepEqual(
     calls.filter(([method]) => method === 'task.cancel'),
     [['task.cancel', 'OpaqueRef:task']]
   )
 
-  task.reject(new Error('cancelled by XAPI'))
-  await assert.rejects(promise, /cancelled by XAPI/)
+  // what `watchTask()` rejects with for a cancelled task, see `_getTaskResult.mjs`
+  task.reject(new Cancel('task canceled'))
+  await assert.rejects(promise, error => error === reason)
+})
+
+test('callAsync: abort while Async.* creates the task cancels the task once it is created', async () => {
+  const { calls, xapi } = createXapi()
+  const created = deferred()
+  const sessionCall = xapi._sessionCall
+  xapi._sessionCall = (method, args) => {
+    if (method.startsWith('Async.')) {
+      calls.push([method, ...args])
+      return created.promise
+    }
+    return sessionCall(method, args)
+  }
+  const task = deferred()
+  xapi.watchTask = () => task.promise
+  const controller = new AbortController()
+
+  const promise = xapi.callAsync(controller.signal, 'VM.snapshot', 'ref', 'name')
+  await tick()
+  controller.abort()
+  created.resolve('OpaqueRef:task')
+  await tick()
+
+  // XAPI drives an `Async.*` task: `task.cancel` stops it
+  assert.deepEqual(
+    calls.filter(([method]) => method.startsWith('task.')),
+    [['task.cancel', 'OpaqueRef:task']]
+  )
+
+  task.reject(new Cancel('task canceled'))
+  await assert.rejects(promise, { name: 'AbortError' })
+})
+
+test('callAsync: without an abort, the error of the task is kept', async () => {
+  const { xapi } = createXapi()
+  // e.g. a task cancelled by another client
+  const error = new Cancel('task canceled')
+  xapi.watchTask = () => Promise.reject(error)
+
+  await assert.rejects(
+    xapi.callAsync(new AbortController().signal, 'VM.snapshot', 'ref', 'name'),
+    actual => actual === error
+  )
 })
 
 // makes `task.cancel` fail as XAPI does for a task it has already ended, and records unhandled rejections
@@ -139,13 +200,13 @@ test('callAsync: a failing task.cancel is ignored and the call keeps the outcome
     const controller = new AbortController()
 
     const promise = xapi.callAsync(controller.signal, 'VM.snapshot', 'ref', 'name')
-    await new Promise(resolve => setImmediate(resolve))
+    await tick()
     controller.abort()
     task.resolve('OpaqueRef:snapshot') // XAPI ended the task before the cancel
 
     assert.equal(await promise, 'OpaqueRef:snapshot')
     assert.equal(calls.filter(([method]) => method === 'task.cancel').length, 1)
-    await new Promise(resolve => setImmediate(resolve))
+    await tick()
     assert.deepEqual(unhandled, [])
   } finally {
     restore()
@@ -188,7 +249,7 @@ test('callAsync: no listener is left on the signal after the call', async () => 
   }
 
   await xapi.callAsync(signal, 'VM.snapshot', 'ref', 'name')
-  await new Promise(resolve => setImmediate(resolve))
+  await tick()
 
   assert.equal(listeners, 0)
 })
@@ -218,6 +279,9 @@ function createXapiFor(server) {
   xapi.watchTask = () => taskResult.promise
   return { calls, taskResult, xapi }
 }
+
+// whether this request carries the task, unlike the redirection probe of `putResource()`
+const carriesTask = req => new URL(req.url, 'http://localhost').searchParams.has('task_id')
 
 test('getResource: abort rejects the download and cancels the task', async () => {
   const requests = []
@@ -268,7 +332,7 @@ test('getResource: a failing task.cancel does not replace the error reported to 
       })
       assert.equal(calls.filter(([method]) => method === 'task.cancel').length, 1)
       taskResult.resolve()
-      await new Promise(resolve => setImmediate(resolve))
+      await tick()
       assert.deepEqual(unhandled, [])
     } finally {
       restore()
@@ -302,10 +366,109 @@ test('getResource: an aborted signal sends no request and marks the caller task 
   }
 })
 
-test('putResource: abort rejects the upload and cancels the task', async () => {
+for (const [name, transfer] of [
+  ['getResource', (xapi, signal) => xapi.getResource(signal, '/export', { task: 'OpaqueRef:t' })],
+  ['putResource', (xapi, signal) => xapi.putResource(signal, 'body', '/import/', { task: 'OpaqueRef:t' })],
+]) {
+  for (const step of ['_autoTask', '_setHostAddressInUrl']) {
+    test(`${name}: abort during ${step}() sends no request and marks the task as cancelled`, async () => {
+      let count = 0
+      const server = await listen((req, res) => {
+        ++count
+        res.end()
+      })
+      try {
+        const { calls, xapi } = createXapiFor(server)
+        // holds the step until the abort
+        const held = deferred()
+        const original = xapi[step]
+        xapi[step] = async function (...args) {
+          await held.promise
+          return original.apply(this, args)
+        }
+        const controller = new AbortController()
+
+        const promise = transfer(xapi, controller.signal)
+        await tick()
+        controller.abort()
+        held.resolve()
+
+        await assert.rejects(promise, { name: 'AbortError' })
+        assert.equal(count, 0)
+        // task.cancel would leave a task that no request drives pending forever
+        assert.deepEqual(calls, [['task.set_status', 'OpaqueRef:t', 'cancelled']])
+      } finally {
+        server.closeAllConnections()
+        server.close()
+      }
+    })
+  }
+}
+
+test('getResource: abort before following a redirection marks the task as cancelled', async () => {
+  let count = 0
+  const server = await listen((req, res) => {
+    ++count
+    res.writeHead(302, { location: req.url.replace('/export', '/redirected') }).end()
+  })
+  try {
+    const { calls, xapi } = createXapiFor(server)
+    const redirecting = deferred()
+    xapi._replaceHostAddressInUrl = async url => {
+      redirecting.resolve()
+      return url
+    }
+    const controller = new AbortController()
+
+    const promise = xapi.getResource(controller.signal, '/export', { task: 'OpaqueRef:t' })
+    promise.catch(() => {})
+    await redirecting.promise
+    controller.abort()
+
+    await assert.rejects(promise, { name: 'AbortError' })
+    // the redirection is not followed
+    assert.equal(count, 1)
+    // the host which redirected does not drive the task
+    assert.deepEqual(calls, [['task.set_status', 'OpaqueRef:t', 'cancelled']])
+  } finally {
+    server.closeAllConnections()
+    server.close()
+  }
+})
+
+test('putResource: abort during the redirection probe sends no upload and marks the task as cancelled', async () => {
+  const requests = []
+  const probing = deferred()
+  const server = await listen(req => {
+    requests.push(req)
+    probing.resolve() // the probe is never answered
+  })
+  try {
+    const { calls, xapi } = createXapiFor(server)
+    const controller = new AbortController()
+    const body = new PassThrough()
+    body.length = 1000
+
+    const promise = xapi.putResource(controller.signal, body, '/import/', { task: 'OpaqueRef:t' })
+    await probing.promise
+    controller.abort()
+
+    await assert.rejects(promise, { name: 'AbortError' })
+    // only the probe, which does not carry the task
+    assert.equal(requests.length, 1)
+    assert.equal(carriesTask(requests[0]), false)
+    assert.deepEqual(calls, [['task.set_status', 'OpaqueRef:t', 'cancelled']])
+  } finally {
+    server.closeAllConnections()
+    server.close()
+  }
+})
+
+test('putResource: abort during the upload rejects with an AbortError and cancels the task', async () => {
+  const uploading = deferred()
   const server = await listen((req, res) => {
     // answers at the end of the upload only
-    req.resume()
+    req.on('data', () => uploading.resolve())
     req.on('end', () => res.end())
   })
   try {
@@ -318,12 +481,12 @@ test('putResource: abort rejects the upload and cancels the task', async () => {
 
     const promise = xapi.putResource(controller.signal, body, '/import/', { task: 'OpaqueRef:t' })
     promise.catch(() => {})
-    await new Promise(resolve => setTimeout(resolve, 100))
+    await uploading.promise
     controller.abort()
 
-    await assert.rejects(promise)
+    await assert.rejects(promise, { name: 'AbortError' })
     assert.deepEqual(
-      calls.filter(([method]) => method === 'task.cancel'),
+      calls.filter(([method]) => method.startsWith('task.')),
       [['task.cancel', 'OpaqueRef:t']]
     )
     taskResult.resolve()
@@ -332,6 +495,53 @@ test('putResource: abort rejects the upload and cancels the task', async () => {
     server.close()
   }
 })
+
+test(
+  'putResource: abort after a complete early response rejects instead of never settling',
+  { timeout: 10e3 },
+  async () => {
+    const server = await listen((req, res) => {
+      if (!carriesTask(req)) {
+        // the redirection probe
+        return res.end()
+      }
+      // like XAPI on `/import_raw_vdi/`: a complete 200 at the start of the upload
+      res.writeHead(200).end()
+      req.resume()
+    })
+    try {
+      const { calls, taskResult, xapi } = createXapiFor(server)
+      // resolved once `putResource()` has the response of the upload
+      const responded = deferred()
+      xapi._addSyncStackTrace = promise =>
+        promise.then(response => {
+          responded.resolve()
+          return response
+        })
+      const controller = new AbortController()
+
+      const body = new PassThrough()
+      body.length = 1000
+      body.write('chunk')
+
+      const promise = xapi.putResource(controller.signal, body, '/import/', { task: 'OpaqueRef:t' })
+      promise.catch(() => {})
+      await responded.promise
+      await tick() // `putResource()` now waits for the end of the upload
+      controller.abort()
+
+      await assert.rejects(promise, { name: 'AbortError' })
+      assert.deepEqual(
+        calls.filter(([method]) => method.startsWith('task.')),
+        [['task.cancel', 'OpaqueRef:t']]
+      )
+      taskResult.resolve()
+    } finally {
+      server.closeAllConnections()
+      server.close()
+    }
+  }
+)
 
 test('putResource: an aborted signal sends no request and marks the caller task as cancelled', async () => {
   let count = 0
