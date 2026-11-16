@@ -1,6 +1,7 @@
 import { useXoGroupCreateJob } from '@/modules/group/jobs/xo-group-create.job.ts'
 import type { NewGroupPayload } from '@/modules/group/types.ts'
 import { ApiError } from '@/shared/error/api.error.ts'
+import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { KEEP_OVERLAY_OPEN } from '@core/packages/overlay/symbols.ts'
 import { useOverlay } from '@core/packages/overlay/use-overlay.ts'
 import { reactiveComputed } from '@vueuse/core'
@@ -14,6 +15,8 @@ export function useGroupCreate() {
 
   const errorMessage = ref<string>()
 
+  const selectedGroupId = useRouteQuery('id')
+
   const { run } = useXoGroupCreateJob(newGroup)
 
   const { open } = useOverlay({
@@ -24,7 +27,7 @@ export function useGroupCreate() {
         errorMessage.value = undefined
 
         try {
-          await run()
+          selectedGroupId.value = await run()
         } catch (error) {
           console.error('Error when creating group:', error)
 
