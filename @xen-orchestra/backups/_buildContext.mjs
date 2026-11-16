@@ -9,6 +9,7 @@ const { warn } = createLogger('xo:backups:buildContext')
 /**
  * @typedef {import('@vates/types/xen-api').XenApiVm} XenApiVm
  * @typedef {import('@vates/types/xo').XoSr} XoSr
+ * @typedef {import('@vates/types/xo').XoPool} XoPool
  * @typedef {import('@vates/types/xo').XoBackupRepository} XoBackupRepository
  *
  * @typedef {object} RunContext
@@ -29,6 +30,10 @@ const { warn } = createLogger('xo:backups:buildContext')
  *
  * @typedef {object} BackupRepositoryContext
  * @property {{name: string, type: string | undefined, tags: string[]}} backupRepository
+ * @property {RunContext} run
+ *
+ * @typedef {object} PoolContext
+ * @property {{name_label: string, description: string, tags: string[]}} pool
  * @property {RunContext} run
  */
 
@@ -105,6 +110,22 @@ export function buildBackupRepositoryContext(backupRepository, run) {
       name: backupRepository.name,
       type,
       tags: [], // Placeholder - Backup repositories don't have tags yet
+    },
+    run,
+  }
+}
+
+/**
+ * @param {XoPool} pool
+ * @param {RunContext} run
+ * @returns {PoolContext}
+ */
+export function buildPoolContext(pool, run) {
+  return {
+    pool: {
+      name_label: pool.name_label,
+      description: pool.name_description,
+      tags: Array.isArray(pool.tags) ? pool.tags : [],
     },
     run,
   }

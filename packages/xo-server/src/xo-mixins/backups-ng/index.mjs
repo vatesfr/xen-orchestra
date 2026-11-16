@@ -22,8 +22,8 @@ import { serializeError, unboxIdsFromPattern } from '../../utils.mjs'
 import { journalPurgeHorizon, serveVmBackups, VmBackupsCache } from './_vmBackupsCache.mjs'
 import { VmBackupsSource } from './_vmBackupsSource.mjs'
 import { waitAll } from '../../_waitAll.mjs'
-import { isExpression } from '@xen-orchestra/backups/_expressionPredicate.mjs'
-import { buildRunContext } from '@xen-orchestra/backups/_buildContext.mjs'
+import { compileExpression, isExpression } from '@xen-orchestra/backups/_expressionPredicate.mjs'
+import { buildRunContext, buildVmContext } from '@xen-orchestra/backups/_buildContext.mjs'
 import { resolveBackupSrs, resolveBackupRepositories } from './_resolveBackupTargets.mjs'
 
 const logger = createLogger('xo:xo-mixins:backups-ng')
@@ -302,10 +302,16 @@ export default class BackupNg {
             vmIds = Object.keys(
               app.getObjects({
                 filter: (() => {
-                  const isMatchingVm = createPredicate({
-                    type: 'VM',
-                    ...vmsPattern,
-                  })
+                  let isMatchingVm
+                  if (isExpression(vmsPattern)) {
+                    const predicate = compileExpression(vmsPattern)
+                    isMatchingVm = obj => obj.type === 'VM' && predicate(buildVmContext(obj, runContext))
+                  } else {
+                    isMatchingVm = createPredicate({
+                      type: 'VM',
+                      ...vmsPattern,
+                    })
+                  }
 
                   return obj =>
                     isMatchingVm(obj) &&

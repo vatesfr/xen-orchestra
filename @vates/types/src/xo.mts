@@ -646,7 +646,7 @@ export type XoVmBackupJob = BaseXoJob & {
   proxy?: XoProxy['id']
   mode: 'full' | 'delta'
   remotes?: CMType.IdOr<XoBackupRepository['id']> | string
-  vms: CMType.IdOr<XoVm['id']> | Record<string, unknown>
+  vms: CMType.IdOr<XoVm['id']> | Record<string, unknown> | string
   srs?: CMType.IdOr<XoSr['id']> | string
   type: 'backup'
   settings: {
@@ -663,7 +663,7 @@ export type XoMetadataBackupJobScheduleSettings = {
 }
 export type XoMetadataBackupJob = BaseXoJob & {
   type: 'metadataBackup'
-  pools?: CMType.IdOr<XoPool['id']>
+  pools?: CMType.IdOr<XoPool['id']> | string
   remotes: CMType.IdOr<XoBackupRepository['id']>
   settings: {
     ''?: XoMetadataBackupJobGeneralSettings
