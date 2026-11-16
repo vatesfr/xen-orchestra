@@ -1,0 +1,35 @@
+import type { V2vVmStatus } from '@/modules/v2v/utils/v2v-vm-status.util.ts'
+import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
+import type { XoV2vVm } from '@vates/types'
+
+export type V2vUnsupportedReason = 'rdm' | 'independent' | 'encrypted'
+
+// Field names double as the query builder property names
+export type V2vVmRow = {
+  id: XoV2vVm['id']
+  name: string
+  power: XoV2vVm['powerState']
+  datastore: string[]
+  size: number
+  migration: V2vVmStatus
+  supported: boolean
+  unsupportedReason?: V2vUnsupportedReason
+  lastSyncAt?: number
+  isInList: boolean
+  importVm?: FrontXoVm
+  vm: XoV2vVm
+}
+
+export type V2vVmViewRow = V2vVmRow & {
+  isSelectable: boolean
+  isSelected: boolean
+}
+
+export type V2vVmDatastoreViewRow = V2vVmViewRow & {
+  otherDatastores: string[]
+  sizeOnDatastore: number
+}
+
+export type V2vVmsTableView =
+  | { type: 'all'; rows: V2vVmViewRow[] }
+  | { type: 'datastore'; rows: V2vVmDatastoreViewRow[] }

@@ -1,6 +1,6 @@
+import { isFilterParsable } from '@core/packages/query-builder/filter-string.ts'
 import { createRule, type Maybe } from '@regle/core'
 import { isFilled } from '@regle/rules'
-import { parse } from 'complex-matcher'
 
 export const queryFilter = createRule({
   validator(value: Maybe<string>) {
@@ -8,13 +8,7 @@ export const queryFilter = createRule({
       return true
     }
 
-    try {
-      parse(value)
-
-      return true
-    } catch {
-      return false
-    }
+    return isFilterParsable(value)
   },
   message: 'Invalid query',
 })

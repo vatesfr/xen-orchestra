@@ -7,10 +7,11 @@ function isV2vWizardStep(value: unknown): value is V2vWizardStep {
 }
 
 // Nothing can be read from the source without a connection, so the wizard always starts on the source step.
-// The later steps fill a migration list, which only exists once its destination is saved
+// The later steps fill a migration list, which only exists once its destination is saved; the mapping and the review
+// work on its VMs, so they wait for the list to hold some
 export function resolveV2vWizardStep(
   requested: unknown,
-  { hasConnection, hasDestination }: { hasConnection: boolean; hasDestination: boolean }
+  { hasConnection, hasDestination, hasVms }: { hasConnection: boolean; hasDestination: boolean; hasVms: boolean }
 ): V2vWizardStep {
   if (!hasConnection || !isV2vWizardStep(requested)) {
     return 'source'
@@ -20,6 +21,12 @@ export function resolveV2vWizardStep(
 
   if (needsDestination && !hasDestination) {
     return 'destination'
+  }
+
+  const needsVms = requested === 'mapping' || requested === 'review'
+
+  if (needsVms && !hasVms) {
+    return 'vms'
   }
 
   return requested

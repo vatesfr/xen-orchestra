@@ -3,7 +3,7 @@ import { mount, type VueWrapper } from '@vue/test-utils'
 import { defineComponent, type ShallowUnwrapRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-export type MountComposableOptions = Parameters<typeof createGlobalTestConfig>[0]
+export type MountComposableOptions = NonNullable<Parameters<typeof createGlobalTestConfig>[0]>
 
 /**
  * Runs a composable inside a mounted component so it has access to a Vue
@@ -16,7 +16,7 @@ export type MountComposableOptions = Parameters<typeof createGlobalTestConfig>[0
  */
 export function mountComposable<TResult extends Record<string, unknown>>(
   composable: () => TResult,
-  options?: MountComposableOptions
+  globalOptions: MountComposableOptions = {}
 ) {
   const wrapper = mount(
     defineComponent({
@@ -24,7 +24,7 @@ export function mountComposable<TResult extends Record<string, unknown>>(
       setup: () => composable(),
       render: () => null,
     }),
-    { global: createGlobalTestConfig(options) }
+    { global: createGlobalTestConfig(globalOptions) }
     // `defineComponent` cannot infer the bindings of a generic setup
   ) as unknown as VueWrapper<ShallowUnwrapRef<TResult>>
 

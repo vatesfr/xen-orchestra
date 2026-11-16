@@ -214,11 +214,11 @@ Then, you can tweak the `inset` property to get the desired result.
 
 ## `•` separator utility
 
-To separate inline parts with an interpunct (`•`), put the global `interpunct-list` class on their container: each rendered child after the first gets the separator, so a child hidden by `v-if` leaves no stray one.
+To separate inline parts with an interpunct (`•`), wrap them in `VtsInlineParts` (`@core/components/inline-parts/VtsInlineParts.vue`): each rendered child after the first gets the separator, so a child hidden by `v-if` leaves no stray one. It renders a `<span>` with the global `interpunct-list` class, which a container that must stay another element can carry itself.
 
 ```html
-<span class="interpunct-list">
+<VtsInlineParts>
   <span>{{ t('n-hosts', { n: hostCount }) }}</span>
   <span v-if="srCount !== undefined">{{ t('n-srs', { n: srCount }) }}</span>
-</span>
+</VtsInlineParts>
 ```

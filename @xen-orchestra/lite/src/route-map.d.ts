@@ -401,6 +401,13 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/story/web-core/inline-parts/vts-inline-parts': RouteRecordInfo<
+      '/story/web-core/inline-parts/vts-inline-parts',
+      '/story/web-core/inline-parts/vts-inline-parts',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
     '/story/web-core/input-wrapper/vts-input-wrapper': RouteRecordInfo<
       '/story/web-core/input-wrapper/vts-input-wrapper',
       '/story/web-core/input-wrapper/vts-input-wrapper',
@@ -516,6 +523,13 @@ declare module 'vue-router/auto-routes' {
     '/story/web-core/panel/vts-panel': RouteRecordInfo<
       '/story/web-core/panel/vts-panel',
       '/story/web-core/panel/vts-panel',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/story/web-core/panel/vts-side-panel': RouteRecordInfo<
+      '/story/web-core/panel/vts-side-panel',
+      '/story/web-core/panel/vts-side-panel',
       Record<never, never>,
       Record<never, never>,
       | never
@@ -1548,6 +1562,12 @@ declare module 'vue-router/auto-routes' {
       views:
         | never
     }
+    'src/stories/web-core/inline-parts/vts-inline-parts.story.vue': {
+      routes:
+        | '/story/web-core/inline-parts/vts-inline-parts'
+      views:
+        | never
+    }
     'src/stories/web-core/input-wrapper/vts-input-wrapper.story.vue': {
       routes:
         | '/story/web-core/input-wrapper/vts-input-wrapper'
@@ -1647,6 +1667,12 @@ declare module 'vue-router/auto-routes' {
     'src/stories/web-core/panel/vts-panel.story.vue': {
       routes:
         | '/story/web-core/panel/vts-panel'
+      views:
+        | never
+    }
+    'src/stories/web-core/panel/vts-side-panel.story.vue': {
+      routes:
+        | '/story/web-core/panel/vts-side-panel'
       views:
         | never
     }
