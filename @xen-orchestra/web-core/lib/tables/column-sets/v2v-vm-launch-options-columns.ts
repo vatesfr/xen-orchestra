@@ -8,7 +8,7 @@ export const useV2vVmLaunchOptionsColumns = defineColumns(() => {
   return {
     vm: useTextColumn({ headerLabel: () => t('vm') }),
     stopSource: useTextColumn({ headerLabel: () => t('v2v:stop-source') }),
+    docking: useTextColumn({ headerLabel: () => t('v2v:docking') }),
     startVm: useTextColumn({ headerLabel: () => t('v2v:start-on-xcp-ng') }),
-    cleanup: useTextColumn({ headerLabel: () => t('v2v:clean-up') }),
   }
 })

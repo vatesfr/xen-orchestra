@@ -628,7 +628,7 @@ export class PoolController extends XapiXoController<XoPool> {
    * With `docking`, the guest is prepared to boot on XCP-ng by the docking ISO of the pool once the import is
    * complete, and with `startVm` the VM is started, its first boot followed when it was docked.
    *
-   * For now, the MAC addresses are kept, and `tags` and `cleanup` are refused.
+   * For now, the MAC addresses are kept, and `tags` are refused.
    *
    * The request is checked before the import starts: 422 with the list of the problems.
    *

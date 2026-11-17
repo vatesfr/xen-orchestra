@@ -50,8 +50,6 @@ export type V2vVmOptions = {
    * stopped. A client waiting for a running VM must check the warnings of the task
    */
   startVm?: boolean
-  /** not supported yet */
-  cleanup?: boolean
 }
 
 export type V2vDefaults = V2vVmOptions & {

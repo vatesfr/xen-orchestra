@@ -40,10 +40,6 @@ export function planMigration(
   const problems: V2vProblem[] = []
   const plans: V2vVmPlan[] = []
 
-  if (defaults.cleanup === true) {
-    problems.push({ field: 'defaults.cleanup', message: 'cleaning up the VM is not supported yet' })
-  }
-
   const seen = new Set<string>()
   for (const vm of body.vms) {
     const problemCount = problems.length
@@ -71,9 +67,6 @@ export function planMigration(
     }
 
     // options the import cannot honour yet: refused rather than silently ignored
-    if (vm.cleanup === true) {
-      report('cleaning up the VM is not supported yet', 'cleanup')
-    }
     if (vm.tags !== undefined && vm.tags.length > 0) {
       report('setting tags is not supported yet', 'tags')
     }

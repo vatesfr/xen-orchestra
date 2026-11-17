@@ -4,9 +4,13 @@ import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collecti
 import type { XoV2vStartOptions, XoV2vStartPayload, XoV2vVm } from '@vates/types'
 import type { RouteLocationRaw } from 'vue-router'
 
-// What the user sets for the whole launch: starting the VM and cleaning it up are not supported yet
-export type V2vLaunchSettings = Pick<XoV2vStartOptions, 'stopSource'> &
-  Pick<XoV2vStartPayload, 'stopOnError' | 'concurrency'>
+// What the user sets for every VM, then overrides for one
+export type V2vVmLaunchOptions = Required<Pick<XoV2vStartOptions, 'stopSource' | 'docking' | 'startVm'>>
+
+export type V2vVmLaunchOption = keyof V2vVmLaunchOptions
+
+// What the user sets for the whole launch
+export type V2vLaunchSettings = V2vVmLaunchOptions & Pick<XoV2vStartPayload, 'stopOnError' | 'concurrency'>
 
 export type V2vLaunchGroupType = 'excluded' | 'migrated' | 'resumed' | 'new'
 
@@ -19,7 +23,7 @@ export type V2vLaunchPlan<TItem extends V2vLaunchPlanItem> = Record<V2vLaunchGro
 }
 
 // An absent override leaves the VM on the launch settings
-export type V2vVmLaunchOverrides = Partial<Pick<XoV2vStartOptions, 'stopSource'>>
+export type V2vVmLaunchOverrides = Partial<V2vVmLaunchOptions>
 
 export type V2vStartVm = Pick<V2vMigrationListVm, 'id' | 'disks' | 'nics' | 'template'> &
   Pick<V2vSelectedVmState, 'kind'> & { overrides?: V2vVmLaunchOverrides }

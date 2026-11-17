@@ -134,21 +134,18 @@ describe('planMigration', function () {
 
   it('refuses the options the import does not support yet', function () {
     const result = planMigration(
-      makeBody({ vms: [{ id: 'vm-1', cleanup: true, tags: ['migrated-from:vmware'], keepMac: false }] }),
+      makeBody({ vms: [{ id: 'vm-1', tags: ['migrated-from:vmware'], keepMac: false }] }),
       makeContext()
     )
 
     assert.deepEqual(
       result.problems.map(({ field }) => field),
-      ['cleanup', 'tags', 'keepMac']
+      ['tags', 'keepMac']
     )
   })
 
   it('accepts the unsupported options when they ask for nothing', function () {
-    const result = planMigration(
-      makeBody({ vms: [{ id: 'vm-1', startVm: false, cleanup: false, tags: [], keepMac: true }] }),
-      makeContext()
-    )
+    const result = planMigration(makeBody({ vms: [{ id: 'vm-1', tags: [], keepMac: true }] }), makeContext())
 
     assert.deepEqual(result.problems, [])
   })
@@ -173,7 +170,7 @@ describe('planMigration', function () {
   it('reports the problems of every VM, and plans only the valid ones', function () {
     const vms = [sourceVm('vm-1'), sourceVm('vm-2')]
     const result = planMigration(
-      makeBody({ vms: [{ id: 'vm-1', cleanup: true }, { id: 'vm-2' }] }),
+      makeBody({ vms: [{ id: 'vm-1', tags: ['migrated-from:vmware'] }, { id: 'vm-2' }] }),
       makeContext({ vms })
     )
 
