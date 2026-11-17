@@ -377,6 +377,7 @@
   "documentation": "Dokumentation",
   "documentation-name": "{name} dokumentation",
   "domain": "Domæne",
+  "done": "Færdig",
   "drop": "Kassér",
   "duplicate-vm:error-message": "Der opstod en fejl under duplikering af VM'en. Gennemgå dine konfigurationsindstillinger (navn, storage repository, komprimering), og prøv igen.",
   "duplicating-vm": "Duplikerer VM",

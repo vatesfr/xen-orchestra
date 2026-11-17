@@ -353,6 +353,7 @@
   "do-you-really-want-to-leave-this-page?": "Todavía se están aplicando algunos cambios. ¿Realmente quieres salir de esta página?",
   "documentation": "Documentación",
   "documentation-name": "Documentación {name}",
+  "done": "Terminadas",
   "drop": "Retirar",
   "duplicate-vm:error-message": "Se ha producido un error al duplicar la máquina virtual. Por favor, revise la configuración (nombre, repositorio de almacenamiento, compresión) e inténtelo de nuevo.",
   "duplicating-vm": "Duplicando la VM",

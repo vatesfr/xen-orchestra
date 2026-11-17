@@ -377,6 +377,7 @@
   "documentation": "ドキュメント",
   "documentation-name": "{name} ドキュメント",
   "domain": "ドメイン",
+  "done": "完了",
   "drop": "破棄",
   "duplicate-vm:error-message": "VM の複製中にエラーが発生しました。設定 (名前、ストレージリポジトリ、圧縮) を確認して、もう一度お試しください。",
   "duplicating-vm": "VM を複製しています",

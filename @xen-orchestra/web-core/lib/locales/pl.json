@@ -377,6 +377,7 @@
   "documentation": "Dokumentacja",
   "documentation-name": "Dokumentacja {name}",
   "domain": "Domena",
+  "done": "Gotowe",
   "drop": "Odrzuć",
   "duplicate-vm:error-message": "Wystąpił błąd podczas duplikowania VM. Sprawdź ustawienia konfiguracji (nazwa, repozytorium pamięci masowej, kompresja) i spróbuj ponownie.",
   "duplicating-vm": "Duplikowanie VM",

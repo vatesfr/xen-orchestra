@@ -1,14 +1,13 @@
 import { useXoTaskCollection } from '@/modules/task/remote-resources/use-xo-task-collection.ts'
+import { getTaskLastActivity, getTaskSeverity, getUnreadTaskIds } from '@/modules/task/utils/xo-tasks-unread.util.ts'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
-import { useRightSidebarStore } from '@core/packages/sidebar'
-import { findTask, getTaskLastActivity, getTaskSeverity, getUnreadTaskIds } from '@core/utils/task.util.ts'
+import { findTask } from '@core/utils/task.util.ts'
 import { createSharedComposable, useLocalStorage } from '@vueuse/core'
 import { computed, watch } from 'vue'
 import { useRoute } from 'vue-router'
 
 export const useXoTasksUnread = createSharedComposable(() => {
   const route = useRoute()
-  const rightSidebar = useRightSidebarStore()
   const { lastDayTasks } = useXoTaskCollection()
   const routeTaskId = useRouteQuery('id')
 
@@ -18,17 +17,10 @@ export const useXoTasksUnread = createSharedComposable(() => {
   // Tasks opened since the sidebar was last closed, with their last activity at that time
   const readActivityById = useLocalStorage<Record<string, number>>('my-tasks.read-activity-by-id', {})
 
-  watch(
-    () => rightSidebar.isExpanded,
-    isExpanded => {
-      if (isExpanded) {
-        return
-      }
-
-      lastSeenAt.value = Math.max(lastSeenAt.value, ...lastDayTasks.value.map(task => getTaskLastActivity(task)))
-      readActivityById.value = {}
-    }
-  )
+  function markAllAsRead() {
+    lastSeenAt.value = Math.max(lastSeenAt.value, ...lastDayTasks.value.map(task => getTaskLastActivity(task)))
+    readActivityById.value = {}
+  }
 
   const openedTaskId = computed(() => (route.name === '/(site)/tasks' ? routeTaskId.value : undefined))
 
@@ -68,5 +60,5 @@ export const useXoTasksUnread = createSharedComposable(() => {
     return undefined
   })
 
-  return { openedTaskId, unreadTaskIds, unreadCount, unreadSeverity }
+  return { openedTaskId, unreadTaskIds, unreadCount, unreadSeverity, markAllAsRead }
 })

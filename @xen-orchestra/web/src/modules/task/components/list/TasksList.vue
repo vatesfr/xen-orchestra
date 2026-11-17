@@ -25,6 +25,7 @@
         class="tasks"
         :tasks="tasksRecords"
         :selected-task-id="selectedTaskId"
+        show-eye-icon
         :auto-collapse-completed
         :expand-all="hasSearch"
         @select="id => (selectedTaskId = id)"
@@ -76,15 +77,14 @@ const hasNoSearchResult = computed(() => hasSearch.value && filteredTasks.value.
 
 const { pageRecords: tasksRecords, paginationBindings, seek } = usePagination('tasks', filteredTasks)
 
-watch(
-  [
-    selectedTaskId,
-    () => {
-      const taskId = selectedTaskId.value
+const selectedRootTaskId = computed(() => {
+  const taskId = selectedTaskId.value
 
-      return taskId ? filteredTasks.value.find(task => task.id === taskId || hasSubtask(task, taskId))?.id : undefined
-    },
-  ],
+  return taskId ? filteredTasks.value.find(task => task.id === taskId || hasSubtask(task, taskId))?.id : undefined
+})
+
+watch(
+  [selectedTaskId, selectedRootTaskId],
   ([, rootTaskId]) => {
     if (rootTaskId !== undefined) {
       seek(task => task.id === rootTaskId)

@@ -377,6 +377,7 @@
   "documentation": "Dokumentaatio",
   "documentation-name": "{name}-dokumentaatio",
   "domain": "Toimialue",
+  "done": "Tehty",
   "drop": "Hylkää",
   "duplicate-vm:error-message": "VM:n monistamisessa tapahtui virhe. Tarkista määritykset (nimi, tallennusvarasto, pakkaus) ja yritä uudelleen.",
   "duplicating-vm": "Monistetaan VM",

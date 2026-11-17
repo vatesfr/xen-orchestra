@@ -353,6 +353,7 @@
   "do-you-really-want-to-leave-this-page?": "Er worden nog enkele wijzigingen doorgevoerd. Wilt je deze pagina echt verlaten?",
   "documentation": "Documentatie",
   "documentation-name": "{name} documentatie",
+  "done": "Gereed",
   "drop": "Laten vallen",
   "duplicate-vm:error-message": "Er is een fout opgetreden tijdens het dupliceren van de VM. Controleer je configuratie-instellingen (naam, opslaglocatie, compressie) en probeer het opnieuw.",
   "duplicating-vm": "VM dupliceren",

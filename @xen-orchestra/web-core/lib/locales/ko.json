@@ -377,6 +377,7 @@
   "documentation": "문서",
   "documentation-name": "{name} 문서",
   "domain": "도메인",
+  "done": "완료",
   "drop": "차단",
   "duplicate-vm:error-message": "VM을 복제하는 중 오류가 발생했습니다. 구성 설정(이름, 스토리지 저장소, 압축)을 검토한 후 다시 시도하세요.",
   "duplicating-vm": "VM 복제 중",

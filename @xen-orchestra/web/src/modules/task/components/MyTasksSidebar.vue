@@ -20,14 +20,16 @@
       </div>
     </template>
 
-    <VtsStateHero v-if="!areTasksReady || isSearching" format="panel" type="busy" size="medium" />
+    <VtsStateHero v-if="hasTaskFetchError" format="card" type="error" size="medium">
+      {{ t('error-no-data') }}
+    </VtsStateHero>
+    <VtsStateHero v-else-if="!areTasksReady || isSearching" format="panel" type="busy" size="medium" />
     <VtsTaskList
       v-else-if="displayedTasks.length > 0"
       class="tasks"
       :tasks="displayedTasks"
       :selected-task-id="openedTaskId"
       :expand-all="hasFilter"
-      :show-eye-icon="false"
       :unread-task-ids
     />
     <VtsStateHero v-else format="card" type="no-result" size="medium">
@@ -71,7 +73,7 @@ const { value: filter, debouncedValue: debouncedFilter, isDebouncing: isSearchin
 
 const hasFilter = computed(() => debouncedFilter.value.trim().length > 0)
 
-const { lastDayTasks, areTasksReady } = useXoTaskCollection()
+const { lastDayTasks, areTasksReady, hasTaskFetchError } = useXoTaskCollection()
 
 const displayedTasks = computed(() => filterTasksByName(lastDayTasks.value, debouncedFilter.value))
 
