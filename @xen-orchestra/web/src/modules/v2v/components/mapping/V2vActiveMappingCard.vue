@@ -1,5 +1,5 @@
 <template>
-  <UiPanelCard class="v2v-active-mapping-card">
+  <UiPanelCard>
     <UiPanelCardTitle size="medium" icon="fa:lock" :label="t('active-mapping')" />
     <UiInfo accent="info" wrap>{{ t('v2v:locked-since-first-sync') }}</UiInfo>
     <VtsCardRowKeyValue>

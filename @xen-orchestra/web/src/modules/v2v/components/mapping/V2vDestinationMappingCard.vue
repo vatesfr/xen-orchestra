@@ -1,5 +1,5 @@
 <template>
-  <UiPanelCard class="v2v-destination-mapping-card">
+  <UiPanelCard>
     <UiPanelCardTitle size="medium" :label="t('destination')" />
     <VtsCardRowKeyValue>
       <template #key>{{ t('pool') }}</template>
