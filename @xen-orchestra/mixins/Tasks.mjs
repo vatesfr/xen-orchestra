@@ -3,6 +3,7 @@ import { EventEmitter } from 'node:events'
 import { makeOnProgress } from '@vates/task/combineEvents'
 import { forbiddenOperation, noSuchObject } from 'xo-common/api-errors.js'
 import { Task, serializeError } from '@vates/task'
+import jsonStringifySafe from 'json-stringify-safe'
 import iteratee from 'lodash/iteratee.js'
 import stubTrue from 'lodash/stubTrue.js'
 
@@ -12,8 +13,17 @@ const { warn } = createLogger('xo:mixins:Tasks')
 
 const noop = Function.prototype
 
-// a copy, as the store returns: a live log keeps changing, and must not be changed by the caller
-const copyLog = log => JSON.parse(JSON.stringify(log))
+// a copy, as the store returns: a live log keeps changing, and must not be changed by the caller. Like the store of
+// xo-server when it saves a log, circular references are replaced instead of making the copy fail.
+const copyLog = log => {
+  let json
+  try {
+    json = JSON.stringify(log)
+  } catch {
+    json = jsonStringifySafe(log)
+  }
+  return JSON.parse(json)
+}
 
 const DEFAULT_BACKUP_LOG_KEEP_DURATION = 31 * 24 * 60 * 60 * 1000
 
@@ -78,7 +88,7 @@ export default class Tasks extends EventEmitter {
             try {
               const storedLog = await this.#deleteStored(id)
               if (storedLog !== undefined) {
-                this.emit('remove', storedLog)
+                this.#emitSafely('remove', storedLog)
               }
               written = true
             } catch (error) {
@@ -243,7 +253,7 @@ export default class Tasks extends EventEmitter {
    * - abort: `(reason) => …` called by `tasks.abort(rootId, reason)` while the
    *   root task runs. Without it, aborting the task fails with `forbiddenOperation`.
    *
-   * The returned handler has an `end(status = 'interrupted', reason)` method for
+   * The returned handler has an `end({ status = 'interrupted', reason })` method for
    * a source that disappeared without ending its root task. It ends the open
    * tasks, innermost first, through the same path as the events of the source,
    * so the caller's hooks run and may change the status (for backups,
@@ -335,7 +345,7 @@ export default class Tasks extends EventEmitter {
       feed(event)
     }
 
-    function end(status = 'interrupted', reason) {
+    function end({ status = 'interrupted', reason } = {}) {
       // nothing to end: not started yet, or already ended
       if (openIds.size === 0) {
         return
@@ -419,6 +429,9 @@ export default class Tasks extends EventEmitter {
   /**
    * Deletes the log of a task, stored or live: a live task may not be stored yet, or only in an older state if its
    * last write failed.
+   *
+   * The log of a running task can be deleted too (XO 5 offers it for any task): the next event of the task writes it
+   * again.
    */
   async deleteLog(id, cb) {
     const storedLog = await this.#deleteStored(id, cb)
@@ -428,7 +441,7 @@ export default class Tasks extends EventEmitter {
 
     const log = liveLog ?? storedLog
     if (log !== undefined) {
-      this.emit('remove', log)
+      this.#emitSafely('remove', log)
     }
   }
 

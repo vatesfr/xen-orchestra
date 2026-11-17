@@ -477,7 +477,7 @@ describe('Tasks', () => {
 
         const pFinal = finalState(tasks, 'root-end')
         const before = Date.now()
-        onLogFct.end(undefined, 'source lost')
+        onLogFct.end({ reason: 'source lost' })
         const after = Date.now()
 
         const final = await pFinal
@@ -506,10 +506,26 @@ describe('Tasks', () => {
         })
         const timestamp = Date.now()
         onLogFct({ type: 'start', id: 'root-rewrite', timestamp, properties: { name: 'backup run' } })
-        onLogFct.end('interrupted', 'source lost')
+        onLogFct.end({ status: 'interrupted', reason: 'source lost' })
         await flush()
 
         assert.equal(fake.data.get('root-rewrite').status, 'failure')
+      })
+
+      it('ends the open tasks with the given status', async () => {
+        const fake = makeApp()
+        const tasks = new Tasks(fake.app)
+        await fake.start()
+
+        const onLogFct = tasks.createExternalProgressHandler()
+        startRootAndChild(onLogFct, 'root-status', Date.now())
+        onLogFct.end({ status: 'failure', reason: 'source lost' })
+        await flush()
+
+        const stored = fake.data.get('root-status')
+        assert.equal(stored.status, 'failure')
+        assert.equal(stored.result, 'source lost')
+        assert.equal(stored.tasks[0].status, 'failure')
       })
 
       it('changes nothing when called before the start or after the end', async () => {
@@ -540,7 +556,7 @@ describe('Tasks', () => {
         const id = 'root-after'
         const timestamp = Date.now()
         onLogFct({ type: 'start', id, timestamp, properties: { name: 'backup run' } })
-        onLogFct.end(undefined, 'source lost')
+        onLogFct.end({ reason: 'source lost' })
 
         assert.doesNotThrow(() => onLogFct({ type: 'info', id, timestamp: timestamp + 2, message: 'late' }))
         await flush()
@@ -557,7 +573,7 @@ describe('Tasks', () => {
         const id = 'root-after-warn'
         const timestamp = Date.now()
         onLogFct({ type: 'start', id, timestamp, properties: { name: 'backup run' } })
-        onLogFct.end(undefined, 'source lost')
+        onLogFct.end({ reason: 'source lost' })
 
         await withLogs(logs => {
           for (let i = 0; i < 3; ++i) {
@@ -579,7 +595,7 @@ describe('Tasks', () => {
         const onLogFct = tasks.createExternalProgressHandler({ abort: () => calls.push('abort') })
         const id = 'root-abort-end'
         onLogFct({ type: 'start', id, timestamp: Date.now(), properties: { name: 'backup run' } })
-        onLogFct.end(undefined, 'source lost')
+        onLogFct.end({ reason: 'source lost' })
 
         await assert.rejects(tasks.abort(id, 'late'))
         assert.deepEqual(calls, [])
@@ -598,7 +614,7 @@ describe('Tasks', () => {
           onLogFct({ type: 'start', id: 'orphan', parentId: 'missing', timestamp: timestamp + 1, properties: {} })
         )
 
-        assert.doesNotThrow(() => onLogFct.end(undefined, 'source lost'))
+        assert.doesNotThrow(() => onLogFct.end({ reason: 'source lost' }))
         await flush()
         assert.equal(fake.data.get(id).status, 'interrupted')
       })
@@ -616,7 +632,7 @@ describe('Tasks', () => {
         const timestamp = Date.now()
         startRootAndChild(onLogFct, 'root-hook', timestamp)
 
-        assert.throws(() => onLogFct.end(undefined, 'source lost'), /hook boom/)
+        assert.throws(() => onLogFct.end({ reason: 'source lost' }), /hook boom/)
         await flush()
 
         const stored = fake.data.get('root-hook')
@@ -642,7 +658,7 @@ describe('Tasks', () => {
         const timestamp = Date.now()
         startRootAndChild(onLogFct, 'root-wins', timestamp)
 
-        assert.throws(() => onLogFct.end(undefined, 'source lost'), /root hook boom/)
+        assert.throws(() => onLogFct.end({ reason: 'source lost' }), /root hook boom/)
         await flush()
 
         const stored = fake.data.get('root-wins')
@@ -982,6 +998,24 @@ describe('Tasks', () => {
       })
     })
 
+    it('get() copies a live log that holds a circular value, as the store saves it', async () => {
+      const fake = makeApp()
+      const tasks = new Tasks(fake.app)
+      await fake.start()
+
+      const task = tasks.create({ name: 'circular info' })
+      const log = await task.run(async () => {
+        const data = { name: 'circular' }
+        data.self = data
+        task.info('msg', data)
+        return tasks.get(task.id)
+      })
+
+      assert.equal(log.status, 'pending')
+      assert.equal(log.infos[0].data.name, 'circular')
+      assert.match(log.infos[0].data.self, /^\[Circular/)
+    })
+
     describe('deleteLog', () => {
       it('keeps the live log of a clear-on-success task when reading the store fails on delete', async () => {
         const fake = makeApp()
@@ -1024,6 +1058,64 @@ describe('Tasks', () => {
 
         assert.deepEqual(removed, [id])
         await assert.rejects(tasks.get(id), error => noSuchObject.is(error))
+      })
+
+      it('drops the live log of a clear-on-success task even if a remove listener throws', async () => {
+        const fake = makeApp()
+        const tasks = new Tasks(fake.app)
+        await fake.start()
+
+        tasks.on('remove', () => {
+          throw new Error('remove listener boom')
+        })
+        const task = tasks.create({ name: 'clear on success' }, { clearLogOnSuccess: true })
+        const id = task.id
+        await task.run(async () => {
+          await flush()
+          assert.equal(fake.data.get(id).status, 'pending')
+          return 'ok'
+        })
+        await flush()
+
+        assert.equal(fake.data.has(id), false)
+        await assert.rejects(tasks.get(id), error => noSuchObject.is(error))
+      })
+
+      it('deletes the log even if a remove listener throws', async () => {
+        const fake = makeApp()
+        const tasks = new Tasks(fake.app)
+        await fake.start()
+
+        const task = tasks.create({ name: 'stored' })
+        await task.run(() => 'ok')
+        await flush()
+
+        tasks.on('remove', () => {
+          throw new Error('remove listener boom')
+        })
+        await tasks.deleteLog(task.id)
+        assert.equal(fake.data.has(task.id), false)
+      })
+
+      it('deletes the log of a running task, which its next event writes again', async () => {
+        const fake = makeApp()
+        const tasks = new Tasks(fake.app)
+        await fake.start()
+
+        const id = 'ext-delete-running'
+        const onLogFct = tasks.createExternalProgressHandler()
+        const timestamp = Date.now()
+        onLogFct({ type: 'start', id, timestamp, properties: { name: 'backup run' } })
+        await flush()
+
+        await tasks.deleteLog(id)
+        assert.equal(fake.data.has(id), false)
+        await assert.rejects(tasks.get(id), error => noSuchObject.is(error))
+
+        onLogFct({ type: 'info', id, timestamp: timestamp + 1, message: 'still running' })
+        await flush()
+        assert.equal(fake.data.get(id).status, 'pending')
+        assert.equal((await tasks.get(id)).status, 'pending')
       })
 
       it('rethrows a store error other than not found', async () => {
