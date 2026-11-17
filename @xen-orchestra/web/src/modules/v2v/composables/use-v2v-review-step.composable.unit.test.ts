@@ -15,8 +15,7 @@ import { findV2vRouteQuery } from '@/test/create-v2v-wizard-router.ts'
 import { hasRequested } from '@/test/fetch-requests.ts'
 import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
 import { v2vVmRowsCollectionsMock } from '@/test/mock-xo-v2v-vm-rows-collections.ts'
-import { mountComposableOnV2vWizard } from '@/test/mount-on-v2v-wizard.ts'
-import { mountV2vListStep } from '@/test/mount-v2v-list-step.ts'
+import { mountV2vListStepComposable, type MountV2vListStepOptions } from '@/test/mount-v2v-list-step.ts'
 import { resetV2vCollectionMocks } from '@/test/reset-v2v-collection-mocks.ts'
 import { silenceConsoleError } from '@/test/silence-console-error.ts'
 import { SERVER_ERROR_MESSAGE, stubFetchServerError } from '@/test/stub-fetch-response.ts'
@@ -102,18 +101,14 @@ const DB_VM_DISTINCT_DISKS_INVENTORY = (() => {
   }
 })()
 
-function mountReviewStep(options?: Parameters<typeof mountV2vListStep>[2]) {
-  return mountV2vListStep(
+function mountReviewStep(options?: MountV2vListStepOptions) {
+  return mountV2vListStepComposable(
     'review',
-    setup =>
-      mountComposableOnV2vWizard(
-        () => ({
-          ...useV2vReviewStep(V2V_LIST_POOL.id),
-          labels: useV2vReviewLabels(),
-          selectedVmLabels: useV2vSelectedVmLabels(),
-        }),
-        setup
-      ),
+    () => ({
+      ...useV2vReviewStep(V2V_LIST_POOL.id),
+      labels: useV2vReviewLabels(),
+      selectedVmLabels: useV2vSelectedVmLabels(),
+    }),
     options
   )
 }

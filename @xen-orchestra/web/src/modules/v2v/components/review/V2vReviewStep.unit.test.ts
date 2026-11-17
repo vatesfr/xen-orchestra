@@ -15,7 +15,7 @@ import { getSuccessState } from '@/test/get-success-state.ts'
 import { t } from '@/test/i18n.ts'
 import { v2vVmRowsCollectionsMock } from '@/test/mock-xo-v2v-vm-rows-collections.ts'
 import { mountComponentOnV2vWizard } from '@/test/mount-on-v2v-wizard.ts'
-import { mountV2vListStep } from '@/test/mount-v2v-list-step.ts'
+import { mountV2vListStep, type MountV2vListStepOptions } from '@/test/mount-v2v-list-step.ts'
 import { resetV2vCollectionMocks } from '@/test/reset-v2v-collection-mocks.ts'
 import { silenceConsoleError } from '@/test/silence-console-error.ts'
 import { SERVER_ERROR_MESSAGE, stubFetchServerError } from '@/test/stub-fetch-response.ts'
@@ -71,7 +71,7 @@ vi.mock(
 vi.mock(import('@core/composables/modals/use-delete-modal.ts'), () => import('@/test/mock-delete-modal.ts'))
 
 // What each group and line says belongs to useV2vReviewStep and the labels: here only the wiring matters
-async function mountStep(options?: Parameters<typeof mountV2vListStep>[2]) {
+async function mountStep(options?: MountV2vListStepOptions) {
   return mountV2vListStep(
     'review',
     setup =>

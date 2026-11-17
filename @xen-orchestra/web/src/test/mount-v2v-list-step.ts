@@ -1,5 +1,5 @@
 import type { V2vMigrationList } from '@/modules/v2v/types/v2v-migration-list.type.ts'
-import type { V2vWizardSetup } from '@/test/mount-on-v2v-wizard.ts'
+import { mountComposableOnV2vWizard, type V2vWizardSetup } from '@/test/mount-on-v2v-wizard.ts'
 import {
   seedV2vMappingStepCollections,
   V2V_MAPPING_STEP_INVENTORY,
@@ -11,7 +11,7 @@ import { flushPromises } from '@vue/test-utils'
 
 type V2vListStep = 'mapping' | 'review'
 
-type MountV2vListStepOptions = {
+export type MountV2vListStepOptions = {
   vm?: string
   list?: V2vMigrationList
   inventory?: XoV2vInventory
@@ -45,4 +45,13 @@ export async function mountV2vListStep<TMounted>(
   await flushPromises()
 
   return mounted
+}
+
+// A composable of the step, mounted on the same setup
+export function mountV2vListStepComposable<TResult extends Record<string, unknown>>(
+  step: V2vListStep,
+  composable: () => TResult,
+  options?: MountV2vListStepOptions
+) {
+  return mountV2vListStep(step, setup => mountComposableOnV2vWizard(composable, setup), options)
 }
