@@ -6,6 +6,14 @@ import type { BackupJobTargetFormData } from '@/modules/backup-job/form/use-back
 import type { BackupJobTransferFormData } from '@/modules/backup-job/form/use-backup-job-transfer-form.ts'
 import type { BackupJobScopeType } from '@/modules/backup-job/types/backup-job-form.type.ts'
 import {
+  ALL_EXPRESSION,
+  BACKUP_REPOSITORY_EXPRESSION_KEY,
+  POOL_EXPRESSION_KEY,
+  STORAGE_REPOSITORY_EXPRESSION_KEY,
+  toContextExpression,
+  VM_EXPRESSION_KEY,
+} from '@/modules/backup-job/utils/backup-job-expression-context.util.ts'
+import {
   LONG_TERM_RETENTION_FIELDS,
   type LongTermRetentionPeriod,
 } from '@/modules/backup-job/utils/backup-job-long-term-retention.util.ts'
@@ -58,10 +66,6 @@ export type BackupJobFormDataSet = {
   transfer: BackupJobTransferFormData
   target: BackupJobTargetFormData
   planning: BackupJobPlanningFormData
-  allIds: {
-    backupRepositories: string[]
-    pools: string[]
-  }
 }
 
 export const ALL_EXPRESSION = '*'
@@ -216,12 +220,12 @@ function getHealthCheck(healthCheck: BackupJobTargetHealthCheckFormData) {
 
   return {
     global: {
-      healthCheckVmsWithTags: getHealthCheckVmsWithTags(healthCheck),
       healthCheckTimeout:
         healthCheck.healthCheckTimeout === undefined ? undefined : `${healthCheck.healthCheckTimeout}m`,
     },
     schedule: {
       healthCheckSr: healthCheck.healthCheckSr,
+      healthCheckVmsWithTags: getHealthCheckVmsWithTags(healthCheck),
     },
   }
 }
@@ -252,15 +256,19 @@ function getSchedules(
 }
 
 function getMirrorFilter(source: BackupJobSourceFormData): BackupJobPattern | undefined {
-  if (source.scopeType === 'all') {
+  if (source.scopeType !== 'manual') {
     return undefined
   }
 
-  if (source.scopeType === 'manual') {
-    return { vm: { uuid: { __or: source.vmIds } } }
+  return { vm: { uuid: { __or: source.vmIds } } }
+}
+
+function getMirrorVmFilter(source: BackupJobSourceFormData): string | undefined {
+  if (source.scopeType !== 'smart') {
+    return undefined
   }
 
-  return source.vmFilter
+  return toContextExpression(VM_EXPRESSION_KEY, source.vmFilter)
 }
 
 function toVmBackupJobPayload({ source, transfer, target, planning }: BackupJobFormDataSet): VmBackupJobPayload {
@@ -276,7 +284,7 @@ function toVmBackupJobPayload({ source, transfer, target, planning }: BackupJobF
     mode: source.mode,
     compression: isIncremental ? undefined : transfer.compression,
     proxy: hasBackupRepository ? target.backupRepository.targetProxy : undefined,
-    vms: toPattern(source.scopeType, source.vmIds, source.vmFilter),
+    vms: toPattern(source.scopeType, source.vmIds, toContextExpression(VM_EXPRESSION_KEY, source.vmFilter)),
     remotes: hasBackupRepository ? getBackupRepositoryPattern(target.backupRepository, ALL_EXPRESSION) : undefined,
     srs: hasStorageRepository
       ? toPattern(
@@ -321,7 +329,6 @@ function toMirrorBackupJobPayload({
   transfer,
   target,
   planning,
-  allIds,
 }: BackupJobFormDataSet): MirrorBackupJobPayload {
   const healthCheck = getHealthCheck(target.healthCheck)
 
@@ -332,7 +339,7 @@ function toMirrorBackupJobPayload({
     proxy: source.proxy,
     sourceRemote: source.sourceBackupRepository,
     filter: getMirrorFilter(source),
-    remotes: getBackupRepositoryPattern(target.backupRepository, toIdsPattern(allIds.backupRepositories)),
+    remotes: getBackupRepositoryPattern(target.backupRepository, ALL_EXPRESSION),
     schedules: getSchedules(source, planning),
     settings: {
       '': {
@@ -345,27 +352,28 @@ function toMirrorBackupJobPayload({
       },
       [SCHEDULE_KEY]: {
         exportRetention: target.backupRepository.exportRetention,
+        vmFilter: getMirrorVmFilter(source),
         ...healthCheck.schedule,
       },
     },
   }
 }
 
-function toMetadataBackupJobPayload({
-  source,
-  target,
-  planning,
-  allIds,
-}: BackupJobFormDataSet): MetadataBackupJobPayload {
+function toMetadataBackupJobPayload({ source, target, planning }: BackupJobFormDataSet): MetadataBackupJobPayload {
   return {
     type: 'metadataBackup',
     name: source.name,
     proxy: target.backupRepository.targetProxy,
     xoMetadata: source.saveXoConfig,
     pools: source.savePoolsMetadata
-      ? toPattern(source.scopeType, source.poolIds, source.poolFilter, toIdsPattern(allIds.pools))
+      ? toPattern(
+          source.scopeType,
+          source.poolIds,
+          toContextExpression(POOL_EXPRESSION_KEY, source.poolFilter),
+          ALL_EXPRESSION
+        )
       : undefined,
-    remotes: getBackupRepositoryPattern(target.backupRepository, toIdsPattern(allIds.backupRepositories)),
+    remotes: getBackupRepositoryPattern(target.backupRepository, ALL_EXPRESSION),
     schedules: getSchedules(source, planning),
     settings: {
       '': getReportSettings(planning),

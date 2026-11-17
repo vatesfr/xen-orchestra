@@ -97,7 +97,7 @@ describe('useXoBackedUpVmsUtils', () => {
 
   describe('dynamic selection query', () => {
     it('lists the VMs matching the query, except the ones tagged xo:no-bak', () => {
-      const result = mountBackedUpVms('tags:test' as unknown as FrontXoVmBackupJob['vms'])
+      const result = mountBackedUpVms('vm:(tags:test)' as unknown as FrontXoVmBackupJob['vms'])
 
       expect(result.backedUpVmsExpression).toBe('tags:test')
       expect(result.isSmartModeEnabled).toBe(false)

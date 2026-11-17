@@ -1,9 +1,34 @@
 import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
 import { getBackupRepositoryType } from '@/modules/backup-repository/utils/xo-backup-repository-type.util.ts'
+import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import type { BackupRepositoryType } from 'xo-remote-parser'
 
-// Same shapes as `buildBackupRepositoryContext` and `buildSrContext` in @xen-orchestra/backups/_buildContext.mjs,
+export const ALL_EXPRESSION = '*'
+
+export const BACKUP_REPOSITORY_EXPRESSION_KEY = 'backupRepository'
+
+export const STORAGE_REPOSITORY_EXPRESSION_KEY = 'sr'
+
+export const VM_EXPRESSION_KEY = 'vm'
+
+export const POOL_EXPRESSION_KEY = 'pool'
+
+export function toContextExpression(key: string, query: string): string {
+  return `${key}:(${query})`
+}
+
+export function formatContextExpressionQuery(key: string, expression: string): string {
+  const prefix = `${key}:(`
+
+  if (!expression.startsWith(prefix) || !expression.endsWith(')')) {
+    return expression
+  }
+
+  return expression.slice(prefix.length, -1)
+}
+
+// Same shapes as `buildBackupRepositoryContext`, `buildSrContext` and `buildPoolContext` in @xen-orchestra/backups/_buildContext.mjs,
 // which xo-server uses to resolve the target expressions of a backup job
 
 export type BackupRepositoryExpressionContext = {
@@ -15,6 +40,12 @@ export type BackupRepositoryExpressionContext = {
 export type SrExpressionContext = {
   name_label: string
   type: string
+  description: string
+  tags: string[]
+}
+
+export type PoolExpressionContext = {
+  name_label: string
   description: string
   tags: string[]
 }
@@ -33,5 +64,13 @@ export function toSrExpressionContext(sr: FrontXoSr): SrExpressionContext {
     type: sr.SR_type,
     description: sr.name_description,
     tags: sr.tags,
+  }
+}
+
+export function toPoolExpressionContext(pool: FrontXoPool): PoolExpressionContext {
+  return {
+    name_label: pool.name_label,
+    description: pool.name_description,
+    tags: pool.tags,
   }
 }
