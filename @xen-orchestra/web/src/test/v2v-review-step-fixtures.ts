@@ -9,6 +9,7 @@ import {
   createV2vImportedDisk,
   createV2vImportVm,
 } from '@/test/create-v2v-import-vm.ts'
+import { createV2vStartVm, getV2vStartEndpoint } from '@/test/create-v2v-launch.ts'
 import { createV2vMigrationList } from '@/test/create-v2v-migration-list.ts'
 import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
 import { v2vVmRowsCollectionsMock } from '@/test/mock-xo-v2v-vm-rows-collections.ts'
@@ -36,6 +37,15 @@ export const V2V_REVIEW_STEP_LIST = createV2vReviewStepList([
   { id: V2V_LISTED_VM.id },
   { id: V2V_GONE_VM_ID },
 ])
+
+// What a launch of that list starts, the new VM and the resumed one, without override
+export const V2V_REVIEW_START_VMS = [
+  createV2vStartVm({ id: V2V_WEB_VM.id }),
+  createV2vStartVm({ id: V2V_DB_VM.id, kind: 'resume' }),
+]
+
+// The route a launch on the pool of that list is posted to
+export const V2V_REVIEW_START_ENDPOINT = getV2vStartEndpoint(V2V_LIST_POOL.id)
 
 // Its one VM is gone from the source: nothing to launch
 export const V2V_REVIEW_STEP_EXCLUDED_LIST = createV2vReviewStepList([{ id: V2V_GONE_VM_ID }])

@@ -14,6 +14,7 @@ import { createV2vDestinationDefaults } from '@/test/create-v2v-migration-list.t
 import { stubFetchResponse } from '@/test/stub-fetch-response.ts'
 import { V2V_SELECTED_VM_CHECK } from '@/test/v2v-selected-vm-checks.ts'
 import type { XoTask } from '@vates/types'
+import { flushPromises } from '@vue/test-utils'
 
 // The settings a launch starts with
 export function createV2vLaunchSettings(overrides: Partial<V2vLaunchSettings> = {}): V2vLaunchSettings {
@@ -80,4 +81,10 @@ export function createV2vStartRefusal(errors: unknown) {
 // The start route refuses the launch for these problems, each of one VM or of the whole launch
 export function stubV2vStartProblems(errors: { vm?: string; message: string }[]) {
   return stubFetchResponse(422, createV2vStartRefusal(errors))
+}
+
+// Launches, then lets the start request settle
+export async function settleV2vLaunch(launch: () => Promise<void>) {
+  await launch()
+  await flushPromises()
 }
