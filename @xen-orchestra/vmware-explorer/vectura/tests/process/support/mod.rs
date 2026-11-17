@@ -937,7 +937,7 @@ fn serve_data(mut stream: TcpStream, mock: &Mock) -> Observed {
     drop(first);
     let socket = stream.try_clone().expect("the socket clones");
     let mut second;
-    let mut plane = if transport == "nfc" {
+    let mut plane = if transport.ends_with("nfc") {
         Plane::Clear(&mut stream)
     } else {
         second = ServerConnection::new(Arc::clone(&mock.config))
@@ -998,7 +998,7 @@ fn serve_restricted(
     };
     // No close notify, as on the other path: the socket goes on.
     drop(first);
-    let mut plane = if transport == "nfc" {
+    let mut plane = if transport.ends_with("nfc") {
         Plane::Clear(&mut stream)
     } else {
         let Some(second) = accept(&stream, context) else {
@@ -1059,11 +1059,20 @@ fn dialogue<S: Read + Write>(tls: &mut S, mock: &Mock) -> (usize, Option<String>
                 "200 {}",
                 mock.thumbprint(&SHA256, mock.scenario.announced_thumbprint)
             )
-        } else if let Some(transport @ ("nfc" | "nfcssl")) = text.strip_prefix("PROXY ") {
+        } else if let Some(transport @ ("nfc" | "nfcssl" | "vpxa-nfc" | "vpxa-nfcssl")) =
+            text.strip_prefix("PROXY ")
+            // A 6.x host knows a vCenter's ticket under vpxa's services only.
+            && transport.starts_with("vpxa-") == (mock.scenario.vcenter && mock.legacy())
+        {
             mock.record(Event::Proxy(transport.to_owned()));
+            let service = if transport.starts_with("vpxa-") {
+                transport.to_owned()
+            } else {
+                format!("ha-{transport}")
+            };
             mock.scenario
                 .proxy_reply
-                .map_or_else(|| format!("200 Connect ha-{transport}"), str::to_owned)
+                .map_or_else(|| format!("200 Connect {service}"), str::to_owned)
         } else {
             return (read, None);
         };

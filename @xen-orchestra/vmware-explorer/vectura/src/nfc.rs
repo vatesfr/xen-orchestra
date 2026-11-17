@@ -61,14 +61,32 @@ pub enum Transport {
     Nfcssl,
     /// `PROXY nfc`: the same connection in clear, with no second TLS session.
     Nfc,
+    /// `PROXY vpxa-nfcssl`: [`Transport::Nfcssl`] served by the host's vpxa agent.
+    VpxaNfcssl,
+    /// `PROXY vpxa-nfc`: [`Transport::Nfc`] served by the host's vpxa agent.
+    VpxaNfc,
 }
 
 impl Transport {
+    /// The same transport asked of the host's vpxa agent, for a ticket a vCenter issued.
+    ///
+    /// The hostd of an ESXi 6.5 or 6.7 host drops such a ticket as not
+    /// found: the vCenter registered it with vpxa, its agent on the host.
+    /// The hostd of a 7.x or 8.x host knows it.
+    const fn through_vpxa(self) -> Transport {
+        match self {
+            Transport::Nfcssl | Transport::VpxaNfcssl => Transport::VpxaNfcssl,
+            Transport::Nfc | Transport::VpxaNfc => Transport::VpxaNfc,
+        }
+    }
+
     /// The dialogue line asking for this transport, without its line end.
     const fn proxy(self) -> &'static str {
         match self {
             Transport::Nfcssl => "PROXY nfcssl",
             Transport::Nfc => "PROXY nfc",
+            Transport::VpxaNfcssl => "PROXY vpxa-nfcssl",
+            Transport::VpxaNfc => "PROXY vpxa-nfc",
         }
     }
 
@@ -77,6 +95,8 @@ impl Transport {
         match self {
             Transport::Nfcssl => "200 Connect ha-nfcssl",
             Transport::Nfc => "200 Connect ha-nfc",
+            Transport::VpxaNfcssl => "200 Connect vpxa-nfcssl",
+            Transport::VpxaNfc => "200 Connect vpxa-nfc",
         }
     }
 }
@@ -99,6 +119,8 @@ impl fmt::Display for Transport {
         f.write_str(match self {
             Transport::Nfcssl => "nfcssl",
             Transport::Nfc => "nfc",
+            Transport::VpxaNfcssl => "vpxa-nfcssl",
+            Transport::VpxaNfc => "vpxa-nfc",
         })
     }
 }
@@ -410,9 +432,10 @@ impl Connection {
     /// second TLS session must present the same certificate; with `nfc` the
     /// connection goes on in clear. A host that refuses the ECDHE suites is
     /// connected to again and both sessions use RSA key exchange, under the
-    /// same pin. The handshake, hello, version and
-    /// capabilities exchanges follow, each waiting for its reply; a legacy
-    /// host gets the start of the handshake alone.
+    /// same pin. `vcenter` says a vCenter issued the ticket: a legacy host
+    /// is then asked for the transport of its vpxa agent. The handshake,
+    /// hello, version and capabilities exchanges follow, each waiting for
+    /// its reply; a legacy host gets the start of the handshake alone.
     ///
     /// # Errors
     /// When any phase fails, naming that phase.
@@ -422,6 +445,7 @@ impl Connection {
         secret: &str,
         pin: &tls::Pin,
         transport: Transport,
+        vcenter: bool,
         transcript: Transcript,
     ) -> Result<Connection, Error> {
         let mut stream = tls::connect(host, port)?;
@@ -431,7 +455,12 @@ impl Connection {
         if dialect == Dialect::Legacy {
             transcript.legacy();
         }
-        if transport == Transport::Nfcssl {
+        let transport = if vcenter && dialect == Dialect::Legacy {
+            transport.through_vpxa()
+        } else {
+            transport
+        };
+        if matches!(transport, Transport::Nfcssl | Transport::VpxaNfcssl) {
             greeted.require(greeting::NFCSSL_SUPPORTED)?;
         }
         let client = tls::Client::new(&tls::Trust::Pin(pin.clone()))?;
@@ -469,7 +498,7 @@ impl Connection {
         let fallback = matches!(first, tls::Session::RsaKx(_));
         drop(first);
         let plane = match transport {
-            Transport::Nfcssl => {
+            Transport::Nfcssl | Transport::VpxaNfcssl => {
                 // The host that refused ECDHE once is not offered it again.
                 let session = if fallback {
                     tls::rsa_kx(&stream, pin)?
@@ -483,7 +512,7 @@ impl Connection {
                 }
                 Plane::Tls(session)
             }
-            Transport::Nfc => Plane::Clear,
+            Transport::Nfc | Transport::VpxaNfc => Plane::Clear,
         };
         let mut connection = Connection {
             stream,
@@ -1223,9 +1252,16 @@ mod tests {
         });
         let pin = tls::Pin::sha256(&tls::sha256(b"a certificate")).unwrap();
 
-        let error =
-            Connection::establish("127.0.0.1", port, "ticket", &pin, Transport::Nfcssl, QUIET)
-                .unwrap_err();
+        let error = Connection::establish(
+            "127.0.0.1",
+            port,
+            "ticket",
+            &pin,
+            Transport::Nfcssl,
+            false,
+            QUIET,
+        )
+        .unwrap_err();
 
         assert!(matches!(error, Error::GreetingChanged), "{error:?}");
         assert_eq!(
