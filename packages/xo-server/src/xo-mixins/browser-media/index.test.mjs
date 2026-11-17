@@ -15,6 +15,13 @@ const CD_REF = 'OpaqueRef:cd'
 const HOST_REF = 'OpaqueRef:host'
 const POOL_UUID = 'pool-uuid'
 
+// `backend-kind` changed on a drive whose VM is not halted, which hangs the next shutdown of the VM
+// (see insertIso()): checked after each test
+const unsafeChanges = []
+afterEach(() => {
+  assert.deepEqual(unsafeChanges.splice(0), [], '`backend-kind` changed while the VM was not halted')
+})
+
 class XapiError extends Error {
   constructor(code) {
     super(code)
@@ -52,8 +59,14 @@ function makeXapi({ powerState = 'Halted', cd = true, insertError } = {}) {
     VDI: {},
     Secret: { 'OpaqueRef:secret': { uuid: 'secret-uuid', value: 'secret-of-old' } },
   }
-  const emitters = { __proto__: null }
-  const getEventEmitterByType = type => (emitters[type] ??= new EventEmitter())
+  // a method, like the one of the xo-collection index: it fails when called without its index
+  const typeIndex = {
+    emitters: { __proto__: null },
+    getEventEmitterByType(type) {
+      return (this.emitters[type] ??= new EventEmitter())
+    },
+  }
+  const getEventEmitterByType = type => typeIndex.getEventEmitterByType(type)
   const get = (type, ref) => {
     const record = records[type][ref]
     if (record === undefined) {
@@ -64,6 +77,13 @@ function makeXapi({ powerState = 'Halted', cd = true, insertError } = {}) {
   const handle = (method, ...args) => {
     calls.push([method, ...args])
     const [ref, key, value] = args
+    if (
+      (method === 'VBD.add_to_other_config' || method === 'VBD.remove_from_other_config') &&
+      key === 'backend-kind' &&
+      get('VM', get('VBD', ref).VM).power_state !== 'Halted'
+    ) {
+      unsafeChanges.push([method, ref])
+    }
     switch (method) {
       case 'VM.get_by_uuid': {
         const entry = Object.entries(records.VM).find(([, vm]) => vm.uuid === ref)
@@ -125,7 +145,7 @@ function makeXapi({ powerState = 'Halted', cd = true, insertError } = {}) {
     records,
     pool: { uuid: POOL_UUID },
     objects: {
-      allIndexes: { type: { getEventEmitterByType } },
+      allIndexes: { type: typeIndex },
       get indexes() {
         const vbds = {}
         for (const [$ref, vbd] of Object.entries(records.VBD)) {
@@ -134,12 +154,41 @@ function makeXapi({ powerState = 'Halted', cd = true, insertError } = {}) {
         return { type: { VBD: vbds } }
       },
     },
-    /** The VM of the drive halts or reboots: XAPI unplugs the drive. */
-    unplug(vbdRef, { emit = true } = {}) {
-      const previous = { ...records.VBD[vbdRef], $ref: vbdRef, $xapi: xapi }
-      records.VBD[vbdRef].currently_attached = false
-      if (emit) {
-        getEventEmitterByType('VBD').emit('update', { ...records.VBD[vbdRef], $ref: vbdRef, $xapi: xapi }, previous)
+    /**
+     * The VM halts: XAPI unplugs its drives. `events` says which events are delivered: `vm`, `vbd`,
+     * both (the VM first), or none, e.g. while xo-server is not running.
+     */
+    halt({ events = 'all' } = {}) {
+      const vm = records.VM[VM_REF]
+      const previousVm = vmObject()
+      const previousVbds = vm.VBDs.map(vbdObject)
+      Object.assign(vm, { power_state: 'Halted', resident_on: 'OpaqueRef:NULL' })
+      for (const ref of vm.VBDs) {
+        records.VBD[ref].currently_attached = false
+      }
+      if (events === 'all' || events === 'vm') {
+        getEventEmitterByType('VM').emit('update', vmObject(), previousVm)
+      }
+      if (events === 'all' || events === 'vbd') {
+        for (const previous of previousVbds) {
+          getEventEmitterByType('VBD').emit('update', vbdObject(previous.$ref), previous)
+        }
+      }
+    },
+    /** The VM reboots: XAPI unplugs its drives and plugs them again, it stays running. */
+    reboot() {
+      for (const ref of records.VM[VM_REF].VBDs) {
+        const plugged = vbdObject(ref)
+        records.VBD[ref].currently_attached = false
+        getEventEmitterByType('VBD').emit('update', vbdObject(ref), plugged)
+        records.VBD[ref].currently_attached = true
+        getEventEmitterByType('VBD').emit('update', vbdObject(ref), { ...plugged, currently_attached: false })
+      }
+    },
+    start() {
+      Object.assign(records.VM[VM_REF], { power_state: 'Running', resident_on: HOST_REF })
+      for (const ref of records.VM[VM_REF].VBDs) {
+        records.VBD[ref].currently_attached = true
       }
     },
     emit: (type, event, ...args) => getEventEmitterByType(type).emit(event, ...args),
@@ -168,6 +217,14 @@ function makeXapi({ powerState = 'Halted', cd = true, insertError } = {}) {
       return 'OpaqueRef:new-cd'
     },
   }
+  // as the objects of xen-api: with their opaque ref, their connection, and their linked objects
+  const vbdObject = ref => ({ ...records.VBD[ref], $ref: ref, $xapi: xapi })
+  const vmObject = () => ({
+    ...records.VM[VM_REF],
+    $ref: VM_REF,
+    $xapi: xapi,
+    $VBDs: records.VM[VM_REF].VBDs.map(vbdObject),
+  })
   return xapi
 }
 
@@ -187,6 +244,7 @@ function makeLiveMount({ mountError, mountDelay = 0, forgetError } = {}) {
     const id = `mount-${liveMount.mounts.size}`
     liveMount.mounts.set(id, params)
     params.xapi.records.SR[`OpaqueRef:sr-${id}`] = { sm_config: params.smConfig, PBDs: [], VDIs: [] }
+    params.xapi.records.VDI['OpaqueRef:vdi-vdi-uuid'] = { SR: `OpaqueRef:sr-${id}` }
     return { id, vdiUuid: 'vdi-uuid', srUuid: 'sr-uuid' }
   }
   liveMount.unmountBlockDevice = async id => {
@@ -195,6 +253,7 @@ function makeLiveMount({ mountError, mountDelay = 0, forgetError } = {}) {
     liveMount.mounts.delete(id)
     if (forgetError === undefined) {
       delete params.xapi.records.SR[`OpaqueRef:sr-${id}`]
+      delete params.xapi.records.VDI['OpaqueRef:vdi-vdi-uuid']
     }
     liveMount.emit('unmounted', id)
     if (forgetError !== undefined) {
@@ -548,52 +607,117 @@ describe('end of an insertion', () => {
     assert.equal(media.getBrowserMediaSession(session).status, 'inserted')
   })
 
-  describe('in a running VM', () => {
-    // see ejectIso(): removing `backend-kind` from a plugged drive hangs the next shutdown of the VM
-    const assertWaitsForUnplug = ({ liveMount, media, store, xapi }) => {
-      const cd = xapi.records.VBD[CD_REF]
-      assert.equal(cd.empty, true)
-      assert.equal(cd.other_config['backend-kind'], 'vbd')
-      assert.equal(JSON.parse(cd.other_config[TAG]).ejected, true)
+  // `backend-kind` is only changed while the VM is halted, see insertIso(): checked by the fake XAPI
+  describe('in a VM which is not halted', () => {
+    const cdOf = ({ xapi }, ref = CD_REF) => xapi.records.VBD[ref]
+    const tagOf = (context, ref) => JSON.parse(cdOf(context, ref).other_config[TAG])
+    const isReleased = (context, ref) => Object.keys(cdOf(context, ref).other_config).length === 0
+
+    // the drive of an ISO inserted in a halted VM, which then started: it is plugged on blkback
+    const insertThenStart = async options => {
+      const context = await insert(options)
+      context.xapi.start()
+      return context
+    }
+
+    // what is released whatever the state of the VM
+    const assertSessionReleased = ({ liveMount, media, store, xapi }) => {
       assert.deepEqual(xapi.records.VM[VM_REF].blocked_operations, {})
       assert.equal(liveMount.mounts.size, 0)
       assert.equal(store.map.size, 0)
       assert.deepEqual(media.getAllBrowserMediaSessions(), [])
     }
 
-    it('keeps the CD drive on blkback until it is unplugged', async () => {
+    it('leaves `backend-kind` alone when inserting, and releases the drive right away', async () => {
       const context = await insert({ xapi: makeXapi({ powerState: 'Running' }) })
+      assert.equal(cdOf(context).other_config['backend-kind'], undefined)
+      assert.deepEqual(tagOf(context), { session: context.session, created: false, backendKind: false })
 
       await context.media.ejectBrowserMedia(context.session)
-      assertWaitsForUnplug(context)
-
-      context.xapi.unplug(CD_REF)
-      await until(() => Object.keys(context.xapi.records.VBD[CD_REF].other_config).length === 0)
+      assert.equal(cdOf(context).empty, true)
+      assert.ok(isReleased(context))
+      assertSessionReleased(context)
     })
 
-    it('releases at the next reconciliation a drive unplugged while no event was received', async () => {
-      const context = await insert({ xapi: makeXapi({ powerState: 'Running' }), reconcileInterval: 10 })
-      await context.media.ejectBrowserMedia(context.session)
-      assertWaitsForUnplug(context)
+    it('adds `backend-kind` once the VM halts with the ISO, for a UEFI firmware to read it', async () => {
+      const context = await insert({ xapi: makeXapi({ powerState: 'Running' }) })
 
-      context.xapi.unplug(CD_REF, { emit: false })
-      await until(() => Object.keys(context.xapi.records.VBD[CD_REF].other_config).length === 0)
+      // a reboot does not go through `Halted`
+      context.xapi.reboot()
+      await sleep(20)
+      assert.equal(cdOf(context).other_config['backend-kind'], undefined)
+
+      context.xapi.halt()
+      await until(() => cdOf(context).other_config['backend-kind'] === 'vbd')
+      assert.deepEqual(tagOf(context), { session: context.session, created: false, backendKind: true })
+
+      await context.media.ejectBrowserMedia(context.session)
+      assert.ok(isReleased(context))
+    })
+
+    it('does not add `backend-kind` for another ISO than the one of the session', async () => {
+      const context = await insert({ xapi: makeXapi({ powerState: 'Running' }) })
+      // e.g. its SR was forgotten by hand, the session is not over yet
+      delete context.xapi.records.VDI['OpaqueRef:vdi-vdi-uuid']
+      context.xapi.halt()
+      await sleep(20)
+      assert.equal(cdOf(context).other_config['backend-kind'], undefined)
+    })
+
+    it('keeps the drive on blkback until the VM halts, not only reboots', async () => {
+      const context = await insertThenStart()
+      await context.media.ejectBrowserMedia(context.session)
+      assert.equal(cdOf(context).empty, true)
+      assert.equal(cdOf(context).other_config['backend-kind'], 'vbd')
+      assert.equal(tagOf(context).ejected, true)
+      assertSessionReleased(context)
+
+      context.xapi.reboot()
+      await sleep(20)
+      assert.equal(tagOf(context).ejected, true)
+
+      context.xapi.halt()
+      await until(() => isReleased(context))
+    })
+
+    for (const events of ['vm', 'vbd']) {
+      it(`releases the drive on the ${events.toUpperCase()} event of the halt alone`, async () => {
+        const context = await insertThenStart()
+        await context.media.ejectBrowserMedia(context.session)
+        context.xapi.halt({ events })
+        await until(() => isReleased(context))
+      })
+    }
+
+    it('releases at the next reconciliation a halt which was missed', async () => {
+      const context = await insertThenStart({ reconcileInterval: 10 })
+      await context.media.ejectBrowserMedia(context.session)
+      context.xapi.halt({ events: 'none' })
+      await until(() => isReleased(context))
+    })
+
+    it('destroys a drive created for the ISO once the VM halts', async () => {
+      const context = await insertThenStart({ xapi: makeXapi({ cd: false }) })
+      await context.media.ejectBrowserMedia(context.session)
+      assert.ok(cdOf(context, 'OpaqueRef:new-cd') !== undefined)
+
+      context.xapi.halt()
+      await until(() => context.xapi.records.VBD['OpaqueRef:new-cd'] === undefined)
+      assert.deepEqual(context.xapi.records.VM[VM_REF].VBDs, [])
     })
 
     it('leaves the release of the drive to the next ISO inserted in it', async () => {
-      const context = await insert({ xapi: makeXapi({ powerState: 'Running' }) })
+      const context = await insertThenStart()
       await context.media.ejectBrowserMedia(context.session)
 
       const browser = await connect(context.url)
       await context.media.insertBrowserMedia({ id: browser.session, vmId: VM_ID })
-      const tag = JSON.parse(context.xapi.records.VBD[CD_REF].other_config[TAG])
-      assert.equal(tag.session, browser.session)
-      assert.equal(tag.backendKind, true)
-      assert.equal(tag.ejected, undefined)
+      assert.deepEqual(tagOf(context), { session: browser.session, created: false, backendKind: true })
 
       await context.media.ejectBrowserMedia(browser.session)
-      context.xapi.unplug(CD_REF)
-      await until(() => Object.keys(context.xapi.records.VBD[CD_REF].other_config).length === 0)
+      assert.equal(tagOf(context).ejected, true)
+      context.xapi.halt()
+      await until(() => isReleased(context))
     })
   })
 
@@ -833,9 +957,9 @@ describe('recovery', () => {
     assert.deepEqual(xapi.records.VM[VM_REF].blocked_operations, { destroy: 'protected by someone else' })
     assert.deepEqual(xapi.records.SR, {})
 
-    // the drive is still plugged in the running VM: it stays on blkback until it is unplugged
+    // the drive is still plugged in the running VM: it stays on blkback until the VM halts
     assert.equal(xapi.records.VBD[CD_REF].other_config['backend-kind'], 'vbd')
-    xapi.unplug(CD_REF)
+    xapi.halt()
     await until(() => Object.keys(xapi.records.VBD[CD_REF].other_config).length === 0)
   })
 

@@ -24,8 +24,10 @@ const blockedReason = sessionId =>
 /**
  * The session a CD drive was changed for, from its tag.
  *
- * `ejected` is set once the ISO is ejected from a drive still plugged in a running VM: what remains
- * to undo waits for the drive to be unplugged, see `finishEjectedCd()`.
+ * - `created`: the drive was created for the ISO, and is destroyed once released if it is empty
+ * - `backendKind`: `backend-kind` was added for the ISO, and is removed once released
+ * - `ejected`: the ISO was ejected while the VM was not halted, and what remains to undo waits for
+ *   it to halt, see `settleCd()`
  *
  * @returns {{ session: string, created: boolean, backendKind: boolean, ejected?: true } | undefined}
  * undefined if the drive is not tagged, or if its tag is invalid, e.g. edited by hand
@@ -115,16 +117,37 @@ export async function unblockOperations(xapi, vmRef, sessionId) {
   }
 }
 
+/** Replace the tag of a CD drive: XAPI cannot set a key of a map which already has it. */
+async function retag(xapi, vbdRef, tag) {
+  await xapi.call('VBD.remove_from_other_config', vbdRef, TAG)
+  await xapi.call('VBD.add_to_other_config', vbdRef, TAG, JSON.stringify(tag))
+}
+
+const isHalted = async (xapi, vmRef) => (await xapi.getField('VM', vmRef, 'power_state')) === 'Halted'
+
 /**
  * Insert `vdiRef` in the CD drive `cdRef` of the VM, or in a new one when `cdRef` is undefined.
  *
- * The drive is told to use blkback (`backend-kind: vbd`): XAPI ignores the `backend-kind` the SR
- * driver sets on a raw LUN VDI when it is inserted in a CD drive, and uses tapdisk by default, which
- * refuses a raw device, so the guest never reads the ISO.
+ * The drive is told to use blkback (`backend-kind: vbd`) for a UEFI firmware: XAPI ignores the
+ * `backend-kind` the SR driver sets on a raw LUN VDI when it is inserted in a CD drive, and plugs it
+ * on tapdisk, which refuses a raw device (`tapback: ignoring non-blktap2 physical device`). OVMF
+ * reads the drive through its PV driver, and waits for it forever, whatever the boot order. A BIOS
+ * firmware and the guests read it through the CD drive QEMU emulates, which does not depend on it.
+ *
+ * `backend-kind` is only ever changed while the VM is halted. On a plugged drive, XAPI hands the
+ * drive over to xenopsd under the new kind, and when the VM stops, xenopsd looks for the drive under
+ * that kind, misses the device it really is, and waits for it until it gives up, about 10 minutes
+ * during which every other operation on the VM waits too. Adding it to a drive plugged on tapdisk
+ * does this as well as removing it from one plugged on blkback.
+ *
+ * An ISO inserted in a running VM whose drive is on tapdisk is therefore read by the guest, but a
+ * UEFI firmware hangs if the VM reboots with it: `backend-kind` is added once the VM halts, see
+ * `settleCd()`, so that the VM boots from it once started again.
  *
  * @returns {Promise<string>} opaque ref of the CD drive
  */
 export async function insertIso(xapi, { vmRef, cdRef, vdiRef, sessionId }) {
+  // a CD drive can only be created in a halted VM, see assertInsertable()
   if (cdRef === undefined) {
     return xapi.VBD_create({
       VM: vmRef,
@@ -141,19 +164,21 @@ export async function insertIso(xapi, { vmRef, cdRef, vdiRef, sessionId }) {
   }
   const otherConfig = await xapi.getField('VBD', cdRef, 'other_config')
   const previousTag = parseCdTag(cdRef, otherConfig)
-  // the drive of an ISO ejected while the VM runs: what remains to undo is taken over by this session
+  // the drive of an ISO ejected while the VM was not halted: what remains to undo is taken over by
+  // this session
   const ejected = previousTag?.ejected ? previousTag : undefined
-  const backendKind = ejected?.backendKind ?? otherConfig['backend-kind'] === undefined
-  if (otherConfig[TAG] !== undefined) {
-    await xapi.call('VBD.remove_from_other_config', cdRef, TAG)
+  const addBackendKind = otherConfig['backend-kind'] === undefined && (await isHalted(xapi, vmRef))
+  const tag = {
+    session: sessionId,
+    created: ejected?.created ?? false,
+    backendKind: (ejected?.backendKind ?? false) || addBackendKind,
   }
-  await xapi.call(
-    'VBD.add_to_other_config',
-    cdRef,
-    TAG,
-    JSON.stringify({ session: sessionId, created: ejected?.created ?? false, backendKind })
-  )
-  if (otherConfig['backend-kind'] === undefined) {
+  if (otherConfig[TAG] === undefined) {
+    await xapi.call('VBD.add_to_other_config', cdRef, TAG, JSON.stringify(tag))
+  } else {
+    await retag(xapi, cdRef, tag)
+  }
+  if (addBackendKind) {
     await xapi.call('VBD.add_to_other_config', cdRef, 'backend-kind', 'vbd')
   }
   await xapi.call('VBD.insert', cdRef, vdiRef)
@@ -162,13 +187,12 @@ export async function insertIso(xapi, { vmRef, cdRef, vdiRef, sessionId }) {
 
 /**
  * Eject the ISO of `sessionId` from its CD drive, if it is still there, and undo what was changed
- * on the drive: a drive created for the ISO is destroyed if the VM is halted, and is otherwise left
- * empty.
+ * on the drive: a drive created for the ISO is destroyed if it is empty.
  *
- * A drive still plugged keeps `backend-kind` until it is unplugged, e.g. as the VM halts or reboots:
- * removed while the VM runs, it makes XAPI hand the drive over to xenopsd as a tapdisk one, which
- * xenopsd then does not find when the VM stops, and the blkback device it really is is never
- * closed: the shutdown or reboot of the VM hangs on it, until xenopsd gives up after minutes.
+ * While the VM is not halted, `backend-kind` must stay as it is, see `insertIso()`: a drive whose
+ * `backend-kind` was added for the ISO, or which was created for it, is marked `ejected`, and
+ * released once the VM halts, see `settleCd()`. Its drive stays on blkback meanwhile, which reads an
+ * ISO from an ISO SR as well.
  *
  * Nothing is done to a drive which was not changed for this session, and only one of `vdiRefs` is
  * ejected: another client may have replaced the ISO meanwhile.
@@ -191,26 +215,47 @@ export async function ejectIso(xapi, { vbdRef, vdiRefs, sessionId }) {
     await xapi.call('VBD.eject', vbdRef)
     vbd = { ...vbd, empty: true }
   }
-  if (vbd.currently_attached) {
+  if (await isHalted(xapi, vbd.VM)) {
+    await undoCdChanges(xapi, vbdRef, vbd, tag)
+  } else if (tag.backendKind || tag.created) {
     if (!tag.ejected) {
-      await xapi.call('VBD.remove_from_other_config', vbdRef, TAG)
-      await xapi.call('VBD.add_to_other_config', vbdRef, TAG, JSON.stringify({ ...tag, ejected: true }))
+      await retag(xapi, vbdRef, { ...tag, ejected: true })
     }
-    return
+  } else {
+    // nothing else was changed
+    await xapi.call('VBD.remove_from_other_config', vbdRef, TAG)
   }
-  await undoCdChanges(xapi, vbdRef, vbd, tag)
 }
 
-/** Whether a CD drive waits for being unplugged to be entirely released, see `ejectIso()`. */
-export function isEjectedCd(vbdRef, otherConfig) {
-  return parseCdTag(vbdRef, otherConfig)?.ejected === true
+/** Whether a CD drive has been changed for a browser ISO, see `settleCd()`. */
+export function isTaggedCd(vbdRef, otherConfig) {
+  return parseCdTag(vbdRef, otherConfig) !== undefined
+}
+
+/** Whether `vdiRef` is the ISO of `sessionId`, from the tag of its SR. */
+async function isIsoOf(xapi, vdiRef, sessionId) {
+  try {
+    const srRef = await xapi.getField('VDI', vdiRef, 'SR')
+    return (await xapi.getField('SR', srRef, 'sm_config'))[TAG] === sessionId
+  } catch (error) {
+    if (error.code === 'HANDLE_INVALID') {
+      return false // e.g. its SR was forgotten meanwhile
+    }
+    throw error
+  }
 }
 
 /**
- * Undo what remains changed on the drive of an ISO ejected while the VM was running, once the drive
- * is unplugged. Nothing is done while it is still plugged, or if its tag changed meanwhile.
+ * Once the VM is halted, make `backend-kind` of a CD drive changed for a browser ISO follow what it
+ * holds, see `insertIso()`: release what remains of an ISO ejected while the VM was not halted, and
+ * add `backend-kind` for the ISO of a session inserted while it was running. Nothing is done while
+ * the VM is not halted.
+ *
+ * A VM started again between the check and the change gets its drive under the previous kind: not
+ * prevented, since blocking `start` meanwhile would make whatever starts it fail instead, e.g. an
+ * offline backup. The window is that of a few XAPI calls, right after the VM halted.
  */
-export async function finishEjectedCd(xapi, vbdRef) {
+export async function settleCd(xapi, vbdRef) {
   let vbd
   try {
     vbd = await xapi.getRecord('VBD', vbdRef)
@@ -221,14 +266,26 @@ export async function finishEjectedCd(xapi, vbdRef) {
     throw error
   }
   const tag = parseCdTag(vbdRef, vbd.other_config)
-  if (tag?.ejected !== true || vbd.currently_attached) {
+  if (tag === undefined || vbd.currently_attached || !(await isHalted(xapi, vbd.VM))) {
     return
   }
-  await undoCdChanges(xapi, vbdRef, vbd, tag)
+  if (tag.ejected) {
+    await undoCdChanges(xapi, vbdRef, vbd, tag)
+  } else if (
+    !vbd.empty &&
+    vbd.other_config['backend-kind'] === undefined &&
+    (await isIsoOf(xapi, vbd.VDI, tag.session))
+  ) {
+    // first, so that a failure leaves at worst `backend-kind` on the drive, which is harmless, rather
+    // than a tag claiming it
+    await xapi.call('VBD.add_to_other_config', vbdRef, 'backend-kind', 'vbd')
+    await retag(xapi, vbdRef, { ...tag, backendKind: true })
+  }
 }
 
+/** The VM of the drive is halted. */
 async function undoCdChanges(xapi, vbdRef, vbd, tag) {
-  if (tag.created && vbd.empty && (await xapi.getField('VM', vbd.VM, 'power_state')) === 'Halted') {
+  if (tag.created && vbd.empty) {
     await xapi.call('VBD.destroy', vbdRef)
     return
   }
