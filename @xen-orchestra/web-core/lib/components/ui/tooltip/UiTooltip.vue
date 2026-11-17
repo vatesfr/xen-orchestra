@@ -60,6 +60,7 @@ watch(content, () => updatePlacement(), { flush: 'post' })
 .ui-tooltip {
   position: relative;
   display: inline-flex;
+  width: max-content;
   padding: 0.4rem 0.8rem;
   pointer-events: none;
   color: var(--color-neutral-background-primary);
