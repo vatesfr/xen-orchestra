@@ -1,10 +1,26 @@
-import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
-import { useV2vSourceAndDestination } from '@/modules/v2v/composables/use-v2v-source-and-destination.composable.ts'
-import { computed, type MaybeRefOrGetter, toValue } from 'vue'
+import { type FrontXoPool, useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
+import { getV2vTargetName } from '@/modules/v2v/utils/v2v-mapping.util.ts'
+import { computed, type ComputedRef, type MaybeRefOrGetter, toValue } from 'vue'
 
-// A pool still loading is named by its id rather than not at all
-export function useV2vPoolName(rawPoolId: MaybeRefOrGetter<FrontXoPool['id']>) {
-  const { poolName } = useV2vSourceAndDestination(rawPoolId)
+// A pool the pools do not hold yet is named by its id
+export function useV2vPoolNameGetter() {
+  const { getPoolById } = useXoPoolCollection()
 
-  return computed(() => poolName.value ?? toValue(rawPoolId))
+  function getPoolName(poolId: FrontXoPool['id']): string
+  function getPoolName(poolId: FrontXoPool['id'] | undefined): string | undefined
+  function getPoolName(poolId: FrontXoPool['id'] | undefined) {
+    return getV2vTargetName(poolId, id => getPoolById(id)?.name_label)
+  }
+
+  return { getPoolName }
+}
+
+export function useV2vPoolName(rawPoolId: MaybeRefOrGetter<FrontXoPool['id']>): ComputedRef<string>
+export function useV2vPoolName(
+  rawPoolId: MaybeRefOrGetter<FrontXoPool['id'] | undefined>
+): ComputedRef<string | undefined>
+export function useV2vPoolName(rawPoolId: MaybeRefOrGetter<FrontXoPool['id'] | undefined>) {
+  const { getPoolName } = useV2vPoolNameGetter()
+
+  return computed(() => getPoolName(toValue(rawPoolId)))
 }

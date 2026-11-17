@@ -1,6 +1,6 @@
 import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import { useV2vPoolIdQuery } from '@/modules/v2v/composables/use-v2v-pool-id-query.composable.ts'
-import { createV2vWizardRouter } from '@/test/create-v2v-wizard-router.ts'
+import { createV2vWizardRouter, findV2vRouteQuery } from '@/test/create-v2v-wizard-router.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
 import { flushPromises } from '@vue/test-utils'
 import type { LocationQueryRaw } from 'vue-router'
@@ -36,7 +36,7 @@ it('writes the pool in the route, next to the other parameters', async () => {
   result.poolId = POOL_ID
   await flushPromises()
 
-  expect(router.currentRoute.value.query).toEqual({ step: 'destination', pool: POOL_ID })
+  expect(findV2vRouteQuery(router)).toEqual({ step: 'destination', pool: POOL_ID })
 })
 
 it('removes the pool from the route once it is cleared', async () => {
@@ -45,5 +45,5 @@ it('removes the pool from the route once it is cleared', async () => {
   result.poolId = undefined
   await flushPromises()
 
-  expect(router.currentRoute.value.query).toEqual({ step: 'destination' })
+  expect(findV2vRouteQuery(router)).toEqual({ step: 'destination' })
 })

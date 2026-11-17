@@ -1,7 +1,7 @@
 import V2vVmsFilterHeader from '@/modules/v2v/components/vms/V2vVmsFilterHeader.vue'
 import type { V2vDatastoreSummary } from '@/modules/v2v/composables/use-v2v-vms-step.composable.ts'
 import { findCardTitleLabel } from '@/test/find-card-title.ts'
-import { findParts } from '@/test/find-parts.ts'
+import { findInlineParts } from '@/test/find-parts.ts'
 import { getButton } from '@/test/get-button.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
@@ -19,10 +19,6 @@ function mountHeader(props: { sourceHost?: string; datastoreSummary?: V2vDatasto
   return mount(V2vVmsFilterHeader, { props: { sourceHost: SOURCE_HOST, ...props }, global: createGlobalTestConfig() })
 }
 
-function findDescriptionParts(wrapper: ReturnType<typeof mountHeader>) {
-  return findParts(wrapper, '.interpunct-list')
-}
-
 function mountDatastoreHeader() {
   return mountHeader({ datastoreSummary: DATASTORE_SUMMARY })
 }
@@ -33,11 +29,11 @@ describe('all VMs', () => {
   })
 
   it('names the source and explains how to filter', () => {
-    expect(findDescriptionParts(mountHeader())).toEqual([SOURCE_HOST, t('v2v:filter-vms-info')])
+    expect(findInlineParts(mountHeader())).toEqual([SOURCE_HOST, t('v2v:filter-vms-info')])
   })
 
   it('only explains how to filter without source host', () => {
-    expect(findDescriptionParts(mountHeader({ sourceHost: undefined }))).toEqual([t('v2v:filter-vms-info')])
+    expect(findInlineParts(mountHeader({ sourceHost: undefined }))).toEqual([t('v2v:filter-vms-info')])
   })
 
   it('offers neither the datastore chip nor to clear the filter', () => {
@@ -65,7 +61,7 @@ describe('datastore', () => {
   })
 
   it('summarizes the VMs of the datastore', () => {
-    expect(findDescriptionParts(mountDatastoreHeader())).toEqual(DATASTORE_SUMMARY.summaryLabels)
+    expect(findInlineParts(mountDatastoreHeader())).toEqual(DATASTORE_SUMMARY.summaryLabels)
   })
 
   it('clears the filter', async () => {

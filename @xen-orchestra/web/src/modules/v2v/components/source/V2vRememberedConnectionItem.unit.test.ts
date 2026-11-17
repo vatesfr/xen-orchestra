@@ -4,6 +4,7 @@ import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collecti
 import { createV2vRememberedConnection } from '@/test/create-v2v-connection.ts'
 import { createV2vImportVm } from '@/test/create-v2v-import-vm.ts'
 import { findParts } from '@/test/find-parts.ts'
+import { findTitle } from '@/test/find-titles.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { vmCollectionMock } from '@/test/mock-xo-vm-collection.ts'
@@ -46,7 +47,7 @@ async function listMenuLabels(wrapper: ReturnType<typeof mountItem>) {
 it('shows the host with its platform', () => {
   const wrapper = mountItem(createV2vRememberedConnection({ host: 'vcenter-prod.lab' }))
 
-  expect(wrapper.get('.title').text()).toBe(`vcenter-prod.lab ${t('vmware')}`)
+  expect(findTitle(wrapper)).toBe(`vcenter-prod.lab ${t('vmware')}`)
 })
 
 it('describes the product, the username, the last use and the SSL choice', () => {

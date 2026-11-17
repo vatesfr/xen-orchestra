@@ -8,7 +8,7 @@ import {
   createV2vMigrationList,
   createV2vMigrationListVms,
 } from '@/test/create-v2v-migration-list.ts'
-import { createV2vWizardRouter } from '@/test/create-v2v-wizard-router.ts'
+import { createV2vWizardRouter, findV2vRouteQuery } from '@/test/create-v2v-wizard-router.ts'
 import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
 import { seedV2vDestinationPools } from '@/test/seed-v2v-destination-pools.ts'
@@ -82,7 +82,7 @@ describe('form', () => {
     await flushPromises()
 
     expect(result.form.formData.pool).toBeUndefined()
-    expect(router.currentRoute.value.query).not.toHaveProperty('pool')
+    expect(findV2vRouteQuery(router)).not.toHaveProperty('pool')
   })
 
   it('writes the chosen pool in the route', async () => {
@@ -91,7 +91,7 @@ describe('form', () => {
     result.form.formData.pool = POOL.id
     await flushPromises()
 
-    expect(router.currentRoute.value.query.pool).toBe(POOL.id)
+    expect(findV2vRouteQuery(router).pool).toBe(POOL.id)
   })
 
   it('removes the pool from the route once it is cleared', async () => {
@@ -100,7 +100,7 @@ describe('form', () => {
     result.form.formData.pool = undefined
     await flushPromises()
 
-    expect(router.currentRoute.value.query).not.toHaveProperty('pool')
+    expect(findV2vRouteQuery(router)).not.toHaveProperty('pool')
   })
 
   it('prefills the defaults of the list stored for the chosen pool', async () => {
@@ -167,7 +167,7 @@ describe('submit', () => {
     await flushPromises()
 
     expect(readV2vMigrationListStorage()).toBeNull()
-    expect(router.currentRoute.value.query.step).toBe('destination')
+    expect(findV2vRouteQuery(router).step).toBe('destination')
   })
 
   it('stores the list with its defaults and opens the VMs step on the same pool', async () => {
@@ -178,7 +178,7 @@ describe('submit', () => {
     await flushPromises()
 
     expect(readV2vMigrationListStorage()).toEqual(createV2vMigrationList({ defaults: DEFAULTS }))
-    expect(router.currentRoute.value.query).toMatchObject({ step: 'vms', pool: POOL.id })
+    expect(findV2vRouteQuery(router)).toMatchObject({ step: 'vms', pool: POOL.id })
   })
 
   it('keeps a list stored by a newer version and stays on the step', async () => {
@@ -191,7 +191,7 @@ describe('submit', () => {
     await flushPromises()
 
     expect(readV2vMigrationListStorage()).toEqual(newerList)
-    expect(router.currentRoute.value.query.step).toBe('destination')
+    expect(findV2vRouteQuery(router).step).toBe('destination')
   })
 })
 
@@ -201,6 +201,6 @@ describe('back', () => {
 
     await result.back()
 
-    expect(router.currentRoute.value.query).toMatchObject({ step: 'source', pool: POOL.id })
+    expect(findV2vRouteQuery(router)).toMatchObject({ step: 'source', pool: POOL.id })
   })
 })

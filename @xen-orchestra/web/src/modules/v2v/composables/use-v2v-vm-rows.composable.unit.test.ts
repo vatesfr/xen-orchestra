@@ -21,7 +21,7 @@ vi.mock(
   () => import('@/test/mock-xo-v2v-vm-rows-collections.ts')
 )
 
-const VM_1 = createV2vVm({ id: 'vm-1' as XoV2vVm['id'], name: 'app-01' })
+const VM_1 = createV2vVm({ name: 'app-01' })
 
 const VM_2 = createV2vVm({ id: 'vm-2' as XoV2vVm['id'], name: 'db-01' })
 

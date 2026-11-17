@@ -1,7 +1,7 @@
 import V2vActiveMappingCard from '@/modules/v2v/components/mapping/V2vActiveMappingCard.vue'
 import { DISKOR_POOL_NAME } from '@/test/create-pool.ts'
 import { findAccentedInfos } from '@/test/find-accented-labels.ts'
-import { findParts } from '@/test/find-parts.ts'
+import { findInlineParts } from '@/test/find-parts.ts'
 import { findCardLabelledValues } from '@/test/find-rendered-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
@@ -22,7 +22,7 @@ describeV2vMappingCardLayout({ mountCard, title: t('active-mapping') })
 // Each device: its source parts as its key, its destination as its value
 function findDevices(wrapper: VueWrapper) {
   return wrapper.findAll('.v2v-mapping-card-section .vts-card-row-key-value').map(row => ({
-    sourceParts: findParts(row, '.key .inline-parts'),
+    sourceParts: findInlineParts(row.get('.key')),
     destination: row.get('.value').text(),
   }))
 }

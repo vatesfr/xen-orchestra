@@ -4,7 +4,7 @@ import type { V2vRememberedConnection } from '@/modules/v2v/types/v2v-remembered
 import { getV2vSourceId } from '@/modules/v2v/utils/v2v-source.util.ts'
 import { createV2vConnection, createV2vRememberedConnection } from '@/test/create-v2v-connection.ts'
 import { createV2vInventory } from '@/test/create-v2v-inventory.ts'
-import { createV2vWizardRouter } from '@/test/create-v2v-wizard-router.ts'
+import { createV2vWizardRouter, findV2vRouteQuery } from '@/test/create-v2v-wizard-router.ts'
 import { fillV2vConnectionForm } from '@/test/fill-v2v-connection-form.ts'
 import { invalidCredentialsMessage } from '@/test/form-messages.ts'
 import { deleteModalMock } from '@/test/mock-delete-modal.ts'
@@ -12,7 +12,7 @@ import { v2vStatusMock } from '@/test/mock-xo-v2v-status.ts'
 import { mountComposableWithI18n } from '@/test/mount-composable.ts'
 import { NOW } from '@/test/now.ts'
 import { silenceConsoleError } from '@/test/silence-console-error.ts'
-import { stubFetchResponse } from '@/test/stub-fetch-response.ts'
+import { SERVER_ERROR_MESSAGE, stubFetchResponse, stubFetchServerError } from '@/test/stub-fetch-response.ts'
 import { stubV2vInvalidCredentialsResponse } from '@/test/stub-v2v-invalid-credentials-response.ts'
 import { v2vConnectionProvide } from '@/test/v2v-connection-provide.ts'
 import { seedV2vRememberedConnections } from '@/test/v2v-remembered-connections-storage.ts'
@@ -72,7 +72,7 @@ describe('submit', () => {
     await result.submit()
 
     expect(fetchMock).not.toHaveBeenCalled()
-    expect(router.currentRoute.value.query.step).toBe('source')
+    expect(findV2vRouteQuery(router).step).toBe('source')
   })
 
   it('does not connect while the prerequisites are not met', async () => {
@@ -95,7 +95,7 @@ describe('submit', () => {
 
     expect(result.context.connection.value).toEqual(connection)
     expect(result.context.inventory.value).toEqual(inventory)
-    expect(router.currentRoute.value.query.step).toBe('destination')
+    expect(findV2vRouteQuery(router).step).toBe('destination')
   })
 
   it('remembers the connection with what the inventory told about the source when asked to', async () => {
@@ -154,28 +154,18 @@ describe('submit', () => {
     expect(result.form.passwordInputBindings.error).toEqual(invalidCredentialsMessage())
     expect(result.connectionError).toBeUndefined()
     expect(result.context.connection.value).toBeUndefined()
-    expect(router.currentRoute.value.query.step).toBe('source')
+    expect(findV2vRouteQuery(router).step).toBe('source')
   })
 
   it('reports any other failure as a connection error', async () => {
     silenceConsoleError()
-    stubFetchResponse(500, { error: 'unreachable' })
+    stubFetchServerError()
     const { result, router } = await mountSourceStep()
 
     await submitConnection(result)
 
-    expect(result.connectionError).toBe('unreachable')
-    expect(router.currentRoute.value.query.step).toBe('source')
-  })
-
-  it('reports a generic error when the failure carries no message', async () => {
-    silenceConsoleError()
-    stubFetchResponse(500, {})
-    const { result } = await mountSourceStep()
-
-    await submitConnection(result)
-
-    expect(result.connectionError).toBe(result.t('error'))
+    expect(result.connectionError).toBe(SERVER_ERROR_MESSAGE)
+    expect(findV2vRouteQuery(router).step).toBe('source')
   })
 
   it('is connecting while the inventory loads', async () => {
@@ -201,7 +191,7 @@ describe('connectRemembered', () => {
     await flushPromises()
 
     expect(result.context.inventory.value).toEqual(inventory)
-    expect(router.currentRoute.value.query.step).toBe('destination')
+    expect(findV2vRouteQuery(router).step).toBe('destination')
   })
 
   it('marks the remembered connection as just used', async () => {
@@ -390,7 +380,7 @@ describe('forgetRememberedPassword', () => {
 describe('cancel', () => {
   it('resets the form and the connection error', async () => {
     silenceConsoleError()
-    stubFetchResponse(500, { error: 'unreachable' })
+    stubFetchServerError()
     const { result } = await mountSourceStep()
     await submitConnection(result)
 

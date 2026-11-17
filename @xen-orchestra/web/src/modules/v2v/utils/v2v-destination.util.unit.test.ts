@@ -15,12 +15,11 @@ import { createPool, OTHER_POOL_ID } from '@/test/create-pool.ts'
 import { createSr } from '@/test/create-sr.ts'
 import { createV2vMigrationList } from '@/test/create-v2v-migration-list.ts'
 import { createVmTemplate } from '@/test/create-vm-template.ts'
+import { V2V_MANAGEMENT_NETWORK_ID } from '@/test/seed-v2v-destination-pools.ts'
 
 const POOL = createPool()
 
-const MANAGEMENT_NETWORK_ID = 'network-mgmt' as FrontXoNetwork['id']
-
-const MANAGEMENT_PIF = createManagementPif(POOL, MANAGEMENT_NETWORK_ID)
+const MANAGEMENT_PIF = createManagementPif(POOL, V2V_MANAGEMENT_NETWORK_ID)
 
 describe('countV2vPoolResources', () => {
   it('counts the hosts, writable SRs and networks of each pool', () => {
@@ -85,7 +84,7 @@ describe('getV2vPoolManagementNetworkId', () => {
   it('returns the network of the management PIF of the pool master', () => {
     const slavePif = createPif({ $host: 'host-2' as FrontXoHost['id'], management: true })
 
-    expect(getV2vPoolManagementNetworkId(POOL, [slavePif, createPif(), MANAGEMENT_PIF])).toBe(MANAGEMENT_NETWORK_ID)
+    expect(getV2vPoolManagementNetworkId(POOL, [slavePif, createPif(), MANAGEMENT_PIF])).toBe(V2V_MANAGEMENT_NETWORK_ID)
   })
 
   it('returns nothing when the master has no management PIF', () => {
@@ -123,7 +122,7 @@ describe('getV2vDestinationPrefill', () => {
   it('prefills the pool default SR and the management network, without template', () => {
     expect(getV2vDestinationPrefill(POOL, { srs: [createSr()], pifs: [MANAGEMENT_PIF] }, undefined)).toEqual({
       sr: POOL.default_SR,
-      network: MANAGEMENT_NETWORK_ID,
+      network: V2V_MANAGEMENT_NETWORK_ID,
       template: undefined,
     })
   })

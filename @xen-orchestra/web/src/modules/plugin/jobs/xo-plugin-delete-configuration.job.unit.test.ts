@@ -3,6 +3,7 @@ import type { FrontXoPlugin } from '@/modules/plugin/remote-resources/use-xo-plu
 import type { fetchDelete } from '@/shared/utils/fetch.util.ts'
 import { createPlugin } from '@/test/create-plugin.ts'
 import { t } from '@/test/i18n.ts'
+import { expectJobRunning } from '@/test/job-running.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
 
 const { remove } = vi.hoisted(() => ({
@@ -79,9 +80,6 @@ describe('validate', () => {
     remove.mockReturnValue(new Promise(() => {}))
     const job = mountDeleteConfigurationJob(configuredPlugin)
 
-    void job.run()
-
-    expect(job.isRunning).toBe(true)
-    expect(job.errorMessage).toBe(t('job:delete:in-progress'))
+    expectJobRunning(job, t('job:delete:in-progress'))
   })
 })

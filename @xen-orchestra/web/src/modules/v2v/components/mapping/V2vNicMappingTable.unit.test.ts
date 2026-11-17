@@ -1,5 +1,5 @@
 import V2vNicMappingTable from '@/modules/v2v/components/mapping/V2vNicMappingTable.vue'
-import { findParts } from '@/test/find-parts.ts'
+import { findInlineParts } from '@/test/find-parts.ts'
 import { findTableColumn, findTableColumnCells, findTableHeaders } from '@/test/find-table-cells.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
@@ -40,7 +40,7 @@ it('names each adapter with its MAC address', () => {
 it('lays out the port group of each adapter, empty without one', () => {
   const cells = findTableColumnCells(mountTable(), t('port-group'))
 
-  expect(cells.map(cell => findParts(cell, '.inline-parts'))).toEqual(V2V_NIC_ROWS.map(row => row.portGroupParts))
+  expect(cells.map(findInlineParts)).toEqual(V2V_NIC_ROWS.map(row => row.portGroupParts))
 })
 
 describeV2vTargetCells({

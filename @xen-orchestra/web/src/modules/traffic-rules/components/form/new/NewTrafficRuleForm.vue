@@ -12,7 +12,7 @@
         </template>
       </TrafficRuleFormSelect>
       <TrafficRuleFormSelect v-bind="protocolSelectBindings" />
-      <TrafficRuleFormNumberInput v-if="hasPort" v-bind="portInputBindings" />
+      <VtsNumberInput v-if="hasPort" v-bind="portInputBindings" />
     </div>
 
     <div class="row">
@@ -71,7 +71,6 @@
 
 <script setup lang="ts">
 import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
-import TrafficRuleFormNumberInput from '@/modules/traffic-rules/components/form/inputs/TrafficRuleFormNumberInput.vue'
 import TrafficRuleFormSelect from '@/modules/traffic-rules/components/form/inputs/TrafficRuleFormSelect.vue'
 import TrafficRuleFormTextInput from '@/modules/traffic-rules/components/form/inputs/TrafficRuleFormTextInput.vue'
 import NewTrafficRuleButtonsSection from '@/modules/traffic-rules/components/form/new/NewTrafficRuleButtonsSection.vue'
@@ -80,6 +79,7 @@ import type { TrafficRulePayload } from '@/modules/traffic-rules/jobs/xo-traffic
 import type { FrontXoVif } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
 import VtsForm from '@core/components/form/VtsForm.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
+import VtsNumberInput from '@core/components/number-input/VtsNumberInput.vue'
 import VtsOption from '@core/components/select/VtsOption.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
 import { useI18n } from 'vue-i18n'

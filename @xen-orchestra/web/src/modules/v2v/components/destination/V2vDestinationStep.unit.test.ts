@@ -7,6 +7,7 @@ import { createPool } from '@/test/create-pool.ts'
 import { getButton, getUiButton } from '@/test/get-button.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
+import { V2V_EXISTING_LIST } from '@/test/v2v-wizard-fixtures.ts'
 import UiAlert from '@core/components/ui/alert/UiAlert.vue'
 import { mount } from '@vue/test-utils'
 
@@ -71,11 +72,10 @@ it('shows no defaults until a pool is chosen', () => {
 })
 
 it('says a list holding VMs exists and continues with it', () => {
-  const existingList = { sourceHost: 'vcenter-prod.lab', poolName: 'diskor', vmCount: 4 }
-  destinationStepMock.existingList.value = existingList
+  destinationStepMock.existingList.value = V2V_EXISTING_LIST
   const wrapper = mountStep()
 
-  expect(wrapper.getComponent(V2vExistingListInfo).props()).toEqual(existingList)
+  expect(wrapper.getComponent(V2vExistingListInfo).props()).toEqual(V2V_EXISTING_LIST)
   expect(getButton(wrapper, t('action:continue-with-existing-list')).exists()).toBe(true)
 })
 

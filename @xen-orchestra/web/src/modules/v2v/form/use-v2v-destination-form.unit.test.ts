@@ -17,7 +17,7 @@ import { dangerMessage } from '@/test/form-messages.ts'
 import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
 import { mountComposableWithI18n } from '@/test/mount-composable.ts'
 import { mountWithSelect } from '@/test/mount-with-select.ts'
-import { seedV2vDestinationPools } from '@/test/seed-v2v-destination-pools.ts'
+import { seedV2vDestinationPools, V2V_MANAGEMENT_NETWORK_ID } from '@/test/seed-v2v-destination-pools.ts'
 import { findSelectOptionLabels, findShownSelections, openSelect } from '@/test/select.ts'
 import type { FormSelectId } from '@core/packages/form-select'
 import VtsSelect from '@core/components/select/VtsSelect.vue'
@@ -61,21 +61,19 @@ const OTHER_POOL = createPool({
   default_SR: 'sr-2' as FrontXoPool['default_SR'],
 })
 
-const MANAGEMENT_NETWORK_ID = 'network-mgmt' as FrontXoNetwork['id']
-
 const OTHER_MANAGEMENT_NETWORK_ID = 'network-mgmt-2' as FrontXoNetwork['id']
 
 const STORED_LIST = createV2vMigrationList()
 
 const CHOSEN_DEFAULTS = {
   sr: POOL.default_SR,
-  network: MANAGEMENT_NETWORK_ID,
+  network: V2V_MANAGEMENT_NETWORK_ID,
   template: createV2vDestinationDefaults().template,
 }
 
 function seedTwoPools() {
   seedV2vDestinationPools([
-    { pool: POOL, managementNetworkId: MANAGEMENT_NETWORK_ID },
+    { pool: POOL, managementNetworkId: V2V_MANAGEMENT_NETWORK_ID },
     { pool: OTHER_POOL, managementNetworkId: OTHER_MANAGEMENT_NETWORK_ID },
   ])
 }
@@ -110,10 +108,10 @@ const LATE_COLLECTIONS = {
     xoCollectionsMock.srs.value = [createSr({ shared: true })]
   },
   networks: () => {
-    xoCollectionsMock.networks.value = [createNetwork(), createNetwork({ id: MANAGEMENT_NETWORK_ID })]
+    xoCollectionsMock.networks.value = [createNetwork(), createNetwork({ id: V2V_MANAGEMENT_NETWORK_ID })]
   },
   pifs: () => {
-    xoCollectionsMock.pifs.value = [createManagementPif(POOL, MANAGEMENT_NETWORK_ID)]
+    xoCollectionsMock.pifs.value = [createManagementPif(POOL, V2V_MANAGEMENT_NETWORK_ID)]
   },
   templates: () => {
     xoCollectionsMock.templates.value = [createVmTemplate()]
@@ -167,7 +165,7 @@ describe('formData', () => {
     expect(form.formData).toEqual({
       pool: POOL.id,
       sr: POOL.default_SR,
-      network: MANAGEMENT_NETWORK_ID,
+      network: V2V_MANAGEMENT_NETWORK_ID,
       template: undefined,
     })
   })
@@ -200,7 +198,7 @@ describe('formData', () => {
     [
       'the pool default SR and the management network of its master',
       undefined,
-      { sr: POOL.default_SR, network: MANAGEMENT_NETWORK_ID, template: undefined },
+      { sr: POOL.default_SR, network: V2V_MANAGEMENT_NETWORK_ID, template: undefined },
     ],
   ])('prefills %s when the pool is set and the collections are loaded at mount', (_, storedList, expectedDefaults) => {
     const form = mountDestinationForm({ poolId: POOL.id, storedList })
@@ -214,7 +212,7 @@ describe('formData', () => {
       [
         'the pool prefill without a stored list',
         undefined,
-        createNetwork({ id: MANAGEMENT_NETWORK_ID }).name_label,
+        createNetwork({ id: V2V_MANAGEMENT_NETWORK_ID }).name_label,
         '',
       ],
     ])('shows %s', async (_, storedList, networkLabel, templateLabel) => {

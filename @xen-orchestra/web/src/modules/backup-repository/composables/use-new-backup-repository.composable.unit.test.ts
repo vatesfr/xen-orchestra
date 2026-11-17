@@ -46,10 +46,6 @@ function mountNewBackupRepository() {
   return mountComposable(() => useNewBackupRepository()).wrapper.vm
 }
 
-function getOverlayOptions(): OverlayOptions {
-  return overlayMock.getOverlay<OverlayOptions>()
-}
-
 function getJobPayload() {
   return (useCreateJob.mock.calls[0] as [Ref<NewBackupRepositoryPayload | undefined>])[0]
 }
@@ -69,7 +65,7 @@ it('opens the drawer', () => {
 it('closes the drawer when it is cancelled', () => {
   mountNewBackupRepository()
 
-  expect(getOverlayOptions().events.onCancel).toBe(true)
+  expect(overlayMock.getOverlay<OverlayOptions>().events.onCancel).toBe(true)
 })
 
 describe('onConfirm', () => {
@@ -81,7 +77,7 @@ describe('onConfirm', () => {
     })
     mountNewBackupRepository()
 
-    const response = await getOverlayOptions().events.onConfirm(PAYLOAD)
+    const response = await overlayMock.getOverlay<OverlayOptions>().events.onConfirm(PAYLOAD)
 
     expect(run).toHaveBeenCalledOnce()
     expect(response).toBeUndefined()
@@ -91,13 +87,13 @@ describe('onConfirm', () => {
     run.mockResolvedValue([{ status: 'rejected', reason: new Error('Creation failed') }])
     mountNewBackupRepository()
 
-    expect(await getOverlayOptions().events.onConfirm(PAYLOAD)).toBe(KEEP_OVERLAY_OPEN)
+    expect(await overlayMock.getOverlay<OverlayOptions>().events.onConfirm(PAYLOAD)).toBe(KEEP_OVERLAY_OPEN)
   })
 
   it('keeps the drawer open when the job fails', async () => {
     run.mockRejectedValue(new Error('Job failed'))
     mountNewBackupRepository()
 
-    expect(await getOverlayOptions().events.onConfirm(PAYLOAD)).toBe(KEEP_OVERLAY_OPEN)
+    expect(await overlayMock.getOverlay<OverlayOptions>().events.onConfirm(PAYLOAD)).toBe(KEEP_OVERLAY_OPEN)
   })
 })

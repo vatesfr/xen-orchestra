@@ -21,7 +21,7 @@
         />
       </template>
     </UiPanelCardTitle>
-    <VtsInlineParts v-if="item.mappingParts.length > 0" class="mapping typo-body-regular-small">
+    <VtsInlineParts v-if="item.mappingParts.length > 0" separator="bullet" class="mapping typo-body-regular-small">
       <span v-for="part of item.mappingParts" :key="part">{{ part }}</span>
     </VtsInlineParts>
     <UiInfo :accent="item.check.accent" size="small">{{ item.check.label }}</UiInfo>

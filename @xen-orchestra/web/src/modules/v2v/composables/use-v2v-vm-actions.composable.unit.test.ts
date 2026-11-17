@@ -3,37 +3,23 @@ import {
   useV2vNotFoundVmActions,
   useV2vResumedVmActions,
 } from '@/modules/v2v/composables/use-v2v-vm-actions.composable.ts'
-import type { useVmDelete } from '@/modules/vm/composables/use-vm-delete.composable.ts'
 import { V2V_NEW_STEP_VM, V2V_RESUMED_STEP_VM, V2V_NOT_FOUND_STEP_VM } from '@/test/create-v2v-mapping-step-vm.ts'
 import { overlayMock } from '@/test/mock-overlay.ts'
+import { vmDeleteMock } from '@/test/mock-vm-delete.ts'
 import { mountComposableWithI18n } from '@/test/mount-composable.ts'
 import { v2vConnectionProvide } from '@/test/v2v-connection-provide.ts'
-import { ref, toValue } from 'vue'
-
-const { useDelete, deleteVms } = vi.hoisted(() => ({
-  useDelete: vi.fn(),
-  deleteVms: vi.fn(),
-}))
+import { toValue } from 'vue'
 
 // The settings drawer is an overlay of the app, out of reach of a unit test
 vi.mock(import('@core/packages/overlay/use-overlay.ts'), () => import('@/test/mock-overlay.ts'))
 
 // The composable calls the REST API and opens modals
-vi.mock(import('@/modules/vm/composables/use-vm-delete.composable.ts'), () => ({
-  useVmDelete: useDelete as unknown as typeof useVmDelete,
-}))
+vi.mock(import('@/modules/vm/composables/use-vm-delete.composable.ts'), () => import('@/test/mock-vm-delete.ts'))
 
 beforeEach(() => {
   overlayMock.reset()
-  useDelete.mockReset()
-  deleteVms.mockReset()
-
-  mockDelete()
+  vmDeleteMock.reset()
 })
-
-function mockDelete(isDeletingVms = false) {
-  useDelete.mockReturnValue({ deleteVms, isDeletingVms: ref(isDeletingVms) })
-}
 
 function mountNewVmActions() {
   const remove = vi.fn()
@@ -100,12 +86,12 @@ describe('useV2vResumedVmActions', () => {
 
     deleteAction.onClick()
 
-    expect(toValue(useDelete.mock.lastCall?.[0])).toEqual([V2V_RESUMED_STEP_VM.importVm])
-    expect(deleteVms).toHaveBeenCalledOnce()
+    expect(toValue(vmDeleteMock.useVmDelete.mock.lastCall?.[0])).toEqual([V2V_RESUMED_STEP_VM.importVm])
+    expect(vmDeleteMock.deleteVms).toHaveBeenCalledOnce()
   })
 
   it('shows the deletion busy while the import VM is being deleted', () => {
-    mockDelete(true)
+    vmDeleteMock.setDeleting(true)
 
     expect(mountResumedVmActions().moreActions[0].busy).toBe(true)
   })

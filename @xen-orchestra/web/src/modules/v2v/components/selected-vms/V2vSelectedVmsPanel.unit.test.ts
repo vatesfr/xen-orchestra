@@ -5,12 +5,12 @@ import type { V2vAccentedLabel } from '@/modules/v2v/types/v2v-accented-label.ty
 import { createV2vListPair, createV2vSelectedVm } from '@/test/create-v2v-selected-vms.ts'
 import { findAccentedTags } from '@/test/find-accented-labels.ts'
 import { findParts } from '@/test/find-parts.ts'
+import { findStateHeroTypes } from '@/test/find-state-hero-types.ts'
 import { findButton, getButton } from '@/test/get-button.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import type { TagAccent } from '@core/components/ui/tag/UiTag.vue'
 import VtsSidePanel from '@core/components/panel/VtsSidePanel.vue'
-import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
 import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
@@ -18,10 +18,7 @@ import type { XoV2vVm } from '@vates/types'
 import { mount, type VueWrapper } from '@vue/test-utils'
 import type { ComponentProps } from 'vue-component-type-helpers'
 
-const ITEMS = [
-  createV2vSelectedVm({ id: 'vm-1' as XoV2vVm['id'], name: 'web-01' }),
-  createV2vSelectedVm({ id: 'vm-2' as XoV2vVm['id'], name: 'db-01' }),
-]
+const ITEMS = [createV2vSelectedVm(), createV2vSelectedVm({ id: 'vm-2' as XoV2vVm['id'], name: 'db-01' })]
 
 const READINESS_TAGS: V2vAccentedLabel<TagAccent>[] = [
   { label: '1 ready', accent: 'success' },
@@ -55,10 +52,6 @@ function getHeaderClearButton(wrapper: VueWrapper) {
 
 function getSummaryCard(wrapper: VueWrapper) {
   return wrapper.getComponent(UiPanelCard)
-}
-
-function findStateHeroTypes(wrapper: VueWrapper) {
-  return wrapper.findAllComponents(VtsStateHero).map(stateHero => stateHero.props('type'))
 }
 
 describe.each([

@@ -6,7 +6,7 @@ import { createV2vConnection } from '@/test/create-v2v-connection.ts'
 import { createV2vImportVm } from '@/test/create-v2v-import-vm.ts'
 import { createV2vInventory } from '@/test/create-v2v-inventory.ts'
 import { getV2vVmIds, getV2vVmNames } from '@/test/create-v2v-vm-row.ts'
-import { getV2vVmsQuery, V2V_VMS_FILTER_QUERY_KEY } from '@/test/create-v2v-wizard-router.ts'
+import { findV2vRouteQuery, getV2vVmsQuery, V2V_VMS_FILTER_QUERY_KEY } from '@/test/create-v2v-wizard-router.ts'
 import { writeLocalStorageFromAnotherTab } from '@/test/local-storage.ts'
 import { v2vVmRowsCollectionsMock } from '@/test/mock-xo-v2v-vm-rows-collections.ts'
 import { mountV2vVmsStep } from '@/test/mount-v2v-vms-step.ts'
@@ -167,7 +167,7 @@ describe('filter', () => {
     result.filter = V2V_DATASTORE_B_FILTER
     await flushPromises()
 
-    expect(router.currentRoute.value.query[V2V_VMS_FILTER_QUERY_KEY]).toBe(V2V_DATASTORE_B_FILTER)
+    expect(findV2vRouteQuery(router)[V2V_VMS_FILTER_QUERY_KEY]).toBe(V2V_DATASTORE_B_FILTER)
   })
 
   it('removes the datastore clause only', async () => {
@@ -401,7 +401,7 @@ describe('navigation', () => {
 
     await result.back()
 
-    expect(router.currentRoute.value.query).toMatchObject({ step: 'destination', pool: V2V_LIST_WITH_LISTED_VM.poolId })
+    expect(findV2vRouteQuery(router)).toMatchObject({ step: 'destination', pool: V2V_LIST_WITH_LISTED_VM.poolId })
   })
 
   it('goes on to the mapping, keeping the pool and the filter', async () => {
@@ -409,7 +409,7 @@ describe('navigation', () => {
 
     await result.next()
 
-    expect(router.currentRoute.value.query).toMatchObject({
+    expect(findV2vRouteQuery(router)).toMatchObject({
       step: 'mapping',
       pool: V2V_LIST_WITH_LISTED_VM.poolId,
       [V2V_VMS_FILTER_QUERY_KEY]: V2V_DATASTORE_B_FILTER,

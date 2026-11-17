@@ -7,6 +7,9 @@ import { createVmTemplate } from '@/test/create-vm-template.ts'
 import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
 import { uniqBy } from 'lodash-es'
 
+// The management network of the master of a seeded pool
+export const V2V_MANAGEMENT_NETWORK_ID = 'network-mgmt' as FrontXoNetwork['id']
+
 export type V2vDestinationPoolSeed = { pool: FrontXoPool; managementNetworkId: FrontXoNetwork['id'] }
 
 // A default is only prefilled once offered: each pool offers its default SR and the management network of its master,

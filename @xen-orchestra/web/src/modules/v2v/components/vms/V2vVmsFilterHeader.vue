@@ -8,7 +8,7 @@
       </UiButton>
     </template>
     <template #description>
-      <VtsInlineParts>
+      <VtsInlineParts separator="bullet">
         <span v-for="label of datastoreSummary.summaryLabels" :key="label">{{ label }}</span>
       </VtsInlineParts>
     </template>
@@ -16,7 +16,7 @@
   <UiCardTitle v-else>
     {{ t('all-vms') }}
     <template #description>
-      <VtsInlineParts>
+      <VtsInlineParts separator="bullet">
         <span v-if="sourceHost">{{ sourceHost }}</span>
         <span>{{ t('v2v:filter-vms-info') }}</span>
       </VtsInlineParts>

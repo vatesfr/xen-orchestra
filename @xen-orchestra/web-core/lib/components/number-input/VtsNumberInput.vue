@@ -8,6 +8,7 @@
 import type { InputWrapperMessage } from '@core/components/input-wrapper/VtsInputWrapper.vue'
 import VtsInputWrapper from '@core/components/input-wrapper/VtsInputWrapper.vue'
 import UiInput from '@core/components/ui/input/UiInput.vue'
+import { mergeInputWrapperMessages } from '@core/utils/input-wrapper-message.util.ts'
 import { computed } from 'vue'
 
 const { info, warning, error } = defineProps<{
@@ -19,9 +20,8 @@ const { info, warning, error } = defineProps<{
 }>()
 
 const emit = defineEmits<{ blur: [] }>()
+
 const model = defineModel<number | undefined>()
 
-const messages = computed<InputWrapperMessage>(
-  () => [info, warning, error].filter(message => message !== undefined) as InputWrapperMessage
-)
+const messages = computed(() => mergeInputWrapperMessages(info, warning, error))
 </script>

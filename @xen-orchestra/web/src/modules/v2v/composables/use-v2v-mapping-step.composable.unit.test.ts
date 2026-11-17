@@ -8,8 +8,8 @@ import { findV2vRouteQuery } from '@/test/create-v2v-wizard-router.ts'
 import { deleteModalMock } from '@/test/mock-delete-modal.ts'
 import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
 import { v2vVmRowsCollectionsMock } from '@/test/mock-xo-v2v-vm-rows-collections.ts'
-import { mountComposableOnV2vWizard } from '@/test/mount-on-v2v-wizard.ts'
-import { mountV2vMappingStep } from '@/test/mount-v2v-mapping-step.ts'
+import { mountV2vListStepComposable, type MountV2vListStepOptions } from '@/test/mount-v2v-list-step.ts'
+import { resetV2vCollectionMocks } from '@/test/reset-v2v-collection-mocks.ts'
 import {
   V2V_DB_IMPORT_VM,
   V2V_DB_SYNC_SNAPSHOT,
@@ -19,6 +19,7 @@ import {
   V2V_MAPPING_STEP_LIST,
 } from '@/test/v2v-mapping-step-fixtures.ts'
 import { readV2vMigrationListVmIds } from '@/test/v2v-migration-list-storage.ts'
+import { V2V_SELECTED_VM_CHECK } from '@/test/v2v-selected-vm-checks.ts'
 import { V2V_DB_VM, V2V_WEB_VM } from '@/test/v2v-vms-fixtures.ts'
 import type { XoV2vVm } from '@vates/types'
 import { flushPromises } from '@vue/test-utils'
@@ -55,13 +56,10 @@ vi.mock(import('@core/composables/modals/use-delete-modal.ts'), () => import('@/
 
 const SOURCE_HOST = createV2vConnection().host
 
-function mountMappingStep(options?: Parameters<typeof mountV2vMappingStep>[1]) {
-  return mountV2vMappingStep(
-    setup =>
-      mountComposableOnV2vWizard(
-        () => ({ ...useV2vMappingStep(), labels: useV2vVmLabels(), selectedVmLabels: useV2vSelectedVmLabels() }),
-        setup
-      ),
+function mountMappingStep(options?: MountV2vListStepOptions) {
+  return mountV2vListStepComposable(
+    'mapping',
+    () => ({ ...useV2vMappingStep(), labels: useV2vVmLabels(), selectedVmLabels: useV2vSelectedVmLabels() }),
     options
   )
 }
@@ -76,9 +74,7 @@ async function removeOnceConfirmed({ result }: MappingStep, id: XoV2vVm['id']) {
 }
 
 beforeEach(() => {
-  v2vVmRowsCollectionsMock.reset()
-  xoCollectionsMock.reset()
-  deleteModalMock.reset()
+  resetV2vCollectionMocks()
 })
 
 describe('selectedVm', () => {
@@ -122,7 +118,7 @@ describe('selectedVm', () => {
 
     expect(result.selectedVm).toMatchObject({
       kind: 'new',
-      listIssue: result.selectedVmLabels.getCheckInfo({ type: 'mapping-incomplete', level: 'blocking' }),
+      listIssue: result.selectedVmLabels.getCheckInfo(V2V_SELECTED_VM_CHECK.mappingIncomplete),
     })
   })
 
@@ -273,7 +269,7 @@ describe('remove', () => {
     await removeOnceConfirmed(step, V2V_WEB_VM.id)
 
     expect(readV2vMigrationListVmIds()).toEqual([])
-    expect(step.router.currentRoute.value.query.step).toBe('vms')
+    expect(findV2vRouteQuery(step.router).step).toBe('vms')
   })
 })
 
@@ -283,7 +279,7 @@ describe('navigation', () => {
 
     await step.result.back()
 
-    expect(step.router.currentRoute.value.query.step).toBe('vms')
+    expect(findV2vRouteQuery(step.router).step).toBe('vms')
   })
 
   it('goes on to the review, even with an incomplete mapping', async () => {
@@ -292,6 +288,6 @@ describe('navigation', () => {
     xoCollectionsMock.srs.value = []
     await step.result.next()
 
-    expect(step.router.currentRoute.value.query.step).toBe('review')
+    expect(findV2vRouteQuery(step.router).step).toBe('review')
   })
 })

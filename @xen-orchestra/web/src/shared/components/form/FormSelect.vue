@@ -13,6 +13,7 @@ import type { InputWrapperMessage } from '@core/components/input-wrapper/VtsInpu
 import type { FormSelectId, FormSelectIdToOption } from '@core/packages/form-select'
 import VtsInputWrapper from '@core/components/input-wrapper/VtsInputWrapper.vue'
 import VtsSelect from '@core/components/select/VtsSelect.vue'
+import { mergeInputWrapperMessages } from '@core/utils/input-wrapper-message.util.ts'
 import { computed } from 'vue'
 
 const { error, warning } = defineProps<{
@@ -26,5 +27,5 @@ const slots = defineSlots<{
   option?(props: { option: FormSelectIdToOption<TSelectId> }): any
 }>()
 
-const messages = computed(() => [error, warning].filter(message => message !== undefined).flat())
+const messages = computed(() => mergeInputWrapperMessages(error, warning))
 </script>
