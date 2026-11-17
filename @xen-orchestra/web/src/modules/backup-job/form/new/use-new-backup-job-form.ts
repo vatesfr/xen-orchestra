@@ -28,7 +28,7 @@ type Step = (typeof STEPS)[number]
 
 const METADATA_STEPS: Step[] = ['source', 'target', 'planning', 'review']
 
-function createSourceFormData(): BackupJobSourceFormData {
+export function createSourceFormData(): BackupJobSourceFormData {
   return {
     name: '',
     enabled: true,
@@ -46,7 +46,7 @@ function createSourceFormData(): BackupJobSourceFormData {
   }
 }
 
-function createTransferFormData(): BackupJobTransferFormData {
+export function createTransferFormData(): BackupJobTransferFormData {
   return {
     maxExportRate: undefined,
     concurrency: 2,
@@ -109,7 +109,7 @@ function createTargetHealthCheckFormData(): BackupJobTargetHealthCheckFormData {
   }
 }
 
-function createTargetFormData(): BackupJobTargetFormData {
+export function createTargetFormData(): BackupJobTargetFormData {
   return {
     storageTargets: [],
     backupRepository: createTargetBackupRepositoryFormData(),
@@ -118,7 +118,7 @@ function createTargetFormData(): BackupJobTargetFormData {
   }
 }
 
-function createPlanningFormData(): BackupJobPlanningFormData {
+export function createPlanningFormData(): BackupJobPlanningFormData {
   return {
     cron: DEFAULT_CRON,
     timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,

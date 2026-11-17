@@ -33,7 +33,8 @@ export type BackupJobTargetForm = ReturnType<typeof useBackupJobTargetForm>
 export function useBackupJobTargetForm(
   formData: BackupJobTargetFormData,
   rawDataSource: MaybeRefOrGetter<BackupJobDataSource>,
-  rawSourceBackupRepositoryId: MaybeRefOrGetter<FrontXoBackupRepository['id'] | undefined>
+  rawSourceBackupRepositoryId: MaybeRefOrGetter<FrontXoBackupRepository['id'] | undefined>,
+  { isEditing = false }: { isEditing?: boolean } = {}
 ) {
   const { t } = useI18n()
 
@@ -59,7 +60,8 @@ export function useBackupJobTargetForm(
     formData.backupRepository,
     hasBackupRepositorySection,
     hasRetentionStrategy,
-    rawSourceBackupRepositoryId
+    rawSourceBackupRepositoryId,
+    { isEditing }
   )
 
   const storageRepository = useBackupJobTargetStorageRepositoryForm(

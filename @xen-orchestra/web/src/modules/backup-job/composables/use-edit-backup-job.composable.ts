@@ -1,13 +1,17 @@
 import { type EditBackupJobPayload, useXoBackupJobEditJob } from '@/modules/backup-job/jobs/xo-backup-job-edit.job.ts'
 import type { FrontAnyXoBackupJob } from '@/modules/backup-job/remote-resources/use-xo-backup-job-collection.ts'
+import { useXoScheduleCollection } from '@/modules/schedule/remote-resources/use-xo-schedule-collection.ts'
 import { KEEP_OVERLAY_OPEN } from '@core/packages/overlay/symbols.ts'
 import { useOverlay } from '@core/packages/overlay/use-overlay.ts'
 import { toComputed } from '@core/utils/to-computed.util.ts'
-import { reactiveComputed } from '@vueuse/core'
-import { type MaybeRefOrGetter, ref } from 'vue'
+import { computed, type MaybeRefOrGetter, ref } from 'vue'
 
 export function useEditBackupJob(rawBackupJob: MaybeRefOrGetter<FrontAnyXoBackupJob>) {
   const backupJob = toComputed(rawBackupJob)
+
+  const { schedulesByJobId } = useXoScheduleCollection()
+
+  const schedule = computed(() => schedulesByJobId.value.get(backupJob.value.id)?.[0])
 
   const payload = ref<EditBackupJobPayload>()
 
@@ -35,12 +39,12 @@ export function useEditBackupJob(rawBackupJob: MaybeRefOrGetter<FrontAnyXoBackup
     },
   })
 
-  const props = reactiveComputed(() => ({
-    backupJob: backupJob.value,
-  }))
-
   function editBackupJob() {
-    return open({ props })
+    if (schedule.value === undefined) {
+      return
+    }
+
+    return open({ props: { backupJob: backupJob.value, schedule: schedule.value } })
   }
 
   return {
