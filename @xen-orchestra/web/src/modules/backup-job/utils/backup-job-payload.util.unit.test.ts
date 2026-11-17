@@ -134,7 +134,6 @@ function createFormDataSet({
       healthCheck: { ...HEALTH_CHECK, ...healthCheck },
     },
     planning: { ...PLANNING, ...planning },
-    allIds: { backupRepositories: [BR_ID], pools: [POOL_ID] },
   }
 }
 
@@ -164,7 +163,7 @@ describe('toBackupJobPayload', () => {
     it('targets the VMs matching the dynamic selection query', () => {
       const payload = toBackupJobPayload(createFormDataSet({ source: { scopeType: 'smart', vmFilter: 'tags:prod' } }))
 
-      expect(payload).toMatchObject({ vms: 'tags:prod' })
+      expect(payload).toMatchObject({ vms: 'vm:(tags:prod)' })
     })
 
     it('compresses a full backup, without NBD nor key backup', () => {
@@ -360,8 +359,8 @@ describe('toBackupJobPayload', () => {
         })
       )
 
-      expect(payload.settings['']).toMatchObject({ healthCheckVmsWithTags: ['prod'], healthCheckTimeout: '10m' })
-      expect(payload.settings.schedule).toMatchObject({ healthCheckSr: SR_ID })
+      expect(payload.settings['']).toMatchObject({ healthCheckTimeout: '10m' })
+      expect(payload.settings.schedule).toMatchObject({ healthCheckSr: SR_ID, healthCheckVmsWithTags: ['prod'] })
     })
 
     it('checks the health of every VM on the selected days and hours', () => {
@@ -377,7 +376,7 @@ describe('toBackupJobPayload', () => {
         })
       )
 
-      expect(payload.settings['']).toMatchObject({ healthCheckVmsWithTags: 'run:(dayOfWeek:1 hour:2)' })
+      expect(payload.settings.schedule).toMatchObject({ healthCheckVmsWithTags: 'run:(dayOfWeek:1 hour:2)' })
     })
 
     it('checks the health of the VMs with exactly one of the tags, on the selected days and hours', () => {
@@ -393,7 +392,7 @@ describe('toBackupJobPayload', () => {
           },
         })
       )
-      const expression = payload.settings['']?.healthCheckVmsWithTags as string
+      const expression = payload.settings.schedule?.healthCheckVmsWithTags as string
       const isChecked = (tags: string[], dayOfWeek: number) =>
         parse(expression).createPredicate()({ vm: { tags }, run: { dayOfMonth: 10, dayOfWeek, hour: 2 } })
 
@@ -439,9 +438,10 @@ describe('toBackupJobPayload', () => {
         mode: 'delta',
         proxy: SOURCE_PROXY_ID,
         sourceRemote: SOURCE_BR_ID,
-        remotes: { id: { __or: [BR_ID] } },
+        remotes: '*',
       })
       expect(payload).not.toHaveProperty('filter', expect.anything())
+      expect(payload.settings.schedule).not.toHaveProperty('vmFilter', expect.anything())
     })
 
     it('runs in the timezone of the schedule', () => {
@@ -471,7 +471,8 @@ describe('toBackupJobPayload', () => {
         createFormDataSet({ source: { ...MIRROR_SOURCE, scopeType: 'smart', vmFilter: 'tags:prod' } })
       )
 
-      expect(payload).toMatchObject({ filter: 'tags:prod' })
+      expect(payload).not.toHaveProperty('filter', expect.anything())
+      expect(payload.settings.schedule).toMatchObject({ vmFilter: 'vm:(tags:prod)' })
     })
   })
 
@@ -489,8 +490,8 @@ describe('toBackupJobPayload', () => {
         name: 'Daily backup',
         proxy: PROXY_ID,
         xoMetadata: true,
-        pools: { id: { __or: [POOL_ID] } },
-        remotes: { id: { __or: [BR_ID] } },
+        pools: '*',
+        remotes: '*',
         schedules: { schedule: { cron: '0 0 * * *', timezone: 'Europe/Paris', enabled: true } },
         settings: {
           '': { reportWhen: 'failure' },
@@ -505,6 +506,14 @@ describe('toBackupJobPayload', () => {
       )
 
       expect(payload).toMatchObject({ pools: { id: { __or: [POOL_ID] } } })
+    })
+
+    it('saves the metadata of the pools matching the dynamic selection query', () => {
+      const payload = toBackupJobPayload(
+        createFormDataSet({ source: { dataSource: 'metadata', scopeType: 'smart', poolFilter: 'tags:prod' } })
+      )
+
+      expect(payload).toMatchObject({ pools: 'pool:(tags:prod)' })
     })
 
     it('saves the XO config only', () => {

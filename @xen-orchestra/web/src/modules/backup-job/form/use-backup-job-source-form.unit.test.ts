@@ -39,7 +39,11 @@ const DB_VM = createVm({
   power_state: VM_POWER_STATE.HALTED,
 })
 
-const MAIN_POOL = createPool({ id: 'pool-main' as FrontXoPool['id'], name_label: 'Main pool' })
+const MAIN_POOL = createPool({
+  id: 'pool-main' as FrontXoPool['id'],
+  name_label: 'Main pool',
+  name_description: 'Production',
+})
 const TEST_POOL = createPool({ id: 'pool-test' as FrontXoPool['id'], name_label: 'Test pool' })
 
 function createArchive(vm: FrontXoVm, mode: 'delta' | 'full', timestamp: number) {
@@ -239,6 +243,12 @@ describe('selectedSelectionItems', () => {
 describe('matchedPoolItems', () => {
   it('previews the pools matching the selection query', () => {
     const form = mountSourceForm({ dataSource: 'metadata', scopeType: 'smart', poolFilter: 'name_label:Main' })
+
+    expect(form.matchedPoolItems).toEqual([toPoolQueryPreviewItem(MAIN_POOL.id, MAIN_POOL.name_label)])
+  })
+
+  it('matches the description of the pools under the property name used by the backups', () => {
+    const form = mountSourceForm({ dataSource: 'metadata', scopeType: 'smart', poolFilter: 'description:Production' })
 
     expect(form.matchedPoolItems).toEqual([toPoolQueryPreviewItem(MAIN_POOL.id, MAIN_POOL.name_label)])
   })

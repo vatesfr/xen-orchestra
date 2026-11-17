@@ -237,18 +237,18 @@ describe('validateAndBuildPayload', () => {
     expect(await form.validateAndBuildPayload()).toMatchObject({ type: 'metadataBackup', name: 'Metadata backup' })
   })
 
-  it('targets every enabled backup repository of the target proxy when all are selected', async () => {
+  it('targets every backup repository when all are selected', async () => {
     const form = mountNewForm()
     await fillMetadataJob(form)
 
-    expect(await form.validateAndBuildPayload()).toMatchObject({ remotes: { id: { __or: [ENABLED_BR.id] } } })
+    expect(await form.validateAndBuildPayload()).toMatchObject({ remotes: '*' })
   })
 
   it('saves the metadata of every pool when all are selected', async () => {
     const form = mountNewForm()
     await fillMetadataJob(form)
 
-    expect(await form.validateAndBuildPayload()).toMatchObject({ pools: { id: { __or: [POOL.id] } } })
+    expect(await form.validateAndBuildPayload()).toMatchObject({ pools: '*' })
   })
 
   it('ignores the transfer of a metadata backup', async () => {
