@@ -77,6 +77,7 @@ export function useV2vSelectedVms({ migrationList, rows, areRowsReady, poolId, s
       const mappingSummary = getV2vMappingSummary(mapping, kind, targetNameGetters)
 
       return {
+        listVm,
         kind,
         check,
         mapping: mappingSummary,

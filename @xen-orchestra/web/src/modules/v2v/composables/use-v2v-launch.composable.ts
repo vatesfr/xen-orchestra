@@ -56,17 +56,16 @@ export function useV2vLaunch(
   const launchCount = computed(() => toValue(launchableVms).length)
 
   const startVms = computed(() =>
-    toValue(launchableVms).flatMap(({ kind, item: { id } }): V2vStartVm[] => {
-      const listVm = toValue(list)?.vms.find(vm => vm.id === id)
-
-      if (listVm === undefined) {
-        return []
-      }
-
-      const { disks, nics, template } = listVm
-
-      return [{ id, kind, disks, nics, template, overrides: overridesById.get(id) }]
-    })
+    toValue(launchableVms).map(
+      ({ kind, listVm: { id, disks, nics, template } }): V2vStartVm => ({
+        id,
+        kind,
+        disks,
+        nics,
+        template,
+        overrides: overridesById.get(id),
+      })
+    )
   )
 
   const payload = ref<XoV2vStartPayload>()

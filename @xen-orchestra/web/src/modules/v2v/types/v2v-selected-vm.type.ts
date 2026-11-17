@@ -1,5 +1,6 @@
 import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import type { V2vAccentedLabel } from '@/modules/v2v/types/v2v-accented-label.type.ts'
+import type { V2vMigrationListVm } from '@/modules/v2v/types/v2v-migration-list.type.ts'
 import type { V2vUnsupportedReason } from '@/modules/v2v/types/v2v-vm-row.type.ts'
 import type { V2V_READINESS_LEVELS } from '@/modules/v2v/utils/v2v-selected-vm.util.ts'
 import type { InfoAccent } from '@core/components/ui/info/UiInfo.vue'
@@ -52,6 +53,7 @@ export type V2vSelectedVm = {
 
 // A VM of the list, as the mapping step tells it apart, with its item of the panel
 export type V2vListedVm = {
+  listVm: V2vMigrationListVm
   kind: V2vSelectedVmKind
   check: V2vSelectedVmCheck
   mapping: V2vMappingSummary | undefined

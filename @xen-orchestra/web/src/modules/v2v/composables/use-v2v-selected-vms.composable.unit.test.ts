@@ -303,12 +303,25 @@ describe('isBusy', () => {
 })
 
 describe('vms', () => {
-  it('tells the kind, the check and the mapping summary of each VM of the list, with its item, in the list order', async () => {
+  it('tells the list VM, the kind, the check and the mapping summary of each VM of the list, with its item, in the list order', async () => {
     const { result } = await mountSelectedVms({ list: WEB_AND_DB_LIST })
+    const [webListVm, dbListVm] = WEB_AND_DB_LIST.vms
 
     expect(result.vms).toEqual([
-      { kind: 'new', check: V2V_SELECTED_VM_CHECK.ready, mapping: WEB_MAPPING, item: result.items[0] },
-      { kind: 'resume', check: V2V_SELECTED_VM_CHECK.ready, mapping: DB_MAPPING, item: result.items[1] },
+      {
+        listVm: webListVm,
+        kind: 'new',
+        check: V2V_SELECTED_VM_CHECK.ready,
+        mapping: WEB_MAPPING,
+        item: result.items[0],
+      },
+      {
+        listVm: dbListVm,
+        kind: 'resume',
+        check: V2V_SELECTED_VM_CHECK.ready,
+        mapping: DB_MAPPING,
+        item: result.items[1],
+      },
     ])
   })
 
