@@ -26,12 +26,15 @@ import VtsTable from '@core/components/table/VtsTable.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { usePagination } from '@core/composables/pagination.composable.ts'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
+import { useStatusLabel } from '@core/composables/status-label.composable.ts'
 import { useTableState } from '@core/composables/table-state.composable.ts'
 import { useQueryBuilderSchema } from '@core/packages/query-builder/schema/use-query-builder-schema.ts'
 import { useQueryBuilderFilter } from '@core/packages/query-builder/use-query-builder-filter.ts'
 import { usePluginColumns } from '@core/tables/column-sets/plugin-columns.ts'
+import { compareStrings } from '@core/utils/compare-strings.util.ts'
 import { useBooleanSchema } from '@core/utils/query-builder/use-boolean-schema.ts'
 import { useStringSchema } from '@core/utils/query-builder/use-string-schema.ts'
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { plugins, busy, error } = defineProps<{
@@ -55,8 +58,6 @@ const schema = useQueryBuilderSchema<Omit<FrontXoPlugin, 'configurationSchema' |
 
 const selectedPluginId = useRouteQuery('id')
 
-const { pageRecords: paginatedPlugins, paginationBindings } = usePagination('plugins', filteredPlugins)
-
 const state = useTableState({
   busy: () => busy,
   error: () => error,
@@ -64,7 +65,9 @@ const state = useTableState({
     plugins.length === 0 ? t('no-plugin-detected') : filteredPlugins.value.length === 0 ? { type: 'no-result' } : false,
 })
 
-const { HeadCells, BodyCells } = usePluginColumns({
+const { compareStatuses } = useStatusLabel()
+
+const { HeadCells, BodyCells, sortItems } = usePluginColumns({
   body: (plugin: FrontXoPlugin) => {
     const { configureAction, loadAction, moreActions } = useXoPluginActions(() => plugin)
 
@@ -86,5 +89,18 @@ const { HeadCells, BodyCells } = usePluginColumns({
         }),
     }
   },
+  sort: {
+    plugin: (plugin1, plugin2) => compareStrings(plugin1.name, plugin2.name),
+    version: (plugin1, plugin2) => compareStrings(plugin1.version ?? '', plugin2.version ?? ''),
+    description: (plugin1, plugin2) =>
+      compareStrings(getPluginDescription(plugin1) ?? '', getPluginDescription(plugin2) ?? ''),
+    loaded: (plugin1, plugin2) => compareStatuses(isPluginLoaded(plugin1), isPluginLoaded(plugin2)),
+    autoload: (plugin1, plugin2) => compareStatuses(plugin1.autoload, plugin2.autoload),
+  },
+  initialSort: { id: 'plugin', direction: 'asc' },
 })
+
+const sortedPlugins = computed(() => sortItems(filteredPlugins.value))
+
+const { pageRecords: paginatedPlugins, paginationBindings } = usePagination('plugins', sortedPlugins)
 </script>

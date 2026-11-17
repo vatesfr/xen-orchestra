@@ -36,6 +36,7 @@ import { objectIcon } from '@core/icons'
 import { useQueryBuilderSchema } from '@core/packages/query-builder/schema/use-query-builder-schema.ts'
 import { useQueryBuilderFilter } from '@core/packages/query-builder/use-query-builder-filter.ts'
 import { useBackupLogVmColumns } from '@core/tables/column-sets/backup-log-vm-columns.ts'
+import { compareStrings } from '@core/utils/compare-strings.util.ts'
 import { useStringSchema } from '@core/utils/query-builder/use-string-schema.ts'
 import { formatSizeRaw } from '@core/utils/size.util.ts'
 import { toLower } from 'lodash-es'
@@ -87,14 +88,12 @@ const schema = useQueryBuilderSchema<BackupLogVmFilterableData>({
   name: useStringSchema(t('vm')),
 })
 
-const { pageRecords: paginatedVms, paginationBindings } = usePagination('backup-log-vms', filteredVms)
-
 const state = useTableState({
   empty: () =>
     vms.value.length === 0 ? t('no-vm-detected') : filteredVms.value.length === 0 ? { type: 'no-result' } : false,
 })
 
-const { HeadCells, BodyCells } = useBackupLogVmColumns({
+const { HeadCells, BodyCells, sortItems } = useBackupLogVmColumns({
   body: (vm: BackupLogVmFilterableData) => {
     const xoVm = computed(() => getVmById(vm.id))
 
@@ -112,7 +111,16 @@ const { HeadCells, BodyCells } = useBackupLogVmColumns({
       virtualSize: r => r(size.value?.value, size.value?.prefix),
     }
   },
+  sort: {
+    vm: (vm1, vm2) => compareStrings(vm1.name, vm2.name),
+    // A VM no longer in XO has an unknown size, sorted as 0
+    virtualSize: (vm1, vm2) => (vm1.size ?? 0) - (vm2.size ?? 0),
+  },
 })
+
+const sortedVms = computed(() => sortItems(filteredVms.value))
+
+const { pageRecords: paginatedVms, paginationBindings } = usePagination('backup-log-vms', sortedVms)
 </script>
 
 <style scoped lang="postcss">

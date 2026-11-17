@@ -1,7 +1,7 @@
 <template>
   <VtsContentSidePanel class="pool-storage-view" :class="{ mobile: uiStore.isSmall }">
     <UiCard class="container">
-      <StorageRepositoriesTable v-if="pool" :srs="sortedSrs" :pool :scope :busy="!isReady" :error="hasError" />
+      <StorageRepositoriesTable v-if="pool" :srs :pool :scope :busy="!isReady" :error="hasError" />
     </UiCard>
     <template #panel>
       <StorageRepositorySidePanel v-if="pool" :sr="selectedSr" :pool :scope @close="selectedSr = undefined" />
@@ -22,9 +22,7 @@ import UiCard from '@core/components/ui/card/UiCard.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { useUiStore } from '@core/stores/ui.store.ts'
 import { SR_SCOPE_TYPE, type SrScope } from '@core/types/storage-repository.type.ts'
-import { sortByNameLabel } from '@core/utils/sort-by-name-label.util.ts'
 import { logicAnd } from '@vueuse/math'
-import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n()
@@ -40,10 +38,8 @@ const isReady = logicAnd(areSrsReady, arePbdsReady)
 
 const scope: SrScope = { type: SR_SCOPE_TYPE.POOL }
 
-const sortedSrs = computed(() => [...srs.value].sort(sortByNameLabel))
-
 const selectedSr = useRouteQuery<XenApiSr | undefined>('id', {
-  toData: id => sortedSrs.value.find(sr => sr.uuid === id),
+  toData: id => srs.value.find(sr => sr.uuid === id),
   toQuery: sr => sr?.uuid ?? '',
 })
 </script>
