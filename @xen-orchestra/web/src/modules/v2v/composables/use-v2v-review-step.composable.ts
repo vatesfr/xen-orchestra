@@ -38,6 +38,7 @@ export function useV2vReviewStep(rawPoolId: MaybeRefOrGetter<FrontXoPool['id']>)
     isBusy,
     summaryParts,
     destinationPoolName,
+    groupHeadings: labels.launchGroupHeadings,
     ...groups,
     ...launch,
     back: () => goToStep('mapping'),

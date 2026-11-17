@@ -3,7 +3,7 @@ import { DISKOR_POOL_NAME } from '@/test/create-pool.ts'
 import { mountComposableWithI18n } from '@/test/mount-composable.ts'
 import { formatDateTime } from '@core/utils/time.util.ts'
 
-describe('getLaunchGroupHeading', () => {
+describe('launchGroupHeadings', () => {
   it.each([
     ['excluded', 'v2v:launch-group:excluded', 'danger'],
     ['migrated', 'v2v:launch-group:migrated', 'warning'],
@@ -12,7 +12,7 @@ describe('getLaunchGroupHeading', () => {
   ] as const)('heads the %s group with its label and accent', (type, labelKey, accent) => {
     const labels = mountComposableWithI18n(useV2vReviewLabels)
 
-    expect(labels.getLaunchGroupHeading(type)).toEqual({ label: labels.t(labelKey), accent })
+    expect(labels.launchGroupHeadings[type]).toEqual({ label: labels.t(labelKey), accent })
   })
 })
 

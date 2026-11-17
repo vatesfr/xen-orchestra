@@ -4,12 +4,7 @@ import { useV2vReviewLabels } from '@/modules/v2v/composables/use-v2v-review-lab
 import type { useV2vSelectedVms } from '@/modules/v2v/composables/use-v2v-selected-vms.composable.ts'
 import { useV2vTargetNameGetters } from '@/modules/v2v/composables/use-v2v-target-name-getters.composable.ts'
 import { useV2vWizardNavigation } from '@/modules/v2v/composables/use-v2v-wizard-navigation.composable.ts'
-import type {
-  V2vExcludedVm,
-  V2vLaunchGroupType,
-  V2vMigratedVm,
-  V2vResumedVm,
-} from '@/modules/v2v/types/v2v-launch.type.ts'
+import type { V2vExcludedVm, V2vMigratedVm, V2vResumedVm } from '@/modules/v2v/types/v2v-launch.type.ts'
 import type { V2vListedVm } from '@/modules/v2v/types/v2v-selected-vm.type.ts'
 import type { V2vVmRow } from '@/modules/v2v/types/v2v-vm-row.type.ts'
 import { getV2vLaunchPlan } from '@/modules/v2v/utils/v2v-launch-plan.util.ts'
@@ -65,16 +60,6 @@ export function useV2vLaunchGroups({ vms, getRow }: Pick<ReturnType<typeof useV2
   }
 
   const unconfirmedCount = computed(() => plan.value.migrated.filter(({ item }) => !confirmedIds.has(item.id)).length)
-
-  const groupHeadings = computed(
-    () =>
-      ({
-        excluded: labels.getLaunchGroupHeading('excluded'),
-        migrated: labels.getLaunchGroupHeading('migrated'),
-        resumed: labels.getLaunchGroupHeading('resumed'),
-        new: labels.getLaunchGroupHeading('new'),
-      }) satisfies Record<V2vLaunchGroupType, unknown>
-  )
 
   const excludedVms = computed(() =>
     plan.value.excluded.map(
@@ -138,7 +123,6 @@ export function useV2vLaunchGroups({ vms, getRow }: Pick<ReturnType<typeof useV2
   return {
     plan,
     unconfirmedCount,
-    groupHeadings,
     excludedVms,
     migratedVms,
     resumedVms,

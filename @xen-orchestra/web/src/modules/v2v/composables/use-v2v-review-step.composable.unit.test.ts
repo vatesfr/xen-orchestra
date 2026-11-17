@@ -169,17 +169,6 @@ describe('summaryParts', () => {
   })
 })
 
-it('heads each group with its label and accent', async () => {
-  const { result } = await mountReviewStep()
-
-  expect(result.groupHeadings).toEqual({
-    excluded: result.labels.getLaunchGroupHeading('excluded'),
-    migrated: result.labels.getLaunchGroupHeading('migrated'),
-    resumed: result.labels.getLaunchGroupHeading('resumed'),
-    new: result.labels.getLaunchGroupHeading('new'),
-  })
-})
-
 describe('excludedVms', () => {
   it('excludes a blocked VM with the reason the panel gives, linking to its mapping', async () => {
     const { result } = await mountReviewStep()

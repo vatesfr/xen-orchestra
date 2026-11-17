@@ -13,13 +13,6 @@ const V2V_REVIEW_COUNTED = ['excluded', 'unconfirmed'] as const
 
 type V2vReviewCounts = Record<(typeof V2V_REVIEW_COUNTED)[number], number>
 
-const LAUNCH_GROUP_ACCENTS: Record<V2vLaunchGroupType, CounterAccent> = {
-  excluded: 'danger',
-  migrated: 'warning',
-  resumed: 'brand',
-  new: 'success',
-}
-
 export function useV2vReviewLabels() {
   const { t } = useI18n()
 
@@ -33,16 +26,12 @@ export function useV2vReviewLabels() {
     return value === undefined ? t('default-value', { value: getOnOffLabel(defaultValue) }) : getOnOffLabel(value)
   }
 
-  const launchGroupLabels = computed<Record<V2vLaunchGroupType, string>>(() => ({
-    excluded: t('v2v:launch-group:excluded'),
-    migrated: t('v2v:launch-group:migrated'),
-    resumed: t('v2v:launch-group:resumed'),
-    new: t('v2v:launch-group:new'),
+  const launchGroupHeadings = computed<Record<V2vLaunchGroupType, V2vAccentedLabel<CounterAccent>>>(() => ({
+    excluded: { label: t('v2v:launch-group:excluded'), accent: 'danger' },
+    migrated: { label: t('v2v:launch-group:migrated'), accent: 'warning' },
+    resumed: { label: t('v2v:launch-group:resumed'), accent: 'brand' },
+    new: { label: t('v2v:launch-group:new'), accent: 'success' },
   }))
-
-  function getLaunchGroupHeading(type: V2vLaunchGroupType): V2vAccentedLabel<CounterAccent> {
-    return { label: launchGroupLabels.value[type], accent: LAUNCH_GROUP_ACCENTS[type] }
-  }
 
   const reviewCountLabelGetters: Record<keyof V2vReviewCounts, (count: number) => string> = {
     excluded: count => t('v2v:n-excluded', { n: count }),
@@ -77,7 +66,7 @@ export function useV2vReviewLabels() {
 
   return {
     getLaunchOptionLabel,
-    getLaunchGroupHeading,
+    launchGroupHeadings,
     getReviewSummaryParts,
     getResumedVmParts,
     getCutoverLabel,
