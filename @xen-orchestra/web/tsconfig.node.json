@@ -1,18 +1,9 @@
 {
   "extends": "@tsconfig/node18/tsconfig.json",
-  "include": [
-    "dev/**/*.ts",
-    "src/test/create-v2v-inventory.ts",
-    "vite.config.*",
-    "vitest.config.*",
-    "cypress.config.*",
-    "nightwatch.conf.*",
-    "playwright.config.*"
-  ],
+  "include": ["vite.config.*", "vitest.config.*", "cypress.config.*", "nightwatch.conf.*", "playwright.config.*"],
   "compilerOptions": {
     "composite": true,
     "noEmit": true,
-    "allowImportingTsExtensions": true,
     "module": "ESNext",
     "moduleResolution": "Bundler",
     "types": ["node"]
