@@ -306,7 +306,7 @@ describe('filters', () => {
     await pickFilterOption(wrapper, lastRunsLabel, t('backups:jobs:skipped-runs'))
     await pickSelectOption(wrapper, t('no-run'))
 
-    expect(findBackupJobNames(wrapper)).toEqual(['Skipped job', 'Job without run'])
+    expect(findBackupJobNames(wrapper)).toEqual(['Job without run', 'Skipped job'])
   })
 
   it('selects and deselects every option of a filter', async () => {
