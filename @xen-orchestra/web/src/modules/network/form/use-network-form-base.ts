@@ -1,11 +1,10 @@
+import { useNetworkPoolPrefill } from '@/modules/network/form/use-network-pool-prefill.ts'
 import { type FrontXoPool, useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import { useFormBindings } from '@core/packages/form-bindings'
 import { useFormSelect } from '@core/packages/form-select'
-import { toComputed } from '@core/utils/to-computed.util.ts'
-import { type MaybeRefOrGetter, toRef, watch } from 'vue'
+import { type MaybeRefOrGetter, toRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-// 'nbd': NBD over TLS, 'insecure-nbd': NBD in clear, only on a network dedicated to backups
 export type NetworkNbdMode = 'none' | 'nbd' | 'insecure-nbd'
 
 export type BaseNetworkFormData = {
@@ -29,7 +28,6 @@ export function useNetworkFormBase<T extends BaseNetworkFormData>(
   _poolId: MaybeRefOrGetter<FrontXoPool['id'] | undefined>,
   formData: T
 ) {
-  const poolId = toComputed(_poolId)
   const { pools, useGetPoolById } = useXoPoolCollection()
 
   const { id: poolSelectId } = useFormSelect(pools, {
@@ -42,17 +40,9 @@ export function useNetworkFormBase<T extends BaseNetworkFormData>(
     },
   })
 
-  watch(
-    pools,
-    newPools => {
-      const targetPool = newPools.find(pool => pool.id === poolId.value)
+  const baseFormData: BaseNetworkFormData = formData
 
-      if (targetPool?.id !== formData.pool) {
-        formData.pool = targetPool?.id
-      }
-    },
-    { immediate: true }
-  )
+  useNetworkPoolPrefill(_poolId, toRef(baseFormData, 'pool'))
 
   const selectedPool = useGetPoolById(() => formData.pool)
 

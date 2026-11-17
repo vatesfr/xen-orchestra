@@ -1,11 +1,12 @@
 <template>
   <div class="networks-table">
     <UiTitle>
-      {{ internal ? t('host-internal-networks') : t('networks') }}
+      {{ title }}
       <template #action>
         <slot name="title-actions" />
       </template>
     </UiTitle>
+    <UiAlert v-if="type === 'internal'" accent="info">{{ t('host-internal-networks-info') }}</UiAlert>
     <VtsQueryBuilder v-bind="searchBindings" :schema />
     <div class="container">
       <VtsTable :state :pagination-bindings sticky="right">
@@ -33,6 +34,7 @@ import { useXoPifCollection } from '@/modules/pif/remote-resources/use-xo-pif-co
 import VtsQueryBuilder from '@core/components/query-builder/VtsQueryBuilder.vue'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
+import UiAlert from '@core/components/ui/alert/UiAlert.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { usePagination } from '@core/composables/pagination.composable.ts'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
@@ -49,14 +51,14 @@ import { useI18n } from 'vue-i18n'
 
 const {
   networks: rawNetworks,
-  internal,
+  type,
   busy,
   error,
 } = defineProps<{
   networks: FrontXoNetwork[]
   busy?: boolean
   error?: boolean
-  internal?: boolean
+  type?: 'internal' | 'private'
 }>()
 
 defineSlots<{
@@ -69,7 +71,23 @@ const { getPifsByIds } = useXoPifCollection()
 
 const selectedNetworkId = useRouteQuery('id')
 
-const { items: filteredNetworks, searchBindings } = useQueryBuilderFilter(internal ? 'inw' : 'nw', () => rawNetworks)
+function getTableConfig() {
+  if (type === 'internal') {
+    return { getTitle: () => t('host-internal-networks'), filterId: 'inw' }
+  }
+
+  if (type === 'private') {
+    return { getTitle: () => t('private-network', 2), filterId: 'pnw' }
+  }
+
+  return { getTitle: () => t('networks'), filterId: 'nw' }
+}
+
+const tableConfig = getTableConfig()
+
+const title = computed(() => tableConfig.getTitle())
+
+const { items: filteredNetworks, searchBindings } = useQueryBuilderFilter(tableConfig.filterId, () => rawNetworks)
 
 const schema = useQueryBuilderSchema<FrontXoNetwork>({
   '': useStringSchema(t('any-property')),
@@ -96,7 +114,7 @@ const state = useTableState({
 const { pageRecords: paginatedNetworks, paginationBindings } = usePagination('networks', filteredNetworks)
 
 const { HeadCells, BodyCells } = useNetworkColumns({
-  exclude: internal ? ['vlan', 'status', 'selectItem'] : ['selectItem'],
+  exclude: type === 'internal' ? ['vlan', 'status', 'selectItem'] : ['selectItem'],
   body: (network: FrontXoNetwork) => {
     const networkPifs = computed(() => getPifsByIds(network.PIFs))
 

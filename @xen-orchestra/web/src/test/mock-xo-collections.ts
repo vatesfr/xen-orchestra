@@ -6,6 +6,7 @@ import type {
   FrontXoNetwork,
   useXoNetworkCollection as realUseXoNetworkCollection,
 } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
+import { getEncryptedEncapsulationsByPool } from '@/modules/network/utils/xo-network.util.ts'
 import type {
   FrontXoPbd,
   useXoPbdCollection as realUseXoPbdCollection,
@@ -76,6 +77,7 @@ export const useXoPoolCollection = (() => ({
 export const useXoHostCollection = (() => ({
   hosts: xoCollectionsMock.hosts,
   getHostById: (id: FrontXoHost['id']) => xoCollectionsMock.hosts.value.find(host => host.id === id),
+  hostsByPool: computed(() => groupBy(xoCollectionsMock.hosts.value, host => host.$pool)),
 })) as unknown as typeof realUseXoHostCollection
 
 export const useXoSrCollection = (() => ({
@@ -89,6 +91,7 @@ export const useXoNetworkCollection = (() => ({
   areNetworksReady: xoCollectionsMock.areNetworksReady,
   getNetworkById: (id: FrontXoNetwork['id'] | undefined) =>
     xoCollectionsMock.networks.value.find(network => network.id === id),
+  encryptedEncapsulationsByPool: computed(() => getEncryptedEncapsulationsByPool(xoCollectionsMock.networks.value)),
 })) as unknown as typeof realUseXoNetworkCollection
 
 export const useXoPbdCollection = (() => ({

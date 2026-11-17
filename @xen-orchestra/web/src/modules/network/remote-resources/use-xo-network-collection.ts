@@ -1,9 +1,11 @@
+import { getEncryptedEncapsulationsByPool, isPrivateNetwork } from '@/modules/network/utils/xo-network.util.ts'
 import { useWatchCollection } from '@/shared/composables/watch-collection.composable.ts'
 import { useXoCollectionState } from '@/shared/composables/xo-collection-state/use-xo-collection-state.ts'
 import { BASE_URL } from '@/shared/utils/fetch.util.ts'
+import { safePushInMap } from '@/shared/utils/map.util.ts'
 import { defineRemoteResource } from '@core/packages/remote-resource/define-remote-resource.ts'
 import { sortByNameLabel } from '@core/utils/sort-by-name-label.util.ts'
-import type { XoNetwork } from '@vates/types'
+import { SDN_CONTROLLER_PRIVATE_NETWORK_UUID_KEY, type TUNNEL_PROTOCOL, type XoNetwork } from '@vates/types'
 import { useSorted } from '@vueuse/core'
 import { ref, watch } from 'vue'
 
@@ -34,13 +36,25 @@ export const useXoNetworkCollection = defineRemoteResource({
 
     const networksWithPifs = ref<FrontXoNetwork[]>([])
     const networksWithoutPifs = ref<FrontXoNetwork[]>([])
+    const privateNetworks = ref<FrontXoNetwork[]>([])
+    const privateNetworksByUuid = ref(new Map<string, FrontXoNetwork[]>())
+    const encryptedEncapsulationsByPool = ref(new Map<FrontXoNetwork['$pool'], Set<TUNNEL_PROTOCOL>>())
 
     watch(sortedNetworks, networks => {
       const tmpNetworksWithPifs: FrontXoNetwork[] = []
       const tmpNetworksWithoutPifs: FrontXoNetwork[] = []
+      const tmpPrivateNetworks: FrontXoNetwork[] = []
+      const tmpPrivateNetworksByUuid = new Map<string, FrontXoNetwork[]>()
 
       networks.forEach(network => {
-        if (network.PIFs.length === 0) {
+        if (isPrivateNetwork(network)) {
+          tmpPrivateNetworks.push(network)
+          safePushInMap(
+            tmpPrivateNetworksByUuid,
+            network.other_config[SDN_CONTROLLER_PRIVATE_NETWORK_UUID_KEY],
+            network
+          )
+        } else if (network.PIFs.length === 0) {
           tmpNetworksWithoutPifs.push(network)
         } else {
           tmpNetworksWithPifs.push(network)
@@ -49,6 +63,9 @@ export const useXoNetworkCollection = defineRemoteResource({
 
       networksWithPifs.value = tmpNetworksWithPifs
       networksWithoutPifs.value = tmpNetworksWithoutPifs
+      privateNetworks.value = tmpPrivateNetworks
+      privateNetworksByUuid.value = tmpPrivateNetworksByUuid
+      encryptedEncapsulationsByPool.value = getEncryptedEncapsulationsByPool(tmpPrivateNetworks)
     })
 
     return {
@@ -58,6 +75,9 @@ export const useXoNetworkCollection = defineRemoteResource({
       }),
       networksWithPifs,
       networksWithoutPifs,
+      privateNetworks,
+      privateNetworksByUuid,
+      encryptedEncapsulationsByPool,
     }
   },
 })

@@ -11,8 +11,8 @@
             </template>
             <MenuItem accent="neutral">
               <UiLink
-                class="new-network-link"
                 :to="{ name: '/network/new', query: { poolid: pool.id } }"
+                class="new-network-link"
                 icon="fa:plus"
                 size="small"
               >
@@ -21,8 +21,8 @@
             </MenuItem>
             <MenuItem accent="neutral">
               <UiLink
-                class="new-network-link"
                 :to="{ name: '/network/new-bonded', query: { poolid: pool.id } }"
+                class="new-network-link"
                 icon="fa:plus"
                 size="small"
               >
@@ -32,7 +32,17 @@
           </VtsResponsiveMenu>
         </template>
       </NetworksTable>
-      <NetworksTable :busy="!areNetworksReady" :error="hasNetworkFetchError" :networks="internalNetworks" internal>
+      <NetworksTable :busy="!areNetworksReady" :error="hasNetworkFetchError" :networks="privateNetworks" type="private">
+        <template #title-actions>
+          <PoolNewPrivateNetworkButton :pool />
+        </template>
+      </NetworksTable>
+      <NetworksTable
+        :busy="!areNetworksReady"
+        :error="hasNetworkFetchError"
+        :networks="internalNetworks"
+        type="internal"
+      >
         <template #title-actions>
           <UiLink :to="{ name: '/network/new-internal', query: { poolid: pool.id } }" icon="fa:plus" size="medium">
             {{ t('new') }}
@@ -46,13 +56,14 @@
   </VtsContentSidePanel>
 </template>
 
-<script setup lang="ts">
+<script lang="ts" setup>
 import NetworksTable from '@/modules/network/components/NetworksTable.vue'
 import NetworkSidePanel from '@/modules/network/components/panel/NetworkSidePanel.vue'
 import {
   type FrontXoNetwork,
   useXoNetworkCollection,
 } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
+import PoolNewPrivateNetworkButton from '@/modules/pool/components/actions/new-private-network/PoolNewPrivateNetworkButton.vue'
 import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import VtsContentSidePanel from '@core/components/layout/VtsContentSidePanel.vue'
 import MenuItem from '@core/components/menu/MenuItem.vue'
@@ -70,12 +81,20 @@ const { pool } = defineProps<{
 
 const { t } = useI18n()
 
-const { areNetworksReady, hasNetworkFetchError, networksWithoutPifs, networksWithPifs, getNetworkById } =
-  useXoNetworkCollection()
-
-const internalNetworks = computed(() => networksWithoutPifs.value.filter(network => network.$pool === pool.id))
+const {
+  areNetworksReady,
+  hasNetworkFetchError,
+  networksWithPifs,
+  networksWithoutPifs,
+  privateNetworks: allPrivateNetworks,
+  getNetworkById,
+} = useXoNetworkCollection()
 
 const networks = computed(() => networksWithPifs.value.filter(network => network.$pool === pool.id))
+
+const privateNetworks = computed(() => allPrivateNetworks.value.filter(network => network.$pool === pool.id))
+
+const internalNetworks = computed(() => networksWithoutPifs.value.filter(network => network.$pool === pool.id))
 
 const selectedNetwork = useRouteQuery<FrontXoNetwork | undefined>('id', {
   toData: id => getNetworkById(id as FrontXoNetwork['id']),
@@ -83,7 +102,7 @@ const selectedNetwork = useRouteQuery<FrontXoNetwork | undefined>('id', {
 })
 </script>
 
-<style scoped lang="postcss">
+<style lang="postcss" scoped>
 .networks {
   .container {
     height: fit-content;
