@@ -1,6 +1,7 @@
 import FormCheckbox from '@/shared/components/form/FormCheckbox.vue'
 import { findInputMessages } from '@/test/find-input-messages.ts'
 import { dangerMessage } from '@/test/form-messages.ts'
+import { getCheckbox } from '@/test/get-checkbox.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import UiCheckbox from '@core/components/ui/checkbox/UiCheckbox.vue'
 import { mount } from '@vue/test-utils'
@@ -8,16 +9,26 @@ import type { ComponentProps } from 'vue-component-type-helpers'
 
 type CheckboxProps = ComponentProps<typeof FormCheckbox>
 
-function mountCheckbox(props: Partial<CheckboxProps> = {}, attrs: Record<string, unknown> = {}) {
+function mountCheckbox(
+  props: Partial<CheckboxProps> = {},
+  { attrs, slots }: { attrs?: Record<string, unknown>; slots?: Record<string, string> } = {}
+) {
   return mount(FormCheckbox, {
     props: { label: 'Read only', modelValue: false, ...props },
     attrs,
+    slots,
     global: createGlobalTestConfig(),
   })
 }
 
 it('renders its label', () => {
   expect(mountCheckbox().text()).toContain('Read only')
+})
+
+it('renders its default slot in place of its label', () => {
+  const wrapper = mountCheckbox({}, { slots: { default: 'Read only, for now' } })
+
+  expect(() => getCheckbox(wrapper, 'Read only, for now')).not.toThrow()
 })
 
 it('reflects its value', () => {
@@ -38,7 +49,7 @@ it('emits the new value when toggled', async () => {
 })
 
 it('ignores the validation bindings it receives with its field bindings', () => {
-  const wrapper = mountCheckbox({}, { error: dangerMessage('Required'), onBlur: () => {} })
+  const wrapper = mountCheckbox({}, { attrs: { error: dangerMessage('Required'), onBlur: () => {} } })
 
   expect(findInputMessages(wrapper)).toEqual([])
   expect(wrapper.attributes()).not.toHaveProperty('error')
@@ -63,6 +74,13 @@ it('shows every warning when several are given', () => {
 
 it('shows its info when given', () => {
   expect(findInputMessages(mountCheckbox({ info: 'For PV VMs only' }))).toEqual(['For PV VMs only'])
+})
+
+it.each<[string, Partial<CheckboxProps>]>([
+  ['alone', {}],
+  ['in place of its info', { info: 'For PV VMs only' }],
+])('shows its info slot %s', (_case, props) => {
+  expect(findInputMessages(mountCheckbox(props, { slots: { info: 'For HVM VMs too' } }))).toEqual(['For HVM VMs too'])
 })
 
 it('shows its info before its warnings', () => {

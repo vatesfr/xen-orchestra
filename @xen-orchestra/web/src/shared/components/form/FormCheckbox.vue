@@ -6,8 +6,10 @@
       :disabled
       @update:model-value="value => emit('update:modelValue', value === true)"
     >
-      <template #default>{{ label }}</template>
-      <template v-if="info" #info>{{ info }}</template>
+      <slot>{{ label }}</slot>
+      <template v-if="slots.info || info" #info>
+        <slot name="info">{{ info }}</slot>
+      </template>
     </UiCheckbox>
     <UiInfo v-for="message of warningMessages" :key="message" accent="warning" wrap>
       {{ message }}
@@ -25,7 +27,7 @@ import { computed } from 'vue'
 defineOptions({ inheritAttrs: false })
 
 const { warning } = defineProps<{
-  label: string
+  label?: string
   modelValue: boolean | undefined
   info?: string
   warning?: InputWrapperMessage
@@ -34,6 +36,11 @@ const { warning } = defineProps<{
 
 const emit = defineEmits<{
   'update:modelValue': [value: boolean]
+}>()
+
+const slots = defineSlots<{
+  default?(): any
+  info?(): any
 }>()
 
 const warningMessages = computed(() =>
