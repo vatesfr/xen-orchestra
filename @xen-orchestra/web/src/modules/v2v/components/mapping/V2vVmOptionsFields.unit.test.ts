@@ -9,7 +9,6 @@ import { V2V_DEBIAN_TEMPLATE, V2V_TARGET_OPTIONS, createV2vOfferedTarget } from 
 import { getV2vTargetSelect } from '@/test/v2v-target-cells.ts'
 import VtsTagsInput from '@core/components/tags-input/VtsTagsInput.vue'
 import UiCheckbox from '@core/components/ui/checkbox/UiCheckbox.vue'
-import { V2V_PARTIAL_IMPORT_TAG } from '@vates/types'
 import { mount } from '@vue/test-utils'
 
 const TEMPLATE = createV2vOfferedTarget(V2V_DEBIAN_TEMPLATE.id, 'overridden')
@@ -85,9 +84,7 @@ describe('tags', () => {
     expect(wrapper.emitted('changeTags')).toEqual([[['web']]])
   })
 
-  it('tells how the tags and the backups go together until the cutover', () => {
-    expect(findAccentedInfos(mountFields())).toEqual([
-      { label: t('v2v:tags-backup-info', { tag: V2V_PARTIAL_IMPORT_TAG }), accent: 'info' },
-    ])
+  it('tells the tags pick up the VM in smart backup jobs', () => {
+    expect(findAccentedInfos(mountFields())).toEqual([{ label: t('v2v:tags-backup-info'), accent: 'info' }])
   })
 })

@@ -18,11 +18,7 @@
         <V2vValueOrigin :origin="template.origin" @reset="emit('changeTemplate', undefined)" />
       </div>
     </VtsInputWrapper>
-    <VtsInputWrapper
-      :label="t('tags')"
-      :message="{ content: t('v2v:tags-backup-info', { tag: V2V_PARTIAL_IMPORT_TAG }), accent: 'info' }"
-      wrap-message
-    >
+    <VtsInputWrapper :label="t('tags')" :message="{ content: t('v2v:tags-backup-info'), accent: 'info' }" wrap-message>
       <VtsTagsInput :model-value="tags" accent="brand" @update:model-value="value => emit('changeTags', value)" />
     </VtsInputWrapper>
   </div>
@@ -36,7 +32,6 @@ import type { FrontXoVmTemplate } from '@/modules/vm/remote-resources/use-xo-vm-
 import VtsInputWrapper from '@core/components/input-wrapper/VtsInputWrapper.vue'
 import VtsTagsInput from '@core/components/tags-input/VtsTagsInput.vue'
 import UiCheckbox from '@core/components/ui/checkbox/UiCheckbox.vue'
-import { V2V_PARTIAL_IMPORT_TAG } from '@vates/types'
 import { useI18n } from 'vue-i18n'
 
 defineProps<{

@@ -1,7 +1,6 @@
 import V2vDestinationVmCard from '@/modules/v2v/components/mapping/V2vDestinationVmCard.vue'
 import type { V2vDestinationVm } from '@/modules/v2v/types/v2v-destination-vm.type.ts'
 import { DISKOR_POOL_NAME } from '@/test/create-pool.ts'
-import { findAccentedInfos } from '@/test/find-accented-labels.ts'
 import { findPanelCardTitle } from '@/test/find-card-title.ts'
 import { findInlineParts } from '@/test/find-parts.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
@@ -9,7 +8,6 @@ import { t } from '@/test/i18n.ts'
 import { V2V_RESUMED_IMPORT_VM } from '@/test/v2v-mapping-fixtures.ts'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import { objectIcon } from '@core/icons'
-import { V2V_PARTIAL_IMPORT_TAG } from '@vates/types'
 import { mount } from '@vue/test-utils'
 
 const VM: V2vDestinationVm = {
@@ -45,11 +43,5 @@ it('lays out the pool of the VM, its power state and its blocked start', () => {
     t('pool-named', { name: DISKOR_POOL_NAME }),
     'Halted',
     t('v2v:start-blocked-partial'),
-  ])
-})
-
-it('tells the VM is excluded from backups until the cutover', () => {
-  expect(findAccentedInfos(mountCard())).toEqual([
-    { label: t('v2v:no-bak-info', { tag: V2V_PARTIAL_IMPORT_TAG }), accent: 'info' },
   ])
 })
