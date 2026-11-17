@@ -134,7 +134,7 @@ describe('Mirror Backup - Full Remote', () => {
     assert.ok(scheduleKey, 'Mirror schedule key is required')
     tracker.trackResource('schedule', scheduleKey, { name, backupJobId: jobId })
 
-    const result = await dispatchClient.backup.runMirrorJobAndGetLog(jobId, scheduleKey)
+    const result = await dispatchClient.backup.runJobAndGetLog(jobId, scheduleKey)
     assertBackupSuccess(result, `Mirror backup: ${name}`)
     return result
   }
@@ -255,6 +255,60 @@ describe('Mirror Backup - Full Remote', () => {
         destCountAfter > destCountBefore,
         `Destination should have more backups after second mirror (before: ${destCountBefore}, after: ${destCountAfter})`
       )
+    })
+  })
+
+  // =========================================================================
+  // Long-term retention
+  // =========================================================================
+
+  describe('Long-term retention', () => {
+    after(async () => {
+      await purgeBackupData(sourceRepository, destRepository)
+    })
+
+    it('should create and run a mirror job with long-term retention', async () => {
+      const longTermRetention = {
+        daily: { retention: 3, settings: {} },
+        weekly: { retention: 2, settings: {} },
+      }
+
+      log.debug('Running full backup to populate source repository')
+      await runFullBackup()
+
+      // a named temporary schedule ID keeps the general settings ('') apart from the schedule ones
+      const name = generateBackupJobName()
+      const jobId = await dispatchClient.backup.createMirrorBackupJob({
+        name,
+        mode: 'full',
+        sourceRemote: sourceRepository.id,
+        remotes: { [destRepository.id]: {} },
+        schedules: { tmpSchedule: getDefaultSchedule() },
+        settings: {
+          // the timezone is required by the long-term retention
+          '': { timezone: 'Europe/Paris', longTermRetention },
+          tmpSchedule: { exportRetention: 1 },
+        },
+      })
+      tracker.trackResource('backupJob', jobId, { name, mode: 'full', type: 'mirrorBackup' })
+
+      const job = await dispatchClient.backup.details(jobId)
+      assert.strictEqual(job.type, 'mirrorBackup')
+      assert.deepStrictEqual(job.settings[''].longTermRetention, longTermRetention, 'LTR should be kept on the job')
+      assert.strictEqual(job.settings[''].timezone, 'Europe/Paris', 'Timezone should be kept on the job')
+
+      const scheduleKey = getScheduleKey(job)
+      assert.ok(scheduleKey, 'Mirror schedule key is required')
+      assert.notStrictEqual(scheduleKey, 'tmpSchedule', 'Temporary schedule ID should be replaced')
+      assert.strictEqual(job.settings[scheduleKey].exportRetention, 1, 'Schedule settings should be kept')
+      tracker.trackResource('schedule', scheduleKey, { name, backupJobId: jobId })
+
+      // the LTR is applied when the destination is cleaned, a misconfiguration fails the run
+      const result = await dispatchClient.backup.runJobAndGetLog(jobId, scheduleKey)
+      assertBackupSuccess(result, `Mirror backup with LTR: ${name}`)
+
+      const destCount = await countVmBackups(destRepository.id, vm.uuid)
+      assert.ok(destCount > 0, 'Destination repository should contain backups after mirror')
     })
   })
 

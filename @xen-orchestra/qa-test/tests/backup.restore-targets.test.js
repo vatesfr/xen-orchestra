@@ -24,7 +24,8 @@ const OC_LIVE_MOUNT = 'xo:live-mount'
  *
  * A restore used to take `mapVdisSrs` as `{ [vdiUuid]: srUuid | null }`, and still accepts it. It
  * now also takes a target per disk: restore it onto an SR, live mount it (its data stays on the
- * backup repository, served as a read-only iSCSI LUN attached to a host), or leave it out.
+ * backup repository, served as an iSCSI LUN attached to a host, read-only unless a cache SR makes it
+ * a read/write live restore), or leave it out.
  */
 describe('Incremental backup restore targets', () => {
   let dispatchClient
@@ -263,6 +264,171 @@ describe('Incremental backup restore targets', () => {
     })
   })
 
+  /**
+   * A live restore is a live mount with a cache SR: each block is read from the backup repository
+   * once, materialized into a cache VDI plugged onto the appliance serving the mount (XO, or the
+   * proxy of the backup repository), and the mount is read/write. The writes are lost on unmount.
+   */
+  describe('a live restore, its disks live mounted with a cache', () => {
+    // set when the infrastructure cannot hold a cache, the tests are skipped
+    let skipReason
+    let applianceVmUuid
+    let cacheSrId
+    let restoredVmId
+    let liveRestoredVdis
+    let mountIds
+
+    before(async () => {
+      applianceVmUuid = await resolveApplianceVmUuid(dispatchClient, backupRepository)
+      if (applianceVmUuid == null) {
+        skipReason = 'the appliance serving the mounts does not run in a Xen VM, it cannot hold a cache VDI'
+        return
+      }
+      cacheSrId = await pickCacheSrId(dispatchClient, applianceVmUuid)
+      if (cacheSrId === undefined) {
+        skipReason = `no writable SR is plugged on the host running the appliance VM ${applianceVmUuid}`
+        return
+      }
+
+      // the VM's own disks are live restored so it boots off them, the extra disks are left out
+      const mapVdisSrs = Object.fromEntries(
+        backup.disks.map(({ name, uuid }) => [
+          uuid,
+          name === LIVE_MOUNTED_DISK || name === IGNORED_DISK
+            ? { type: 'ignore' }
+            : { type: 'live-mount', host: hostId, cacheSr: cacheSrId },
+        ])
+      )
+      restoredVmId = await restore(dispatchClient, tracker, backup, targetSrId, mapVdisSrs)
+
+      // nothing is copied, XO may not see the disks of the VM yet when the restore returns
+      liveRestoredVdis = await waitUntil(
+        async () => {
+          const restoredVdis = await dispatchClient.vdi.getVdisForVm(restoredVmId)
+          return restoredVdis.length !== 0 && restoredVdis
+        },
+        1000,
+        30_000
+      )
+      mountIds = []
+      for (const vdi of liveRestoredVdis) {
+        mountIds.push(await liveMountId(dispatchClient, vdi.SR))
+      }
+      log.debug('Live restored', { applianceVmUuid, cacheSrId, mountIds, restoredVmId })
+    })
+
+    it('attaches every live restored disk read/write', async t => {
+      if (skipReason !== undefined) {
+        return t.skip(skipReason)
+      }
+      assert.strictEqual(liveRestoredVdis.length, backup.disks.length - 2, 'Only the VM disks should be restored')
+
+      const vbds = await dispatchClient.restApiClient.get('/rest/v0/vbds?fields=VDI,VM,read_only')
+      for (const vdi of liveRestoredVdis) {
+        const vbd = vbds.find(candidate => candidate.VDI === vdi.uuid && candidate.VM === restoredVmId)
+        assert(vbd !== undefined, `The live restored disk ${vdi.uuid} should be attached to the restored VM`)
+        assert.strictEqual(vbd.read_only, false, 'The cache makes the mount writable, so its VBD must be too')
+      }
+    })
+
+    it('materializes each disk into a cache VDI plugged onto the appliance', async t => {
+      if (skipReason !== undefined) {
+        return t.skip(skipReason)
+      }
+      const vbds = await dispatchClient.restApiClient.get('/rest/v0/vbds?fields=VDI,VM')
+      for (const mountId of mountIds) {
+        const cacheVdi = await findCacheVdi(dispatchClient, mountId, cacheSrId)
+        assert(cacheVdi !== undefined, `The mount ${mountId} should have a cache VDI on the SR ${cacheSrId}`)
+        assert(
+          vbds.some(vbd => vbd.VDI === cacheVdi.uuid && vbd.VM === applianceVmUuid),
+          'The cache VDI should be plugged onto the appliance serving the mount'
+        )
+      }
+    })
+
+    // `Running` only means the domain was created: waiting for the guest to report an IP is what
+    // shows its OS booted, writing to its disks along the way (logs, journal replay…)
+    it('boots the restored VM off its live restored disks', async t => {
+      if (skipReason !== undefined) {
+        return t.skip(skipReason)
+      }
+      await dispatchClient.vm.start(restoredVmId)
+      await dispatchClient.vm.waitForPowerState(restoredVmId, 'Running', 180_000)
+      const ip = await dispatchClient.vm.waitForGuestIp(restoredVmId, 300_000)
+      log.debug('Live restored VM booted', { ip, restoredVmId })
+
+      await dispatchClient.vm.stop(restoredVmId, { force: true })
+      await dispatchClient.vm.waitForPowerState(restoredVmId, 'Halted', 180_000)
+    })
+
+    it('destroys the cache along with the mount', async t => {
+      if (skipReason !== undefined) {
+        return t.skip(skipReason)
+      }
+      for (const [i, mountId] of mountIds.entries()) {
+        const cacheVdi = await findCacheVdi(dispatchClient, mountId, cacheSrId)
+        const srId = liveRestoredVdis[i].SR
+
+        await dispatchClient.backup.unmountLiveDisk(backup.id, mountId)
+
+        await waitUntil(async () => !(await liveMountSrIds(dispatchClient)).includes(srId), 1000, 60_000)
+        await waitUntil(async () => !(await restObjectExists(dispatchClient, `vdis/${cacheVdi.uuid}`)), 1000, 60_000)
+      }
+    })
+
+    it('refuses a cache SR outside the pool running the appliance', async t => {
+      if (skipReason !== undefined) {
+        return t.skip(skipReason)
+      }
+      const { $pool } = await dispatchClient.restApiClient.get(`/rest/v0/vms/${applianceVmUuid}?fields=$pool`)
+      const srs = await dispatchClient.restApiClient.get('/rest/v0/srs?fields=id,$pool,content_type,size')
+      const foreignSr = srs.find(sr => sr.$pool !== $pool && isSrWritable(sr))
+      if (foreignSr === undefined) {
+        return t.skip('XO is connected to a single pool')
+      }
+      const before = await liveMountSrIds(dispatchClient)
+
+      await assert.rejects(
+        () =>
+          dispatchClient.backup.importVmBackup(backup.id, targetSrId, {
+            mapVdisSrs: {
+              [diskUuid(backup, LIVE_MOUNTED_DISK)]: { type: 'live-mount', host: hostId, cacheSr: foreignSr.id },
+            },
+          }),
+        /not in the pool running this appliance/
+      )
+
+      assert.deepStrictEqual(await liveMountSrIds(dispatchClient), before, 'The failed mount should be released')
+    })
+  })
+
+  // nothing is copied when every disk is live mounted, so the restore is over within seconds: the
+  // restored VM must already be known to XO when its id is returned, as the restore form starts it
+  // right away
+  it('returns a VM which can be started right away when every disk is live mounted', async () => {
+    const mapVdisSrs = Object.fromEntries(backup.disks.map(({ uuid }) => [uuid, { type: 'live-mount', host: hostId }]))
+    const restoredVmId = await restore(dispatchClient, tracker, backup, targetSrId, mapVdisSrs)
+
+    // no wait on purpose: this is the call which failed with "no such VM"
+    await dispatchClient.vm.start(restoredVmId)
+    await dispatchClient.vm.waitForPowerState(restoredVmId, 'Running', 180_000)
+
+    await dispatchClient.vm.stop(restoredVmId, { force: true })
+    await dispatchClient.vm.waitForPowerState(restoredVmId, 'Halted', 180_000)
+
+    // deleting the disks releases their mounts
+    const srIds = (await dispatchClient.vdi.getVdisForVm(restoredVmId)).map(vdi => vdi.SR)
+    await dispatchClient.vm.delete(restoredVmId, { deleteDisks: true })
+    await waitUntil(
+      async () => {
+        const mounted = await liveMountSrIds(dispatchClient)
+        return srIds.every(srId => !mounted.includes(srId))
+      },
+      1000,
+      60_000
+    )
+  })
+
   it('still accepts the legacy shape, an SR uuid or null per disk', async () => {
     const restoredVmId = await restore(dispatchClient, tracker, backup, targetSrId, {
       [diskUuid(backup, LIVE_MOUNTED_DISK)]: targetSrId,
@@ -324,6 +490,55 @@ async function resolveHostId(dispatchClient, vmUuid) {
   const host = hosts.find(candidate => candidate.id === $container) ?? hosts[0]
   assert(host !== undefined, 'A host is required to live mount a disk')
   return host.id
+}
+
+/**
+ * VM of the appliance which serves the mounts of this backup repository, and onto which a cache VDI
+ * is plugged: the proxy of the repository, or XO itself. `null` when it does not run in a Xen VM.
+ */
+async function resolveApplianceVmUuid(dispatchClient, backupRepository) {
+  if (backupRepository.proxy != null) {
+    const proxy = await dispatchClient.xoClient.call('proxy.get', { id: backupRepository.proxy })
+    return proxy.vmUuid ?? null
+  }
+  return dispatchClient.xoClient.call('xo.getCurrentVmUuid')
+}
+
+const isSrWritable = sr => sr.content_type !== 'iso' && sr.size > 0
+
+/**
+ * SR with the most free space among those which can hold a cache VDI, the same as the restore form
+ * offers: a shared SR of the appliance's pool, or a local SR of its host. `undefined` when there is
+ * none, or when the pool of the appliance is not connected to XO.
+ */
+async function pickCacheSrId(dispatchClient, applianceVmUuid) {
+  let vm
+  try {
+    vm = await dispatchClient.restApiClient.get(`/rest/v0/vms/${applianceVmUuid}?fields=$pool,$container`)
+  } catch (error) {
+    if (/HTTP 404/.test(error.message)) {
+      return undefined
+    }
+    throw error
+  }
+  const srs = await dispatchClient.restApiClient.get(
+    '/rest/v0/srs?fields=id,shared,$pool,$container,content_type,size,physical_usage,other_config'
+  )
+  const candidates = srs.filter(
+    sr =>
+      isSrWritable(sr) &&
+      // the SR of another live mount is a raw LUN, which cannot hold a VDI
+      sr.other_config?.[OC_LIVE_MOUNT] === undefined &&
+      (sr.shared ? sr.$pool === vm.$pool : sr.$container === vm.$container)
+  )
+  const freeSpace = sr => sr.size - sr.physical_usage
+  return candidates.sort((a, b) => freeSpace(b) - freeSpace(a))[0]?.id
+}
+
+/** cache VDI of a mount: tagged with the mount id like the VDI of its SR, but on the cache SR */
+async function findCacheVdi(dispatchClient, mountId, cacheSrId) {
+  const vdis = await dispatchClient.restApiClient.get('/rest/v0/vdis?fields=uuid,$SR,other_config')
+  return vdis.find(vdi => vdi.$SR === cacheSrId && vdi.other_config?.[OC_LIVE_MOUNT] === mountId)
 }
 
 /** ids of the SRs currently serving a live mount */

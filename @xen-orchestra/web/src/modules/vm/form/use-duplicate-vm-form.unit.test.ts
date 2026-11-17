@@ -12,10 +12,11 @@ import { mountComposable } from '@/test/mount-composable.ts'
 import { VM_POWER_STATE } from '@vates/types'
 import { computed, nextTick, ref } from 'vue'
 
-const { useXoSrCollectionMock, useXoPbdCollectionMock, getSrLocation } = vi.hoisted(() => ({
+const { useXoSrCollectionMock, useXoPbdCollectionMock, getSrLocation, getSrSelectLabel } = vi.hoisted(() => ({
   useXoSrCollectionMock: vi.fn(),
   useXoPbdCollectionMock: vi.fn(),
   getSrLocation: vi.fn(),
+  getSrSelectLabel: vi.fn(),
 }))
 
 vi.mock(import('@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'), () => ({
@@ -27,17 +28,19 @@ vi.mock(import('@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'), () =>
 }))
 
 vi.mock(import('@/modules/storage-repository/composables/xo-sr-utils.composable.ts'), () => ({
-  useXoSrUtils: (() => ({ getSrLocation })) as unknown as typeof useXoSrUtils,
+  useXoSrUtils: (() => ({ getSrLocation, getSrSelectLabel })) as unknown as typeof useXoSrUtils,
 }))
 
 beforeEach(() => {
   useXoSrCollectionMock.mockReset()
   useXoPbdCollectionMock.mockReset()
   getSrLocation.mockReset()
+  getSrSelectLabel.mockReset()
 
   useXoSrCollectionMock.mockReturnValue({ srs: computed(() => []) })
   useXoPbdCollectionMock.mockReturnValue({ pbdsBySr: computed(() => new Map()) })
   getSrLocation.mockReturnValue('Local')
+  getSrSelectLabel.mockImplementation((sr: FrontXoSr) => sr.name_label)
 })
 
 function mountDuplicateVmForm(vm: FrontXoVm = createVm()) {

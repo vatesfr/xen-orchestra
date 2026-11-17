@@ -17,8 +17,11 @@
       />
     </template>
     <template #header-end>
-      <UiLink :href="xo5Route" size="medium">{{ t('xo-5') }}</UiLink>
-      <ThirdParties />
+      <AppHeaderMenu v-if="uiStore.isSmall" />
+      <template v-else>
+        <UiLink :href="xo5Route" size="medium">{{ t('xo-5') }}</UiLink>
+        <ThirdParties />
+      </template>
       <QuickTaskButton />
       <AccountMenu />
     </template>
@@ -44,6 +47,7 @@
 
 <script lang="ts" setup>
 import AccountMenu from '@/modules/account/components/menu/AccountMenu.vue'
+import AppHeaderMenu from '@/modules/navigation/components/AppHeaderMenu.vue'
 import AppNavigationSidebar from '@/modules/navigation/components/AppNavigationSidebar.vue'
 import QuickTaskButton from '@/modules/task/components/QuickTaskButton.vue'
 import ThirdParties from '@/modules/third-parties/components/ThirdParties.vue'

@@ -12,6 +12,7 @@ import {
   assertExportSizeReasonable,
   assertCompressionEfficiency,
   formatBytes,
+  findVhdExportableVdi,
 } from '../utils/exportUtils.js'
 import { setup, teardown } from './setup.js'
 import { getRequiredEnv } from '../utils/index.js'
@@ -101,9 +102,7 @@ describe('VHD/XVA Export Replication Tests', () => {
     it('should export VDI as VHD file', async () => {
       // Get VM's VDIs
       const vdis = await dispatchClient.vdi.getVdisForVm(vm.uuid)
-      assert(vdis.length > 0, 'VM should have at least one VDI')
-
-      const vdi = vdis[0]
+      const vdi = findVhdExportableVdi(vdis)
       log.debug('Exporting VDI', { name: vdi.name_label, uuid: vdi.uuid, size: formatBytes(vdi.virtual_size) })
 
       // Generate unique filename
@@ -127,9 +126,7 @@ describe('VHD/XVA Export Replication Tests', () => {
     it('should export VDI with NBD protocol', async () => {
       // Get VM's VDIs
       const vdis = await dispatchClient.vdi.getVdisForVm(vm.uuid)
-      assert(vdis.length > 0, 'VM should have at least one VDI')
-
-      const vdi = vdis[0]
+      const vdi = findVhdExportableVdi(vdis)
       const fileName = generateExportFileName(`${vm.name_label}-nbd`, 'vhd')
       const outputPath = path.join(exportPath, fileName)
 
@@ -150,9 +147,7 @@ describe('VHD/XVA Export Replication Tests', () => {
     it('should validate VHD file structure', async () => {
       // Get VM's VDIs
       const vdis = await dispatchClient.vdi.getVdisForVm(vm.uuid)
-      assert(vdis.length > 0, 'VM should have at least one VDI')
-
-      const vdi = vdis[0]
+      const vdi = findVhdExportableVdi(vdis)
       const fileName = generateExportFileName(`${vm.name_label}-validate`, 'vhd')
       const outputPath = path.join(exportPath, fileName)
 
@@ -170,9 +165,7 @@ describe('VHD/XVA Export Replication Tests', () => {
     it('should have reasonable export size', async () => {
       // Get VM's VDIs
       const vdis = await dispatchClient.vdi.getVdisForVm(vm.uuid)
-      assert(vdis.length > 0, 'VM should have at least one VDI')
-
-      const vdi = vdis[0]
+      const vdi = findVhdExportableVdi(vdis)
       const fileName = generateExportFileName(`${vm.name_label}-size`, 'vhd')
       const outputPath = path.join(exportPath, fileName)
 
@@ -296,9 +289,7 @@ describe('VHD/XVA Export Replication Tests', () => {
     it('should restore VHD to new VDI', async () => {
       // First, export a VDI
       const vdis = await dispatchClient.vdi.getVdisForVm(vm.uuid)
-      assert(vdis.length > 0, 'VM should have at least one VDI')
-
-      const vdi = vdis[0]
+      const vdi = findVhdExportableVdi(vdis)
       const fileName = generateExportFileName(`${vm.name_label}-restore`, 'vhd')
       const outputPath = path.join(exportPath, fileName)
 
@@ -368,9 +359,7 @@ describe('VHD/XVA Export Replication Tests', () => {
     it('should compare source VDI size vs exported VHD', async () => {
       // Get VM's VDIs
       const vdis = await dispatchClient.vdi.getVdisForVm(vm.uuid)
-      assert(vdis.length > 0, 'VM should have at least one VDI')
-
-      const vdi = vdis[0]
+      const vdi = findVhdExportableVdi(vdis)
       const fileName = generateExportFileName(`${vm.name_label}-compare`, 'vhd')
       const outputPath = path.join(exportPath, fileName)
 

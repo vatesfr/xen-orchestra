@@ -181,7 +181,7 @@ export default class Jobs {
         promises.push(this._app.deleteSchedule(schedule.id))
       }
     })
-    return Promise.all(promises)
+    await Promise.all(promises)
   }
 
   @decorateWith(defer)

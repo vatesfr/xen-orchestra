@@ -35,7 +35,7 @@ import { useI18n } from 'vue-i18n'
 const {
   accent,
   size,
-  value: _value,
+  value: rawValue,
   maxValue = 100,
 } = defineProps<{
   accent: CircleProgressBarAccent
@@ -77,7 +77,7 @@ const strokeWidth = computed(() => strokeWidthMap[size])
 const radius = computed(() => (circleSize.value - strokeWidth.value) / 2)
 const circumference = computed(() => 2 * Math.PI * radius.value)
 
-const value = useMax(0, () => _value)
+const value = useMax(0, () => rawValue)
 const valuePercent = useClamp(() => (value.value / maxValue) * 100 || 0, 0, 100)
 
 const isComplete = computed(() => valuePercent.value >= 100)

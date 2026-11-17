@@ -3,7 +3,9 @@
     <UiCard class="container">
       <VmsTable :vms :busy="!areVmsReady" :error="hasVmFetchError" />
     </UiCard>
-    <VmSidePanel :vm="selectedVm" @close="selectedVm = undefined" />
+    <template #panel>
+      <VmSidePanel :vm="selectedVm" @close="selectedVm = undefined" />
+    </template>
   </VtsContentSidePanel>
 </template>
 

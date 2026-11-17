@@ -6,7 +6,7 @@
         <UiLink size="medium" :href>{{ t('configure-in-xo-5') }}</UiLink>
       </template>
     </UiTitle>
-    <VtsQueryBuilder :model-value="filter" :schema @search="filter = $event" />
+    <VtsQueryBuilder v-bind="searchBindings" :schema />
     <div class="container">
       <VtsTable :state :pagination-bindings sticky="right">
         <thead>
@@ -71,7 +71,7 @@ const selectedSrId = useRouteQuery('id')
 
 const { isDefaultSr } = useXoSrCollection()
 
-const { items: filteredSrs, filter, schema } = useSrQueryBuilder('sr', () => rawSrs)
+const { items: filteredSrs, searchBindings, schema } = useSrQueryBuilder('sr', () => rawSrs)
 
 const state = useTableState({
   busy: () => busy,

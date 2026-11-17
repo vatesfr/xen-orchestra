@@ -10,22 +10,9 @@
           variant="secondary"
           size="small"
         />
-        <MenuList placement="bottom-start">
-          <template #trigger="{ open, isOpen }">
-            <UiButtonIcon
-              v-tooltip="{
-                placement: 'top',
-                content: t('quick-actions'),
-              }"
-              accent="brand"
-              icon="action:more-actions"
-              size="small"
-              :selected="isOpen"
-              @click="open($event)"
-            />
-          </template>
+        <VtsActionsMenu placement="bottom-start">
           <SiteTreeActions />
-        </MenuList>
+        </VtsActionsMenu>
       </template>
     </UiTreeItemLabel>
   </VtsTreeItem>
@@ -35,9 +22,8 @@
 import SiteTreeActions from '@/modules/site/components/actions/SiteTreeActions.vue'
 import type { SiteBranch } from '@/modules/treeview/types/tree.type.ts'
 import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
-import MenuList from '@core/components/menu/MenuList.vue'
+import VtsActionsMenu from '@core/components/menu/VtsActionsMenu.vue'
 import VtsTreeItem from '@core/components/tree/VtsTreeItem.vue'
-import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 import UiTreeItemLabel from '@core/components/ui/tree-item-label/UiTreeItemLabel.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'

@@ -2,6 +2,7 @@
 
 const createConsoleTransport = require('./transports/console')
 const createTransport = require('./_createTransport')
+const { closeTransport } = createTransport
 const { LEVELS, resolve } = require('./levels')
 
 // ===================================================================
@@ -18,8 +19,11 @@ global[symbol] = createTransport({
   transport: createConsoleTransport(),
 })
 
+// the previous transport is closed (e.g. its connections), once replaced
 const configure = config => {
+  const previous = global[symbol]
   global[symbol] = createTransport(config)
+  closeTransport(previous)
 }
 exports.configure = configure
 

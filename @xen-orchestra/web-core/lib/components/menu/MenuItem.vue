@@ -2,16 +2,17 @@
 <template>
   <li class="menu-item">
     <MenuTrigger
-      v-if="!$slots.submenu"
+      v-if="!slots.submenu || mobileMenu"
       :accent
       :active="isBusy"
       :busy="isBusy"
       :disabled="isDisabled"
       :icon
       class="typo-body-bold-small"
-      @click="handleClick"
+      @click="handleClick()"
     >
       <slot />
+      <VtsIcon v-if="slots.submenu" name="fa:angle-right" size="medium" />
     </MenuTrigger>
     <MenuList v-else :disabled="isDisabled">
       <template #trigger="{ open, isOpen }">
@@ -39,7 +40,7 @@ import MenuList from '@core/components/menu/MenuList.vue'
 import MenuTrigger from '@core/components/menu/MenuTrigger.vue'
 import { useDisabled } from '@core/composables/disabled.composable.ts'
 import type { IconName } from '@core/icons'
-import { IK_CLOSE_MENU, IK_MENU_HORIZONTAL } from '@core/utils/injection-keys.util.ts'
+import { IK_CLOSE_MENU, IK_MENU_HORIZONTAL, IK_MOBILE_MENU } from '@core/utils/injection-keys.util.ts'
 import { computed, inject, ref } from 'vue'
 
 export type MenuItemAccent = 'neutral' | 'brand' | 'danger' | 'warning'
@@ -50,6 +51,11 @@ const { onClick, disabled, busy } = defineProps<{
   disabled?: boolean
   busy?: boolean
   accent: MenuItemAccent
+}>()
+
+const slots = defineSlots<{
+  default(): any
+  submenu?(): any
 }>()
 
 const isParentHorizontal = inject(
@@ -63,9 +69,15 @@ const submenuIcon = computed((): IconName => (isParentHorizontal.value ? 'fa:ang
 const isHandlingClick = ref(false)
 const isBusy = computed(() => isHandlingClick.value || busy === true)
 const closeMenu = inject(IK_CLOSE_MENU, undefined)
+const mobileMenu = inject(IK_MOBILE_MENU, undefined)
 
 const handleClick = async () => {
   if (isDisabled.value || isBusy.value) {
+    return
+  }
+
+  if (slots.submenu !== undefined) {
+    mobileMenu?.openSubmenu({ title: slots.default, content: slots.submenu })
     return
   }
 

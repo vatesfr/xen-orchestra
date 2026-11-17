@@ -49,7 +49,7 @@ export async function probeScsiId({ xapi, hostRef, deviceConfig, address }) {
   } catch (error) {
     if (error.code === PROBE_NO_TARGET_ERROR) {
       const wrapped = new Error(
-        `the host cannot reach the iSCSI target at ${address}:${deviceConfig.port}, check iscsi.advertisedAddress and the firewalls between them`
+        `the host cannot reach the iSCSI target at ${address}:${deviceConfig.port}, check iscsi.advertisedAddress and the firewalls between them, and set iscsi.restrictToHost = false if the host reaches this appliance through a NAT`
       )
       wrapped.cause = error
       throw wrapped

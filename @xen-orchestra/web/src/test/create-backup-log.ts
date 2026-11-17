@@ -1,5 +1,6 @@
-import type { BackupLogTask } from '@/modules/backup/composables/xo-backup-log-utils.composable.ts'
-import type { FrontXoBackupLog } from '@/modules/backup/remote-resources/use-xo-backup-log-collection.ts'
+import type { BackupLogTask } from '@/modules/backup-log/composables/use-xo-backup-log-utils.composable.ts'
+import type { FrontXoBackupLog } from '@/modules/backup-log/remote-resources/use-xo-backup-log-collection.ts'
+import type { XoSchedule } from '@vates/types'
 
 /**
  * Builds a fully-populated `FrontXoBackupLog` for use in tests. Pass `overrides` to
@@ -9,10 +10,12 @@ export function createBackupLog(overrides: Partial<FrontXoBackupLog> = {}): Fron
   return {
     id: 'backup-log-123' as FrontXoBackupLog['id'],
     jobId: 'backup-job-456' as NonNullable<FrontXoBackupLog['jobId']>,
+    scheduleId: 'schedule-789' as XoSchedule['id'],
     status: 'success',
     start: 1_700_000_000_000,
     end: 1_700_000_014_000,
     tasks: [],
+    result: undefined,
     ...overrides,
   }
 }

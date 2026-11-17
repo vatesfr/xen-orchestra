@@ -28,7 +28,7 @@
         </VtsTabularKeyValueRow>
         <VtsTabularKeyValueRow :label="t('encryption')">
           <template #value>
-            <VtsStatus :status="general.formData.encrypted" />
+            <VtsStatus :status="general.formData.encrypted === true" />
           </template>
         </VtsTabularKeyValueRow>
       </VtsTabularKeyValueList>
@@ -98,7 +98,7 @@ const { t } = useI18n()
 
 const { useGetProxyById } = useXoProxyCollection()
 
-const proxy = useGetProxyById(() => general.formData.proxy)
+const proxy = useGetProxyById(() => general.formData.proxy ?? undefined)
 
 const type = computed(() => general.formData.type)
 

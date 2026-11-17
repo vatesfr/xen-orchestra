@@ -294,9 +294,9 @@ export const importIncrementalVm = defer(async function importIncrementalVm(
       await asyncMap(Object.values(vdiVbds), vbd =>
         xapi.VBD_create({
           ...vbd,
-          // a live mount serves its disk read only: attach it as such, instead of letting the
-          // guest discover it through I/O errors on its first write
-          mode: isLiveMounted ? 'RO' : vbd.mode,
+          // an uncached live mount serves its disk read only: attach it as such, instead of letting
+          // the guest discover it through I/O errors on its first write
+          mode: isLiveMounted && vdi.liveMountedReadOnly ? 'RO' : vbd.mode,
           VDI: newVdi.$ref,
           VM: vmRef,
         })
@@ -307,9 +307,16 @@ export const importIncrementalVm = defer(async function importIncrementalVm(
   })
 
   // 3.5. Destroy old VDIs that are no longer attached to the VM.
-  // Uses ignoreErrors because some storage backends refuse to destroy a VDI that still has snapshot children;
-  // those VDIs will become truly orphaned once the old snapshot VMs are cleaned up by _deleteOldEntries.
-  await asyncMap([...oldVdiRefs], ref => ignoreErrors.call(xapi.call('VDI.destroy', ref)))
+  // Some storage backends refuse to destroy a VDI that still has snapshot children.
+  // Log it and leave it for later cleanup.
+  await asyncMap([...oldVdiRefs], ref =>
+    xapi.call('VDI.destroy', ref).catch(error =>
+      Task.warning('failed to destroy orphaned VDI', {
+        vdi: xapi.getObject(ref, undefined)?.uuid ?? ref,
+        error,
+      })
+    )
+  )
 
   // 4. For updates, destroy existing VIFs before recreating them.
   if (isUpdate) {

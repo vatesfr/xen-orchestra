@@ -52,7 +52,7 @@ const schema = useQueryBuilderSchema<Product>({
 })
 
 // 4. Use the filter composable
-const { items: filteredProducts, filter } = useQueryBuilderFilter('products', () => products.value)
+const { items: filteredProducts, searchBindings } = useQueryBuilderFilter('products', () => products.value)
 ```
 
 **Alternative: Using Schema Utilities**
@@ -87,7 +87,7 @@ const schema = useQueryBuilderSchema<Product>({
   price: useNumberSchema('Price'),
 })
 
-const { items: filteredProducts, filter } = useQueryBuilderFilter('products', () => products.value)
+const { items: filteredProducts, searchBindings } = useQueryBuilderFilter('products', () => products.value)
 ```
 
 ## Glossary
@@ -208,9 +208,9 @@ const schema = useQueryBuilderSchema<User>({...})
 
 // The composable automatically:
 // - Persists the filter in the URL (e.g., ?qb.users=name:John)
-// - Filters your items in real-time
+// - Applies the filter 500 ms after its last change
 // - Handles invalid filter expressions gracefully
-const { items: filteredItems, filter } = useQueryBuilderFilter(
+const { items: filteredItems, searchBindings } = useQueryBuilderFilter(
   'users',           // Unique ID (used in URL, unless ignoreRoute is true)
   () => items.value, // Your data source
   {
@@ -222,8 +222,8 @@ const { items: filteredItems, filter } = useQueryBuilderFilter(
 // Use filteredItems in your template or computed properties
 console.log(filteredItems.value)  // Reactive array of filtered items
 
-// Access the filter string
-console.log(filter.value)  // Current filter expression
+// Bindings to pass to VtsQueryBuilder (value, loader, immediate apply on Enter)
+console.log(searchBindings.value)
 ```
 
 ### useQueryBuilder: Advanced Query Building
@@ -378,13 +378,14 @@ The component handles the complete filtering workflow:
 **Updating the filter:**
 
 - `v-model` updates the filter on every keystroke
-- The `search` event is emitted with the filter on Enter, on a click on the search button, when the input is cleared and when the visual query builder is confirmed
+- The `search` event is emitted on Enter and when the visual query builder is confirmed
+- The `busy` prop shows a loader in the input
 
-To apply the filter only on search, bind it one-way and update it from the `search` event:
+With `useQueryBuilderFilter`, the filter is applied 500 ms after the last keystroke. Pass `searchBindings` to the component to bind the filter, show the loader and apply the filter right away on `search`:
 
 ```vue
 <template>
-  <VtsQueryBuilder :model-value="filter" :schema @search="filter = $event" />
+  <VtsQueryBuilder v-bind="searchBindings" :schema />
 </template>
 ```
 
@@ -630,12 +631,12 @@ const posts = ref<Post[]>([...])
 const userSchema = useQueryBuilderSchema<User>({...})
 const postSchema = useQueryBuilderSchema<Post>({...})
 
-const { items: filteredUsers, filter: userFilter } = useQueryBuilderFilter(
+const { items: filteredUsers, searchBindings: userSearchBindings } = useQueryBuilderFilter(
   'users',
   () => users.value
 )
 
-const { items: filteredPosts, filter: postFilter } = useQueryBuilderFilter(
+const { items: filteredPosts, searchBindings: postSearchBindings } = useQueryBuilderFilter(
   'posts',
   () => posts.value
 )

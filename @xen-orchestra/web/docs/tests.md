@@ -2,7 +2,7 @@
 
 This guide documents the unit-testing conventions used in `@xen-orchestra/web`, as established across the `pool`, `host` and `vm` modules. Follow it when adding tests for a new module, composable, utility or component.
 
-**Start with [Assert behaviour, not implementation](./tests/assert-behaviour.md)** — it is the rule the rest of this guide serves.
+**Start with [Assert behavior, not implementation](./tests/assert-behavior.md)** — it is the rule the rest of this guide serves.
 
 ## What to test first
 
@@ -16,12 +16,12 @@ Testing a page is a different job from testing a component, and the component is
 
 ## Getting started
 
-- [Assert behaviour, not implementation](./tests/assert-behaviour.md) — the one rule that outranks the others
+- [Assert behavior, not implementation](./tests/assert-behavior.md) — the one rule that outranks the others
 - [Test runner](./tests/running-tests.md) — Vitest setup and the commands to run a suite
 
 ## Writing a test
 
-- [File layout and structure](./tests/file-structure.md) — where a test lives, how it is named, how it is organised
+- [File layout and structure](./tests/file-structure.md) — where a test lives, how it is named, how it is organized
 - [Setup: prefer helpers over `beforeEach`](./tests/setup-helpers.md) — local helpers, and the shared `use<X>EnhancedData` ones
 - [Test data factories](./tests/factories.md) — the `src/test/create*` factories and how to use them
 

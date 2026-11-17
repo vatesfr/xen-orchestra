@@ -1,14 +1,16 @@
 <template>
-  <MenuItem v-if="showChangeStateButton && !uiStore.isSmall" accent="brand" icon="action:change-state">
-    {{ t('action:change-state') }}
-    <template #submenu>
-      <HostPowerStateActions :host />
-    </template>
-  </MenuItem>
-  <div v-if="uiStore.isSmall">
+  <template v-if="layout === 'sections'">
+    <HostPowerStateActions :host :exclude>
+      <template #title>
+        <VtsMenuTitle>{{ t('action:change-state') }}</VtsMenuTitle>
+      </template>
+    </HostPowerStateActions>
+    <VtsMenuTitle>{{ t('actions') }}</VtsMenuTitle>
+  </template>
+  <VtsChangeStateMenuItem v-else-if="layout === 'change-state-submenu'">
     <HostPowerStateActions :host />
-    <VtsDivider type="stretch" />
-  </div>
+  </VtsChangeStateMenuItem>
+  <slot name="leading-actions" />
   <HostRestartToolstackButton :host />
   <template v-if="displayDisableButton">
     <HostDisableButton :host />
@@ -17,7 +19,7 @@
   <HostEnableButton v-else :host />
   <HostDetachButton :host />
   <HostForgetButton :host />
-  <VtsDivider type="stretch" />
+  <VtsDivider v-if="layout !== 'sections'" type="stretch" />
   <HostDownloadButton :host-id="host.id" />
 </template>
 
@@ -31,21 +33,29 @@ import HostForgetButton from '@/modules/host/components/actions/forget/HostForge
 import HostPowerStateActions from '@/modules/host/components/actions/HostPowerStateActions.vue'
 import HostRestartToolstackButton from '@/modules/host/components/actions/restart-toolstack/HostRestartToolstackButton.vue'
 import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
+import type { HostQuickAction } from '@/modules/host/utils/xo-host.util.ts'
 import VtsDivider from '@core/components/divider/VtsDivider.vue'
-import MenuItem from '@core/components/menu/MenuItem.vue'
-import { useUiStore } from '@core/stores/ui.store.ts'
+import VtsChangeStateMenuItem from '@core/components/menu/VtsChangeStateMenuItem.vue'
+import VtsMenuTitle from '@core/components/menu/VtsMenuTitle.vue'
 import { HOST_POWER_STATE } from '@vates/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { host } = defineProps<{
+const {
+  host,
+  layout = 'actions-only',
+  exclude = {},
+} = defineProps<{
   host: FrontXoHost
-  showChangeStateButton?: boolean
+  layout?: 'actions-only' | 'change-state-submenu' | 'sections'
+  exclude?: Partial<Record<HostQuickAction, boolean>>
+}>()
+
+defineSlots<{
+  'leading-actions'?(): any
 }>()
 
 const { t } = useI18n()
-
-const uiStore = useUiStore()
 
 const isHostHalted = computed(() => host.power_state === HOST_POWER_STATE.HALTED)
 

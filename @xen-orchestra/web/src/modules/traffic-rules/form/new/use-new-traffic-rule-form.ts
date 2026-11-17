@@ -6,6 +6,7 @@ import { getNetworkIcon } from '@/modules/network/utils/xo-network.util.ts'
 import { useXoPifCollection } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
 import { type FrontXoPool, useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import { useDirectionLabels } from '@/modules/traffic-rules/composables/direction-labels.composable.ts'
+import { useNewTrafficRulePriority } from '@/modules/traffic-rules/composables/use-new-traffic-rule-priority.composable.ts'
 import { vmToTargetOption } from '@/modules/traffic-rules/form/target-option.util.ts'
 import {
   type BaseTrafficRuleFormData,
@@ -14,6 +15,7 @@ import {
 import type { TrafficRulePayload } from '@/modules/traffic-rules/jobs/xo-traffic-rule-create.job.ts'
 import { isNetworkRuleSupported } from '@/modules/traffic-rules/utils/xo-traffic-rule.util.ts'
 import { type FrontXoVif, useXoVifCollection } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
+import { useXoVmOperationLabel } from '@/modules/vm/composables/xo-vm-operation-label.composable.ts'
 import { type FrontXoVm, useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import type { IconName } from '@core/icons'
 import { type FormValidationConfig, required, requiredIf, withMessage } from '@core/packages/form-validation'
@@ -40,6 +42,7 @@ export function useNewTrafficRuleForm(
   rawVifId: MaybeRefOrGetter<FrontXoVif['id'] | undefined>
 ) {
   const { t } = useI18n()
+  const { getVmIconTooltip } = useXoVmOperationLabel()
 
   const poolId = toComputed(rawPoolId)
   const vifId = toComputed(rawVifId)
@@ -91,6 +94,12 @@ export function useNewTrafficRuleForm(
     return parentNetwork ? parentNetwork.PIFs.length > 0 : false
   })
 
+  const { targetNetwork, newRulePriority, hasFreePriority } = useNewTrafficRulePriority(
+    () => formData.targetType,
+    () => formData.targetId,
+    canCreateNetworkRule
+  )
+
   const poolNetworks = computed(() =>
     networks.value.filter(network => network.$pool === poolId.value && network.PIFs.length > 0)
   )
@@ -121,7 +130,7 @@ export function useNewTrafficRuleForm(
     poolVms.value.map(vm => {
       const hasVifs = vm.VIFs.length > 0
 
-      return vmToTargetOption(vm, hasVifs)
+      return vmToTargetOption(vm, hasVifs, getVmIconTooltip(vm))
     })
   )
 
@@ -135,6 +144,10 @@ export function useNewTrafficRuleForm(
       onSubmit: () => ({
         targetId: {
           required: withMessage(required, () => (isVifTarget.value ? t('vif-required') : t('network-required'))),
+          freePriority: withMessage(
+            () => hasFreePriority.value,
+            () => t('traffic-rules:no-free-priority', { network: targetNetwork.value?.name_label ?? '' })
+          ),
         },
         vmId: {
           requiredIf: withMessage(requiredIf(isVifTarget), () => t('vm-required')),
@@ -174,7 +187,7 @@ export function useNewTrafficRuleForm(
       label: 'label',
       value: 'value',
       disabled: source => source.disabled,
-      properties: source => ({ icon: source.icon }),
+      properties: source => ({ icon: source.icon, iconTooltip: source.iconTooltip }),
     },
   })
 
@@ -241,11 +254,17 @@ export function useNewTrafficRuleForm(
       return undefined
     }
 
-    return {
+    const payload: TrafficRulePayload = {
       ...buildBaseRulePayload(),
       targetType: formData.targetType,
       targetId: formData.targetId,
     }
+
+    if (newRulePriority.value !== undefined) {
+      payload.priority = newRulePriority.value
+    }
+
+    return payload
   }
 
   return {

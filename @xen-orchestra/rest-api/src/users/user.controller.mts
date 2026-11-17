@@ -432,6 +432,8 @@ export class UserController extends XoController<XoUser> {
   }
 
   /**
+   * An admin has no privileges listed as RBAC does not apply to them
+   *
    * Returns all ACL privileges that match the following privilege:
    * - resource: acl-privilege, action: read (if not self)
    *
@@ -455,15 +457,15 @@ export class UserController extends XoController<XoUser> {
     @Query() filter?: string,
     @Query() limit?: number
   ): SendObjects<Partial<Unbrand<AnyPrivilege>>> {
-    const user = await this.getObject(id as XoUser['id'])
+    const userId = id as XoUser['id']
     const currentUser = this.restApi.getCurrentUser()
 
-    const userPrivileges = (await this.restApi.xoApp.getAclV2UserPrivileges(user.id)) as AnyPrivilege[]
+    const userPrivileges = (await this.restApi.xoApp.getAclV2UserPrivileges(userId)) as AnyPrivilege[]
 
     return this.sendObjects(limitAndFilterArray(userPrivileges, { filter }), req, {
       path: 'acl-privileges',
       limit,
-      privilege: currentUser.id === user.id ? undefined : { action: 'read', resource: 'acl-privilege' },
+      privilege: currentUser.id === userId ? undefined : { action: 'read', resource: 'acl-privilege' },
     })
   }
 }

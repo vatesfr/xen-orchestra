@@ -10,7 +10,9 @@
         </template>
       </TrafficRulesTable>
     </UiCard>
-    <TrafficRulesSidePanel :rule="selectedRule" @close="selectedRule = undefined" />
+    <template #panel>
+      <TrafficRulesSidePanel :rule="selectedRule" :rules="trafficRules" @close="selectedRule = undefined" />
+    </template>
   </VtsContentSidePanel>
 </template>
 
@@ -19,6 +21,7 @@ import { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool
 import TrafficRulesSidePanel from '@/modules/traffic-rules/components/list/panel/TrafficRulesSidePanel.vue'
 import TrafficRulesTable from '@/modules/traffic-rules/components/TrafficRulesTable.vue'
 import { useTrafficRules } from '@/modules/traffic-rules/composables/traffic-rules.composable.ts'
+import type { RankedTrafficRule } from '@/modules/traffic-rules/types.ts'
 import { type FrontXoVif } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
 import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import VtsContentSidePanel from '@core/components/layout/VtsContentSidePanel.vue'
@@ -26,7 +29,6 @@ import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
-import type { TrafficRule } from '@vates/types'
 import { useI18n } from 'vue-i18n'
 
 const { vif } = defineProps<{ vif: FrontXoVif }>()
@@ -40,7 +42,7 @@ const { areVmsReady } = useXoVmCollection()
 
 const { trafficRules } = useTrafficRules(() => [vif], [])
 
-const selectedRule = useRouteQuery<TrafficRule | undefined>('id', {
+const selectedRule = useRouteQuery<RankedTrafficRule | undefined>('id', {
   toData: id => trafficRules.value.find(rule => rule.id === id),
   toQuery: rule => rule?.id ?? '',
 })

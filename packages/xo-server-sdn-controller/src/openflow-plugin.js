@@ -23,11 +23,11 @@ export class OpenFlowPlugin {
     )
   }
 
-  async addRule({ vif, allow, protocol, ipRange, direction, port }) {
+  async addRule({ vif, allow, protocol, ipRange, direction, port, priority }) {
     if (port) {
       port = String(port)
     }
-    log.debug('addRule', { vif, allow, protocol, ipRange, direction, port })
+    log.debug('addRule', { vif, allow, protocol, ipRange, direction, port, priority })
     return this.#callPluginOnAllNetwork(vif.$network, 'add-rule', {
       mac: vif.MAC,
       allow: allow ? 'true' : 'false',
@@ -35,6 +35,8 @@ export class OpenFlowPlugin {
       ipRange,
       direction,
       port,
+      // 0 is a valid priority
+      priority: priority === undefined ? undefined : String(priority),
     })
   }
 
@@ -53,17 +55,18 @@ export class OpenFlowPlugin {
     })
   }
 
-  async addNetworkRule({ network, allow, protocol, ipRange, direction, port, cookie }) {
+  async addNetworkRule({ network, allow, protocol, ipRange, direction, port, priority, cookie }) {
     if (port) {
       port = String(port)
     }
-    log.debug('addNetworkRule', { network, allow, protocol, ipRange, direction, port, cookie })
+    log.debug('addNetworkRule', { network, allow, protocol, ipRange, direction, port, priority, cookie })
     return this.#callPluginOnAllNetwork(network, 'add-rule', {
       allow: allow ? 'true' : 'false',
       protocol,
       ipRange,
       direction,
       port,
+      priority: priority === undefined ? undefined : String(priority),
       cookie,
     })
   }

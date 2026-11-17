@@ -1,7 +1,7 @@
 <template>
-  <UiPanelCard class="backup-repository-s3-card">
+  <UiPanelCard>
     <UiPanelCardTitle size="medium" :label="t('s3')" />
-    <div class="content">
+    <VtsCardRowList>
       <VtsCardRowKeyValue>
         <template #key>{{ t('endpoint-url') }}</template>
         <template #value>{{ s3.host }}</template>
@@ -60,13 +60,17 @@
           <VtsCopyButton :value="splitPath.subPath" />
         </template>
       </VtsCardRowKeyValue>
-    </div>
+    </VtsCardRowList>
   </UiPanelCard>
 </template>
 
 <script lang="ts" setup>
-import { MASKED_SECRET, splitBackupRepositoryPath } from '@/modules/backup-repository/utils/xo-backup-repository.util.ts'
+import {
+  MASKED_SECRET,
+  splitBackupRepositoryPath,
+} from '@/modules/backup-repository/utils/xo-backup-repository.util.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
+import VtsCardRowList from '@core/components/card/VtsCardRowList.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
@@ -89,13 +93,3 @@ const truncatedAccessKeyId = computed(() =>
   s3.username.length > ACCESS_KEY_ID_LIMIT ? `${s3.username.slice(0, ACCESS_KEY_ID_LIMIT)}…` : s3.username
 )
 </script>
-
-<style scoped lang="postcss">
-.backup-repository-s3-card {
-  .content {
-    display: flex;
-    flex-direction: column;
-    gap: 0.4rem;
-  }
-}
-</style>

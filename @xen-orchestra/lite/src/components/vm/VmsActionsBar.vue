@@ -1,44 +1,39 @@
 <template>
+  <VtsMobileMenu v-if="uiStore.isSmall" :title="t('actions')">
+    <template #trigger="{ isOpen, open }">
+      <UiButtonIcon
+        accent="brand"
+        size="small"
+        :disabled="selectedRefs.length === 0"
+        :selected="isOpen"
+        icon="fa:ellipsis"
+        @click="open()"
+      />
+    </template>
+    <VmsBulkActionItems :selected-refs />
+  </VtsMobileMenu>
   <MenuList
+    v-else
     :disabled="selectedRefs.length === 0"
-    :horizontal="!uiStore.isSmall"
-    :no-border="!uiStore.isSmall"
     class="vms-actions-bar"
+    horizontal
+    no-border
     placement="bottom-end"
   >
-    <template v-if="uiStore.isSmall" #trigger="{ isOpen, open }">
-      <UiButtonIcon accent="brand" size="small" :selected="isOpen" icon="fa:ellipsis" @click="open" />
-    </template>
-    <MenuItem accent="brand" icon="fa:power-off">
-      {{ t('action:change-state') }}
-      <template #submenu>
-        <VmActionPowerStateItems :vm-refs="selectedRefs" />
-      </template>
-    </MenuItem>
-    <VmActionMigrateItem :selected-refs="selectedRefs" />
-    <VmActionCopyItem :selected-refs="selectedRefs" />
-    <VmActionSnapshotItem :vm-refs="selectedRefs" />
-    <VmActionExportItems :vm-refs="selectedRefs" />
-    <VmActionDeleteItem :vm-refs="selectedRefs" />
+    <VmsBulkActionItems :selected-refs />
   </MenuList>
 </template>
 
 <script lang="ts" setup>
-import VmActionCopyItem from '@/components/vm/VmActionItems/VmActionCopyItem.vue'
-import VmActionDeleteItem from '@/components/vm/VmActionItems/VmActionDeleteItem.vue'
-import VmActionExportItems from '@/components/vm/VmActionItems/VmActionExportItems.vue'
-import VmActionMigrateItem from '@/components/vm/VmActionItems/VmActionMigrateItem.vue'
-import VmActionPowerStateItems from '@/components/vm/VmActionItems/VmActionPowerStateItems.vue'
-import VmActionSnapshotItem from '@/components/vm/VmActionItems/VmActionSnapshotItem.vue'
+import VmsBulkActionItems from '@/components/vm/VmsBulkActionItems.vue'
 import type { XenApiVm } from '@/libs/xen-api/xen-api.types.ts'
-import MenuItem from '@core/components/menu/MenuItem.vue'
 import MenuList from '@core/components/menu/MenuList.vue'
+import VtsMobileMenu from '@core/components/menu/VtsMobileMenu.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import { useUiStore } from '@core/stores/ui.store.ts'
 import { useI18n } from 'vue-i18n'
 
 defineProps<{
-  disabled?: boolean
   selectedRefs: XenApiVm['$ref'][]
 }>()
 

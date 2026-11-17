@@ -20,23 +20,24 @@
     <div class="tx-checksumming">
       <VifTxChecksummingCheckbox v-bind="txChecksummingCheckboxBindings" />
     </div>
-    <NewVifButtonsSection :cancel-to />
+    <VifFormButtonsSection :cancel-to :submit-label="t('action:create-vif')" />
   </VtsForm>
 </template>
 
 <script setup lang="ts">
 import type { XenApiVm } from '@/libs/xen-api/xen-api.types.ts'
-import VifAllowedIpsTextarea from '@/modules/vif/components/form/new/inputs/VifAllowedIpsTextarea.vue'
-import VifMacInput from '@/modules/vif/components/form/new/inputs/VifMacInput.vue'
-import VifNetworkSelect from '@/modules/vif/components/form/new/inputs/VifNetworkSelect.vue'
-import VifRateLimitInput from '@/modules/vif/components/form/new/inputs/VifRateLimitInput.vue'
-import VifTxChecksummingCheckbox from '@/modules/vif/components/form/new/inputs/VifTxChecksummingCheckbox.vue'
-import NewVifButtonsSection from '@/modules/vif/components/form/new/NewVifButtonsSection.vue'
+import VifAllowedIpsTextarea from '@/modules/vif/components/form/inputs/VifAllowedIpsTextarea.vue'
+import VifMacInput from '@/modules/vif/components/form/inputs/VifMacInput.vue'
+import VifNetworkSelect from '@/modules/vif/components/form/inputs/VifNetworkSelect.vue'
+import VifRateLimitInput from '@/modules/vif/components/form/inputs/VifRateLimitInput.vue'
+import VifTxChecksummingCheckbox from '@/modules/vif/components/form/inputs/VifTxChecksummingCheckbox.vue'
+import VifFormButtonsSection from '@/modules/vif/components/form/VifFormButtonsSection.vue'
 import { useNewVifForm } from '@/modules/vif/form/new/use-new-vif-form.ts'
 import type { NewVifPayload } from '@/modules/vif/jobs/vif-create.job.ts'
 import VtsForm from '@core/components/form/VtsForm.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsOption from '@core/components/select/VtsOption.vue'
+import { useI18n } from 'vue-i18n'
 import type { RouteLocationRaw } from 'vue-router'
 
 const { vmRef } = defineProps<{
@@ -47,6 +48,8 @@ const { vmRef } = defineProps<{
 const emit = defineEmits<{
   create: [data: NewVifPayload]
 }>()
+
+const { t } = useI18n()
 
 const {
   networkSelectBindings,

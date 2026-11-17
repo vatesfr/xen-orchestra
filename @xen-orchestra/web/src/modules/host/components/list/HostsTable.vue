@@ -1,9 +1,9 @@
 <template>
   <div class="hosts-table">
     <UiTitle>{{ t('hosts') }}</UiTitle>
-    <VtsQueryBuilder :model-value="filter" :schema @search="filter = $event" />
+    <VtsQueryBuilder v-bind="searchBindings" :schema />
     <div class="container">
-      <VtsTable :state :pagination-bindings sticky="right">
+      <VtsTable :pagination-bindings :state sticky="right">
         <thead>
           <HeadCells />
         </thead>
@@ -17,8 +17,9 @@
   </div>
 </template>
 
-<script setup lang="ts">
+<script lang="ts" setup>
 import { useHostQueryBuilder } from '@/modules/host/composables/use-host-query-builder.composable.ts'
+import { useXoHostOperationLabel } from '@/modules/host/composables/xo-host-operation-label.composable.ts'
 import { type FrontXoHost, useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import { getHostIcon } from '@/modules/host/utils/xo-host.util.ts'
 import { getPbdsConnectionStatus } from '@/modules/pbd/utils/xo-pbd.util.ts'
@@ -61,11 +62,13 @@ const { pifsByHost, arePifsReady, hasPifFetchError } = useXoPifCollection()
 
 const { isMasterHost } = useXoHostCollection()
 
+const { getHostIconTooltip } = useXoHostOperationLabel()
+
 const isReady = logicAnd(() => !busy, arePifsReady)
 
 const hasError = logicOr(() => error, hasPifFetchError)
 
-const { items: filteredHosts, filter, schema } = useHostQueryBuilder('hosts', () => rawHosts)
+const { items: filteredHosts, searchBindings, schema } = useHostQueryBuilder('hosts', () => rawHosts)
 
 const state = useTableState({
   busy: logicNot(isReady),
@@ -109,8 +112,9 @@ const { HeadCells, BodyCells } = useHostColumns({
       host: r =>
         r({
           label: host.name_label,
-          to: `/host/${host.id}/dashboard`,
+          to: { name: '/host/[id]/dashboard', params: { id: host.id } },
           icon: hostIcon.value,
+          iconTooltip: getHostIconTooltip(host),
           rightIcon: rightIcon.value,
         }),
       description: r => r(host.name_description),
@@ -123,17 +127,15 @@ const { HeadCells, BodyCells } = useHostColumns({
 })
 </script>
 
-<style scoped lang="postcss">
-.container,
+<style lang="postcss" scoped>
 .hosts-table {
   display: flex;
   flex-direction: column;
-}
-
-.hosts-table {
   gap: 2.4rem;
 
   .container {
+    display: flex;
+    flex-direction: column;
     gap: 0.8rem;
   }
 }

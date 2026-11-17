@@ -5,10 +5,10 @@
       {{ t('no-pbd-attached') }}
     </VtsStateHero>
     <template v-else>
-      <div class="content">
+      <VtsCardRowList class="content">
         <VtsStatus :status="srConnectionStatus" />
-      </div>
-      <div v-if="areSomePbdsDisconnected" class="content">
+      </VtsCardRowList>
+      <VtsCardRowList v-if="areSomePbdsDisconnected" class="content">
         <template v-for="(pbd, index) in disconnectedPbds" :key="pbd.id">
           <VtsDivider v-if="index > 0" class="divider" type="stretch" />
           <UiPanelCardTitle size="small" :label="t('disconnected-pbd-number', { n: index + 1 })" class="subtitle" />
@@ -29,7 +29,7 @@
             accent="info"
           />
         </template>
-      </div>
+      </VtsCardRowList>
     </template>
   </UiPanelCard>
 </template>
@@ -41,6 +41,7 @@ import { useXoSrUtils } from '@/modules/storage-repository/composables/xo-sr-uti
 import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import type { SrScope } from '@core/types/storage-repository.type.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
+import VtsCardRowList from '@core/components/card/VtsCardRowList.vue'
 import VtsDivider from '@core/components/divider/VtsDivider.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
@@ -68,10 +69,6 @@ const { areSomePbdsDisconnected, disconnectedPbds } = useXoPbdUtils(pbdsInScope)
 <style scoped lang="postcss">
 .storage-repository-pbds-card {
   .content {
-    display: flex;
-    flex-direction: column;
-    gap: 0.4rem;
-
     .subtitle {
       margin-block-end: 0.4rem;
     }

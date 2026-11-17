@@ -6,6 +6,7 @@ import { setTimeout as delay } from 'node:timers/promises'
 import { Agent } from 'undici'
 
 import { parseDatastorePath, resolveDiskLocation } from './_paths.mjs'
+import { buildInventory, parseDevices, reachingHostIds } from './_inventory.mjs'
 import { getCertificateThumbprint } from './_thumbprint.mjs'
 import { formatVecturaArgs, VECTURA_BIN } from './_vectura.mjs'
 import { COWD_HEADER_LENGTH, grainDirectoryToDataMap, parseCowdHeader } from './parsers/cowd.mjs'
@@ -161,23 +162,6 @@ const READ_ONLY_DISK_MODE = 'independent_nonpersistent'
 
 // the SOAP library does not always convert the booleans of the answer
 const isTrue = value => String(value) === 'true'
-
-/**
- * The hosts which mount a datastore and can reach it.
- *
- * @param {unknown} mounts - value of the `host` property of the datastore
- * @returns {Set<string>} managed object references of the hosts
- */
-function reachingHostIds(mounts) {
-  const hostIds = new Set()
-  for (const { key, mountInfo } of asArray(mounts?.DatastoreHostMount)) {
-    if (isTrue(mountInfo?.mounted) && isTrue(mountInfo?.accessible)) {
-      // the references nested in the value are not normalized, only the value itself is
-      hostIds.add(key?.$value ?? key)
-    }
-  }
-  return hostIds
-}
 
 const isScsiController = device => SCSI_CONTROLLER_TYPES.has(device?.attributes?.['xsi:type'])
 
@@ -600,6 +584,81 @@ export default class Esxi extends EventEmitter {
     }
   }
 
+  /**
+   * The instance UUID of the vCenter, a standalone ESXi has none.
+   *
+   * @returns {string | undefined}
+   */
+  get instanceUuid() {
+    /** @type {{ serviceContent?: { about?: import('./_inventory.mjs').RawAboutInfo } }} */
+    const vimClient = this.#vimClient
+    return vimClient.serviceContent?.about?.instanceUuid
+  }
+
+  /**
+   * Everything needed to choose what to migrate and where: the whole inventory, read once.
+   *
+   * Only the properties used are requested: `config` as a whole is large, and read for every VM.
+   * The objects reference each other through their managed object references.
+   *
+   * The device list of every VM is built: the wizard shows the disks and the network cards of all of
+   * them, and a start reads the inventory again so that it is planned against the current state.
+   *
+   * @returns {Promise<import('@vates/types').VmwareInventory>}
+   */
+  async getInventory() {
+    await this.#connected
+    /** @type {[Record<string, import('./_inventory.mjs').RawDatacenter>, Record<string, import('./_inventory.mjs').RawCluster>, Record<string, import('./_inventory.mjs').RawHost>, Record<string, import('./_inventory.mjs').RawDatastore>, Record<string, import('./_inventory.mjs').RawNetwork>, Record<string, import('./_inventory.mjs').RawPortgroup>, Record<string, import('./_inventory.mjs').RawVm>, Record<string, import('./_inventory.mjs').RawChild>, Record<string, import('./_inventory.mjs').RawChild>]} */
+    const [datacenters, clusters, hosts, datastores, networks, portgroups, vms, folders, computeResources] =
+      await Promise.all([
+        this.search('Datacenter', ['name']),
+        this.search('ClusterComputeResource', ['name', 'parent']),
+        this.search('HostSystem', ['name', 'parent']),
+        this.search('Datastore', ['summary', 'host']),
+        // the distributed port groups are networks too, with more properties of their own below
+        this.search('Network', ['name']),
+        this.search('DistributedVirtualPortgroup', ['name', 'key', 'config.defaultPortConfig']),
+        this.search('VirtualMachine', [
+          'config.name',
+          'config.annotation',
+          'config.instanceUuid',
+          'config.firmware',
+          'config.bootOptions.efiSecureBootEnabled',
+          'config.template',
+          'config.hardware.numCPU',
+          'config.hardware.memoryMB',
+          'config.hardware.device',
+          'runtime.powerState',
+          'runtime.host',
+          'datastore',
+          'snapshot',
+        ]),
+        // only to walk up from a host or a cluster to its datacenter. A compute resource is the parent
+        // of a standalone host, and the clusters are compute resources too
+        this.search('Folder', ['parent']),
+        this.search('ComputeResource', ['parent']),
+      ])
+
+    // AboutInfo: `instanceUuid` is only set by a vCenter, `apiType` is `VirtualCenter` or `HostAgent`
+    /** @type {{ serviceContent?: { about?: import('./_inventory.mjs').RawAboutInfo } }} */
+    const vimClient = this.#vimClient
+    /** @type {import('./_inventory.mjs').RawAboutInfo} */
+    const about = vimClient.serviceContent?.about ?? {}
+
+    return buildInventory({
+      about,
+      datacenters,
+      clusters,
+      hosts,
+      datastores,
+      networks,
+      portgroups,
+      vms,
+      folders,
+      computeResources,
+    })
+  }
+
   async getAllVmMetadata() {
     const datas = await this.search('VirtualMachine', ['config', 'storage', 'runtime', 'layoutEx'])
 
@@ -688,45 +747,48 @@ export default class Esxi extends EventEmitter {
     })
 
     const diskReferences = []
-    const networks = []
     let cdrom = false
 
     for (const key of Object.keys(vmx)) {
-      const channelMatches = key.match(/^(scsi|ide|ethernet|sata)[0-9]+$/)
+      const channelMatches = key.match(/^(scsi|ide|sata)[0-9]+$/)
       if (channelMatches === null) {
         continue
       }
       const channelType = channelMatches[1]
-      if (channelType === 'ide' || channelType === 'scsi' || channelType === 'sata' /* cdrom */) {
-        const diskChannel = vmx[key]
-        // the indexes of the channel are its own: iterating the compacted values used to label a
-        // channel holding only `scsi0:1` as `scsi0:0`, and `node` is the disk identity used to
-        // build the chains and to order the VBDs
-        for (const [diskIndex, disk] of Object.entries(diskChannel)) {
-          if (typeof disk !== 'object' || disk === null) {
-            continue
-          }
-          if (disk.deviceType?.match(/cdrom/i)) {
-            cdrom = true
-            continue
-          }
-          // can be something other than a disk, like a controller card
-          if (channelType === 'scsi' && disk.deviceType !== 'scsi-hardDisk') {
-            continue
-          }
-
-          diskReferences.push({ fileName: disk.fileName, node: `${key}:${diskIndex}` })
+      const diskChannel = vmx[key]
+      // the indexes of the channel are its own: iterating the compacted values used to label a
+      // channel holding only `scsi0:1` as `scsi0:0`, and `node` is the disk identity used to
+      // build the chains and to order the VBDs
+      for (const [diskIndex, disk] of Object.entries(diskChannel)) {
+        if (typeof disk !== 'object' || disk === null) {
+          continue
         }
-      } else if (channelType === 'ethernet') {
-        const ethernet = vmx[key]
+        if (disk.deviceType?.match(/cdrom/i)) {
+          cdrom = true
+          continue
+        }
+        // can be something other than a disk, like a controller card
+        if (channelType === 'scsi' && disk.deviceType !== 'scsi-hardDisk') {
+          continue
+        }
 
-        networks.push({
-          label: ethernet.networkName,
-          macAddress: ethernet.generatedAddress,
-          isGenerated: ethernet.addressType === 'generated',
-        })
+        diskReferences.push({ fileName: disk.fileName, node: `${key}:${diskIndex}` })
       }
     }
+
+    // the cards are read from the devices and not from the vmx: they carry the key the inventory names
+    // them by, the vmx only has the address of a generated MAC, and lists the cards which are not present.
+    // In the whole `config` they are the `device` elements themselves, not wrapped in a `VirtualDevice`
+    // as the value of `config.hardware.device` is
+    const networks = parseDevices({ VirtualDevice: config.hardware?.device }).nics.map(
+      ({ key, label, macAddress, addressType, network }) => ({
+        key,
+        label,
+        macAddress,
+        isGenerated: addressType === 'generated',
+        network,
+      })
+    )
     const inspect = fileName => this.#inspectVmdk(dataStores, dataStore, dirname(vmxPath), fileName, { signal })
 
     // one descriptor to download per disk: read serially, a long chain added a full round trip per
@@ -781,6 +843,8 @@ export default class Esxi extends EventEmitter {
       guestId: config.guestId,
       guestFullName: config.guestFullName,
       firmware: config.firmware === 'efi' ? 'uefi' : config.firmware, // bios or uefi
+      // unlike the moref, it survives the VM being unregistered and registered again
+      instanceUuid: config.instanceUuid,
       powerState: runtime.powerState,
       snapshots,
       cdrom,
@@ -909,6 +973,85 @@ export default class Esxi extends EventEmitter {
   }
 
   /**
+   * Shuts the guest down cleanly through the VMware tools, and waits for the VM to be off.
+   *
+   * A power off is the guest losing power: Windows leaves its NTFS volumes dirty, which then cannot be
+   * written offline, e.g. by the repair ISO. The VM is powered off anyway when its tools do not run, when
+   * the guest refuses to shut down, or does not within `timeout`.
+   *
+   * @param {string} vmId - id of the VM, powered on
+   * @param {object} [options]
+   * @param {number} [options.timeout] - in ms, how long the guest is given to shut down
+   * @param {number} [options.pollInterval] - in ms, between two reads of the power state
+   * @param {AbortSignal} [options.signal]
+   * @returns {Promise<'shutdown' | 'powerOff'>} how the VM was stopped
+   */
+  async shutdown(vmId, { signal, timeout = 10 * 60e3, pollInterval = 5e3 } = {}) {
+    const toolsStatus = await this.#retrieveProperty('VirtualMachine', vmId, 'guest.toolsRunningStatus', {
+      signal,
+    }).catch(error => {
+      signal?.throwIfAborted()
+      warn('failed to read the state of the VMware tools', { error, vmId })
+    })
+
+    if (toolsStatus === 'guestToolsRunning') {
+      try {
+        // not a task: the call returns once the guest has been asked to shut down
+        await this.#vimClient.call('ShutdownGuest', { _this: vmId })
+        await this.#waitPoweredOff(vmId, { signal, timeout, pollInterval })
+        return 'shutdown'
+      } catch (error) {
+        signal?.throwIfAborted()
+        warn('the guest did not shut down, powering it off', { error, vmId })
+      }
+    } else {
+      info('the VMware tools do not run, powering the VM off', { toolsStatus, vmId })
+    }
+
+    try {
+      await this.powerOff(vmId, { signal })
+    } catch (error) {
+      signal?.throwIfAborted()
+      // the host refuses to power off a VM which is already off: the guest may have completed a shut
+      // down whose request failed on our side, or the VM may have been stopped since the caller read
+      // its power state, possibly long before
+      const powerState = await this.#retrieveProperty('VirtualMachine', vmId, 'runtime.powerState', { signal })
+      if (powerState === 'poweredOff') {
+        return 'shutdown'
+      }
+      throw error
+    }
+    return 'powerOff'
+  }
+
+  async #waitPoweredOff(vmId, { signal, timeout, pollInterval }) {
+    const deadline = Date.now() + timeout
+    for (;;) {
+      let powerState
+      try {
+        powerState = await this.#retrieveProperty('VirtualMachine', vmId, 'runtime.powerState', { signal })
+      } catch (error) {
+        // the guest keeps shutting down on the host: a transient failure of a single poll must not
+        // end in powering off a guest which is about to be off
+        if (!isRetryableError(error) || Date.now() >= deadline) {
+          throw error
+        }
+        warn('failed to read the power state of a VM, will poll again', { error, vmId })
+      }
+      if (powerState === 'poweredOff') {
+        return
+      }
+      if (Date.now() >= deadline) {
+        const error = new Error(`the VM ${vmId} is still running ${timeout}ms after its guest was asked to shut down`)
+        error.code = 'SHUTDOWN_TIMEOUT'
+        error.vmId = vmId
+        throw error
+      }
+      await delay(pollInterval, undefined, { signal })
+    }
+  }
+
+  /**
    * Powers on a VM, and waits for the hypervisor to have started it.
    *
    * @param {string} vmId - id of the VM
@@ -970,6 +1113,58 @@ export default class Esxi extends EventEmitter {
       { _this: vmId, name, description, memory: false },
       { signal, timeout }
     )
+  }
+
+  /**
+   * Removes a single snapshot, its children are kept, and consolidates its disks.
+   *
+   * @param {string} snapshotId - id of the snapshot, e.g. the `result` of {@link snapshot}
+   * @param {object} [options]
+   * @param {number} [options.timeout] - in ms
+   * @param {AbortSignal} [options.signal]
+   * @returns {Promise<object>} the `info` of the successful task
+   */
+  async removeSnapshot(snapshotId, { signal, timeout = 30 * 60e3 } = {}) {
+    return this.#runTask(
+      'RemoveSnapshot_Task',
+      { _this: snapshotId, removeChildren: false, consolidate: true },
+      { signal, timeout }
+    )
+  }
+
+  /**
+   * Turns the change tracking (CBT) of a VM on, when it is not already.
+   *
+   * The host only starts tracking when the disks are next opened, e.g. by a snapshot, running or
+   * not: until then it has no tracking file to answer from, and a snapshot taken before carries no
+   * `changeId`, no delta can be computed from it.
+   *
+   * @param {string} vmId - id of the VM
+   * @param {object} [options]
+   * @param {number} [options.timeout] - in ms
+   * @param {AbortSignal} [options.signal]
+   * @returns {Promise<boolean>} whether this call turned the tracking on
+   */
+  async enableChangeTracking(vmId, { signal, timeout = 5 * 60e3 } = {}) {
+    const enabled = await this.#retrieveProperty('VirtualMachine', vmId, 'config.changeTrackingEnabled', {
+      signal,
+    }).catch(error => {
+      // absent when the VM has never been tracked
+      if (error.code !== 'NO_PROPERTY') {
+        throw error
+      }
+    })
+    if (isTrue(enabled)) {
+      return false
+    }
+
+    await this.#runTask(
+      'ReconfigVM_Task',
+      { _this: vmId, spec: virtualMachineConfigSpec({ changeTrackingEnabled: true }) },
+      { signal, timeout }
+    )
+    info('change tracking enabled', { vmId })
+    return true
   }
 
   /**
@@ -1493,6 +1688,49 @@ export default class Esxi extends EventEmitter {
       snapshotDevices,
       snapshotIds,
     }
+  }
+
+  /**
+   * Whether the change tracking of a VM already answers for every disk a transfer would read, in
+   * which case no snapshot is needed to start it.
+   *
+   * - powered on: the disks are read up to the current snapshot, which must have recorded a
+   *   `changeId` for each of them, the precondition of the delta which follows
+   * - powered off: the host is asked for every used block of each disk. It answers the same
+   *   FileFault whether the tracking was never started, or reset: a snapshot cures both
+   *
+   * An independent disk is left out: it is never snapshotted, so a snapshot cannot start its tracking.
+   *
+   * @param {string} vmId - id of the VM, its change tracking enabled
+   * @param {object} [options]
+   * @param {AbortSignal} [options.signal]
+   * @returns {Promise<boolean>}
+   */
+  async isChangeTrackingReady(vmId, { signal } = {}) {
+    const { currentSnapshotId, devices, powerState, snapshotDevices } = await this.getChangeTracking(vmId, { signal })
+    const isSnapshotted = device => isVirtualDisk(device) && !device.backing?.diskMode?.startsWith('independent')
+
+    if (powerState !== 'poweredOff') {
+      if (currentSnapshotId === undefined) {
+        // a powered on VM can only be asked through a snapshot
+        return false
+      }
+      const snapshotDisks = asArray(snapshotDevices.get(currentSnapshotId)?.VirtualDevice).filter(isSnapshotted)
+      return snapshotDisks.every(disk => disk.backing?.changeId !== undefined)
+    }
+
+    for (const disk of asArray(devices?.VirtualDevice).filter(isSnapshotted)) {
+      signal?.throwIfAborted()
+      try {
+        // the first answer is enough: a disk which is not tracked fails at once, no need to walk it
+        await this.#queryChangedDiskAreas(vmId, { changeId: '*', deviceKey: Number(disk.key), startOffset: 0 })
+      } catch (error) {
+        signal?.throwIfAborted()
+        info('the change tracking does not answer for a disk', { deviceKey: disk.key, error, vmId })
+        return false
+      }
+    }
+    return true
   }
 
   /**

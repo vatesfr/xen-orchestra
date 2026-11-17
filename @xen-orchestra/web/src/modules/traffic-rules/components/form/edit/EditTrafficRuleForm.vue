@@ -22,14 +22,19 @@
 
     <div class="row target-row">
       <span class="prefix-wrapper">
-        <span class="prefix">{{ t('on') }}</span>
+        <span class="prefix">{{ t('traffic-rules:target-on') }}</span>
       </span>
       <TrafficRuleFormSelect v-bind="targetTypeSelectBindings" />
       <TrafficRuleFormSelect v-if="isVifTarget" v-bind="vmSelectBindings">
         <template #option="{ option }">
           <VtsOption :option>
             <span class="option-content">
-              <VtsIcon v-if="option.properties.icon" :name="option.properties.icon" size="medium" />
+              <VtsIcon
+                v-if="option.properties.icon"
+                :name="option.properties.icon"
+                :tooltip="option.properties.iconTooltip"
+                size="medium"
+              />
               {{ option.properties.label }}
             </span>
           </VtsOption>

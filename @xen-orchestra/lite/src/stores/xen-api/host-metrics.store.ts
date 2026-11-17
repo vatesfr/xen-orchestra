@@ -19,8 +19,8 @@ export const useHostMetricsStore = defineStore('xen-api-host-metrics', () => {
     }
   }
 
-  const getHostPowerState = (host: XenApiHost): HOST_POWER_STATE => {
-    const live = baseContext.getByOpaqueRef(host.metrics)?.live
+  const getHostPowerState = (host: XenApiHost | undefined): HOST_POWER_STATE => {
+    const live = host === undefined ? undefined : baseContext.getByOpaqueRef(host.metrics)?.live
 
     if (live === undefined) {
       return HOST_POWER_STATE.UNKNOWN

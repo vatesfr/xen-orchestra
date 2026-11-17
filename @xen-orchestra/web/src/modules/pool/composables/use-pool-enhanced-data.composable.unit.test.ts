@@ -139,11 +139,19 @@ describe('getDisplayData', () => {
     expect(displayData.primaryHostRightIcon).toBeUndefined()
   })
 
-  it('always sets the pool icon', () => {
+  it('sets the pool icon when the pool has a name', () => {
     getHostById.mockReturnValue(undefined)
 
     const displayData = mountFirstDisplayData()
 
     expect(displayData.poolIcon).toBe('object:pool')
+  })
+
+  it('omits the pool icon when the pool has no name', () => {
+    getHostById.mockReturnValue(undefined)
+
+    const displayData = mountFirstDisplayData([createServer({ poolNameLabel: undefined, poolId: undefined })])
+
+    expect(displayData.poolIcon).toBeUndefined()
   })
 })

@@ -20,6 +20,7 @@ The selection is stored by item ID, so it is kept when changing page or filter.
 | Name                  | Description                                                                                     |
 | --------------------- | ----------------------------------------------------------------------------------------------- |
 | `selectedIds`         | IDs of the selected items, including the ones hidden by the filter                              |
+| `selectedItems`       | The selected items, including the ones hidden by the filter                                     |
 | `pageSelectionModel`  | Model for the header checkbox: `true` (whole page selected), `undefined` (partially) or `false` |
 | `isSelected(id)`      | Returns whether the item is selected                                                            |
 | `toggleSelection(id)` | Toggles the item                                                                                |
@@ -29,7 +30,7 @@ The selection is stored by item ID, so it is kept when changing page or filter.
 
 - "Select all" selects every item matching the filter
 - "Clear selection" unselects every item, including the ones hidden by the filter
-- IDs of items that are no longer in `items` are not part of `selectedIds`
+- Items that are no longer in `items` are not part of `selectedIds` nor `selectedItems`
 
 ## Usage
 

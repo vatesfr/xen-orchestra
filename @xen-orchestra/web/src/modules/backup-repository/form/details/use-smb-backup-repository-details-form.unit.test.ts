@@ -1,7 +1,5 @@
-import {
-  SMB_DEFAULT_DOMAIN,
-  useSmbBackupRepositoryDetailsForm,
-} from '@/modules/backup-repository/form/details/use-smb-backup-repository-details-form.ts'
+import { useSmbBackupRepositoryDetailsForm } from '@/modules/backup-repository/form/details/use-smb-backup-repository-details-form.ts'
+import { SMB_DEFAULT_DOMAIN } from '@/modules/backup-repository/utils/xo-backup-repository-details-payload.util.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
 import { nextTick } from 'vue'
 

@@ -7,15 +7,10 @@
       </UiLink>
     </template>
   </UiHeadBar>
-  <TabList>
+  <TabList :label="XOA_NAME">
     <RouterLink v-slot="{ isExactActive, href }" :to="{ name: '/(site)/dashboard' }" custom>
       <UiTabItem :active="isExactActive" :href tag="a">
         {{ t('dashboard') }}
-      </UiTabItem>
-    </RouterLink>
-    <RouterLink v-slot="{ isExactActive, href }" :to="{ name: '/(site)/backups' }" custom>
-      <UiTabItem :active="isExactActive" :href tag="a">
-        {{ t('backups') }}
       </UiTabItem>
     </RouterLink>
     <RouterLink v-slot="{ isExactActive, href }" :to="{ name: '/(site)/tasks' }" custom>

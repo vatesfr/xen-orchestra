@@ -1,4 +1,5 @@
 import { type CollectionItemId, useCollection } from '@core/packages/collection'
+import { useArrayMap } from '@vueuse/core'
 import { computed, type MaybeRefOrGetter, toValue } from 'vue'
 
 export type SelectionBindings = {
@@ -28,6 +29,8 @@ export function useTableSelection<TItem>(config: {
   })
 
   const selectionFlag = useFlag('selected')
+
+  const selectedItems = useArrayMap(selectionFlag.items, item => item.source)
 
   const filteredCollection = useSubset(item => filteredIds.value.has(item.id))
 
@@ -61,6 +64,7 @@ export function useTableSelection<TItem>(config: {
 
   return {
     selectedIds: selectionFlag.ids,
+    selectedItems,
     pageSelectionModel,
     isSelected: selectionFlag.isOn,
     toggleSelection: selectionFlag.toggle,

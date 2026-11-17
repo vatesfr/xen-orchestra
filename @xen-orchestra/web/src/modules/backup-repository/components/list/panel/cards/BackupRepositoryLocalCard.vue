@@ -1,7 +1,7 @@
 <template>
-  <UiPanelCard class="backup-repository-local-card">
+  <UiPanelCard>
     <UiPanelCardTitle size="medium" :label="t('local')" />
-    <div class="content">
+    <VtsCardRowList>
       <VtsCardRowKeyValue>
         <template #key>{{ t('path') }}</template>
         <template #value>{{ file.path }}</template>
@@ -9,12 +9,13 @@
           <VtsCopyButton :value="file.path" />
         </template>
       </VtsCardRowKeyValue>
-    </div>
+    </VtsCardRowList>
   </UiPanelCard>
 </template>
 
 <script lang="ts" setup>
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
+import VtsCardRowList from '@core/components/card/VtsCardRowList.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
 import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
@@ -27,13 +28,3 @@ defineProps<{
 
 const { t } = useI18n()
 </script>
-
-<style scoped lang="postcss">
-.backup-repository-local-card {
-  .content {
-    display: flex;
-    flex-direction: column;
-    gap: 0.4rem;
-  }
-}
-</style>

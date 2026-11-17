@@ -81,6 +81,11 @@ const textMappings: Record<VmBlockedOperations, BlockedOperationText> = {
     message: t('vm-protected-deletion'),
     subMessage: t('vm-disable-delete-protection'),
   },
+  migrate_send: {
+    title: t('migration-blocked'),
+    message: t('vm-protected-migration'),
+    subMessage: t('vm-disable-migration-protection'),
+  },
 }
 
 const modalTexts = useMapper(() => blockedOperation, textMappings, 'clean_shutdown')

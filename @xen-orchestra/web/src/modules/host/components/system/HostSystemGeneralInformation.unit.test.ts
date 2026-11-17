@@ -2,7 +2,7 @@ import HostSystemGeneralInformation from '@/modules/host/components/system/HostS
 import type { FrontXoHost, useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import type { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import { createHost } from '@/test/create-host.ts'
-import { findCopiedValues } from '@/test/find-labelled-values.ts'
+import { findCopiedValues } from '@/test/find-rendered-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { mount } from '@vue/test-utils'

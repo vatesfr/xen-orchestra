@@ -18,10 +18,12 @@
       :disabled
       :required
       :type
+      :aria-busy="busy || undefined"
       class="typo-body-regular input text-ellipsis"
       v-bind="attrs"
       @input="event => handleInput(event)"
     />
+    <UiLoader v-if="busy" class="loader" />
     <UiButtonIcon
       v-if="!disabled && modelValue && clearable"
       size="small"
@@ -43,12 +45,11 @@
 <script lang="ts" setup>
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
-import type { LabelAccent } from '@core/components/ui/label/UiLabel.vue'
+import UiLoader from '@core/components/ui/loader/UiLoader.vue'
+import { useInputWrapperController } from '@core/composables/input-wrapper-controller.composable.ts'
 import type { IconName } from '@core/icons'
-import { useMapper } from '@core/packages/mapper/use-mapper.ts'
-import { IK_INPUT_WRAPPER_CONTROLLER } from '@core/utils/injection-keys.util.ts'
 import { toVariants } from '@core/utils/to-variants.util.ts'
-import { inject, ref, useAttrs, watchEffect } from 'vue'
+import { ref, useAttrs } from 'vue'
 
 export type InputAccent = 'brand' | 'warning' | 'danger'
 
@@ -58,7 +59,7 @@ defineOptions({
   inheritAttrs: false,
 })
 const {
-  accent: _accent,
+  accent: rawAccent,
   required,
   disabled,
   id,
@@ -74,6 +75,7 @@ const {
   type?: InputType
   rightIcon?: IconName
   clearable?: boolean
+  busy?: boolean
   prefix?: string
   suffix?: string
 }>()
@@ -98,23 +100,11 @@ const attrs = useAttrs()
 
 const inputRef = ref<HTMLInputElement>()
 
-const wrapperController = detached ? undefined : inject(IK_INPUT_WRAPPER_CONTROLLER, undefined)
-
-const accent = useMapper<LabelAccent, InputAccent>(
-  () => wrapperController?.labelAccent,
-  () => ({
-    neutral: _accent,
-    warning: 'warning',
-    danger: 'danger',
-  }),
-  'neutral'
-)
-
-if (wrapperController) {
-  watchEffect(() => {
-    wrapperController.required = required
-  })
-}
+const { wrapperController, accent } = useInputWrapperController({
+  accent: () => rawAccent,
+  required: () => required,
+  detached,
+})
 
 function focus() {
   inputRef.value?.focus()
@@ -144,9 +134,14 @@ defineExpose({ focus })
   text-align: left;
   padding-inline: 1.6rem;
 
-  .right-icon {
+  .right-icon,
+  .loader {
     pointer-events: none;
     color: var(--color-brand-txt-base);
+  }
+
+  .loader {
+    flex-shrink: 0;
   }
 
   .prefix,

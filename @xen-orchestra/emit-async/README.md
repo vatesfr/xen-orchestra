@@ -36,7 +36,7 @@ ee.on('start', async function () {
 // listeners have settled
 await ee.emitAsync('start')
 
-// by default, it will rejects as soon as one listener reject, you can customise
+// by default, it will rejects as soon as one listener reject, you can customize
 // error handling though:
 await ee.emitAsync(
   {
