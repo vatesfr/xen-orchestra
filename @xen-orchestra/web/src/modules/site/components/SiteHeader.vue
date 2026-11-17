@@ -27,6 +27,9 @@
     <RouterLink v-slot="{ isExactActive, href }" :to="{ name: '/(site)/vms' }" custom>
       <UiTabItem :active="isExactActive" :href tag="a">{{ t('vms') }}</UiTabItem>
     </RouterLink>
+    <RouterLink v-slot="{ isExactActive, href }" :to="{ name: '/(site)/patches' }" custom>
+      <UiTabItem :active="isExactActive" :href tag="a">{{ t('patches') }}</UiTabItem>
+    </RouterLink>
   </TabList>
 </template>
 
