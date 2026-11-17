@@ -381,7 +381,7 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
     const xapi = this._xapi
 
     const vdiCandidates = {}
-    const vdiUuids = this._vm.$VBDs.filter(({ type }) => type === 'Disk').map(({ VDI }) => VDI)
+    const vdiUuids = this._vm.$VBDs.map(({ VDI }) => VDI)
     Object.values(xapi.objects.indexes.type.VDI)
       .filter(_ => !!_) // filter nullish
       .filter(({ other_config, snapshot_of }) => {
@@ -400,21 +400,18 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
 
     this._jobSnapshotVdis = Object.values(vdiCandidates)
 
-    // For VMs with no disks, retention must be tracked directly on VM snapshots
-    // since there are no VDIs to anchor the discovery.
-    if (vdiUuids.length === 0) {
-      this._disklessJobSnapshotVms = this._vm.$snapshots
-        .filter(Boolean)
-        .filter(
-          ({ other_config, $snapshot_of }) =>
-            $snapshot_of !== undefined &&
-            other_config[JOB_ID] === jobId &&
-            other_config[VM_UUID] === this._vm.uuid &&
-            other_config[COPY_OF] === undefined
-        )
-    } else {
-      this._disklessJobSnapshotVms = []
-    }
+    // also harvest each of the snapshot chain without any disk
+    const hasNoDisk = ({ $VBDs }) => $VBDs.every(vbd => vbd !== undefined && vbd.type !== 'Disk')
+    this._disklessJobSnapshotVms = this._vm.$snapshots
+      .filter(Boolean)
+      .filter(
+        snapshot =>
+          snapshot.$snapshot_of !== undefined &&
+          snapshot.other_config[JOB_ID] === jobId &&
+          snapshot.other_config[VM_UUID] === this._vm.uuid &&
+          snapshot.other_config[COPY_OF] === undefined &&
+          hasNoDisk(snapshot)
+      )
   }
 
   async _removeUnusedSnapshots() {

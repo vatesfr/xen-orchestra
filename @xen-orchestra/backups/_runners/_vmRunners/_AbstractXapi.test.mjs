@@ -658,37 +658,56 @@ describe('run() purges the snapshot data only while the snapshot exists', () => 
   })
 })
 
-describe('_fetchJobSnapshots() diskless VM detection', () => {
-  const makeFetchRunner = vbds => {
+describe('_fetchJobSnapshots() diskless VM snapshot detection', () => {
+  const makeFetchRunner = ({ vmVbds, snapshotVbds }) => {
     const jobSnapshot = {
       $ref: 'snap-ref',
       $snapshot_of: {},
+      $VBDs: snapshotVbds,
       other_config: { [JOB_ID]: 'job-1', [VM_UUID]: 'vm-uuid', [DATETIME]: '20240101T00:00:00Z' },
     }
     return makeRunner({
       _jobId: 'job-1',
-      _vm: { uuid: 'vm-uuid', $VBDs: vbds, $snapshots: [jobSnapshot] },
+      _vm: { uuid: 'vm-uuid', $VBDs: vmVbds, $snapshots: [jobSnapshot] },
       _xapi: { objects: { indexes: { type: { VDI: {} } } } },
     })
   }
+  const trackedSnapshotRefs = runner => runner._disklessJobSnapshotVms.map(({ $ref }) => $ref)
 
   it('tracks VM snapshots of a VM with only an empty CD drive', async () => {
-    const runner = makeFetchRunner([{ type: 'CD', VDI: 'OpaqueRef:NULL' }])
+    const cdDrive = { type: 'CD', VDI: 'OpaqueRef:NULL' }
+    const runner = makeFetchRunner({ vmVbds: [cdDrive], snapshotVbds: [cdDrive] })
 
     await runner._fetchJobSnapshots()
 
-    assert.deepEqual(
-      runner._disklessJobSnapshotVms.map(({ $ref }) => $ref),
-      ['snap-ref'],
-      'a CD drive must not prevent the diskless retention'
-    )
+    assert.deepEqual(trackedSnapshotRefs(runner), ['snap-ref'], 'a CD drive must not prevent the diskless retention')
   })
 
-  it('does not use the diskless retention when the VM has a disk', async () => {
-    const runner = makeFetchRunner([{ type: 'Disk', VDI: 'vdi-ref' }])
+  it('tracks VM snapshots of a VM whose only disk is [NOBAK]', async () => {
+    // the ignored disk is on the VM, but not on its snapshot
+    const runner = makeFetchRunner({ vmVbds: [{ type: 'Disk', VDI: 'nobak-vdi-ref' }], snapshotVbds: [] })
 
     await runner._fetchJobSnapshots()
 
-    assert.deepEqual(runner._disklessJobSnapshotVms, [])
+    assert.deepEqual(trackedSnapshotRefs(runner), ['snap-ref'], 'a snapshot without disk must be tracked at VM level')
+  })
+
+  it('does not use the diskless retention for a snapshot with a disk', async () => {
+    const runner = makeFetchRunner({
+      vmVbds: [{ type: 'Disk', VDI: 'vdi-ref' }],
+      snapshotVbds: [{ type: 'Disk', VDI: 'snapshot-vdi-ref' }],
+    })
+
+    await runner._fetchJobSnapshots()
+
+    assert.deepEqual(trackedSnapshotRefs(runner), [], 'this snapshot is handled through its VDIs')
+  })
+
+  it('does not use the diskless retention when a VBD of the snapshot is not in the cache', async () => {
+    const runner = makeFetchRunner({ vmVbds: [{ type: 'Disk', VDI: 'vdi-ref' }], snapshotVbds: [undefined] })
+
+    await runner._fetchJobSnapshots()
+
+    assert.deepEqual(trackedSnapshotRefs(runner), [], 'an unknown VBD may be a disk')
   })
 })
