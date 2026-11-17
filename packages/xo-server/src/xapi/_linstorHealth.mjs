@@ -1,4 +1,5 @@
 import { setTimeout } from 'node:timers/promises'
+import { timeout as pTimeout } from 'promise-toolbox'
 
 // Health of LINSTOR (XOSTOR) as seen by a rolling pool update: restarting its
 // services or rebooting a host while a volume is not up to date can hang the
@@ -104,7 +105,9 @@ export async function waitLinstorHealthy(xapi, { timeout, interval = 5e3 }) {
   while (true) {
     let cause, issues
     try {
-      issues = await getLinstorIssues(xapi)
+      // a call to the plugin which hangs must not outlast the deadline: it is
+      // given what is left of it, and counts as a failed check past that
+      issues = await pTimeout.call(getLinstorIssues(xapi), Math.max(deadline - Date.now(), 1))
     } catch (error) {
       if (error.code === 'UNKNOWN_XENAPI_PLUGIN_FUNCTION') {
         throw error

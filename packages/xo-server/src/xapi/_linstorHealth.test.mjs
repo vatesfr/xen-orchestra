@@ -273,4 +273,18 @@ describe('waitLinstorHealthy()', function () {
       cause: failure,
     })
   })
+
+  it('gives up on the timeout when the plugin does not answer', async function () {
+    const xapi = fakeXapi([healthCheck()])
+    xapi.call = () => new Promise(() => {})
+
+    await assert.rejects(waitLinstorHealthy(xapi, { timeout: 20 }), error => {
+      assert.equal(
+        error.message,
+        'LINSTOR is not healthy after 0 seconds: LINSTOR health check failed on host host A: operation timed out'
+      )
+      assert.equal(error.cause.name, 'TimeoutError')
+      return true
+    })
+  })
 })

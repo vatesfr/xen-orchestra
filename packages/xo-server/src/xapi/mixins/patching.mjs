@@ -1027,7 +1027,9 @@ const methods = {
       // the previous attempt may have stopped while LINSTOR was recovering from
       // what it did, a restart of its services or the reboot of a host: it is
       // waited for. On a first attempt, an unhealthy LINSTOR is not the doing
-      // of the run: it is refused before anything is changed
+      // of the run: it is refused before any host or LINSTOR service is
+      // touched. The backup schedules, the load balancer and WLB are already
+      // disabled by then: the caller restores them when the run fails
       if (resume !== noRpuResume) {
         await this._waitLinstorHealthy()
       } else {
