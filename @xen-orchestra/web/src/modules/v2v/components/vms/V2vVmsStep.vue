@@ -30,7 +30,9 @@
         </UiButton>
       </V2vWizardStepActions>
     </div>
-    <V2vSelectedVmsPanel :items :is-busy :readiness-tags :list-pair @remove="id => remove(id)" @clear="clear()" />
+    <template #panel>
+      <V2vSelectedVmsPanel :items :is-busy :readiness-tags :list-pair @remove="id => remove(id)" @clear="clear()" />
+    </template>
   </VtsContentSidePanel>
 </template>
 
