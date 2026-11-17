@@ -133,3 +133,34 @@ export function extractVmHostId(vm: FrontXoVm) {
 export function vmContainsNoBakTag(vm: FrontXoVm) {
   return vm.tags.some(tag => tag.split('=', 1)[0] === COMMON_TAG.NOBAK)
 }
+
+type VmPowerStateQuickAction =
+  | 'start'
+  | 'unpause'
+  | 'resume'
+  | 'shutdown'
+  | 'force-shutdown'
+  | 'reboot'
+  | 'force-reboot'
+
+export type VmQuickAction = VmPowerStateQuickAction | 'migrate' | 'snapshot'
+
+function getVmPowerStateQuickActions(vm: FrontXoVm): VmPowerStateQuickAction[] {
+  switch (vm.power_state) {
+    case VM_POWER_STATE.RUNNING:
+      return [
+        isVmMissingGuestToolsFor(vm, VM_OPERATIONS.CLEAN_SHUTDOWN) ? 'force-shutdown' : 'shutdown',
+        isVmMissingGuestToolsFor(vm, VM_OPERATIONS.CLEAN_REBOOT) ? 'force-reboot' : 'reboot',
+      ]
+    case VM_POWER_STATE.HALTED:
+      return ['start']
+    case VM_POWER_STATE.PAUSED:
+      return ['unpause']
+    case VM_POWER_STATE.SUSPENDED:
+      return ['resume']
+  }
+}
+
+export function getVmQuickActions(vm: FrontXoVm): VmQuickAction[] {
+  return [...getVmPowerStateQuickActions(vm), 'migrate', 'snapshot']
+}
