@@ -89,7 +89,6 @@ export function useV2vLaunch(
     }
   }
 
-  // A problem names its VM as the list does
   function getProblemLabel({ vmId, message }: V2vStartProblem) {
     return labels.getStartProblemLabel(message, vmId === undefined ? undefined : getName(vmId))
   }

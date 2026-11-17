@@ -43,7 +43,6 @@ export function useV2vLaunchGroups({ vms, getRow }: Pick<ReturnType<typeof useV2
     return uniq(compact(disks.map(({ srId }) => getV2vTargetName(srId, getSrName))))
   }
 
-  // Each group VM with the import its row holds and where it is: only a VM with an import is migrated or resumed
   function withImports(listedVms: V2vListedVm[]) {
     return listedVms.flatMap(({ item }) => {
       const row = getRow(item.id)

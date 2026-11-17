@@ -20,7 +20,6 @@ const LAUNCH_GROUP_ACCENTS: Record<V2vLaunchGroupType, CounterAccent> = {
   new: 'success',
 }
 
-// The text of the review step: the launch options, the launch groups, the summary and the start problems
 export function useV2vReviewLabels() {
   const { t } = useI18n()
 
@@ -30,7 +29,6 @@ export function useV2vReviewLabels() {
     return value ? t('option-on') : t('option-off')
   }
 
-  // A launch option left to its default reads as that default
   function getLaunchOptionLabel(value: boolean | undefined, defaultValue: boolean): string {
     return value === undefined ? t('default-value', { value: getOnOffLabel(defaultValue) }) : getOnOffLabel(value)
   }
