@@ -1,7 +1,7 @@
 <template>
   <VtsSidePanel :has-selection="!!rule" @close="emit('close')">
     <template v-if="rule" #actions>
-      <TrafficRuleActions :rule />
+      <TrafficRuleDeleteButton :rule />
     </template>
 
     <template v-if="rule" #more-actions>
@@ -31,7 +31,7 @@
 
 <script lang="ts" setup>
 import { useXoNetworkCollection } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
-import TrafficRuleActions from '@/modules/traffic-rules/components/actions/TrafficRuleActions.vue'
+import TrafficRuleDeleteButton from '@/modules/traffic-rules/components/actions/delete/TrafficRuleDeleteButton.vue'
 import TrafficRuleMoreActions from '@/modules/traffic-rules/components/actions/TrafficRuleMoreActions.vue'
 import TrafficRuleNetworkInfosCard from '@/modules/traffic-rules/components/list/panel/cards/TrafficRuleNetworkInfosCard.vue'
 import TrafficRuleNetworkPifsCard from '@/modules/traffic-rules/components/list/panel/cards/TrafficRuleNetworkPifsCard.vue'

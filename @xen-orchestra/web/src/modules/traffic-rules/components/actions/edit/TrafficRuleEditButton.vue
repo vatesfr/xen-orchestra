@@ -1,18 +1,20 @@
 <template>
-  <MenuItem
-    :busy="isEditingTrafficRule"
-    :disabled="!canEditTrafficRule"
-    accent="neutral"
+  <VtsActionButton
+    :hint="editTrafficRuleErrorMessage"
+    variant="tertiary"
+    accent="brand"
     icon="action:edit"
+    :disabled="!canEditTrafficRule"
+    :busy="isEditingTrafficRule"
     @click="editTrafficRule()"
   >
     {{ t('action:edit') }}
-  </MenuItem>
+  </VtsActionButton>
 </template>
 
 <script lang="ts" setup>
 import { useTrafficRuleEdit } from '@/modules/traffic-rules/composables/use-traffic-rule-edit.composable.ts'
-import MenuItem from '@core/components/menu/MenuItem.vue'
+import VtsActionButton from '@core/components/action-button/VtsActionButton.vue'
 import type { TrafficRule } from '@vates/types'
 import { useI18n } from 'vue-i18n'
 
@@ -22,5 +24,7 @@ const { rule } = defineProps<{
 
 const { t } = useI18n()
 
-const { editTrafficRule, canEditTrafficRule, isEditingTrafficRule } = useTrafficRuleEdit(() => rule)
+const { editTrafficRule, canEditTrafficRule, isEditingTrafficRule, editTrafficRuleErrorMessage } = useTrafficRuleEdit(
+  () => rule
+)
 </script>
