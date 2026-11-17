@@ -147,7 +147,7 @@ function getKeptRuleIndexes(orderedRules: TrafficRule[]): number[] {
 function getPriorityUpdatesBetweenKeptRules(
   orderedRules: TrafficRule[],
   keptIndexes: number[],
-  takenPriorities: Set<number | undefined>
+  takenPriorities: Set<number>
 ): TrafficRulePriorityUpdate[] | undefined {
   const boundIndexes = [-1, ...keptIndexes, orderedRules.length]
   const updates: TrafficRulePriorityUpdate[] = []
@@ -199,7 +199,7 @@ export function getTrafficRulePriorityUpdates(
   orderedRules: TrafficRule[],
   networkRules: TrafficRule[]
 ): TrafficRulePriorityUpdate[] | undefined {
-  const takenPriorities = new Set(networkRules.map(rule => rule.priority))
+  const takenPriorities = new Set(networkRules.map(rule => getTrafficRulePriority(rule)))
 
   const updates = getPriorityUpdatesBetweenKeptRules(orderedRules, getKeptRuleIndexes(orderedRules), takenPriorities)
 

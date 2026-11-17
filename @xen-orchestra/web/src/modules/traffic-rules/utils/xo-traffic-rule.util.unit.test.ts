@@ -212,6 +212,18 @@ describe('getTrafficRulePriorityUpdates', () => {
     expect(updates?.[0].priority).not.toBe(250)
   })
 
+  it('never gives the default priority while a rule of the network has none', () => {
+    const upperRule = createTrafficRule({ id: 'upper', priority: 32770 })
+    const movedRule = createTrafficRule({ id: 'moved', priority: 40000 })
+    const lowerRule = createTrafficRule({ id: 'lower', priority: 32767 })
+    const ruleWithoutPriority = createTrafficRule({ id: 'none', priority: undefined })
+    const rules = [upperRule, movedRule, lowerRule, ruleWithoutPriority]
+
+    const updates = getTrafficRulePriorityUpdates(rules, rules)
+
+    expect(updates?.map(update => update.priority)).not.toContain(32768)
+  })
+
   it('gives a priority to the rules that have none', () => {
     const firstRule = createTrafficRule({ id: 'first', priority: undefined })
     const secondRule = createTrafficRule({ id: 'second', priority: undefined })
