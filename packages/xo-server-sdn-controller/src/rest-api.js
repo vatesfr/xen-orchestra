@@ -243,8 +243,9 @@ function updateRuleRoute(controller, resource) {
             throw noSuchObject(JSON.stringify(oldRule), 'traffic-rule')
           }
           const newRule = applyRulePatch(oldRule, partialNewRule)
-          // a kept priority may be shared, like the copy a clone makes of a VIF's rules
-          if (newRule.priority !== oldRule.priority) {
+          // a kept priority may be shared, like the copy a clone makes of a VIF's rules, but a kept 0 is
+          // refused like a new one: the rule would be deleted, then not added back
+          if (newRule.priority !== oldRule.priority || newRule.priority === 0) {
             controller._checkTrafficRulePriority({ [resource.idKey]: id }, newRule.priority)
           }
 

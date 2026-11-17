@@ -134,6 +134,15 @@ describe('the priority of a rule', () => {
     await rejectsInTheTask(createController(), endpoint, 'vif1', { ...SSH, priority: 40000 }, objectAlreadyExists)
   })
 
+  it('cannot be kept at 0, as the rule would be deleted and not added back', async () => {
+    const oldRule = { ...SSH, priority: 0 }
+    const controller = createController()
+    const network = { ...NETWORK, other_config: storeRules([{ ...oldRule, cookie: '0x1' }]) }
+    controller._xo.getObject = () => network
+    const body = { oldRule, newRule: { allow: true } }
+    await rejectsInTheTask(controller, UPDATE, 'net', body, invalidParameters)
+  })
+
   it('may be kept by a rule that shares it, like the copy a clone makes', async () => {
     const controller = createController()
     controller._deleteRule = noop

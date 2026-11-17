@@ -35,7 +35,7 @@ export class OpenFlowPlugin {
       ipRange,
       direction,
       port,
-      // not a falsy check: a rule given 0 before it was refused keeps it when updated
+      // not a falsy check: a rule given 0 before it was refused is still applied with it
       priority: priority === undefined ? undefined : String(priority),
     })
   }
