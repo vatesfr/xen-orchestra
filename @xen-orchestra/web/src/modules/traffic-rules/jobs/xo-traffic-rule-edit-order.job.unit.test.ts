@@ -153,6 +153,16 @@ describe('run', () => {
     expect(firstPriority).toBeGreaterThan(secondPriority)
   })
 
+  it('fails without updating anything when the network has no free priority left', async () => {
+    const networkRules = Array.from({ length: 65536 }, (_, priority) => createRule(`rule-${priority}`, priority))
+
+    await expect(mountEditOrderJob(networkRules, [networkRules[0], networkRules[1]]).run()).rejects.toThrow(
+      t('job:traffic-rule-edit-order:no-free-priority')
+    )
+
+    expect(post).not.toHaveBeenCalled()
+  })
+
   it('applies the updates one at a time and stops at the first failure', async () => {
     const [firstRule, secondRule] = [createRule('a', 1), createRule('b', 0)]
     const error = new Error('Update failed')
