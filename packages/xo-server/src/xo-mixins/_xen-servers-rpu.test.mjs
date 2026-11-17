@@ -653,6 +653,18 @@ describe('XenServers.restoreRpuLeftovers', function () {
     ])
   })
 
+  it('goes on when the pool is no longer connected', async function () {
+    const { calls, recorder, xenServers } = setup()
+    xenServers.getXapi = () => undefined
+    await xenServers.restoreRpuLeftovers(pool, { record: makeRecord(false), items, recorder })
+    assert.deepEqual(calls, [
+      ['loadPlugin', 'load-balancer'],
+      ['recorder.settingRestored', 'loadBalancer', undefined],
+      ['updateSchedule', 'schedule-1', true],
+      ['recorder.settingRestored', 'schedules', 'schedule-1'],
+    ])
+  })
+
   it('only restores what is listed', async function () {
     const { calls, recorder, xenServers } = setup()
     await xenServers.restoreRpuLeftovers(pool, { record: makeRecord(false), items: [], recorder })

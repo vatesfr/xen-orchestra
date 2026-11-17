@@ -1025,7 +1025,12 @@ export default class XenServers {
   async restoreRpuLeftovers(pool, { record, items, recorder }) {
     const idsOf = type => items.filter(item => item.type === type).map(item => item.id)
 
-    await this.getXapi(pool).restoreRpuLeftovers({ record, items, recorder })
+    try {
+      await this.getXapi(pool).restoreRpuLeftovers({ record, items, recorder })
+    } catch (error) {
+      // the pool is no longer connected
+      log.warn('failed to restore what a rolling pool update left changed in the pool', { error })
+    }
 
     if (idsOf('wlb').length > 0) {
       await restoreRpuSetting(recorder, 'wlb', async () => {

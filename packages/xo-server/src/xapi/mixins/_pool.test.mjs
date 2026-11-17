@@ -906,6 +906,38 @@ describe('restoreRpuLeftovers', function () {
     assert.equal(xapi.vms[0].$resident_on.uuid, 'host-B')
   })
 
+  describe('VM conflicts of the run', function () {
+    const awaitingReboot = { steps: { update: { status: 'observed-succeeded' }, reboot: { status: 'running' } } }
+    const vmItems = [{ type: 'vm', id: 'vm-a1' }]
+
+    function setupConflicts(vmConflicts) {
+      const context = setup()
+      const { events, recorder } = context
+      recorder.getVmConflicts = () => vmConflicts
+      recorder.setVmConflicts = vmConflicts => events.push(['setVmConflicts', vmConflicts])
+      return context
+    }
+
+    it('keeps them when there is no VM to migrate back', async function () {
+      const { events, restore } = setupConflicts([{ vmId: 'vm-s', hostId: 'host-A', reason: 'stopped' }])
+      await restore(vmItems, { hosts: { 'host-A': awaitingReboot } })
+      assert.deepEqual(events, [])
+    })
+
+    it('keeps the ones of the VMs left out of the migration', async function () {
+      const leftOut = { vmId: 'vm-d', hostId: 'host-B', reason: 'deleted' }
+      const { events, restore } = setupConflicts([leftOut, { vmId: 'vm-a1', hostId: 'host-A', reason: 'stopped' }])
+      await restore(vmItems, {
+        hosts: { 'host-B': awaitingReboot },
+        vmHomeById: { 'vm-a1': 'host-A', 'vm-d': 'host-B' },
+      })
+      assert.deepEqual(events, [
+        ['migrateVm', 'vm-a1', 'host-A'],
+        ['setVmConflicts', [leftOut]],
+      ])
+    })
+  })
+
   it('enables the hosts at once', async function () {
     const { events, restore, xapi } = setup()
     xapi.hosts[1].enabled = false

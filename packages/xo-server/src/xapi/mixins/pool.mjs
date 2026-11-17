@@ -551,7 +551,7 @@ const methods = {
 
     if (idsOf('vm').length > 0) {
       // all the VMs of the run, as a resume does: the ones already home are
-      // skipped, and the VM conflicts of the record are replaced as a whole
+      // skipped, and their VM conflicts in the record are replaced
       const vmIdsByHost = {}
       for (const [vmId, hostId] of Object.entries(record.vmHomeById)) {
         // a pinned VM which did not start is not a VM an operator stopped
@@ -562,14 +562,22 @@ const methods = {
       const hosts = Object.keys(vmIdsByHost)
         .map(hostId => this.getObject(hostId, undefined))
         .filter(host => host !== undefined)
-      // the steps and the last error of the record stay the ones of the run
+      // the steps and the last error of the record stay the ones of the run,
+      // and so do the conflicts of the VMs left out of this migration
+      const migratedVmIds = new Set(hosts.flatMap(host => vmIdsByHost[host.uuid]))
       const conflictsRecorder = {
         ...noopRpuRecorder,
-        setVmConflicts: vmConflicts => recorder.setVmConflicts(vmConflicts),
+        setVmConflicts: vmConflicts =>
+          recorder.setVmConflicts([
+            ...recorder.getVmConflicts().filter(({ vmId }) => !migratedVmIds.has(vmId)),
+            ...vmConflicts,
+          ]),
       }
-      await attempt('migrate VMs back', () =>
-        this._migrateVmsBack(hosts, vmIdsByHost, undefined, () => {}, conflictsRecorder)
-      )
+      if (hosts.length > 0) {
+        await attempt('migrate VMs back', () =>
+          this._migrateVmsBack(hosts, vmIdsByHost, undefined, () => {}, conflictsRecorder)
+        )
+      }
     }
 
     if (idsOf('autoPowerOn').length > 0) {
