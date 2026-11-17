@@ -10,8 +10,8 @@ import { findV2vRouteQuery } from '@/test/create-v2v-wizard-router.ts'
 import { findCardTitleLabel } from '@/test/find-card-title.ts'
 import { findInlineParts } from '@/test/find-parts.ts'
 import { findStateHeroTypes } from '@/test/find-state-hero-types.ts'
-import { findTitle } from '@/test/find-titles.ts'
 import { getButton, getUiButton } from '@/test/get-button.ts'
+import { getSuccessState } from '@/test/get-success-state.ts'
 import { t } from '@/test/i18n.ts'
 import { v2vVmRowsCollectionsMock } from '@/test/mock-xo-v2v-vm-rows-collections.ts'
 import { mountComponentOnV2vWizard } from '@/test/mount-on-v2v-wizard.ts'
@@ -23,7 +23,6 @@ import { V2V_GONE_VM_ID } from '@/test/v2v-mapping-step-fixtures.ts'
 import { V2V_REVIEW_STEP_EXCLUDED_LIST } from '@/test/v2v-review-step-fixtures.ts'
 import { V2V_DB_VM, V2V_LISTED_VM, V2V_WEB_VM } from '@/test/v2v-vms-fixtures.ts'
 import { V2V_LIST_POOL } from '@/test/v2v-wizard-fixtures.ts'
-import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiAlert from '@core/components/ui/alert/UiAlert.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
@@ -250,18 +249,17 @@ describe('once launched', () => {
 
   it('tells the VMs are launched', async () => {
     const { wrapper } = await mountLaunched()
-    const hero = wrapper.getComponent(VtsStateHero)
 
-    expect(hero.props('type')).toBe('all-good')
-    expect(findTitle(hero)).toBe(t('v2v:n-vms-launched', { n: 2 }))
-    expect(hero.getComponent(UiAlert).text()).toBe(t('v2v:launch-success'))
+    expect(getSuccessState(wrapper)).toMatchObject({
+      title: t('v2v:n-vms-launched', { n: 2 }),
+      message: t('v2v:launch-success'),
+    })
   })
 
   it('links to the task of the launch', async () => {
-    const link = (await mountLaunched()).wrapper.getComponent(UiLink)
+    const { wrapper } = await mountLaunched()
 
-    expect(link.text()).toBe(t('action:see-task'))
-    expect(link.props('to')).toEqual(getTaskRoute(V2V_START_TASK_ID))
+    expect(getSuccessState(wrapper).link).toEqual({ label: t('action:see-task'), to: getTaskRoute(V2V_START_TASK_ID) })
   })
 
   it('goes back to the VMs step', async () => {
