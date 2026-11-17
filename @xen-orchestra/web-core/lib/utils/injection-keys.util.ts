@@ -25,6 +25,8 @@ export const IK_CLOSE_MENU = Symbol('IK_CLOSE_MENU') as InjectionKey<() => void>
 
 export const IK_IN_MENU = Symbol('IK_IN_MENU') as InjectionKey<boolean>
 
+export const IK_HIDE_ACTION_BUTTON_BUSY = Symbol('IK_HIDE_ACTION_BUTTON_BUSY') as InjectionKey<boolean>
+
 export const IK_MENU_PLACEMENT_SIDE = Symbol('IK_MENU_PLACEMENT_SIDE') as InjectionKey<Ref<string | undefined>>
 
 export const IK_MOBILE_MENU = Symbol('IK_MOBILE_MENU') as InjectionKey<MobileMenuController>
