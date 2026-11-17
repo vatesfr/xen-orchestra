@@ -48,6 +48,7 @@
 - [REST API] `POST /rest/v0/hosts/:id/actions/move_management_ip` to move the management IP configuration of a host to another PIF (PR [#10669](https://github.com/vatesfr/xen-orchestra/pull/10669))
 - [Hosts] The host actions of the treeview (change state, restart toolstack, enable or disable, detach, forget, download bugtools archive) are also available in host tables and side panels (PR [#10821](https://github.com/vatesfr/xen-orchestra/pull/10821))
 - [Pool/Traffic rules] Edit the order of traffic rules within a network (PR [#10706](https://github.com/vatesfr/xen-orchestra/pull/10706))
+- [Pool/Traffic rules] Add a priority when creating a traffic rule (PR [#10750](https://github.com/vatesfr/xen-orchestra/pull/10750))
 
 ### Bug fixes
 
