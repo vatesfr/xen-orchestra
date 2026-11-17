@@ -1,7 +1,6 @@
 import { fileURLToPath, URL } from 'node:url'
 import vueI18n from '@intlify/unplugin-vue-i18n/vite'
 import vue from '@vitejs/plugin-vue'
-import type { PluginOption } from 'vite'
 import { defineConfig } from 'vitest/config'
 
 export default defineConfig({
@@ -10,7 +9,7 @@ export default defineConfig({
     vueI18n({
       include: fileURLToPath(new URL('./lib/locales/**', import.meta.url)),
     }),
-  ] as PluginOption[],
+  ],
   resolve: {
     alias: {
       '@core': fileURLToPath(new URL('./lib', import.meta.url)),
@@ -18,8 +17,6 @@ export default defineConfig({
   },
   test: {
     globals: true,
-    // Lint-staged runs this suite on every web-core change, so it must not fail while no test exists yet
-    passWithNoTests: true,
     setupFiles: ['./test/setup.ts'],
     alias: {
       // `placement.js` only declares a `module` entry, which the Node-style resolution used by Vitest ignores

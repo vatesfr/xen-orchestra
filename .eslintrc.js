@@ -54,6 +54,12 @@ module.exports = {
       },
     },
     {
+      files: ['@xen-orchestra/web-core/**/*.unit.{test,spec}.ts'],
+      rules: {
+        'n/no-unpublished-import': 'off',
+      },
+    },
+    {
       files: ['@xen-orchestra/{web-core,lite,web}/**/*.{vue,ts}'],
       parser: 'vue-eslint-parser',
       parserOptions: {

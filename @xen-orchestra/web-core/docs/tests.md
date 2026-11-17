@@ -20,7 +20,7 @@ Test files sit next to the code they test, as `lib/**/*.unit.test.ts`. Shared te
 ```sh
 cd @xen-orchestra/web-core
 
-# Run the whole suite once
+# Type-check, then run the whole suite once
 yarn test
 
 # Watch mode
