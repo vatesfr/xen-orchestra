@@ -3,6 +3,8 @@ import { DISKOR_POOL_NAME } from '@/test/create-pool.ts'
 import { mountComposableWithI18n } from '@/test/mount-composable.ts'
 import { formatDateTime } from '@core/utils/time.util.ts'
 
+const SR_NAMES = ['sr-nvme-01', 'sr-ssd-01']
+
 describe('launchGroupHeadings', () => {
   it.each([
     ['excluded', 'v2v:launch-group:excluded', 'danger'],
@@ -38,13 +40,21 @@ describe('getReviewSummaryParts', () => {
   })
 })
 
+describe('getSrNamesLabel', () => {
+  it('lists the SR names', () => {
+    const labels = mountComposableWithI18n(useV2vReviewLabels)
+
+    expect(labels.getSrNamesLabel(SR_NAMES)).toBe('sr-nvme-01, sr-ssd-01')
+  })
+})
+
 describe('getResumedVmParts', () => {
   it('tells the transfer of the VM, the pool and the SRs it continues on, and that its mapping is kept', () => {
     const labels = mountComposableWithI18n(useV2vReviewLabels)
 
-    expect(labels.getResumedVmParts('full', DISKOR_POOL_NAME, ['sr-nvme-01', 'sr-ssd-01'])).toEqual([
+    expect(labels.getResumedVmParts('full', DISKOR_POOL_NAME, SR_NAMES)).toEqual([
       labels.t('full-transfer'),
-      labels.t('v2v:continues-on-pool-sr', { pool: DISKOR_POOL_NAME, srs: 'sr-nvme-01, sr-ssd-01' }),
+      labels.t('v2v:continues-on-pool-sr', { pool: DISKOR_POOL_NAME, srs: labels.getSrNamesLabel(SR_NAMES) }),
       labels.t('v2v:mapping-locked'),
     ])
   })

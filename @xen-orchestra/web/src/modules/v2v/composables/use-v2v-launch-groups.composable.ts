@@ -79,7 +79,7 @@ export function useV2vLaunchGroups({ vms, getRow }: Pick<ReturnType<typeof useV2
         name,
         importVm: { id: importVm.id, name: importVm.name_label },
         poolName,
-        srNames: srNames.join(', '),
+        srNamesLabel: labels.getSrNamesLabel(srNames),
         cutoverLabel: labels.getCutoverLabel(row.cutoverAt),
         isConfirmed: confirmedIds.has(id),
       })

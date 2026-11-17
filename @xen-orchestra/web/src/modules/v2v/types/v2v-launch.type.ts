@@ -53,7 +53,7 @@ export type V2vMigratedVm = {
   name: string
   importVm: { id: FrontXoVm['id']; name: string }
   poolName: string
-  srNames: string
+  srNamesLabel: string
   cutoverLabel?: string
   isConfirmed: boolean
 }

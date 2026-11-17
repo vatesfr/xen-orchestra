@@ -194,7 +194,7 @@ describe('migratedVms', () => {
         name: V2V_LISTED_VM.name,
         importVm: { id: V2V_MIGRATED_IMPORT_VM.id, name: V2V_MIGRATED_IMPORT_VM.name_label },
         poolName: V2V_MIGRATED_VM_POOL.name_label,
-        srNames: V2V_MIGRATED_VM_SR.name_label,
+        srNamesLabel: V2V_MIGRATED_VM_SR.name_label,
         cutoverLabel: result.labels.getCutoverLabel(V2V_CUTOVER_SNAPSHOT.snapshot_time * 1000),
         isConfirmed: false,
       },
@@ -215,7 +215,10 @@ describe('migratedVms', () => {
     xoCollectionsMock.pools.value = [V2V_LIST_POOL]
     xoCollectionsMock.srs.value = [V2V_DEFAULT_SR, V2V_SSD_SR]
 
-    expect(result.migratedVms[0]).toMatchObject({ poolName: V2V_MIGRATED_VM_POOL.id, srNames: V2V_MIGRATED_VM_SR.id })
+    expect(result.migratedVms[0]).toMatchObject({
+      poolName: V2V_MIGRATED_VM_POOL.id,
+      srNamesLabel: V2V_MIGRATED_VM_SR.id,
+    })
   })
 
   it('is confirmed once the user asks for a second copy, and unconfirmed again', async () => {

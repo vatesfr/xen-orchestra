@@ -22,7 +22,7 @@ function getDetails(vm: V2vMigratedVm) {
   return t('v2v:migrated-vm-details', {
     vm: vm.importVm.name,
     pool: vm.poolName,
-    srs: vm.srNames,
+    srs: vm.srNamesLabel,
     destinationPool: DESTINATION_POOL_NAME,
   })
 }

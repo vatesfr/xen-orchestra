@@ -46,9 +46,13 @@ export function useV2vReviewLabels() {
     ]
   }
 
+  function getSrNamesLabel(srNames: string[]): string {
+    return srNames.join(', ')
+  }
+
   // A resumed VM goes on where its last sync left it: on the pool and the SRs of its import
   function getResumedVmParts(transfer: V2vNextTransfer, poolName: string, srNames: string[]): string[] {
-    return getResumedParts(transfer, t('v2v:continues-on-pool-sr', { pool: poolName, srs: srNames.join(', ') }))
+    return getResumedParts(transfer, t('v2v:continues-on-pool-sr', { pool: poolName, srs: getSrNamesLabel(srNames) }))
   }
 
   function getCutoverLabel(cutoverAt: number | undefined): string | undefined {
@@ -68,6 +72,7 @@ export function useV2vReviewLabels() {
     getLaunchOptionLabel,
     launchGroupHeadings,
     getReviewSummaryParts,
+    getSrNamesLabel,
     getResumedVmParts,
     getCutoverLabel,
     getNewVmsSummary,

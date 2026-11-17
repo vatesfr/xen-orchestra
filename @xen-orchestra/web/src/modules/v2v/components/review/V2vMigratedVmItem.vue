@@ -10,7 +10,7 @@
           </UiLink>
         </template>
         <template #pool>{{ vm.poolName }}</template>
-        <template #srs>{{ vm.srNames }}</template>
+        <template #srs>{{ vm.srNamesLabel }}</template>
         <template #destinationPool>{{ destinationPoolName }}</template>
       </I18nT>
     </V2vLaunchGroupVm>
