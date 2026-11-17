@@ -2,7 +2,6 @@ import {
   getRunningV2vSourceVmIds,
   getV2vCutoverAt,
   getV2vLastSyncAt,
-  getV2vNextTransfer,
   getV2vVmStatus,
 } from '@/modules/v2v/utils/v2v-vm-status.util.ts'
 import { createTask, createV2vImportTask } from '@/test/create-task.ts'
@@ -11,8 +10,7 @@ import {
   createV2vImportVm,
   createV2vPartialImportSnapshot,
 } from '@/test/create-v2v-import-vm.ts'
-import { createV2vVm } from '@/test/create-v2v-inventory.ts'
-import { V2V_SNAPSHOT_NAME, V2V_VM_OTHER_CONFIG } from '@vates/types'
+import { V2V_SNAPSHOT_NAME } from '@vates/types'
 
 const IMPORT_STATES = [
   ['warm', true],
@@ -112,24 +110,5 @@ describe('getV2vCutoverAt', () => {
     ['without snapshots', []],
   ])('is undefined %s', (_, snapshots) => {
     expect(getV2vCutoverAt(snapshots)).toBeUndefined()
-  })
-})
-
-describe('getV2vNextTransfer', () => {
-  const SYNCED_SNAPSHOT_ID = createV2vImportVm().other[V2V_VM_OTHER_CONFIG.SOURCE_SNAPSHOT_ID]
-
-  it('transfers the delta while the source snapshot is the one the import last synced', () => {
-    expect(getV2vNextTransfer(createV2vVm({ currentSnapshotId: SYNCED_SNAPSHOT_ID }), createV2vImportVm())).toBe(
-      'delta'
-    )
-  })
-
-  it.each([
-    ['once the source snapshot changed', 'snapshot-2', createV2vImportVm()],
-    ['without source snapshot', undefined, createV2vImportVm()],
-    ['without synced snapshot', SYNCED_SNAPSHOT_ID, createV2vImportVm({ isWarm: false })],
-    ['without snapshot on either side', undefined, createV2vImportVm({ isWarm: false })],
-  ])('transfers the whole disks %s', (_, currentSnapshotId, importVm) => {
-    expect(getV2vNextTransfer(createV2vVm({ currentSnapshotId }), importVm)).toBe('full')
   })
 })

@@ -44,6 +44,7 @@
       />
     </V2vLaunchGroup>
     <V2vLaunchGroup :heading="groupHeadings.resumed" :count="resumedVms.length">
+      <V2vSourceSnapshotChangedInfo />
       <V2vLaunchGroupVm v-for="vm of resumedVms" :key="vm.id">
         <template #name>{{ vm.name }}</template>
         <VtsInlineParts separator="bullet">
@@ -77,6 +78,7 @@
 
 <script lang="ts" setup>
 import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
+import V2vSourceSnapshotChangedInfo from '@/modules/v2v/components/mapping/V2vSourceSnapshotChangedInfo.vue'
 import V2vLaunchGroup from '@/modules/v2v/components/review/V2vLaunchGroup.vue'
 import V2vLaunchGroupVm from '@/modules/v2v/components/review/V2vLaunchGroupVm.vue'
 import V2vLaunchOptionsCard from '@/modules/v2v/components/review/V2vLaunchOptionsCard.vue'

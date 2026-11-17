@@ -1,7 +1,6 @@
 import { useV2vVmLabels } from '@/modules/v2v/composables/use-v2v-vm-labels.composable.ts'
 import type { V2vAccentedLabel } from '@/modules/v2v/types/v2v-accented-label.type.ts'
 import type { V2vTargetOrigin } from '@/modules/v2v/types/v2v-mapping.type.ts'
-import type { V2vNextTransfer } from '@/modules/v2v/utils/v2v-vm-status.util.ts'
 import type { TagAccent } from '@core/components/ui/tag/UiTag.vue'
 import { formatSize } from '@core/utils/size.util.ts'
 import type { V2V_VM_POWER_STATE, XoV2vDisk, XoV2vPortGroup } from '@vates/types'
@@ -63,11 +62,6 @@ export function useV2vMappingLabels() {
     return isMacKept ? [...getPortGroupParts(portGroup), t('v2v:mac-kept')] : getPortGroupParts(portGroup)
   }
 
-  const nextTransferLabels = computed<Record<V2vNextTransfer, string>>(() => ({
-    delta: t('delta-transfer'),
-    full: t('full-transfer'),
-  }))
-
   return {
     getOriginTag,
     getPowerLabel,
@@ -76,6 +70,5 @@ export function useV2vMappingLabels() {
     getPortGroupParts,
     getDiskDetailParts,
     getNicDetailParts,
-    nextTransferLabels,
   }
 }

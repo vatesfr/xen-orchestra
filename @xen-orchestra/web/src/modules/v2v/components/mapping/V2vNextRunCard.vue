@@ -2,11 +2,7 @@
   <UiPanelCard class="v2v-next-run-card">
     <UiPanelCardTitle size="medium" :label="t('next-run')" />
     <div class="content">
-      <UiInfo v-if="transfer === 'full'" accent="warning" wrap>{{ t('v2v:source-snapshot-changed') }}</UiInfo>
-      <VtsCardRowKeyValue>
-        <template #key>{{ t('type') }}</template>
-        <template #value>{{ nextTransferLabels[transfer] }}</template>
-      </VtsCardRowKeyValue>
+      <V2vSourceSnapshotChangedInfo />
       <VtsCardRowKeyValue>
         <template #key>{{ t('last-sync') }}</template>
         <template #value>{{ lastSync }}</template>
@@ -17,8 +13,7 @@
 </template>
 
 <script lang="ts" setup>
-import { useV2vMappingLabels } from '@/modules/v2v/composables/use-v2v-mapping-labels.composable.ts'
-import type { V2vNextTransfer } from '@/modules/v2v/utils/v2v-vm-status.util.ts'
+import V2vSourceSnapshotChangedInfo from '@/modules/v2v/components/mapping/V2vSourceSnapshotChangedInfo.vue'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
@@ -28,13 +23,10 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { lastSyncAt } = defineProps<{
-  transfer: V2vNextTransfer
   lastSyncAt?: number
 }>()
 
 const { t } = useI18n()
-
-const { nextTransferLabels } = useV2vMappingLabels()
 
 const lastSync = computed(() => (lastSyncAt === undefined ? undefined : formatDateTime(lastSyncAt)))
 </script>

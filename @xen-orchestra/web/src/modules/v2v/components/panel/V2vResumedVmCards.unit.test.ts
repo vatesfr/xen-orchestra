@@ -67,7 +67,7 @@ it('shows the import VM on the pool it was synced to', async () => {
 it('tells the next run, since the last sync', async () => {
   const card = (await mountCards()).getComponent(V2vNextRunCard)
 
-  expect(card.props()).toEqual({ transfer: 'delta', lastSyncAt: VM.lastSyncAt })
+  expect(card.props()).toEqual({ lastSyncAt: VM.lastSyncAt })
 })
 
 it('shows the mapping of the first sync, locked on the pool', async () => {

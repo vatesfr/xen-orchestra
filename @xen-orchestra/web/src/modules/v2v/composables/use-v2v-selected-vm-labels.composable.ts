@@ -80,7 +80,7 @@ export function useV2vSelectedVmLabels() {
     }
 
     if (summary.type === 'locked') {
-      return getResumedParts('delta')
+      return getResumedParts()
     }
 
     const { diskCount, srNames, nicCount, networkNames } = summary

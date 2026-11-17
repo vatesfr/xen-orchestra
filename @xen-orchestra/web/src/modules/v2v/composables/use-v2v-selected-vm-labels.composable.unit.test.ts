@@ -127,7 +127,7 @@ describe('getMappingParts', () => {
     const labels = mountLabels()
 
     expect(labels.getMappingParts({ type: 'locked' })).toEqual([
-      labels.t('v2v:delta-from-last-sync'),
+      labels.t('v2v:resumes-from-last-sync'),
       labels.t('v2v:mapping-locked'),
     ])
   })

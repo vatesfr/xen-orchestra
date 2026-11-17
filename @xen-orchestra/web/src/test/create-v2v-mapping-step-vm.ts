@@ -9,7 +9,7 @@ import type { V2vSelectedVm } from '@/modules/v2v/types/v2v-selected-vm.type.ts'
 import { createV2vMappingVmHeading } from '@/test/create-v2v-mapping-vm-heading.ts'
 import { createV2vMigrationList, createV2vMigrationListVm } from '@/test/create-v2v-migration-list.ts'
 import { createV2vSelectedVm } from '@/test/create-v2v-selected-vms.ts'
-import { V2V_MAPPED_VM, V2V_RESUMED_IMPORT_VM, V2V_SYNCED_VM } from '@/test/v2v-mapping-fixtures.ts'
+import { V2V_MAPPED_VM, V2V_RESUMED_IMPORT_VM } from '@/test/v2v-mapping-fixtures.ts'
 import { V2V_GONE_VM_ID } from '@/test/v2v-mapping-step-fixtures.ts'
 
 // The VM of a mapping step, one per kind: the mapped VM, new in its list or resumed from its import, or a VM gone from
@@ -30,9 +30,9 @@ export function createV2vResumedMappingStepVm(
 ): V2vResumedMappingStepVm {
   return {
     kind: 'resume',
-    id: V2V_SYNCED_VM.id,
-    heading: createV2vMappingVmHeading({ name: V2V_SYNCED_VM.name }),
-    vm: V2V_SYNCED_VM,
+    id: V2V_MAPPED_VM.id,
+    heading: createV2vMappingVmHeading({ name: V2V_MAPPED_VM.name }),
+    vm: V2V_MAPPED_VM,
     importVm: V2V_RESUMED_IMPORT_VM,
     lastSyncAt: Date.UTC(2026, 9, 2, 14, 40),
     ...overrides,

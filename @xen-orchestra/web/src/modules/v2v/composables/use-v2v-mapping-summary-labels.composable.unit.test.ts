@@ -3,24 +3,14 @@ import { mountComposableWithI18n } from '@/test/mount-composable.ts'
 
 describe('getResumedParts', () => {
   it.each([
-    ['delta', 'v2v:delta-from-last-sync'],
-    ['full', 'full-transfer'],
-  ] as const)('tells the %s transfer, then the details, then that the mapping is locked', (transfer, labelKey) => {
+    ['with details', ['detail-1', 'detail-2']],
+    ['without details', []],
+  ])('tells the resume, then the details, then that the mapping is locked %s', (_, details) => {
     const labels = mountComposableWithI18n(useV2vMappingSummaryLabels)
 
-    expect(labels.getResumedParts(transfer, 'detail-1', 'detail-2')).toEqual([
-      labels.t(labelKey),
-      'detail-1',
-      'detail-2',
-      labels.t('v2v:mapping-locked'),
-    ])
-  })
-
-  it('tells only the transfer and the locked mapping without details', () => {
-    const labels = mountComposableWithI18n(useV2vMappingSummaryLabels)
-
-    expect(labels.getResumedParts('delta')).toEqual([
-      labels.t('v2v:delta-from-last-sync'),
+    expect(labels.getResumedParts(...details)).toEqual([
+      labels.t('v2v:resumes-from-last-sync'),
+      ...details,
       labels.t('v2v:mapping-locked'),
     ])
   })

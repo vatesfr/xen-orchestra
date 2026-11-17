@@ -1,6 +1,5 @@
 import { useV2vResumedVm } from '@/modules/v2v/composables/use-v2v-resumed-vm.composable.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
-import { createV2vVm } from '@/test/create-v2v-inventory.ts'
 import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
 import { vmDeviceCollectionsMock } from '@/test/mock-xo-vm-device-collections.ts'
 import { mountComposableWithI18n } from '@/test/mount-composable.ts'
@@ -14,7 +13,6 @@ import {
   V2V_MAPPED_VM,
   V2V_RESUMED_IMPORT_VM,
   V2V_SSD_SR,
-  V2V_SYNCED_VM,
   V2V_VLAN_NETWORK,
 } from '@/test/v2v-mapping-fixtures.ts'
 import { V2V_LIST_POOL } from '@/test/v2v-wizard-fixtures.ts'
@@ -46,7 +44,7 @@ vi.mock(
   () => import('@/test/mock-xo-vm-device-collections.ts')
 )
 
-function mountResumedVm(vm: XoV2vVm = V2V_SYNCED_VM, importVm: FrontXoVm = V2V_RESUMED_IMPORT_VM) {
+function mountResumedVm(vm: XoV2vVm = V2V_MAPPED_VM, importVm: FrontXoVm = V2V_RESUMED_IMPORT_VM) {
   seedV2vResumedVmCollections()
 
   return mountComposableWithI18n(() => useV2vResumedVm(vm, importVm), {
@@ -115,15 +113,5 @@ describe('isActiveMappingReady', () => {
     READY_FLAGS[readyFlag].value = false
 
     expect(resumedVm.isActiveMappingReady).toBe(false)
-  })
-})
-
-describe('nextTransfer', () => {
-  it('sends the delta since the last sync while the source VM holds the synced snapshot', () => {
-    expect(mountResumedVm().nextTransfer).toBe('delta')
-  })
-
-  it('sends the whole disks again once the source snapshot changed', () => {
-    expect(mountResumedVm(createV2vVm({ ...V2V_MAPPED_VM, currentSnapshotId: 'snapshot-2' })).nextTransfer).toBe('full')
   })
 })

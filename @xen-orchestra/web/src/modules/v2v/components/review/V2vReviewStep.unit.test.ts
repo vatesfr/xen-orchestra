@@ -1,4 +1,5 @@
 import { getTaskRoute } from '@/modules/task/utils/xo-task.util.ts'
+import V2vSourceSnapshotChangedInfo from '@/modules/v2v/components/mapping/V2vSourceSnapshotChangedInfo.vue'
 import V2vLaunchGroup from '@/modules/v2v/components/review/V2vLaunchGroup.vue'
 import V2vLaunchGroupVm from '@/modules/v2v/components/review/V2vLaunchGroupVm.vue'
 import V2vLaunchOptionsCard from '@/modules/v2v/components/review/V2vLaunchOptionsCard.vue'
@@ -168,6 +169,12 @@ it('names a resumed VM with where it continues', async () => {
 
   expect(resumed.text()).toMatch(new RegExp(`^${V2V_DB_VM.name}`))
   expect(findInlineParts(resumed)).toHaveLength(3)
+})
+
+it('warns a resumed VM whose source snapshot changed comes back as a new VM', async () => {
+  const { wrapper } = await mountStep()
+
+  expect(getGroup(wrapper, 'v2v:launch-group:resumed').findComponent(V2vSourceSnapshotChangedInfo).exists()).toBe(true)
 })
 
 it('names the new VMs', async () => {

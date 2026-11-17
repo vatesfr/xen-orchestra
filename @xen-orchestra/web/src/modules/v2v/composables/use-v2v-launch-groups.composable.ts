@@ -9,7 +9,6 @@ import type { V2vListedVm } from '@/modules/v2v/types/v2v-selected-vm.type.ts'
 import type { V2vVmRow } from '@/modules/v2v/types/v2v-vm-row.type.ts'
 import { getV2vLaunchPlan } from '@/modules/v2v/utils/v2v-launch-plan.util.ts'
 import { getV2vTargetName } from '@/modules/v2v/utils/v2v-mapping.util.ts'
-import { getV2vNextTransfer } from '@/modules/v2v/utils/v2v-vm-status.util.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import type { XoV2vVm } from '@vates/types'
 import { compact, uniq } from 'lodash-es'
@@ -88,10 +87,10 @@ export function useV2vLaunchGroups({ vms, getRow }: Pick<ReturnType<typeof useV2
 
   const resumedVms = computed(() =>
     withImports(plan.value.resumed).map(
-      ({ item: { id, name }, row, importVm, poolName, srNames }): V2vResumedVm => ({
+      ({ item: { id, name }, poolName, srNames }): V2vResumedVm => ({
         id,
         name,
-        parts: labels.getResumedVmParts(getV2vNextTransfer(row.vm, importVm), poolName, srNames),
+        parts: labels.getResumedVmParts(poolName, srNames),
       })
     )
   )

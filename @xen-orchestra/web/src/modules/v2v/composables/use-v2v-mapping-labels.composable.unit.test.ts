@@ -76,12 +76,6 @@ describe('getPortGroupParts', () => {
   })
 })
 
-it('labels each next transfer', () => {
-  const labels = mountLabels()
-
-  expect(labels.nextTransferLabels).toEqual({ delta: labels.t('delta-transfer'), full: labels.t('full-transfer') })
-})
-
 describe('getDiskDetailParts', () => {
   it('names the datastore of the disk then its size', () => {
     expect(mountLabels().getDiskDetailParts('ds-prod-01', 300 * 1024 ** 3)).toEqual(['ds-prod-01', '300 GiB'])

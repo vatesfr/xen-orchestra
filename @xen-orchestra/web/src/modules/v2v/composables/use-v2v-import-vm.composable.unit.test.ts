@@ -8,9 +8,9 @@ import {
   V2V_DATA_DISK,
   V2V_DEFAULT_NETWORK,
   V2V_LAN_NIC,
+  V2V_MAPPED_VM,
   V2V_RESUMED_IMPORT_VM,
   V2V_SSD_SR,
-  V2V_SYNCED_VM,
   V2V_SYSTEM_DISK,
   V2V_VLAN_NETWORK,
   V2V_VLAN_NIC,
@@ -41,7 +41,7 @@ beforeEach(() => {
 
 describe('getImportActiveMapping', () => {
   it('pairs the disks and the NICs of the source VM with the devices of its import VM', () => {
-    expect(mountImportVm().getImportActiveMapping(V2V_SYNCED_VM, V2V_RESUMED_IMPORT_VM)).toEqual({
+    expect(mountImportVm().getImportActiveMapping(V2V_MAPPED_VM, V2V_RESUMED_IMPORT_VM)).toEqual({
       disks: [
         { disk: V2V_SYSTEM_DISK, srId: V2V_SSD_SR.id },
         { disk: V2V_DATA_DISK, srId: undefined },
@@ -54,9 +54,9 @@ describe('getImportActiveMapping', () => {
   })
 
   it('pairs nothing with the devices of another VM', () => {
-    const importVmWithoutDevices = createV2vImportVm({ sourceVmId: V2V_SYNCED_VM.id })
+    const importVmWithoutDevices = createV2vImportVm({ sourceVmId: V2V_MAPPED_VM.id })
 
-    const { disks, nics } = mountImportVm().getImportActiveMapping(V2V_SYNCED_VM, importVmWithoutDevices)
+    const { disks, nics } = mountImportVm().getImportActiveMapping(V2V_MAPPED_VM, importVmWithoutDevices)
 
     expect([...disks.map(({ srId }) => srId), ...nics.map(({ networkId }) => networkId)]).toEqual([
       undefined,

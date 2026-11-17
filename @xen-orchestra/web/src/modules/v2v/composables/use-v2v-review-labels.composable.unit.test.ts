@@ -49,11 +49,11 @@ describe('getSrNamesLabel', () => {
 })
 
 describe('getResumedVmParts', () => {
-  it('tells the transfer of the VM, the pool and the SRs it continues on, and that its mapping is kept', () => {
+  it('tells the VM resumes, the pool and the SRs it continues on, and that its mapping is kept', () => {
     const labels = mountComposableWithI18n(useV2vReviewLabels)
 
-    expect(labels.getResumedVmParts('full', DISKOR_POOL_NAME, SR_NAMES)).toEqual([
-      labels.t('full-transfer'),
+    expect(labels.getResumedVmParts(DISKOR_POOL_NAME, SR_NAMES)).toEqual([
+      labels.t('v2v:resumes-from-last-sync'),
       labels.t('v2v:continues-on-pool-sr', { pool: DISKOR_POOL_NAME, srs: labels.getSrNamesLabel(SR_NAMES) }),
       labels.t('v2v:mapping-locked'),
     ])

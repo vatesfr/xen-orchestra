@@ -183,14 +183,14 @@ describe('migratedVms', () => {
 })
 
 describe('resumedVms', () => {
-  it('resumes a warm VM on the pool and the SRs of its import, with its next transfer', async () => {
+  it('resumes a warm VM on the pool and the SRs of its import', async () => {
     const { result } = await mountLaunchGroups()
 
     expect(result.resumedVms).toEqual([
       {
         id: V2V_DB_VM.id,
         name: V2V_DB_VM.name,
-        parts: result.labels.getResumedVmParts('full', DISKOR_POOL_NAME, [V2V_SSD_SR.name_label]),
+        parts: result.labels.getResumedVmParts(DISKOR_POOL_NAME, [V2V_SSD_SR.name_label]),
       },
     ])
   })
@@ -199,7 +199,7 @@ describe('resumedVms', () => {
     const { result } = await mountLaunchGroups({ inventory: DB_VM_DISTINCT_DISKS_INVENTORY })
 
     expect(result.resumedVms[0].parts).toEqual(
-      result.labels.getResumedVmParts('full', DISKOR_POOL_NAME, [V2V_SSD_SR.name_label])
+      result.labels.getResumedVmParts(DISKOR_POOL_NAME, [V2V_SSD_SR.name_label])
     )
   })
 })

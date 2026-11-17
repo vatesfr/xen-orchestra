@@ -1,7 +1,6 @@
 import { useV2vMappingSummaryLabels } from '@/modules/v2v/composables/use-v2v-mapping-summary-labels.composable.ts'
 import type { V2vAccentedLabel } from '@/modules/v2v/types/v2v-accented-label.type.ts'
 import type { V2vLaunchGroupType } from '@/modules/v2v/types/v2v-launch.type.ts'
-import type { V2vNextTransfer } from '@/modules/v2v/utils/v2v-vm-status.util.ts'
 import { mapCountedKeys } from '@/shared/utils/count.util.ts'
 import type { CounterAccent } from '@core/components/ui/counter/UiCounter.vue'
 import { formatDateTime } from '@core/utils/time.util.ts'
@@ -51,8 +50,8 @@ export function useV2vReviewLabels() {
   }
 
   // A resumed VM goes on where its last sync left it: on the pool and the SRs of its import
-  function getResumedVmParts(transfer: V2vNextTransfer, poolName: string, srNames: string[]): string[] {
-    return getResumedParts(transfer, t('v2v:continues-on-pool-sr', { pool: poolName, srs: getSrNamesLabel(srNames) }))
+  function getResumedVmParts(poolName: string, srNames: string[]): string[] {
+    return getResumedParts(t('v2v:continues-on-pool-sr', { pool: poolName, srs: getSrNamesLabel(srNames) }))
   }
 
   function getCutoverLabel(cutoverAt: number | undefined): string | undefined {

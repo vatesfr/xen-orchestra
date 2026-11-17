@@ -27,7 +27,7 @@ import { createVif } from '@/test/create-vif.ts'
 import { createVmTemplate } from '@/test/create-vm-template.ts'
 import { t } from '@/test/i18n.ts'
 import { V2V_LIST_POOL } from '@/test/v2v-wizard-fixtures.ts'
-import { V2V_VM_OTHER_CONFIG, VM_POWER_STATE, type XoV2vDisk, type XoV2vNic } from '@vates/types'
+import { VM_POWER_STATE, type XoV2vDisk, type XoV2vNic } from '@vates/types'
 
 const DEFAULTS = createV2vDestinationDefaults()
 
@@ -186,12 +186,6 @@ export const V2V_RESUMED_IMPORT_VM = createV2vImportVm(
     VIFs: V2V_SYNCED_VIFS.map(vif => vif.id),
   }
 )
-
-// The source VM still holds the snapshot its import last synced
-export const V2V_SYNCED_VM = createV2vVm({
-  ...V2V_MAPPED_VM,
-  currentSnapshotId: V2V_RESUMED_IMPORT_VM.other[V2V_VM_OTHER_CONFIG.SOURCE_SNAPSHOT_ID],
-})
 
 // The rows of the active mapping of the resumed VM, its disks and its NICs
 export const V2V_ACTIVE_DISK_ROWS: V2vActiveMappingRow[] = [

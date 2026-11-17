@@ -1,6 +1,6 @@
 <template>
   <V2vDestinationVmCard :vm="destinationVm" :pool-name />
-  <V2vNextRunCard :transfer="nextTransfer" :last-sync-at="vm.lastSyncAt" />
+  <V2vNextRunCard :last-sync-at="vm.lastSyncAt" />
   <V2vActiveMappingCard
     :pool-name
     :disk-rows="activeDiskRows"
@@ -20,7 +20,7 @@ const { vm } = defineProps<{
   vm: V2vResumedMappingStepVm
 }>()
 
-const { poolName, destinationVm, activeDiskRows, activeNicRows, isActiveMappingReady, nextTransfer } = useV2vResumedVm(
+const { poolName, destinationVm, activeDiskRows, activeNicRows, isActiveMappingReady } = useV2vResumedVm(
   () => vm.vm,
   () => vm.importVm
 )

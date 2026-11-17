@@ -9,7 +9,6 @@ import type { V2vDestinationVm } from '@/modules/v2v/types/v2v-destination-vm.ty
 import type { V2vActiveMappingRow } from '@/modules/v2v/types/v2v-mapping.type.ts'
 import { getV2vTargetName } from '@/modules/v2v/utils/v2v-mapping.util.ts'
 import { findV2vPortGroup, getV2vDatastoreName } from '@/modules/v2v/utils/v2v-source.util.ts'
-import { getV2vNextTransfer } from '@/modules/v2v/utils/v2v-vm-status.util.ts'
 import { useXoVmUtils } from '@/modules/vm/composables/xo-vm-utils.composable.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { objectIcon } from '@core/icons'
@@ -78,7 +77,5 @@ export function useV2vResumedVm(rawVm: MaybeRefOrGetter<XoV2vVm>, rawImportVm: M
     () => areImportDevicesReady.value && areSrsReady.value && areNetworksReady.value
   )
 
-  const nextTransfer = computed(() => getV2vNextTransfer(vm.value, importVm.value))
-
-  return { poolName, destinationVm, activeDiskRows, activeNicRows, isActiveMappingReady, nextTransfer }
+  return { poolName, destinationVm, activeDiskRows, activeNicRows, isActiveMappingReady }
 }
