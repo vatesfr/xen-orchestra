@@ -922,8 +922,17 @@ export class Xapi extends EventEmitter {
   }
 
   // manually run events watching if set to `false` in constructor
+  //
+  // `_watchEvents` only returns on a failure it does not handle (e.g. an exception thrown by a listener of
+  // the objects collection) and nothing restarts it: the cache would stay frozen on a connection which still
+  // looks alive. Disconnect instead, so that whoever owns this connection reconnects, and rebuilds the cache.
   watchEvents() {
-    ignoreErrors.call(this._watchEvents())
+    ignoreErrors.call(
+      this._watchEvents().catch(error => {
+        console.warn('_watchEvents: the event loop failed, disconnecting', error)
+        return this.disconnect()
+      })
+    )
   }
 
   async watchTask(ref) {
