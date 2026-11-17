@@ -260,8 +260,9 @@ export class Collection extends EventEmitter {
   // -----------------------------------------------------------------
 
   // A listener which throws must not leave the buffer behind, nor skip the other batches and `finish`: the
-  // flush emits everything, then throws the first failure, so that the caller still sees it. The listeners
-  // registered after the failing one for the same batch still miss it, that is how `emit` works.
+  // flush emits everything, then throws the failure (an `AggregateError` if several), so that the caller
+  // still sees it. The listeners registered after the failing one for the same batch still miss it, that is
+  // how `emit` works.
   bufferEvents() {
     ++this._buffering
 
@@ -316,8 +317,11 @@ export class Collection extends EventEmitter {
 
       this._buffer = createObject(null)
 
-      if (errors.length !== 0) {
+      if (errors.length === 1) {
         throw errors[0]
+      }
+      if (errors.length > 1) {
+        throw new AggregateError(errors, 'several listeners failed while flushing the buffered events')
       }
     }
   }

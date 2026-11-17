@@ -284,6 +284,41 @@ describe('Collection', function () {
       flush2()
       assert.deepEqual(added, [['baz']])
     })
+
+    it('empties the buffer when a finish listener throws', function () {
+      const error = new Error('listener failure')
+      col.once('finish', () => {
+        throw error
+      })
+
+      const flush = col.bufferEvents()
+      col.add('foo', 1)
+      assert.throws(flush, error)
+
+      const added = []
+      col.on('add', items => added.push(Object.keys(items)))
+      const flush2 = col.bufferEvents()
+      col.add('baz', 2)
+      flush2()
+      assert.deepEqual(added, [['baz']])
+    })
+
+    it('throws an AggregateError when several listeners throw', function () {
+      const addError = new Error('add failure')
+      const removeError = new Error('remove failure')
+      col.once('add', () => {
+        throw addError
+      })
+      col.once('remove', () => {
+        throw removeError
+      })
+
+      const flush = col.bufferEvents()
+      col.add('foo', 1)
+      col.remove('bar')
+
+      assert.throws(flush, { name: 'AggregateError', errors: [addError, removeError] })
+    })
   })
 
   describe('deduplicates events', function () {

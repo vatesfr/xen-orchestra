@@ -87,7 +87,7 @@
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
 - xen-api patch
-- xo-collection patch
+- xo-collection major
 - xo-server minor
 - xo-server-audit minor
 - xo-server-load-balancer patch
