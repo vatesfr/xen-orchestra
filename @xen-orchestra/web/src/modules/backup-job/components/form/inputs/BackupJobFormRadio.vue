@@ -9,7 +9,7 @@
       <UiLabel accent="neutral" required>{{ label }}</UiLabel>
     </template>
     <div v-for="option of options" :key="option.value" class="option">
-      <UiRadioButton v-model="model" accent="brand" :value="option.value">
+      <UiRadioButton v-model="model" accent="brand" :value="option.value" :disabled>
         {{ option.label }}
       </UiRadioButton>
       <UiInfo v-if="option.description" accent="info" wrap>{{ option.description }}</UiInfo>
@@ -32,6 +32,7 @@ defineProps<{
   label: string
   options: BackupJobFormOption<TValue>[]
   vertical?: boolean
+  disabled?: boolean
 }>()
 
 const model = defineModel<TValue>({ required: true })

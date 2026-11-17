@@ -143,7 +143,7 @@ function getSynchronizedSnapshot(transfer: BackupJobTransferFormData): boolean |
   return transfer.snapshotSync === 'smart' ? transfer.snapshotSyncTag : true
 }
 
-const DAYS_BEFORE_MONTH = [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334]
+export const DAYS_BEFORE_MONTH = [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334]
 
 const LONG_TERM_RETENTION_KEEP_SETTINGS: Record<LongTermRetentionPeriod, (keep: number) => BackupJobSettings> = {
   daily: hour => ({ firstHourOfTheDay: hour }),
