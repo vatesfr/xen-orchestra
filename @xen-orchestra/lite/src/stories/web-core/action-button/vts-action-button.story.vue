@@ -11,7 +11,7 @@
       prop('accent').type('ButtonAccent').enum('brand', 'warning', 'danger').preset('brand').required().widget(),
       iconProp().preset('action:connect'),
       prop('disabled').bool().widget(),
-      prop('busy').bool().widget(),
+      prop('busy').bool().widget().help('In a VtsHeadBarActions, the button is disabled without showing a loader'),
       prop('hint').str().preset('Already connected').widget().help('Shown when disabled'),
       event('click'),
       slot(),
