@@ -53,7 +53,7 @@ The same goes for `mock-xo-v2v-vm-rows-collections.ts`, the VM, task and VM snap
 
 `mock-xo-v2v-status.ts` stands for `useXoV2vStatus`, the V2V prerequisite the server reports: `v2vStatusMock` holds `canConnectV2vSource` and `v2vPrerequisite` (true and `{ state: 'ok' }` after a reset).
 
-`mock-vm-delete.ts` stands for `useVmDelete`, which calls the REST API and opens modals: `vmDeleteMock.useVmDelete` is the spy to read the VMs a caller asked to delete, `vmDeleteMock.deleteVms` the one the caller runs, `vmDeleteMock.setDeleting(true)` holds the VMs as being deleted for the callers mounted next, and `vmDeleteMock.reset()` goes in `beforeEach`.
+`mock-vm-delete.ts` stands for `useVmDelete`, which calls the REST API and opens modals: `vmDeleteMock.useVmDelete` is the spy to read the VMs a caller asked to delete, `vmDeleteMock.deleteVms` the one the caller runs, `vmDeleteMock.setDeleting(true)` holds the VMs as being deleted, `vmDeleteMock.setBlocked(message)` makes them undeletable for that reason, and `vmDeleteMock.reset()` goes in `beforeEach`.
 
 ## Network
 

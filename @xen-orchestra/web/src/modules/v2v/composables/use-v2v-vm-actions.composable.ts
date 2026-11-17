@@ -64,7 +64,7 @@ export function useV2vResumedVmActions(rawVm: MaybeRefOrGetter<V2vResumedMapping
 
   const { t } = useI18n()
 
-  const { deleteVms, isDeletingVms } = useVmDelete(() => [vm.value.importVm])
+  const { deleteVms, canDeleteVms, isDeletingVms, deleteVmsErrorMessage } = useVmDelete(() => [vm.value.importVm])
 
   const editAction = useEditSettingsAction(() => ({
     onClick: noop,
@@ -78,6 +78,8 @@ export function useV2vResumedVmActions(rawVm: MaybeRefOrGetter<V2vResumedMapping
       icon: 'action:delete',
       accent: 'danger',
       onClick: () => deleteVms(),
+      disabled: !canDeleteVms.value,
+      hint: deleteVmsErrorMessage.value,
       busy: isDeletingVms.value,
     })
   )

@@ -77,7 +77,7 @@ describe('useV2vResumedVmActions', () => {
     const actions = mountResumedVmActions()
 
     expect(actions.moreActions).toMatchObject([
-      { label: actions.t('action:delete'), icon: 'action:delete', accent: 'danger', busy: false },
+      { label: actions.t('action:delete'), icon: 'action:delete', accent: 'danger', busy: false, disabled: false },
     ])
   })
 
@@ -94,6 +94,12 @@ describe('useV2vResumedVmActions', () => {
     vmDeleteMock.setDeleting(true)
 
     expect(mountResumedVmActions().moreActions[0].busy).toBe(true)
+  })
+
+  it('disables the deletion, telling why, when the import VM cannot be deleted', () => {
+    vmDeleteMock.setBlocked('Blocked operation')
+
+    expect(mountResumedVmActions().moreActions[0]).toMatchObject({ disabled: true, hint: 'Blocked operation' })
   })
 })
 
