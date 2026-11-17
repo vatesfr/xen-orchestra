@@ -1,29 +1,31 @@
 <template>
-  <div class="pool-dashboard-view" :class="{ mobile: uiStore.isSmall }">
-    <div class="row first-row">
-      <PoolDashboardStatus class="status" />
-      <PoolDashboardAlarms class="alarms" />
-      <PoolDashboardHostsPatches class="patches" />
-    </div>
+  <div class="scroll-container">
+    <div class="pool-dashboard-view" :class="{ mobile: uiStore.isSmall }">
+      <div class="row first-row">
+        <PoolDashboardStatus class="status" />
+        <PoolDashboardAlarms class="alarms" />
+        <PoolDashboardHostsPatches class="patches" />
+      </div>
 
-    <div class="row second-row">
-      <div class="column first-column">
-        <PoolDashboardStorageUsage />
-        <PoolDashboardNetworkChart />
+      <div class="row second-row">
+        <div class="column first-column">
+          <PoolDashboardStorageUsage />
+          <PoolDashboardNetworkChart />
+        </div>
+        <div class="column second-column">
+          <PoolDashboardRamUsage />
+          <PoolRamUsageChart />
+        </div>
+        <div class="column third-column">
+          <PoolDashboardCpuProvisioning />
+          <PoolDashboardCpuUsage />
+          <PoolCpuUsageChart />
+        </div>
       </div>
-      <div class="column second-column">
-        <PoolDashboardRamUsage />
-        <PoolRamUsageChart />
-      </div>
-      <div class="column third-column">
-        <PoolDashboardCpuProvisioning />
-        <PoolDashboardCpuUsage />
-        <PoolCpuUsageChart />
-      </div>
-    </div>
 
-    <div class="row third-row">
-      <PoolDashboardTasks class="tasks" />
+      <div class="row third-row">
+        <PoolDashboardTasks class="tasks" />
+      </div>
     </div>
   </div>
 </template>
@@ -112,6 +114,12 @@ export const N_ITEMS = 5
 </script>
 
 <style lang="postcss" scoped>
+.scroll-container {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
 .pool-dashboard-view {
   margin: 0.8rem;
 

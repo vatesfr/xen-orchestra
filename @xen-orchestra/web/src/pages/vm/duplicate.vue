@@ -100,6 +100,9 @@ function handleGoBack() {
 
 <style scoped lang="postcss">
 .card-container {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
   padding: 0.8rem;
 }
 </style>
