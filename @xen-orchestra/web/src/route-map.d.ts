@@ -88,9 +88,43 @@ declare module 'vue-router/auto-routes' {
       '/admin/backup-and-replication',
       Record<never, never>,
       Record<never, never>,
+      | '/admin/backup-and-replication/archives'
+      | '/admin/backup-and-replication/archives/pool-metadata'
+      | '/admin/backup-and-replication/archives/vms'
+      | '/admin/backup-and-replication/archives/xo-config'
       | '/admin/backup-and-replication/backup-repositories'
       | '/admin/backup-and-replication/jobs'
       | '/admin/backup-and-replication/logs'
+    >,
+    '/admin/backup-and-replication/archives': RouteRecordInfo<
+      '/admin/backup-and-replication/archives',
+      '/admin/backup-and-replication/archives',
+      Record<never, never>,
+      Record<never, never>,
+      | '/admin/backup-and-replication/archives/pool-metadata'
+      | '/admin/backup-and-replication/archives/vms'
+      | '/admin/backup-and-replication/archives/xo-config'
+    >,
+    '/admin/backup-and-replication/archives/pool-metadata': RouteRecordInfo<
+      '/admin/backup-and-replication/archives/pool-metadata',
+      '/admin/backup-and-replication/archives/pool-metadata',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/admin/backup-and-replication/archives/vms': RouteRecordInfo<
+      '/admin/backup-and-replication/archives/vms',
+      '/admin/backup-and-replication/archives/vms',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/admin/backup-and-replication/archives/xo-config': RouteRecordInfo<
+      '/admin/backup-and-replication/archives/xo-config',
+      '/admin/backup-and-replication/archives/xo-config',
+      Record<never, never>,
+      Record<never, never>,
+      | never
     >,
     '/admin/backup-and-replication/backup-repositories': RouteRecordInfo<
       '/admin/backup-and-replication/backup-repositories',
@@ -642,11 +676,42 @@ declare module 'vue-router/auto-routes' {
     'src/pages/admin/backup-and-replication.vue': {
       routes:
         | '/admin/backup-and-replication'
+        | '/admin/backup-and-replication/archives'
+        | '/admin/backup-and-replication/archives/pool-metadata'
+        | '/admin/backup-and-replication/archives/vms'
+        | '/admin/backup-and-replication/archives/xo-config'
         | '/admin/backup-and-replication/backup-repositories'
         | '/admin/backup-and-replication/jobs'
         | '/admin/backup-and-replication/logs'
       views:
         | 'default'
+    }
+    'src/pages/admin/backup-and-replication/archives.vue': {
+      routes:
+        | '/admin/backup-and-replication/archives'
+        | '/admin/backup-and-replication/archives/pool-metadata'
+        | '/admin/backup-and-replication/archives/vms'
+        | '/admin/backup-and-replication/archives/xo-config'
+      views:
+        | 'default'
+    }
+    'src/pages/admin/backup-and-replication/archives/pool-metadata.vue': {
+      routes:
+        | '/admin/backup-and-replication/archives/pool-metadata'
+      views:
+        | never
+    }
+    'src/pages/admin/backup-and-replication/archives/vms.vue': {
+      routes:
+        | '/admin/backup-and-replication/archives/vms'
+      views:
+        | never
+    }
+    'src/pages/admin/backup-and-replication/archives/xo-config.vue': {
+      routes:
+        | '/admin/backup-and-replication/archives/xo-config'
+      views:
+        | never
     }
     'src/pages/admin/backup-and-replication/backup-repositories.vue': {
       routes:
