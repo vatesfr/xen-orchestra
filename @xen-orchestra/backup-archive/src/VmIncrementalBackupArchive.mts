@@ -171,15 +171,13 @@ export class VmIncrementalBackupArchive implements VmBackupInterface {
 
   /**
    * Updates metadata.vhdsSizeOnDisk after a merge and writes the updated metadata file to disk.
-   * Also resets isVhdDifferencing so all VDIs are marked as full (non-differencing).
+   * Only merged disks are marked as full.
    */
   async updateMetadata(updates: Record<string, number>): Promise<void> {
     this.metadata.vhdsSizeOnDisk = { ...this.metadata.vhdsSizeOnDisk, ...updates }
-    if (this.metadata.vdis !== undefined) {
-      this.metadata.isVhdDifferencing = {}
-      for (const id of Object.keys(this.metadata.vdis)) {
-        this.metadata.isVhdDifferencing[id] = false
-      }
+    this.metadata.isVhdDifferencing = this.metadata.isVhdDifferencing ?? {}
+    for (const id of Object.keys(updates)) {
+      this.metadata.isVhdDifferencing[id] = false
     }
     await this.handler.writeFile(this.metadataPath, JSON.stringify(this.metadata), { flags: 'w' })
   }

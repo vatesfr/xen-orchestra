@@ -54,7 +54,13 @@ describe('formatVmBackupAt()', () => {
 
     for (const filename of [FILENAME, FILENAME.slice(1)]) {
       assert.deepEqual(formatVmBackupAt(metadata, filename, REPOSITORY).disks, [
-        { id: `/xo-vm-backups/${VM}/vdi.vhd`, name: 'a disk', uuid: 'a-vdi-uuid', sizeOnDisk: undefined },
+        {
+          id: `/xo-vm-backups/${VM}/vdi.vhd`,
+          isDifferencing: undefined,
+          name: 'a disk',
+          uuid: 'a-vdi-uuid',
+          sizeOnDisk: undefined,
+        },
       ])
     }
   })
@@ -155,6 +161,28 @@ describe('size on disk', () => {
 
     assert.equal(formatted.size, 100)
     assert.equal(formatted.sizeOnDisk, 42)
+  })
+})
+
+describe('is differencing', () => {
+  const isVhdDifferencingOf = metadata => {
+    const { disks } = formatVmBackupAt(metadata, FILENAME, REPOSITORY)
+    return Object.fromEntries(disks.map(disk => [disk.uuid, disk.isDifferencing]))
+  }
+
+  it('forwards isVhdDifferencing', () => {
+    const disks = isVhdDifferencingOf({
+      ...metadata,
+      isVhdDifferencing: { 'OpaqueRef:2f7a': true, 'OpaqueRef:9c1b': false },
+    })
+
+    assert.deepEqual(disks, { 'snapshot-vdi-uuid-1': true, 'snapshot-vdi-uuid-2': false })
+  })
+
+  it('handles missing isVhdDifferencing', () => {
+    const disks = isVhdDifferencingOf(metadata)
+
+    assert.deepEqual(disks, { 'snapshot-vdi-uuid-1': undefined, 'snapshot-vdi-uuid-2': undefined })
   })
 })
 

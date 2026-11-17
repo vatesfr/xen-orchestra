@@ -465,6 +465,20 @@ test('it only updates the size on disk of the merged disks', async () => {
   assert.equal(metadata.vhdsSizeOnDisk.b, 2, 'the size on disk of a disk which has not been merged should not change')
 })
 
+test('it only marks the merged disks as not differencing', async () => {
+  const metadata = await writeBackupWithOneDiskToMerge({
+    isVhdDifferencing: { a: true, b: true },
+    vdis: { a: {}, b: {} },
+  })
+
+  assert.equal(metadata.isVhdDifferencing.a, false)
+  assert.equal(
+    metadata.isVhdDifferencing.b,
+    true,
+    'the isVhdDifferencing of a disk which has not been merged should not change'
+  )
+})
+
 test('it records the size on disk of the merged disks of a backup without any', async () => {
   // a backup written before the size on disk was recorded
   const metadata = await writeBackupWithOneDiskToMerge({})

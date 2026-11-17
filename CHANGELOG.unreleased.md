@@ -10,6 +10,7 @@
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
 - [Backups] Show the space actually used by each backup on its backup repository, compression and encryption included (XO6 VM dashboard, XOA dashboard backup usage, REST API) (PR [#10685](https://github.com/vatesfr/xen-orchestra/pull/10685))
+- [Backups] Indicate if a disk is a delta or a full (XO6 VM dashboard, XOA dashboard backup usage, REST API) (PR [#10685](https://github.com/vatesfr/xen-orchestra/pull/10685))
 
 ### Bug fixes
 

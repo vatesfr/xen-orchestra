@@ -198,6 +198,7 @@ export type XoVmBackupArchive = {
     name: string
     uuid: XoVdiSnapshot['uuid']
     sizeOnDisk?: number
+    isDifferencing?: boolean
   }[]
   isImmutable?: boolean
   jobId: XoVmBackupJob['id']
@@ -217,6 +218,7 @@ export type XoVmBackupArchive = {
   differencingVhds?: number
   dynamicVhds?: number
   withMemory: boolean
+  tags: string[]
 }
 
 type XoMetadataBackupArchive = {
