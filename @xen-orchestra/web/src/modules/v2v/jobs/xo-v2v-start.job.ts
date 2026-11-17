@@ -4,8 +4,7 @@ import { defineJob, defineJobArg, JobError, JobRunningError } from '@core/packag
 import type { XoTask, XoV2vStartPayload } from '@vates/types'
 import { useI18n } from 'vue-i18n'
 
-// The pool, not its id: a branded id argument cannot be named in the declaration of the job (TS4023). The job identifies
-// its arguments before validating them: a missing pool must not throw here
+// The job identifies its arguments before validating them: a missing pool must not throw here
 const poolArg = defineJobArg<FrontXoPool>({
   identify: (pool: FrontXoPool | undefined) => pool?.id,
   toArray: false,
