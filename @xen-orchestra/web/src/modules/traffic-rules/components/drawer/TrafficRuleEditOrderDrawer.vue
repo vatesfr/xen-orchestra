@@ -49,6 +49,7 @@
 import type { FrontXoNetwork } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
 import { getPoolNetworkRoute } from '@/modules/network/utils/xo-network.util.ts'
 import { useDirectionLabels } from '@/modules/traffic-rules/composables/direction-labels.composable.ts'
+import { useTrafficRulePolicy } from '@/modules/traffic-rules/composables/traffic-rule-policy.composable.ts'
 import { useTrafficRuleTarget } from '@/modules/traffic-rules/composables/traffic-rule-target.composable.ts'
 import { useTrafficRulesOrder } from '@/modules/traffic-rules/composables/traffic-rules-order.composable.ts'
 import type { RankedTrafficRule } from '@/modules/traffic-rules/types.ts'
@@ -80,6 +81,8 @@ const getTarget = useTrafficRuleTarget()
 
 const getDirectionLabels = useDirectionLabels()
 
+const getPolicy = useTrafficRulePolicy()
+
 const networkTo = computed(() => {
   if (network === undefined) {
     return undefined
@@ -101,7 +104,11 @@ const { HeadCells, BodyCells } = useTrafficRulesOrderColumns({
 
         return r(newRank, rule.rank - newRank)
       },
-      policy: r => r(t(rule.allow ? 'allow' : 'drop'), rule.allow ? 'success' : 'danger'),
+      policy: r => {
+        const policy = getPolicy(rule)
+
+        return r(policy.label, policy.accent)
+      },
       protocol: r => r(getTrafficRuleProtocolLabel(rule)),
       directionA: r => r(directionA),
       target: r => r(rule.ipRange),

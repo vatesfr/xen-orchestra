@@ -48,6 +48,7 @@ import { getPoolNetworkRoute } from '@/modules/network/utils/xo-network.util.ts'
 import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import TrafficRuleTableActions from '@/modules/traffic-rules/components/actions/TrafficRuleTableActions.vue'
 import { useDirectionLabels } from '@/modules/traffic-rules/composables/direction-labels.composable.ts'
+import { useTrafficRulePolicy } from '@/modules/traffic-rules/composables/traffic-rule-policy.composable.ts'
 import { useTrafficRuleTarget } from '@/modules/traffic-rules/composables/traffic-rule-target.composable.ts'
 import type { EnrichedTrafficRule, RankedTrafficRule } from '@/modules/traffic-rules/types.ts'
 import { getNetworkRules, getTrafficRuleProtocolLabel } from '@/modules/traffic-rules/utils/xo-traffic-rule.util.ts'
@@ -99,6 +100,8 @@ const selectedRuleId = useRouteQuery('id')
 const getTarget = useTrafficRuleTarget()
 
 const getDirectionLabels = useDirectionLabels()
+
+const getPolicy = useTrafficRulePolicy()
 
 const { getNetworkById, useGetNetworkById } = useXoNetworkCollection()
 
@@ -173,7 +176,11 @@ const { HeadCells, BodyCells } = useTrafficRulesColumns({
           to: networkTo.value,
         }),
       priority: r => r(`${rule.rank}/${rule.networkRuleCount}`),
-      policy: r => r(t(rule.allow ? 'allow' : 'drop'), rule.allow ? 'success' : 'danger'),
+      policy: r => {
+        const policy = getPolicy(rule)
+
+        return r(policy.label, policy.accent)
+      },
       protocol: r => r(getTrafficRuleProtocolLabel(rule)),
       directionA: r => r(rule.directionA),
       target: r => r(rule.ipRange),
