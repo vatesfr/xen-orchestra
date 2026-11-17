@@ -3,7 +3,9 @@
     <UiCard class="container">
       <TasksList :tasks="convertedTasks" :has-error="hasTaskFetchError" :busy="!areTasksReady" />
     </UiCard>
-    <TaskSidePanel :task="selectedTask" @close="selectedTask = undefined" />
+    <template #panel>
+      <TaskSidePanel :task="selectedTask" @close="selectedTask = undefined" />
+    </template>
   </VtsContentSidePanel>
 </template>
 

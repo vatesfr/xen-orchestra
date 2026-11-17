@@ -1,16 +1,13 @@
 <!-- v5 -->
 <template>
-  <div class="vts-side-panel-sticky" :class="{ mobile: uiStore.isSmall }">
+  <div class="vts-side-panel" :class="{ mobile: uiStore.isSmall }">
     <VtsResizeHandle v-if="showResizeHandle" position="start" :resizable="panelStore" />
     <VtsPanel
       :closable="hasSelection"
       :close-icon="uiStore.isSmall ? 'fa:angle-left' : 'action:close-cancel-clear'"
-      class="vts-side-panel"
+      class="panel"
       :style="{ transform }"
-      :class="{
-        locked: panelStore.isLocked && !uiStore.isSmall,
-        mobile: uiStore.isSmall,
-      }"
+      :class="{ locked: panelStore.isLocked && !uiStore.isSmall }"
       @close="handleClose"
     >
       <template v-if="slots.actions" #actions>
@@ -110,32 +107,28 @@ function handleClose() {
 </script>
 
 <style scoped lang="postcss">
-.vts-side-panel-sticky:not(.mobile) {
-  position: sticky;
-  top: 0;
-  align-self: start;
-}
-
 .vts-side-panel {
-  width: v-bind('panelStore.cssWidth');
-  transition: v-bind(transformTransition);
+  .panel {
+    width: v-bind('panelStore.cssWidth');
+    transition: v-bind(transformTransition);
+  }
 
   &:not(.mobile) {
-    --panel-viewport-height: calc(100dvh - 5.6rem);
-    --panel-min-height: calc(100dvh - 16.6rem);
+    position: relative;
 
-    min-height: var(--panel-min-height);
-    max-height: var(--panel-viewport-height);
-    overflow: hidden;
+    .panel {
+      height: 100%;
+      overflow: hidden;
 
-    :deep(> .content) {
-      flex: 1 1 auto;
-      min-height: 0;
-      overflow-y: auto;
+      :deep(> .content) {
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow-y: auto;
+      }
     }
   }
 
-  &.mobile {
+  &.mobile .panel {
     z-index: 1010;
     position: fixed;
     width: 100dvw;
