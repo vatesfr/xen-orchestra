@@ -19,7 +19,7 @@ import { v2vVmRowsCollectionsMock } from '@/test/mock-xo-v2v-vm-rows-collections
 import { mountV2vVmsStep } from '@/test/mount-v2v-vms-step.ts'
 import { resetV2vCollectionMocks } from '@/test/reset-v2v-collection-mocks.ts'
 import { seedV2vListPool } from '@/test/seed-v2v-list-pool.ts'
-import { V2V_DEFAULT_SR, V2V_SSD_SR } from '@/test/v2v-mapping-fixtures.ts'
+import { V2V_DEFAULT_SR, V2V_SSD_SR, withV2vGoneDeviceOverrides } from '@/test/v2v-mapping-fixtures.ts'
 import { readV2vMigrationListStorage } from '@/test/v2v-migration-list-storage.ts'
 import { V2V_SELECTED_VM_CHECK } from '@/test/v2v-selected-vm-checks.ts'
 import { V2V_DB_VM, V2V_LISTED_VM, V2V_RDM_VM, V2V_WEB_VM } from '@/test/v2v-vms-fixtures.ts'
@@ -79,6 +79,12 @@ const WEB_MAPPING = {
 } satisfies V2vMappingSummary
 
 const DB_MAPPING = { type: 'locked' }
+
+// The web VM in the list, its one disk on the SSD SR
+const WEB_SSD_LIST_VM = createV2vMigrationListVm({
+  id: V2V_WEB_VM.id,
+  disks: { [V2V_WEB_VM.disks[0].key]: V2V_SSD_SR.id } as V2vMigrationListVm['disks'],
+})
 
 // The DB VM is warm synced on the pool of the list, the listed one migrated
 const IMPORT_VMS = [
@@ -164,18 +170,7 @@ describe('items', () => {
   })
 
   it('maps a new VM to its overrides', async () => {
-    const [disk] = V2V_WEB_VM.disks
-
-    const { result } = await mountSelectedVms({
-      list: createV2vMigrationList({
-        vms: [
-          createV2vMigrationListVm({
-            id: V2V_WEB_VM.id,
-            disks: { [disk.key]: V2V_SSD_SR.id } as V2vMigrationListVm['disks'],
-          }),
-        ],
-      }),
-    })
+    const { result } = await mountSelectedVms({ list: createV2vMigrationList({ vms: [WEB_SSD_LIST_VM] }) })
 
     xoCollectionsMock.srs.value = [V2V_DEFAULT_SR, V2V_SSD_SR]
 
@@ -323,6 +318,14 @@ describe('vms', () => {
         item: result.items[1],
       },
     ])
+  })
+
+  it('drops from the list VM the overrides of a disk and of a NIC its source VM no longer has', async () => {
+    const { result } = await mountSelectedVms({
+      list: createV2vMigrationList({ vms: [withV2vGoneDeviceOverrides(WEB_SSD_LIST_VM)] }),
+    })
+
+    expect(result.vms[0].listVm).toEqual(WEB_SSD_LIST_VM)
   })
 
   it('is empty for an empty list', async () => {

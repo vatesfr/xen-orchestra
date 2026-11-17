@@ -7,7 +7,7 @@ import { useV2vTargetNameGetters } from '@/modules/v2v/composables/use-v2v-targe
 import { useV2vWizardNavigation } from '@/modules/v2v/composables/use-v2v-wizard-navigation.composable.ts'
 import type { V2vListedVm, V2vListPair, V2vSelectedVmCheck } from '@/modules/v2v/types/v2v-selected-vm.type.ts'
 import type { V2vVmRow } from '@/modules/v2v/types/v2v-vm-row.type.ts'
-import { getV2vVmMapping } from '@/modules/v2v/utils/v2v-mapping.util.ts'
+import { getV2vVmMapping, withoutV2vUnknownDeviceOverrides } from '@/modules/v2v/utils/v2v-mapping.util.ts'
 import {
   getV2vMappingSummary,
   getV2vSelectedVmState,
@@ -77,7 +77,8 @@ export function useV2vSelectedVms({ migrationList, rows, areRowsReady, poolId, s
       const mappingSummary = getV2vMappingSummary(mapping, kind, targetNameGetters)
 
       return {
-        listVm,
+        // A VM gone from the source is never launched
+        listVm: row === undefined ? listVm : withoutV2vUnknownDeviceOverrides(listVm, row.vm),
         kind,
         check,
         mapping: mappingSummary,

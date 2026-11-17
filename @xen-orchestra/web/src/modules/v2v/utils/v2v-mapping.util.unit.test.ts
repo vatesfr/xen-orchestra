@@ -6,10 +6,12 @@ import {
   getV2vVmMapping,
   resolveV2vTarget,
   setV2vOverride,
+  withoutV2vUnknownDeviceOverrides,
 } from '@/modules/v2v/utils/v2v-mapping.util.ts'
 import type { FrontXoVmTemplate } from '@/modules/vm/remote-resources/use-xo-vm-template-collection.ts'
 import { createV2vVm } from '@/test/create-v2v-inventory.ts'
 import { createV2vDestinationDefaults, createV2vMigrationListVm } from '@/test/create-v2v-migration-list.ts'
+import { V2V_FULLY_OVERRIDDEN_LIST_VM, V2V_OVERRIDDEN_LIST_VM } from '@/test/mount-v2v-vm-mapping.ts'
 import {
   V2V_DATA_DISK,
   V2V_DEBIAN_TEMPLATE,
@@ -24,6 +26,7 @@ import {
   V2V_TARGET_OPTIONS,
   V2V_VLAN_NETWORK,
   V2V_VLAN_NIC,
+  withV2vGoneDeviceOverrides,
 } from '@/test/v2v-mapping-fixtures.ts'
 
 const DEFAULTS = createV2vDestinationDefaults()
@@ -130,6 +133,21 @@ describe('getV2vOverride', () => {
 
   it('stores no override for a list equal to its default', () => {
     expect(getV2vOverride(['migrated-from:vmware'], ['migrated-from:vmware'])).toBeUndefined()
+  })
+})
+
+describe('withoutV2vUnknownDeviceOverrides', () => {
+  it('drops the overrides of a disk and of a NIC the VM no longer has, keeping its other overrides', () => {
+    expect(
+      withoutV2vUnknownDeviceOverrides(withV2vGoneDeviceOverrides(V2V_FULLY_OVERRIDDEN_LIST_VM), V2V_MAPPED_VM)
+    ).toEqual(V2V_FULLY_OVERRIDDEN_LIST_VM)
+  })
+
+  it.each([
+    ['all of them are of devices the VM no longer has', V2V_OVERRIDDEN_LIST_VM, createV2vVm({ disks: [], nics: [] })],
+    ['the list VM has none', createV2vMigrationListVm({ id: V2V_MAPPED_VM.id }), V2V_MAPPED_VM],
+  ])('leaves no disk nor NIC override when %s', (_, listVm, vm) => {
+    expect(withoutV2vUnknownDeviceOverrides(listVm, vm)).toEqual(createV2vMigrationListVm({ id: V2V_MAPPED_VM.id }))
   })
 })
 

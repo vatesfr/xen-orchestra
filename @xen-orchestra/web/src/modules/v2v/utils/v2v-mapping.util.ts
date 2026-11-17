@@ -2,7 +2,7 @@ import type { V2vResolvedTarget, V2vTargetOption, V2vVmMapping } from '@/modules
 import type { V2vDestinationDefaults, V2vMigrationListVm } from '@/modules/v2v/types/v2v-migration-list.type.ts'
 import { findOfferedId, type V2vPoolDestinationChoices } from '@/modules/v2v/utils/v2v-destination.util.ts'
 import { V2V_PLATFORM, type XoV2vVm } from '@vates/types'
-import { isEmpty, isEqual, omit } from 'lodash-es'
+import { isEmpty, isEqual, omit, pick } from 'lodash-es'
 
 // Defaults of the per-VM options: the migration list has no list-level option for them
 export const V2V_DEFAULT_KEEP_MAC = true
@@ -61,9 +61,38 @@ export function setV2vOverride<TKey extends string, TValue>(
 
   const override = getV2vOverride(value, defaultValue)
 
-  const nextOverrides = override === undefined ? otherOverrides : { ...otherOverrides, [key]: override }
+  return getStoredOverrides(override === undefined ? otherOverrides : { ...otherOverrides, [key]: override })
+}
 
-  return isEmpty(nextOverrides) ? undefined : nextOverrides
+// Empty overrides are not stored, so that the VM reads as on its defaults
+function getStoredOverrides<TOverrides extends object>(overrides: TOverrides): TOverrides | undefined {
+  return isEmpty(overrides) ? undefined : overrides
+}
+
+function pickV2vOverrides<TKey extends string, TValue>(
+  overrides: Record<TKey, TValue> | undefined,
+  keys: TKey[]
+): Record<TKey, TValue> | undefined {
+  return getStoredOverrides(pick(overrides, keys) as Record<TKey, TValue>)
+}
+
+// The list keeps the override of a disk or a NIC the source VM lost since it was set: no mapping reads it, and the
+// import refuses it
+export function withoutV2vUnknownDeviceOverrides(
+  listVm: V2vMigrationListVm,
+  vm: Pick<XoV2vVm, 'disks' | 'nics'>
+): V2vMigrationListVm {
+  return {
+    ...listVm,
+    disks: pickV2vOverrides(
+      listVm.disks,
+      vm.disks.map(disk => disk.key)
+    ),
+    nics: pickV2vOverrides(
+      listVm.nics,
+      vm.nics.map(nic => nic.key)
+    ),
+  }
 }
 
 type V2vTargetNameGetter<TId extends string> = (id: TId) => string | undefined

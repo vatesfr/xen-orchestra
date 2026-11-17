@@ -53,6 +53,7 @@ export type V2vSelectedVm = {
 
 // A VM of the list, as the mapping step tells it apart, with its item of the panel
 export type V2vListedVm = {
+  // Without the overrides of the disks and the NICs its source VM lost, which the import refuses
   listVm: V2vMigrationListVm
   kind: V2vSelectedVmKind
   check: V2vSelectedVmCheck

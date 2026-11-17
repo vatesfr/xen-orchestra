@@ -83,6 +83,15 @@ export const V2V_DISK_OVERRIDES = { [V2V_DATA_DISK.key]: V2V_SSD_SR.id } as V2vM
 
 export const V2V_NIC_OVERRIDES = { [V2V_VLAN_NIC.key]: V2V_VLAN_NETWORK.id } as V2vMigrationListVm['nics']
 
+// The list keeps the overrides of a disk and of a NIC its source VM lost since they were set
+export function withV2vGoneDeviceOverrides(listVm: V2vMigrationListVm): V2vMigrationListVm {
+  return {
+    ...listVm,
+    disks: { ...listVm.disks, ['scsi9:9' as XoV2vDisk['key']]: V2V_SSD_SR.id },
+    nics: { ...listVm.nics, ['nic-9999' as XoV2vNic['key']]: V2V_VLAN_NETWORK.id },
+  }
+}
+
 export const V2V_DEFAULT_TEMPLATE = createVmTemplate({ id: DEFAULTS.template })
 
 // The tags of a migrated VM without override
