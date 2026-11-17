@@ -4,7 +4,7 @@ import type { Readable } from 'node:stream'
 import { SUPPORTED_VDI_FORMAT, type XoSr } from '@vates/types'
 import { invalidParameters } from 'xo-common/api-errors.js'
 
-import { SrService, type CreateSrBody } from './sr.service.mjs'
+import { getUrlOrigin, SrService, type CreateSrBody } from './sr.service.mjs'
 import { ApiError } from '../helpers/error.helper.mjs'
 import type { RestApi } from '../rest-api/rest-api.mjs'
 
@@ -270,7 +270,7 @@ describe('SrService.importVdiFromUrl', () => {
     assert.equal(calls.SR_importVdi.length, 0)
   })
 
-  it('keeps the URL and the original error as cause when the download cannot start', async t => {
+  it('keeps the URL origin and the original error as cause when the download cannot start', async t => {
     const networkError = new TypeError('fetch failed', { cause: new Error('getaddrinfo ENOTFOUND example.net') })
     t.mock.method(globalThis, 'fetch', async () => {
       throw networkError
@@ -279,7 +279,7 @@ describe('SrService.importVdiFromUrl', () => {
 
     await assert.rejects(service.importVdiFromUrl(SR_ID, { url: 'https://example.net/debian.iso' }), error => {
       assert.ok(error instanceof Error)
-      assert.match(error.message, /https:\/\/example\.net\/debian\.iso/)
+      assert.match(error.message, /https:\/\/example\.net/)
       assert.equal(error.cause, networkError)
       return true
     })
@@ -308,5 +308,57 @@ describe('SrService.importVdiFromUrl', () => {
     )
     assert.equal(body.cancelled, true)
     assert.equal(calls.SR_importVdi.length, 0)
+  })
+
+  describe('never leaks the full URL, which can contain a secret, in errors', () => {
+    const SECRET_URL = 'https://example.net/isos/debian.iso?token=s3cret'
+    const assertNoSecret = (error: unknown) => {
+      const { message } = error as Error
+      assert.doesNotMatch(message, /s3cret|debian\.iso/)
+      return true
+    }
+
+    it('when the remote server returns an error', async t => {
+      t.mock.method(globalThis, 'fetch', async () => createResponse({ status: 403 }).response)
+      const { service } = setup()
+
+      await assert.rejects(service.importVdiFromUrl(SR_ID, { url: SECRET_URL }), assertNoSecret)
+    })
+
+    it('when the download cannot start', async t => {
+      t.mock.method(globalThis, 'fetch', async () => {
+        throw new TypeError('fetch failed')
+      })
+      const { service } = setup()
+
+      await assert.rejects(service.importVdiFromUrl(SR_ID, { url: SECRET_URL }), assertNoSecret)
+    })
+
+    it('when there is no Content-Length', async t => {
+      t.mock.method(globalThis, 'fetch', async () => createResponse().response)
+      const { service } = setup()
+
+      await assert.rejects(service.importVdiFromUrl(SR_ID, { url: SECRET_URL }), assertNoSecret)
+    })
+
+    it('when the URL is invalid', async t => {
+      t.mock.method(globalThis, 'fetch', async () => createResponse().response)
+      const { service } = setup()
+
+      await assert.rejects(service.importVdiFromUrl(SR_ID, { url: 'not a url?token=s3cret' }), assertNoSecret)
+    })
+  })
+})
+
+describe('getUrlOrigin', () => {
+  it('keeps only the scheme, host and port', () => {
+    assert.equal(
+      getUrlOrigin('https://storage.example.com:8443/isos/debian.iso?token=abc123#x'),
+      'https://storage.example.com:8443'
+    )
+  })
+
+  it('returns undefined for an invalid URL', () => {
+    assert.equal(getUrlOrigin('not a url?token=abc123'), undefined)
   })
 })

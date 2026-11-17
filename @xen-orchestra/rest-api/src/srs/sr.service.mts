@@ -24,6 +24,17 @@ export type ImportVdiFromUrlBody = {
   name_description?: string
 }
 
+/**
+ * Download URLs can contain secrets (e.g. `?token=…`), only their origin must be stored or logged
+ */
+export function getUrlOrigin(url: string): string | undefined {
+  try {
+    return new URL(url).origin
+  } catch {
+    return undefined
+  }
+}
+
 function getFileNameFromUrl(url: URL): string {
   const fileName = url.pathname.slice(url.pathname.lastIndexOf('/') + 1)
   try {
@@ -104,15 +115,17 @@ export class SrService {
     try {
       url = new URL(body.url)
     } catch {
-      throw invalidParameters(`invalid URL: ${body.url}`)
+      throw invalidParameters('invalid URL')
     }
     if (url.protocol !== 'http:' && url.protocol !== 'https:') {
       throw invalidParameters(`unsupported protocol ${url.protocol}, expected http: or https:`)
     }
-    // rejected by `fetch` anyway, and they would end up in the task params
+    // rejected by `fetch` anyway
     if (url.username !== '' || url.password !== '') {
       throw invalidParameters('credentials in the URL are not supported')
     }
+    // never put the full URL in errors, it can contain secrets
+    const { origin } = url
 
     const xapiSr = this.#restApi.getXapiObject<XoSr>(id, 'SR')
     const xapi = xapiSr.$xapi
@@ -128,21 +141,21 @@ export class SrService {
       // `fetch` transparently decompresses gzip, but `Content-Length` would still be the compressed size
       response = await fetch(url, { headers: { 'accept-encoding': 'identity' } })
     } catch (error) {
-      throw new Error(`failed to download ${url}`, { cause: error })
+      throw new Error(`failed to download ${origin}`, { cause: error })
     }
     if (!response.ok) {
       await response.body?.cancel() // free the socket
-      throw invalidParameters(`failed to download ${url}: ${response.status} ${response.statusText}`)
+      throw invalidParameters(`failed to download ${origin}: ${response.status} ${response.statusText}`)
     }
     if (response.body === null) {
-      throw new Error(`failed to download ${url}: empty response body`)
+      throw new Error(`failed to download ${origin}: empty response body`)
     }
 
     // raw imports need the size of the VDI before reading the stream
     const contentLength = response.headers.get('content-length')
     if (contentLength === null) {
       await response.body.cancel()
-      throw invalidParameters(`the remote server did not provide a Content-Length for ${url}`)
+      throw invalidParameters(`the remote server did not provide a Content-Length for ${origin}`)
     }
 
     const stream: Readable & { length?: number } = Readable.fromWeb(response.body as WebReadableStream)

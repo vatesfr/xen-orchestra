@@ -46,7 +46,7 @@ import { XapiXoController } from '../abstract-classes/xapi-xo-controller.mjs'
 import { messageIds, partialMessages } from '../open-api/oa-examples/message.oa-example.mjs'
 import { taskIds, partialTasks, taskLocation } from '../open-api/oa-examples/task.oa-example.mjs'
 import type { CreateActionReturnType } from '../abstract-classes/base-controller.mjs'
-import { SrService, type CreateSrBody, type ImportVdiFromUrlBody } from './sr.service.mjs'
+import { getUrlOrigin, SrService, type CreateSrBody, type ImportVdiFromUrlBody } from './sr.service.mjs'
 
 @Route('srs')
 @Security('*')
@@ -485,7 +485,8 @@ export class SrController extends XapiXoController<XoSr> {
       taskProperties: {
         name: 'import VDI from URL',
         objectId: srId,
-        params: body,
+        // the full URL can contain secrets (e.g. `?token=…`) and tasks are readable with `task: read`
+        params: { ...body, url: getUrlOrigin(body.url) },
       },
     })
   }
