@@ -275,6 +275,7 @@ export class HostService {
         }
         throw error
       }
+      log.warn('management_reconfigure failed, but the management interface moved', { pifId: pif.id, error })
     }
     try {
       await this.#removePifIp(xapi, managementPif)
