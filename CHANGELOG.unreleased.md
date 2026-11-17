@@ -44,7 +44,7 @@
 - [Plugins/audit] Forward a copy of each new audit record, as JSON, to a remote syslog server (e.g. a SIEM) over UDP, TCP or TLS, configurable in the plugin settings (PR [#10618](https://github.com/vatesfr/xen-orchestra/pull/10618))
 - [VM/Host] Main actions (shutdown, reboot, start, migrate, snapshot, new VM) are shown as buttons in the VM and host headers and move one by one into "More actions" when space runs out; "More actions" groups them under "Change state" and "Actions" sections, and VMs without guest tools get force shutdown and force reboot instead (PR [#10815](https://github.com/vatesfr/xen-orchestra/pull/10815))
 - [REST API] `POST /rest/v0/hosts/:id/actions/move_management_ip` to move the management IP configuration of a host to another PIF (PR [#10669](https://github.com/vatesfr/xen-orchestra/pull/10669))
-- [Hosts] The host actions of the treeview (change state, restart toolstack, enable or disable, detach, forget, download bugtools archive) are also available in host tables and side panels (PR [#XXXXX](https://github.com/vatesfr/xen-orchestra/pull/XXXXX))
+- [Hosts] The host actions of the treeview (change state, restart toolstack, enable or disable, detach, forget, download bugtools archive) are also available in host tables and side panels (PR [#10821](https://github.com/vatesfr/xen-orchestra/pull/10821))
 
 ### Bug fixes
 
