@@ -5,9 +5,8 @@ import { dangerMessage } from '@/test/form-messages.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import UiInput from '@core/components/ui/input/UiInput.vue'
 import { mount } from '@vue/test-utils'
-import type { ComponentProps } from 'vue-component-type-helpers'
 
-type TextInputProps = ComponentProps<typeof FormTextInput>
+type TextInputProps = InstanceType<typeof FormTextInput>['$props']
 
 function mountTextInput(props: Partial<TextInputProps> = {}) {
   return mount(FormTextInput, {

@@ -24,7 +24,6 @@ import UiTag from '@core/components/ui/tag/UiTag.vue'
 import { formatDateTime } from '@core/utils/time.util.ts'
 import { mount } from '@vue/test-utils'
 import { ref } from 'vue'
-import type { ComponentProps } from 'vue-component-type-helpers'
 
 const SYNC_TIME = 1_700_000_000
 
@@ -48,7 +47,7 @@ function createSelection(overrides: Partial<V2vVmsTableSelection> = {}): V2vVmsT
   return { bindings: createTableSelectionBindings(), pageModel: ref(false), toggle: vi.fn(), ...overrides }
 }
 
-function mountTable(props: Partial<ComponentProps<typeof V2vVmsTable>> = {}) {
+function mountTable(props: Partial<InstanceType<typeof V2vVmsTable>['$props']> = {}) {
   return mount(V2vVmsTable, {
     props: { view: ALL_VMS_VIEW, selection: createSelection(), ...props },
     global: createGlobalTestConfig(),

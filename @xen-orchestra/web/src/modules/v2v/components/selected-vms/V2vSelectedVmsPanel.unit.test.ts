@@ -16,7 +16,6 @@ import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
 import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
 import type { XoV2vVm } from '@vates/types'
 import { mount, type VueWrapper } from '@vue/test-utils'
-import type { ComponentProps } from 'vue-component-type-helpers'
 
 const ITEMS = [createV2vSelectedVm(), createV2vSelectedVm({ id: 'vm-2' as XoV2vVm['id'], name: 'db-01' })]
 
@@ -33,7 +32,7 @@ const EMPTY = {
   listPair: LIST_PAIR,
 }
 
-function mountPanel(props: Partial<ComponentProps<typeof V2vSelectedVmsPanel>> = {}) {
+function mountPanel(props: Partial<InstanceType<typeof V2vSelectedVmsPanel>['$props']> = {}) {
   return mount(V2vSelectedVmsPanel, {
     props: {
       items: ITEMS,

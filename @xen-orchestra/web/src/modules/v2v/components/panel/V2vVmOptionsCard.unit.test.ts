@@ -12,11 +12,10 @@ import {
 } from '@/test/v2v-mapping-fixtures.ts'
 import VtsTag from '@core/components/tag/VtsTag.vue'
 import { mount } from '@vue/test-utils'
-import type { ComponentProps } from 'vue-component-type-helpers'
 
 const TEMPLATE = createV2vOfferedTarget(V2V_DEBIAN_TEMPLATE.id, 'overridden')
 
-function mountCard(props: Partial<ComponentProps<typeof V2vVmOptionsCard>> = {}) {
+function mountCard(props: Partial<InstanceType<typeof V2vVmOptionsCard>['$props']> = {}) {
   return mount(V2vVmOptionsCard, {
     props: {
       keepMac: true,

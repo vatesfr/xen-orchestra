@@ -5,9 +5,8 @@ import { getCheckbox } from '@/test/get-checkbox.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import UiCheckbox from '@core/components/ui/checkbox/UiCheckbox.vue'
 import { mount } from '@vue/test-utils'
-import type { ComponentProps } from 'vue-component-type-helpers'
 
-type CheckboxProps = ComponentProps<typeof FormCheckbox>
+type CheckboxProps = InstanceType<typeof FormCheckbox>['$props']
 
 function mountCheckbox(
   props: Partial<CheckboxProps> = {},

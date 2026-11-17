@@ -12,9 +12,8 @@ import UiAlert from '@core/components/ui/alert/UiAlert.vue'
 import UiInput from '@core/components/ui/input/UiInput.vue'
 import { flushPromises, mount } from '@vue/test-utils'
 import { reactive } from 'vue'
-import type { ComponentProps } from 'vue-component-type-helpers'
 
-type FormProps = ComponentProps<typeof V2vSourceConnectionForm>
+type FormProps = InstanceType<typeof V2vSourceConnectionForm>['$props']
 
 function createForm() {
   return mountComposable(() => ({ form: reactive(useV2vConnectionForm()) })).wrapper.vm.form

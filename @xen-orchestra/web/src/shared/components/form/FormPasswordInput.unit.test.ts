@@ -5,9 +5,8 @@ import { invalidCredentialsMessage } from '@/test/form-messages.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import UiInput from '@core/components/ui/input/UiInput.vue'
 import { mount } from '@vue/test-utils'
-import type { ComponentProps } from 'vue-component-type-helpers'
 
-type PasswordInputProps = ComponentProps<typeof FormPasswordInput>
+type PasswordInputProps = InstanceType<typeof FormPasswordInput>['$props']
 
 function mountPasswordInput(props: Partial<PasswordInputProps> = {}) {
   return mount(FormPasswordInput, {
