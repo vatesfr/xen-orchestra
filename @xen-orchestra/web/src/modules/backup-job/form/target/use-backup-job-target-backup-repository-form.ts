@@ -50,7 +50,8 @@ export function useBackupJobTargetBackupRepositoryForm(
   formData: BackupJobTargetBackupRepositoryFormData,
   rawIsActive: MaybeRefOrGetter<boolean>,
   rawHasRetentionStrategy: MaybeRefOrGetter<boolean>,
-  rawSourceBackupRepositoryId: MaybeRefOrGetter<FrontXoBackupRepository['id'] | undefined>
+  rawSourceBackupRepositoryId: MaybeRefOrGetter<FrontXoBackupRepository['id'] | undefined>,
+  { isEditing = false }: { isEditing?: boolean } = {}
 ) {
   const { t } = useI18n()
 
@@ -160,6 +161,7 @@ export function useBackupJobTargetBackupRepositoryForm(
 
   const { id: targetProxySelectId } = useFormSelect('targetProxy', proxies, {
     searchable: true,
+    disabled: () => isEditing,
     emptyOption: { label: t('none'), value: undefined },
     option: { label: 'name', value: 'id' },
   })

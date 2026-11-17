@@ -26,6 +26,7 @@
 </template>
 
 <script setup lang="ts">
+import { useEditBackupJob } from '@/modules/backup-job/composables/use-edit-backup-job.composable.ts'
 import { useXoBackupJobLastRuns } from '@/modules/backup-job/composables/use-xo-backup-job-last-runs.composable.ts'
 import { useXoBackupJobModeLabel } from '@/modules/backup-job/composables/use-xo-backup-job-mode-label.composable.ts'
 import { useXoBackupJobTypeLabels } from '@/modules/backup-job/composables/use-xo-backup-job-type-labels.composable.ts'
@@ -95,6 +96,10 @@ const { HeadCells, BodyCells } = useBackupJobColumns({
     const lastRuns = useXoBackupJobLastRuns(() => backupJob)
     const healthCheckStatus = computed(() => getBackupJobHealthCheckStatus(backupJob))
 
+    const { editBackupJob, canEditBackupJob, isEditingBackupJob, editBackupJobErrorMessage } = useEditBackupJob(
+      () => backupJob
+    )
+
     return {
       backupJob: r =>
         r({
@@ -106,7 +111,20 @@ const { HeadCells, BodyCells } = useBackupJobColumns({
       mode: r => r(modeLabel.value),
       lastRuns: r => (areBackupLogsReady.value ? r(lastRuns.value) : renderLoadingCell()),
       healthCheck: r => r(healthCheckStatus.value ?? []),
-      selectItem: r => r(() => (selectedBackupJobId.value = backupJob.id)),
+      actions: r =>
+        r({
+          onClick: () => (selectedBackupJobId.value = backupJob.id),
+          actions: [
+            {
+              label: t('action:edit'),
+              icon: 'action:edit',
+              onClick: () => editBackupJob(),
+              busy: isEditingBackupJob.value,
+              disabled: !canEditBackupJob.value,
+              hint: editBackupJobErrorMessage.value,
+            },
+          ],
+        }),
     }
   },
 })
