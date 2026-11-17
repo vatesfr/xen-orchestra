@@ -109,6 +109,10 @@ export class SrService {
     if (url.protocol !== 'http:' && url.protocol !== 'https:') {
       throw invalidParameters(`unsupported protocol ${url.protocol}, expected http: or https:`)
     }
+    // rejected by `fetch` anyway, and they would end up in the task params
+    if (url.username !== '' || url.password !== '') {
+      throw invalidParameters('credentials in the URL are not supported')
+    }
 
     const xapiSr = this.#restApi.getXapiObject<XoSr>(id, 'SR')
     const xapi = xapiSr.$xapi
@@ -119,10 +123,19 @@ export class SrService {
       throw invalidParameters(`SR ${id} is not an ISO library SR`)
     }
 
-    const response = await fetch(url)
-    if (!response.ok || response.body === null) {
+    let response: Response
+    try {
+      // `fetch` transparently decompresses gzip, but `Content-Length` would still be the compressed size
+      response = await fetch(url, { headers: { 'accept-encoding': 'identity' } })
+    } catch (error) {
+      throw new Error(`failed to download ${url}`, { cause: error })
+    }
+    if (!response.ok) {
       await response.body?.cancel() // free the socket
-      throw new Error(`failed to download ${url}: ${response.status} ${response.statusText}`)
+      throw invalidParameters(`failed to download ${url}: ${response.status} ${response.statusText}`)
+    }
+    if (response.body === null) {
+      throw new Error(`failed to download ${url}: empty response body`)
     }
 
     // raw imports need the size of the VDI before reading the stream
@@ -135,11 +148,18 @@ export class SrService {
     const stream: Readable & { length?: number } = Readable.fromWeb(response.body as WebReadableStream)
     stream.length = +contentLength
 
-    const vdiRef = await xapi.SR_importVdi(xapiSr.$ref, stream, {
-      format: SUPPORTED_VDI_FORMAT.raw,
-      name_label: body.name_label ?? getFileNameFromUrl(url),
-      name_description: body.name_description,
-    })
+    let vdiRef: XenApiVdi['$ref']
+    try {
+      vdiRef = await xapi.SR_importVdi(xapiSr.$ref, stream, {
+        format: SUPPORTED_VDI_FORMAT.raw,
+        name_label: body.name_label ?? getFileNameFromUrl(url),
+        name_description: body.name_description,
+      })
+    } catch (error) {
+      // the import can fail before reading the stream (e.g. `VDI.create` fails), close the download
+      stream.destroy()
+      throw error
+    }
     const vdiId = await xapi.getField<XenApiVdi, 'uuid'>('VDI', vdiRef, 'uuid')
 
     return vdiId as XoVdi['id']

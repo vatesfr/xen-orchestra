@@ -17,6 +17,7 @@
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 - [Header] On mobile, the XO 5 link and third party apps are grouped in a "More actions" menu (PR [#10744](https://github.com/vatesfr/xen-orchestra/pull/10744))
 - [Mobile/Side panels] Full-page menus on mobile with "Change state" and "Manage in XO-5" in "More actions", side panel actions shown as buttons when there is room, and fixes for long names in headers and menu placement (PR [#10745](https://github.com/vatesfr/xen-orchestra/pull/10745))
 - [Side panels] Side panels can be resized like the treeview, whose default width now adapts to the screen size (PR [#10725](https://github.com/vatesfr/xen-orchestra/pull/10725))
@@ -65,6 +66,9 @@
 =======
 - [REST API] `POST /rest/v0/srs/:id/vdis/from-url` imports an ISO from an HTTP(S) URL into an ISO SR(PR [#10751](https://github.com/vatesfr/xen-orchestra/pull/10751))
 >>>>>>> 4c75dbf3f7 (update changelog)
+=======
+- [REST API] `POST /rest/v0/srs/:id/actions/import_vdi_from_url` imports an ISO from an HTTP(S) URL into an ISO SR (PR [#10751](https://github.com/vatesfr/xen-orchestra/pull/10751))
+>>>>>>> ff21cace97 (fix after mikita review)
 
 ### Bug fixes
 

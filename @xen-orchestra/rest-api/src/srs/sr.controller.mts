@@ -459,20 +459,34 @@ export class SrController extends XapiXoController<XoSr> {
    */
   @Example(vdiId)
   @Extension('x-mcp-exposure', 'confirm')
-  @Post('{id}/vdis/from-url')
+  @Post('{id}/actions/import_vdi_from_url')
   @Middlewares([json(), acl({ resource: 'sr', action: 'import:vdi-from-url', objectId: 'params.id' })])
   @Tags('vdis')
-  @SuccessResponse(createdResp.status, 'VDI imported')
+  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
+  @Response(createdResp.status, 'VDI imported')
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(invalidParametersResp.status, invalidParametersResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
   async srImportVdiFromUrl(
     @Path() id: string,
-    @Body() body: ImportVdiFromUrlBody
-  ): Promise<{ id: Unbrand<XoVdi>['id'] }> {
-    const vdiId = await this.#srService.importVdiFromUrl(id as XoSr['id'], body)
-    this.setHeader('Location', `${BASE_URL}/vdis/${vdiId}`)
-    return { id: vdiId }
+    @Body() body: ImportVdiFromUrlBody,
+    @Query() sync?: boolean
+  ): CreateActionReturnType<{ id: Unbrand<XoVdi>['id'] }> {
+    const srId = id as XoSr['id']
+    const action = async () => {
+      const vdiId = await this.#srService.importVdiFromUrl(srId, body)
+      return { id: vdiId }
+    }
+
+    return this.createAction<{ id: XoVdi['id'] }>(action, {
+      sync,
+      statusCode: createdResp.status,
+      taskProperties: {
+        name: 'import VDI from URL',
+        objectId: srId,
+        params: body,
+      },
+    })
   }
 }
