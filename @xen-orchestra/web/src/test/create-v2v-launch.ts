@@ -6,7 +6,7 @@ import type {
   V2vStartVm,
   V2vVmLaunchOptionsRow,
 } from '@/modules/v2v/types/v2v-launch.type.ts'
-import type { V2vStartPayloadInput } from '@/modules/v2v/utils/v2v-start-payload.util.ts'
+import { buildV2vStartPayload, type V2vStartPayloadInput } from '@/modules/v2v/utils/v2v-start-payload.util.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { createV2vConnection } from '@/test/create-v2v-connection.ts'
 import { V2V_VM_ID } from '@/test/create-v2v-inventory.ts'
@@ -35,15 +35,15 @@ export function createV2vVmLaunchOptionsRow(overrides: Partial<V2vVmLaunchOption
   return { id: V2V_VM_ID, name: 'web-01', ...overrides }
 }
 
-// The launch of one new VM, on the list defaults and the settings a launch starts with
-export function createV2vStartPayloadInput(overrides: Partial<V2vStartPayloadInput> = {}): V2vStartPayloadInput {
-  return {
+// The payload posted for the launch of one new VM, on the list defaults and the settings a launch starts with
+export function createV2vStartPayload(overrides: Partial<V2vStartPayloadInput> = {}) {
+  return buildV2vStartPayload({
     connection: createV2vConnection(),
     defaults: createV2vDestinationDefaults(),
     settings: createV2vLaunchSettings(),
     vms: [createV2vStartVm()],
     ...overrides,
-  }
+  })
 }
 
 // A VM cut over to another pool, its second copy not confirmed

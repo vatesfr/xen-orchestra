@@ -1,13 +1,9 @@
-import {
-  buildV2vStartPayload,
-  getV2vStartProblems,
-  type V2vStartPayloadInput,
-} from '@/modules/v2v/utils/v2v-start-payload.util.ts'
+import { getV2vStartProblems } from '@/modules/v2v/utils/v2v-start-payload.util.ts'
 import { createApiError } from '@/test/create-api-error.ts'
 import { createV2vConnection } from '@/test/create-v2v-connection.ts'
 import {
   createV2vLaunchSettings,
-  createV2vStartPayloadInput,
+  createV2vStartPayload,
   createV2vStartRefusal,
   createV2vStartVm,
 } from '@/test/create-v2v-launch.ts'
@@ -21,10 +17,6 @@ const OVERRIDES = {
   template: 'template-456' as XoVmTemplate['id'],
 }
 
-function buildPayload(overrides?: Partial<V2vStartPayloadInput>) {
-  return buildV2vStartPayload(createV2vStartPayloadInput(overrides))
-}
-
 // What `fetchRequest` throws for a refused launch
 function createRefusedLaunchError(errors: unknown) {
   return createApiError(422, createV2vStartRefusal(errors))
@@ -32,7 +24,7 @@ function createRefusedLaunchError(errors: unknown) {
 
 describe('buildV2vStartPayload', () => {
   it('sends the connection, the launch settings and the list defaults, never starting nor cleaning up the VMs', () => {
-    const payload = buildPayload({
+    const payload = createV2vStartPayload({
       settings: createV2vLaunchSettings({ stopSource: false, stopOnError: false, concurrency: 4 }),
     })
 
@@ -45,23 +37,23 @@ describe('buildV2vStartPayload', () => {
   })
 
   it('sends a new VM with its mapping overrides only', () => {
-    expect(buildPayload({ vms: [createV2vStartVm(OVERRIDES)] }).vms).toEqual([
+    expect(createV2vStartPayload({ vms: [createV2vStartVm(OVERRIDES)] }).vms).toEqual([
       { id: 'vm-1', ...OVERRIDES, tags: [], keepMac: true },
     ])
   })
 
   it('sends a new VM on the list defaults without mapping', () => {
-    expect(buildPayload().vms).toEqual([{ id: 'vm-1', tags: [], keepMac: true }])
+    expect(createV2vStartPayload().vms).toEqual([{ id: 'vm-1', tags: [], keepMac: true }])
   })
 
   it('sends a resumed VM without mapping, the import reads it from its first sync', () => {
-    expect(buildPayload({ vms: [createV2vStartVm({ kind: 'resume', ...OVERRIDES })] }).vms).toEqual([
+    expect(createV2vStartPayload({ vms: [createV2vStartVm({ kind: 'resume', ...OVERRIDES })] }).vms).toEqual([
       { id: 'vm-1', tags: [], keepMac: true },
     ])
   })
 
   it.each([true, false])('sends the stop source override (%s) of a VM', stopSource => {
-    expect(buildPayload({ vms: [createV2vStartVm({ overrides: { stopSource } })] }).vms).toEqual([
+    expect(createV2vStartPayload({ vms: [createV2vStartVm({ overrides: { stopSource } })] }).vms).toEqual([
       { id: 'vm-1', stopSource, tags: [], keepMac: true },
     ])
   })
@@ -69,7 +61,7 @@ describe('buildV2vStartPayload', () => {
   it('sends the VMs given, in order', () => {
     const vms = ['vm-2', 'vm-1'].map(id => createV2vStartVm({ id: id as XoV2vVm['id'] }))
 
-    expect(getV2vVmIds(buildPayload({ vms }).vms)).toEqual(['vm-2', 'vm-1'])
+    expect(getV2vVmIds(createV2vStartPayload({ vms }).vms)).toEqual(['vm-2', 'vm-1'])
   })
 })
 

@@ -1,10 +1,9 @@
 import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import { useXoV2vStartJob } from '@/modules/v2v/jobs/xo-v2v-start.job.ts'
-import { buildV2vStartPayload } from '@/modules/v2v/utils/v2v-start-payload.util.ts'
 import { ApiError } from '@/shared/error/api.error.ts'
 import { createPool } from '@/test/create-pool.ts'
 import {
-  createV2vStartPayloadInput,
+  createV2vStartPayload,
   getV2vStartEndpoint,
   stubV2vStartAccepted,
   stubV2vStartProblems,
@@ -17,7 +16,7 @@ import type { XoV2vStartPayload } from '@vates/types'
 
 const POOL = createPool()
 
-const PAYLOAD = buildV2vStartPayload(createV2vStartPayloadInput())
+const PAYLOAD = createV2vStartPayload()
 
 function mountStartJob(pool?: FrontXoPool, payload?: XoV2vStartPayload) {
   return mountComposableWithI18n(() => useXoV2vStartJob(pool, payload))

@@ -2,11 +2,9 @@ import { getTaskRoute } from '@/modules/task/utils/xo-task.util.ts'
 import { useV2vReviewLabels } from '@/modules/v2v/composables/use-v2v-review-labels.composable.ts'
 import { useV2vReviewStep } from '@/modules/v2v/composables/use-v2v-review-step.composable.ts'
 import { useV2vSelectedVmLabels } from '@/modules/v2v/composables/use-v2v-selected-vm-labels.composable.ts'
-import type { V2vStartVm } from '@/modules/v2v/types/v2v-launch.type.ts'
-import { buildV2vStartPayload } from '@/modules/v2v/utils/v2v-start-payload.util.ts'
 import { DISKOR_POOL_NAME } from '@/test/create-pool.ts'
 import {
-  createV2vStartPayloadInput,
+  createV2vStartPayload,
   createV2vStartVm,
   getV2vStartEndpoint,
   stubV2vStartAccepted,
@@ -86,6 +84,9 @@ const NEW_VM = createV2vStartVm({ id: V2V_WEB_VM.id })
 
 const RESUMED_VM = createV2vStartVm({ id: V2V_DB_VM.id, kind: 'resume' })
 
+// The launchable VMs of the list: the new and the resumed one
+const LAUNCHABLE_VMS = [NEW_VM, RESUMED_VM]
+
 // The disks of the factory all share one key and chain: the DB VM gets two distinct ones, only the first held by its
 // import
 const DB_VM_DISTINCT_DISKS_INVENTORY = (() => {
@@ -118,11 +119,6 @@ function mountReviewStep(options?: Parameters<typeof mountV2vListStep>[2]) {
 }
 
 type ReviewStep = Awaited<ReturnType<typeof mountReviewStep>>['result']
-
-// The launch of the new and the resumed VMs of the list, on the settings a launch starts with
-function buildPayload(vms: V2vStartVm[] = [NEW_VM, RESUMED_VM]) {
-  return buildV2vStartPayload(createV2vStartPayloadInput({ vms }))
-}
 
 async function launch(result: ReviewStep) {
   await result.launch()
@@ -358,7 +354,7 @@ describe('launch', () => {
 
     await launch(result)
 
-    expect(hasRequested('POST', START_ENDPOINT, buildPayload())).toBe(true)
+    expect(hasRequested('POST', START_ENDPOINT, createV2vStartPayload({ vms: LAUNCHABLE_VMS }))).toBe(true)
     expect(result.launched).toEqual({ count: 2, taskRoute: getTaskRoute(V2V_START_TASK_ID) })
   })
 
@@ -373,10 +369,12 @@ describe('launch', () => {
     result.changeStopSource(V2V_DB_VM.id, false)
     await launch(result)
 
-    const payload = buildPayload([
-      { ...NEW_VM, template: V2V_DEFAULT_TEMPLATE.id },
-      { ...RESUMED_VM, overrides: { stopSource: false } },
-    ])
+    const payload = createV2vStartPayload({
+      vms: [
+        { ...NEW_VM, template: V2V_DEFAULT_TEMPLATE.id },
+        { ...RESUMED_VM, overrides: { stopSource: false } },
+      ],
+    })
 
     expect(hasRequested('POST', START_ENDPOINT, payload)).toBe(true)
   })
@@ -388,7 +386,7 @@ describe('launch', () => {
     result.confirmSecondCopy(V2V_LISTED_VM.id, true)
     await launch(result)
 
-    const payload = buildPayload([NEW_VM, RESUMED_VM, createV2vStartVm({ id: V2V_LISTED_VM.id })])
+    const payload = createV2vStartPayload({ vms: [...LAUNCHABLE_VMS, createV2vStartVm({ id: V2V_LISTED_VM.id })] })
 
     expect(hasRequested('POST', START_ENDPOINT, payload)).toBe(true)
   })
@@ -404,7 +402,7 @@ describe('launch', () => {
     await launch(result)
 
     const payload = {
-      ...buildPayload(),
+      ...createV2vStartPayload({ vms: LAUNCHABLE_VMS }),
       vms: [
         { id: V2V_WEB_VM.id, tags: [], keepMac: true },
         { id: V2V_DB_VM.id, tags: [], keepMac: true },
