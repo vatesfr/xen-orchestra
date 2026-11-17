@@ -64,6 +64,7 @@ export function useV2vVmsStep() {
   const {
     items: filteredRows,
     filter,
+    searchBindings,
     schema,
   } = useV2vVmQueryBuilder('v2v-vms', rows, () => datastores.value.map(datastore => datastore.name))
 
@@ -166,6 +167,7 @@ export function useV2vVmsStep() {
   return {
     sourceHost,
     filter,
+    searchBindings,
     schema,
     tableView,
     paginationBindings,

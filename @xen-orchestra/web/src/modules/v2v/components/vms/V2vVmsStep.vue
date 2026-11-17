@@ -8,7 +8,7 @@
         @clear-filter="clearFilter()"
       />
       <UiCard>
-        <VtsQueryBuilder :model-value="filter" :schema @search="filter = $event" />
+        <VtsQueryBuilder v-bind="searchBindings" :schema />
         <V2vVmPresets :presets @apply="id => applyPreset(id)" />
         <div class="selection-actions">
           <V2vShowSelectedVmsButton :count />
@@ -52,7 +52,7 @@ const { t } = useI18n()
 
 const {
   sourceHost,
-  filter,
+  searchBindings,
   schema,
   tableView,
   paginationBindings,

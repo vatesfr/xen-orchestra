@@ -19,7 +19,7 @@ export function useV2vVmQueryBuilder(
 
   const { statusLabels, powerLabels } = useV2vVmLabels()
 
-  const { items, filter } = useQueryBuilderFilter(id, rows, options)
+  const queryBuilderFilter = useQueryBuilderFilter(id, rows, options)
 
   const staticSchema = useQueryBuilderSchema<V2vVmRow>({
     '': useStringSchema(t('any-property')),
@@ -40,5 +40,5 @@ export function useV2vVmQueryBuilder(
     datastore: withEnumeratedValues(staticSchema.datastore, toValue(datastoreNames)),
   }))
 
-  return { items, filter, schema }
+  return { ...queryBuilderFilter, schema }
 }

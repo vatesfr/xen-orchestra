@@ -159,7 +159,10 @@ describe('VMs', () => {
   it('filters the VMs with the query builder', async () => {
     const { wrapper } = await mountStep()
 
-    await getQueryBuilder(wrapper).vm.$emit('search', `name:${V2V_WEB_VM.name}`)
+    const queryBuilder = getQueryBuilder(wrapper)
+
+    await queryBuilder.vm.$emit('update:modelValue', `name:${V2V_WEB_VM.name}`)
+    await queryBuilder.vm.$emit('search')
 
     expect(findQueryBuilderFilter(wrapper)).toBe(`name:${V2V_WEB_VM.name}`)
     expect(getV2vVmNames(findTableView(wrapper).rows)).toEqual([V2V_WEB_VM.name])

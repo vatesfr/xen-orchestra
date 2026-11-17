@@ -6,7 +6,7 @@ import type { QueryBuilderSchema } from '@core/packages/query-builder/types.ts'
 import { parseValues } from '@core/packages/query-builder/schema/parse-values.ts'
 import { V2V_VM_POWER_STATE } from '@vates/types'
 import { mapValues } from 'lodash-es'
-import { type MaybeRefOrGetter, ref } from 'vue'
+import { type MaybeRefOrGetter, nextTick, ref } from 'vue'
 
 const WEB_VM = createV2vVmRow({
   name: 'web-01',
@@ -126,10 +126,11 @@ describe('items', () => {
     ['name:web', [WEB_VM.name]],
     ['datastore:/^ds-a$/', [WEB_VM.name]],
     ['datastore:/^ds-b$/', [WEB_VM.name, DB_VM.name]],
-  ])('keeps the rows matching %s', (filter, names) => {
+  ])('keeps the rows matching %s', async (filter, names) => {
     const result = mountQueryBuilder()
 
     result.filter = filter
+    await nextTick()
 
     expect(getV2vVmNames(result.items)).toEqual(names)
   })

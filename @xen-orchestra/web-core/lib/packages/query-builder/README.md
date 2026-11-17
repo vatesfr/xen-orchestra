@@ -212,7 +212,7 @@ const schema = useQueryBuilderSchema<User>({...})
 // - Persists the filter in the URL (e.g., ?qb.users=name:John)
 // - Applies the filter 500 ms after its last change
 // - Handles invalid filter expressions gracefully
-const { items: filteredItems, searchBindings } = useQueryBuilderFilter(
+const { items: filteredItems, filter, searchBindings } = useQueryBuilderFilter(
   'users',           // Unique ID (used in URL, unless ignoreRoute is true)
   () => items.value, // Your data source
   {
@@ -223,6 +223,9 @@ const { items: filteredItems, searchBindings } = useQueryBuilderFilter(
 
 // Use filteredItems in your template or computed properties
 console.log(filteredItems.value)  // Reactive array of filtered items
+
+// The applied filter: setting it updates the search input and applies it right away
+filter.value = 'name:Jane'
 
 // Bindings to pass to VtsQueryBuilder (value, loader, immediate apply on Enter)
 console.log(searchBindings.value)
