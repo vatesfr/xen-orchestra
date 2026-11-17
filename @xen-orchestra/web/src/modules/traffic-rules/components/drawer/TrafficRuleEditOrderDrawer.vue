@@ -50,6 +50,7 @@ import type { FrontXoNetwork } from '@/modules/network/remote-resources/use-xo-n
 import { getPoolNetworkRoute } from '@/modules/network/utils/xo-network.util.ts'
 import { useDirectionLabels } from '@/modules/traffic-rules/composables/direction-labels.composable.ts'
 import { useTrafficRuleTarget } from '@/modules/traffic-rules/composables/traffic-rule-target.composable.ts'
+import { useTrafficRulesOrder } from '@/modules/traffic-rules/composables/traffic-rules-order.composable.ts'
 import type { RankedTrafficRule } from '@/modules/traffic-rules/types.ts'
 import { getTrafficRuleProtocolLabel } from '@/modules/traffic-rules/utils/xo-traffic-rule.util.ts'
 import VtsOverlayCancelButton from '@core/components/overlay/VtsOverlayCancelButton.vue'
@@ -59,9 +60,8 @@ import VtsTable from '@core/components/table/VtsTable.vue'
 import UiAlert from '@core/components/ui/alert/UiAlert.vue'
 import UiDrawer from '@core/components/ui/drawer/UiDrawer.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
-import { usePagination } from '@core/composables/pagination.composable.ts'
 import { useTrafficRulesColumns } from '@core/tables/column-sets/traffic-rules-columns.ts'
-import { computed, ref } from 'vue'
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { network, rules } = defineProps<{
@@ -88,36 +88,8 @@ const networkTo = computed(() => {
   return getPoolNetworkRoute(network.$pool, network.id)
 })
 
-const orderedRules = ref([...rules])
-
-const {
-  pageRecords: paginatedRules,
-  paginationBindings,
-  seek,
-} = usePagination('traffic-rules-order', orderedRules, {
-  ignoreRoute: true,
-})
-
-function getRuleIndex(rule: RankedTrafficRule) {
-  return orderedRules.value.findIndex(orderedRule => orderedRule.id === rule.id)
-}
-
-function moveRule(rule: RankedTrafficRule, offset: -1 | 1) {
-  const index = getRuleIndex(rule)
-  const newIndex = index + offset
-
-  if (index === -1 || newIndex < 0 || newIndex >= orderedRules.value.length) {
-    return
-  }
-
-  const newOrderedRules = [...orderedRules.value]
-  const [movedRule] = newOrderedRules.splice(index, 1)
-  newOrderedRules.splice(newIndex, 0, movedRule)
-
-  orderedRules.value = newOrderedRules
-
-  seek(orderedRule => orderedRule.id === rule.id)
-}
+const { orderedRules, paginatedRules, paginationBindings, getNewRank, isFirstRule, isLastRule, moveRule } =
+  useTrafficRulesOrder(() => rules)
 
 const { HeadCells, BodyCells } = useTrafficRulesColumns({
   exclude: ['network', 'priority', 'actions'],
@@ -126,7 +98,7 @@ const { HeadCells, BodyCells } = useTrafficRulesColumns({
 
     return {
       rank: r => {
-        const newRank = getRuleIndex(rule) + 1
+        const newRank = getNewRank(rule)
 
         return r(newRank, rule.rank - newRank)
       },
@@ -136,24 +108,21 @@ const { HeadCells, BodyCells } = useTrafficRulesColumns({
       target: r => r(rule.ipRange),
       directionB: r => r(directionB),
       object: r => r(getTarget(rule)),
-      moveButtons: r => {
-        const index = getRuleIndex(rule)
-
-        return r([
+      moveButtons: r =>
+        r([
           {
             icon: 'action:move-up',
             label: t('action:move-up'),
             onClick: () => moveRule(rule, -1),
-            disabled: index === 0,
+            disabled: isFirstRule(rule),
           },
           {
             icon: 'action:move-down',
             label: t('action:move-down'),
             onClick: () => moveRule(rule, 1),
-            disabled: index === orderedRules.value.length - 1,
+            disabled: isLastRule(rule),
           },
-        ])
-      },
+        ]),
     }
   },
 })
