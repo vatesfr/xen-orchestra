@@ -224,6 +224,17 @@ describe('getTrafficRulePriorityUpdates', () => {
     expect(updates?.map(update => update.priority)).not.toContain(32768)
   })
 
+  it('never gives the priority 0, which XAPI reserves', () => {
+    const keptRule = createTrafficRule({ id: 'kept', priority: 3 })
+    const firstMovedRule = createTrafficRule({ id: 'first-moved', priority: 10 })
+    const secondMovedRule = createTrafficRule({ id: 'second-moved', priority: 20 })
+    const rules = [keptRule, firstMovedRule, secondMovedRule]
+
+    const updates = getTrafficRulePriorityUpdates(rules, rules)
+
+    expect(updates?.map(update => update.priority)).not.toContain(0)
+  })
+
   it('gives a priority to the rules that have none', () => {
     const firstRule = createTrafficRule({ id: 'first', priority: undefined })
     const secondRule = createTrafficRule({ id: 'second', priority: undefined })
