@@ -64,7 +64,15 @@ export type StatusFdProgress = {
   percentage: number
 }
 
-const PHASE_BY_STATUS_TYPE: Record<string, AptPhase> = { dlstatus: 'download', pmstatus: 'install' }
+export type AptStatus = StatusFdProgress & {
+  /** name of the package for the installation, number of the file for the download */
+  item: string
+  message: string
+  /** apt reports the failure of the installation of this package */
+  isError: boolean
+}
+
+const PHASE_BY_STATUS_TYPE: Record<string, AptPhase> = { dlstatus: 'download', pmstatus: 'install', pmerror: 'install' }
 
 /**
  * Parse a line of apt's Status-Fd stream, each percentage is the progress of the whole phase
@@ -72,17 +80,31 @@ const PHASE_BY_STATUS_TYPE: Record<string, AptPhase> = { dlstatus: 'download', p
  * Format: type:item:percentage:message
  * Examples:
  *   dlstatus:3:21.4667:Retrieving file 3 of 4
- *   pmstatus:libgnutls30:50.0000:Installing libgnutls30 (amd64)...
+ *   pmstatus:libgnutls30:50.0000:Installing libgnutls30 (amd64)
+ *   pmerror:curl:60.0000:installed curl package post-installation script subprocess returned error exit status 1
+ *
+ * The package is named without its architecture, even a foreign one.
  */
-export function parseStatusFdLine(line: string): StatusFdProgress | undefined {
-  const [type, , percentage] = line.split(':')
-  const phase = type === undefined ? undefined : PHASE_BY_STATUS_TYPE[type]
-  if (phase === undefined || percentage === undefined) {
+export function parseStatusFdLine(line: string): AptStatus | undefined {
+  const match = line.match(/^([^:]+):([^:]+):([^:]+):(.*)$/)
+  if (match === null) {
     return undefined
   }
 
+  const [, type, item, percentage, message] = match as [string, string, string, string, string]
+  const phase = PHASE_BY_STATUS_TYPE[type]
   const parsedPercentage = parseFloat(percentage)
-  return isNaN(parsedPercentage) ? undefined : { phase, percentage: Math.round(parsedPercentage * 100) / 100 }
+  if (phase === undefined || isNaN(parsedPercentage)) {
+    return undefined
+  }
+
+  return {
+    phase,
+    percentage: Math.round(parsedPercentage * 100) / 100,
+    item,
+    message,
+    isError: type === 'pmerror',
+  }
 }
 
 /**

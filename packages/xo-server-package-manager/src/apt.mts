@@ -2,7 +2,13 @@ import type { UpgradablePackage } from '@vates/types'
 import { execFile, spawn } from 'node:child_process'
 import { access } from 'node:fs/promises'
 import { promisify } from 'node:util'
-import { getOverallPercentage, parseDescriptions, parseStatusFdLine, parseUpgradableList } from './parse.mjs'
+import {
+  type AptStatus,
+  getOverallPercentage,
+  parseDescriptions,
+  parseStatusFdLine,
+  parseUpgradableList,
+} from './parse.mjs'
 
 const execFileAsync = promisify(execFile)
 
@@ -83,9 +89,11 @@ export async function listUpgradablePackages(): Promise<UpgradablePackage[]> {
 export async function upgradePackages({
   packageName,
   onProgress,
+  onStatus,
 }: {
   readonly packageName?: string
   readonly onProgress: (percentage: number) => void
+  readonly onStatus?: (status: AptStatus) => void
 }): Promise<void> {
   const args = [
     '-y',
@@ -127,6 +135,7 @@ export async function upgradePackages({
       if (status !== undefined) {
         hasDownloaded ||= status.phase === 'download'
         onProgress(getOverallPercentage(status, hasDownloaded))
+        onStatus?.(status)
       }
     }
   })

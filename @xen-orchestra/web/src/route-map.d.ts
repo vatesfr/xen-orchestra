@@ -37,6 +37,7 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | '/(site)/dashboard'
       | '/(site)/hosts'
+      | '/(site)/patches'
       | '/(site)/pools'
       | '/(site)/tasks'
       | '/(site)/vms'
@@ -51,6 +52,13 @@ declare module 'vue-router/auto-routes' {
     '/(site)/hosts': RouteRecordInfo<
       '/(site)/hosts',
       '/hosts',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/(site)/patches': RouteRecordInfo<
+      '/(site)/patches',
+      '/patches',
       Record<never, never>,
       Record<never, never>,
       | never
@@ -132,13 +140,6 @@ declare module 'vue-router/auto-routes' {
       '/admin/plugin/:id',
       { id: ParamValue<true> },
       { id: ParamValue<false> },
-      | never
-    >,
-    '/admin/patches': RouteRecordInfo<
-      '/admin/patches',
-      '/admin/patches',
-      Record<never, never>,
-      Record<never, never>,
       | never
     >,
     '/admin/plugins': RouteRecordInfo<
@@ -552,6 +553,7 @@ declare module 'vue-router/auto-routes' {
         | '/(site)'
         | '/(site)/dashboard'
         | '/(site)/hosts'
+        | '/(site)/patches'
         | '/(site)/pools'
         | '/(site)/tasks'
         | '/(site)/vms'
@@ -567,6 +569,12 @@ declare module 'vue-router/auto-routes' {
     'src/pages/(site)/hosts.vue': {
       routes:
         | '/(site)/hosts'
+      views:
+        | never
+    }
+    'src/pages/(site)/patches.vue': {
+      routes:
+        | '/(site)/patches'
       views:
         | never
     }
@@ -637,12 +645,6 @@ declare module 'vue-router/auto-routes' {
     'src/pages/admin/plugin/[id].vue': {
       routes:
         | '/admin/plugin/[id]'
-      views:
-        | never
-    }
-    'src/pages/admin/patches.vue': {
-      routes:
-        | '/admin/patches'
       views:
         | never
     }

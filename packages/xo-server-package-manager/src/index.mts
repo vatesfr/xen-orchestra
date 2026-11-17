@@ -1,4 +1,5 @@
 import type { PluginRestRouteDefinition, XoApp } from '@vates/types'
+import type { VatesTask } from '@vates/types/lib/vates/task'
 import { createLogger } from '@xen-orchestra/log'
 import { invalidParameters } from 'xo-common/api-errors.js'
 import {
@@ -15,6 +16,31 @@ const log = createLogger('xo:xo-server-package-manager')
 async function getUpdates() {
   const [packages, rebootRequired] = await Promise.all([listUpgradablePackages(), isRebootRequired()])
   return { packages, isRebootRequired: rebootRequired }
+}
+
+// apt runs dpkg several times during an upgrade: these statuses are not about a package
+const DPKG_ITEM = 'dpkg-exec'
+
+/**
+ * Upgrade in `task`, which gets the steps of the installation of each package as infos, and what apt reports as
+ * failed as warnings
+ */
+function upgradeInTask(task: VatesTask, packageName?: string): Promise<void> {
+  return upgradePackages({
+    packageName,
+    onProgress: percentage => task.set('progress', percentage),
+    onStatus: ({ phase, item, message, isError }) => {
+      // the download only repeats `Retrieving file 3 of 4`
+      if (phase !== 'install' || item === DPKG_ITEM) {
+        return
+      }
+      if (isError) {
+        task.warning(message, undefined)
+      } else {
+        task.info(message, undefined)
+      }
+    },
+  })
 }
 
 // routes without `acl` middleware are restricted to administrators
@@ -41,9 +67,7 @@ const REST_ROUTES: PluginRestRouteDefinition[] = [
     description: 'Upgrade all packages. Returns 202 with a task ID',
     tags: ['package-manager'],
     callback: ({ createAction }) =>
-      createAction(task => upgradePackages({ onProgress: percentage => task.set('progress', percentage) }), {
-        taskProperties: { name: 'upgrade packages' },
-      }),
+      createAction(task => upgradeInTask(task), { taskProperties: { name: 'upgrade packages' } }),
   },
   {
     method: 'post',
@@ -56,10 +80,9 @@ const REST_ROUTES: PluginRestRouteDefinition[] = [
       if (typeof packageName !== 'string' || !isValidPackageName(packageName)) {
         throw invalidParameters(`invalid package name: ${packageName}`)
       }
-      return createAction(
-        task => upgradePackages({ packageName, onProgress: percentage => task.set('progress', percentage) }),
-        { taskProperties: { name: `upgrade package ${packageName}` } }
-      )
+      return createAction(task => upgradeInTask(task, packageName), {
+        taskProperties: { name: `upgrade package ${packageName}` },
+      })
     },
   },
 ]

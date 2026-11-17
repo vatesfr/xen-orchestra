@@ -1,7 +1,6 @@
 <template>
-  <UiHeadBar>
-    {{ t('patches') }}
-    <template #actions>
+  <div class="container">
+    <div class="actions">
       <UiButton
         accent="brand"
         variant="secondary"
@@ -23,9 +22,7 @@
       >
         {{ t('action:upgrade-all') }}
       </UiButton>
-    </template>
-  </UiHeadBar>
-  <div class="container">
+    </div>
     <UiAlert v-if="isPackageManagerLoaded === false" accent="danger">
       <I18nT keypath="patches:plugin-not-loaded" scope="global">
         <template #plugin>
@@ -60,7 +57,6 @@ import VtsBanner from '@core/components/banner/VtsBanner.vue'
 import UiAlert from '@core/components/ui/alert/UiAlert.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
-import UiHeadBar from '@core/components/ui/head-bar/UiHeadBar.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import { useOverlay } from '@core/packages/overlay/use-overlay.ts'
 import { computed, watch } from 'vue'
@@ -116,5 +112,11 @@ function openUpgradeAllModal() {
   margin: 0.8rem;
   display: flex;
   flex-direction: column;
+
+  .actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.8rem;
+  }
 }
 </style>

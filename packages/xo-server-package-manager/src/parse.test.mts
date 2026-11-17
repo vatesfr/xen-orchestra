@@ -131,7 +131,7 @@ Description: older version
 
 describe('parseStatusFdLine', () => {
   it('returns undefined for other lines', () => {
-    assert.equal(parseStatusFdLine('pmerror:curl:50.0000:dpkg failed'), undefined)
+    assert.equal(parseStatusFdLine('pmconffile:/etc/foo:bar:baz'), undefined)
     assert.equal(parseStatusFdLine(''), undefined)
     assert.equal(parseStatusFdLine('some random text'), undefined)
   })
@@ -140,18 +140,50 @@ describe('parseStatusFdLine', () => {
     assert.deepStrictEqual(parseStatusFdLine('dlstatus:3:21.4667:Retrieving file 3 of 4'), {
       phase: 'download',
       percentage: 21.47,
+      item: '3',
+      message: 'Retrieving file 3 of 4',
+      isError: false,
     })
   })
 
   it('parses the installation progress', () => {
-    assert.deepStrictEqual(parseStatusFdLine('pmstatus:libgnutls30:50.0000:Installing libgnutls30 (amd64)...'), {
+    assert.deepStrictEqual(parseStatusFdLine('pmstatus:zlib1g:7.6923:Unpacking zlib1g (amd64)'), {
       phase: 'install',
-      percentage: 50,
+      percentage: 7.69,
+      item: 'zlib1g',
+      message: 'Unpacking zlib1g (amd64)',
+      isError: false,
     })
-    assert.deepStrictEqual(parseStatusFdLine('pmstatus:curl:0.0000:Preparing curl (amd64)...'), {
+    assert.deepStrictEqual(parseStatusFdLine('pmstatus:dpkg-exec:0.0000:Running dpkg'), {
       phase: 'install',
       percentage: 0,
+      item: 'dpkg-exec',
+      message: 'Running dpkg',
+      isError: false,
     })
+  })
+
+  it('names a package of a foreign architecture without its architecture', () => {
+    assert.equal(parseStatusFdLine('pmstatus:libc6:35.8491:Unpacking libc6 (i386)')?.item, 'libc6')
+  })
+
+  it('parses the failure of the installation of a package', () => {
+    assert.deepStrictEqual(
+      parseStatusFdLine(
+        'pmerror:xo-failing-test:60.0000:installed xo-failing-test package post-installation script subprocess returned error exit status 1'
+      ),
+      {
+        phase: 'install',
+        percentage: 60,
+        item: 'xo-failing-test',
+        message: 'installed xo-failing-test package post-installation script subprocess returned error exit status 1',
+        isError: true,
+      }
+    )
+  })
+
+  it('keeps the colons of the message', () => {
+    assert.equal(parseStatusFdLine('pmstatus:curl:50.0000:a: b')?.message, 'a: b')
   })
 
   it('returns undefined for malformed lines', () => {
