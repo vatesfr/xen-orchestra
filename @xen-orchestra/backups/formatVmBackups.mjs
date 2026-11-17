@@ -39,7 +39,7 @@ import { normalize } from '@xen-orchestra/fs/path'
  */
 
 /**
- * @returns {import('@vates/types').XoVmBackupArchive & { tags: string[] }}
+ * @returns {import('@vates/types').XoVmBackupArchive}
  */
 export function formatVmBackup(backup) {
   const { isVhdDifferencing, vmSnapshot } = backup
@@ -70,6 +70,7 @@ export function formatVmBackup(backup) {
               name: vdi.name_label,
               uuid: vdi.uuid,
               sizeOnDisk: backup.vhdsSizeOnDisk?.[vdiId],
+              isDifferencing: backup.isVhdDifferencing?.[vdiId],
             }
           }),
 
