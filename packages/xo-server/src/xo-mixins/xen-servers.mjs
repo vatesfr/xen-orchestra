@@ -290,9 +290,9 @@ export default class XenServers {
 
   // `dependents` maps the ref of a metrics object to the id of the object which owns it. `_onXenRemove`
   // does not clean it, so the owner may be gone when its metrics are processed, e.g. when the cached records
-  // are refreshed: the types are fetched one by one, so an owner can be destroyed between the fetch of its
-  // metrics and its own. Its removal already dropped its XO object, nothing is left to rebuild, and throwing
-  // here would end the event loop of the whole pool.
+  // are refreshed: each type gets its own `get_all_records` snapshot, taken at a different time, so an owner
+  // can be destroyed between the snapshot of its metrics and its own. Its removal already dropped its XO
+  // object, nothing is left to rebuild, and throwing here would end the event loop of the whole pool.
   _onXenAdd(newXapiObjects, xapiIdsToXo, toRetry, conId, dependents, xapiObjects) {
     const conflicts = this._objectConflicts
     const objects = this._app._objects
@@ -678,6 +678,12 @@ export default class XenServers {
         const _server = await this.getXenServerWithCredentials(id)
         if (_server.status !== 'disconnected') {
           await this.updateXenServer(server.id, { status: 'disconnected' })
+        }
+
+        // a failed event loop leaves no other trace, the next successful connection clears it
+        const { watchEventsError } = xapi
+        if (watchEventsError !== undefined) {
+          await this.updateXenServer(server.id, { error: serializeError(watchEventsError) })
         }
 
         // deliberate disconnections set `enabled` to false beforehand, in

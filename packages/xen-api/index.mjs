@@ -929,8 +929,11 @@ export class Xapi extends EventEmitter {
   watchEvents() {
     ignoreErrors.call(
       this._watchEvents().catch(error => {
-        console.warn('_watchEvents: the event loop failed, disconnecting', error)
-        return this.disconnect()
+        console.warn(`${this._humanId}: the event loop failed, disconnecting`, error)
+        this._watchEventsError = error
+        return this.disconnect().catch(disconnectError => {
+          console.warn(`${this._humanId}: failed to disconnect after the event loop failed`, disconnectError)
+        })
       })
     )
   }
