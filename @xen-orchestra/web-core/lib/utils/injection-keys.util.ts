@@ -1,6 +1,7 @@
 import type { InputWrapperController } from '@core/components/input-wrapper/VtsInputWrapper.vue'
 import type { MobileMenuController } from '@core/components/menu/VtsMobileMenu.vue'
 import type { PanelActionsGroup } from '@core/components/panel/PanelActions.vue'
+import type { TaskListContext } from '@core/components/task/VtsTaskList.vue'
 import type { InfoSize } from '@core/components/ui/info/UiInfo.vue'
 import type { ModalAccent } from '@core/components/ui/modal/UiModal.vue'
 import type { TreeItemLabelSize } from '@core/components/ui/tree-item-label/UiTreeItemLabel.vue'
@@ -17,6 +18,8 @@ export const IK_TREE_ITEM_TOGGLE = Symbol('IK_TREE_ITEM_TOGGLE') as InjectionKey
 export const IK_TREE_ITEM_EXPANDED = Symbol('IK_TREE_ITEM_EXPANDED') as InjectionKey<Ref<boolean>>
 
 export const IK_TREE_LIST_DEPTH = Symbol('IK_TREE_LIST_DEPTH') as InjectionKey<Ref<number>>
+
+export const IK_TASK_LIST_CONTEXT = Symbol('IK_TASK_LIST_CONTEXT') as InjectionKey<TaskListContext>
 
 export const IK_TREE_ITEM_LABEL_SIZE = Symbol('IK_TREE_ITEM_LABEL_SIZE') as InjectionKey<TreeItemLabelSize>
 

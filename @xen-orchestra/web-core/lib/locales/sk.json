@@ -356,6 +356,7 @@
   "do-you-really-want-to-leave-this-page?": "Stále ešte prebieha nasadzovanie niektorých zmien. Naozaj chcete túto stránku opustiť?",
   "documentation": "Dokumentácia",
   "documentation-name": "Dokumentácia pre {name}",
+  "done": "Hotovo",
   "drop": "Zahodiť",
   "duplicate-vm:error-message": "Pri duplikovaní virt. stroje došlo k chybe. Skontrolujte nastavenia (názov, repozitár úložiska, kompresiu) a skúste to znova.",
   "duplicating-vm": "Duplikovanie virt. stroje",

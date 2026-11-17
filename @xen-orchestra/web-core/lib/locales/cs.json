@@ -368,6 +368,7 @@
   "documentation": "Dokumentace",
   "documentation-name": "Dokumentace k {name}",
   "domain": "Doména",
+  "done": "Hotovo",
   "drop": "Zahodit",
   "duplicate-vm:error-message": "Při duplikování virt. stroje došlo k chybě. Zkontrolujte nastavení (název, repozitář úložiště, kompresi) a zkuste to znovu.",
   "duplicating-vm": "Duplikování virt. stroje",

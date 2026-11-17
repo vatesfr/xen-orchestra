@@ -380,6 +380,7 @@
   "documentation": "الوثائق",
   "documentation-name": "وثائق {name}",
   "domain": "النطاق",
+  "done": "تم",
   "drop": "إسقاط",
   "duplicate-vm:error-message": "حدث خطأ أثناء تكرار VM. يرجى مراجعة إعدادات التكوين (الاسم، مستودع التخزين، الضغط) ثم المحاولة مرة أخرى.",
   "duplicating-vm": "تكرار VM",

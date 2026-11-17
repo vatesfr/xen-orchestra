@@ -354,6 +354,7 @@
   "do-you-really-want-to-leave-this-page?": "Bazı değişiklikler hâlâ uygulanıyor. Bu sayfadan gerçekten ayrılmak istiyor musunuz?",
   "documentation": "Dokümantasyon",
   "documentation-name": "{name} dokümantasyonu",
+  "done": "Tamamlandı",
   "drop": "Bırak",
   "duplicate-vm:error-message": "VM çoğaltılırken bir hata oluştu. Lütfen yapılandırma ayarlarınızı (ad, depolama deposu, sıkıştırma) gözden geçirip yeniden deneyin.",
   "duplicating-vm": "VM çoğaltılıyor",

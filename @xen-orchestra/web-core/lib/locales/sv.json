@@ -348,6 +348,7 @@
   "do-you-really-want-to-leave-this-page?": "Några ändringar pågår fortfarande. Vill du verkligen lämna sidan?",
   "documentation": "Dokumentation",
   "documentation-name": "{name} dokumentation",
+  "done": "Klar",
   "drop": "Släpp",
   "duplicate-vm:error-message": "Ett fel inträffade när VMen duplicerades. Vänligen undersök dina inställningar (namn, lagring, komprimering) och försök på nytt.",
   "duplicating-vm": "Kopiera VM",

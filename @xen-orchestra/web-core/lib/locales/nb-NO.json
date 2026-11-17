@@ -380,6 +380,7 @@
   "documentation": "Dokumentasjon",
   "documentation-name": "{name}-dokumentasjon",
   "domain": "Domene",
+  "done": "Ferdig",
   "drop": "Forkast",
   "duplicate-vm:error-message": "Det oppstod en feil under duplisering av VM-en. Gå gjennom konfigurasjonsinnstillingene (navn, lagringsrepository, komprimering) og prøv igjen.",
   "duplicating-vm": "Dupliserer VM",

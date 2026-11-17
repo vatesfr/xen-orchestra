@@ -470,6 +470,7 @@
   "documentation": "Documentation",
   "documentation-name": "Documentation {name}",
   "domain": "Domaine",
+  "done": "Terminé",
   "drop": "Rejeter",
   "duplicate-vm:error-message": "Une erreur s'est produite lors de la duplication de la VM. Veuillez vérifier vos paramètres (nom, dépôt de stockage, compression) et réessayer.",
   "duplicating-vm": "Duplication de la VM",

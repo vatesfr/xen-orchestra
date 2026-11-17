@@ -6,7 +6,7 @@
     :counter
     icon="fa:bars-progress"
     size="medium"
-    @click="rightSidebar.toggleExpand()"
+    @click="toggleSidebar()"
   />
 </template>
 
@@ -22,7 +22,15 @@ const { t } = useI18n()
 
 const rightSidebar = useRightSidebarStore()
 
-const { unreadCount, unreadSeverity } = useXoTasksUnread()
+const { unreadCount, unreadSeverity, markAllAsRead } = useXoTasksUnread()
+
+function toggleSidebar() {
+  if (rightSidebar.isExpanded) {
+    markAllAsRead()
+  }
+
+  rightSidebar.toggleExpand()
+}
 
 const hasCounter = computed(() => !rightSidebar.isExpanded && unreadCount.value > 0)
 

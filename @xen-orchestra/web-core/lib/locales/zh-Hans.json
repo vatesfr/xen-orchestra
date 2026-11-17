@@ -356,6 +356,7 @@
   "do-you-really-want-to-leave-this-page?": "部分配置正在部署，确定要离开此页面吗？",
   "documentation": "文档",
   "documentation-name": "{name}文档",
+  "done": "完成",
   "drop": "丢弃",
   "duplicate-vm:error-message": "克隆虚拟机出错。检查配置（名称、存储库、压缩）后重试。",
   "duplicating-vm": "正在克隆虚拟机",

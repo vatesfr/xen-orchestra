@@ -470,6 +470,7 @@
   "documentation": "Documentation",
   "documentation-name": "{name} documentation",
   "domain": "Domain",
+  "done": "Done",
   "drop": "Drop",
   "duplicate-vm:error-message": "An error occurred while duplicating the VM. Please review your configuration settings (name, storage repository, compression) and try again.",
   "duplicating-vm": "Duplicating VM",
