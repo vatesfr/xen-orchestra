@@ -18,26 +18,13 @@ describe('formData', () => {
   })
 })
 
-describe('stopSourceCheckboxBindings', () => {
-  it('labels the stop of the source VM and tells when it happens', () => {
-    const form = mountV2vLaunchForm()
+it.each([
+  { bindings: 'stopSourceCheckboxBindings', labelKey: 'v2v:stop-source-vm', infoKey: 'v2v:stop-source-vm-info' },
+  { bindings: 'stopOnErrorCheckboxBindings', labelKey: 'stop-on-error', infoKey: 'v2v:stop-on-error-info' },
+] as const)('labels the $bindings checkbox and tells what it does', ({ bindings, labelKey, infoKey }) => {
+  const form = mountV2vLaunchForm()
 
-    expect(form.stopSourceCheckboxBindings).toMatchObject({
-      label: form.t('v2v:stop-source-vm'),
-      info: form.t('v2v:stop-source-vm-info'),
-    })
-  })
-})
-
-describe('stopOnErrorCheckboxBindings', () => {
-  it('labels the stop on error and tells it applies to the whole launch', () => {
-    const form = mountV2vLaunchForm()
-
-    expect(form.stopOnErrorCheckboxBindings).toMatchObject({
-      label: form.t('stop-on-error'),
-      info: form.t('v2v:stop-on-error-info'),
-    })
-  })
+  expect(form[bindings]).toMatchObject({ label: form.t(labelKey), info: form.t(infoKey) })
 })
 
 describe('concurrencyInputBindings', () => {
