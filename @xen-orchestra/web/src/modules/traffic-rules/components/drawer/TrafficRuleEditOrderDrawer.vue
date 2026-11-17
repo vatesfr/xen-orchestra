@@ -60,7 +60,7 @@ import VtsTable from '@core/components/table/VtsTable.vue'
 import UiAlert from '@core/components/ui/alert/UiAlert.vue'
 import UiDrawer from '@core/components/ui/drawer/UiDrawer.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
-import { useTrafficRulesColumns } from '@core/tables/column-sets/traffic-rules-columns.ts'
+import { useTrafficRulesOrderColumns } from '@core/tables/column-sets/traffic-rules-order-columns.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -91,8 +91,7 @@ const networkTo = computed(() => {
 const { orderedRules, paginatedRules, paginationBindings, getNewRank, isFirstRule, isLastRule, moveRule } =
   useTrafficRulesOrder(() => rules)
 
-const { HeadCells, BodyCells } = useTrafficRulesColumns({
-  exclude: ['network', 'priority', 'actions'],
+const { HeadCells, BodyCells } = useTrafficRulesOrderColumns({
   body: (rule: RankedTrafficRule) => {
     const [directionA, directionB] = getDirectionLabels(rule)
 

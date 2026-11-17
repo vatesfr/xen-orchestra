@@ -157,7 +157,7 @@ const state = useTableState({
 })
 
 const { HeadCells, BodyCells } = useTrafficRulesColumns({
-  exclude: showPriority ? ['rank', 'moveButtons'] : ['priority', 'rank', 'moveButtons'],
+  exclude: showPriority ? [] : ['priority'],
   body: (rule: EnrichedTrafficRule) => {
     const network = useGetNetworkById(() => rule.networkId)
 
