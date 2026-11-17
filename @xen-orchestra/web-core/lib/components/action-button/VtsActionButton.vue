@@ -12,8 +12,8 @@
     :variant
     :accent
     :left-icon="icon"
-    :disabled
-    :busy
+    :disabled="disabled || (busy && isBusyHidden)"
+    :busy="busy && !isBusyHidden"
     @click="onClick?.()"
   >
     <slot />
@@ -26,11 +26,11 @@ import MenuItem from '@core/components/menu/MenuItem.vue'
 import UiButton, { type ButtonAccent, type ButtonVariant } from '@core/components/ui/button/UiButton.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import type { IconName } from '@core/icons'
-import { IK_IN_MENU, IK_PANEL_ACTIONS } from '@core/utils/injection-keys.util.ts'
+import { IK_HIDE_ACTION_BUTTON_BUSY, IK_IN_MENU, IK_PANEL_ACTIONS } from '@core/utils/injection-keys.util.ts'
 import { useCurrentElement } from '@vueuse/core'
 import { computed, inject, toValue } from 'vue'
 
-const { accent, onClick } = defineProps<{
+const { accent, busy, onClick } = defineProps<{
   variant: ButtonVariant
   accent: ButtonAccent
   icon?: IconName
@@ -45,6 +45,8 @@ defineSlots<{
 }>()
 
 const isInMenu = inject(IK_IN_MENU, false)
+
+const isBusyHidden = inject(IK_HIDE_ACTION_BUTTON_BUSY, false)
 
 const panelActions = isInMenu ? undefined : inject(IK_PANEL_ACTIONS, undefined)
 

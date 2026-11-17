@@ -1,22 +1,22 @@
 <template>
-  <MenuItem
-    v-tooltip="!canStartHost && startHostErrorMessage"
-    accent="neutral"
+  <VtsActionButton
+    variant="tertiary"
+    accent="brand"
     :busy="isStartingHost"
     :disabled="!canStartHost"
     icon="fa:play"
+    :hint="startHostErrorMessage"
     @click="startHost()"
   >
     {{ t('action:start') }}
-  </MenuItem>
+  </VtsActionButton>
 </template>
 
 <script lang="ts" setup>
 import type { XenApiHost } from '@/libs/xen-api/xen-api.types.ts'
 import { useHostStartJob } from '@/modules/host/jobs/host-start.job.ts'
-import MenuItem from '@core/components/menu/MenuItem.vue'
+import VtsActionButton from '@core/components/action-button/VtsActionButton.vue'
 import { useActionModal } from '@core/composables/modals/use-action-modal.ts'
-import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { useI18n } from 'vue-i18n'
 
 const { host } = defineProps<{

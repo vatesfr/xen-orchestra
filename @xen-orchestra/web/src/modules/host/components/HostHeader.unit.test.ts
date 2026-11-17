@@ -1,5 +1,6 @@
 import HostHeader from '@/modules/host/components/HostHeader.vue'
 import type { FrontXoHost, useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
+import type { useXoTaskCollection } from '@/modules/task/remote-resources/use-xo-task-collection.ts'
 import type { FrontXoVm, useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import type { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import { createHost } from '@/test/create-host.ts'
@@ -23,6 +24,10 @@ const { isMasterHost, vmsByHost, buildXo5Route } = vi.hoisted(() => ({
 
 vi.mock(import('@/modules/host/remote-resources/use-xo-host-collection.ts'), () => ({
   useXoHostCollection: (() => ({ isMasterHost })) as unknown as typeof useXoHostCollection,
+}))
+
+vi.mock(import('@/modules/task/remote-resources/use-xo-task-collection.ts'), () => ({
+  useXoTaskCollection: (() => ({ useGetTaskById: () => undefined })) as unknown as typeof useXoTaskCollection,
 }))
 
 vi.mock(import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'), () => ({

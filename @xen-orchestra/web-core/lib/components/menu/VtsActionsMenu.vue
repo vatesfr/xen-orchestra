@@ -1,5 +1,10 @@
 <template>
-  <VtsResponsiveMenu :title="resolvedLabel" :section-title="t('actions')" :placement @action="handleMenuAction?.()">
+  <VtsResponsiveMenu
+    :title="resolvedLabel"
+    :section-title="noSectionTitle ? undefined : t('actions')"
+    :placement
+    @action="handleMenuAction?.()"
+  >
     <template #trigger="{ open, isOpen }">
       <UiButtonIcon
         v-tooltip="{
@@ -43,6 +48,7 @@ const {
   actions?: ActionItem[]
   placement?: Options['placement']
   label?: string
+  noSectionTitle?: boolean
 }>()
 
 defineSlots<{

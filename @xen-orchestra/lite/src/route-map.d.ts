@@ -394,6 +394,13 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/story/web-core/head-bar/vts-head-bar-actions': RouteRecordInfo<
+      '/story/web-core/head-bar/vts-head-bar-actions',
+      '/story/web-core/head-bar/vts-head-bar-actions',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
     '/story/web-core/input-wrapper/vts-input-wrapper': RouteRecordInfo<
       '/story/web-core/input-wrapper/vts-input-wrapper',
       '/story/web-core/input-wrapper/vts-input-wrapper',
@@ -453,6 +460,13 @@ declare module 'vue-router/auto-routes' {
     '/story/web-core/menu/vts-change-state-menu-item': RouteRecordInfo<
       '/story/web-core/menu/vts-change-state-menu-item',
       '/story/web-core/menu/vts-change-state-menu-item',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/story/web-core/menu/vts-menu-title': RouteRecordInfo<
+      '/story/web-core/menu/vts-menu-title',
+      '/story/web-core/menu/vts-menu-title',
       Record<never, never>,
       Record<never, never>,
       | never
@@ -1521,6 +1535,12 @@ declare module 'vue-router/auto-routes' {
       views:
         | never
     }
+    'src/stories/web-core/head-bar/vts-head-bar-actions.story.vue': {
+      routes:
+        | '/story/web-core/head-bar/vts-head-bar-actions'
+      views:
+        | never
+    }
     'src/stories/web-core/input-wrapper/vts-input-wrapper.story.vue': {
       routes:
         | '/story/web-core/input-wrapper/vts-input-wrapper'
@@ -1572,6 +1592,12 @@ declare module 'vue-router/auto-routes' {
     'src/stories/web-core/menu/vts-change-state-menu-item.story.vue': {
       routes:
         | '/story/web-core/menu/vts-change-state-menu-item'
+      views:
+        | never
+    }
+    'src/stories/web-core/menu/vts-menu-title.story.vue': {
+      routes:
+        | '/story/web-core/menu/vts-menu-title'
       views:
         | never
     }
