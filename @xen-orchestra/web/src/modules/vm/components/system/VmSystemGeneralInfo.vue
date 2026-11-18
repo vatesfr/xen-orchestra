@@ -10,7 +10,7 @@
       <VtsTabularKeyValueRow :label="t('tags')">
         <template v-if="vm.tags.length > 0" #value>
           <UiTagsList>
-            <VtsTag v-for="tag in vm.tags" :key="tag" :value="tag" />
+            <VtsTag v-for="tag in sortedTags" :key="tag" :value="tag" accent="brand" />
           </UiTagsList>
         </template>
       </VtsTabularKeyValueRow>
@@ -36,6 +36,8 @@ import VtsTag from '@core/components/tag/VtsTag.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
+import { sortTags } from '@core/utils/sort-tags.util.ts'
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { vm } = defineProps<{ vm: FrontXoVm }>()
@@ -43,4 +45,6 @@ const { vm } = defineProps<{ vm: FrontXoVm }>()
 const { t } = useI18n()
 
 const { guestToolsDisplay } = useXoVmUtils(() => vm)
+
+const sortedTags = computed(() => sortTags(vm.tags))
 </script>

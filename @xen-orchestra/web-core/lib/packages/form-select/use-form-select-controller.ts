@@ -1,11 +1,15 @@
 import { ifElse } from '@core/utils/if-else.utils.ts'
 import { autoUpdate, flip, type MaybeElement, shift, size, useFloating } from '@floating-ui/vue'
 import { clamp, onClickOutside, useEventListener, whenever } from '@vueuse/core'
-import { computed, provide, reactive, ref, watch } from 'vue'
+import { computed, type MaybeRefOrGetter, provide, reactive, ref, toValue, watch } from 'vue'
 import { type FormOptionIndex, type FormSelect, IK_FORM_SELECT_CONTROLLER } from './types.ts'
 import { useFormSelectKeyboardNavigation } from './use-form-select-keyboard-navigation.ts'
 
-export function useFormSelectController(select: FormSelect) {
+export type UseFormSelectControllerOptions = {
+  fullscreen?: MaybeRefOrGetter<boolean>
+}
+
+export function useFormSelectController(select: FormSelect, options: UseFormSelectControllerOptions = {}) {
   const rootRef = ref<HTMLElement>()
 
   const activeOption = computed(() => select.options.value.find(option => option.flags.active))
@@ -53,15 +57,16 @@ export function useFormSelectController(select: FormSelect) {
 
   /* DROPDOWN PLACEMENT */
 
-  const { floatingStyles } = useFloating(triggerRef, dropdownRef, {
+  const { floatingStyles: rawFloatingStyles } = useFloating(triggerRef, dropdownRef, {
     whileElementsMounted: autoUpdate,
     middleware: [
       shift(),
       flip(),
       size({
         apply: ({ availableHeight, availableWidth, elements }) => {
-          elements.floating.style.maxWidth = `${availableWidth}px`
-          elements.floating.style.maxHeight = `${Math.min(500, availableHeight)}px`
+          const isFullscreen = toValue(options.fullscreen)
+          elements.floating.style.maxWidth = isFullscreen ? '' : `${availableWidth}px`
+          elements.floating.style.maxHeight = isFullscreen ? '' : `${Math.min(500, availableHeight)}px`
         },
       }),
     ],
@@ -69,6 +74,8 @@ export function useFormSelectController(select: FormSelect) {
     open: isOpen,
     strategy: 'fixed',
   })
+
+  const floatingStyles = computed(() => (toValue(options.fullscreen) ? undefined : rawFloatingStyles.value))
 
   /* SEARCH */
 

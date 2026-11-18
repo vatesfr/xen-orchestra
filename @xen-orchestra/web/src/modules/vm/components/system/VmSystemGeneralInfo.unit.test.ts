@@ -60,10 +60,16 @@ it('leaves the operating system rows empty when the VM reports no OS version', (
   expect(findLabelledValues(wrapper)).toMatchObject({ [t('os-name')]: '', [t('os-kernel')]: '' })
 })
 
-it('renders one tag per VM tag', () => {
+it('renders one tag per VM tag, in alphabetical order', () => {
   const wrapper = mountGeneralInfo(createVm({ tags: ['production', 'billing'] }))
 
-  expect(findTags(wrapper)).toEqual(['production', 'billing'])
+  expect(findTags(wrapper)).toEqual(['billing', 'production'])
+})
+
+it('renders the VM tags with the brand accent', () => {
+  const wrapper = mountGeneralInfo(createVm({ tags: ['production', 'billing'] }))
+
+  expect(wrapper.findAll('.ui-tag').every(tag => tag.classes('accent--brand'))).toBe(true)
 })
 
 it('renders no tag when the VM has none', () => {
