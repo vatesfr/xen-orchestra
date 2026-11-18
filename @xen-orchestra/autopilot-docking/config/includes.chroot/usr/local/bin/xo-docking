@@ -1,0 +1,3 @@
+#!/bin/sh
+export PYTHONPATH="/usr/lib/xo-docking${PYTHONPATH:+:$PYTHONPATH}"
+exec python3 -m xo_docking "$@"

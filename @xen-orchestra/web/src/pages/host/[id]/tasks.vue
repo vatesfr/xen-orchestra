@@ -3,7 +3,9 @@
     <UiCard class="container">
       <TasksList :tasks="convertedTasks" :has-error="hasTaskFetchError" :busy="!areTasksReady" />
     </UiCard>
-    <TaskSidePanel :task="selectedTask" @close="selectedTask = undefined" />
+    <template #panel>
+      <TaskSidePanel :task="selectedTask" @close="selectedTask = undefined" />
+    </template>
   </VtsContentSidePanel>
 </template>
 
@@ -23,7 +25,6 @@ const { host } = defineProps<{
 }>()
 
 const { getTaskById, sortedTasks, hasTaskFetchError, areTasksReady } = useXoHostTasksCollection({}, () => host.id)
-
 
 const selectedTask = useRouteQuery<FrontXoTask | undefined>('id', {
   toData: id => getTaskById(id as FrontXoTask['id']),

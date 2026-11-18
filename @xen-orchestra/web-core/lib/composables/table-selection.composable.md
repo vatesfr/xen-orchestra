@@ -6,14 +6,16 @@ The selection is stored by item ID, so it is kept when changing page or filter.
 
 ## Parameters
 
-| Name            | Type                                | Description                                 |
-| --------------- | ----------------------------------- | ------------------------------------------- |
-| `items`         | `MaybeRefOrGetter<TItem[]>`         | All the items of the table (before filters) |
-| `filteredItems` | `MaybeRefOrGetter<TItem[]>`         | The items matching the current filter       |
-| `pageItems`     | `MaybeRefOrGetter<TItem[]>`         | The items displayed on the current page     |
-| `getItemId`     | `(item: TItem) => CollectionItemId` | Returns the ID of an item                   |
+| Name            | Type                        | Description                                                  |
+| --------------- | --------------------------- | ------------------------------------------------------------ |
+| `items`         | `MaybeRefOrGetter<TItem[]>` | All the items of the table (before filters)                  |
+| `filteredItems` | `MaybeRefOrGetter<TItem[]>` | The items matching the current filter                        |
+| `pageItems`     | `MaybeRefOrGetter<TItem[]>` | The items displayed on the current page                      |
+| `getItemId`     | `(item: TItem) => TId`      | Returns the ID of an item (`TId` extends `CollectionItemId`) |
 
 `filteredItems` and `pageItems` must contain items of the same type as `items`. Only their IDs are used.
+
+The returned IDs keep the type `getItemId` returns (a branded ID stays branded).
 
 ## Returned values
 
@@ -31,6 +33,7 @@ The selection is stored by item ID, so it is kept when changing page or filter.
 - "Select all" selects every item matching the filter
 - "Clear selection" unselects every item, including the ones hidden by the filter
 - Items that are no longer in `items` are not part of `selectedIds` nor `selectedItems`
+- A row checkbox can be disabled with the optional `disabled` binding of the `checkbox` body cell; the header checkbox and "Select all" still include that row, so keep it out of `items` if it must never be selected
 
 ## Usage
 

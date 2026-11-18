@@ -6,7 +6,9 @@
       </UiCard>
     </div>
 
-    <BackupJobSidePanel :backup-job="selectedBackupJob" @close="selectedBackupJob = undefined" />
+    <template #panel>
+      <BackupJobSidePanel :backup-job="selectedBackupJob" @close="selectedBackupJob = undefined" />
+    </template>
   </VtsContentSidePanel>
 </template>
 

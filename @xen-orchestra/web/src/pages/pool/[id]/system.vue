@@ -1,16 +1,18 @@
 <template>
   <VtsStateHero v-if="!isReady" format="card" type="busy" size="medium" />
-  <VtsColumns v-else extra-space-around>
-    <VtsColumn>
-      <PoolSystemGeneralInfo :pool />
-      <PoolSystemNetworking :pool />
-      <PoolSystemStorageConfiguration :pool />
-    </VtsColumn>
-    <VtsColumn>
-      <PoolSystemManagement :pool />
-      <PoolSystemConnections :pool />
-    </VtsColumn>
-  </VtsColumns>
+  <div v-else class="scroll-container">
+    <VtsColumns extra-space-around>
+      <VtsColumn>
+        <PoolSystemGeneralInfo :pool />
+        <PoolSystemNetworking :pool />
+        <PoolSystemStorageConfiguration :pool />
+      </VtsColumn>
+      <VtsColumn>
+        <PoolSystemManagement :pool />
+        <PoolSystemConnections :pool />
+      </VtsColumn>
+    </VtsColumns>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -38,3 +40,11 @@ const { areSrsReady } = useXoSrCollection()
 
 const isReady = logicAnd(areServersReady, areHostsReady, areNetworksReady, areSrsReady)
 </script>
+
+<style lang="postcss" scoped>
+.scroll-container {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+</style>

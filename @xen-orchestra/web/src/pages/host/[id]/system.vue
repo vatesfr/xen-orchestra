@@ -1,17 +1,19 @@
 <template>
-  <VtsColumns extra-space-around>
-    <VtsColumn>
-      <HostSystemGeneralInformation :host />
-      <HostSystemNetworking :host />
-      <HostSystemResourceManagement :host />
-    </VtsColumn>
-    <VtsColumn>
-      <!--    Todo: wait for the licenses availability -->
-      <!--    <HostSystemLicensing  /> -->
-      <HostSystemSoftwareTooling :host />
-      <HostSystemHardwareSpecifications :host />
-    </VtsColumn>
-  </VtsColumns>
+  <div class="scroll-container">
+    <VtsColumns extra-space-around>
+      <VtsColumn>
+        <HostSystemGeneralInformation :host />
+        <HostSystemNetworking :host />
+        <HostSystemResourceManagement :host />
+      </VtsColumn>
+      <VtsColumn>
+        <!--    Todo: wait for the licenses availability -->
+        <!--    <HostSystemLicensing  /> -->
+        <HostSystemSoftwareTooling :host />
+        <HostSystemHardwareSpecifications :host />
+      </VtsColumn>
+    </VtsColumns>
+  </div>
 </template>
 
 <script lang="ts" setup>
@@ -29,3 +31,11 @@ const { host } = defineProps<{
   host: FrontXoHost
 }>()
 </script>
+
+<style lang="postcss" scoped>
+.scroll-container {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+</style>

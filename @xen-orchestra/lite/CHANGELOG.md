@@ -2,6 +2,8 @@
 
 ## **next**
 
+- [Pages] The page header and tabs now stay in place on every page: dashboards, System tabs, consoles, tasks, settings and creation forms scroll under them instead of scrolling with them (PR [#10822](https://github.com/vatesfr/xen-orchestra/pull/10822))
+- [VM/Host] Main actions (shutdown, reboot, start, resume, migrate, snapshot) are shown as buttons in the VM and host headers and move one by one into "More actions" when space runs out; "More actions" groups them under "Change state" and "Actions" sections, and VMs without guest tools get force shutdown and force reboot instead (PR [#10815](https://github.com/vatesfr/xen-orchestra/pull/10815))
 - [Web-Core/UiButtonIcon] Update icon buttons design, with a counter replacing the notification dot (PR [#10799](https://github.com/vatesfr/xen-orchestra/pull/10799))
 - [Mobile/Side panels] Full-page menus on mobile with "Change state" in "More actions", side panel actions shown as buttons when there is room, and fixes for long names in headers and menu placement (PR [#10745](https://github.com/vatesfr/xen-orchestra/pull/10745))
 - [Side panels] Side panels can be resized like the treeview, whose default width now adapts to the screen size (PR [#10725](https://github.com/vatesfr/xen-orchestra/pull/10725))
@@ -9,6 +11,7 @@
 - [Treeview] Fix translations of the tooltip for VM and host statuses in treeview (PR [#10643](https://github.com/vatesfr/xen-orchestra/pull/10643))
 - [Web-Core/UiDropdownButton] Update dropdown buttons design (PR [#9850](https://github.com/vatesfr/xen-orchestra/pull/9850))
 - [Tables] Tables are filtered as you type, half a second after the last keystroke, or right away with Enter; the "Search" button is removed (PR [#10797](https://github.com/vatesfr/xen-orchestra/pull/10797))
+- [Side panels] Fix the double scrollbar when the side panel content is taller than the screen: the page header now stays in place, and the list and the side panel each scroll on their own. All scrollbars are now thin, like the side panel one (PR [#10807](https://github.com/vatesfr/xen-orchestra/pull/10807))
 
 ## **0.27.0** (2026-10-29)
 

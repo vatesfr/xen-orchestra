@@ -1,13 +1,20 @@
 <template>
-  <MenuItem v-if="canRun || isRunning" accent="neutral" icon="fa:play" :busy="isRunning" @click="startJob()">
+  <VtsActionButton
+    v-if="canRun || isRunning"
+    variant="tertiary"
+    accent="brand"
+    icon="fa:play"
+    :busy="isRunning"
+    @click="startJob()"
+  >
     {{ t('action:start') }}
-  </MenuItem>
+  </VtsActionButton>
 </template>
 
 <script lang="ts" setup>
 import { useXoVmStartJob } from '@/modules/vm/jobs/xo-vm-start.job.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
-import MenuItem from '@core/components/menu/MenuItem.vue'
+import VtsActionButton from '@core/components/action-button/VtsActionButton.vue'
 import { IK_CLOSE_MENU } from '@core/utils/injection-keys.util.ts'
 import { inject } from 'vue'
 import { useI18n } from 'vue-i18n'
