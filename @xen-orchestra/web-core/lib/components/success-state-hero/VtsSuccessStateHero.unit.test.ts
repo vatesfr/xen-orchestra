@@ -1,8 +1,8 @@
 import VtsSuccessStateHero from '@core/components/success-state-hero/VtsSuccessStateHero.vue'
 import UiAlert from '@core/components/ui/alert/UiAlert.vue'
+import { createGlobalTestConfig } from '@core-test/create-global-test-config.ts'
 import { mount, type VueWrapper } from '@vue/test-utils'
 import type { Window as HappyDomWindow } from 'happy-dom'
-import { createGlobalTestConfig } from '../../../test/create-global-test-config.ts'
 
 function mountSuccessStateHero({ width = 1024, title }: { width?: number; title?: string } = {}) {
   ;(window as unknown as HappyDomWindow).happyDOM.setViewport({ width })

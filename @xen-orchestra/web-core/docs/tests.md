@@ -4,10 +4,10 @@ Testing uses **Vitest 4** with a single `unit` project (see `vitest.config.ts`):
 
 | Path                                | Role                                                                                       |
 | ----------------------------------- | ------------------------------------------------------------------------------------------ |
-| `vitest.config.ts`                  | Runner config: `vue` + `vue-i18n` plugins, `@core` alias, `globals: true`                  |
+| `vitest.config.ts`                  | Runner config: `vue` + `vue-i18n` plugins, `@core` / `@core-test` aliases, `globals: true` |
 | `test/setup.ts`                     | Global setup: auto-unmounts every mounted wrapper after each test                          |
 | `test/create-global-test-config.ts` | `global` mount options: the real `vue-i18n`, a Pinia and a router (needed by `useUiStore`) |
-| `tsconfig.vitest.json`              | Type-checks test files with the Vitest globals                                             |
+| `tsconfig.vitest.json`              | Type-checks test files with the Vitest globals and the `@core-test` alias                  |
 | `tsconfig.app.json`                 | Type-checks the library, test files excluded                                               |
 
 Test files sit next to the code they test, as `lib/**/*.unit.test.ts`. Shared test infrastructure lives in `test/`, outside `lib/`. The shared `scripts/npmignore` keeps all of it out of the published package.
