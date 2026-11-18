@@ -43,6 +43,12 @@ export default defineConfig(({ mode }) => {
     },
     test: {
       globals: true,
+      // The test files share their modules (see docs/tests/mocking.md): about 7x faster than isolating each file. In a
+      // random order, so that a test leaking state into another file fails instead of passing by luck
+      isolate: false,
+      sequence: { shuffle: { files: true } },
+      // More workers are not faster, and each one keeps every module it loaded
+      maxWorkers: 4,
       setupFiles: ['./src/test/global-module-mocks.ts', './src/test/setup.ts'],
       alias: {
         '@core-test': fileURLToPath(new URL('../web-core/test', import.meta.url)),
