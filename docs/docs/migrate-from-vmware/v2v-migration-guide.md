@@ -220,6 +220,8 @@ The wizard has five steps: **Source**, **Destination**, **VMs**, **Mapping** and
 
 Fill in the **Connect a new VMware source** form with the address of your vCenter or ESXi host (**Host** and **Port**, 443 by default), your VMware **Username** and **Password**, then click **Connect**.
 
+<UiShot light="/img/xo6/v2v-source-light.png" dark="/img/xo6/v2v-source-dark.png" alt="The Source step of the migration wizard, with the remembered connections and the connection form" url="https://your-xo/v6/#/admin/v2v/migrate" />
+
 - **Skip SSL check (self-signed certificate)** is enabled by default: the server certificate is not verified.
 - **Remember connection in this browser** keeps the connection, password included, in this browser only. Xen Orchestra never stores your VMware credentials. Make sure this complies with your security guidelines.
 
@@ -233,6 +235,8 @@ Choose the **Destination pool**, then the global defaults applied to every VM:
 - **Default network**: prefilled with the management network of the pool master.
 - **Default template**.
 
+<UiShot light="/img/xo6/v2v-destination-light.png" dark="/img/xo6/v2v-destination-dark.png" alt="The Destination step of the migration wizard, with the destination pool and the global defaults" url="https://your-xo/v6/#/admin/v2v/migrate?step=destination" />
+
 Each VM can override these defaults in the **Mapping** step.
 
 Each source and destination pool pair has its own migration list, saved in your browser. If a list already exists for this pair, click **Continue with existing list** to reopen it, with the current migration state of every VM.
@@ -240,6 +244,8 @@ Each source and destination pool pair has its own migration list, saved in your 
 ### VMs
 
 The table lists the VMs of the source, with their power state, datastores, size, migration status and last sync. Filter them with the presets (**All**, **Not migrated**, **Not ready**, **In progress**, **Warm synced**, **Cutover done**), with the query builder, or by clicking a datastore.
+
+<UiShot light="/img/xo6/v2v-vms-light.png" dark="/img/xo6/v2v-vms-dark.png" alt="The VMs step of the migration wizard, with the VMs of the source and the Selected VMs side panel" url="https://your-xo/v6/#/admin/v2v/migrate?step=vms" />
 
 Select the VMs to migrate, then click **Add to migration list**. VMs with an [unsupported disk](#-unsupported) cannot be selected.
 
@@ -251,6 +257,8 @@ The table shows every VM of the migration list, with its type:
 
 - **New**: the VM is imported for the first time.
 - **Resume**: a partial import of the VM exists on the destination pool. The import resumes from the last sync, with the mapping of the first run.
+
+<UiShot light="/img/xo6/v2v-mapping-light.png" dark="/img/xo6/v2v-mapping-dark.png" alt="The Mapping step of the migration wizard, with the details of a VM in the side panel" url="https://your-xo/v6/#/admin/v2v/migrate?step=mapping" />
 
 Click a VM to open its details in the side panel, then click **Edit settings** to choose:
 
@@ -279,6 +287,8 @@ Set the **Default options** of the launch:
 - **Stop the source VM**: enabled by default. The source VM is stopped before the last delta transfer. This is needed to fully transfer a running VM.
 - **Stop on error**: enabled by default. The migration stops on the first error when importing VMs.
 - **Concurrent VMs**: the number of VMs imported at the same time, 2 by default (from 1 to 8).
+
+<UiShot light="/img/xo6/v2v-review-light.png" dark="/img/xo6/v2v-review-dark.png" alt="The Review step of the migration wizard, with the default options and the per-VM options" url="https://your-xo/v6/#/admin/v2v/migrate?step=review" />
 
 In the **Per-VM options** table, you can override the **Stop source** option for each VM.
 
