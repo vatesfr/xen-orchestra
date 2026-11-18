@@ -99,7 +99,8 @@ export async function getLinstorIssues(xapi) {
 // its volumes resynchronize, on their own after a restart of its services or
 // the reboot of a host
 //
-// A plugin without health check cannot tell: that error is thrown as is
+// A plugin without health check cannot tell, and an answer which is not JSON
+// cannot be read: those errors are thrown as is
 export async function waitLinstorHealthy(xapi, { timeout, interval = 5e3 }) {
   const deadline = Date.now() + timeout
   while (true) {
@@ -109,12 +110,14 @@ export async function waitLinstorHealthy(xapi, { timeout, interval = 5e3 }) {
       // given what is left of it, and counts as a failed check past that
       issues = await pTimeout.call(getLinstorIssues(xapi), Math.max(deadline - Date.now(), 1))
     } catch (error) {
-      if (error.code === 'UNKNOWN_XENAPI_PLUGIN_FUNCTION') {
+      // waiting does not help a plugin too old to check, nor an answer which
+      // is not JSON
+      if (error.code === 'UNKNOWN_XENAPI_PLUGIN_FUNCTION' || error instanceof SyntaxError) {
         throw error
       }
-      // the plugin fails while the controller is not started yet. It is the
-      // one which finds the controller: only the host it ran on, the master,
-      // can be named
+      // the call to the plugin fails or hangs while the controller is not
+      // started yet. The plugin is the one which finds the controller: only the
+      // host it ran on, the master, can be named
       cause = error
       issues = [`LINSTOR health check failed on host ${xapi.pool.$master.name_label}: ${error.message}`]
     }

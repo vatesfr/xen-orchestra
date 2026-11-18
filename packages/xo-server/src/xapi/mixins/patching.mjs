@@ -801,15 +801,25 @@ const methods = {
       // the controller only runs on one host, which is the only one where it
       // has to be stopped to be started again with its new version. Looked for
       // before anything is changed: a failure leaves the pool as it was. The
-      // plugin answers with a Python boolean
+      // plugin answers with a Python boolean, anything else is refused
       let controllerHosts
       try {
         const hasController = await callPluginOnAllHost('linstor-manager', 'hasControllerRunning', {})
+        hasController.forEach((answer, i) => {
+          if (answer !== 'True' && answer !== 'False') {
+            throw new Error(
+              `unexpected answer of linstor-manager hasControllerRunning on host ${hosts[i].uuid}: ${answer}`
+            )
+          }
+        })
         controllerHosts = hosts.filter((_, i) => hasController[i] === 'True')
         if (controllerHosts.length > 1) {
-          throw new Error(
-            `LINSTOR controller running on several hosts: ${controllerHosts.map(host => host.uuid).join(', ')}`
-          )
+          throw incorrectState({
+            actual: controllerHosts.map(host => host.uuid),
+            expected: 'at most one host',
+            object: this.pool.uuid,
+            property: 'linstorControllerHosts',
+          })
         }
         if (controllerHosts.length === 0) {
           log.warn(`no running LINSTOR controller found on pool ${this.pool.uuid}`)

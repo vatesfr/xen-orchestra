@@ -287,4 +287,16 @@ describe('waitLinstorHealthy()', function () {
       return true
     })
   })
+
+  it('does not wait on an answer which is not JSON', async function () {
+    const xapi = fakeXapi([healthCheck()])
+    let nCalls = 0
+    xapi.call = async () => {
+      nCalls++
+      return 'Traceback (most recent call last):'
+    }
+
+    await assert.rejects(waitLinstorHealthy(xapi, { timeout: 60e3, interval: 0 }), SyntaxError)
+    assert.equal(nCalls, 1)
+  })
 })

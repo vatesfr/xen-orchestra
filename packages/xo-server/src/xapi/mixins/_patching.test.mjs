@@ -866,8 +866,12 @@ describe('rollingPoolUpdate', function () {
 
 describe('_updateLinstorPackages()', function () {
   // Fake XAPI of a pool of 3 hosts, recording the plugin calls and the wait for
-  // LINSTOR to be healthy in order
-  const updateLinstorPackages = async controllerHosts => {
+  // LINSTOR to be healthy in order. The plugin answers with Python's
+  // `str(bool)` unless `answer` says otherwise
+  const updateLinstorPackages = async (
+    controllerHosts,
+    answer = hostRef => (controllerHosts.includes(hostRef) ? 'True' : 'False')
+  ) => {
     const calls = []
     const xapi = Object.assign(Object.create(patchingMethods), {
       pool: { uuid: 'pool-1' },
@@ -893,8 +897,7 @@ describe('_updateLinstorPackages()', function () {
             })
           }
           calls.push(`${hostRef} ${fn}`)
-          // Python's `str(bool)`
-          return controllerHosts.includes(hostRef) ? 'True' : 'False'
+          return answer(hostRef)
         }
         calls.push(`${hostRef} ${fn} ${args.packages ?? args.service}`)
       },
@@ -939,9 +942,24 @@ describe('_updateLinstorPackages()', function () {
   })
 
   it('changes nothing when several controllers are running', async function () {
-    await assert.rejects(updateLinstorPackages(['host-A', 'host-C']), {
-      message: 'LINSTOR controller running on several hosts: host-A, host-C',
+    await assert.rejects(updateLinstorPackages(['host-A', 'host-C']), error => {
+      assert.ok(
+        incorrectState.is(error, {
+          actual: ['host-A', 'host-C'],
+          object: 'pool-1',
+          property: 'linstorControllerHosts',
+        }),
+        error
+      )
+      return true
     })
+  })
+
+  it('changes nothing when the plugin does not tell whether the controller is running', async function () {
+    await assert.rejects(
+      updateLinstorPackages([], hostRef => (hostRef === 'host-B' ? 'error: unit not found' : 'False')),
+      { message: 'unexpected answer of linstor-manager hasControllerRunning on host host-B: error: unit not found' }
+    )
   })
 })
 
