@@ -22,7 +22,7 @@
             <VtsCopyButton :value="schedule.id" />
           </template>
         </VtsCardRowKeyValue>
-        <VtsCardRowKeyValue>
+        <VtsCardRowKeyValue v-if="schedules.length > 1">
           <template #key>{{ t('status') }}</template>
           <template #value>
             <VtsStatus :status="schedule.enabled" />

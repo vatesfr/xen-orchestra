@@ -3,14 +3,17 @@ import type {
   AnyXoJob,
   AnyXoLog,
   NonXapiXoRecord,
+  XoBackupDiskPartition,
   XapiXoRecord,
   XoAuthenticationToken,
   XoBackupRepository,
+  XoBrowserMediaSession,
   XoConfigBackupArchive,
   XoGroup,
   XoHost,
   XoMetadataBackupJob,
   XoMirrorBackupJob,
+  XoNetwork,
   XoPlugin,
   XoPool,
   XoPoolBackupArchive,
@@ -20,13 +23,17 @@ import type {
   XoSr,
   XoTask,
   XoUser,
+  XoVdi,
   XoVif,
   XoVm,
   XoVmBackupArchive,
   XoVmBackupJob,
+  XoVmTemplate,
 } from './xo.mjs'
 import { VatesTask } from './lib/vates-task.mjs'
 import type { PluginRestRouteDefinition } from './lib/rest-api.mjs'
+import type { VmwareInventory } from './lib/xen-orchestra-vmware-explorer.mjs'
+import type { XoV2vStatus } from './lib/xen-orchestra-v2v.mjs'
 import type { RPU_RECOVERY_STEP_NAME } from './common.mjs'
 import {
   Xapi,
@@ -205,6 +212,15 @@ type XoStoreRangeOptions = {
   reverse?: boolean
 }
 
+// `@xen-orchestra/vmware-explorer` is not typed
+export type EsxiConnectionParams = {
+  /** `host` or `host:port` */
+  host: string
+  user: string
+  password: string
+  sslVerify: boolean
+}
+
 export type XoApp = EventEmitter & {
   hooks: EventEmitter
   _redis: {
@@ -285,6 +301,8 @@ export type XoApp = EventEmitter & {
   backupGuard(objectId: XapiXoRecord['id'], opts?: { bypassBackupCheck?: boolean; operation: string }): Promise<void>
   /* Throw if no authorization */
   checkFeatureAuthorization(featureCode: FeatureCode): Promise<void>
+  /* whether this machine can run the tools of an import from VMware */
+  checkEsxiDependencies(): Promise<XoV2vStatus>
   /* validate, apply and persist the configuration of a plugin */
   configurePlugin(id: string, configuration: unknown, mergeWithExisting?: boolean): Promise<void>
   /* connect a server (XCP-ng/XenServer) */
@@ -419,6 +437,23 @@ export type XoApp = EventEmitter & {
     >
   >
   getAllSchedules(): Promise<XoSchedule[]>
+  /** Every browser media session, whoever owns it; empty when the feature is disabled */
+  getAllBrowserMediaSessions(): XoBrowserMediaSession[]
+  getBrowserMediaSession(id: XoBrowserMediaSession['id']): XoBrowserMediaSession
+  /**
+   * Insert the ISO of a browser media session in the CD drive of a VM. Undone by `ejectBrowserMedia`,
+   * or when the browser disconnects.
+   *
+   * `assertBrowserMediaInsertable` reports the predictable failures synchronously, e.g. before
+   * starting a task.
+   */
+  insertBrowserMedia(params: {
+    id: XoBrowserMediaSession['id']
+    vmId: XoVm['id']
+  }): Promise<{ vdiId: XoVdi['id'] }>
+  assertBrowserMediaInsertable(params: { id: XoBrowserMediaSession['id']; vmId: XoVm['id'] }): void
+  /** Eject the ISO of a browser media session, release its storage, and disconnect the browser */
+  ejectBrowserMedia(id: XoBrowserMediaSession['id']): Promise<void>
   getAllUsers(opts?: { obfuscatePassword?: boolean }): Promise<XoUser[]>
   getAllXenServers(): Promise<XoServer[]>
   getAuthenticationTokensForUser(userId: XoUser['id']): Promise<XoAuthenticationToken[]>
@@ -466,6 +501,7 @@ export type XoApp = EventEmitter & {
   }>
   getUser: (id: XoUser['id'], opts?: { obfuscatePassword?: boolean }) => Promise<XoUser>
   getUserIdentityFields(): string[]
+  getEsxiInventory(params: EsxiConnectionParams): Promise<VmwareInventory>
   getXapi(maybeId: XapiXoRecord['id'] | XapiXoRecord): Xapi
   getXapiHostStats: (hostId: XoHost['id'], granularity?: XapiStatsGranularity) => Promise<XapiHostStats>
   getXapiObject: <T extends XapiXoRecord>(
@@ -481,6 +517,22 @@ export type XoApp = EventEmitter & {
   getXoEventEmitterByType(type: string): EventEmitter
   hasFeatureAuthorization(featureCode: string): Promise<boolean>
   hasObject<T extends XapiXoRecord>(id: T['id'], type: T['type']): boolean
+  listBackupNgDiskPartitions(remoteId: XoBackupRepository['id'], diskId: string): Promise<XoBackupDiskPartition[]>
+  listBackupNgPartitionFiles(
+    remoteId: XoBackupRepository['id'],
+    diskId: string,
+    partitionId: string | undefined,
+    path: string
+    // keys ending in "/" are directories; files carry size (bytes) and mtime (epoch ms).
+    // Values may be empty ({}) for directories or when served by an older proxy.
+  ): Promise<Record<string, { size?: number; mtime?: number }>>
+  fetchBackupNgPartitionFiles(
+    remoteId: XoBackupRepository['id'],
+    diskId: string,
+    partitionId: string | undefined,
+    paths: string[],
+    format: string
+  ): Promise<Readable>
   loadPlugin(id: XoPlugin['id']): Promise<void>
   listMetadataBackups(backupRepositoryIds: XoBackupRepository['id'][]): Promise<{
     xo: Record<XoBackupRepository['id'], XoConfigBackupArchive[]>
@@ -491,6 +543,25 @@ export type XoApp = EventEmitter & {
     backupRepositoryIds: XoBackupRepository['id'][],
     opts?: { _forceRefresh?: boolean; vmId?: XoVm['id'] }
   ): Promise<Record<XoBackupRepository['id'], Record<XoVm['id'], XoVmBackupArchive[]> | null>>
+  /** imports one VM from VMware, resuming a previous partial import when possible, returns the UUID of the XCP-ng VM */
+  migrationfromEsxi(
+    params: EsxiConnectionParams & {
+      sr: XoSr['id']
+      network: XoNetwork['id']
+      /** overrides `sr`, by disk node (e.g. `scsi0:0`) */
+      disks?: Record<string, XoSr['id']>
+      /** overrides `network`, by NIC device key (e.g. `4000`) */
+      nics?: Record<string, XoNetwork['id']>
+      template: XoVmTemplate['id']
+      stopSource: boolean
+      /** VMware moref of the VM */
+      vm: string
+      /** dock the guest once the import is complete, off by default. A failed docking does not fail the import */
+      docking?: boolean
+      /** start the VM once the import is complete, following the first boot of a docked guest, off by default */
+      startVm?: boolean
+    }
+  ): Promise<XoVm['uuid']>
   /**
    * Serve one disk of a backup archive as an iSCSI LUN and attach it to `host`
    * as an SR, read-only unless `cacheSrId` is set. Undone by `unmountBackupArchiveDisk`.

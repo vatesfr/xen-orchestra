@@ -5,6 +5,7 @@ import type { fetchPatch } from '@/shared/utils/fetch.util.ts'
 import { createBr } from '@/test/create-br.ts'
 import { t } from '@/test/i18n.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
+import { silenceConsoleError } from '@/test/silence-console-error.ts'
 
 const { patch, checkHealth } = vi.hoisted(() => ({
   patch: vi.fn(),
@@ -62,7 +63,7 @@ describe('run', () => {
   })
 
   it('reports each repository result, without stopping at the first failure', async () => {
-    vi.spyOn(console, 'error').mockImplementation(() => {})
+    silenceConsoleError()
     const error = new Error('Backup repository unreachable')
     patch.mockRejectedValueOnce(error)
 

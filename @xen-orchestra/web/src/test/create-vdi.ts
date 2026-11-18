@@ -19,6 +19,7 @@ export function createVdi(overrides: Partial<FrontXoVdi> = {}): FrontXoVdi {
     uuid: 'vdi-uuid-1',
     cbt_enabled: false,
     image_format: 'vhd',
+    other_config: {},
     ...overrides,
   }
 }

@@ -24,7 +24,11 @@ describe('registerCollection', () => {
   // emitter returned by `getXoEventEmitterByType` emits one `(object, previous)` event per item
   it('turns the array payloads of a collection into add, update and remove events', async () => {
     const xo = new Xo({
-      config: { datadir: '/tmp/xo-test-datadir', resourceCacheDelay: '1s', backups: { listingDebounce: '1m' } },
+      config: {
+        datadir: '/tmp/xo-test-datadir',
+        resourceCacheDelay: '1s',
+        backups: { listingDebounce: '1m', journalRetention: '30 days' },
+      },
       appVersion: 'test',
     })
     const collection = new EventEmitter()

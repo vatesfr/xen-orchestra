@@ -22,17 +22,19 @@
 
     <ul class="rules">
       <li
-        v-for="{ networkRule, protocolLabel } of visibleNetworkRuleItems"
+        v-for="{ networkRule, policy, protocolLabel } of visibleNetworkRuleItems"
         :key="networkRule.id"
         :class="{ current: networkRule.id === rule.id }"
         class="rule typo-body-regular-small"
       >
         <span class="index typo-body-bold-small">{{ networkRule.rank }}</span>
-        <UiTag :accent="networkRule.allow ? 'success' : 'danger'" variant="secondary">
-          {{ networkRule.allow ? t('allow') : t('drop') }}
+        <UiTag :accent="policy.accent" variant="secondary">
+          {{ policy.label }}
         </UiTag>
-        <span class="typo-body-bold-small">{{ protocolLabel }}</span>
-        <span>{{ networkRule.ipRange }}</span>
+        <span class="details">
+          <span class="typo-body-bold-small">{{ protocolLabel }}</span>
+          <span>{{ networkRule.ipRange }}</span>
+        </span>
         <span v-if="networkRule.id === rule.id" class="this-rule typo-body-bold-small">{{ t('this-rule') }}</span>
       </li>
     </ul>
@@ -53,6 +55,7 @@
 <script lang="ts" setup>
 import type { FrontXoNetwork } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
 import { getPoolNetworkRoute } from '@/modules/network/utils/xo-network.util.ts'
+import { useTrafficRulePolicy } from '@/modules/traffic-rules/composables/traffic-rule-policy.composable.ts'
 import type { RankedTrafficRule } from '@/modules/traffic-rules/types.ts'
 import {
   getNetworkRules,
@@ -78,6 +81,8 @@ const VISIBLE_RULES_COUNT = 5
 
 const { t, te, locale } = useI18n()
 
+const getPolicy = useTrafficRulePolicy()
+
 const networkTo = computed(() => getPoolNetworkRoute(network.$pool, network.id))
 
 const ordinalSuffix = computed(() => {
@@ -101,6 +106,7 @@ const networkRules = computed(() => getNetworkRules(rules, rule.networkId))
 const networkRuleItems = computed(() =>
   networkRules.value.map(networkRule => ({
     networkRule,
+    policy: getPolicy(networkRule),
     protocolLabel: getTrafficRuleProtocolLabel(networkRule),
   }))
 )
@@ -133,8 +139,9 @@ const visibleNetworkRuleItems = computed(() => {
 .traffic-rule-priority-card {
   .title {
     display: inline-flex;
+    flex-wrap: wrap;
     align-items: center;
-    gap: 1.6rem;
+    gap: 0.4rem 1.6rem;
   }
 
   .position {
@@ -142,6 +149,8 @@ const visibleNetworkRuleItems = computed(() => {
   }
 
   .rules {
+    container-type: inline-size;
+    container-name: traffic-rule-priority-rules;
     display: flex;
     flex-direction: column;
     gap: 0.8rem;
@@ -158,6 +167,31 @@ const visibleNetworkRuleItems = computed(() => {
     &.current {
       background-color: var(--color-brand-background-selected);
     }
+
+    @container traffic-rule-priority-rules (max-width: 30rem) {
+      &.current {
+        display: grid;
+        grid-template-columns: auto auto 1fr;
+        grid-template-areas:
+          'index tag this-rule'
+          '. details details';
+        gap: 0.8rem 1.2rem;
+
+        .details {
+          grid-area: details;
+        }
+
+        .this-rule {
+          grid-area: this-rule;
+        }
+      }
+    }
+  }
+
+  .details {
+    display: flex;
+    align-items: center;
+    gap: 1.2rem;
   }
 
   .index {

@@ -3,7 +3,7 @@ import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/us
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import type { XoTask } from '@vates/types'
 
-function getBackupLogVmTasks(backupLog: FrontXoBackupLog) {
+export function getBackupLogVmTasks(backupLog: FrontXoBackupLog) {
   return (backupLog.tasks ?? []).filter(task => task.data?.type === 'VM')
 }
 

@@ -30,7 +30,7 @@ export type DropdownAccent = 'normal' | 'brand' | 'success' | 'warning' | 'dange
 
 const {
   accent,
-  disabled: _disabled,
+  disabled: rawDisabled,
   locked,
   selected,
   hover,
@@ -46,7 +46,7 @@ const {
   info?: string
 }>()
 
-const disabled = computed(() => _disabled || locked)
+const disabled = computed(() => rawDisabled || locked)
 
 const className = computed(() =>
   toVariants({

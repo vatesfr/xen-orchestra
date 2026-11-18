@@ -3,7 +3,7 @@
     ref="buttonRef"
     v-tooltip="{ content: t('tasks:overview'), placement: 'bottom-end' }"
     accent="brand"
-    :dot="hasNewTask"
+    :counter="newTasksCount || undefined"
     icon="fa:bars-progress"
     size="medium"
     @click="isPanelOpen = true"
@@ -21,8 +21,8 @@ import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiQuickTaskPanel from '@core/components/ui/quick-task-panel/UiQuickTaskPanel.vue'
 import type { Task } from '@core/components/ui/task-item/UiTaskItem.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
+import { placeOverlay } from '@core/utils/placement.util.ts'
 import { unrefElement, watchArray, whenever } from '@vueuse/core'
-import placementJs from 'placement.js'
 import { computed, nextTick, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -36,11 +36,11 @@ const { t } = useI18n()
 const ids = computed(() => props.tasks.map(task => task.id))
 
 const isPanelOpen = ref(false)
-const hasNewTask = ref(false)
+const newTasksCount = ref(0)
 
 watchArray(ids, (_newList, _oldList, addedIds) => {
-  if (addedIds.length > 0 && !isPanelOpen.value) {
-    hasNewTask.value = true
+  if (!isPanelOpen.value) {
+    newTasksCount.value += addedIds.length
   }
 })
 
@@ -57,10 +57,10 @@ whenever(isPanelOpen, async () => {
     return
   }
 
-  placementJs(button, panel, {
+  placeOverlay(button, panel, {
     placement: 'bottom-end',
   })
 
-  hasNewTask.value = false
+  newTasksCount.value = 0
 })
 </script>

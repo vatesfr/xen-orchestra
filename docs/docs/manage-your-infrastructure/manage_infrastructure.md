@@ -291,7 +291,7 @@ These templates will use PV configuration in order to boot: either from the righ
 
 Because there is already disks installed, you shouldn't have "Install settings" _per se_. But you can use our `config drive` setup if your template already has CloudInit installed!
 
-Please refer to the [XCP-ng CloudInit section](vm-templates.md#cloud-init) for more.
+Please refer to the [XCP-ng CloudInit section](infrastructure/vm-templates.md#cloud-init) for more.
 
 #### Interfaces
 
@@ -393,7 +393,7 @@ If Xen Orchestra knows the VM’s IP address (either through the guest agent or 
 
 #### How do I automate VIF locking mode?
 
-If you’re automating things or working with scripts, you can also control VIF locking mode through the XO [command-line interface](../getting-started/architecture.md#xo-cli).
+If you’re automating things or working with scripts, you can also control VIF locking mode through the XO [command-line interface](../core-concepts/architecture.md#xo-cli).
 
 ### VM high availability (HA)
 
@@ -521,7 +521,7 @@ VM migration with storage motion allows you to migrate a VM from one host to ano
 
 ### Warm migration
 
-Warm migration moves a running VM to another SR, including on another pool, with minimal downtime. Unlike the migrations above, the data doesn't go directly from host to host: Xen Orchestra reads the VM from the source and writes it to the destination, using the same mechanism as [incremental replication](../backups-and-dr/backup-types/incremental_replication.md).
+Warm migration moves a running VM to another SR, including on another pool, with minimal downtime. Unlike the migrations above, the data doesn't go directly from host to host: Xen Orchestra reads the VM from the source and writes it to the destination, using the same mechanism as [incremental replication](../replication/incremental_replication.md).
 
 #### How it works
 
@@ -885,7 +885,7 @@ Visualizations can help you to understand your XCP-ng/XenServer infrastructure, 
 The dashboard view gathers information on all your connected pools/hosts.
 
 :::note
-Since XO 6 became the default interface, `https://your-xo/#/dashboard` opens the [new XO 6 dashboard](../manage-your-infrastructure/management.md). The XO 5 dashboard described here now lives under `/v5/`.
+Since XO 6 became the default interface, `https://your-xo/#/dashboard` opens the [new XO 6 dashboard](management.md). The XO 5 dashboard described here now lives under `/v5/`.
 :::
 
 <UiShot light="/img/xo5/dashboard-overview.png" alt="The Overview aggregates pools, hosts, VMs, resource usage and alarms at a glance" url="https://your-xo/v5/#/dashboard/overview" />
@@ -950,7 +950,7 @@ List of VMs with missing or outdated guest tools. It's best practice to [install
 
 ### Alarms
 
-This sections details the alerts coming from XCP-ng/XenServer hosts. More information can be found on [this page](advanced#alerts).
+This sections details the alerts coming from XCP-ng/XenServer hosts. More information can be found on [this page](advanced.md#alerts).
 
 ### Heatmap
 

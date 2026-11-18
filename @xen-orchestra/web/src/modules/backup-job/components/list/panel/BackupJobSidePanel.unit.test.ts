@@ -1,3 +1,5 @@
+import BackupJobMoreActions from '@/modules/backup-job/components/actions/BackupJobMoreActions.vue'
+import BackupJobDeleteButton from '@/modules/backup-job/components/actions/delete/BackupJobDeleteButton.vue'
 import BackupJobSidePanel from '@/modules/backup-job/components/list/panel/BackupJobSidePanel.vue'
 import BackupJobBackedUpVmsCard from '@/modules/backup-job/components/list/panel/cards/BackupJobBackedUpVmsCard.vue'
 import BackupJobInfosCard from '@/modules/backup-job/components/list/panel/cards/BackupJobInfosCard.vue'
@@ -21,7 +23,6 @@ import type {
 } from '@/modules/schedule/remote-resources/use-xo-schedule-collection.ts'
 import type { useXoSrCollection } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import type { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
-import type { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import { createMetadataBackupJob, createVmBackupJob } from '@/test/create-backup-job.ts'
 import { createBackupLog } from '@/test/create-backup-log.ts'
 import { createSchedule } from '@/test/create-schedule.ts'
@@ -36,11 +37,7 @@ const { schedulesByJobId, backupLogsByJobId } = vi.hoisted(() => ({
   backupLogsByJobId: new Map<string, FrontXoBackupLog[]>(),
 }))
 
-vi.mock(import('@/shared/remote-resources/use-xo-routes.ts'), () => ({
-  useXoRoutes: (() => ({
-    buildXo5Route: (path: string) => `https://xo5.example.com/#${path}`,
-  })) as unknown as typeof useXoRoutes,
-}))
+vi.mock(import('@/shared/remote-resources/use-xo-routes.ts'), () => import('@/test/mock-xo-routes.ts'))
 
 vi.mock(import('@/modules/schedule/remote-resources/use-xo-schedule-collection.ts'), async () => {
   const { computed: vueComputed, ref: vueRef } = await import('vue')
@@ -115,10 +112,12 @@ beforeEach(() => {
   backupLogsByJobId.clear()
 })
 
+const global = { ...createGlobalTestConfig(), stubs: { BackupJobDeleteButton: true, BackupJobMoreActions: true } }
+
 function mountSidePanel(backupJob: FrontAnyXoBackupJob) {
   return mount(BackupJobSidePanel, {
     props: { backupJob },
-    global: createGlobalTestConfig(),
+    global,
   })
 }
 
@@ -166,7 +165,29 @@ it('gives no advice for a backup job with a single schedule', () => {
 })
 
 it('shows nothing without selected backup job', () => {
-  const wrapper = mount(BackupJobSidePanel, { props: {}, global: createGlobalTestConfig() })
+  const wrapper = mount(BackupJobSidePanel, { props: {}, global })
 
   expect(wrapper.findComponent(BackupJobInfosCard).exists()).toBe(false)
+  expect(wrapper.findComponent(BackupJobDeleteButton).exists()).toBe(false)
+})
+
+it('offers to delete the backup job directly', () => {
+  expect(mountSidePanel(vmBackupJob).getComponent(BackupJobDeleteButton).props('backupJob')).toEqual(vmBackupJob)
+})
+
+it('offers the other actions of the backup job in the more actions menu', async () => {
+  const wrapper = mountSidePanel(vmBackupJob)
+
+  expect(wrapper.findComponent(BackupJobMoreActions).exists()).toBe(false)
+
+  await wrapper.get(`[aria-label="${t('more-actions')}"]`).trigger('click')
+
+  expect(wrapper.getComponent(BackupJobMoreActions).props('backupJob')).toEqual(vmBackupJob)
+})
+
+it('gives the schedules of the backup job to the infos card', () => {
+  const schedules = [createSchedule({ jobId: vmBackupJob.id })]
+  schedulesByJobId.set(vmBackupJob.id, schedules)
+
+  expect(mountSidePanel(vmBackupJob).getComponent(BackupJobInfosCard).props('schedules')).toEqual(schedules)
 })

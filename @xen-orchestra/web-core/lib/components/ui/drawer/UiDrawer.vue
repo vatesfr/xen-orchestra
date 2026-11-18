@@ -1,10 +1,12 @@
 <template>
   <form novalidate class="ui-drawer" @click.self="emit('dismiss')" @submit.prevent="emit('confirm')">
     <aside
+      ref="dialog"
       :aria-labelledby="slots.title || title !== undefined ? titleId : undefined"
       aria-modal="true"
       class="drawer"
       role="dialog"
+      tabindex="-1"
     >
       <div class="header">
         <div v-if="slots.title || title !== undefined" :id="titleId" class="typo-h4">
@@ -35,7 +37,8 @@
 import VtsButtonGroup from '@core/components/button-group/VtsButtonGroup.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import { useOverlayEscape } from '@core/packages/overlay/use-overlay-escape.ts'
-import { useId } from 'vue'
+import { useOverlayFocus } from '@core/packages/overlay/use-overlay-focus.ts'
+import { useId, useTemplateRef } from 'vue'
 
 defineProps<{
   title?: string
@@ -55,6 +58,8 @@ const slots = defineSlots<{
 
 useOverlayEscape(() => emit('dismiss'))
 
+useOverlayFocus(useTemplateRef('dialog'))
+
 const titleId = useId()
 </script>
 
@@ -73,6 +78,7 @@ const titleId = useId()
     max-width: 100%;
     min-height: 100dvh;
     background-color: var(--color-neutral-background-secondary);
+    outline: none;
 
     .header {
       display: flex;

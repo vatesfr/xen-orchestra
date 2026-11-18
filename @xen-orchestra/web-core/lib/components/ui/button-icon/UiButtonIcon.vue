@@ -1,14 +1,15 @@
-<!-- WIP -->
+<!-- v10 -->
 <!-- TODO: Add complex icon -->
 <template>
   <button :class="classNames" :disabled class="ui-button-icon" type="button">
     <VtsIcon :name="icon" size="current" />
-    <span v-if="dot" class="dot" />
+    <UiCounter v-if="counterProps !== undefined" v-bind="counterProps" size="small" variant="primary" class="counter" />
   </button>
 </template>
 
 <script lang="ts" setup>
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
+import UiCounter, { type CounterAccent, type CounterValue } from '@core/components/ui/counter/UiCounter.vue'
 import type { IconName } from '@core/icons'
 import { toVariants } from '@core/utils/to-variants.util.ts'
 import { computed } from 'vue'
@@ -17,15 +18,27 @@ export type ButtonIconAccent = 'brand' | 'info' | 'warning' | 'danger'
 
 export type ButtonIconSize = 'small' | 'medium' | 'large'
 
-const { accent, size, disabled, selected, targetScale } = defineProps<{
+const { accent, size, disabled, selected, counter, targetScale } = defineProps<{
   icon: IconName
   size: ButtonIconSize
   accent: ButtonIconAccent
   disabled?: boolean
   selected?: boolean
-  dot?: boolean
+  counter?: CounterValue | { value: CounterValue; accent: CounterAccent }
   targetScale?: number | { x: number; y: number }
 }>()
+
+const counterProps = computed(() => {
+  if (counter === undefined) {
+    return undefined
+  }
+
+  if (typeof counter === 'object') {
+    return counter
+  }
+
+  return { value: counter, accent: 'info' } as const
+})
 
 const cssTargetScale = computed(() => {
   const scale = targetScale ?? (size === 'small' ? 1.6 : 1)
@@ -65,11 +78,11 @@ const classNames = computed(() => {
     cursor: not-allowed;
   }
 
-  .dot {
+  .counter {
     position: absolute;
-    display: block;
-    border-radius: 50%;
-    background-color: var(--color-danger-txt-base);
+    top: 0;
+    right: 0;
+    transform: translate(50%, -50%);
   }
 
   &:focus-visible {
@@ -184,10 +197,6 @@ const classNames = computed(() => {
     & {
       color: var(--color-danger-txt-base);
       background-color: transparent;
-
-      .dot {
-        background-color: var(--color-warning-txt-base);
-      }
     }
 
     &:hover {
@@ -218,48 +227,21 @@ const classNames = computed(() => {
   /* SIZE VARIANTS */
 
   &.size--small {
-    & {
-      width: 2.4rem;
-      height: 2.4rem;
-      font-size: 1.6rem;
-    }
-
-    .dot {
-      width: 0.4rem;
-      height: 0.4rem;
-      top: 0.2rem;
-      right: 0.2rem;
-    }
+    width: 2.4rem;
+    height: 2.4rem;
+    font-size: 1.6rem;
   }
 
   &.size--medium {
-    & {
-      width: 3.2rem;
-      height: 3.2rem;
-      font-size: 2rem;
-    }
-
-    .dot {
-      width: 0.5rem;
-      height: 0.5rem;
-      top: 0.4rem;
-      right: 0.4rem;
-    }
+    width: 3.2rem;
+    height: 3.2rem;
+    font-size: 2rem;
   }
 
   &.size--large {
-    & {
-      width: 4rem;
-      height: 4rem;
-      font-size: 3.2rem;
-    }
-
-    .dot {
-      width: 0.8rem;
-      height: 0.8rem;
-      top: 0.8rem;
-      right: 0.8rem;
-    }
+    width: 4rem;
+    height: 4rem;
+    font-size: 3.2rem;
   }
 
   /*

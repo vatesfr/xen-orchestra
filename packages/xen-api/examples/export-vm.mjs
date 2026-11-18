@@ -5,7 +5,6 @@ import './env.mjs'
 import createProgress from 'progress-stream'
 import getopts from 'getopts'
 import { defer } from 'golike-defer'
-import { CancelToken } from 'promise-toolbox'
 
 import { createClient } from '../index.mjs'
 
@@ -33,11 +32,11 @@ defer(async ($defer, rawArgs) => {
   await xapi.connect()
   $defer(() => xapi.disconnect())
 
-  const { cancel, token } = CancelToken.source()
-  process.on('SIGINT', cancel)
+  const controller = new AbortController()
+  process.on('SIGINT', () => controller.abort())
 
   // https://xapi-project.github.io/xen-api/importexport.html
-  const response = await xapi.getResource(token, '/export/', {
+  const response = await xapi.getResource(controller.signal, '/export/', {
     query: {
       ref: (await resolveRecord(xapi, 'VM', args[1])).$ref,
       use_compression: zstd ? 'zstd' : gzip ? 'true' : 'false',

@@ -3,7 +3,7 @@
     <UiTitle>
       {{ t('vdis') }}
     </UiTitle>
-    <UiQuerySearchBar @search="(value: string) => (searchQuery = value)" />
+    <UiQuerySearchBar v-bind="searchBindings" />
     <div class="container">
       <VtsTable :state :pagination-bindings sticky="right">
         <thead>
@@ -30,10 +30,11 @@ import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearch
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { usePagination } from '@core/composables/pagination.composable.ts'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
+import { useSearchFilter } from '@core/composables/search-filter.composable.ts'
 import { useTableState } from '@core/composables/table-state.composable.ts'
 import { useVdiColumns } from '@core/tables/column-sets/vdi-columns.ts'
 import { formatSizeRaw } from '@core/utils/size.util.ts'
-import { computed, ref } from 'vue'
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 const { vdis, vbds, busy, error } = defineProps<{
   vdis: XenApiVdi[]
@@ -43,14 +44,7 @@ const { vdis, vbds, busy, error } = defineProps<{
 }>()
 const { t } = useI18n()
 const selectedVdiId = useRouteQuery('id')
-const searchQuery = ref('')
-const filteredVdis = computed(() => {
-  const searchTerm = searchQuery.value.trim().toLocaleLowerCase()
-  if (!searchTerm) {
-    return vdis
-  }
-  return vdis.filter(vdi => Object.values(vdi).some(value => String(value).toLocaleLowerCase().includes(searchTerm)))
-})
+const { items: filteredVdis, searchBindings } = useSearchFilter(() => vdis)
 const state = useTableState({
   busy: () => busy,
   error: () => error,

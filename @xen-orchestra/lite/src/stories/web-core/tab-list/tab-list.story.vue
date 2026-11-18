@@ -1,7 +1,11 @@
 <template>
   <ComponentStory
     v-slot="{ properties }"
-    :params="[prop('disabled').bool().widget(), slot().help('Contains <RouterTab> or <UiTabItem>')]"
+    :params="[
+      prop('label').str().widget().preset('Tabs'),
+      prop('disabled').bool().widget(),
+      slot().help('Contains <RouterTab> or <UiTabItem>'),
+    ]"
   >
     <TabList v-bind="properties">
       <UiTabItem>Foo</UiTabItem>

@@ -18,6 +18,7 @@ import {
   faHdd,
   faMapPin,
   faNetworkWired,
+  faPaperclip,
   faPlay,
   faPuzzlePiece,
   faSatellite,
@@ -304,4 +305,7 @@ export const objectIcons = defineIconPack({
   account: constructIcon(faUserCircle),
   // on our version of fa, faUsers icon is reversed compared to the version of fa on fa website
   organization: constructIcon(faUsers),
+  file: constructIcon(faPaperclip),
+  'file:success': [constructIcon(faPaperclip), ...constructCircleStatus('success-circle')],
+  'file:error': [constructIcon(faPaperclip), ...constructCircleStatus('danger-circle')],
 })

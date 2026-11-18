@@ -113,6 +113,36 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/admin/backup-log/[id]': RouteRecordInfo<
+      '/admin/backup-log/[id]',
+      '/admin/backup-log/:id',
+      { id: ParamValue<true> },
+      { id: ParamValue<false> },
+      | '/admin/backup-log/[id]/backed-up-vms'
+      | '/admin/backup-log/[id]/general'
+      | '/admin/backup-log/[id]/run'
+    >,
+    '/admin/backup-log/[id]/backed-up-vms': RouteRecordInfo<
+      '/admin/backup-log/[id]/backed-up-vms',
+      '/admin/backup-log/:id/backed-up-vms',
+      { id: ParamValue<true> },
+      { id: ParamValue<false> },
+      | never
+    >,
+    '/admin/backup-log/[id]/general': RouteRecordInfo<
+      '/admin/backup-log/[id]/general',
+      '/admin/backup-log/:id/general',
+      { id: ParamValue<true> },
+      { id: ParamValue<false> },
+      | never
+    >,
+    '/admin/backup-log/[id]/run': RouteRecordInfo<
+      '/admin/backup-log/[id]/run',
+      '/admin/backup-log/:id/run',
+      { id: ParamValue<true> },
+      { id: ParamValue<false> },
+      | never
+    >,
     '/admin/backup-repository/[id]': RouteRecordInfo<
       '/admin/backup-repository/[id]',
       '/admin/backup-repository/:id',
@@ -151,6 +181,13 @@ declare module 'vue-router/auto-routes' {
     '/admin/user-management/users': RouteRecordInfo<
       '/admin/user-management/users',
       '/admin/user-management/users',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/admin/v2v/migrate': RouteRecordInfo<
+      '/admin/v2v/migrate',
+      '/admin/v2v/migrate',
       Record<never, never>,
       Record<never, never>,
       | never
@@ -636,6 +673,33 @@ declare module 'vue-router/auto-routes' {
       views:
         | never
     }
+    'src/pages/admin/backup-log/[id].vue': {
+      routes:
+        | '/admin/backup-log/[id]'
+        | '/admin/backup-log/[id]/backed-up-vms'
+        | '/admin/backup-log/[id]/general'
+        | '/admin/backup-log/[id]/run'
+      views:
+        | 'default'
+    }
+    'src/pages/admin/backup-log/[id]/backed-up-vms.vue': {
+      routes:
+        | '/admin/backup-log/[id]/backed-up-vms'
+      views:
+        | never
+    }
+    'src/pages/admin/backup-log/[id]/general.vue': {
+      routes:
+        | '/admin/backup-log/[id]/general'
+      views:
+        | never
+    }
+    'src/pages/admin/backup-log/[id]/run.vue': {
+      routes:
+        | '/admin/backup-log/[id]/run'
+      views:
+        | never
+    }
     'src/pages/admin/backup-repository/[id].vue': {
       routes:
         | '/admin/backup-repository/[id]'
@@ -671,6 +735,12 @@ declare module 'vue-router/auto-routes' {
     'src/pages/admin/user-management/users.vue': {
       routes:
         | '/admin/user-management/users'
+      views:
+        | never
+    }
+    'src/pages/admin/v2v/migrate.vue': {
+      routes:
+        | '/admin/v2v/migrate'
       views:
         | never
     }

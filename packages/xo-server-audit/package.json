@@ -45,6 +45,8 @@
   },
   "dependencies": {
     "@vates/decorate-with": "^2.1.0",
+    "@vates/obfuscate": "^0.1.0",
+    "@vates/syslog": "^0.1.0",
     "@xen-orchestra/audit-core": "^0.4.0",
     "@xen-orchestra/cron": "^1.0.7",
     "@xen-orchestra/log": "^0.7.2",

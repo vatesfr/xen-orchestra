@@ -37,8 +37,9 @@ import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { type SidebarSide, useLeftSidebarStore, useRightSidebarStore } from '@core/packages/sidebar'
 import { useUiStore } from '@core/stores/ui.store.ts'
+import { IK_MENU_ACTION_HANDLER } from '@core/utils/injection-keys.util.ts'
 import { toVariants } from '@core/utils/to-variants.util.ts'
-import { computed } from 'vue'
+import { computed, provide } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { side = 'left', showLock = true } = defineProps<{
@@ -66,6 +67,12 @@ const lockTooltipPosition = computed(() => (side === 'left' ? 'right' : 'left'))
 const showResizeHandle = computed(() => !ui.isSmall && sidebar.value.isExpanded)
 
 const resizeHandlePosition = computed(() => (side === 'left' ? 'end' : 'start'))
+
+provide(IK_MENU_ACTION_HANDLER, () => {
+  if (ui.isSmall) {
+    sidebar.value.toggleExpand(false)
+  }
+})
 
 const className = computed(() => [
   {

@@ -1,24 +1,22 @@
 <template>
-  <UiButton
-    v-tooltip="!canConnectVbds && connectVbdsErrorMessage"
-    size="medium"
+  <VtsActionButton
+    :hint="connectVbdsErrorMessage"
     variant="tertiary"
     accent="brand"
     :disabled="!canConnectVbds"
-    left-icon="action:connect"
+    icon="action:connect"
     :busy="isConnectingVbds"
     @click="connectVbds()"
   >
     {{ t('action:connect') }}
-  </UiButton>
+  </VtsActionButton>
 </template>
 
 <script lang="ts" setup>
 import { useVbdConnection } from '@/modules/vbd/composables/use-vbd-connection.composable.ts'
 import type { FrontXoVbd } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
-import UiButton from '@core/components/ui/button/UiButton.vue'
-import { vTooltip } from '@core/directives/tooltip.directive.ts'
+import VtsActionButton from '@core/components/action-button/VtsActionButton.vue'
 import { useI18n } from 'vue-i18n'
 
 const { vbd, vm } = defineProps<{

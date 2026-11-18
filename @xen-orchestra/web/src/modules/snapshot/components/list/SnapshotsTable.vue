@@ -15,7 +15,7 @@
         </UiButton>
       </template>
     </UiTitle>
-    <UiQuerySearchBar @search="(value: string) => (searchQuery = value)" />
+    <UiQuerySearchBar v-bind="searchBindings" />
     <div class="container">
       <VtsTable :state :pagination-bindings sticky="right">
         <thead>
@@ -49,6 +49,7 @@ import { useXo5VmSnapshotRoute } from '@/modules/snapshot/composables/xo-vm-snap
 import { useXoVmSnapshotJob } from '@/modules/vm/jobs/xo-vm-snapshot.job.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { useSorted } from '@vueuse/core'
+import { logicNot } from '@vueuse/math'
 import VtsRow from '@xen-orchestra/web-core/components/table/VtsRow.vue'
 import VtsTable from '@xen-orchestra/web-core/components/table/VtsTable.vue'
 import UiButton from '@xen-orchestra/web-core/components/ui/button/UiButton.vue'
@@ -56,9 +57,9 @@ import UiQuerySearchBar from '@xen-orchestra/web-core/components/ui/query-search
 import UiTitle from '@xen-orchestra/web-core/components/ui/title/UiTitle.vue'
 import { usePagination } from '@xen-orchestra/web-core/composables/pagination.composable.ts'
 import { useRouteQuery } from '@xen-orchestra/web-core/composables/route-query.composable.ts'
+import { useSearchFilter } from '@xen-orchestra/web-core/composables/search-filter.composable.ts'
 import { useTableState } from '@xen-orchestra/web-core/composables/table-state.composable.ts'
 import { useSnapshotColumns } from '@xen-orchestra/web-core/tables/column-sets/snapshot-columns.ts'
-import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { snapshots: rawSnapshots, vm } = defineProps<{
@@ -78,19 +79,7 @@ const { run: snapshotJob, isRunning } = useXoVmSnapshotJob(() => [vm])
 
 const selectedSnapshotId = useRouteQuery('id')
 
-const searchQuery = ref('')
-
-const filteredSnapshots = computed(() => {
-  const searchTerm = searchQuery.value.trim().toLocaleLowerCase()
-
-  if (!searchTerm) {
-    return rawSnapshots
-  }
-
-  return rawSnapshots.filter(snapshot =>
-    Object.values(snapshot).some(value => String(value).toLocaleLowerCase().includes(searchTerm))
-  )
-})
+const { items: filteredSnapshots, searchBindings } = useSearchFilter(() => rawSnapshots)
 
 const sortedSnapshots = useSorted(
   filteredSnapshots,
@@ -100,7 +89,7 @@ const sortedSnapshots = useSorted(
 const { pageRecords: paginatedSnapshots, paginationBindings } = usePagination('snapshots', sortedSnapshots)
 
 const state = useTableState({
-  busy: !areSnapshotsReady,
+  busy: logicNot(areSnapshotsReady),
   error: hasSnapshotFetchError,
   empty: () =>
     rawSnapshots.length === 0

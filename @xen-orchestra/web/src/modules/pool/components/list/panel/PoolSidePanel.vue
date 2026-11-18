@@ -2,19 +2,8 @@
   <VtsSidePanel :has-selection="!!server" @close="emit('close')">
     <template v-if="server" #actions>
       <PoolConnectionToggleButton :server-id="server.id" />
-      <MenuList placement="bottom-end">
-        <template #trigger="{ open }">
-          <UiButtonIcon
-            v-tooltip="{ placement: 'left', content: t('more-actions') }"
-            accent="brand"
-            icon="action:more-actions"
-            size="medium"
-            @click="open($event)"
-          />
-        </template>
-        <PoolDownloadButton v-if="server.poolId !== undefined" :pool-id="server.poolId" />
-        <PoolForgetButton :server />
-      </MenuList>
+      <PoolDownloadButton v-if="server.poolId !== undefined" :pool-id="server.poolId" />
+      <PoolForgetButton :server />
     </template>
     <template v-if="server">
       <VtsStateHero v-if="!arePoolsReady" format="panel" type="busy" size="medium" />
@@ -150,19 +139,16 @@ import type { FrontXoServer } from '@/modules/server/remote-resources/use-xo-ser
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCardRowList from '@core/components/card/VtsCardRowList.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
-import MenuList from '@core/components/menu/MenuList.vue'
 import VtsSidePanel from '@core/components/panel/VtsSidePanel.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
 import VtsTag from '@core/components/tag/VtsTag.vue'
 import UiAlert from '@core/components/ui/alert/UiAlert.vue'
-import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import UiLogEntryViewer from '@core/components/ui/log-entry-viewer/UiLogEntryViewer.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
 import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
-import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { useMapper } from '@core/packages/mapper'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
