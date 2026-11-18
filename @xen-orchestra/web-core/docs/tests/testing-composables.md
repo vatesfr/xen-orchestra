@@ -1,6 +1,6 @@
 # Testing composables
 
-A composable that relies on a Vue context (`useI18n`, `inject`, an effect scope, plugins) must run **inside a mounted component**: a throwaway component whose `setup` calls it, mounted with the package's global test config. `mountComposable` (`@core-test/mount-composable.ts`) does it and returns `{ wrapper }`, never a mount by hand; XO 6 has its own, on its global test config (see [XO 6 composables](../../../web/docs/tests/testing-composables.md)). A composable needing no Vue context is called directly, like a [utility](./testing-utilities.md).
+A composable that relies on a Vue context (`useI18n`, `inject`, an effect scope, plugins) must run **inside a mounted component**: a throwaway component whose `setup` calls it, mounted with the package's global test config. `mountComposable` (`@core-test/mount-composable.ts`) does it and returns `{ wrapper }`; XO 6 has its own, on its global test config (see [XO 6 composables](../../../web/docs/tests/testing-composables.md)). `mountComposable` renders nothing, so a composable needing rendered elements (a `useTemplateRef` target, as `useMenuPopup`) is the one case mounted by hand, with a component rendering them. A composable needing no Vue context is called directly, like a [utility](./testing-utilities.md).
 
 Because the real i18n instance is installed, translations resolve to actual strings, and the assertion builds its expected label with `t` instead of hard-coding the wording — see [Assert behavior](./assert-behavior.md).
 

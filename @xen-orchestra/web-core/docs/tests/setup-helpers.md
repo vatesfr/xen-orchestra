@@ -13,6 +13,14 @@ function mountSuccessStateHero({ title }: { title?: string } = {}) {
 }
 ```
 
+A composable helper returns the mounted state, read with no `.value`:
+
+```typescript
+function mountLevel({ isPopup = true, horizontal = false } = {}) {
+  return mountComposable(() => useMenuLevel({ isPopup, horizontal })).wrapper.vm
+}
+```
+
 A helper returning `wrapper.vm` serves a **reactivity** test too, as long as it accepts the source as a `ref` (`MaybeRefOrGetter`): `wrapper.vm` keeps following the updates. Only a test that must call a function returned by the composable, or build its expected value, _inside_ the `setup` callback stays inline (see [Testing composables](./testing-composables.md)).
 
 Because mocks are read lazily, calling `getX.mockReturnValue(...)` in the test body _before_ invoking the helper still takes effect.

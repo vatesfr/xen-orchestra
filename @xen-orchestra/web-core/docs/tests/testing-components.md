@@ -31,7 +31,7 @@ A web-core component is tested for its **contract with its consumers**: what eac
 
 - A variant is asserted through the class `toVariants` gives it, since that class is the contract the CSS reads — never through a style.
 - A child web-core component is asserted through its props (`getComponent(UiAlert).props('accent')`), not the DOM it renders: that child has its own test.
-- A responsive state is driven with `happyDOM.setViewport({ width })` before mounting.
+- A responsive state is driven with `(window as unknown as HappyDomWindow).happyDOM.setViewport({ width })` before mounting (`import type { Window as HappyDomWindow } from 'happy-dom'`).
 
 ## Keep components thin
 
@@ -54,7 +54,17 @@ Step 4 is selective. A test that only exercised the logic now living in the util
 
 ## Assert what the user reads, not the markup
 
-`wrapper.text()` concatenates the whole subtree **with no separators**, so `'8 B'` and `'Disabled'` run together. It is fine for `toContain` on a single component, but it cannot express "this label has this value". Query instead, and prefer one assertion covering every row a user sees: it fails loudly when a value lands under the wrong label. Assert against **class names and semantic elements**, never a positional chain of child indexes.
+`wrapper.text()` concatenates the whole subtree **with no separators**, so `'8 B'` and `'Disabled'` run together. It is fine for `toContain` on a single component, but it cannot express "this label has this value". Query instead:
+
+```typescript
+// every key/value row: `VtsKeyValuePair` renders a semantic `dt.label` and `dd.value`
+const rows = wrapper.findAll('.vts-tabular-key-value-row')
+const labelledValues = Object.fromEntries(rows.map(row => [row.get('dt.label').text(), row.get('dd.value').text()]))
+
+expect(labelledValues).toEqual({ [t('name')]: 'Item 1', [t('status')]: t('enabled') })
+```
+
+Prefer this shape, one assertion covering every row a user sees: it fails loudly when a value lands under the wrong label. Assert against **class names and semantic elements**, never a positional chain of child indexes.
 
 The class must exist for the component's own CSS: **never add a class only for a test**, and remove one whose CSS is gone. Without a styled class, query the component (`getComponent`), a styled class of a child component, or the text the user reads.
 
