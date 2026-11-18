@@ -1,13 +1,15 @@
 <template>
-  <VtsColumns extra-space-around>
-    <VtsColumn>
-      <VdiDetailGeneralInfo :vdi :vbd :vdi-snapshot />
-      <VdiDetailSpace :vdi :vdi-snapshot />
-    </VtsColumn>
-    <VtsColumn>
-      <VdiDetailConfiguration :vdi :vdi-snapshot />
-    </VtsColumn>
-  </VtsColumns>
+  <div class="scroll-container">
+    <VtsColumns extra-space-around>
+      <VtsColumn>
+        <VdiDetailGeneralInfo :vdi :vbd :vdi-snapshot />
+        <VdiDetailSpace :vdi :vdi-snapshot />
+      </VtsColumn>
+      <VtsColumn>
+        <VdiDetailConfiguration :vdi :vdi-snapshot />
+      </VtsColumn>
+    </VtsColumns>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -26,3 +28,11 @@ defineProps<{
   vdiSnapshot?: FrontXoVdiSnapshot
 }>()
 </script>
+
+<style lang="postcss" scoped>
+.scroll-container {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+</style>
