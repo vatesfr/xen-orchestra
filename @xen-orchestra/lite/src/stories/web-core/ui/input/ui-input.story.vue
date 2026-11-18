@@ -8,7 +8,7 @@
       prop('required').bool().widget(),
       prop('selected').bool().widget(),
       prop('readonly').bool().widget(),
-      prop('type').enum('text', 'number', 'password', 'search').preset('text').widget(),
+      prop('type').enum('text', 'number', 'password', 'search', 'date').preset('text').widget(),
       prop('rightIcon').widget(
         choice({ label: 'Search', value: 'fa:magnifying-glass' }, { label: 'AngleDown', value: 'fa:angle-down' })
       ),

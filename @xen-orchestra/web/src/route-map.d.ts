@@ -414,6 +414,21 @@ declare module 'vue-router/auto-routes' {
       '/settings',
       Record<never, never>,
       Record<never, never>,
+      | '/settings/account'
+      | '/settings/preferences'
+    >,
+    '/settings/account': RouteRecordInfo<
+      '/settings/account',
+      '/settings/account',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/settings/preferences': RouteRecordInfo<
+      '/settings/preferences',
+      '/settings/preferences',
+      Record<never, never>,
+      Record<never, never>,
       | never
     >,
     '/sr/[id]': RouteRecordInfo<
@@ -938,6 +953,20 @@ declare module 'vue-router/auto-routes' {
     'src/pages/settings.vue': {
       routes:
         | '/settings'
+        | '/settings/account'
+        | '/settings/preferences'
+      views:
+        | 'default'
+    }
+    'src/pages/settings/account.vue': {
+      routes:
+        | '/settings/account'
+      views:
+        | never
+    }
+    'src/pages/settings/preferences.vue': {
+      routes:
+        | '/settings/preferences'
       views:
         | never
     }

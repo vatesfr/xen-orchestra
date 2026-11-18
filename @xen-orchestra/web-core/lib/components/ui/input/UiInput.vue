@@ -53,7 +53,7 @@ import { ref, useAttrs } from 'vue'
 
 export type InputAccent = 'brand' | 'warning' | 'danger'
 
-export type InputType = 'text' | 'number' | 'password' | 'search'
+export type InputType = 'text' | 'number' | 'password' | 'search' | 'date'
 
 defineOptions({
   inheritAttrs: false,
