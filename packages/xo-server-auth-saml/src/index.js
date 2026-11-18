@@ -37,7 +37,7 @@ export const configurationSchema = {
     },
     usernameField: {
       title: 'Username field',
-      description: `Field to use as the XO username.
+      description: `Field to use as the XO username
 
 You should try \`http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress\` if you are using Microsoft Azure Active Directory.
       `,
@@ -58,14 +58,14 @@ You should try \`http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddr
     wantAssertionsSigned: {
       title: 'Check if the IdP should always sign the assertions',
       description:
-        'Specify that the IdP should always sign the assertions.\n\nNote: either the response or the assertion must be signed even if both are turned off.',
+        'Specify that the IdP should always sign the assertions<br/>Note: either the response or the assertion must be signed even if both are turned off.',
       default: DEFAULTS.wantAssertionsSigned,
       type: 'boolean',
     },
     wantAuthnResponseSigned: {
       title: 'Check signature for all kind of responses',
       description:
-        'If true, require that all incoming authentication response messages be signed at the top level, not just at the assertions.\n\nNote: either the response or the assertion must be signed even if both are turned off.',
+        'If true, require that all incoming authentication response messages be signed at the top level, not just at the assertions.<br/>Note: either the response or the assertion must be signed even if both are turned off.',
       default: DEFAULTS.wantAuthnResponseSigned,
       type: 'boolean',
     },
