@@ -96,7 +96,7 @@ function getMasterIcon(host: XenApiHost) {
 }
 
 const { HeadCells, BodyCells } = useHostColumns({
-  exclude: ['checkbox', 'srStatus'],
+  exclude: ['checkbox', 'srStatus', 'actions'],
   body: (host: XenApiHost) => {
     const ipAddresses = computed(() => getHostIpAddresses(host.address, pifsByHost.value.get(host.$ref)))
     const hostIcon = computed(() => getHostIcon(host, getHostPowerState(host)))

@@ -1,0 +1,64 @@
+import type { FrontXoVmSnapshot } from '@/modules/snapshot/components/remote-resources/use-xo-vm-snapshot-collection.ts'
+import type { FrontXoTask } from '@/modules/task/remote-resources/use-xo-task-collection.ts'
+import { getV2vImportState, type V2vImportVm } from '@/modules/v2v/utils/v2v-import-markers.util.ts'
+import { V2V_SNAPSHOT_NAME, V2V_TASK_PROPERTY, type XoV2vVm } from '@vates/types'
+
+export type V2vImportSnapshot = Pick<FrontXoVmSnapshot, '$snapshot_of' | 'name_label' | 'snapshot_time'>
+
+// From the start of a migration to its end: the order statuses are listed in. `getV2vVmStatus` returning a
+// `V2vVmStatus` keeps every import state listed
+export const V2V_VM_STATUSES = ['none', 'running', 'warm', 'cold'] as const
+
+export type V2vVmStatus = (typeof V2V_VM_STATUSES)[number]
+
+// Task properties are untyped: the ids are only trusted when they are strings
+export function getRunningV2vSourceVmIds(tasks: Pick<FrontXoTask, 'status' | 'properties'>[]): Set<XoV2vVm['id']> {
+  const sourceVmIds = new Set<XoV2vVm['id']>()
+
+  for (const task of tasks) {
+    const taskSourceVmIds = task.properties[V2V_TASK_PROPERTY.SOURCE_VM_IDS]
+    const isRunningImport = task.status === 'pending' && Array.isArray(taskSourceVmIds)
+
+    if (!isRunningImport) {
+      continue
+    }
+
+    for (const sourceVmId of taskSourceVmIds) {
+      if (typeof sourceVmId === 'string') {
+        sourceVmIds.add(sourceVmId as XoV2vVm['id'])
+      }
+    }
+  }
+
+  return sourceVmIds
+}
+
+// Only a task can tell a running import: a VM whose import is neither warm nor cold yet is not migrated
+export function getV2vVmStatus(importVm: V2vImportVm | undefined, isRunning: boolean): V2vVmStatus {
+  if (isRunning) {
+    return 'running'
+  }
+
+  if (importVm === undefined) {
+    return 'none'
+  }
+
+  return getV2vImportState(importVm) ?? 'none'
+}
+
+function getLatestSnapshotAt(importVmSnapshots: V2vImportSnapshot[], name: V2V_SNAPSHOT_NAME): number | undefined {
+  const snapshotTimes = importVmSnapshots
+    .filter(snapshot => snapshot.name_label === name)
+    .map(snapshot => snapshot.snapshot_time)
+
+  // `snapshot_time` is in seconds, the front dates in milliseconds
+  return snapshotTimes.length === 0 ? undefined : Math.max(...snapshotTimes) * 1000
+}
+
+export function getV2vLastSyncAt(importVmSnapshots: V2vImportSnapshot[]): number | undefined {
+  return getLatestSnapshotAt(importVmSnapshots, V2V_SNAPSHOT_NAME.AFTER_PARTIAL_IMPORT)
+}
+
+export function getV2vCutoverAt(importVmSnapshots: V2vImportSnapshot[]): number | undefined {
+  return getLatestSnapshotAt(importVmSnapshots, V2V_SNAPSHOT_NAME.COMPLETE_IMPORT)
+}

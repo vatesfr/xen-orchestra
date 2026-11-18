@@ -57,6 +57,19 @@ Now if the URL contains `?count=42`, then `count.value` will be the number `42`.
 
 Setting `count.value = 0` will remove the query parameter from the URL.
 
+A string subtype, such as a branded id, keeps its own type:
+
+```typescript
+type ItemId = string & { readonly __brand: 'item' }
+
+const itemId = useRouteQuery<ItemId | undefined>('item', {
+  toData: query => (query === '' ? undefined : (query as ItemId)),
+  toQuery: data => data ?? '',
+})
+```
+
+Here `itemId.value` is an `ItemId | undefined`, and setting it to `undefined` removes the query parameter from the URL.
+
 ### Working with objects, arrays, Set, Map, and boolean
 
 The `useRouteQuery` composable can handle any data type,

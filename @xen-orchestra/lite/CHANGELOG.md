@@ -2,6 +2,7 @@
 
 ## **next**
 
+- [VM/Host] Main actions (shutdown, reboot, start, resume, migrate, snapshot) are shown as buttons in the VM and host headers and move one by one into "More actions" when space runs out; "More actions" groups them under "Change state" and "Actions" sections, and VMs without guest tools get force shutdown and force reboot instead (PR [#10815](https://github.com/vatesfr/xen-orchestra/pull/10815))
 - [Web-Core/UiButtonIcon] Update icon buttons design, with a counter replacing the notification dot (PR [#10799](https://github.com/vatesfr/xen-orchestra/pull/10799))
 - [Mobile/Side panels] Full-page menus on mobile with "Change state" in "More actions", side panel actions shown as buttons when there is room, and fixes for long names in headers and menu placement (PR [#10745](https://github.com/vatesfr/xen-orchestra/pull/10745))
 - [Side panels] Side panels can be resized like the treeview, whose default width now adapts to the screen size (PR [#10725](https://github.com/vatesfr/xen-orchestra/pull/10725))

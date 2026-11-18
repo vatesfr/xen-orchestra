@@ -1,5 +1,5 @@
-import { VM_OPERATION } from '@/libs/xen-api/xen-api.enums.ts'
-import type { XenApiVmGuestMetrics } from '@/libs/xen-api/xen-api.types.ts'
+import { VM_OPERATION, VM_POWER_STATE } from '@/libs/xen-api/xen-api.enums.ts'
+import type { XenApiVm, XenApiVmGuestMetrics } from '@/libs/xen-api/xen-api.types.ts'
 
 export const CHANGING_STATE_OPERATIONS: VM_OPERATION[] = [
   VM_OPERATION.START,
@@ -41,4 +41,34 @@ export function areVmToolsDetected(guestMetrics: XenApiVmGuestMetrics | undefine
   const managementAgentDetected = hasPvVersion || guestMetrics.other['feature-static-ip-setting'] === '1'
 
   return managementAgentDetected && pvDriversDetected
+}
+
+export type VmPowerStateAction =
+  | 'start'
+  | 'pause'
+  | 'suspend'
+  | 'resume'
+  | 'reboot'
+  | 'force-reboot'
+  | 'shutdown'
+  | 'force-shutdown'
+
+type VmPowerStateQuickAction = Exclude<VmPowerStateAction, 'pause' | 'suspend'>
+
+export type VmQuickAction = VmPowerStateQuickAction | 'migrate' | 'snapshot'
+
+function getVmPowerStateQuickActions(vm: XenApiVm, areToolsDetected: boolean): VmPowerStateQuickAction[] {
+  switch (vm.power_state) {
+    case VM_POWER_STATE.RUNNING:
+      return areToolsDetected ? ['shutdown', 'reboot'] : ['force-shutdown', 'force-reboot']
+    case VM_POWER_STATE.HALTED:
+      return ['start']
+    case VM_POWER_STATE.PAUSED:
+    case VM_POWER_STATE.SUSPENDED:
+      return ['resume']
+  }
+}
+
+export function getVmQuickActions(vm: XenApiVm, areToolsDetected: boolean): VmQuickAction[] {
+  return [...getVmPowerStateQuickActions(vm, areToolsDetected), 'migrate', 'snapshot']
 }

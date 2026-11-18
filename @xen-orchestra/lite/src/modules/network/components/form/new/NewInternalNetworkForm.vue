@@ -4,7 +4,7 @@
     <div class="row">
       <div class="column">
         <NetworkFormTextInput v-bind="nameInputBindings" />
-        <NetworkFormNumberInput v-bind="mtuInputBindings" />
+        <VtsNumberInput v-bind="mtuInputBindings" />
       </div>
       <NewNetworkDescriptionTextarea v-bind="descriptionInputBindings" />
     </div>
@@ -16,13 +16,13 @@
 </template>
 
 <script setup lang="ts">
-import NetworkFormNumberInput from '@/modules/network/components/form/new/inputs/NetworkFormNumberInput.vue'
 import NetworkFormTextInput from '@/modules/network/components/form/new/inputs/NetworkFormTextInput.vue'
 import NewNetworkDescriptionTextarea from '@/modules/network/components/form/new/inputs/NewNetworkDescriptionTextarea.vue'
 import NewNetworkNbdRadio from '@/modules/network/components/form/new/inputs/NewNetworkNbdRadio.vue'
 import NewNetworkButtonsSection from '@/modules/network/components/form/new/NewNetworkButtonsSection.vue'
 import { useNewInternalNetworkForm } from '@/modules/network/form/new-internal/use-new-internal-network-form.ts'
 import type { NewInternalNetworkPayload } from '@/modules/network/jobs/internal-network-create.job.ts'
+import VtsNumberInput from '@core/components/number-input/VtsNumberInput.vue'
 import { useI18n } from 'vue-i18n'
 import type { RouteLocationRaw } from 'vue-router'
 

@@ -1,22 +1,22 @@
 <template>
-  <MenuItem
-    v-tooltip="!canShutdownHost && shutdownHostErrorMessage"
-    accent="neutral"
+  <VtsActionButton
+    variant="tertiary"
+    accent="brand"
     :disabled="!canShutdownHost"
     icon="action:shutdown"
     :busy="isShuttingDownHost"
+    :hint="shutdownHostErrorMessage"
     @click="shutdownHost()"
   >
     {{ t('action:shutdown') }}
-  </MenuItem>
+  </VtsActionButton>
 </template>
 
 <script lang="ts" setup>
 import { useXoHostShutdownJob } from '@/modules/host/jobs/xo-host-shutdown.job.ts'
 import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
-import MenuItem from '@core/components/menu/MenuItem.vue'
+import VtsActionButton from '@core/components/action-button/VtsActionButton.vue'
 import { useActionModal } from '@core/composables/modals/use-action-modal.ts'
-import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { useI18n } from 'vue-i18n'
 
 const { host } = defineProps<{
