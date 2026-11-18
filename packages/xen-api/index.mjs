@@ -925,7 +925,10 @@ export class Xapi extends EventEmitter {
   //
   // `_watchEvents` only returns on a failure it does not handle (e.g. an exception thrown by a listener of
   // the objects collection) and nothing restarts it: the cache would stay frozen on a connection which still
-  // looks alive. Disconnect instead, so that whoever owns this connection reconnects, and rebuilds the cache.
+  // looks alive. Disconnect instead: reconnecting is up to the owner of this connection, which listens to
+  // `disconnected` (xo-server does) and rebuilds what its listeners derived from the cache. Recovering in place
+  // would keep whatever state the failing listener left half-updated. An owner which does not reconnect (the
+  // backup worker, the proxy) sees its next call fail instead of waiting forever on a frozen cache.
   watchEvents() {
     ignoreErrors.call(
       this._watchEvents().catch(error => {
