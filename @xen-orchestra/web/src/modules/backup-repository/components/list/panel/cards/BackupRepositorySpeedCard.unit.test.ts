@@ -1,34 +1,17 @@
 import BackupRepositorySpeedCard from '@/modules/backup-repository/components/list/panel/cards/BackupRepositorySpeedCard.vue'
-import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
-import { createBrBenchmark } from '@/test/create-br-benchmark.ts'
+import { createTwiceBenchmarkedBr, LATEST_BR_BENCHMARK_RATES } from '@/test/create-br-benchmark.ts'
 import { createBr } from '@/test/create-br.ts'
-import { findCardCopiedValues, findCardLabelledValues } from '@/test/find-rendered-values.ts'
-import { createGlobalTestConfig } from '@/test/global-test-config.ts'
+import { findPanelCardTitle } from '@/test/find-card-title.ts'
+import { findCardCopiedValues, findCardLabelledValues, findCardRowLabels } from '@/test/find-rendered-values.ts'
 import { t } from '@/test/i18n.ts'
+import { itRunsJobFromButton } from '@/test/job-button.ts'
 import { benchmarkJobMock } from '@/test/mock-backup-repository-benchmark-job.ts'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import { formatSpeed } from '@core/utils/speed.util.ts'
-import { mount } from '@vue/test-utils'
-
-beforeEach(() => {
-  benchmarkJobMock.reset()
-})
-
-function mountCard(br: FrontXoBackupRepository = createBr()) {
-  return mount(BackupRepositorySpeedCard, {
-    props: { br },
-    global: createGlobalTestConfig(),
-  })
-}
-
-function findSpeeds(wrapper: ReturnType<typeof mountCard>) {
-  const values = findCardLabelledValues(wrapper)
-
-  return { write: values[t('writing-speed')], read: values[t('reading-speed')] }
-}
+import type { VueWrapper } from '@vue/test-utils'
 
 // The copy buttons of the rows are icon buttons too
-function findBenchmarkButton(wrapper: ReturnType<typeof mountCard>) {
+function findBenchmarkButton(wrapper: VueWrapper) {
   const [button] = wrapper
     .findAllComponents(UiButtonIcon)
     .filter(iconButton => iconButton.element.closest('.vts-card-row-key-value') === null)
@@ -36,19 +19,33 @@ function findBenchmarkButton(wrapper: ReturnType<typeof mountCard>) {
   return button
 }
 
+// The benchmark button of the card
+const mountCard = itRunsJobFromButton(BackupRepositorySpeedCard, {
+  targetProp: 'br',
+  createTarget: createBr,
+  getButton: findBenchmarkButton,
+  job: benchmarkJobMock,
+  toJobTarget: null,
+  // A spinner shows it busy
+  expectBusy: button => expect(button.props('icon')).toBe('fa:spinner'),
+})
+
+function findSpeeds(wrapper: VueWrapper) {
+  const values = findCardLabelledValues(wrapper)
+
+  return { write: values[t('writing-speed')], read: values[t('reading-speed')] }
+}
+
 it('renders the card title', () => {
   const wrapper = mountCard()
 
-  expect(wrapper.get('.ui-panel-card-title .title').text()).toBe(t('speed'))
+  expect(findPanelCardTitle(wrapper)).toBe(t('speed'))
 })
 
 it('lists the writing and reading speeds only', () => {
   const wrapper = mountCard()
 
-  expect(wrapper.findAll('.vts-card-row-key-value').map(row => row.get('.key').text())).toEqual([
-    t('writing-speed'),
-    t('reading-speed'),
-  ])
+  expect(findCardRowLabels(wrapper)).toEqual([t('writing-speed'), t('reading-speed')])
 })
 
 it('leaves the speeds empty and not copyable when the repository was never benchmarked', () => {
@@ -59,37 +56,10 @@ it('leaves the speeds empty and not copyable when the repository was never bench
 })
 
 it('shows the speeds of the latest stored benchmark and offers to copy them', () => {
-  const wrapper = mountCard(
-    createBr({
-      benchmarks: [
-        createBrBenchmark({ writeRate: 1_000_000, readRate: 2_000_000 }),
-        createBrBenchmark({ writeRate: 100_000_000, readRate: 200_000_000 }),
-      ],
-    })
-  )
+  const wrapper = mountCard(createTwiceBenchmarkedBr())
+  const write = formatSpeed(LATEST_BR_BENCHMARK_RATES.write)
+  const read = formatSpeed(LATEST_BR_BENCHMARK_RATES.read)
 
-  expect(findSpeeds(wrapper)).toEqual({ write: formatSpeed(100_000_000), read: formatSpeed(200_000_000) })
-  expect(findCardCopiedValues(wrapper)).toEqual([formatSpeed(100_000_000), formatSpeed(200_000_000)])
-})
-
-it('runs the benchmark job when clicking the benchmark button', async () => {
-  const wrapper = mountCard()
-
-  await findBenchmarkButton(wrapper).trigger('click')
-
-  expect(benchmarkJobMock.run).toHaveBeenCalledOnce()
-})
-
-it('disables the benchmark button when the job cannot run', () => {
-  benchmarkJobMock.setState({ canRun: false })
-  const wrapper = mountCard()
-
-  expect(findBenchmarkButton(wrapper).props('disabled')).toBe(true)
-})
-
-it('shows a spinner on the benchmark button while the benchmark runs', () => {
-  benchmarkJobMock.setState({ isRunning: true })
-  const wrapper = mountCard()
-
-  expect(findBenchmarkButton(wrapper).props('icon')).toBe('fa:spinner')
+  expect(findSpeeds(wrapper)).toEqual({ write, read })
+  expect(findCardCopiedValues(wrapper)).toEqual([write, read])
 })

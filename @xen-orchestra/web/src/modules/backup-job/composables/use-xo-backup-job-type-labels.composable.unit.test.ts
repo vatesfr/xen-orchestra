@@ -1,19 +1,14 @@
 import { useXoBackupJobTypeLabels } from '@/modules/backup-job/composables/use-xo-backup-job-type-labels.composable.ts'
 import type { FrontAnyXoBackupJob } from '@/modules/backup-job/remote-resources/use-xo-backup-job-collection.ts'
 import { createMetadataBackupJob, createMirrorBackupJob, createVmBackupJob } from '@/test/create-backup-job.ts'
-import { mountComposable } from '@/test/mount-composable.ts'
+import { mountComposableWithI18n } from '@/test/mount-composable.ts'
 import type { XoBackupRepository, XoSchedule, XoSr } from '@vates/types'
-import { ref } from 'vue'
-import { useI18n } from 'vue-i18n'
+import { type MaybeRefOrGetter, ref } from 'vue'
 
 const scheduleId = 'schedule-1' as XoSchedule['id']
 
-function mountTypeLabels(backupJob: FrontAnyXoBackupJob) {
-  return mountComposable(() => {
-    const { t } = useI18n()
-
-    return { typeLabels: useXoBackupJobTypeLabels(backupJob), t }
-  }).wrapper.vm
+function mountTypeLabels(backupJob: MaybeRefOrGetter<FrontAnyXoBackupJob>) {
+  return mountComposableWithI18n(() => ({ typeLabels: useXoBackupJobTypeLabels(backupJob) }))
 }
 
 describe('useXoBackupJobTypeLabels', () => {
@@ -94,14 +89,10 @@ describe('useXoBackupJobTypeLabels', () => {
 
   it('reacts to changes of the backup job', () => {
     const backupJob = ref<FrontAnyXoBackupJob>(createVmBackupJob())
-    const { wrapper } = mountComposable(() => {
-      const { t } = useI18n()
-
-      return { typeLabels: useXoBackupJobTypeLabels(backupJob), t }
-    })
+    const result = mountTypeLabels(backupJob)
 
     backupJob.value = createMirrorBackupJob()
 
-    expect(wrapper.vm.typeLabels).toEqual([wrapper.vm.t('backup:vms-mirror')])
+    expect(result.typeLabels).toEqual([result.t('backup:vms-mirror')])
   })
 })

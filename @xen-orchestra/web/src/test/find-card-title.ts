@@ -13,6 +13,11 @@ export function findPanelCardTitles(wrapper: VueWrapper) {
   return wrapper.findAll('.ui-panel-card-title .title').map(title => title.text())
 }
 
+// The label of a `UiTitle`, the title of a section or of a detail card
+export function findTitleLabel(wrapper: { get: (selector: string) => { text: () => string } }) {
+  return wrapper.get('.ui-title .label').text()
+}
+
 // The title alone, without what its info and description slots hold
 export function findCardTitleLabel(wrapper: VueWrapper) {
   return wrapper.get('.ui-card-title .title').text()

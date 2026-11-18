@@ -4,10 +4,9 @@ import type { FrontXoBackupLog } from '@/modules/backup-log/remote-resources/use
 import { createVmBackupJob } from '@/test/create-backup-job.ts'
 import { createBackupLog } from '@/test/create-backup-log.ts'
 import { backupLogCollectionMock } from '@/test/mock-xo-backup-log-collection.ts'
-import { mountComposable } from '@/test/mount-composable.ts'
+import { mountComposableWithI18n } from '@/test/mount-composable.ts'
 import { mockModule } from '@/test/spy-on-module.ts'
 import { formatDateTime } from '@core/utils/time.util.ts'
-import { useI18n } from 'vue-i18n'
 
 mockModule(
   import('@/modules/backup-log/remote-resources/use-xo-backup-log-collection.ts'),
@@ -21,11 +20,7 @@ beforeEach(() => {
 })
 
 function mountLastRuns(backupJob: FrontAnyXoBackupJob) {
-  return mountComposable(() => {
-    const { t } = useI18n()
-
-    return { lastRuns: useXoBackupJobLastRuns(backupJob), t }
-  }).wrapper.vm
+  return mountComposableWithI18n(() => ({ lastRuns: useXoBackupJobLastRuns(backupJob) }))
 }
 
 describe('useXoBackupJobLastRuns', () => {

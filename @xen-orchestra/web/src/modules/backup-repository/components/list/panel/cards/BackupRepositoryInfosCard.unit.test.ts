@@ -1,33 +1,31 @@
 import BackupRepositoryInfosCard from '@/modules/backup-repository/components/list/panel/cards/BackupRepositoryInfosCard.vue'
 import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
+import { itShowsBrGeneralInfo } from '@/test/br-general-info.ts'
 import { createBr } from '@/test/create-br.ts'
-import { createProxy } from '@/test/create-proxy.ts'
-import { findCardCopiedValues, findCardLabelledValues } from '@/test/find-rendered-values.ts'
-import { createGlobalTestConfig } from '@/test/global-test-config.ts'
+import { findCardCopiedValues, findCardLabelledValues, findCardRowLabels } from '@/test/find-rendered-values.ts'
 import { t } from '@/test/i18n.ts'
-import { proxyCollectionMock } from '@/test/mock-xo-proxy-collection.ts'
 import { mockModule } from '@/test/spy-on-module.ts'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
 import { objectIcon } from '@core/icons'
-import { mount } from '@vue/test-utils'
-import { parse as parseBackupRepositoryUrl } from 'xo-remote-parser'
 
 mockModule(
   import('@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'),
   () => import('@/test/mock-xo-proxy-collection.ts')
 )
 
-beforeEach(() => {
-  proxyCollectionMock.reset()
+const mountCard = itShowsBrGeneralInfo(BackupRepositoryInfosCard, {
+  findValues: findCardLabelledValues,
+  plain: { name: 'shows the status, type, storage mode and encryption of a plain repository' },
+  unknownUrl: {
+    name: ', and does not offer to copy the type',
+    expect: wrapper => expect(findCardCopiedValues(wrapper)).toEqual([t('unknown')]),
+  },
+  proxy: {
+    name: ' and offers to copy its name',
+    expect: wrapper => expect(findCardCopiedValues(wrapper)).toContain('Remote site proxy'),
+  },
 })
-
-function mountCard(br: FrontXoBackupRepository = createBr()) {
-  return mount(BackupRepositoryInfosCard, {
-    props: { br, parsedBrUrl: parseBackupRepositoryUrl(br.url) },
-    global: createGlobalTestConfig(),
-  })
-}
 
 it('renders the name and the id of the repository as the card title', () => {
   const wrapper = mountCard(createBr({ name: 'Nightly backups', id: 'br-42' as FrontXoBackupRepository['id'] }))
@@ -54,68 +52,7 @@ it('picks the title icon from the status of the repository', () => {
 it('lists every row of the card, in order', () => {
   const wrapper = mountCard()
 
-  expect(wrapper.findAll('.vts-card-row-key-value').map(row => row.get('.key').text())).toEqual([
-    t('status'),
-    t('type'),
-    t('storage-mode'),
-    t('proxy'),
-    t('encryption'),
-  ])
-})
-
-it('shows the status, type, storage mode and encryption of a plain repository', () => {
-  const wrapper = mountCard(createBr({ url: 'nfs://192.168.100.225:/media/nfs' }))
-
-  expect(findCardLabelledValues(wrapper)).toEqual({
-    [t('status')]: t('enabled'),
-    [t('type')]: t('nfs'),
-    [t('storage-mode')]: t('file-based'),
-    [t('proxy')]: '',
-    [t('encryption')]: t('disabled'),
-  })
-})
-
-it('shows a disabled repository as disabled', () => {
-  const wrapper = mountCard(createBr({ enabled: false }))
-
-  expect(findCardLabelledValues(wrapper)).toMatchObject({ [t('status')]: t('disabled') })
-})
-
-it('shows an enabled repository with an error as unable to connect', () => {
-  const wrapper = mountCard(createBr({ error: { code: 'ENOENT' } }))
-
-  expect(findCardLabelledValues(wrapper)).toMatchObject({ [t('status')]: t('unable-to-connect') })
-})
-
-it('shows the block based storage mode and the encryption of an encrypted repository', () => {
-  const wrapper = mountCard(
-    createBr({ url: 'nfs://192.168.100.225:/media/nfs?useVhdDirectory=true&encryptionKey=%22secret%22' })
-  )
-
-  expect(findCardLabelledValues(wrapper)).toMatchObject({
-    [t('storage-mode')]: t('block-based'),
-    [t('encryption')]: t('enabled'),
-  })
-})
-
-it('shows an unrecognized url as unknown type and storage mode, and does not offer to copy the type', () => {
-  const wrapper = mountCard(createBr({ url: 'ftp://192.168.100.225/backup' }))
-
-  expect(findCardLabelledValues(wrapper)).toMatchObject({
-    [t('type')]: t('unknown'),
-    [t('storage-mode')]: t('unknown'),
-  })
-  expect(findCardCopiedValues(wrapper)).toEqual([t('unknown')])
-})
-
-it('shows the proxy the repository goes through and offers to copy its name', () => {
-  const proxy = createProxy({ name: 'Remote site proxy' })
-  proxyCollectionMock.proxies.value = [proxy]
-
-  const wrapper = mountCard(createBr({ proxy: proxy.id }))
-
-  expect(findCardLabelledValues(wrapper)).toMatchObject({ [t('proxy')]: 'Remote site proxy' })
-  expect(findCardCopiedValues(wrapper)).toContain('Remote site proxy')
+  expect(findCardRowLabels(wrapper)).toEqual([t('status'), t('type'), t('storage-mode'), t('proxy'), t('encryption')])
 })
 
 it('offers to copy the type and the storage mode as they are shown', () => {

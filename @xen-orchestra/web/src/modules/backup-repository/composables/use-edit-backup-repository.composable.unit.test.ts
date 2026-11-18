@@ -6,19 +6,12 @@ import {
 import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
 import { createBr } from '@/test/create-br.ts'
 import { createJobStub } from '@/test/create-job-result.ts'
+import { itRunsJobFromDrawer } from '@/test/drawer-job.ts'
 import { overlayMock } from '@/test/mock-overlay.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
 import { silenceConsoleError } from '@/test/silence-console-error.ts'
 import { mockModule } from '@/test/spy-on-module.ts'
-import { KEEP_OVERLAY_OPEN } from '@core/packages/overlay/symbols.ts'
 import type { Ref } from 'vue'
-
-type OverlayOptions = {
-  events: {
-    onConfirm: (payload: EditBackupRepositoryPayload) => Promise<unknown>
-    onCancel: true
-  }
-}
 
 const editJob = createJobStub(useXoBackupRepositoryEditJob)
 
@@ -42,26 +35,13 @@ function mountEditBackupRepository(br: FrontXoBackupRepository = createBr()) {
   return mountComposable(() => useEditBackupRepository(br)).wrapper.vm
 }
 
-function getJobArgs() {
+function findJobArgs() {
   const [br, payload] = editJob.use.mock.calls[0] as [Ref<FrontXoBackupRepository>, Ref<EditBackupRepositoryPayload>]
 
-  return { br, payload }
+  return { target: br.value, payload: payload.value }
 }
 
 describe('job', () => {
-  it('runs on the repository', () => {
-    const br = createBr({ name: 'Nightly backups' })
-    mountEditBackupRepository(br)
-
-    expect(getJobArgs().br.value).toEqual(br)
-  })
-
-  it('has no payload before the drawer is confirmed', () => {
-    mountEditBackupRepository()
-
-    expect(getJobArgs().payload.value).toBeUndefined()
-  })
-
   it('exposes whether the repository can be edited, is being edited, and why it cannot be', () => {
     editJob.setState({ canRun: false, isRunning: true, errorMessage: 'Edition in progress' })
 
@@ -81,31 +61,16 @@ describe('editBackupRepository', () => {
 
     expect(overlayMock.getOverlay().open).toHaveBeenCalledWith({ props: expect.objectContaining({ br }) })
   })
-
-  it('closes the drawer when it is cancelled', () => {
-    mountEditBackupRepository()
-
-    expect(overlayMock.getOverlay<OverlayOptions>().events.onCancel).toBe(true)
-  })
 })
 
-describe('onConfirm', () => {
-  it('runs the job with the confirmed payload, then closes the drawer', async () => {
-    editJob.run.mockImplementation(async () => expect(getJobArgs().payload.value).toEqual(PAYLOAD))
-    mountEditBackupRepository()
-
-    const response = await overlayMock.getOverlay<OverlayOptions>().events.onConfirm(PAYLOAD)
-
-    expect(editJob.run).toHaveBeenCalledOnce()
-    expect(response).toBeUndefined()
-  })
-
-  it('keeps the drawer open when the job fails', async () => {
-    editJob.run.mockRejectedValue(new Error('Edition failed'))
-    mountEditBackupRepository()
-
-    const response = await overlayMock.getOverlay<OverlayOptions>().events.onConfirm(PAYLOAD)
-
-    expect(response).toBe(KEEP_OVERLAY_OPEN)
+describe('drawer', () => {
+  itRunsJobFromDrawer({
+    subject: 'repository',
+    createTarget: () => createBr({ name: 'Nightly backups' }),
+    mount: mountEditBackupRepository,
+    run: editJob.run,
+    findJobArgs,
+    payload: PAYLOAD,
+    errorMessage: 'Edition failed',
   })
 })

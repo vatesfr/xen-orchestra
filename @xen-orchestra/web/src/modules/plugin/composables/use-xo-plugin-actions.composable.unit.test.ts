@@ -8,11 +8,13 @@ import { useXoPluginChangeStateJob } from '@/modules/plugin/jobs/xo-plugin-chang
 import { useXoPluginConfigureJob } from '@/modules/plugin/jobs/xo-plugin-configure.job.ts'
 import { useXoPluginTestJob } from '@/modules/plugin/jobs/xo-plugin-test.job.ts'
 import type { FrontXoPlugin } from '@/modules/plugin/remote-resources/use-xo-plugin-collection.ts'
-import { createJobResult, toJobComposableResult } from '@/test/create-job-result.ts'
+import { itRunsJobFromAction } from '@/test/action-item-job.ts'
+import { createJobResult, type JobResultState, toJobComposableResult } from '@/test/create-job-result.ts'
 import { createPlugin } from '@/test/create-plugin.ts'
 import { t } from '@/test/i18n.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
 import { mockedExport } from '@/test/spy-on-module.ts'
+import type { LeafActionItem } from '@core/components/menu/VtsActionsMenu.vue'
 import { toValue } from 'vue'
 
 // The composables open overlays and run jobs, which call the REST API
@@ -37,13 +39,23 @@ beforeEach(() => {
   testPlugin.mockReset()
   deleteConfiguration.mockReset()
 
-  useChangeStateJob.mockReturnValue(createJobResult(changeState))
-  useAutoloadJob.mockReturnValue(createJobResult(updateAutoload))
+  mockChangeStateJob()
+  mockAutoloadJob()
   useDrawerJob.mockImplementation((_plugin, { useJob }) => drawerJobs.get(useJob))
   mockDrawerJob(useXoPluginConfigureJob, configurePlugin)
   mockDrawerJob(useXoPluginTestJob, testPlugin)
   mockDelete()
 })
+
+const RUNNING: JobResultState = { canRun: false, isRunning: true }
+
+function mockChangeStateJob(state: JobResultState = {}) {
+  useChangeStateJob.mockReturnValue(createJobResult(changeState, state))
+}
+
+function mockAutoloadJob(state: JobResultState = {}) {
+  useAutoloadJob.mockReturnValue(createJobResult(updateAutoload, state))
+}
 
 function mockDrawerJob(useJob: unknown, openDrawer: () => void, state: Parameters<typeof createJobResult>[1] = {}) {
   const { run, ...jobState } = createJobResult(openDrawer, state)
@@ -68,101 +80,75 @@ function findTargetedState(useJob: typeof useChangeStateJob) {
   return toValue(state)
 }
 
-describe('loadAction', () => {
-  it.each([
-    { loaded: true, label: 'action:unload', icon: 'action:disconnect', targetedState: false },
-    { loaded: false, label: 'action:load', icon: 'action:connect', targetedState: true },
-    { loaded: undefined, label: 'action:load', icon: 'action:connect', targetedState: true },
-  ] as const)(
-    'targets the opposite state of a plugin with $loaded as loaded',
-    ({ loaded, label, icon, targetedState }) => {
-      const { loadAction } = mountActions(createPlugin({ loaded }))
+type StateActionCase = {
+  action: 'loadAction' | 'autoloadAction'
+  field: 'loaded' | 'autoload'
+  target: string
+  targets: { value: boolean | undefined; label: string; icon: string; targetedState: boolean }[]
+  useJob: typeof useChangeStateJob
+  run: typeof changeState
+  setJobState: (state: JobResultState) => void
+  errorMessage: string
+  disabledWhile: Record<string, () => void>
+}
 
-      expect({ label: loadAction.label, icon: loadAction.icon }).toEqual({ label: t(label), icon })
-      expect(findTargetedState(useChangeStateJob)).toBe(targetedState)
-    }
-  )
+const STATE_ACTIONS: StateActionCase[] = [
+  {
+    action: 'loadAction',
+    field: 'loaded',
+    target: 'state',
+    targets: [
+      { value: true, label: 'action:unload', icon: 'action:disconnect', targetedState: false },
+      { value: false, label: 'action:load', icon: 'action:connect', targetedState: true },
+      { value: undefined, label: 'action:load', icon: 'action:connect', targetedState: true },
+    ],
+    useJob: useChangeStateJob,
+    run: changeState,
+    setJobState: mockChangeStateJob,
+    errorMessage: 'not configured',
+    disabledWhile: {
+      'the autoload is being updated': () => mockAutoloadJob(RUNNING),
+      'the plugin is being tested': () => mockDrawerJob(useXoPluginTestJob, testPlugin, RUNNING),
+    },
+  },
+  {
+    action: 'autoloadAction',
+    field: 'autoload',
+    target: 'autoload',
+    targets: [
+      { value: true, label: 'action:disable-load-at-startup', icon: 'action:change-state', targetedState: false },
+      { value: false, label: 'action:enable-load-at-startup', icon: 'action:change-state', targetedState: true },
+    ],
+    useJob: useAutoloadJob,
+    run: updateAutoload,
+    setJobState: mockAutoloadJob,
+    errorMessage: 'missing plugin',
+    disabledWhile: { 'the plugin is being loaded or unloaded': () => mockChangeStateJob(RUNNING) },
+  },
+]
 
-  it('runs the job on click', () => {
-    mountActions().loadAction.onClick()
+// Not `describe.each`: its `$action` would quote the name
+for (const { action, field, target, targets, useJob, run, setJobState, errorMessage, disabledWhile } of STATE_ACTIONS) {
+  describe(action, () => {
+    it.each(targets)(
+      `targets the opposite ${target} of a plugin with $value as ${field}`,
+      ({ value, label, icon, targetedState }) => {
+        const actionItem = mountActions(createPlugin({ [field]: value }))[action]
 
-    expect(changeState).toHaveBeenCalledOnce()
+        expect({ label: actionItem.label, icon: actionItem.icon }).toEqual({ label: t(label), icon })
+        expect(findTargetedState(useJob)).toBe(targetedState)
+      }
+    )
+
+    itRunsJobFromAction({
+      getAction: () => mountActions()[action],
+      setJobState,
+      errorMessage,
+      click: { run },
+      disabledWhile,
+    })
   })
-
-  it('can run when the job can run', () => {
-    expect(mountActions().loadAction).toMatchObject({ disabled: false, busy: false, hint: undefined })
-  })
-
-  it('is disabled, with the reason as hint, when the job cannot run', () => {
-    useChangeStateJob.mockReturnValue(createJobResult(changeState, { canRun: false, errorMessage: 'not configured' }))
-
-    expect(mountActions().loadAction).toMatchObject({ disabled: true, hint: 'not configured' })
-  })
-
-  it('is busy while the job runs', () => {
-    useChangeStateJob.mockReturnValue(createJobResult(changeState, { canRun: false, isRunning: true }))
-
-    expect(mountActions().loadAction.busy).toBe(true)
-  })
-
-  it('is disabled while the autoload is being updated', () => {
-    useAutoloadJob.mockReturnValue(createJobResult(updateAutoload, { canRun: false, isRunning: true }))
-
-    expect(mountActions().loadAction).toMatchObject({ disabled: true, hint: undefined })
-  })
-
-  it('is disabled while the plugin is being tested', () => {
-    mockDrawerJob(useXoPluginTestJob, testPlugin, { canRun: false, isRunning: true })
-
-    expect(mountActions().loadAction).toMatchObject({ disabled: true, hint: undefined })
-  })
-})
-
-describe('autoloadAction', () => {
-  it.each([
-    { autoload: true, label: 'action:disable-load-at-startup', targetedState: false },
-    { autoload: false, label: 'action:enable-load-at-startup', targetedState: true },
-  ] as const)(
-    'targets the opposite autoload of a plugin with $autoload as autoload',
-    ({ autoload, label, targetedState }) => {
-      const { autoloadAction } = mountActions(createPlugin({ autoload }))
-
-      expect({ label: autoloadAction.label, icon: autoloadAction.icon }).toEqual({
-        label: t(label),
-        icon: 'action:change-state',
-      })
-      expect(findTargetedState(useAutoloadJob)).toBe(targetedState)
-    }
-  )
-
-  it('runs the job on click', () => {
-    mountActions().autoloadAction.onClick()
-
-    expect(updateAutoload).toHaveBeenCalledOnce()
-  })
-
-  it('can run when the job can run', () => {
-    expect(mountActions().autoloadAction).toMatchObject({ disabled: false, busy: false, hint: undefined })
-  })
-
-  it('is disabled, with the reason as hint, when the job cannot run', () => {
-    useAutoloadJob.mockReturnValue(createJobResult(updateAutoload, { canRun: false, errorMessage: 'missing plugin' }))
-
-    expect(mountActions().autoloadAction).toMatchObject({ disabled: true, hint: 'missing plugin' })
-  })
-
-  it('is busy while the job runs', () => {
-    useAutoloadJob.mockReturnValue(createJobResult(updateAutoload, { canRun: false, isRunning: true }))
-
-    expect(mountActions().autoloadAction.busy).toBe(true)
-  })
-
-  it('is disabled while the plugin is being loaded or unloaded', () => {
-    useChangeStateJob.mockReturnValue(createJobResult(changeState, { canRun: false, isRunning: true }))
-
-    expect(mountActions().autoloadAction).toMatchObject({ disabled: true, hint: undefined })
-  })
-})
+}
 
 describe('drawers', () => {
   it.each([
@@ -177,107 +163,62 @@ describe('drawers', () => {
   })
 })
 
-describe('configureAction', () => {
-  it('opens the configuration drawer on click', () => {
-    const { configureAction } = mountActions()
+type DrawerActionCase = {
+  action: 'configureAction' | 'testAction'
+  useJob: unknown
+  openDrawer: typeof configurePlugin
+  drawer: string
+  item: Partial<LeafActionItem>
+  errorMessage: string
+  disabledWhile: Record<string, () => void>
+}
 
-    configureAction.onClick()
+const DRAWER_ACTIONS: DrawerActionCase[] = [
+  {
+    action: 'configureAction',
+    useJob: useXoPluginConfigureJob,
+    openDrawer: configurePlugin,
+    drawer: 'configuration',
+    item: { label: t('action:configure'), icon: 'action:edit' },
+    errorMessage: 'not configurable',
+    disabledWhile: { 'the configuration is being deleted': () => mockDelete(RUNNING) },
+  },
+  {
+    action: 'testAction',
+    useJob: useXoPluginTestJob,
+    openDrawer: testPlugin,
+    drawer: 'test',
+    item: { label: t('action:test-plugin'), icon: 'action:scan' },
+    errorMessage: 'not loaded',
+    disabledWhile: { 'the plugin is being loaded or unloaded': () => mockChangeStateJob(RUNNING) },
+  },
+]
 
-    expect(configureAction).toMatchObject({ label: t('action:configure'), icon: 'action:edit' })
-    expect(configurePlugin).toHaveBeenCalledOnce()
+for (const { action, useJob, openDrawer, drawer, item, errorMessage, disabledWhile } of DRAWER_ACTIONS) {
+  describe(action, () => {
+    itRunsJobFromAction({
+      getAction: () => mountActions()[action],
+      setJobState: state => mockDrawerJob(useJob, openDrawer, state),
+      errorMessage,
+      click: { run: openDrawer, name: `opens the ${drawer} drawer on click`, item },
+      disabledWhile,
+    })
   })
-
-  it('can run when the plugin can be configured', () => {
-    expect(mountActions().configureAction).toMatchObject({ disabled: false, busy: false, hint: undefined })
-  })
-
-  it('is disabled, with the reason as hint, when the plugin cannot be configured', () => {
-    mockDrawerJob(useXoPluginConfigureJob, configurePlugin, { canRun: false, errorMessage: 'not configurable' })
-
-    expect(mountActions().configureAction).toMatchObject({ disabled: true, hint: 'not configurable' })
-  })
-
-  it('is busy while the configuration is being saved', () => {
-    mockDrawerJob(useXoPluginConfigureJob, configurePlugin, { canRun: false, isRunning: true })
-
-    expect(mountActions().configureAction.busy).toBe(true)
-  })
-
-  it('is disabled while the configuration is being deleted', () => {
-    mockDelete({ canRun: false, isRunning: true })
-
-    expect(mountActions().configureAction.disabled).toBe(true)
-  })
-})
-
-describe('testAction', () => {
-  it('opens the test drawer on click', () => {
-    const { testAction } = mountActions()
-
-    testAction.onClick()
-
-    expect(testAction).toMatchObject({ label: t('action:test-plugin'), icon: 'action:scan' })
-    expect(testPlugin).toHaveBeenCalledOnce()
-  })
-
-  it('can run when the plugin can be tested', () => {
-    expect(mountActions().testAction).toMatchObject({ disabled: false, busy: false, hint: undefined })
-  })
-
-  it('is disabled, with the reason as hint, when the plugin cannot be tested', () => {
-    mockDrawerJob(useXoPluginTestJob, testPlugin, { canRun: false, errorMessage: 'not loaded' })
-
-    expect(mountActions().testAction).toMatchObject({ disabled: true, hint: 'not loaded' })
-  })
-
-  it('is busy while the plugin is being tested', () => {
-    mockDrawerJob(useXoPluginTestJob, testPlugin, { canRun: false, isRunning: true })
-
-    expect(mountActions().testAction.busy).toBe(true)
-  })
-
-  it('is disabled while the plugin is being loaded or unloaded', () => {
-    useChangeStateJob.mockReturnValue(createJobResult(changeState, { canRun: false, isRunning: true }))
-
-    expect(mountActions().testAction).toMatchObject({ disabled: true, hint: undefined })
-  })
-})
+}
 
 describe('deleteConfigurationAction', () => {
-  it('asks to delete the configuration on click, apart from the other actions', () => {
-    const { deleteConfigurationAction } = mountActions()
-
-    deleteConfigurationAction.onClick()
-
-    expect(deleteConfigurationAction).toMatchObject({
-      label: t('action:delete-configuration'),
-      icon: 'action:delete',
-      accent: 'danger',
-      separator: true,
-    })
-    expect(deleteConfiguration).toHaveBeenCalledOnce()
-  })
-
-  it('can run when the configuration can be deleted', () => {
-    expect(mountActions().deleteConfigurationAction).toMatchObject({ disabled: false, busy: false, hint: undefined })
-  })
-
-  it('is disabled, with the reason as hint, when the configuration cannot be deleted', () => {
-    mockDelete({ canRun: false, errorMessage: 'plugin loaded' })
-
-    expect(mountActions().deleteConfigurationAction).toMatchObject({ disabled: true, hint: 'plugin loaded' })
-  })
-
-  it('is busy while the configuration is being deleted', () => {
-    mockDelete({ canRun: false, isRunning: true })
-
-    expect(mountActions().deleteConfigurationAction.busy).toBe(true)
-  })
-
-  it('is disabled while the configuration is being saved', () => {
-    mockDrawerJob(useXoPluginConfigureJob, configurePlugin, { canRun: false, isRunning: true })
-
-    expect(mountActions().deleteConfigurationAction.disabled).toBe(true)
+  itRunsJobFromAction({
+    getAction: () => mountActions().deleteConfigurationAction,
+    setJobState: mockDelete,
+    errorMessage: 'plugin loaded',
+    click: {
+      run: deleteConfiguration,
+      name: 'asks to delete the configuration on click, apart from the other actions',
+      item: { label: t('action:delete-configuration'), icon: 'action:delete', accent: 'danger', separator: true },
+    },
+    disabledWhile: {
+      'the configuration is being saved': () => mockDrawerJob(useXoPluginConfigureJob, configurePlugin, RUNNING),
+    },
   })
 })
 

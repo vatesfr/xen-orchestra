@@ -4,6 +4,13 @@ import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collecti
 import { createJobResult } from '@/test/create-job-result.ts'
 import { createTestRouter } from '@/test/create-test-router.ts'
 import { createVm } from '@/test/create-vm.ts'
+import {
+  createDetachedJobRun,
+  createRouterOnPage,
+  itRedirectsOnSuccess,
+  itUnselectsOnSuccess,
+  typeToConfirmModalOpening,
+} from '@/test/detached-selection-job.ts'
 import { t } from '@/test/i18n.ts'
 import { deleteModalMock } from '@/test/mock-delete-modal.ts'
 import { overlayMock } from '@/test/mock-overlay.ts'
@@ -14,14 +21,13 @@ import type { useTypeToConfirmModal } from '@core/composables/modals/use-type-to
 import { type MaybeRefOrGetter, ref, toValue } from 'vue'
 import type { Router } from 'vue-router'
 
-type DeleteResults = PromiseSettledResult<unknown>[]
-
 type PartialDeletionDrawer = { events: { onConfirm?: () => void } }
 
 // The job deletes the VMs through the REST API
 const useDeleteJob = mockedExport(useXoVmDeleteJob)
 
 const run = vi.fn()
+const detachedRun = createDetachedJobRun(run)
 const openTypeToConfirmModal = vi.fn()
 
 mockModule(import('@core/composables/modals/use-delete-modal.ts'), () => import('@/test/mock-delete-modal.ts'))
@@ -35,8 +41,6 @@ mockModule(import('@core/packages/overlay/use-overlay.ts'), () => import('@/test
 
 mockModule(import('@core/composables/route-query.composable.ts'), () => import('@/test/mock-route-query.ts'))
 
-let successHandled: Promise<void> | undefined
-
 beforeEach(() => {
   run.mockReset()
   useDeleteJob.mockReturnValue(createJobResult(run))
@@ -44,7 +48,6 @@ beforeEach(() => {
   openTypeToConfirmModal.mockReset()
   overlayMock.reset()
   routeQueryMock.reset()
-  successHandled = undefined
 })
 
 const firstVm = createVm({ id: 'vm-1' as FrontXoVm['id'], name_label: 'Web server' })
@@ -59,14 +62,6 @@ function mountDelete(vms: MaybeRefOrGetter<FrontXoVm[]>, { router = createTestRo
   return mountComposable(() => useVmDelete(vms), { router }).wrapper.vm
 }
 
-// The composable runs the job detached: like a successful job, the mock hands the results to `onSuccess`
-function mockDeleteSuccess(results: DeleteResults, beforeSuccess?: () => void) {
-  run.mockImplementation(({ onSuccess }: { onSuccess: (results: DeleteResults) => Promise<void> }) => {
-    beforeSuccess?.()
-    successHandled = onSuccess(results)
-  })
-}
-
 async function deleteAndConfirm(vms: MaybeRefOrGetter<FrontXoVm[]>, options?: { router?: Router }) {
   mountDelete(vms, options).deleteVms()
 
@@ -74,15 +69,17 @@ async function deleteAndConfirm(vms: MaybeRefOrGetter<FrontXoVm[]>, options?: { 
 
   openOptions.events.onConfirm()
 
-  await successHandled
+  await detachedRun.settled()
 }
 
-async function createRouterOnVmPage(id: FrontXoVm['id']) {
-  const router = createTestRouter()
+const VM_PAGE = '/vm/[id]/dashboard'
 
-  await router.push({ name: '/vm/[id]/dashboard', params: { id } })
-
-  return router
+const deleteCase = {
+  wording: { item: 'VM', items: 'VMs', done: 'deleted', doing: 'deleting' },
+  items: [firstVm, secondVm] as [FrontXoVm, FrontXoVm],
+  detachedRun,
+  confirm: deleteAndConfirm,
+  errorMessage: 'VM is running',
 }
 
 describe('deleteVms', () => {
@@ -101,14 +98,14 @@ describe('deleteVms', () => {
   it('asks to type the number of VMs to confirm the deletion of several VMs', () => {
     mountDelete([firstVm, secondVm]).deleteVms()
 
-    expect(openTypeToConfirmModal.mock.calls[0][0].props).toEqual({
-      accent: 'danger',
-      icon: 'status:danger-picto',
-      title: t('modal:vm-delete-title', { n: 2 }),
-      description: t('modal:vms-delete-message', { n: 2 }),
-      confirmationText: t('n-vms', { n: 2 }),
-      confirmLabel: t('action:delete-n-vms', { n: 2 }),
-    })
+    expect(openTypeToConfirmModal.mock.calls[0][0].props).toEqual(
+      typeToConfirmModalOpening({
+        title: t('modal:vm-delete-title', { n: 2 }),
+        description: t('modal:vms-delete-message', { n: 2 }),
+        confirmationText: t('n-vms', { n: 2 }),
+        confirmLabel: t('action:delete-n-vms', { n: 2 }),
+      }).props
+    )
     expect(deleteModalMock.open).not.toHaveBeenCalled()
   })
 
@@ -147,7 +144,7 @@ describe('with protected VMs', () => {
   })
 
   it('unselects the VM shown in the side panel once deleted alongside a protected one', () => {
-    mockDeleteSuccess([{ status: 'fulfilled', value: undefined }])
+    detachedRun.mockSuccess([{ status: 'fulfilled', value: undefined }])
     routeQueryMock.query.value = secondVm.id
 
     mountDelete([protectedVm, secondVm]).deleteVms()
@@ -165,64 +162,7 @@ describe('with protected VMs', () => {
 })
 
 describe('on confirm', () => {
-  it('runs the job detached so the modal closes right away', async () => {
-    await deleteAndConfirm([firstVm])
-
-    expect(run).toHaveBeenCalledWith({ detached: true, onSuccess: expect.any(Function) })
-  })
-
-  it('unselects the VM shown in the side panel once deleted', async () => {
-    mockDeleteSuccess([
-      { status: 'fulfilled', value: undefined },
-      { status: 'fulfilled', value: undefined },
-    ])
-    routeQueryMock.query.value = secondVm.id
-
-    await deleteAndConfirm([firstVm, secondVm])
-
-    expect(routeQueryMock.query.value).toBe('')
-  })
-
-  it('keeps the VM shown in the side panel selected when deleting it failed', async () => {
-    mockDeleteSuccess([
-      { status: 'fulfilled', value: undefined },
-      { status: 'rejected', reason: new Error('VM is running') },
-    ])
-    routeQueryMock.query.value = secondVm.id
-
-    await deleteAndConfirm([firstVm, secondVm])
-
-    expect(routeQueryMock.query.value).toBe(secondVm.id)
-  })
-
-  it('keeps another VM shown in the side panel selected', async () => {
-    mockDeleteSuccess([{ status: 'fulfilled', value: undefined }])
-    routeQueryMock.query.value = secondVm.id
-
-    await deleteAndConfirm([firstVm])
-
-    expect(routeQueryMock.query.value).toBe(secondVm.id)
-  })
-
-  it('unselects the deleted VM even when the VMs change during the job', async () => {
-    const vms = ref([firstVm, secondVm])
-    routeQueryMock.query.value = secondVm.id
-
-    // The deleted VMs leave the collection before the job is over
-    mockDeleteSuccess(
-      [
-        { status: 'fulfilled', value: undefined },
-        { status: 'fulfilled', value: undefined },
-      ],
-      () => {
-        vms.value = []
-      }
-    )
-
-    await deleteAndConfirm(vms)
-
-    expect(routeQueryMock.query.value).toBe('')
-  })
+  itUnselectsOnSuccess(deleteCase)
 })
 
 it('exposes whether the VMs can be deleted, are being deleted, and why they cannot be', () => {
@@ -236,42 +176,23 @@ it('exposes whether the VMs can be deleted, are being deleted, and why they cann
 })
 
 describe('redirection', () => {
-  it('redirects to the VMs of its host once the VM of the current page is deleted', async () => {
-    mockDeleteSuccess([{ status: 'fulfilled', value: undefined }])
-    const router = await createRouterOnVmPage(firstVm.id)
-
-    await deleteAndConfirm([firstVm], { router })
-
-    expect(router.currentRoute.value).toMatchObject({ name: '/host/[id]/vms', params: { id: firstVm.$container } })
+  itRedirectsOnSuccess(deleteCase, {
+    itemPage: VM_PAGE,
+    redirection: {
+      to: vm => ({ name: '/host/[id]/vms', params: { id: vm.$container } }),
+      wording: 'to the VMs of its host',
+    },
   })
 
   it('redirects even when the deleted VM leaves the collection before the job is over', async () => {
     const vms = ref([firstVm])
-    mockDeleteSuccess([{ status: 'fulfilled', value: undefined }], () => {
+    detachedRun.mockSuccess([{ status: 'fulfilled', value: undefined }], () => {
       vms.value = []
     })
-    const router = await createRouterOnVmPage(firstVm.id)
+    const router = await createRouterOnPage(VM_PAGE, firstVm.id)
 
     await deleteAndConfirm(vms, { router })
 
     expect(router.currentRoute.value).toMatchObject({ name: '/host/[id]/vms', params: { id: firstVm.$container } })
-  })
-
-  it('stays on the VM page when deleting it failed', async () => {
-    mockDeleteSuccess([{ status: 'rejected', reason: new Error('VM is running') }])
-    const router = await createRouterOnVmPage(firstVm.id)
-
-    await deleteAndConfirm([firstVm], { router })
-
-    expect(router.currentRoute.value.name).toBe('/vm/[id]/dashboard')
-  })
-
-  it('stays on the page of another VM', async () => {
-    mockDeleteSuccess([{ status: 'fulfilled', value: undefined }])
-    const router = await createRouterOnVmPage(secondVm.id)
-
-    await deleteAndConfirm([firstVm], { router })
-
-    expect(router.currentRoute.value.name).toBe('/vm/[id]/dashboard')
   })
 })

@@ -37,6 +37,11 @@ export function findCardLabelledValues(wrapper: QueryableWrapper): Record<string
   return Object.fromEntries(findPairs(wrapper, { root: CARD_KEY_VALUE_ROW_SELECTOR, label: '.key', value: '.value' }))
 }
 
+// The label of every `VtsCardRowKeyValue` row of a side-panel card, in order
+export function findCardRowLabels(wrapper: QueryableWrapper): string[] {
+  return wrapper.findAll(CARD_KEY_VALUE_ROW_SELECTOR).map(row => row.get('.key').text())
+}
+
 /**
  * Reads every `VtsCardRowKeyValue` as `{ label: values }`, each value of a
  * multi-value row (an address list, report recipients) being its own entry, in

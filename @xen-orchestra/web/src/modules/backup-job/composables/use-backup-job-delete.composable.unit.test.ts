@@ -3,15 +3,16 @@ import { useXoBackupJobDeleteJob } from '@/modules/backup-job/jobs/xo-backup-job
 import type { FrontAnyXoBackupJob } from '@/modules/backup-job/remote-resources/use-xo-backup-job-collection.ts'
 import { createVmBackupJob } from '@/test/create-backup-job.ts'
 import { createJobStub } from '@/test/create-job-result.ts'
+import { createDetachedJobRun, itAsksToTypeToConfirm, itUnselectsOnSuccess } from '@/test/detached-selection-job.ts'
 import { t } from '@/test/i18n.ts'
 import { overlayMock } from '@/test/mock-overlay.ts'
 import { routeQueryMock } from '@/test/mock-route-query.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
 import { mockModule } from '@/test/spy-on-module.ts'
-
-type DeleteResults = PromiseSettledResult<unknown>[]
+import { type MaybeRefOrGetter, toValue } from 'vue'
 
 const deleteJob = createJobStub(useXoBackupJobDeleteJob)
+const detachedRun = createDetachedJobRun(deleteJob.run)
 
 mockModule(import('@core/composables/route-query.composable.ts'), () => import('@/test/mock-route-query.ts'))
 
@@ -24,12 +25,6 @@ beforeEach(() => {
   routeQueryMock.reset()
 })
 
-function mockDeleteSuccess(results: DeleteResults) {
-  deleteJob.run.mockImplementation(({ onSuccess }: { onSuccess: (results: DeleteResults) => void }) =>
-    onSuccess(results)
-  )
-}
-
 const firstBackupJob = createVmBackupJob({ id: 'backup-job-1' as FrontAnyXoBackupJob['id'] })
 const secondBackupJob = createVmBackupJob({ id: 'backup-job-2' as FrontAnyXoBackupJob['id'] })
 
@@ -41,12 +36,14 @@ function mountDelete(backupJobs: FrontAnyXoBackupJob[]) {
   return { result, deleteModal, typeToConfirmModal }
 }
 
-function deleteAndConfirm(backupJobs: FrontAnyXoBackupJob[]) {
-  const { result } = mountDelete(backupJobs)
+async function deleteAndConfirm(backupJobs: MaybeRefOrGetter<FrontAnyXoBackupJob[]>) {
+  const { result } = mountDelete(toValue(backupJobs))
 
   result.deleteBackupJobs()
 
   overlayMock.confirmOpened()
+
+  await detachedRun.settled()
 }
 
 describe('deleteBackupJobs', () => {
@@ -79,65 +76,34 @@ describe('deleteBackupJobs', () => {
     )
   })
 
-  it('asks to type the number of backup jobs to confirm for several backup jobs', () => {
-    const { result, deleteModal, typeToConfirmModal } = mountDelete([firstBackupJob, secondBackupJob])
+  itAsksToTypeToConfirm(
+    'asks to type the number of backup jobs to confirm for several backup jobs',
+    () => {
+      const { result, deleteModal, typeToConfirmModal } = mountDelete([firstBackupJob, secondBackupJob])
 
-    result.deleteBackupJobs()
+      result.deleteBackupJobs()
 
-    expect(deleteModal.open).not.toHaveBeenCalled()
-    expect(typeToConfirmModal.open).toHaveBeenCalledWith({
-      props: {
-        accent: 'danger',
-        icon: 'status:danger-picto',
-        title: t('modal:backup-job-delete-title', { n: 2 }),
-        description: t('modal:backup-job-delete-message', { n: 2 }),
-        confirmationText: t('n-jobs', { n: 2 }),
-        confirmLabel: t('action:delete-n-jobs', { n: 2 }),
-      },
-      events: {
-        onConfirm: expect.any(Function),
-      },
-    })
-  })
+      return { singleModal: deleteModal, typeToConfirmModal }
+    },
+    {
+      title: t('modal:backup-job-delete-title', { n: 2 }),
+      description: t('modal:backup-job-delete-message', { n: 2 }),
+      confirmationText: t('n-jobs', { n: 2 }),
+      confirmLabel: t('action:delete-n-jobs', { n: 2 }),
+    }
+  )
 })
 
 describe('on confirm', () => {
-  it('runs the job detached so the modal closes right away', () => {
-    deleteAndConfirm([firstBackupJob])
-
-    expect(deleteJob.run).toHaveBeenCalledWith({ detached: true, onSuccess: expect.any(Function) })
-  })
-
-  it('unselects the backup job shown in the side panel once deleted', () => {
-    mockDeleteSuccess([
-      { status: 'fulfilled', value: undefined },
-      { status: 'fulfilled', value: undefined },
-    ])
-    routeQueryMock.query.value = secondBackupJob.id
-
-    deleteAndConfirm([firstBackupJob, secondBackupJob])
-
-    expect(routeQueryMock.query.value).toBe('')
-  })
-
-  it('keeps the backup job shown in the side panel selected when deleting it failed', () => {
-    mockDeleteSuccess([
-      { status: 'fulfilled', value: undefined },
-      { status: 'rejected', reason: new Error('No such backup job') },
-    ])
-    routeQueryMock.query.value = secondBackupJob.id
-
-    deleteAndConfirm([firstBackupJob, secondBackupJob])
-
-    expect(routeQueryMock.query.value).toBe(secondBackupJob.id)
-  })
-
-  it('keeps another backup job shown in the side panel selected', () => {
-    mockDeleteSuccess([{ status: 'fulfilled', value: undefined }])
-    routeQueryMock.query.value = secondBackupJob.id
-
-    deleteAndConfirm([firstBackupJob])
-
-    expect(routeQueryMock.query.value).toBe(secondBackupJob.id)
-  })
+  itUnselectsOnSuccess(
+    {
+      wording: { item: 'backup job', items: 'backup jobs', done: 'deleted', doing: 'deleting' },
+      items: [firstBackupJob, secondBackupJob],
+      detachedRun,
+      confirm: deleteAndConfirm,
+      errorMessage: 'No such backup job',
+    },
+    // `mountDelete` hands the composable a plain list
+    { itemsChange: false }
+  )
 })

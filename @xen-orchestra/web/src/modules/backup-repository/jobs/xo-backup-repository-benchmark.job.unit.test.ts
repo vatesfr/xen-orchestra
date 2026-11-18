@@ -1,11 +1,11 @@
 import { useXoBackupRepositoryBenchmarkJob } from '@/modules/backup-repository/jobs/xo-backup-repository-benchmark.job.ts'
 import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
 import { fetchPost } from '@/shared/utils/fetch.util.ts'
-import { createBr } from '@/test/create-br.ts'
+import { createBr, createTwoBrs } from '@/test/create-br.ts'
 import { t } from '@/test/i18n.ts'
+import { itCannotRun, itReportsEachResult } from '@/test/job-cases.ts'
 import { taskUtilsMock } from '@/test/mock-xo-task-utils.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
-import { silenceConsoleError } from '@/test/silence-console-error.ts'
 import { mockModule, mockedExport } from '@/test/spy-on-module.ts'
 
 const post = mockedExport(fetchPost)
@@ -23,8 +23,7 @@ beforeEach(() => {
   monitorTask.mockResolvedValue({ writeRate: 100_000_000, readRate: 200_000_000 })
 })
 
-const firstBr = createBr({ id: 'backup-repository-1' as FrontXoBackupRepository['id'] })
-const secondBr = createBr({ id: 'backup-repository-2' as FrontXoBackupRepository['id'] })
+const [firstBr, secondBr] = createTwoBrs()
 
 function mountBenchmarkJob(brs: FrontXoBackupRepository[]) {
   return mountComposable(() => useXoBackupRepositoryBenchmarkJob(() => brs)).wrapper.vm
@@ -44,17 +43,12 @@ describe('run', () => {
     ])
   })
 
-  it('reports each repository result, without stopping at the first failure', async () => {
-    silenceConsoleError()
-    const error = new Error('Backup repository unreachable')
-    monitorTask.mockRejectedValueOnce(error)
-
-    const results = await mountBenchmarkJob([firstBr, secondBr]).run()
-
-    expect(results).toEqual([
-      { status: 'rejected', reason: error },
-      { status: 'fulfilled', value: { writeRate: 100_000_000, readRate: 200_000_000 } },
-    ])
+  itReportsEachResult({
+    subject: 'repository',
+    request: monitorTask,
+    errorMessage: 'Backup repository unreachable',
+    run: () => mountBenchmarkJob([firstBr, secondBr]).run(),
+    fulfilledValue: { writeRate: 100_000_000, readRate: 200_000_000 },
   })
 })
 
@@ -63,28 +57,26 @@ describe('validate', () => {
     expect(mountBenchmarkJob([firstBr, secondBr]).canRun).toBe(true)
   })
 
-  it('cannot run without repository', () => {
-    const job = mountBenchmarkJob([])
-
-    expect(job.canRun).toBe(false)
-    expect(job.errorMessage).toBe(t('job:backup-repository-benchmark:missing-backup-repository'))
-  })
-
-  it('cannot run on a disabled repository', () => {
-    const job = mountBenchmarkJob([createBr({ enabled: false })])
-
-    expect(job.canRun).toBe(false)
-    expect(job.errorMessage).toBe(t('job:backup-repository-benchmark:repository-disabled'))
-  })
-
-  it('counts the disabled repositories of a selection', () => {
-    const job = mountBenchmarkJob([
-      firstBr,
-      createBr({ id: 'backup-repository-3' as FrontXoBackupRepository['id'], enabled: false }),
-      createBr({ id: 'backup-repository-4' as FrontXoBackupRepository['id'], enabled: false }),
-    ])
-
-    expect(job.canRun).toBe(false)
-    expect(job.errorMessage).toBe(t('job:backup-repository-benchmark:n-repositories-disabled', { n: 2 }))
-  })
+  itCannotRun([
+    {
+      name: 'cannot run without repository',
+      mountJob: () => mountBenchmarkJob([]),
+      errorMessage: t('job:backup-repository-benchmark:missing-backup-repository'),
+    },
+    {
+      name: 'cannot run on a disabled repository',
+      mountJob: () => mountBenchmarkJob([createBr({ enabled: false })]),
+      errorMessage: t('job:backup-repository-benchmark:repository-disabled'),
+    },
+    {
+      name: 'counts the disabled repositories of a selection',
+      mountJob: () =>
+        mountBenchmarkJob([
+          firstBr,
+          createBr({ id: 'backup-repository-3' as FrontXoBackupRepository['id'], enabled: false }),
+          createBr({ id: 'backup-repository-4' as FrontXoBackupRepository['id'], enabled: false }),
+        ]),
+      errorMessage: t('job:backup-repository-benchmark:n-repositories-disabled', { n: 2 }),
+    },
+  ])
 })

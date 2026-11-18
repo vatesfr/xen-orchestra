@@ -1,27 +1,22 @@
 import BackupRepositoryChangeStateButton from '@/modules/backup-repository/components/actions/change-state/BackupRepositoryChangeStateButton.vue'
 import { useXoBackupRepositoryChangeStateJob } from '@/modules/backup-repository/jobs/xo-backup-repository-change-state.job.ts'
-import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
 import { createBr } from '@/test/create-br.ts'
 import { createJobStub } from '@/test/create-job-result.ts'
-import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
+import { itRunsJobFromButton } from '@/test/job-button.ts'
 import UiButton from '@core/components/ui/button/UiButton.vue'
-import { mount } from '@vue/test-utils'
 import { toValue } from 'vue'
 
 // The job patches the repositories through the REST API
 const changeStateJob = createJobStub(useXoBackupRepositoryChangeStateJob)
 
-beforeEach(() => {
-  changeStateJob.reset()
+const mountButton = itRunsJobFromButton(BackupRepositoryChangeStateButton, {
+  targetProp: 'br',
+  createTarget: createBr,
+  getButton: wrapper => wrapper.getComponent(UiButton),
+  job: changeStateJob,
+  toJobTarget: null,
 })
-
-function mountButton(br: FrontXoBackupRepository = createBr()) {
-  return mount(BackupRepositoryChangeStateButton, {
-    props: { br },
-    global: createGlobalTestConfig(),
-  })
-}
 
 // The job receives the repositories and the targeted state as getters
 function findJobArgs() {
@@ -30,52 +25,40 @@ function findJobArgs() {
   return { brs: toValue(brs), enabled: toValue(enabled) }
 }
 
-describe('on an enabled repository', () => {
-  it('offers to disable it', () => {
-    const button = mountButton(createBr({ enabled: true })).getComponent(UiButton)
+const STATE_CASES = [
+  {
+    state: 'an enabled',
+    enabled: true,
+    action: 'disable',
+    label: 'action:disable',
+    icon: 'action:disable',
+    targetedState: false,
+  },
+  {
+    state: 'a disabled',
+    enabled: false,
+    action: 'connect',
+    label: 'action:connect',
+    icon: 'action:connect',
+    targetedState: true,
+  },
+] as const
 
-    expect(button.text()).toBe(t('action:disable'))
-    expect(button.props('leftIcon')).toBe('action:disable')
+// Not `describe.each`: its `$state` would quote the name
+for (const { state, enabled, action, label, icon, targetedState } of STATE_CASES) {
+  describe(`on ${state} repository`, () => {
+    it(`offers to ${action} it`, () => {
+      const button = mountButton(createBr({ enabled })).getComponent(UiButton)
+
+      expect(button.text()).toBe(t(label))
+      expect(button.props('leftIcon')).toBe(icon)
+    })
+
+    it(`runs the job to ${action} it`, () => {
+      const br = createBr({ enabled })
+      mountButton(br)
+
+      expect(findJobArgs()).toEqual({ brs: [br], enabled: targetedState })
+    })
   })
-
-  it('runs the job to disable it', () => {
-    const br = createBr({ enabled: true })
-    mountButton(br)
-
-    expect(findJobArgs()).toEqual({ brs: [br], enabled: false })
-  })
-})
-
-describe('on a disabled repository', () => {
-  it('offers to connect it', () => {
-    const button = mountButton(createBr({ enabled: false })).getComponent(UiButton)
-
-    expect(button.text()).toBe(t('action:connect'))
-    expect(button.props('leftIcon')).toBe('action:connect')
-  })
-
-  it('runs the job to connect it', () => {
-    const br = createBr({ enabled: false })
-    mountButton(br)
-
-    expect(findJobArgs()).toEqual({ brs: [br], enabled: true })
-  })
-})
-
-it('runs the job when clicking the button', async () => {
-  await mountButton().getComponent(UiButton).trigger('click')
-
-  expect(changeStateJob.run).toHaveBeenCalledOnce()
-})
-
-it('disables the button when the job cannot run', () => {
-  changeStateJob.setState({ canRun: false })
-
-  expect(mountButton().getComponent(UiButton).props('disabled')).toBe(true)
-})
-
-it('shows the button as busy while the job runs', () => {
-  changeStateJob.setState({ isRunning: true })
-
-  expect(mountButton().getComponent(UiButton).props('busy')).toBe(true)
-})
+}

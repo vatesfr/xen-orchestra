@@ -2,6 +2,7 @@ import { useXoBackupJobChangeStateJob } from '@/modules/backup-job/jobs/xo-backu
 import type { FrontAnyXoBackupJob } from '@/modules/backup-job/remote-resources/use-xo-backup-job-collection.ts'
 import { fetchPatch } from '@/shared/utils/fetch.util.ts'
 import { t } from '@/test/i18n.ts'
+import { itCannotRun, itReportsEachResult } from '@/test/job-cases.ts'
 import { scheduleCollectionMock } from '@/test/mock-xo-schedule-collection.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
 import { seedBackupJobWithSchedules } from '@/test/seed-backup-job-schedules.ts'
@@ -37,20 +38,15 @@ describe('run', () => {
     ])
   })
 
-  it('reports each backup job result, without stopping at the first failure', async () => {
-    vi.spyOn(console, 'error').mockImplementation(() => {})
-    const error = new Error('No such schedule')
-    patch.mockRejectedValueOnce(error)
-
-    const results = await mountChangeStateJob(
-      [seedBackupJobWithSchedules('backup-job-1'), seedBackupJobWithSchedules('backup-job-2')],
-      true
-    ).run()
-
-    expect(results).toEqual([
-      { status: 'rejected', reason: error },
-      { status: 'fulfilled', value: undefined },
-    ])
+  itReportsEachResult({
+    subject: 'backup job',
+    request: patch,
+    errorMessage: 'No such schedule',
+    run: () =>
+      mountChangeStateJob(
+        [seedBackupJobWithSchedules('backup-job-1'), seedBackupJobWithSchedules('backup-job-2')],
+        true
+      ).run(),
   })
 })
 
@@ -59,34 +55,30 @@ describe('validate', () => {
     expect(mountChangeStateJob([seedBackupJobWithSchedules('backup-job-1')], false).canRun).toBe(true)
   })
 
-  it('cannot run without backup job', () => {
-    const job = mountChangeStateJob([], true)
-
-    expect(job.canRun).toBe(false)
-    expect(job.errorMessage).toBe(t('job:backup-job-change-state:missing-backup-job'))
-  })
-
-  it('cannot change the state of a backup job with multiple schedules', () => {
-    const job = mountChangeStateJob([seedBackupJobWithSchedules('backup-job-1', 2)], true)
-
-    expect(job.canRun).toBe(false)
-    expect(job.errorMessage).toBe(t('job:backup-job-change-state:multiple-schedules', { n: 1 }))
-  })
-
-  it('cannot change the state of a selection where at least one backup job has multiple schedules', () => {
-    const job = mountChangeStateJob(
-      [seedBackupJobWithSchedules('backup-job-1', 2), seedBackupJobWithSchedules('backup-job-2')],
-      true
-    )
-
-    expect(job.canRun).toBe(false)
-    expect(job.errorMessage).toBe(t('job:backup-job-change-state:multiple-schedules', { n: 2 }))
-  })
-
-  it('cannot change the state of a backup job without schedule', () => {
-    const job = mountChangeStateJob([seedBackupJobWithSchedules('backup-job-1', 0)], true)
-
-    expect(job.canRun).toBe(false)
-    expect(job.errorMessage).toBe(t('job:backup-job-change-state:no-schedule', { n: 1 }))
-  })
+  itCannotRun([
+    {
+      name: 'cannot run without backup job',
+      mountJob: () => mountChangeStateJob([], true),
+      errorMessage: t('job:backup-job-change-state:missing-backup-job'),
+    },
+    {
+      name: 'cannot change the state of a backup job with multiple schedules',
+      mountJob: () => mountChangeStateJob([seedBackupJobWithSchedules('backup-job-1', 2)], true),
+      errorMessage: t('job:backup-job-change-state:multiple-schedules', { n: 1 }),
+    },
+    {
+      name: 'cannot change the state of a selection where at least one backup job has multiple schedules',
+      mountJob: () =>
+        mountChangeStateJob(
+          [seedBackupJobWithSchedules('backup-job-1', 2), seedBackupJobWithSchedules('backup-job-2')],
+          true
+        ),
+      errorMessage: t('job:backup-job-change-state:multiple-schedules', { n: 2 }),
+    },
+    {
+      name: 'cannot change the state of a backup job without schedule',
+      mountJob: () => mountChangeStateJob([seedBackupJobWithSchedules('backup-job-1', 0)], true),
+      errorMessage: t('job:backup-job-change-state:no-schedule', { n: 1 }),
+    },
+  ])
 })

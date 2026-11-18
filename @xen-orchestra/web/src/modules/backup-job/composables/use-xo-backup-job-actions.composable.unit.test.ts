@@ -3,6 +3,7 @@ import { useXoBackupJobActions } from '@/modules/backup-job/composables/use-xo-b
 import { useXoBackupJobChangeStateJob } from '@/modules/backup-job/jobs/xo-backup-job-change-state.job.ts'
 import { useXoBackupJobDuplicateJob } from '@/modules/backup-job/jobs/xo-backup-job-duplicate.job.ts'
 import { useXoBackupJobRunJob } from '@/modules/backup-job/jobs/xo-backup-job-run.job.ts'
+import { itRunsJobFromAction } from '@/test/action-item-job.ts'
 import { createVmBackupJob } from '@/test/create-backup-job.ts'
 import { createJobStub, toJobComposableResult } from '@/test/create-job-result.ts'
 import { createSchedule } from '@/test/create-schedule.ts'
@@ -84,117 +85,54 @@ describe('changeStateAction', () => {
     }
   )
 
-  it('runs the job on click', () => {
-    mountActions().changeStateAction.onClick()
-
-    expect(changeStateJob.run).toHaveBeenCalledOnce()
-  })
-
-  it('can run when the job can run', () => {
-    expect(mountActions().changeStateAction).toMatchObject({ disabled: false, busy: false, hint: undefined })
-  })
-
-  it('is disabled, with the reason as hint, when the job cannot run', () => {
-    changeStateJob.setState({ canRun: false, errorMessage: 'no schedule' })
-
-    expect(mountActions().changeStateAction).toMatchObject({ disabled: true, hint: 'no schedule' })
-  })
-
-  it('is busy while the job runs', () => {
-    changeStateJob.setState({ canRun: false, isRunning: true })
-
-    expect(mountActions().changeStateAction.busy).toBe(true)
+  itRunsJobFromAction({
+    getAction: () => mountActions().changeStateAction,
+    setJobState: changeStateJob.setState,
+    errorMessage: 'no schedule',
+    click: { run: changeStateJob.run },
   })
 })
 
-describe('manualRunAction', () => {
-  it('runs the backup job on click', () => {
-    const { manualRunAction } = mountActions()
+const JOB_ACTIONS = [
+  {
+    action: 'manualRunAction',
+    job: runJob,
+    clickCase: 'runs the backup job on click',
+    item: { label: 'action:manual-run', icon: 'fa:play' },
+    errorMessage: 'already running',
+  },
+  {
+    action: 'duplicateAction',
+    job: duplicateJob,
+    clickCase: 'duplicates the backup job on click',
+    item: { label: 'action:duplicate', icon: 'action:duplicate' },
+    errorMessage: 'in progress',
+  },
+  {
+    action: 'deleteAction',
+    job: deleteJob,
+    clickCase: 'asks to delete the backup job on click, apart from the other actions',
+    item: { label: 'action:delete', icon: 'action:delete', accent: 'danger', separator: true },
+    errorMessage: 'in progress',
+  },
+] as const
 
-    manualRunAction.onClick()
+// Not `describe.each`: its `$action` would quote the name
+for (const { action, job, clickCase, item, errorMessage } of JOB_ACTIONS) {
+  describe(action, () => {
+    it(clickCase, () => {
+      const actionItem = mountActions()[action]
 
-    expect(manualRunAction).toMatchObject({ label: t('action:manual-run'), icon: 'fa:play' })
-    expect(findLastArgs(runJob.use)).toEqual([[backupJob]])
-    expect(runJob.run).toHaveBeenCalledOnce()
-  })
+      actionItem.onClick()
 
-  it('can run when the job can run', () => {
-    expect(mountActions().manualRunAction).toMatchObject({ disabled: false, busy: false, hint: undefined })
-  })
-
-  it('is disabled, with the reason as hint, when the job cannot run', () => {
-    runJob.setState({ canRun: false, errorMessage: 'already running' })
-
-    expect(mountActions().manualRunAction).toMatchObject({ disabled: true, hint: 'already running' })
-  })
-
-  it('is busy while the job runs', () => {
-    runJob.setState({ canRun: false, isRunning: true })
-
-    expect(mountActions().manualRunAction.busy).toBe(true)
-  })
-})
-
-describe('duplicateAction', () => {
-  it('duplicates the backup job on click', () => {
-    const { duplicateAction } = mountActions()
-
-    duplicateAction.onClick()
-
-    expect(duplicateAction).toMatchObject({ label: t('action:duplicate'), icon: 'action:duplicate' })
-    expect(findLastArgs(duplicateJob.use)).toEqual([[backupJob]])
-    expect(duplicateJob.run).toHaveBeenCalledOnce()
-  })
-
-  it('can run when the job can run', () => {
-    expect(mountActions().duplicateAction).toMatchObject({ disabled: false, busy: false, hint: undefined })
-  })
-
-  it('is disabled, with the reason as hint, when the job cannot run', () => {
-    duplicateJob.setState({ canRun: false, errorMessage: 'in progress' })
-
-    expect(mountActions().duplicateAction).toMatchObject({ disabled: true, hint: 'in progress' })
-  })
-
-  it('is busy while the job runs', () => {
-    duplicateJob.setState({ canRun: false, isRunning: true })
-
-    expect(mountActions().duplicateAction.busy).toBe(true)
-  })
-})
-
-describe('deleteAction', () => {
-  it('asks to delete the backup job on click, apart from the other actions', () => {
-    const { deleteAction } = mountActions()
-
-    deleteAction.onClick()
-
-    expect(deleteAction).toMatchObject({
-      label: t('action:delete'),
-      icon: 'action:delete',
-      accent: 'danger',
-      separator: true,
+      expect(actionItem).toMatchObject({ ...item, label: t(item.label) })
+      expect(findLastArgs(job.use)).toEqual([[backupJob]])
+      expect(job.run).toHaveBeenCalledOnce()
     })
-    expect(findLastArgs(deleteJob.use)).toEqual([[backupJob]])
-    expect(deleteJob.run).toHaveBeenCalledOnce()
+
+    itRunsJobFromAction({ getAction: () => mountActions()[action], setJobState: job.setState, errorMessage })
   })
-
-  it('can run when the backup job can be deleted', () => {
-    expect(mountActions().deleteAction).toMatchObject({ disabled: false, busy: false, hint: undefined })
-  })
-
-  it('is disabled, with the reason as hint, when the backup job cannot be deleted', () => {
-    deleteJob.setState({ canRun: false, errorMessage: 'in progress' })
-
-    expect(mountActions().deleteAction).toMatchObject({ disabled: true, hint: 'in progress' })
-  })
-
-  it('is busy while the backup job is being deleted', () => {
-    deleteJob.setState({ canRun: false, isRunning: true })
-
-    expect(mountActions().deleteAction.busy).toBe(true)
-  })
-})
+}
 
 describe('moreActions', () => {
   it('lists the change of state, the manual run and the duplication, without the deletion', () => {

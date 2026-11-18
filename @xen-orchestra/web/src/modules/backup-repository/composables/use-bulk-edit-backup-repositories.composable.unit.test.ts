@@ -5,7 +5,7 @@ import {
 } from '@/modules/backup-repository/jobs/xo-backup-repository-bulk-edit.job.ts'
 import type { EditBackupRepositoryPayload } from '@/modules/backup-repository/jobs/xo-backup-repository-edit.job.ts'
 import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
-import { createBr } from '@/test/create-br.ts'
+import { createTwoBrs } from '@/test/create-br.ts'
 import { createJobStub } from '@/test/create-job-result.ts'
 import { overlayMock } from '@/test/mock-overlay.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
@@ -31,8 +31,7 @@ beforeEach(() => {
   bulkEditJob.run.mockResolvedValue([{ status: 'fulfilled', value: undefined }])
 })
 
-const firstBr = createBr({ id: 'backup-repository-1' as FrontXoBackupRepository['id'] })
-const secondBr = createBr({ id: 'backup-repository-2' as FrontXoBackupRepository['id'] })
+const [firstBr, secondBr] = createTwoBrs()
 
 const PAYLOAD: EditBackupRepositoryPayload = {
   name: 'My repository',

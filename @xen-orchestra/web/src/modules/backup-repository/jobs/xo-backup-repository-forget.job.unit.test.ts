@@ -5,11 +5,11 @@ import type {
 import { useXoBackupRepositoryForgetJob } from '@/modules/backup-repository/jobs/xo-backup-repository-forget.job.ts'
 import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
 import { fetchPost } from '@/shared/utils/fetch.util.ts'
-import { createBr } from '@/test/create-br.ts'
+import { createTwoBrs } from '@/test/create-br.ts'
 import { t } from '@/test/i18n.ts'
+import { itCannotRun, itReportsEachResult } from '@/test/job-cases.ts'
 import { taskUtilsMock } from '@/test/mock-xo-task-utils.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
-import { silenceConsoleError } from '@/test/silence-console-error.ts'
 import { mockModule, mockedExport } from '@/test/spy-on-module.ts'
 import { ref } from 'vue'
 
@@ -35,8 +35,7 @@ beforeEach(() => {
   post.mockImplementation(async (url: string) => ({ taskId: `task-of-${url}` }))
 })
 
-const firstBr = createBr({ id: 'backup-repository-1' as FrontXoBackupRepository['id'] })
-const secondBr = createBr({ id: 'backup-repository-2' as FrontXoBackupRepository['id'] })
+const [firstBr, secondBr] = createTwoBrs()
 
 function createBackupJob(overrides: Record<string, unknown>) {
   return { id: 'backup-job-1', name: 'Backup job', type: 'backup', ...overrides } as unknown as FrontAnyXoBackupJob
@@ -60,17 +59,11 @@ describe('run', () => {
     ])
   })
 
-  it('reports each repository result, without stopping at the first failure', async () => {
-    silenceConsoleError()
-    const error = new Error('Backup repository unreachable')
-    monitorTask.mockRejectedValueOnce(error)
-
-    const results = await mountForgetJob([firstBr, secondBr]).run()
-
-    expect(results).toEqual([
-      { status: 'rejected', reason: error },
-      { status: 'fulfilled', value: undefined },
-    ])
+  itReportsEachResult({
+    subject: 'repository',
+    request: monitorTask,
+    errorMessage: 'Backup repository unreachable',
+    run: () => mountForgetJob([firstBr, secondBr]).run(),
   })
 })
 
@@ -81,21 +74,22 @@ describe('validate', () => {
     expect(mountForgetJob([firstBr]).canRun).toBe(true)
   })
 
-  it('cannot run without repository', () => {
-    const job = mountForgetJob([])
+  itCannotRun([
+    {
+      name: 'cannot run without repository',
+      mountJob: () => mountForgetJob([]),
+      errorMessage: t('job:backup-repository-forget:missing-backup-repository'),
+    },
+    {
+      name: 'cannot run when a backup job uses a repository',
+      mountJob: () => {
+        backupJobs.value = [createBackupJob({ remotes: { id: secondBr.id } })]
 
-    expect(job.canRun).toBe(false)
-    expect(job.errorMessage).toBe(t('job:backup-repository-forget:missing-backup-repository'))
-  })
-
-  it('cannot run when a backup job uses a repository', () => {
-    backupJobs.value = [createBackupJob({ remotes: { id: secondBr.id } })]
-
-    const job = mountForgetJob([firstBr, secondBr])
-
-    expect(job.canRun).toBe(false)
-    expect(job.errorMessage).toBe(t('job:backup-repository-forget:used-by-n-backup-jobs', { n: 1 }))
-  })
+        return mountForgetJob([firstBr, secondBr])
+      },
+      errorMessage: t('job:backup-repository-forget:used-by-n-backup-jobs', { n: 1 }),
+    },
+  ])
 
   it('counts once a backup job using several of the repositories', () => {
     backupJobs.value = [

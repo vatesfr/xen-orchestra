@@ -5,6 +5,7 @@ import { fetchPost } from '@/shared/utils/fetch.util.ts'
 import { createVmBackupJob } from '@/test/create-backup-job.ts'
 import { createSchedule } from '@/test/create-schedule.ts'
 import { t } from '@/test/i18n.ts'
+import { itCannotRun, itReportsEachResult } from '@/test/job-cases.ts'
 import { scheduleCollectionMock } from '@/test/mock-xo-schedule-collection.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
 import { mockModule, mockedExport } from '@/test/spy-on-module.ts'
@@ -52,17 +53,12 @@ describe('run', () => {
     expect(post.mock.lastCall?.[1].name).toBe(t('backup-job-copy-name', { name: t('untitled') }))
   })
 
-  it('reports each backup job result, without stopping at the first failure', async () => {
-    vi.spyOn(console, 'error').mockImplementation(() => {})
-    const error = new Error('Invalid parameters')
-    post.mockRejectedValueOnce(error)
-
-    const results = await mountDuplicateJob([backupJob, createVmBackupJob()]).run()
-
-    expect(results).toEqual([
-      { status: 'rejected', reason: error },
-      { status: 'fulfilled', value: { id: 'new-backup-job' } },
-    ])
+  itReportsEachResult({
+    subject: 'backup job',
+    request: post,
+    errorMessage: 'Invalid parameters',
+    run: () => mountDuplicateJob([backupJob, createVmBackupJob()]).run(),
+    fulfilledValue: { id: 'new-backup-job' },
   })
 })
 
@@ -71,10 +67,11 @@ describe('validate', () => {
     expect(mountDuplicateJob([backupJob]).canRun).toBe(true)
   })
 
-  it('cannot run without backup job', () => {
-    const job = mountDuplicateJob([])
-
-    expect(job.canRun).toBe(false)
-    expect(job.errorMessage).toBe(t('job:backup-job-duplicate:missing-backup-job'))
-  })
+  itCannotRun([
+    {
+      name: 'cannot run without backup job',
+      mountJob: () => mountDuplicateJob([]),
+      errorMessage: t('job:backup-job-duplicate:missing-backup-job'),
+    },
+  ])
 })

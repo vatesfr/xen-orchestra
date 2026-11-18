@@ -32,6 +32,7 @@ A label/value row is read through one query covering every row a user sees ([Ass
 | `findLabelledValues`         | every `VtsTabularKeyValueRow` / `VtsKeyValueRow` of a card         |
 | `findCardLabelledValues`     | every `VtsCardRowKeyValue` of a side-panel card                    |
 | `findCardLabelledValueLists` | every `VtsCardRowKeyValue`, each value of a multi-value row listed |
+| `findCardRowLabels`          | the label of every `VtsCardRowKeyValue`, in order                  |
 | `findCopiedValues`           | what each copyable key/value row copies, keyed by label            |
 | `findCardCopiedValues`       | what each copyable `VtsCardRowKeyValue` copies, in order           |
 

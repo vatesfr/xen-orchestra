@@ -3,20 +3,20 @@ import { useBackupRepositoryForget } from '@/modules/backup-repository/composabl
 import { useBulkEditBackupRepositories } from '@/modules/backup-repository/composables/use-bulk-edit-backup-repositories.composable.ts'
 import type { useXoBackupRepositoryChangeStateJob } from '@/modules/backup-repository/jobs/xo-backup-repository-change-state.job.ts'
 import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
+import { createChangeStateJobStubs, findBulkActions, itExplainsNoSelection } from '@/test/bulk-actions.ts'
 import { createBr } from '@/test/create-br.ts'
 import { createJobStub, toJobComposableResult } from '@/test/create-job-result.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { benchmarkJobMock } from '@/test/mock-backup-repository-benchmark-job.ts'
 import { mockModule } from '@/test/spy-on-module.ts'
-import type { ActionItem, GroupActionItem } from '@core/components/menu/VtsActionsMenu.vue'
-import VtsTableBulkActions from '@core/components/table/VtsTableBulkActions.vue'
 import { mount } from '@vue/test-utils'
-import { toValue } from 'vue'
+
+const changeStateJobs = createChangeStateJobStubs()
 
 const jobs = {
-  connect: createJobStub(),
-  disable: createJobStub(),
+  connect: changeStateJobs.enable,
+  disable: changeStateJobs.disable,
   edit: createJobStub(useBulkEditBackupRepositories, result =>
     toJobComposableResult(result, 'editBackupRepositories', 'isEditingBackupRepositories')
   ),
@@ -28,10 +28,7 @@ const jobs = {
 
 // The jobs and the edit and forget composables call the REST API and open SSE subscriptions
 mockModule(import('@/modules/backup-repository/jobs/xo-backup-repository-change-state.job.ts'), () => ({
-  useXoBackupRepositoryChangeStateJob: ((_brs: unknown, enabled: unknown) =>
-    toValue(enabled)
-      ? jobs.connect.use()
-      : jobs.disable.use()) as unknown as typeof useXoBackupRepositoryChangeStateJob,
+  useXoBackupRepositoryChangeStateJob: changeStateJobs.use as unknown as typeof useXoBackupRepositoryChangeStateJob,
 }))
 
 beforeEach(() => {
@@ -46,32 +43,25 @@ function mountBulkActions(brs: FrontXoBackupRepository[] = [createBr()]) {
 }
 
 function findActions(wrapper: ReturnType<typeof mountBulkActions>) {
-  const [changeState, editAction, testSpeed, forgetAction] = wrapper
-    .getComponent(VtsTableBulkActions)
-    .props('actions') as [GroupActionItem, ActionItem, ActionItem, ActionItem]
-
-  const [connectAction, disableAction] = changeState.children
+  const {
+    changeState,
+    changeStateChildren: [connectAction, disableAction],
+    actions: [editAction, testSpeed, forgetAction],
+  } = findBulkActions(wrapper)
 
   return { changeState, connectAction, disableAction, editAction, testSpeed, forgetAction }
 }
 
 describe('without selection', () => {
-  it('disables the change state menu and explains why', () => {
-    const { changeState } = findActions(mountBulkActions([]))
-
-    expect(changeState).toMatchObject({ disabled: true, hint: t('no-br-selected') })
-  })
-
-  it('explains why edit, test speed and forget cannot run', () => {
-    jobs.edit.setState({ canRun: false, errorMessage: 'No backup repository to edit' })
-    jobs.benchmark.setState({ canRun: false, errorMessage: 'Missing backup repository' })
-    jobs.forget.setState({ canRun: false, errorMessage: 'No backup repository to forget' })
-
-    const { editAction, testSpeed, forgetAction } = findActions(mountBulkActions([]))
-
-    expect(editAction).toMatchObject({ disabled: true, hint: t('no-br-selected') })
-    expect(testSpeed).toMatchObject({ disabled: true, hint: t('no-br-selected') })
-    expect(forgetAction).toMatchObject({ disabled: true, hint: t('no-br-selected') })
+  itExplainsNoSelection({
+    mountEmpty: () => mountBulkActions([]),
+    hint: t('no-br-selected'),
+    jobErrors: [
+      [jobs.edit, 'No backup repository to edit'],
+      [jobs.benchmark, 'Missing backup repository'],
+      [jobs.forget, 'No backup repository to forget'],
+    ],
+    actionsTestName: 'explains why edit, test speed and forget cannot run',
   })
 })
 
