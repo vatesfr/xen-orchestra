@@ -1,5 +1,5 @@
 <template>
-  <li>
+  <li role="none">
     <VtsDropdownTitle>
       <slot />
     </VtsDropdownTitle>

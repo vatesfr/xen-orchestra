@@ -1,6 +1,12 @@
 <!-- v1.0 -->
 <template>
-  <div :class="[{ active, disabled }, className]" class="menu-trigger" tabindex="-1">
+  <div
+    :aria-disabled="disabled || undefined"
+    :class="[{ active, selected, disabled }, className]"
+    class="menu-trigger"
+    role="menuitem"
+    tabindex="-1"
+  >
     <VtsIcon :name="icon" size="medium" :busy />
     <slot />
   </div>
@@ -16,6 +22,7 @@ import { computed } from 'vue'
 const { accent } = defineProps<{
   accent: MenuItemAccent
   active?: boolean
+  selected?: boolean
   busy?: boolean
   disabled?: boolean
   icon?: IconName
@@ -26,6 +33,7 @@ const className = computed(() => toVariants({ accent }))
 
 <style lang="postcss" scoped>
 .menu-trigger {
+  position: relative;
   display: flex;
   align-items: center;
   padding-inline: 1.6rem;
@@ -51,6 +59,10 @@ const className = computed(() => toVariants({ accent }))
 
   &:not(.disabled) {
     cursor: pointer;
+
+    &.selected {
+      background-color: var(--color-brand-background-selected);
+    }
 
     &:hover {
       background-color: var(--color-brand-background-hover);
@@ -81,6 +93,10 @@ const className = computed(() => toVariants({ accent }))
     &.accent--danger {
       color: var(--color-danger-txt-base);
 
+      &.selected {
+        background-color: var(--color-danger-background-selected);
+      }
+
       &:hover {
         color: var(--color-danger-txt-hover);
         background-color: var(--color-danger-background-hover);
@@ -95,6 +111,10 @@ const className = computed(() => toVariants({ accent }))
 
     &.accent--warning {
       color: var(--color-warning-txt-base);
+
+      &.selected {
+        background-color: var(--color-warning-background-selected);
+      }
 
       &:hover {
         color: var(--color-warning-txt-hover);

@@ -25,9 +25,10 @@
       {{ t('action:connect') }}
     </UiButton>
     <MenuList placement="bottom-end">
-      <template #trigger="{ open }">
+      <template #trigger="{ open, bindings }">
         <UiButtonIcon
           v-tooltip="t('more-actions')"
+          v-bind="bindings"
           icon="action:more-actions"
           accent="brand"
           size="medium"

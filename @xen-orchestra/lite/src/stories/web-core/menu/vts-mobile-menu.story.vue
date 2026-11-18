@@ -5,13 +5,13 @@
       prop('title').str().required().preset('More actions').widget(),
       prop('sectionTitle').str().preset('Actions').widget(),
       event('action').help('Emitted when a menu item closes the menu after its action'),
-      slot('trigger').prop('open', '() => void').prop('isOpen', 'boolean'),
+      slot('trigger').prop('open', '() => void').prop('isOpen', 'boolean').prop('bindings', 'MenuTriggerBindings'),
       slot().help('Menu items, a submenu opens in place'),
     ]"
   >
     <VtsMobileMenu v-bind="properties">
-      <template #trigger="{ open }">
-        <UiButtonIcon accent="brand" icon="action:more-actions" size="medium" @click="open()" />
+      <template #trigger="{ open, bindings }">
+        <UiButtonIcon v-bind="bindings" accent="brand" icon="action:more-actions" size="medium" @click="open()" />
       </template>
       <MenuItem accent="brand" icon="action:change-state">
         Change state

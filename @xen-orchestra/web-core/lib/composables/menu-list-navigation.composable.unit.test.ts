@@ -207,6 +207,16 @@ describe('keyboard navigation', () => {
     expect(onClose).not.toHaveBeenCalled()
   })
 
+  it('ignores a key already handled by an outer listener', async () => {
+    const { onClose } = await mountMenuListNavigation()
+
+    getItem('Two').focus()
+    window.addEventListener('keydown', event => event.preventDefault(), { capture: true, once: true })
+    press('Escape')
+
+    expect(onClose).not.toHaveBeenCalled()
+  })
+
   it('ignores the keys when there is no target', async () => {
     const { onClose } = await mountMenuListNavigation({ hasTarget: false })
 

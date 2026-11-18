@@ -1,8 +1,9 @@
 <template>
   <MenuList :placement>
-    <template #trigger="{ open }">
+    <template #trigger="{ open, bindings }">
       <UiButton
         v-if="isInPanel"
+        v-bind="bindings"
         variant="tertiary"
         accent="brand"
         size="medium"
@@ -11,7 +12,14 @@
       >
         {{ t('action:change-state') }}
       </UiButton>
-      <UiDropdownButton v-else variant="secondary" size="medium" icon="action:change-state" @click="open($event)">
+      <UiDropdownButton
+        v-else
+        v-bind="bindings"
+        variant="secondary"
+        size="medium"
+        icon="action:change-state"
+        @click="open($event)"
+      >
         {{ t('action:change-state') }}
       </UiDropdownButton>
     </template>
