@@ -3,29 +3,25 @@
 ## File layout and naming
 
 - A test file lives **next to** the file it covers, named `<source-name>.unit.test.ts`.
-  - `xo-host.util.ts` → `xo-host.util.unit.test.ts`
-  - `use-pool-enhanced-data.composable.ts` → `use-pool-enhanced-data.composable.unit.test.ts`
-  - `VmSystemGraphics.vue` → `VmSystemGraphics.unit.test.ts` (the `.vue` is dropped)
+  - `to-variants.util.ts` → `to-variants.util.unit.test.ts`
+  - `menu-popup.composable.ts` → `menu-popup.composable.unit.test.ts`
+  - `VtsSuccessStateHero.vue` → `VtsSuccessStateHero.unit.test.ts` (the `.vue` is dropped)
 - Shared test infrastructure lives apart from the code: `test/` in web-core (alias `@core-test`), `src/test/` in XO 6 (alias `@/test`) — see [Shared test helpers](../tests.md#shared-test-helpers).
 
 ## Structuring a test file
 
-- **One `describe` block per function or exposed property**, labeled with its exact name (`describe('getHostInfo')`, `describe('powerState')`). A component test has no such members: group with `describe` only to separate genuinely distinct behaviors, otherwise flat `it`s read better.
+- **One `describe` block per function or exposed property**, labeled with its exact name (`describe('formatItemCount')`, `describe('status')`). A component test has no such members: group with `describe` only to separate genuinely distinct behaviors, otherwise flat `it`s read better.
 - Use `it` (not `test`).
-- The name completes the sentence the `it` starts: a **present-tense assertion**, lowercase, no trailing period, and **without a redundant prefix** — the `describe` label already carries the function name. `it('formats the core count with its socket count')` reads as one sentence; `it('getHostCoreSocketInfo formats …')` stutters.
+- The name completes the sentence the `it` starts: a **present-tense assertion**, lowercase, no trailing period, and **without a redundant prefix** — the `describe` label already carries the function name. `it('formats the selected count with the total')` reads as one sentence; `it('formatItemCount formats …')` stutters.
 
 ```typescript
-describe('getHostCoreSocketInfo', () => {
-  it('formats the core count with its socket count', () => {
-    const host = createHost({ cpus: { cores: 8, sockets: 2 } })
-
-    expect(getHostCoreSocketInfo(host)).toBe('8 (2)')
+describe('formatItemCount', () => {
+  it('formats the selected count with the total', () => {
+    expect(formatItemCount({ selected: 2, total: 8 })).toBe('2 / 8')
   })
 
-  it('falls back to zero for missing core and socket counts', () => {
-    const host = createHost({ cpus: {} })
-
-    expect(getHostCoreSocketInfo(host)).toBe('0 (0)')
+  it('falls back to zero for missing counts', () => {
+    expect(formatItemCount({})).toBe('0 / 0')
   })
 })
 ```

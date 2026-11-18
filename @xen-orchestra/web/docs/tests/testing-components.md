@@ -1,6 +1,6 @@
 # Components (XO 6)
 
-The shared rules — keep components thin, extract under unchanged tests, assert what the user reads, never spell out a translation, what `happy-dom` cannot do — are in [Testing components](../../../web-core/docs/tests/testing-components.md). In XO 6, mount with `createGlobalTestConfig()` so the real `vue-i18n` instance, the app form validation messages (`RegleVuePlugin` with `formValidationConfig`, as in `main.ts`) and a fresh Pinia are installed, and give the repeated mount a helper (see [Setup](./setup-helpers.md)):
+The shared rules — keep components thin, extract under unchanged tests, assert what the user reads, never spell out a translation, what `happy-dom` cannot do — are in [Testing components](../../../web-core/docs/tests/testing-components.md). In XO 6, mount with `createGlobalTestConfig()` so the real `vue-i18n` instance, the app form validation messages (`RegleVuePlugin` with `formValidationConfig`, as in `main.ts`) and a fresh Pinia are installed:
 
 ```typescript
 import VmSystemGraphics from '@/modules/vm/components/system/VmSystemGraphics.vue'
@@ -71,7 +71,7 @@ expect(findTableRows(wrapper)).toEqual([
 
 ### Translations
 
-`src/test/i18n.ts` exposes the `t` and `d` of the very instance `createGlobalTestConfig()` installs: import them to build an expected label (see [Never spell out a translation](../../../web-core/docs/tests/testing-components.md#never-spell-out-a-translation)).
+`src/test/i18n.ts` exposes the `t` and `n` of the very instance `createGlobalTestConfig()` installs: import them to build an expected label (see [Never spell out a translation](../../../web-core/docs/tests/testing-components.md#never-spell-out-a-translation)).
 
 ## Tables
 
@@ -195,7 +195,7 @@ How `FormSelect` and `VtsSelect` render and open their options belongs to the we
 
 ## Remote-resource collections
 
-Mounting a component that reaches a remote-resource collection opens an SSE subscription, which `happy-dom` cannot (`EventSource is not defined`, an unhandled rejection that fails the run while every test reads as passed): mock the collection ([Mocking](./mocking.md)).
+A remote-resource collection opens an SSE subscription, which `happy-dom` cannot ([What `happy-dom` cannot do](../../../web-core/docs/tests/testing-components.md#what-happy-dom-cannot-do)): mock it with its `src/test/` module ([Mocking](./mocking.md)).
 
 ## Pages
 

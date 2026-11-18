@@ -66,10 +66,10 @@ A rendered label or a translated value is wording the component does not own, so
 
 ```typescript
 // ✗ rewording the translation breaks the test although the component still picks the same key
-expect(findLabelledValues(wrapper)).toEqual({ 'Suspend storage repository': 'None' })
+expect(wrapper.get('.value').text()).toBe('None')
 
-// ✓ asserts the decision: the suspend-SR row, falling back to the "none" wording
-expect(findLabelledValues(wrapper)).toEqual({ [t('suspend-storage-repository')]: t('none') })
+// ✓ asserts the decision: the value falls back to the "none" wording
+expect(wrapper.get('.value').text()).toBe(t('none'))
 ```
 
 A mistyped key does not pass quietly — `t` returns a marker for a key the locale has no entry for, which matches no rendered text.
@@ -78,7 +78,7 @@ Where the line falls:
 
 | Value                                                      | Assert as                                                                          |
 | ---------------------------------------------------------- | ---------------------------------------------------------------------------------- |
-| a label, or a value that is itself a translation           | `t('key')` — including a plural, `t('n-vcpus', 2)`                                 |
+| a label, or a value that is itself a translation           | `t('key')` — including a plural, `t('n-warnings', 2)`                              |
 | a formatted date                                           | `formatDateTime(timestamp)` from `@core/utils/time.util.ts`, as the component does |
 | a string the component composes from several translations  | a template literal of those `t(…)` calls                                           |
 | data reaching the component (a name, an id, an IP, a tag)  | the literal — it is the test's own input                                           |

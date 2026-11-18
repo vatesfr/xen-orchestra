@@ -12,7 +12,7 @@ A fixed priority, not a preference:
 2. **Composables and utilities** (`*.composable.ts`, `*.util.ts`) — top priority
 3. **Pages** (`src/pages/**`) — lowest, and deliberately thin: assert which components render, never their values
 
-Testing a page is a different job from testing a component, and the component is the more valuable one. A component should not carry much complex logic — when it does, extract that into a composable or utility and test it there.
+Testing a page is a different job from testing a component, and the component is the more valuable one (see [Keep components thin](../../web-core/docs/tests/testing-components.md#keep-components-thin)).
 
 ### Only the app's own behaviour
 
