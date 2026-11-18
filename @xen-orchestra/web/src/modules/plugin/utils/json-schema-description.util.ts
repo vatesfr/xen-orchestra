@@ -58,7 +58,7 @@ export function parseSchemaDescription(description: string | undefined): JsonSch
   }
 
   return {
-    text: paragraphs.length > 0 ? paragraphs.join(' ') : undefined,
+    text: paragraphs.length > 0 ? paragraphs.join('\n') : undefined,
     exampleGroups,
   }
 }

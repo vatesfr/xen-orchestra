@@ -68,6 +68,7 @@
 - [Pages] The page header and tabs now stay in place on every page: dashboards, System and General tabs, consoles, settings and creation forms scroll under them instead of scrolling with them (PR [#10822](https://github.com/vatesfr/xen-orchestra/pull/10822))
 - [Tooltips] Short tooltips near the edge of the screen no longer wrap onto two lines (PR [#10822](https://github.com/vatesfr/xen-orchestra/pull/10822))
 - [SDN Controller] Adding, updating or deleting a VIF or network traffic rule now fails, and its rules are left as they were, when the host can't apply it (e.g. the XAPI plugin fails), instead of reporting success (PR [#10691](https://github.com/vatesfr/xen-orchestra/pull/10691))
+- [XO6/Plugins] Plugin settings descriptions keep their line breaks, and no longer show HTML tags as text (auth-saml signature settings, backup-reports test)
 
 ### Packages to release
 
@@ -102,6 +103,8 @@
 - @xen-orchestra/web-core minor
 - xo-server minor
 - xo-server-audit minor
+- xo-server-auth-saml patch
+- xo-server-backup-reports patch
 - xo-server-load-balancer patch
 - xo-server-sdn-controller patch
 - xo-web minor

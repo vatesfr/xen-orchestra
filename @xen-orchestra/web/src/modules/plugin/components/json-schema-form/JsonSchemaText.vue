@@ -20,6 +20,8 @@ const segments = computed(() => splitCodeSpans(text))
 
 <style lang="postcss" scoped>
 .json-schema-text {
+  white-space: pre-line;
+
   .code {
     color: var(--color-brand-txt-base);
     background-color: var(--color-neutral-background-secondary);

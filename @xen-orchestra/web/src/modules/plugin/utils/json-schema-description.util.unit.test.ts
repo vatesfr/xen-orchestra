@@ -5,9 +5,9 @@ describe('parseSchemaDescription', () => {
     expect(parseSchemaDescription(description)).toEqual({ text: undefined, exampleGroups: [] })
   })
 
-  it('joins the paragraphs and keeps the code spans', () => {
+  it('puts each paragraph on its own line and keeps the code spans', () => {
     expect(parseSchemaDescription('Paths to CA.\n\nFor AD, it can also be `<user>@<domain>`.')).toEqual({
-      text: 'Paths to CA. For AD, it can also be `<user>@<domain>`.',
+      text: 'Paths to CA.\nFor AD, it can also be `<user>@<domain>`.',
       exampleGroups: [],
     })
   })
@@ -52,7 +52,7 @@ For Microsoft Active Directory:
   })
 
   it('keeps a list without code spans as text', () => {
-    expect(parseSchemaDescription('Options:\n\n- first\n- second').text).toBe('Options: - first - second')
+    expect(parseSchemaDescription('Options:\n\n- first\n- second').text).toBe('Options:\n- first - second')
   })
 })
 
