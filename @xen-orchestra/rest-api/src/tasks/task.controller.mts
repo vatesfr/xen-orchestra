@@ -232,12 +232,7 @@ export class TaskController extends XoController<XoTask> {
     const deletePromises: Promise<void>[] = []
     for await (const task of this.restApi.tasks.list()) {
       if (hasPrivilegeOn({ user, userPrivileges, resource: 'task', action: 'delete', objects: task })) {
-        // one failed deletion must not fail the others, which the client could not tell apart
-        deletePromises.push(
-          this.restApi.tasks.deleteLog(task.id).catch(error => {
-            warn('failure on deleting task log', { error, id: task.id })
-          })
-        )
+        deletePromises.push(this.restApi.tasks.deleteLog(task.id))
       }
     }
 
