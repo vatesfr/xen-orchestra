@@ -74,6 +74,7 @@ export function fleetDeltaBackupConfig(name, schedule, vmIds, backupRepositoryId
       [TEMPORARY_SCHEDULE_ID]: schedule,
     },
     settings: {
+      // General settings left empty, required by the REST API for backup and mirror jobs, and the settings go to the schedule
       '': {},
       [TEMPORARY_SCHEDULE_ID]: {
         timezone: 'Europe/Paris',
