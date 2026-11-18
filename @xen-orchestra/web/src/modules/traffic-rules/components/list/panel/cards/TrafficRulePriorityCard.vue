@@ -22,14 +22,14 @@
 
     <ul class="rules">
       <li
-        v-for="{ networkRule, protocolLabel } of visibleNetworkRuleItems"
+        v-for="{ networkRule, policy, protocolLabel } of visibleNetworkRuleItems"
         :key="networkRule.id"
         :class="{ current: networkRule.id === rule.id }"
         class="rule typo-body-regular-small"
       >
         <span class="index typo-body-bold-small">{{ networkRule.rank }}</span>
-        <UiTag :accent="networkRule.allow ? 'success' : 'danger'" variant="secondary">
-          {{ networkRule.allow ? t('allow') : t('drop') }}
+        <UiTag :accent="policy.accent" variant="secondary">
+          {{ policy.label }}
         </UiTag>
         <span class="details">
           <span class="typo-body-bold-small">{{ protocolLabel }}</span>
@@ -55,6 +55,7 @@
 <script lang="ts" setup>
 import type { FrontXoNetwork } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
 import { getPoolNetworkRoute } from '@/modules/network/utils/xo-network.util.ts'
+import { useTrafficRulePolicy } from '@/modules/traffic-rules/composables/traffic-rule-policy.composable.ts'
 import type { RankedTrafficRule } from '@/modules/traffic-rules/types.ts'
 import {
   getNetworkRules,
@@ -80,6 +81,8 @@ const VISIBLE_RULES_COUNT = 5
 
 const { t, te, locale } = useI18n()
 
+const getPolicy = useTrafficRulePolicy()
+
 const networkTo = computed(() => getPoolNetworkRoute(network.$pool, network.id))
 
 const ordinalSuffix = computed(() => {
@@ -103,6 +106,7 @@ const networkRules = computed(() => getNetworkRules(rules, rule.networkId))
 const networkRuleItems = computed(() =>
   networkRules.value.map(networkRule => ({
     networkRule,
+    policy: getPolicy(networkRule),
     protocolLabel: getTrafficRuleProtocolLabel(networkRule),
   }))
 )
