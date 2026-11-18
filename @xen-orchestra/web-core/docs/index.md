@@ -14,7 +14,7 @@
 - [useItemCounter](../lib/composables/item-counter.composable.md)
 - [useRouteQuery](../lib/composables/route-query.composable.md)
 - [useTable](../lib/composables/table.composable.md)
-- [useTree](../lib/composables/tree.composable.md)
+- [useTree](../lib/packages/tree/README.md)
 
 # Directives
 
