@@ -10,6 +10,8 @@ The test files share their modules (`isolate: false`): a worker loads a module o
 
 The files run in a random order (`sequence.shuffle.files`), on 4 workers: a test leaking state into another file fails instead of passing by luck. Each run prints its seed (`Running tests with seed "…"`): replay a failing order with `yarn vitest run --sequence.seed=<seed>`.
 
+The tests load the English messages only (`vueI18n` `include` in test mode): the other locales cost about 30 % of the run time and memory, and no test switches locale. A test needing another locale's messages has to widen that `include` first.
+
 ## Running tests
 
 `yarn test` runs the suite once and exits. A bare `yarn vitest` starts watch mode, which

@@ -18,7 +18,11 @@ export default defineConfig(({ mode }) => {
       }),
       vue(),
       vueI18n({
-        include: fileURLToPath(new URL('../web-core/lib/locales/**', import.meta.url)),
+        // The tests run in English only: loading the 22 other locales in each worker costs about 30 % of the run time
+        // and memory
+        include: fileURLToPath(
+          new URL(mode === 'test' ? '../web-core/lib/locales/en.json' : '../web-core/lib/locales/**', import.meta.url)
+        ),
       }),
     ] as PluginOption[],
     resolve: {
