@@ -1,5 +1,5 @@
 import type { ArrayFilterPredicate, KeyOfByValue } from '@core/types/utility.type.ts'
-import type { ComputedRef, MaybeRef, Reactive } from 'vue'
+import type { ComputedRef, MaybeRef, Reactive, Ref } from 'vue'
 
 export type CollectionItem<
   TSource = unknown,
@@ -55,16 +55,21 @@ export type ExtractSourceId<TSource, TGetId extends GetItemId<TSource>> = TGetId
       ? TSource
       : PickSourceId<TSource, 'id'>
 
-export type FlagConfig = {
+export type FlagConfig<TId extends CollectionItemId = CollectionItemId> = {
   multiple?: MaybeRef<boolean>
+  ids?: Ref<TId[]>
 }
 
-export type CollectionConfigFlags<TFlag extends string> = Record<TFlag, true | FlagConfig>
+export type CollectionConfigFlags<TFlag extends string, TId extends CollectionItemId = CollectionItemId> = Record<
+  TFlag,
+  true | FlagConfig<TId>
+>
 
 export type FlagRegistry<TId extends CollectionItemId, TFlag extends string> = {
   isFlagged: (id: TId, flag: TFlag) => boolean
   isFlagDefined: (flag: TFlag) => boolean
   toggleFlag: (id: TId, flag: TFlag, shouldBeFlagged?: boolean) => void
+  toggleFlags: (ids: TId[], flag: TFlag, shouldBeFlagged: boolean) => void
   clearFlag: (flag: TFlag) => void
   isMultipleAllowed: (flag: TFlag) => boolean
   assertFlag: (flag: TFlag) => void
