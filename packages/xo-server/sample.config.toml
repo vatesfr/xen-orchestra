@@ -189,6 +189,15 @@ port = 80
 # to accept any certificate (e.g. self-signed)
 #certificateAuthorities = ['/etc/ssl/certs/company-ca.pem']
 #allowUnauthorized = false
+#
+# TLS only: paths to PEM files of the client certificate (followed by its
+# intermediate certificates, if any) and its private key (not encrypted), for
+# servers which require one (mutual TLS), read when xo-server starts
+#certificate = '/etc/xo-server/syslog-client.pem'
+#key = '/etc/xo-server/syslog-client.key'
+#
+# Default: the host name of the system, e.g. to use the FQDN
+#hostname = 'xo.company.lan'
 
 #=====================================================================
 

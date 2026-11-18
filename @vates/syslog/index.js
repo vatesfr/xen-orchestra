@@ -1,6 +1,7 @@
 'use strict'
 
 const dgram = require('dgram')
+const { createPrivateKey, X509Certificate } = require('crypto')
 const net = require('net')
 const os = require('os')
 const splitHost = require('split-host')
@@ -89,8 +90,6 @@ const FRAMERS = {
   'octet-counting': message => `${Buffer.byteLength(message)} ${message}`,
 }
 
-const noop = Function.prototype
-
 // connecting to a host name with several addresses (e.g. IPv4 and IPv6) fails
 // with an AggregateError without message, use the messages of its errors
 function withMessage(error) {
@@ -135,6 +134,7 @@ class SyslogClient {
     {
       appName = 'node',
       ca,
+      cert,
       closeTimeout = 10e3,
       connectTimeout = 10e3,
       facility = 'user',
@@ -142,7 +142,9 @@ class SyslogClient {
       framing = 'lf',
       allowUnauthorized = false,
       hostname = os.hostname(),
+      key,
       maxPendingBytes = 1024 * 1024,
+      tlsAcceptTimeout = 1e3,
     } = {}
   ) {
     const matches = /^(tcp|tls|udp):\/\/(.+)$/.exec(String(uri).trim())
@@ -162,6 +164,23 @@ class SyslogClient {
     if (!(framing in FRAMERS)) {
       throw new Error(`invalid syslog framing: ${framing}`)
     }
+    if ((cert === undefined) !== (key === undefined)) {
+      throw new Error('a syslog client certificate requires both the certificate and its key')
+    }
+    if (cert !== undefined) {
+      if (protocol !== 'tls') {
+        throw new Error('a syslog client certificate is only used with TLS, use a tls:// URI')
+      }
+      if (String(key).includes('ENCRYPTED')) {
+        throw new Error(
+          'encrypted keys are not supported for the syslog client certificate, use a decrypted copy, e.g. made with openssl pkey -in encrypted.key -out decrypted.key'
+        )
+      }
+      // not checked by tls.createSecureContext(), the server would refuse the connection
+      if (!new X509Certificate(cert).checkPrivateKey(createPrivateKey(key))) {
+        throw new Error('the key of the syslog client certificate does not match the certificate')
+      }
+    }
 
     this._appName = toHeaderField(appName, 48)
     this._closeTimeout = closeTimeout
@@ -174,12 +193,20 @@ class SyslogClient {
     this._maxPendingBytes = maxPendingBytes
     this._port = port
     this._send = protocol === 'udp' ? this._sendUdp : this._sendStream
+    this._tlsAcceptTimeout = tlsAcceptTimeout
     this._tlsOptions =
       protocol === 'tls'
         ? {
-            // the `ca` option replaces the system certificate authorities
-            ca: ca === undefined ? undefined : [...tls.rootCertificates, ...ca],
             rejectUnauthorized: !allowUnauthorized,
+
+            // created now so that an invalid certificate or key is reported by
+            // the constructor instead of each send()
+            secureContext: tls.createSecureContext({
+              // the `ca` option replaces the system certificate authorities
+              ca: ca === undefined ? undefined : [...tls.rootCertificates, ...ca],
+              cert,
+              key,
+            }),
           }
         : undefined
 
@@ -201,8 +228,14 @@ class SyslogClient {
 
     if (socket instanceof net.Socket) {
       // the pending writes are flushed before the connection is ended
-      socket.end()
-      const timeout = setTimeout(() => socket.destroy(), this._closeTimeout)
+      //
+      // with TLS, not before the server accepted the client: a refusal would
+      // be taken for the end of the connection, see _sendStream()
+      socket.whenAccepted(() => socket.end())
+      const timeout = setTimeout(
+        () => socket.destroy(new Error('the syslog client was closed before the message could be sent')),
+        this._closeTimeout
+      )
       timeout.unref()
       socket.once('close', () => clearTimeout(timeout))
     } else {
@@ -246,19 +279,69 @@ class SyslogClient {
       // each write during a TLS handshake
       const connectTimeout = setTimeout(() => socket.destroy(new Error('connection timed out')), this._connectTimeout)
       connectTimeout.unref()
+
+      // the server may refuse the client (e.g. its certificate, or its
+      // absence) after the client has completed the TLS handshake: with TLS
+      // 1.3, the client certificate is only checked after it, and some
+      // servers check its name afterwards (e.g. rsyslog with x509/name), even
+      // after sending session tickets
+      //
+      // on a new TLS connection, the messages are therefore only reported as
+      // sent if the connection is still open tlsAcceptTimeout after the
+      // handshake
+      let accepted = tlsOptions === undefined
+      const onAccepted = []
+      const accept = () => {
+        if (!accepted) {
+          accepted = true
+          onAccepted.splice(0).forEach(fn => fn())
+        }
+      }
+      socket.whenAccepted = fn => (accepted ? fn() : onAccepted.push(fn))
+
       socket.on(tlsOptions === undefined ? 'connect' : 'secureConnect', () => {
         clearTimeout(connectTimeout)
 
         // detect a server which disappeared without closing the connection
         socket.setKeepAlive(true, 60e3)
+
+        if (!accepted) {
+          const acceptTimeout = setTimeout(accept, this._tlsAcceptTimeout)
+          acceptTimeout.unref()
+          socket.once('close', () => clearTimeout(acceptTimeout))
+        }
       })
 
-      // errors are passed to the callbacks of the pending writes
-      socket.on('error', noop)
+      // messages written to this socket which are not settled yet
+      //
+      // Node does not always call the callbacks of the writes when the
+      // connection fails (e.g. TLS handshake refused when connecting to a host
+      // name with several addresses), those left are settled when it closes
+      const unsettled = (socket.unsettled = new Set())
+
+      // errors are passed to the pending messages
+      //
+      // recorded because socket.errored is not set by a TLS alert received
+      // after the handshake
+      socket.on('error', error => {
+        socket.syslogError ??= error
+      })
       socket.on('close', () => {
         clearTimeout(connectTimeout)
         if (this._socket === socket) {
           this._socket = undefined
+        }
+
+        if (unsettled.size !== 0) {
+          const error = withMessage(
+            socket.syslogError ??
+              new Error(
+                accepted
+                  ? 'the connection to the syslog server closed before the message could be sent'
+                  : 'the syslog server closed the connection, it may have refused the client certificate or its absence'
+              )
+          )
+          unsettled.forEach(message => message.settle(error))
         }
       })
 
@@ -274,8 +357,22 @@ class SyslogClient {
       return
     }
 
-    // pending writes fail with a generic error when the connection fails, report its cause instead
-    socket.write(this._frame(message), error => cb(error == null ? error : withMessage(socket.errored ?? error)))
+    const pending = {
+      settle: error => {
+        if (socket.unsettled.delete(pending)) {
+          cb(error)
+        }
+      },
+    }
+    socket.unsettled.add(pending)
+    socket.write(this._frame(message), error => {
+      if (error != null) {
+        // generic error when the connection fails, report its cause instead
+        pending.settle(withMessage(socket.syslogError ?? socket.errored ?? error))
+      } else {
+        socket.whenAccepted(() => pending.settle())
+      }
+    })
   }
 
   // one message per datagram, see https://datatracker.ietf.org/doc/html/rfc5426

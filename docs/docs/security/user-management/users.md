@@ -235,6 +235,10 @@ To send the records to a SIEM or any other log collector, fill the `syslog` sect
 - `framing` (TCP and TLS only): `lf` (default, a line feed after each message) or `octet-counting` (required by some servers, e.g. the `syslog()` driver of syslog-ng)
 - `allowUnauthorized` (TLS only): do not check the certificate of the server, e.g. when it is self-signed (prefer `certificateAuthorities`)
 - `certificateAuthorities` (TLS only): paths to PEM files of additional certificate authorities to trust, e.g. when the certificate of the server is issued by an internal authority
+- `certificate` and `key` (TLS only): paths to the PEM files of a client certificate (followed by its intermediate certificates, if any) and its private key, for servers which require one (mutual TLS, e.g. rsyslog with `StreamDriverAuthMode="x509/name"`, where the name of the certificate must match one of the `PermittedPeer`)
+  - the key must not be encrypted, and only be readable by the user running `xo-server`, e.g. `chmod 600`
+  - the files are read when the settings are saved and when XO starts: after renewing the certificate, save the settings again (or restart `xo-server`)
+- `hostname`: the host name of the messages (ASCII), e.g. the FQDN of XO, by default the host name of the system (often a short name)
 
 Each new record is still stored in XO and a copy is sent as an [RFC 5424](https://datatracker.ietf.org/doc/html/rfc5424) message:
 
@@ -242,7 +246,7 @@ Each new record is still stored in XO and a copy is sent as an [RFC 5424](https:
 - the message ID is the event of the record (e.g. `apiCall`, `signInFailed`)
 - the content is the record as JSON, including its `id` and `previousId` hashes so that the copies can be checked against the chain stored in XO
 
-Saving settings which cannot be used (e.g. an unreadable certificate authority file) fails with the reason. If this happens when XO starts, the records are still stored in XO but not forwarded: the error is logged, and the test button of the plugin shows it.
+Saving settings which cannot be used (e.g. an unreadable certificate authority file, or a key which does not match the client certificate) fails with the reason. If this happens when XO starts, the records are still stored in XO but not forwarded: the error is logged, and the test button of the plugin shows it.
 
 Forwarding is best effort: records that cannot be sent (e.g. the syslog server is unreachable, or stopped reading) are not sent again later, but they remain in XO and can be exported. Prefer TLS (or TCP on a trusted network): UDP and TCP messages are not encrypted, and UDP messages can be lost or rejected when a record is too big.
 
