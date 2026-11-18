@@ -57,6 +57,7 @@ const uiStore = useUiStore()
     .action-buttons {
       display: flex;
       justify-content: center;
+      align-items: center;
       gap: 2.4rem;
 
       &.mobile {
