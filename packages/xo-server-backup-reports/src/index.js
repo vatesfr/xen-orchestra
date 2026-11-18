@@ -46,8 +46,7 @@ export const testSchema = {
   properties: {
     runId: {
       type: 'string',
-      description:
-        'Run ID of the backup job execution, shown in its detailed log: https://docs.xen-orchestra.com/backups#backups-execution',
+      description: 'Run ID of the backup job execution, shown in its detailed log',
     },
   },
 
