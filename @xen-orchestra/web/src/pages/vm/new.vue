@@ -110,7 +110,7 @@
                 </UiButton>
                 <div class="ssh-chips">
                   <div v-for="(key, index) in vmState.sshKeys" :key="index" class="ssh-chip-wrapper">
-                    <UiChip accent="info" @remove="removeSshKey(index)">
+                    <UiChip v-tooltip="key" accent="info" @remove="removeSshKey(index)">
                       {{ key }}
                     </UiChip>
                   </div>
@@ -1143,6 +1143,10 @@ watch(canResizeExistingDisks, canResize => {
       min-width: 0;
       max-width: 40rem;
       display: flex;
+
+      .ui-chip {
+        min-width: 0;
+      }
     }
   }
 
