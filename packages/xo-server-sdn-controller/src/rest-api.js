@@ -19,7 +19,7 @@ const RULE_FIELDS = {
 }
 
 const PRIORITY_DESCRIPTION = [
-  '`priority` is the OpenFlow priority of the rule, an integer from 0 to 65535, optional with the XAPI plugin and refused without it (`useDirectChannel` in the configuration). A rule without one has the OpenFlow default, 32768.',
+  '`priority` is the OpenFlow priority of the rule, an integer from 1 to 65535 (XAPI reserves 0), optional with the XAPI plugin and refused without it (`useDirectChannel` in the configuration). A rule without one has the OpenFlow default, 32768.',
   'Of the rules of a network matching a packet, network and VIF rules alike, the one with the highest priority applies: a rule of priority 30 applies before a rule of priority 20.',
   'Two rules of a network cannot be given the same priority.',
   'Leave room between priorities (100, 110, 120…, not 101, 102, 103…): a rule can then go between two others without renumbering them.',
@@ -243,8 +243,9 @@ function updateRuleRoute(controller, resource) {
             throw noSuchObject(JSON.stringify(oldRule), 'traffic-rule')
           }
           const newRule = applyRulePatch(oldRule, partialNewRule)
-          // a kept priority may be shared, like the copy a clone makes of a VIF's rules
-          if (newRule.priority !== oldRule.priority) {
+          // a kept priority may be shared, like the copy a clone makes of a VIF's rules, but a kept 0 is
+          // refused like a new one: the rule would be deleted, then not added back
+          if (newRule.priority !== oldRule.priority || newRule.priority === 0) {
             controller._checkTrafficRulePriority({ [resource.idKey]: id }, newRule.priority)
           }
 

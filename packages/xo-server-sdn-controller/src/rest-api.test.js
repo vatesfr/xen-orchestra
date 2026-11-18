@@ -93,8 +93,9 @@ describe('a rule', () => {
 })
 
 describe('the priority of a rule', () => {
-  it('is an integer from 0 to 65535', async () => {
-    for (const priority of [-1, 1.5, 65536]) {
+  // XAPI reserves 0
+  it('is an integer from 1 to 65535', async () => {
+    for (const priority of [-1, 0, 1.5, 65536]) {
       await rejectsInTheTask(createController(), ADD, 'net', { ...WEB, priority }, invalidParameters)
       await rejectsInTheTask(
         createController(),
@@ -131,6 +132,15 @@ describe('the priority of a rule', () => {
     await rejectsInTheTask(createController(), UPDATE, 'net', body, objectAlreadyExists)
     const endpoint = '/vifs/{id}/actions/add_traffic_rule'
     await rejectsInTheTask(createController(), endpoint, 'vif1', { ...SSH, priority: 40000 }, objectAlreadyExists)
+  })
+
+  it('cannot be kept at 0, as the rule would be deleted and not added back', async () => {
+    const oldRule = { ...SSH, priority: 0 }
+    const controller = createController()
+    const network = { ...NETWORK, other_config: storeRules([{ ...oldRule, cookie: '0x1' }]) }
+    controller._xo.getObject = () => network
+    const body = { oldRule, newRule: { allow: true } }
+    await rejectsInTheTask(controller, UPDATE, 'net', body, invalidParameters)
   })
 
   it('may be kept by a rule that shares it, like the copy a clone makes', async () => {
