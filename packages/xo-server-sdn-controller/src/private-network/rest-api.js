@@ -32,23 +32,30 @@ export function createPrivateNetworkRoute(controller) {
       preferredCenterId: { type: 'string', example: 'b61a5c92-700e-4966-a13b-00633f03eea8', optional: true },
     },
     responses: [
-      { status: 201, description: 'Private network created' },
+      {
+        status: 201,
+        description: 'Private network created',
+        schema: {
+          networkIds: { type: 'array', items: { type: 'string' }, example: ['c2e2a9b4-1f4e-4d7c-9a51-0b3e6c0b7d2a'] },
+        },
+      },
       { status: 202, description: 'Action executed asynchronously' },
       { status: 404, description: 'No pool, PIF or host found for one of these IDs' },
       {
         status: 422,
-        description: 'A pool without a PIF in `pifIds`, or a preferred center outside the pools',
+        description:
+          'A missing or invalid body, an empty `poolIds`, a pool given twice, a pool without a PIF in `pifIds`, an MTU that is not a non-negative integer, or a preferred center outside the pools',
       },
     ],
     middlewares: [{ name: 'json' }],
     callback: ({ req, createAction }) =>
-      createAction(async () => ({ ids: await controller._createPrivateNetwork(req.body) }), {
+      createAction(async () => ({ networkIds: await controller._createPrivateNetwork(req.body) }), {
         // coerceQueryParams has made `sync` a boolean, which the express Request type cannot know
         sync: /** @type {boolean | undefined} */ (req.query.sync) ?? false,
         statusCode: 201,
-        // The route creates one network per pool, across several pools: there is no single
-        // object to attach the task to, so objectId is left unset
-        taskProperties: { name: 'create private network', params: req.body },
+        // The route creates one network per pool, across several pools: the task is attached to
+        // the first one, so it shows in a pool's tasks like the other network creations
+        taskProperties: { name: 'create private network', objectId: req.body.poolIds[0], params: req.body },
       }),
   }
 }

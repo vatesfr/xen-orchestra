@@ -537,7 +537,7 @@ describe('SDN Controller private networks', { skip: !process.env.SDN_CONTROLLER_
       body: JSON.stringify(body),
     })
     const result = await response.json()
-    networkIds.push(...(result.ids ?? []))
+    networkIds.push(...(result.networkIds ?? []))
     return { status: response.status, result }
   }
 
@@ -599,10 +599,10 @@ describe('SDN Controller private networks', { skip: !process.env.SDN_CONTROLLER_
 
     const { status, result } = await createPrivateNetwork(body)
     assert.strictEqual(status, 201, JSON.stringify(result))
-    assert.strictEqual(result.ids.length, pools.length)
+    assert.strictEqual(result.networkIds.length, pools.length)
 
     const networks = await Promise.all(
-      result.ids.map(id => dispatchClient.restApiClient.get(`/rest/v0/networks/${id}?fields=*`))
+      result.networkIds.map(id => dispatchClient.restApiClient.get(`/rest/v0/networks/${id}?fields=*`))
     )
     const { 'xo:sdn-controller:private-network-uuid': privateNetworkUuid, 'xo:sdn-controller:vni': vni } =
       networks[0].other_config

@@ -61,7 +61,7 @@ describe('the creation of a private network', () => {
 
   it('answers the ids of its networks, one per pool', async () => {
     const { controller } = createPoolsController()
-    assert.deepEqual(await createPrivateNetwork(controller, BODY), { ids: ['net1', 'net2'] })
+    assert.deepEqual(await createPrivateNetwork(controller, BODY), { networkIds: ['net1', 'net2'] })
   })
 
   it('creates the network of the pool of the preferred center first, without reordering poolIds', async () => {
@@ -81,6 +81,17 @@ describe('the creation of a private network', () => {
       await assert.rejects(createPrivateNetwork(controller, body), error => invalidParameters.is(error))
       assert.deepEqual(created, [])
     }
+  })
+
+  it('creates no network when a host fails its controller check', async () => {
+    const { controller, created } = createPoolsController()
+    const pool2 = controller._xo.getXapiObject('pool2')
+    pool2.$xapi.objects.indexes.type.host = { host2: controller._xo.getXapiObject('host2') }
+    controller._getOrCreateOfChannel = async () => {
+      throw Object.assign(new Error('missing plugin'), { code: 'XENAPI_MISSING_PLUGIN' })
+    }
+    await assert.rejects(createPrivateNetwork(controller, BODY), { code: 'XENAPI_MISSING_PLUGIN' })
+    assert.deepEqual(created, [])
   })
 
   it('refuses an MTU that is not a non-negative integer before creating any network', async () => {
