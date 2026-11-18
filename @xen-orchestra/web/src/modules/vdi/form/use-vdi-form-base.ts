@@ -5,7 +5,7 @@ import {
   type FrontXoSr,
   useXoSrCollection,
 } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
-import { isSrWritable } from '@/modules/storage-repository/utils/xo-sr.util.ts'
+import { isWritableSrOfPool } from '@/modules/storage-repository/utils/xo-sr.util.ts'
 import { useXoVbdCollection } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
 import { type FrontXoVdi, useXoVdiCollection } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
 import { useXoVmVbdsUtils } from '@/modules/vm/composables/xo-vm-vbd-utils.composable.ts'
@@ -52,7 +52,7 @@ export function useVdiFormBase<T extends BaseVdiFormData & Record<string, unknow
 
   const { notCdDriveVbds } = useXoVmVbdsUtils(vm)
 
-  const availableSrs = computed(() => srs.value.filter(sr => sr.$pool === vm.value.$pool && isSrWritable(sr)))
+  const availableSrs = computed(() => srs.value.filter(sr => isWritableSrOfPool(sr, vm.value.$pool)))
 
   const vmVbds = useGetVbdsByIds(() => vm.value.$VBDs)
 

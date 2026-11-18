@@ -1,0 +1,9 @@
+{
+  "label": "Networking",
+  "position": 4,
+  "link": {
+    "type": "generated-index",
+    "slug": "/category/networking",
+    "description": "Networks and software-defined networking"
+  }
+}

@@ -43,9 +43,11 @@ export function createCollection<
     }
 
     function toggleAll(shouldBeFlagged = !areAllOn.value) {
-      for (const item of items.value) {
-        flagRegistry.toggleFlag(item.id, flag, shouldBeFlagged)
-      }
+      flagRegistry.toggleFlags(
+        items.value.map(item => item.id),
+        flag,
+        shouldBeFlagged
+      )
     }
 
     const useSubset = createUseSubset<TSource, TFlag, TProperties, TId>(flaggedItems, flagRegistry)

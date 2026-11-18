@@ -12,7 +12,7 @@
         {{ t('general-information') }}
       </UiTitle>
 
-      <span class="typo-body-regular-small required-hint">{{ t('field:required') }}</span>
+      <VtsRequiredHint />
 
       <EditTrafficRuleForm ref="form" class="form" :rule />
     </template>
@@ -31,6 +31,7 @@ import EditTrafficRuleForm from '@/modules/traffic-rules/components/form/edit/Ed
 import type { TrafficRulePayload } from '@/modules/traffic-rules/jobs/xo-traffic-rule-create.job.ts'
 import VtsOverlayCancelButton from '@core/components/overlay/VtsOverlayCancelButton.vue'
 import VtsOverlayConfirmButton from '@core/components/overlay/VtsOverlayConfirmButton.vue'
+import VtsRequiredHint from '@core/components/required-hint/VtsRequiredHint.vue'
 import UiDrawer from '@core/components/ui/drawer/UiDrawer.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import type { TrafficRule } from '@vates/types'
@@ -63,11 +64,6 @@ async function onConfirm() {
 
   .form {
     margin-block-start: 2.4rem;
-  }
-
-  .required-hint::before {
-    content: '* ';
-    color: var(--color-brand-txt-base);
   }
 }
 </style>

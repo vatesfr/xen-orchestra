@@ -94,6 +94,8 @@ useUnreachableHosts()
 .main {
   flex: 1;
   overflow: auto;
+  display: flex;
+  flex-direction: column;
   background-color: var(--color-neutral-background-secondary);
 }
 </style>

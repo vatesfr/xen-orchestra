@@ -1,6 +1,6 @@
 <template>
   <UiTitle>{{ t('plugins') }}</UiTitle>
-  <VtsQueryBuilder v-model="filter" :schema />
+  <VtsQueryBuilder v-bind="searchBindings" :schema />
 
   <VtsTable :state :pagination-bindings sticky="right">
     <thead>
@@ -42,7 +42,7 @@ const { plugins, busy, error } = defineProps<{
 
 const { t } = useI18n()
 
-const { items: filteredPlugins, filter } = useQueryBuilderFilter('plugins', () => plugins)
+const { items: filteredPlugins, searchBindings } = useQueryBuilderFilter('plugins', () => plugins)
 
 // the recursive JSON schemas cannot be walked by the query builder types
 const schema = useQueryBuilderSchema<Omit<FrontXoPlugin, 'configurationSchema' | 'testSchema'>>({

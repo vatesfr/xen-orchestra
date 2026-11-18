@@ -7,13 +7,16 @@
       prop('placement').str().preset('bottom-start').widget().help('Placement of the dropdown on desktop'),
       prop('disabled').bool().widget(),
       event('action').help('Emitted on mobile when a menu item closes the menu after its action'),
-      slot('trigger').prop('open', '(event: MouseEvent) => void').prop('isOpen', 'boolean'),
+      slot('trigger')
+        .prop('open', '(event: MouseEvent) => void')
+        .prop('isOpen', 'boolean')
+        .prop('bindings', 'MenuTriggerBindings'),
       slot().help('Menu items'),
     ]"
   >
     <VtsResponsiveMenu v-bind="properties">
-      <template #trigger="{ open, isOpen }">
-        <UiDropdownButton variant="primary" size="medium" :selected="isOpen" @click="open($event)">
+      <template #trigger="{ open, isOpen, bindings }">
+        <UiDropdownButton v-bind="bindings" variant="primary" size="medium" :selected="isOpen" @click="open($event)">
           New
         </UiDropdownButton>
       </template>

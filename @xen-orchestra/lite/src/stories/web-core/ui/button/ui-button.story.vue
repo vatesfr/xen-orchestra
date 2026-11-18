@@ -14,6 +14,7 @@
       prop('disabled').bool().widget().ctx(),
       prop('lockIcon').bool().widget(),
       iconProp('leftIcon'),
+      iconProp('rightIcon'),
       setting('label').preset('Click me').widget(),
     ]"
     :presets="{

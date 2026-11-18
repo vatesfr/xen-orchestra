@@ -1,0 +1,9 @@
+{
+  "label": "User management",
+  "position": 1,
+  "link": {
+    "type": "generated-index",
+    "slug": "/category/user-management",
+    "description": "Authentication, users, groups and access rights"
+  }
+}

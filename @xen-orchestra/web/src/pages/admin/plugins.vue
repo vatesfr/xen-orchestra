@@ -7,7 +7,9 @@
       </UiCard>
     </div>
 
-    <PluginSidePanel :plugin="selectedPlugin" @close="selectedPlugin = undefined" />
+    <template #panel>
+      <PluginSidePanel :plugin="selectedPlugin" @close="selectedPlugin = undefined" />
+    </template>
   </VtsContentSidePanel>
 </template>
 

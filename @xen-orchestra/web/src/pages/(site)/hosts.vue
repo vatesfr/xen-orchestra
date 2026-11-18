@@ -3,7 +3,9 @@
     <UiCard class="container">
       <HostsTable :hosts :busy="!areHostsReady" :error="hasHostFetchError" />
     </UiCard>
-    <HostSidePanel :host="selectedHost" @close="selectedHost = undefined" />
+    <template #panel>
+      <HostSidePanel :host="selectedHost" @close="selectedHost = undefined" />
+    </template>
   </VtsContentSidePanel>
 </template>
 

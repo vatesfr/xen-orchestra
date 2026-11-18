@@ -1,3 +1,7 @@
+---
+sidebar_position: 2
+---
+
 # Deploy Kubernetes with recipes
 
 ## Introduction

@@ -2,29 +2,31 @@
   <VtsStateHero v-if="host === undefined" format="page" type="not-found" size="large">
     {{ t('object-not-found', { id }) }}
   </VtsStateHero>
-  <div v-else class="host-dashboard-view" :class="{ mobile: uiStore.isSmall }">
-    <HostDashboardQuickInfo class="quick-info" :host />
-    <div v-if="data.stats === undefined" class="offline-hero-container">
-      <VtsStateHero format="page" type="offline" size="large" horizontal>
-        <span>
-          {{ t('engines-off') }}
-        </span>
-        <span class="title typo-h1">{{ t('host-off') }}</span>
-        <div class="description typo-body-bold">
-          <span>{{ t('host-currently-shutdown') }}</span>
-          <span>{{ t('start-host') }}</span>
-        </div>
-      </VtsStateHero>
+  <div v-else class="scroll-container">
+    <div class="host-dashboard-view" :class="{ mobile: uiStore.isSmall }">
+      <HostDashboardQuickInfo class="quick-info" :host />
+      <div v-if="data.stats === undefined" class="offline-hero-container">
+        <VtsStateHero format="page" type="offline" size="large" horizontal>
+          <span>
+            {{ t('engines-off') }}
+          </span>
+          <span class="title typo-h1">{{ t('host-off') }}</span>
+          <div class="description typo-body-bold">
+            <span>{{ t('host-currently-shutdown') }}</span>
+            <span>{{ t('start-host') }}</span>
+          </div>
+        </VtsStateHero>
+      </div>
+      <template v-else>
+        <HostDashboardVmsStatus class="vms-status" :host />
+        <HostDashboardRamProvisioning class="ram-provisioning" :host />
+        <HostDashboardCpuProvisioning class="cpu-provisioning" :host />
+        <HostDashboardCpuUsageChart class="cpu-usage-chart" :data :error="!!lastError" :loading="isFetching" />
+        <HostDashboardRamUsageChart class="ram-usage-chart" :data :error="!!lastError" :loading="isFetching" />
+        <HostDashboardNetworkUsageChart class="network-usage-chart" :data :error="!!lastError" :loading="isFetching" />
+        <HostDashboardLoadAverageChart class="load-average-chart" :data :error="!!lastError" :loading="isFetching" />
+      </template>
     </div>
-    <template v-else>
-      <HostDashboardVmsStatus class="vms-status" :host />
-      <HostDashboardRamProvisioning class="ram-provisioning" :host />
-      <HostDashboardCpuProvisioning class="cpu-provisioning" :host />
-      <HostDashboardCpuUsageChart class="cpu-usage-chart" :data :error="!!lastError" :loading="isFetching" />
-      <HostDashboardRamUsageChart class="ram-usage-chart" :data :error="!!lastError" :loading="isFetching" />
-      <HostDashboardNetworkUsageChart class="network-usage-chart" :data :error="!!lastError" :loading="isFetching" />
-      <HostDashboardLoadAverageChart class="load-average-chart" :data :error="!!lastError" :loading="isFetching" />
-    </template>
   </div>
 </template>
 
@@ -86,6 +88,12 @@ onUnmounted(() => setRegisteredHost(undefined))
 </script>
 
 <style lang="postcss" scoped>
+.scroll-container {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
 .host-dashboard-view {
   display: grid;
   margin: 0.8rem;

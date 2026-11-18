@@ -7,7 +7,7 @@
       </template>
     </UiTitle>
     <div class="filters">
-      <VtsQueryBuilder :model-value="filter" :schema @search="filter = $event" />
+      <VtsQueryBuilder v-bind="searchBindings" :schema />
       <BackupRepositoriesBulkActions :brs="selectedBrs" />
     </div>
 
@@ -52,7 +52,6 @@ import { useQueryBuilderSchema } from '@core/packages/query-builder/schema/use-q
 import { useQueryBuilderFilter } from '@core/packages/query-builder/use-query-builder-filter.ts'
 import { useBackupRepositoryColumns } from '@core/tables/column-sets/backup-repository-columns.ts'
 import { useStringSchema } from '@core/utils/query-builder/use-string-schema.ts'
-import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { brs, busy, error } = defineProps<{
@@ -69,20 +68,24 @@ const { t } = useI18n()
 
 const { useGetProxyById } = useXoProxyCollection()
 
-const { items: filteredBrs, filter } = useQueryBuilderFilter('brs', () => brs)
+const { items: filteredBrs, searchBindings } = useQueryBuilderFilter('brs', () => brs)
 
 const selectedBrId = useRouteQuery('id')
 
 const { pageRecords: paginatedBrs, paginationBindings } = usePagination('brs', filteredBrs)
 
-const { selectedIds, pageSelectionModel, isSelected, toggleSelection, selectionBindings } = useTableSelection({
+const {
+  selectedItems: selectedBrs,
+  pageSelectionModel,
+  isSelected,
+  toggleSelection,
+  selectionBindings,
+} = useTableSelection({
   items: () => brs,
   filteredItems: filteredBrs,
   pageItems: paginatedBrs,
   getItemId: br => br.id,
 })
-
-const selectedBrs = computed(() => brs.filter(br => selectedIds.value.includes(br.id)))
 
 const schema = useQueryBuilderSchema<FrontXoBackupRepository>({
   '': useStringSchema(t('any-property')),
