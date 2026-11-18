@@ -61,6 +61,7 @@ export function useOverlay<TComponent extends Component, const TEvents extends O
         props: {},
         status: 'idle',
         lastTrigger: undefined,
+        returnFocusTarget: document.activeElement,
         abort: () => settle({ event: OVERLAY_ABORT_EVENT, payload: undefined }),
       })
 
@@ -77,13 +78,15 @@ export function useOverlay<TComponent extends Component, const TEvents extends O
         // so paint a non-busy frame before removing the overlay
         await nextTick()
 
-        resolve(response)
-
         overlayStore.unregister(overlay)
 
         if (currentOverlay === overlay) {
           currentOverlay = undefined
         }
+
+        await nextTick()
+
+        resolve(response)
       }
 
       const handleEvent = createEventHandler({
