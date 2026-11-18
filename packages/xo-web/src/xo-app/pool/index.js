@@ -7,6 +7,7 @@ import pick from 'lodash/pick'
 import React, { cloneElement, Component } from 'react'
 import { NavLink, NavTabs } from 'nav'
 import { Text } from 'editable'
+import { isStale, StaleObjectBanner, StaleObjectPill } from 'stale-object'
 import { editPool } from 'xo'
 import { Container, Row, Col } from 'grid'
 import { connectStore, routes } from 'utils'
@@ -122,6 +123,7 @@ export default class Pool extends Component {
           <Col mediumSize={6} className='header-title'>
             <h2>
               <Icon icon='pool' /> <Text value={pool.name_label} onChange={this._setNameLabel} />
+              <StaleObjectPill object={pool} />
             </h2>
             <Copiable tagName='pre' className='text-muted mb-0'>
               {pool.uuid}
@@ -136,6 +138,13 @@ export default class Pool extends Component {
             </div>
           </Col>
         </Row>
+        {isStale(pool) && (
+          <Row>
+            <Col>
+              <StaleObjectBanner object={pool} />
+            </Col>
+          </Row>
+        )}
         <Row>
           <Col>
             <NavTabs>

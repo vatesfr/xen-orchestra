@@ -3,6 +3,7 @@ import BaseComponent from 'base-component'
 import Copiable from 'copiable'
 import Icon from 'icon'
 import Tooltip from 'tooltip'
+import { isStale, StaleObjectBanner, StaleObjectPill } from 'stale-object'
 import { NavLink, NavTabs } from 'nav'
 import PropTypes from 'prop-types'
 import React, { cloneElement } from 'react'
@@ -213,7 +214,9 @@ export default class Vm extends BaseComponent {
               <Tooltip
                 content={
                   <span>
-                    {_(`powerState${state}`)}
+                    {isStale(vm)
+                      ? _('staleObjectPowerState', { state: _(`powerState${state}`) })
+                      : _(`powerState${state}`)}
                     {state === 'Busy' && (
                       <span>
                         {' ('}
@@ -227,6 +230,7 @@ export default class Vm extends BaseComponent {
                 <Icon icon={`vm-${state.toLowerCase()}`} />
               </Tooltip>{' '}
               <Text value={vm.name_label} onChange={this._setNameLabel} />
+              <StaleObjectPill object={vm} />
             </h2>{' '}
             <Copiable tagName='pre' className='text-muted mb-0'>
               {vm.uuid}
@@ -239,6 +243,13 @@ export default class Vm extends BaseComponent {
             </div>
           </Col>
         </Row>
+        {isStale(vm) && (
+          <Row>
+            <Col>
+              <StaleObjectBanner object={vm} />
+            </Col>
+          </Row>
+        )}
         <Row>
           <Col>
             <NavTabs>
