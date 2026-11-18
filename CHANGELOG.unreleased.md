@@ -9,8 +9,6 @@
 - [Backup/File restore] Symbolic links are no longer followed: browsing or downloading a path that goes through one is refused, and the links met inside a restored folder are skipped (PR [#9941](https://github.com/vatesfr/xen-orchestra/pull/9941))
 - [Backup/Live mount] The iSCSI target of a mount only accepts connections from the host it is mounted on. **If the hosts reach XO or the proxy through a NAT**, set `iscsi.restrictToHost = false`, or live mounts fail (PR [#10426](https://github.com/vatesfr/xen-orchestra/pull/10426))
 - [Plugins/audit] Redact more sensitive values from new audit records (created API tokens, credentials and encryption keys in URLs, one-time download/upload links) (PR [#10618](https://github.com/vatesfr/xen-orchestra/pull/10618))
-- [Servers] Fix every pool showing as disconnected after running `xo-server-db` or `xo-server-recover-account`, even though XO was still connected to them (PR [#](https://github.com/vatesfr/xen-orchestra/pull/))
-- [Servers] Fix a server that could no longer be enabled (`incorrect state`) until xo-server was restarted (PR [#](https://github.com/vatesfr/xen-orchestra/pull/))
 
 ### Enhancements
 
@@ -68,6 +66,8 @@
 - [Pages] The page header and tabs now stay in place on every page: dashboards, System and General tabs, consoles, settings and creation forms scroll under them instead of scrolling with them (PR [#10822](https://github.com/vatesfr/xen-orchestra/pull/10822))
 - [Tooltips] Short tooltips near the edge of the screen no longer wrap onto two lines (PR [#10822](https://github.com/vatesfr/xen-orchestra/pull/10822))
 - [SDN Controller] Adding, updating or deleting a VIF or network traffic rule now fails, and its rules are left as they were, when the host can't apply it (e.g. the XAPI plugin fails), instead of reporting success (PR [#10691](https://github.com/vatesfr/xen-orchestra/pull/10691))
+- [xo-server] Fix every pool showing as disconnected after running `xo-server-db` or `xo-server-recover-account`, even though XO was still connected to them (PR [#10834](https://github.com/vatesfr/xen-orchestra/pull/10834))
+- [xo-server] Fix a server that could no longer be enabled (`incorrect state`) until xo-server was restarted (PR [#10834](https://github.com/vatesfr/xen-orchestra/pull/10834))
 
 ### Packages to release
 
