@@ -1,21 +1,26 @@
 import { useBulkEditBackupRepositoriesForm } from '@/modules/backup-repository/form/bulk-edit/use-bulk-edit-backup-repositories-form.ts'
 import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
-import type { FrontXoProxy, useXoProxyCollection } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
+import type { FrontXoProxy } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
 import { OBFUSCATED_VALUE } from '@/shared/constants.ts'
 import { createBr } from '@/test/create-br.ts'
+import { createProxy } from '@/test/create-proxy.ts'
 import { t } from '@/test/i18n.ts'
+import { proxyCollectionMock } from '@/test/mock-xo-proxy-collection.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
 import { mockModule } from '@/test/spy-on-module.ts'
-import { ref } from 'vue'
 import { parse as parseBackupRepositoryUrl } from 'xo-remote-parser'
 
 const PROXY_ID = 'proxy-1' as FrontXoProxy['id']
 
-mockModule(import('@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'), () => ({
-  useXoProxyCollection: (() => ({
-    proxies: ref([{ id: 'proxy-1', name: 'Proxy 1' }]),
-  })) as unknown as typeof useXoProxyCollection,
-}))
+mockModule(
+  import('@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'),
+  () => import('@/test/mock-xo-proxy-collection.ts')
+)
+
+beforeEach(() => {
+  proxyCollectionMock.reset()
+  proxyCollectionMock.proxies.value = [createProxy()]
+})
 
 const ENCRYPTED_NFS_BR = createBr({
   id: 'backup-repository-1' as FrontXoBackupRepository['id'],

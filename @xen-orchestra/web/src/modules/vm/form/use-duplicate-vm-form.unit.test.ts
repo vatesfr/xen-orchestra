@@ -1,45 +1,39 @@
-import type { useXoPbdCollection } from '@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'
 import type { useXoSrUtils } from '@/modules/storage-repository/composables/xo-sr-utils.composable.ts'
-import type {
-  FrontXoSr,
-  useXoSrCollection,
-} from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
+import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import { useDuplicateVmForm } from '@/modules/vm/form/use-duplicate-vm-form.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { createSr } from '@/test/create-sr.ts'
 import { createVm } from '@/test/create-vm.ts'
+import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
 import { mockModule } from '@/test/spy-on-module.ts'
 import { VM_POWER_STATE } from '@vates/types'
-import { computed, nextTick, ref } from 'vue'
+import { nextTick, ref } from 'vue'
 
-const { useXoSrCollectionMock, useXoPbdCollectionMock, getSrLocation, getSrSelectLabel } = vi.hoisted(() => ({
-  useXoSrCollectionMock: vi.fn(),
-  useXoPbdCollectionMock: vi.fn(),
+const { getSrLocation, getSrSelectLabel } = vi.hoisted(() => ({
   getSrLocation: vi.fn(),
   getSrSelectLabel: vi.fn(),
 }))
 
-mockModule(import('@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'), () => ({
-  useXoSrCollection: useXoSrCollectionMock as unknown as typeof useXoSrCollection,
-}))
+mockModule(
+  import('@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'),
+  () => import('@/test/mock-xo-collections.ts')
+)
 
-mockModule(import('@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'), () => ({
-  useXoPbdCollection: useXoPbdCollectionMock as unknown as typeof useXoPbdCollection,
-}))
+mockModule(
+  import('@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'),
+  () => import('@/test/mock-xo-collections.ts')
+)
 
 mockModule(import('@/modules/storage-repository/composables/xo-sr-utils.composable.ts'), () => ({
   useXoSrUtils: (() => ({ getSrLocation, getSrSelectLabel })) as unknown as typeof useXoSrUtils,
 }))
 
 beforeEach(() => {
-  useXoSrCollectionMock.mockReset()
-  useXoPbdCollectionMock.mockReset()
+  xoCollectionsMock.reset()
   getSrLocation.mockReset()
   getSrSelectLabel.mockReset()
 
-  useXoSrCollectionMock.mockReturnValue({ srs: computed(() => []) })
-  useXoPbdCollectionMock.mockReturnValue({ pbdsBySr: computed(() => new Map()) })
   getSrLocation.mockReturnValue('Local')
   getSrSelectLabel.mockImplementation((sr: FrontXoSr) => sr.name_label)
 })

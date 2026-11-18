@@ -1,58 +1,33 @@
 import { useBackupJobDelete } from '@/modules/backup-job/composables/use-backup-job-delete.composable.ts'
-import type { useXoBackupJobDeleteJob } from '@/modules/backup-job/jobs/xo-backup-job-delete.job.ts'
+import { useXoBackupJobDeleteJob } from '@/modules/backup-job/jobs/xo-backup-job-delete.job.ts'
 import type { FrontAnyXoBackupJob } from '@/modules/backup-job/remote-resources/use-xo-backup-job-collection.ts'
 import { createVmBackupJob } from '@/test/create-backup-job.ts'
+import { createJobStub } from '@/test/create-job-result.ts'
 import { t } from '@/test/i18n.ts'
+import { overlayMock } from '@/test/mock-overlay.ts'
+import { routeQueryMock } from '@/test/mock-route-query.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
 import { mockModule } from '@/test/spy-on-module.ts'
-import type { useRouteQuery } from '@core/composables/route-query.composable.ts'
-import type { useOverlay } from '@core/packages/overlay/use-overlay.ts'
-import { ref } from 'vue'
-
-type OverlayEvents = { onConfirm?: () => void }
 
 type DeleteResults = PromiseSettledResult<unknown>[]
 
-type MockedOverlay = { open: ReturnType<typeof vi.fn>; events: OverlayEvents }
+const deleteJob = createJobStub(useXoBackupJobDeleteJob)
 
-const { overlays, run, selectedBackupJobId } = vi.hoisted(() => ({
-  overlays: [] as MockedOverlay[],
-  run: vi.fn(),
-  selectedBackupJobId: { value: '' },
-}))
+mockModule(import('@core/composables/route-query.composable.ts'), () => import('@/test/mock-route-query.ts'))
 
-mockModule(import('@/modules/backup-job/jobs/xo-backup-job-delete.job.ts'), () => ({
-  useXoBackupJobDeleteJob: (() => ({
-    run,
-    canRun: ref(true),
-    isRunning: ref(false),
-    errorMessage: ref(undefined),
-  })) as unknown as typeof useXoBackupJobDeleteJob,
-}))
-
-mockModule(import('@core/composables/route-query.composable.ts'), () => ({
-  useRouteQuery: (() => selectedBackupJobId) as unknown as typeof useRouteQuery,
-}))
-
-mockModule(import('@core/packages/overlay/use-overlay.ts'), () => ({
-  useOverlay: (({ events }: Pick<MockedOverlay, 'events'>) => {
-    const overlay = { open: vi.fn(), events }
-
-    overlays.push(overlay)
-
-    return { open: overlay.open }
-  }) as unknown as typeof useOverlay,
-}))
+mockModule(import('@core/packages/overlay/use-overlay.ts'), () => import('@/test/mock-overlay.ts'))
 
 beforeEach(() => {
   vi.restoreAllMocks()
-  overlays.length = 0
-  run.mockReset()
-  selectedBackupJobId.value = ''
+  overlayMock.reset()
+  deleteJob.reset()
+  routeQueryMock.reset()
 })
 
 function mockDeleteSuccess(results: DeleteResults) {
-  run.mockImplementation(({ onSuccess }: { onSuccess: (results: DeleteResults) => void }) => onSuccess(results))
+  deleteJob.run.mockImplementation(({ onSuccess }: { onSuccess: (results: DeleteResults) => void }) =>
+    onSuccess(results)
+  )
 }
 
 const firstBackupJob = createVmBackupJob({ id: 'backup-job-1' as FrontAnyXoBackupJob['id'] })
@@ -61,7 +36,7 @@ const secondBackupJob = createVmBackupJob({ id: 'backup-job-2' as FrontAnyXoBack
 function mountDelete(backupJobs: FrontAnyXoBackupJob[]) {
   const result = mountComposable(() => useBackupJobDelete(backupJobs)).wrapper.vm
 
-  const [deleteModal, typeToConfirmModal] = overlays
+  const [deleteModal, typeToConfirmModal] = overlayMock.getOverlays()
 
   return { result, deleteModal, typeToConfirmModal }
 }
@@ -71,11 +46,7 @@ function deleteAndConfirm(backupJobs: FrontAnyXoBackupJob[]) {
 
   result.deleteBackupJobs()
 
-  const openedModal = overlays.find(overlay => overlay.open.mock.calls.length > 0)
-
-  const openEvents: OverlayEvents | undefined = openedModal?.open.mock.lastCall?.[0]?.events
-
-  ;(openEvents?.onConfirm ?? openedModal?.events.onConfirm)?.()
+  overlayMock.confirmOpened()
 }
 
 describe('deleteBackupJobs', () => {
@@ -134,7 +105,7 @@ describe('on confirm', () => {
   it('runs the job detached so the modal closes right away', () => {
     deleteAndConfirm([firstBackupJob])
 
-    expect(run).toHaveBeenCalledWith({ detached: true, onSuccess: expect.any(Function) })
+    expect(deleteJob.run).toHaveBeenCalledWith({ detached: true, onSuccess: expect.any(Function) })
   })
 
   it('unselects the backup job shown in the side panel once deleted', () => {
@@ -142,11 +113,11 @@ describe('on confirm', () => {
       { status: 'fulfilled', value: undefined },
       { status: 'fulfilled', value: undefined },
     ])
-    selectedBackupJobId.value = secondBackupJob.id
+    routeQueryMock.query.value = secondBackupJob.id
 
     deleteAndConfirm([firstBackupJob, secondBackupJob])
 
-    expect(selectedBackupJobId.value).toBe('')
+    expect(routeQueryMock.query.value).toBe('')
   })
 
   it('keeps the backup job shown in the side panel selected when deleting it failed', () => {
@@ -154,19 +125,19 @@ describe('on confirm', () => {
       { status: 'fulfilled', value: undefined },
       { status: 'rejected', reason: new Error('No such backup job') },
     ])
-    selectedBackupJobId.value = secondBackupJob.id
+    routeQueryMock.query.value = secondBackupJob.id
 
     deleteAndConfirm([firstBackupJob, secondBackupJob])
 
-    expect(selectedBackupJobId.value).toBe(secondBackupJob.id)
+    expect(routeQueryMock.query.value).toBe(secondBackupJob.id)
   })
 
   it('keeps another backup job shown in the side panel selected', () => {
     mockDeleteSuccess([{ status: 'fulfilled', value: undefined }])
-    selectedBackupJobId.value = secondBackupJob.id
+    routeQueryMock.query.value = secondBackupJob.id
 
     deleteAndConfirm([firstBackupJob])
 
-    expect(selectedBackupJobId.value).toBe(secondBackupJob.id)
+    expect(routeQueryMock.query.value).toBe(secondBackupJob.id)
   })
 })

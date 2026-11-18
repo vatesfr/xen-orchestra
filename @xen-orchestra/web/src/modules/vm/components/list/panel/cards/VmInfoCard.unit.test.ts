@@ -1,13 +1,6 @@
-import type { useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
-import type { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
-import type { useXoUserResource } from '@/modules/user/remote-resources/use-xo-user.ts'
 import VmInfoCard from '@/modules/vm/components/list/panel/cards/VmInfoCard.vue'
-import type { FrontXoVm, useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
-import type {
-  FrontXoVmTemplate,
-  useXoVmTemplateCollection,
-} from '@/modules/vm/remote-resources/use-xo-vm-template-collection.ts'
-import type { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
+import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
+import type { FrontXoVmTemplate } from '@/modules/vm/remote-resources/use-xo-vm-template-collection.ts'
 import { createHost } from '@/test/create-host.ts'
 import { createPool } from '@/test/create-pool.ts'
 import { createVm } from '@/test/create-vm.ts'
@@ -15,6 +8,9 @@ import { findCardLabelledValues, findTags } from '@/test/find-rendered-values.ts
 import { findTooltipContent } from '@/test/find-tooltip-content.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
+import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
+import { userResourceMock } from '@/test/mock-xo-user.ts'
+import { vmCollectionMock } from '@/test/mock-xo-vm-collection.ts'
 import { mockModule } from '@/test/spy-on-module.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
@@ -22,56 +18,35 @@ import { objectIcon } from '@core/icons'
 import type { XoUser } from '@vates/types'
 import { HOST_POWER_STATE, VM_OPERATIONS, VM_POWER_STATE } from '@vates/types'
 import { mount } from '@vue/test-utils'
-import { computed } from 'vue'
 
-const { useGetPoolById, getVmHost, isMasterHost, buildXo5Route, useXoUserResourceMock, useXoVmTemplateCollectionMock } =
-  vi.hoisted(() => ({
-    useGetPoolById: vi.fn(),
-    getVmHost: vi.fn(),
-    isMasterHost: vi.fn(),
-    buildXo5Route: vi.fn(),
-    useXoUserResourceMock: vi.fn(),
-    useXoVmTemplateCollectionMock: vi.fn(),
-  }))
+mockModule(
+  import('@/modules/pool/remote-resources/use-xo-pool-collection.ts'),
+  () => import('@/test/mock-xo-collections.ts')
+)
 
-mockModule(import('@/modules/pool/remote-resources/use-xo-pool-collection.ts'), () => ({
-  useXoPoolCollection: (() => ({ useGetPoolById })) as unknown as typeof useXoPoolCollection,
-}))
+mockModule(
+  import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'),
+  () => import('@/test/mock-xo-vm-collection.ts')
+)
 
-mockModule(import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'), () => ({
-  useXoVmCollection: (() => ({ getVmHost })) as unknown as typeof useXoVmCollection,
-}))
+mockModule(
+  import('@/modules/host/remote-resources/use-xo-host-collection.ts'),
+  () => import('@/test/mock-xo-collections.ts')
+)
 
-mockModule(import('@/modules/host/remote-resources/use-xo-host-collection.ts'), () => ({
-  useXoHostCollection: (() => ({ isMasterHost })) as unknown as typeof useXoHostCollection,
-}))
+mockModule(import('@/modules/user/remote-resources/use-xo-user.ts'), () => import('@/test/mock-xo-user.ts'))
 
-mockModule(import('@/modules/user/remote-resources/use-xo-user.ts'), () => ({
-  useXoUserResource: useXoUserResourceMock as unknown as typeof useXoUserResource,
-}))
+mockModule(
+  import('@/modules/vm/remote-resources/use-xo-vm-template-collection.ts'),
+  () => import('@/test/mock-xo-collections.ts')
+)
 
-mockModule(import('@/modules/vm/remote-resources/use-xo-vm-template-collection.ts'), () => ({
-  useXoVmTemplateCollection: useXoVmTemplateCollectionMock as unknown as typeof useXoVmTemplateCollection,
-}))
-
-mockModule(import('@/shared/remote-resources/use-xo-routes.ts'), () => ({
-  useXoRoutes: (() => ({ buildXo5Route })) as unknown as typeof useXoRoutes,
-}))
+mockModule(import('@/shared/remote-resources/use-xo-routes.ts'), () => import('@/test/mock-xo-routes.ts'))
 
 beforeEach(() => {
-  useGetPoolById.mockReset()
-  getVmHost.mockReset()
-  isMasterHost.mockReset()
-  buildXo5Route.mockReset()
-  useXoUserResourceMock.mockReset()
-  useXoVmTemplateCollectionMock.mockReset()
-
-  useGetPoolById.mockReturnValue(computed(() => undefined))
-  getVmHost.mockReturnValue(undefined)
-  isMasterHost.mockReturnValue(false)
-  buildXo5Route.mockImplementation((path: string) => `https://xo5.example.com/#${path}`)
-  useXoUserResourceMock.mockReturnValue({ user: computed(() => undefined) })
-  useXoVmTemplateCollectionMock.mockReturnValue({ templates: computed(() => []) })
+  xoCollectionsMock.reset()
+  vmCollectionMock.reset()
+  userResourceMock.reset()
 })
 
 function createTemplate(overrides: Partial<FrontXoVmTemplate> = {}) {
@@ -155,7 +130,7 @@ it('renders one tag per VM tag', () => {
 })
 
 it('shows the name of the pool hosting the VM', () => {
-  useGetPoolById.mockReturnValue(computed(() => createPool({ name_label: 'Production Pool' })))
+  xoCollectionsMock.pools.value = [createPool({ name_label: 'Production Pool' })]
 
   expect(findCardLabelledValues(mountInfoCard())).toMatchObject({ [t('pool')]: 'Production Pool' })
 })
@@ -165,7 +140,7 @@ it('leaves the pool row empty when the pool is unknown', () => {
 })
 
 it('shows the name of the host running the VM', () => {
-  getVmHost.mockReturnValue(createHost({ name_label: 'Primary Host', power_state: HOST_POWER_STATE.RUNNING }))
+  xoCollectionsMock.hosts.value = [createHost({ name_label: 'Primary Host', power_state: HOST_POWER_STATE.RUNNING })]
 
   expect(findCardLabelledValues(mountInfoCard())).toMatchObject({ [t('host')]: 'Primary Host' })
 })
@@ -175,7 +150,7 @@ it('leaves the host row empty when the VM runs on no host', () => {
 })
 
 it('shows the name of the template the VM was created from', () => {
-  useXoVmTemplateCollectionMock.mockReturnValue({ templates: computed(() => [createTemplate()]) })
+  xoCollectionsMock.templates.value = [createTemplate()]
 
   const wrapper = mountInfoCard(
     createVm({
@@ -188,9 +163,7 @@ it('shows the name of the template the VM was created from', () => {
 })
 
 it('ignores a same-uuid template belonging to another pool', () => {
-  useXoVmTemplateCollectionMock.mockReturnValue({
-    templates: computed(() => [createTemplate({ $pool: 'pool-other' as FrontXoVmTemplate['$pool'] })]),
-  })
+  xoCollectionsMock.templates.value = [createTemplate({ $pool: 'pool-other' as FrontXoVmTemplate['$pool'] })]
 
   const wrapper = mountInfoCard(
     createVm({
@@ -204,17 +177,13 @@ it('ignores a same-uuid template belonging to another pool', () => {
 })
 
 it('shows the name of the user who created the VM', () => {
-  useXoUserResourceMock.mockReturnValue({
-    user: computed(() => ({ id: 'user-1', name: 'alice', email: 'alice@example.com' }) as XoUser),
-  })
+  userResourceMock.user.value = { id: 'user-1', name: 'alice', email: 'alice@example.com' } as XoUser
 
   expect(findCardLabelledValues(mountInfoCard())).toMatchObject({ [t('created-by')]: 'alice' })
 })
 
 it('falls back to the email of the user who created the VM', () => {
-  useXoUserResourceMock.mockReturnValue({
-    user: computed(() => ({ id: 'user-1', name: '', email: 'alice@example.com' }) as XoUser),
-  })
+  userResourceMock.user.value = { id: 'user-1', name: '', email: 'alice@example.com' } as XoUser
 
   expect(findCardLabelledValues(mountInfoCard())).toMatchObject({ [t('created-by')]: 'alice@example.com' })
 })

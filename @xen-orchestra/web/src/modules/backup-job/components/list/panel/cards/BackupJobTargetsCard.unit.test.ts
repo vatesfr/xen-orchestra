@@ -1,29 +1,30 @@
 import BackupJobTargetsCard from '@/modules/backup-job/components/list/panel/cards/BackupJobTargetsCard.vue'
 import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
-import type { useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
-import type { useXoPbdCollection } from '@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'
 import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import { createBr } from '@/test/create-br.ts'
 import { createSr } from '@/test/create-sr.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
+import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
 import { mockModule } from '@/test/spy-on-module.ts'
 import VtsDivider from '@core/components/divider/VtsDivider.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
 import { mount } from '@vue/test-utils'
-import { ref } from 'vue'
 
-mockModule(import('@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'), () => ({
-  useXoPbdCollection: (() => ({
-    getPbdsByIds: () => [],
-    pbdsBySr: ref(new Map()),
-  })) as unknown as typeof useXoPbdCollection,
-}))
+mockModule(
+  import('@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'),
+  () => import('@/test/mock-xo-collections.ts')
+)
 
-mockModule(import('@/modules/host/remote-resources/use-xo-host-collection.ts'), () => ({
-  useXoHostCollection: (() => ({ getHostById: () => undefined })) as unknown as typeof useXoHostCollection,
-}))
+mockModule(
+  import('@/modules/host/remote-resources/use-xo-host-collection.ts'),
+  () => import('@/test/mock-xo-collections.ts')
+)
+
+beforeEach(() => {
+  xoCollectionsMock.reset()
+})
 
 const sr = createSr({ id: 'sr-1' as FrontXoSr['id'], name_label: 'Replication SR' })
 const br = createBr({ id: 'br-1' as FrontXoBackupRepository['id'], name: 'Backup BR' })

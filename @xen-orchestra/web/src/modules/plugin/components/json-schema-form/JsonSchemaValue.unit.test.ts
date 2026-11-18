@@ -1,28 +1,20 @@
 import JsonSchemaValue from '@/modules/plugin/components/json-schema-form/JsonSchemaValue.vue'
-import type { useXoObjectOptions } from '@/modules/plugin/composables/use-xo-object-options.composable.ts'
+import { useXoObjectOptions } from '@/modules/plugin/composables/use-xo-object-options.composable.ts'
 import type { JsonSchema } from '@/modules/plugin/utils/json-schema.util.ts'
 import { createTestRouter } from '@/test/create-test-router.ts'
 import { findLabelledValues, findTags } from '@/test/find-rendered-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
-import { mockModule } from '@/test/spy-on-module.ts'
+import { mockedExport } from '@/test/spy-on-module.ts'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import { mount } from '@vue/test-utils'
 import { computed, toValue } from 'vue'
 
-const { objectOptions } = vi.hoisted(() => ({
-  objectOptions: vi.fn(),
-}))
-
 // The options come from the XO object collections, which subscribe to server events
-mockModule(import('@/modules/plugin/composables/use-xo-object-options.composable.ts'), () => ({
-  useXoObjectOptions: objectOptions as unknown as typeof useXoObjectOptions,
-}))
+const objectOptions = mockedExport(useXoObjectOptions)
 
 beforeEach(() => {
-  objectOptions.mockReset()
-
   objectOptions.mockImplementation(rawType => ({
     options: computed(() => [{ value: `${toValue(rawType)}-1`, label: `Main ${toValue(rawType)}` }]),
     isReady: computed(() => true),

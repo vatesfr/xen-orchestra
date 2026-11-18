@@ -1,9 +1,5 @@
-import type { useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
-import type { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
-import type { useXoTaskCollection } from '@/modules/task/remote-resources/use-xo-task-collection.ts'
 import VmHeaderActions from '@/modules/vm/components/actions/VmHeaderActions.vue'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
-import type { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import { createVm } from '@/test/create-vm.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import {
@@ -13,51 +9,42 @@ import {
   openMoreActions,
 } from '@/test/head-bar-actions.ts'
 import { t } from '@/test/i18n.ts'
+import { collapseOnOverflowMock } from '@/test/mock-collapse-on-overflow.ts'
+import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
+import { taskCollectionMock } from '@/test/mock-xo-task-collection.ts'
 import { mockModule } from '@/test/spy-on-module.ts'
-import type { useCollapseOnOverflow } from '@core/composables/collapse-on-overflow.composable.ts'
 import UiDropdownButton from '@core/components/ui/dropdown-button/UiDropdownButton.vue'
 import { VM_POWER_STATE } from '@vates/types'
 import { mount } from '@vue/test-utils'
-import { ref } from 'vue'
 
-const { buildXo5Route, resetCollapsedCount } = vi.hoisted(() => ({
-  buildXo5Route: vi.fn(),
-  resetCollapsedCount: vi.fn(),
-}))
+const { collapsedCount, resetCollapsedCount } = collapseOnOverflowMock
 
-const collapsedCount = ref(0)
+mockModule(import('@/shared/remote-resources/use-xo-routes.ts'), () => import('@/test/mock-xo-routes.ts'))
 
-mockModule(import('@/shared/remote-resources/use-xo-routes.ts'), () => ({
-  useXoRoutes: (() => ({ buildXo5Route })) as unknown as typeof useXoRoutes,
-}))
+mockModule(
+  import('@/modules/host/remote-resources/use-xo-host-collection.ts'),
+  () => import('@/test/mock-xo-collections.ts')
+)
 
-mockModule(import('@/modules/host/remote-resources/use-xo-host-collection.ts'), () => ({
-  useXoHostCollection: (() => ({
-    getHostById: () => undefined,
-    hostsByPool: ref(new Map()),
-  })) as unknown as typeof useXoHostCollection,
-}))
+mockModule(
+  import('@/modules/pool/remote-resources/use-xo-pool-collection.ts'),
+  () => import('@/test/mock-xo-collections.ts')
+)
 
-mockModule(import('@/modules/pool/remote-resources/use-xo-pool-collection.ts'), () => ({
-  useXoPoolCollection: (() => ({ useGetPoolById: () => ref(undefined) })) as unknown as typeof useXoPoolCollection,
-}))
+mockModule(
+  import('@/modules/task/remote-resources/use-xo-task-collection.ts'),
+  () => import('@/test/mock-xo-task-collection.ts')
+)
 
-mockModule(import('@/modules/task/remote-resources/use-xo-task-collection.ts'), () => ({
-  useXoTaskCollection: (() => ({ useGetTaskById: () => undefined })) as unknown as typeof useXoTaskCollection,
-}))
-
-mockModule(import('@core/composables/collapse-on-overflow.composable.ts'), () => ({
-  useCollapseOnOverflow: (() => ({
-    collapsedCount,
-    reset: resetCollapsedCount,
-  })) as unknown as typeof useCollapseOnOverflow,
-}))
+mockModule(
+  import('@core/composables/collapse-on-overflow.composable.ts'),
+  () => import('@/test/mock-collapse-on-overflow.ts')
+)
 
 beforeEach(() => {
-  buildXo5Route.mockReset()
-  buildXo5Route.mockImplementation((path: string) => `https://xo5.example.com/#${path}`)
-  resetCollapsedCount.mockReset()
-  collapsedCount.value = 0
+  xoCollectionsMock.reset()
+  taskCollectionMock.reset()
+  collapseOnOverflowMock.reset()
 })
 
 function mountActions(vm: FrontXoVm = createVm({ id: 'vm-42' as FrontXoVm['id'] })) {

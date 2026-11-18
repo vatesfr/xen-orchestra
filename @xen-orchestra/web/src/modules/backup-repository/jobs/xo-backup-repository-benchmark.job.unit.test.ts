@@ -1,31 +1,23 @@
 import { useXoBackupRepositoryBenchmarkJob } from '@/modules/backup-repository/jobs/xo-backup-repository-benchmark.job.ts'
 import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
-import type { useXoTaskUtils } from '@/shared/composables/xo-task-utils.composable.ts'
-import type { fetchPost } from '@/shared/utils/fetch.util.ts'
+import { fetchPost } from '@/shared/utils/fetch.util.ts'
 import { createBr } from '@/test/create-br.ts'
 import { t } from '@/test/i18n.ts'
+import { taskUtilsMock } from '@/test/mock-xo-task-utils.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
 import { silenceConsoleError } from '@/test/silence-console-error.ts'
-import { mockModule } from '@/test/spy-on-module.ts'
+import { mockModule, mockedExport } from '@/test/spy-on-module.ts'
 
-const { post, monitorTask } = vi.hoisted(() => ({
-  post: vi.fn(),
-  monitorTask: vi.fn(),
-}))
+const post = mockedExport(fetchPost)
 
-mockModule(import('@/shared/utils/fetch.util.ts'), () => ({
-  fetchPost: post as unknown as typeof fetchPost,
-}))
+const { monitorTask } = taskUtilsMock
 
 // The task collection would open an SSE subscription
-mockModule(import('@/shared/composables/xo-task-utils.composable.ts'), () => ({
-  useXoTaskUtils: (() => ({ monitorTask })) as unknown as typeof useXoTaskUtils,
-}))
+mockModule(import('@/shared/composables/xo-task-utils.composable.ts'), () => import('@/test/mock-xo-task-utils.ts'))
 
 beforeEach(() => {
   vi.restoreAllMocks()
-  post.mockReset()
-  monitorTask.mockReset()
+  taskUtilsMock.reset()
 
   post.mockImplementation(async (url: string) => ({ taskId: `task-of-${url}` }))
   monitorTask.mockResolvedValue({ writeRate: 100_000_000, readRate: 200_000_000 })

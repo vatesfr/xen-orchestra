@@ -1,4 +1,4 @@
-import type { FrontXoHost, useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
+import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import VmSystemManagement from '@/modules/vm/components/system/VmSystemManagement.vue'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { createHost } from '@/test/create-host.ts'
@@ -6,21 +6,18 @@ import { createVm } from '@/test/create-vm.ts'
 import { findLabelledValues } from '@/test/find-rendered-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
+import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
 import { mockModule } from '@/test/spy-on-module.ts'
 import { VM_OPERATIONS } from '@vates/types'
 import { mount } from '@vue/test-utils'
 
-const { getHostById } = vi.hoisted(() => ({
-  getHostById: vi.fn(),
-}))
-
-mockModule(import('@/modules/host/remote-resources/use-xo-host-collection.ts'), () => ({
-  useXoHostCollection: (() => ({ getHostById })) as unknown as typeof useXoHostCollection,
-}))
+mockModule(
+  import('@/modules/host/remote-resources/use-xo-host-collection.ts'),
+  () => import('@/test/mock-xo-collections.ts')
+)
 
 beforeEach(() => {
-  getHostById.mockReset()
-  getHostById.mockReturnValue(undefined)
+  xoCollectionsMock.reset()
 })
 
 function mountManagement(vm: FrontXoVm = createVm()) {
@@ -49,7 +46,7 @@ it('shows high availability as disabled when the VM has no restart priority', ()
 })
 
 it('shows the name of the affinity host', () => {
-  getHostById.mockReturnValue(createHost({ name_label: 'Primary Host' }))
+  xoCollectionsMock.hosts.value = [createHost({ id: 'host-1' as FrontXoHost['id'], name_label: 'Primary Host' })]
 
   const wrapper = mountManagement(createVm({ affinityHost: 'host-1' as FrontXoHost['id'] }))
 

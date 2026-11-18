@@ -1,41 +1,43 @@
 import HostMainActions from '@/modules/host/components/actions/HostMainActions.vue'
-import type { FrontXoHost, useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
-import type { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
-import type { useXoTaskCollection } from '@/modules/task/remote-resources/use-xo-task-collection.ts'
-import type { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
+import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import { createHost } from '@/test/create-host.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
+import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
+import { taskCollectionMock } from '@/test/mock-xo-task-collection.ts'
+import { vmCollectionMock } from '@/test/mock-xo-vm-collection.ts'
 import { mockModule } from '@/test/spy-on-module.ts'
 import MenuItem from '@core/components/menu/MenuItem.vue'
 import UiDropdownButton from '@core/components/ui/dropdown-button/UiDropdownButton.vue'
 import { IK_PANEL_ACTIONS_COMPACT } from '@core/utils/injection-keys.util.ts'
 import { mount } from '@vue/test-utils'
-import { computed, nextTick, ref } from 'vue'
+import { computed, nextTick } from 'vue'
 
-mockModule(import('@/modules/host/remote-resources/use-xo-host-collection.ts'), () => ({
-  useXoHostCollection: (() => ({
-    useGetHostById: () => ref(undefined),
-    areHostsFetching: ref(false),
-    areHostsReady: ref(true),
-    hasHostFetchError: ref(false),
-  })) as unknown as typeof useXoHostCollection,
-}))
+mockModule(
+  import('@/modules/host/remote-resources/use-xo-host-collection.ts'),
+  () => import('@/test/mock-xo-collections.ts')
+)
 
-mockModule(import('@/modules/pool/remote-resources/use-xo-pool-collection.ts'), () => ({
-  useXoPoolCollection: (() => ({
-    getPoolById: () => undefined,
-    hasPoolById: () => true,
-  })) as unknown as typeof useXoPoolCollection,
-}))
+mockModule(
+  import('@/modules/pool/remote-resources/use-xo-pool-collection.ts'),
+  () => import('@/test/mock-xo-collections.ts')
+)
 
-mockModule(import('@/modules/task/remote-resources/use-xo-task-collection.ts'), () => ({
-  useXoTaskCollection: (() => ({ useGetTaskById: () => undefined })) as unknown as typeof useXoTaskCollection,
-}))
+mockModule(
+  import('@/modules/task/remote-resources/use-xo-task-collection.ts'),
+  () => import('@/test/mock-xo-task-collection.ts')
+)
 
-mockModule(import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'), () => ({
-  useXoVmCollection: (() => ({ vmsByHost: ref(new Map()) })) as unknown as typeof useXoVmCollection,
-}))
+mockModule(
+  import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'),
+  () => import('@/test/mock-xo-vm-collection.ts')
+)
+
+beforeEach(() => {
+  xoCollectionsMock.reset()
+  taskCollectionMock.reset()
+  vmCollectionMock.reset()
+})
 
 function mountActions({ isPanelCompact = false } = {}) {
   return mount(HostMainActions, {

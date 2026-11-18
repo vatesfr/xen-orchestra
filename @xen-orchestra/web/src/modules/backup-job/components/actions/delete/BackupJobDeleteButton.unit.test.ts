@@ -1,38 +1,21 @@
 import BackupJobDeleteButton from '@/modules/backup-job/components/actions/delete/BackupJobDeleteButton.vue'
-import type { useBackupJobDelete } from '@/modules/backup-job/composables/use-backup-job-delete.composable.ts'
+import { useBackupJobDelete } from '@/modules/backup-job/composables/use-backup-job-delete.composable.ts'
 import type { FrontAnyXoBackupJob } from '@/modules/backup-job/remote-resources/use-xo-backup-job-collection.ts'
 import { createVmBackupJob } from '@/test/create-backup-job.ts'
+import { createJobStub, toJobComposableResult } from '@/test/create-job-result.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
-import { mockModule } from '@/test/spy-on-module.ts'
 import VtsActionButton from '@core/components/action-button/VtsActionButton.vue'
 import { mount } from '@vue/test-utils'
-import { ref, toValue } from 'vue'
+import { toValue } from 'vue'
 
-const { useDelete, deleteBackupJobs } = vi.hoisted(() => ({
-  useDelete: vi.fn(),
-  deleteBackupJobs: vi.fn(),
-}))
-
-mockModule(import('@/modules/backup-job/composables/use-backup-job-delete.composable.ts'), () => ({
-  useBackupJobDelete: useDelete as unknown as typeof useBackupJobDelete,
-}))
+const deleteJob = createJobStub(useBackupJobDelete, result =>
+  toJobComposableResult(result, 'deleteBackupJobs', 'isDeletingBackupJobs')
+)
 
 beforeEach(() => {
-  useDelete.mockReset()
-  deleteBackupJobs.mockReset()
-
-  mockDelete()
+  deleteJob.reset()
 })
-
-function mockDelete({ canRun = true, isRunning = false }: { canRun?: boolean; isRunning?: boolean } = {}) {
-  useDelete.mockReturnValue({
-    deleteBackupJobs,
-    canDeleteBackupJobs: ref(canRun),
-    isDeletingBackupJobs: ref(isRunning),
-    deleteBackupJobsErrorMessage: ref(canRun ? undefined : 'Backup job deletion in progress…'),
-  })
-}
 
 function mountButton(backupJob: FrontAnyXoBackupJob = createVmBackupJob()) {
   return mount(BackupJobDeleteButton, {
@@ -53,7 +36,7 @@ it('deletes the backup job', () => {
   const backupJob = createVmBackupJob()
   mountButton(backupJob)
 
-  const [backupJobs] = useDelete.mock.lastCall ?? []
+  const [backupJobs] = deleteJob.use.mock.lastCall ?? []
 
   expect(toValue(backupJobs)).toEqual([backupJob])
 })
@@ -61,11 +44,11 @@ it('deletes the backup job', () => {
 it('deletes the backup job when clicking the button', async () => {
   await mountButton().get('button').trigger('click')
 
-  expect(deleteBackupJobs).toHaveBeenCalledOnce()
+  expect(deleteJob.run).toHaveBeenCalledOnce()
 })
 
 it('disables the button and explains why when the backup job cannot be deleted', () => {
-  mockDelete({ canRun: false })
+  deleteJob.setState({ canRun: false, errorMessage: 'Backup job deletion in progress…' })
 
   const button = mountButton().getComponent(VtsActionButton)
 
@@ -74,7 +57,7 @@ it('disables the button and explains why when the backup job cannot be deleted',
 })
 
 it('shows the button as busy while the backup job is being deleted', () => {
-  mockDelete({ isRunning: true })
+  deleteJob.setState({ isRunning: true })
 
   expect(mountButton().getComponent(VtsActionButton).props('busy')).toBe(true)
 })

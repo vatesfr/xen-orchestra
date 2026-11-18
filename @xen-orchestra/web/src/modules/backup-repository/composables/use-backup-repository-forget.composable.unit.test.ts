@@ -1,40 +1,23 @@
 import { useBackupRepositoryForget } from '@/modules/backup-repository/composables/use-backup-repository-forget.composable.ts'
-import type { useXoBackupRepositoryForgetJob } from '@/modules/backup-repository/jobs/xo-backup-repository-forget.job.ts'
+import { useXoBackupRepositoryForgetJob } from '@/modules/backup-repository/jobs/xo-backup-repository-forget.job.ts'
 import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
 import { createBr } from '@/test/create-br.ts'
+import { createJobStub } from '@/test/create-job-result.ts'
 import { createTestRouter } from '@/test/create-test-router.ts'
 import { t } from '@/test/i18n.ts'
 import { overlayMock } from '@/test/mock-overlay.ts'
+import { routeQueryMock } from '@/test/mock-route-query.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
 import { mockModule } from '@/test/spy-on-module.ts'
-import type { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { type MaybeRefOrGetter, ref } from 'vue'
 import type { Router } from 'vue-router'
 
-type OverlayEvents = { onConfirm?: () => void }
-
 type ForgetResults = PromiseSettledResult<void>[]
 
-type MockedOverlay = { open: ReturnType<typeof vi.fn>; events: OverlayEvents }
-
-const { run, selectedBrId } = vi.hoisted(() => ({
-  run: vi.fn(),
-  selectedBrId: { value: '' },
-}))
-
 // The job subscribes to server events, unavailable in tests
-mockModule(import('@/modules/backup-repository/jobs/xo-backup-repository-forget.job.ts'), () => ({
-  useXoBackupRepositoryForgetJob: (() => ({
-    run,
-    canRun: ref(true),
-    isRunning: ref(false),
-    errorMessage: ref(undefined),
-  })) as unknown as typeof useXoBackupRepositoryForgetJob,
-}))
+const forgetJob = createJobStub(useXoBackupRepositoryForgetJob)
 
-mockModule(import('@core/composables/route-query.composable.ts'), () => ({
-  useRouteQuery: (() => selectedBrId) as unknown as typeof useRouteQuery,
-}))
+mockModule(import('@core/composables/route-query.composable.ts'), () => import('@/test/mock-route-query.ts'))
 
 mockModule(import('@core/packages/overlay/use-overlay.ts'), () => import('@/test/mock-overlay.ts'))
 
@@ -43,14 +26,14 @@ let successHandled: Promise<void> | undefined
 beforeEach(() => {
   vi.restoreAllMocks()
   overlayMock.reset()
-  run.mockReset()
-  selectedBrId.value = ''
+  forgetJob.reset()
+  routeQueryMock.reset()
   successHandled = undefined
 })
 
 // The composable runs the job detached: like a successful job, the mock hands the results to `onSuccess`
 function mockForgetSuccess(results: ForgetResults, beforeSuccess?: () => void) {
-  run.mockImplementation(({ onSuccess }: { onSuccess: (results: ForgetResults) => Promise<void> }) => {
+  forgetJob.run.mockImplementation(({ onSuccess }: { onSuccess: (results: ForgetResults) => Promise<void> }) => {
     beforeSuccess?.()
     successHandled = onSuccess(results)
   })
@@ -63,7 +46,7 @@ function mountForget(brs: MaybeRefOrGetter<FrontXoBackupRepository[]>, { router 
   const result = mountComposable(() => useBackupRepositoryForget(brs), { router }).wrapper.vm
 
   // The composable declares the single repository modal first, then the type to confirm one
-  const [forgetModal, typeToConfirmModal] = overlayMock.getOverlays<MockedOverlay>()
+  const [forgetModal, typeToConfirmModal] = overlayMock.getOverlays()
 
   return { result, forgetModal, typeToConfirmModal }
 }
@@ -74,12 +57,7 @@ async function forgetAndConfirm(brs: MaybeRefOrGetter<FrontXoBackupRepository[]>
 
   result.forgetBackupRepositories()
 
-  const openedModal = overlayMock.getOverlays<MockedOverlay>().find(overlay => overlay.open.mock.calls.length > 0)
-
-  // The events can be declared with the modal, or given when opening it
-  const openEvents: OverlayEvents | undefined = openedModal?.open.mock.lastCall?.[0]?.events
-
-  ;(openEvents?.onConfirm ?? openedModal?.events.onConfirm)?.()
+  overlayMock.confirmOpened()
 
   await successHandled
 }
@@ -130,11 +108,11 @@ describe('on confirm', () => {
       { status: 'fulfilled', value: undefined },
       { status: 'fulfilled', value: undefined },
     ])
-    selectedBrId.value = secondBr.id
+    routeQueryMock.query.value = secondBr.id
 
     await forgetAndConfirm([firstBr, secondBr])
 
-    expect(selectedBrId.value).toBe('')
+    expect(routeQueryMock.query.value).toBe('')
   })
 
   it('keeps the repository shown in the side panel selected when forgetting it failed', async () => {
@@ -142,40 +120,40 @@ describe('on confirm', () => {
       { status: 'fulfilled', value: undefined },
       { status: 'rejected', reason: new Error('Backup repository unreachable') },
     ])
-    selectedBrId.value = secondBr.id
+    routeQueryMock.query.value = secondBr.id
 
     await forgetAndConfirm([firstBr, secondBr])
 
-    expect(selectedBrId.value).toBe(secondBr.id)
+    expect(routeQueryMock.query.value).toBe(secondBr.id)
   })
 
   it('keeps another repository shown in the side panel selected', async () => {
     mockForgetSuccess([{ status: 'fulfilled', value: undefined }])
-    selectedBrId.value = secondBr.id
+    routeQueryMock.query.value = secondBr.id
 
     await forgetAndConfirm([firstBr])
 
-    expect(selectedBrId.value).toBe(secondBr.id)
+    expect(routeQueryMock.query.value).toBe(secondBr.id)
   })
 
   it('runs the job detached so the modal closes right away', async () => {
     await forgetAndConfirm([firstBr])
 
-    expect(run).toHaveBeenCalledWith({ detached: true, onSuccess: expect.any(Function) })
+    expect(forgetJob.run).toHaveBeenCalledWith({ detached: true, onSuccess: expect.any(Function) })
   })
 
   it('keeps the repository shown in the side panel selected when the job failed', async () => {
     // A failed detached job never calls `onSuccess`
-    selectedBrId.value = firstBr.id
+    routeQueryMock.query.value = firstBr.id
 
     await forgetAndConfirm([firstBr])
 
-    expect(selectedBrId.value).toBe(firstBr.id)
+    expect(routeQueryMock.query.value).toBe(firstBr.id)
   })
 
   it('unselects the forgotten repository even when the repositories change during the job', async () => {
     const brs = ref([firstBr, secondBr])
-    selectedBrId.value = secondBr.id
+    routeQueryMock.query.value = secondBr.id
 
     // The forgotten repositories leave the collection before the job is over
     mockForgetSuccess(
@@ -190,7 +168,7 @@ describe('on confirm', () => {
 
     await forgetAndConfirm(brs)
 
-    expect(selectedBrId.value).toBe('')
+    expect(routeQueryMock.query.value).toBe('')
   })
 })
 

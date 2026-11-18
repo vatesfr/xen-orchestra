@@ -1,37 +1,28 @@
 import HostDashboardQuickInfo from '@/modules/host/components/dashboard/HostDashboardQuickInfo.vue'
-import type { FrontXoHost, useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
-import type { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
+import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import { createHost } from '@/test/create-host.ts'
 import { findCopiedValues, findLabelledValues, findTags } from '@/test/find-rendered-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
+import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
+import { vmCollectionMock } from '@/test/mock-xo-vm-collection.ts'
 import { mockModule } from '@/test/spy-on-module.ts'
 import { HOST_POWER_STATE } from '@vates/types'
 import { mount } from '@vue/test-utils'
-import { ref } from 'vue'
 
-const { useXoHostCollectionMock, getMasterHostByPoolId, isMasterHost } = vi.hoisted(() => ({
-  useXoHostCollectionMock: vi.fn(),
-  getMasterHostByPoolId: vi.fn(),
-  isMasterHost: vi.fn(),
-}))
+mockModule(
+  import('@/modules/host/remote-resources/use-xo-host-collection.ts'),
+  () => import('@/test/mock-xo-collections.ts')
+)
 
-mockModule(import('@/modules/host/remote-resources/use-xo-host-collection.ts'), () => ({
-  useXoHostCollection: useXoHostCollectionMock as unknown as typeof useXoHostCollection,
-}))
-
-mockModule(import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'), () => ({
-  useXoVmCollection: (() => ({ vmsByHost: ref(new Map()) })) as unknown as typeof useXoVmCollection,
-}))
+mockModule(
+  import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'),
+  () => import('@/test/mock-xo-vm-collection.ts')
+)
 
 beforeEach(() => {
-  useXoHostCollectionMock.mockReset()
-  getMasterHostByPoolId.mockReset()
-  isMasterHost.mockReset()
-
-  useXoHostCollectionMock.mockReturnValue({ areHostsReady: ref(true), getMasterHostByPoolId, isMasterHost })
-  getMasterHostByPoolId.mockReturnValue(undefined)
-  isMasterHost.mockReturnValue(false)
+  xoCollectionsMock.reset()
+  vmCollectionMock.reset()
 })
 
 function mountQuickInfo(host: FrontXoHost = createHost()) {
@@ -42,7 +33,7 @@ function mountQuickInfo(host: FrontXoHost = createHost()) {
 }
 
 it('shows a busy state instead of the rows while the hosts are still loading', () => {
-  useXoHostCollectionMock.mockReturnValue({ areHostsReady: ref(false), getMasterHostByPoolId, isMasterHost })
+  xoCollectionsMock.areHostsReady.value = false
 
   const wrapper = mountQuickInfo()
 
@@ -142,13 +133,15 @@ it('leaves the start time out for a host that is not running', () => {
 })
 
 it('names the host itself as the master of its pool', () => {
-  isMasterHost.mockReturnValue(true)
+  xoCollectionsMock.seedMasterHost(createHost())
 
   expect(findLabelledValues(mountQuickInfo())).toMatchObject({ [t('master')]: t('this-host') })
 })
 
 it('links to the master of the pool when the host is not it', () => {
-  getMasterHostByPoolId.mockReturnValue(createHost({ id: 'host-1' as FrontXoHost['id'], name_label: 'Primary Host' }))
+  const masterHost = createHost({ id: 'host-1' as FrontXoHost['id'], name_label: 'Primary Host' })
+  xoCollectionsMock.hosts.value = [masterHost]
+  xoCollectionsMock.seedMasterHost(masterHost)
 
   const wrapper = mountQuickInfo()
 

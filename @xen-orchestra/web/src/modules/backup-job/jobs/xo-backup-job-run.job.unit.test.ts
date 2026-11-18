@@ -1,64 +1,34 @@
 import { useXoBackupJobRunJob } from '@/modules/backup-job/jobs/xo-backup-job-run.job.ts'
 import type { FrontAnyXoBackupJob } from '@/modules/backup-job/remote-resources/use-xo-backup-job-collection.ts'
-import type {
-  FrontXoBackupLog,
-  useXoBackupLogCollection,
-} from '@/modules/backup-log/remote-resources/use-xo-backup-log-collection.ts'
-import type {
-  FrontXoSchedule,
-  useXoScheduleCollection,
-} from '@/modules/schedule/remote-resources/use-xo-schedule-collection.ts'
-import type { fetchPost } from '@/shared/utils/fetch.util.ts'
+import { fetchPost } from '@/shared/utils/fetch.util.ts'
 import { createVmBackupJob } from '@/test/create-backup-job.ts'
 import { createBackupLog } from '@/test/create-backup-log.ts'
 import { createSchedule } from '@/test/create-schedule.ts'
 import { t } from '@/test/i18n.ts'
+import { backupLogCollectionMock } from '@/test/mock-xo-backup-log-collection.ts'
+import { scheduleCollectionMock } from '@/test/mock-xo-schedule-collection.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
-import { mockModule } from '@/test/spy-on-module.ts'
-import { ref } from 'vue'
+import { seedBackupJobWithSchedules } from '@/test/seed-backup-job-schedules.ts'
+import { mockModule, mockedExport } from '@/test/spy-on-module.ts'
 
-const { post, schedulesByJobId, backupLogsByJobId } = vi.hoisted(() => ({
-  post: vi.fn(),
-  schedulesByJobId: new Map<string, FrontXoSchedule[]>(),
-  backupLogsByJobId: new Map<string, FrontXoBackupLog[]>(),
-}))
+const post = mockedExport(fetchPost)
 
-mockModule(import('@/shared/utils/fetch.util.ts'), () => ({
-  fetchPost: post as unknown as typeof fetchPost,
-}))
+mockModule(
+  import('@/modules/schedule/remote-resources/use-xo-schedule-collection.ts'),
+  () => import('@/test/mock-xo-schedule-collection.ts')
+)
 
-mockModule(import('@/modules/schedule/remote-resources/use-xo-schedule-collection.ts'), () => ({
-  useXoScheduleCollection: (() => ({
-    schedulesByJobId: ref(schedulesByJobId),
-  })) as unknown as typeof useXoScheduleCollection,
-}))
-
-mockModule(import('@/modules/backup-log/remote-resources/use-xo-backup-log-collection.ts'), () => ({
-  useXoBackupLogCollection: (() => ({
-    backupLogsByJobId: ref(backupLogsByJobId),
-  })) as unknown as typeof useXoBackupLogCollection,
-}))
+mockModule(
+  import('@/modules/backup-log/remote-resources/use-xo-backup-log-collection.ts'),
+  () => import('@/test/mock-xo-backup-log-collection.ts')
+)
 
 beforeEach(() => {
   vi.restoreAllMocks()
-  post.mockReset()
   post.mockResolvedValue(undefined)
-  schedulesByJobId.clear()
-  backupLogsByJobId.clear()
+  scheduleCollectionMock.reset()
+  backupLogCollectionMock.reset()
 })
-
-function createBackupJobWithSchedules(id: string, scheduleCount = 1) {
-  const backupJob = createVmBackupJob({ id: id as FrontAnyXoBackupJob['id'] })
-
-  schedulesByJobId.set(
-    backupJob.id,
-    Array.from({ length: scheduleCount }, (_, index) =>
-      createSchedule({ id: `${id}-schedule-${index}` as FrontXoSchedule['id'], jobId: backupJob.id })
-    )
-  )
-
-  return backupJob
-}
 
 function mountRunJob(backupJobs: FrontAnyXoBackupJob[]) {
   return mountComposable(() => useXoBackupJobRunJob(() => backupJobs)).wrapper.vm
@@ -66,8 +36,8 @@ function mountRunJob(backupJobs: FrontAnyXoBackupJob[]) {
 
 describe('run', () => {
   it('runs the schedule of every backup job', async () => {
-    const firstBackupJob = createBackupJobWithSchedules('backup-job-1')
-    const secondBackupJob = createBackupJobWithSchedules('backup-job-2')
+    const firstBackupJob = seedBackupJobWithSchedules('backup-job-1')
+    const secondBackupJob = seedBackupJobWithSchedules('backup-job-2')
 
     await mountRunJob([firstBackupJob, secondBackupJob]).run()
 
@@ -83,8 +53,8 @@ describe('run', () => {
     post.mockRejectedValueOnce(error)
 
     const results = await mountRunJob([
-      createBackupJobWithSchedules('backup-job-1'),
-      createBackupJobWithSchedules('backup-job-2'),
+      seedBackupJobWithSchedules('backup-job-1'),
+      seedBackupJobWithSchedules('backup-job-2'),
     ]).run()
 
     expect(results).toEqual([
@@ -96,12 +66,12 @@ describe('run', () => {
 
 describe('validate', () => {
   it('can run backup jobs with a single schedule', () => {
-    expect(mountRunJob([createBackupJobWithSchedules('backup-job-1')]).canRun).toBe(true)
+    expect(mountRunJob([seedBackupJobWithSchedules('backup-job-1')]).canRun).toBe(true)
   })
 
   it('can run a disabled backup job', () => {
     const backupJob = createVmBackupJob()
-    schedulesByJobId.set(backupJob.id, [createSchedule({ jobId: backupJob.id, enabled: false })])
+    scheduleCollectionMock.schedules.value = [createSchedule({ jobId: backupJob.id, enabled: false })]
 
     expect(mountRunJob([backupJob]).canRun).toBe(true)
   })
@@ -114,32 +84,29 @@ describe('validate', () => {
   })
 
   it('cannot run a backup job with multiple schedules', () => {
-    const job = mountRunJob([createBackupJobWithSchedules('backup-job-1', 2)])
+    const job = mountRunJob([seedBackupJobWithSchedules('backup-job-1', 2)])
 
     expect(job.canRun).toBe(false)
     expect(job.errorMessage).toBe(t('job:backup-job-run:multiple-schedules', { n: 1 }))
   })
 
   it('cannot run a selection where at least one backup job has multiple schedules', () => {
-    const job = mountRunJob([
-      createBackupJobWithSchedules('backup-job-1', 2),
-      createBackupJobWithSchedules('backup-job-2'),
-    ])
+    const job = mountRunJob([seedBackupJobWithSchedules('backup-job-1', 2), seedBackupJobWithSchedules('backup-job-2')])
 
     expect(job.canRun).toBe(false)
     expect(job.errorMessage).toBe(t('job:backup-job-run:multiple-schedules', { n: 2 }))
   })
 
   it('cannot run a backup job without schedule', () => {
-    const job = mountRunJob([createBackupJobWithSchedules('backup-job-1', 0)])
+    const job = mountRunJob([seedBackupJobWithSchedules('backup-job-1', 0)])
 
     expect(job.canRun).toBe(false)
     expect(job.errorMessage).toBe(t('job:backup-job-run:no-schedule', { n: 1 }))
   })
 
   it('cannot run a backup job already running', () => {
-    const backupJob = createBackupJobWithSchedules('backup-job-1')
-    backupLogsByJobId.set(backupJob.id, [createBackupLog({ jobId: backupJob.id, status: 'pending' })])
+    const backupJob = seedBackupJobWithSchedules('backup-job-1')
+    backupLogCollectionMock.backupLogs.value = [createBackupLog({ jobId: backupJob.id, status: 'pending' })]
 
     const job = mountRunJob([backupJob])
 
@@ -148,8 +115,8 @@ describe('validate', () => {
   })
 
   it('can run a backup job whose last run is over', () => {
-    const backupJob = createBackupJobWithSchedules('backup-job-1')
-    backupLogsByJobId.set(backupJob.id, [createBackupLog({ jobId: backupJob.id, status: 'success' })])
+    const backupJob = seedBackupJobWithSchedules('backup-job-1')
+    backupLogCollectionMock.backupLogs.value = [createBackupLog({ jobId: backupJob.id, status: 'success' })]
 
     expect(mountRunJob([backupJob]).canRun).toBe(true)
   })

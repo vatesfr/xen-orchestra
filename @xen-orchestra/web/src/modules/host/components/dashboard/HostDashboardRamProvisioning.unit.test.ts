@@ -1,22 +1,20 @@
 import HostDashboardRamProvisioning from '@/modules/host/components/dashboard/HostDashboardRamProvisioning.vue'
-import type { FrontXoHost, useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
+import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import { createHost } from '@/test/create-host.ts'
 import { findCardNumbers, findLegends } from '@/test/find-rendered-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
+import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
 import { mockModule } from '@/test/spy-on-module.ts'
 import { mount } from '@vue/test-utils'
-import { ref } from 'vue'
 
-const { useXoHostCollectionMock } = vi.hoisted(() => ({ useXoHostCollectionMock: vi.fn() }))
-
-mockModule(import('@/modules/host/remote-resources/use-xo-host-collection.ts'), () => ({
-  useXoHostCollection: useXoHostCollectionMock as unknown as typeof useXoHostCollection,
-}))
+mockModule(
+  import('@/modules/host/remote-resources/use-xo-host-collection.ts'),
+  () => import('@/test/mock-xo-collections.ts')
+)
 
 beforeEach(() => {
-  useXoHostCollectionMock.mockReset()
-  useXoHostCollectionMock.mockReturnValue({ areHostsReady: ref(true) })
+  xoCollectionsMock.reset()
 })
 
 function mountProvisioning(host: FrontXoHost = createHost({ memory: { size: 4294967296, usage: 1073741824 } })) {
@@ -33,7 +31,7 @@ it('renders the card title', () => {
 })
 
 it('shows a loader instead of the provisioning while the hosts are still loading', () => {
-  useXoHostCollectionMock.mockReturnValue({ areHostsReady: ref(false) })
+  xoCollectionsMock.areHostsReady.value = false
 
   const wrapper = mountProvisioning()
 

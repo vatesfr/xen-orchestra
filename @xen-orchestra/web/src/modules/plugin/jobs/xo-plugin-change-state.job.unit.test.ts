@@ -1,39 +1,28 @@
 import { useXoPluginChangeStateJob } from '@/modules/plugin/jobs/xo-plugin-change-state.job.ts'
 import type { FrontXoPlugin } from '@/modules/plugin/remote-resources/use-xo-plugin-collection.ts'
-import type { useXoTaskUtils } from '@/shared/composables/xo-task-utils.composable.ts'
-import type { fetchPatch, fetchPost } from '@/shared/utils/fetch.util.ts'
+import { fetchPatch, fetchPost } from '@/shared/utils/fetch.util.ts'
 import { createPlugin } from '@/test/create-plugin.ts'
 import { t } from '@/test/i18n.ts'
 import { expectJobRunning } from '@/test/job-running.ts'
+import { taskUtilsMock } from '@/test/mock-xo-task-utils.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
 import { silenceConsoleError } from '@/test/silence-console-error.ts'
-import { mockModule } from '@/test/spy-on-module.ts'
+import { mockModule, mockedExport } from '@/test/spy-on-module.ts'
 
-const { post, patch, monitorTask } = vi.hoisted(() => ({
-  post: vi.fn(),
-  patch: vi.fn(),
-  monitorTask: vi.fn(),
-}))
+const post = mockedExport(fetchPost)
+const patch = mockedExport(fetchPatch)
 
-mockModule(import('@/shared/utils/fetch.util.ts'), () => ({
-  fetchPost: post as unknown as typeof fetchPost,
-  fetchPatch: patch as unknown as typeof fetchPatch,
-}))
+const { monitorTask } = taskUtilsMock
 
 // The task collection would open an SSE subscription
-mockModule(import('@/shared/composables/xo-task-utils.composable.ts'), () => ({
-  useXoTaskUtils: (() => ({ monitorTask })) as unknown as typeof useXoTaskUtils,
-}))
+mockModule(import('@/shared/composables/xo-task-utils.composable.ts'), () => import('@/test/mock-xo-task-utils.ts'))
 
 beforeEach(() => {
   vi.restoreAllMocks()
-  post.mockReset()
-  patch.mockReset()
-  monitorTask.mockReset()
+  taskUtilsMock.reset()
 
   post.mockResolvedValue({ taskId: 'task-1' })
   patch.mockResolvedValue(undefined)
-  monitorTask.mockResolvedValue(undefined)
 })
 
 const unloadedPlugin = createPlugin({ loaded: false })

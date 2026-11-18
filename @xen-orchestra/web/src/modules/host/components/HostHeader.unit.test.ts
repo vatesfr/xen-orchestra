@@ -1,52 +1,42 @@
 import HostHeader from '@/modules/host/components/HostHeader.vue'
-import type { FrontXoHost, useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
-import type { useXoTaskCollection } from '@/modules/task/remote-resources/use-xo-task-collection.ts'
-import type { FrontXoVm, useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
-import type { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
+import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import { createHost } from '@/test/create-host.ts'
 import { createTestRouter } from '@/test/create-test-router.ts'
 import { createVm } from '@/test/create-vm.ts'
 import { findTooltipContent } from '@/test/find-tooltip-content.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
+import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
+import { taskCollectionMock } from '@/test/mock-xo-task-collection.ts'
+import { vmCollectionMock } from '@/test/mock-xo-vm-collection.ts'
 import { mockModule } from '@/test/spy-on-module.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import UiHeadBar from '@core/components/ui/head-bar/UiHeadBar.vue'
 import { objectIcon } from '@core/icons'
 import { HOST_ALLOWED_OPERATIONS, HOST_POWER_STATE, VM_OPERATIONS } from '@vates/types'
 import { mount } from '@vue/test-utils'
-import { computed } from 'vue'
 
-const { isMasterHost, vmsByHost, buildXo5Route } = vi.hoisted(() => ({
-  isMasterHost: vi.fn(),
-  vmsByHost: vi.fn(),
-  buildXo5Route: vi.fn(),
-}))
+mockModule(
+  import('@/modules/host/remote-resources/use-xo-host-collection.ts'),
+  () => import('@/test/mock-xo-collections.ts')
+)
 
-mockModule(import('@/modules/host/remote-resources/use-xo-host-collection.ts'), () => ({
-  useXoHostCollection: (() => ({ isMasterHost })) as unknown as typeof useXoHostCollection,
-}))
+mockModule(
+  import('@/modules/task/remote-resources/use-xo-task-collection.ts'),
+  () => import('@/test/mock-xo-task-collection.ts')
+)
 
-mockModule(import('@/modules/task/remote-resources/use-xo-task-collection.ts'), () => ({
-  useXoTaskCollection: (() => ({ useGetTaskById: () => undefined })) as unknown as typeof useXoTaskCollection,
-}))
+mockModule(
+  import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'),
+  () => import('@/test/mock-xo-vm-collection.ts')
+)
 
-mockModule(import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'), () => ({
-  useXoVmCollection: (() => ({ vmsByHost: computed(() => vmsByHost()) })) as unknown as typeof useXoVmCollection,
-}))
-
-mockModule(import('@/shared/remote-resources/use-xo-routes.ts'), () => ({
-  useXoRoutes: (() => ({ buildXo5Route })) as unknown as typeof useXoRoutes,
-}))
+mockModule(import('@/shared/remote-resources/use-xo-routes.ts'), () => import('@/test/mock-xo-routes.ts'))
 
 beforeEach(() => {
-  isMasterHost.mockReset()
-  vmsByHost.mockReset()
-  buildXo5Route.mockReset()
-
-  isMasterHost.mockReturnValue(false)
-  vmsByHost.mockReturnValue(new Map())
-  buildXo5Route.mockImplementation((path: string) => `https://xo5.example.com/#${path}`)
+  xoCollectionsMock.reset()
+  taskCollectionMock.reset()
+  vmCollectionMock.reset()
 })
 
 function mountHeader(host: FrontXoHost = createHost()) {
@@ -119,11 +109,9 @@ it('keeps the host state icon but shows a loader while its resident VMs are susp
     current_operations: {},
   })
 
-  vmsByHost.mockReturnValue(
-    new Map<FrontXoHost['id'], FrontXoVm[]>([
-      [host.id, [createVm({ current_operations: { 'task-1': VM_OPERATIONS.SUSPEND } })]],
-    ])
-  )
+  vmCollectionMock.vms.value = [
+    createVm({ $container: host.id, current_operations: { 'task-1': VM_OPERATIONS.SUSPEND } }),
+  ]
 
   const wrapper = mountHeader(host)
 
@@ -132,9 +120,10 @@ it('keeps the host state icon but shows a loader while its resident VMs are susp
 })
 
 it('shows the master icon next to the title when the host is the pool master', () => {
-  isMasterHost.mockReturnValue(true)
+  const host = createHost({ current_operations: {} })
+  xoCollectionsMock.seedMasterHost(host)
 
-  const wrapper = mountHeader(createHost({ current_operations: {} }))
+  const wrapper = mountHeader(host)
 
   expect(wrapper.get('.ui-head-bar .status').getComponent(VtsIcon).props('name')).toBe('status:primary-circle')
 })

@@ -5,27 +5,27 @@ import {
   SMB_DEFAULT_DOMAIN,
 } from '@/modules/backup-repository/utils/xo-backup-repository-details-payload.util.ts'
 import { MASKED_SECRET } from '@/modules/backup-repository/utils/xo-backup-repository.util.ts'
-import type { FrontXoProxy, useXoProxyCollection } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
+import { createProxy } from '@/test/create-proxy.ts'
 import { findLabelledValues } from '@/test/find-rendered-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
+import { proxyCollectionMock } from '@/test/mock-xo-proxy-collection.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
 import { mockModule } from '@/test/spy-on-module.ts'
 import { flushPromises, mount } from '@vue/test-utils'
-import { computed, type MaybeRefOrGetter, ref, toValue } from 'vue'
 import type { BackupRepositoryType } from 'xo-remote-parser'
 
-const { PROXY } = vi.hoisted(() => ({
-  PROXY: { id: 'proxy-1', name: 'Proxy 1' } as FrontXoProxy,
-}))
+const PROXY = createProxy()
 
-mockModule(import('@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'), () => ({
-  useXoProxyCollection: (() => ({
-    proxies: ref([PROXY]),
-    useGetProxyById: (id: MaybeRefOrGetter<FrontXoProxy['id'] | undefined>) =>
-      computed(() => (toValue(id) === PROXY.id ? PROXY : undefined)),
-  })) as unknown as typeof useXoProxyCollection,
-}))
+mockModule(
+  import('@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'),
+  () => import('@/test/mock-xo-proxy-collection.ts')
+)
+
+beforeEach(() => {
+  proxyCollectionMock.reset()
+  proxyCollectionMock.proxies.value = [PROXY]
+})
 
 type NewForm = ReturnType<typeof useNewBackupRepositoryForm>
 

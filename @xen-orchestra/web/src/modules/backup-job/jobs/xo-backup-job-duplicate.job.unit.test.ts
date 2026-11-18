@@ -1,37 +1,25 @@
 import { useXoBackupJobDuplicateJob } from '@/modules/backup-job/jobs/xo-backup-job-duplicate.job.ts'
 import type { FrontAnyXoBackupJob } from '@/modules/backup-job/remote-resources/use-xo-backup-job-collection.ts'
-import type {
-  FrontXoSchedule,
-  useXoScheduleCollection,
-} from '@/modules/schedule/remote-resources/use-xo-schedule-collection.ts'
-import type { fetchPost } from '@/shared/utils/fetch.util.ts'
+import type { FrontXoSchedule } from '@/modules/schedule/remote-resources/use-xo-schedule-collection.ts'
+import { fetchPost } from '@/shared/utils/fetch.util.ts'
 import { createVmBackupJob } from '@/test/create-backup-job.ts'
 import { createSchedule } from '@/test/create-schedule.ts'
 import { t } from '@/test/i18n.ts'
+import { scheduleCollectionMock } from '@/test/mock-xo-schedule-collection.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
-import { mockModule } from '@/test/spy-on-module.ts'
-import { ref } from 'vue'
+import { mockModule, mockedExport } from '@/test/spy-on-module.ts'
 
-const { post, schedulesByJobId } = vi.hoisted(() => ({
-  post: vi.fn(),
-  schedulesByJobId: new Map<string, FrontXoSchedule[]>(),
-}))
+const post = mockedExport(fetchPost)
 
-mockModule(import('@/shared/utils/fetch.util.ts'), () => ({
-  fetchPost: post as unknown as typeof fetchPost,
-}))
-
-mockModule(import('@/modules/schedule/remote-resources/use-xo-schedule-collection.ts'), () => ({
-  useXoScheduleCollection: (() => ({
-    schedulesByJobId: ref(schedulesByJobId),
-  })) as unknown as typeof useXoScheduleCollection,
-}))
+mockModule(
+  import('@/modules/schedule/remote-resources/use-xo-schedule-collection.ts'),
+  () => import('@/test/mock-xo-schedule-collection.ts')
+)
 
 beforeEach(() => {
   vi.restoreAllMocks()
-  post.mockReset()
   post.mockResolvedValue({ id: 'new-backup-job' })
-  schedulesByJobId.clear()
+  scheduleCollectionMock.reset()
 })
 
 const backupJob = createVmBackupJob({ id: 'backup-job-1' as FrontAnyXoBackupJob['id'], name: 'Nightly backup' })
@@ -43,7 +31,7 @@ function mountDuplicateJob(backupJobs: FrontAnyXoBackupJob[]) {
 describe('run', () => {
   it('creates a copy of the backup job with its schedules', async () => {
     const schedule = createSchedule({ id: 'schedule-1' as FrontXoSchedule['id'], jobId: backupJob.id })
-    schedulesByJobId.set(backupJob.id, [schedule])
+    scheduleCollectionMock.schedules.value = [schedule]
 
     await mountDuplicateJob([backupJob]).run()
 

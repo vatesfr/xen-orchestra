@@ -1,67 +1,49 @@
 import { useVmDelete } from '@/modules/vm/composables/use-vm-delete.composable.ts'
-import type { useXoVmDeleteJob } from '@/modules/vm/jobs/xo-vm-delete.job.ts'
+import { useXoVmDeleteJob } from '@/modules/vm/jobs/xo-vm-delete.job.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { createJobResult } from '@/test/create-job-result.ts'
 import { createTestRouter } from '@/test/create-test-router.ts'
 import { createVm } from '@/test/create-vm.ts'
 import { t } from '@/test/i18n.ts'
+import { deleteModalMock } from '@/test/mock-delete-modal.ts'
+import { overlayMock } from '@/test/mock-overlay.ts'
+import { routeQueryMock } from '@/test/mock-route-query.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
-import { mockModule } from '@/test/spy-on-module.ts'
-import type { useDeleteModal } from '@core/composables/modals/use-delete-modal.ts'
+import { mockModule, mockedExport } from '@/test/spy-on-module.ts'
 import type { useTypeToConfirmModal } from '@core/composables/modals/use-type-to-confirm-modal.ts'
-import type { useRouteQuery } from '@core/composables/route-query.composable.ts'
-import type { useOverlay } from '@core/packages/overlay/use-overlay.ts'
 import { type MaybeRefOrGetter, ref, toValue } from 'vue'
 import type { Router } from 'vue-router'
 
 type DeleteResults = PromiseSettledResult<unknown>[]
 
-const { run, useDeleteJob, openDeleteModal, openTypeToConfirmModal, partialDeletionDrawer, selectedVmId } = vi.hoisted(
-  () => ({
-    run: vi.fn(),
-    useDeleteJob: vi.fn(),
-    openDeleteModal: vi.fn(),
-    openTypeToConfirmModal: vi.fn(),
-    partialDeletionDrawer: { open: vi.fn(), events: {} as { onConfirm?: () => void } },
-    selectedVmId: { value: '' },
-  })
-)
+type PartialDeletionDrawer = { events: { onConfirm?: () => void } }
 
 // The job deletes the VMs through the REST API
-mockModule(import('@/modules/vm/jobs/xo-vm-delete.job.ts'), () => ({
-  useXoVmDeleteJob: useDeleteJob as unknown as typeof useXoVmDeleteJob,
-}))
+const useDeleteJob = mockedExport(useXoVmDeleteJob)
 
-mockModule(import('@core/composables/modals/use-delete-modal.ts'), () => ({
-  useDeleteModal: (() => ({ open: openDeleteModal })) as unknown as typeof useDeleteModal,
-}))
+const run = vi.fn()
+const openTypeToConfirmModal = vi.fn()
+
+mockModule(import('@core/composables/modals/use-delete-modal.ts'), () => import('@/test/mock-delete-modal.ts'))
 
 mockModule(import('@core/composables/modals/use-type-to-confirm-modal.ts'), () => ({
   useTypeToConfirmModal: (() => ({ open: openTypeToConfirmModal })) as unknown as typeof useTypeToConfirmModal,
 }))
 
 // The partial deletion drawer is the only overlay the composable opens directly
-mockModule(import('@core/packages/overlay/use-overlay.ts'), () => ({
-  useOverlay: (({ events }: { events: typeof partialDeletionDrawer.events }) => {
-    partialDeletionDrawer.events = events
+mockModule(import('@core/packages/overlay/use-overlay.ts'), () => import('@/test/mock-overlay.ts'))
 
-    return { open: partialDeletionDrawer.open }
-  }) as unknown as typeof useOverlay,
-}))
-
-mockModule(import('@core/composables/route-query.composable.ts'), () => ({
-  useRouteQuery: (() => selectedVmId) as unknown as typeof useRouteQuery,
-}))
+mockModule(import('@core/composables/route-query.composable.ts'), () => import('@/test/mock-route-query.ts'))
 
 let successHandled: Promise<void> | undefined
 
 beforeEach(() => {
   run.mockReset()
-  useDeleteJob.mockReset().mockReturnValue(createJobResult(run))
-  openDeleteModal.mockReset()
+  useDeleteJob.mockReturnValue(createJobResult(run))
+  deleteModalMock.reset()
   openTypeToConfirmModal.mockReset()
-  partialDeletionDrawer.open.mockReset()
-  selectedVmId.value = ''
+  overlayMock.reset()
+  routeQueryMock.reset()
   successHandled = undefined
 })
 
@@ -88,7 +70,7 @@ function mockDeleteSuccess(results: DeleteResults, beforeSuccess?: () => void) {
 async function deleteAndConfirm(vms: MaybeRefOrGetter<FrontXoVm[]>, options?: { router?: Router }) {
   mountDelete(vms, options).deleteVms()
 
-  const [openOptions] = openDeleteModal.mock.lastCall ?? openTypeToConfirmModal.mock.lastCall ?? []
+  const [openOptions] = deleteModalMock.open.mock.lastCall ?? openTypeToConfirmModal.mock.lastCall ?? []
 
   openOptions.events.onConfirm()
 
@@ -107,7 +89,7 @@ describe('deleteVms', () => {
   it('asks to confirm the deletion of a single VM by its name', () => {
     mountDelete([firstVm]).deleteVms()
 
-    expect(openDeleteModal.mock.calls[0][0].props).toEqual({
+    expect(deleteModalMock.open.mock.calls[0][0].props).toEqual({
       accent: 'danger',
       subject: 'Web server',
       description: t('vm-delete-warning'),
@@ -127,7 +109,7 @@ describe('deleteVms', () => {
       confirmationText: t('n-vms', { n: 2 }),
       confirmLabel: t('action:delete-n-vms', { n: 2 }),
     })
-    expect(openDeleteModal).not.toHaveBeenCalled()
+    expect(deleteModalMock.open).not.toHaveBeenCalled()
   })
 
   it('does not delete anything until confirmed', () => {
@@ -149,29 +131,29 @@ describe('with protected VMs', () => {
   it('shows which VMs will be deleted and which are protected', () => {
     mountDelete([firstVm, protectedVm]).deleteVms()
 
-    expect(partialDeletionDrawer.open).toHaveBeenCalledWith({
+    expect(overlayMock.getOverlay().open).toHaveBeenCalledWith({
       props: { deletableVms: [firstVm], protectedVms: [protectedVm] },
     })
-    expect(openDeleteModal).not.toHaveBeenCalled()
+    expect(deleteModalMock.open).not.toHaveBeenCalled()
     expect(openTypeToConfirmModal).not.toHaveBeenCalled()
   })
 
   it('deletes the other VMs once the partial deletion is confirmed', () => {
     mountDelete([firstVm, protectedVm]).deleteVms()
 
-    partialDeletionDrawer.events.onConfirm?.()
+    overlayMock.getOverlay<PartialDeletionDrawer>().events.onConfirm?.()
 
     expect(run).toHaveBeenCalledWith({ detached: true, onSuccess: expect.any(Function) })
   })
 
   it('unselects the VM shown in the side panel once deleted alongside a protected one', () => {
     mockDeleteSuccess([{ status: 'fulfilled', value: undefined }])
-    selectedVmId.value = secondVm.id
+    routeQueryMock.query.value = secondVm.id
 
     mountDelete([protectedVm, secondVm]).deleteVms()
-    partialDeletionDrawer.events.onConfirm?.()
+    overlayMock.getOverlay<PartialDeletionDrawer>().events.onConfirm?.()
 
-    expect(selectedVmId.value).toBe('')
+    expect(routeQueryMock.query.value).toBe('')
   })
 
   it('forbids deleting when every VM is protected', () => {
@@ -194,11 +176,11 @@ describe('on confirm', () => {
       { status: 'fulfilled', value: undefined },
       { status: 'fulfilled', value: undefined },
     ])
-    selectedVmId.value = secondVm.id
+    routeQueryMock.query.value = secondVm.id
 
     await deleteAndConfirm([firstVm, secondVm])
 
-    expect(selectedVmId.value).toBe('')
+    expect(routeQueryMock.query.value).toBe('')
   })
 
   it('keeps the VM shown in the side panel selected when deleting it failed', async () => {
@@ -206,25 +188,25 @@ describe('on confirm', () => {
       { status: 'fulfilled', value: undefined },
       { status: 'rejected', reason: new Error('VM is running') },
     ])
-    selectedVmId.value = secondVm.id
+    routeQueryMock.query.value = secondVm.id
 
     await deleteAndConfirm([firstVm, secondVm])
 
-    expect(selectedVmId.value).toBe(secondVm.id)
+    expect(routeQueryMock.query.value).toBe(secondVm.id)
   })
 
   it('keeps another VM shown in the side panel selected', async () => {
     mockDeleteSuccess([{ status: 'fulfilled', value: undefined }])
-    selectedVmId.value = secondVm.id
+    routeQueryMock.query.value = secondVm.id
 
     await deleteAndConfirm([firstVm])
 
-    expect(selectedVmId.value).toBe(secondVm.id)
+    expect(routeQueryMock.query.value).toBe(secondVm.id)
   })
 
   it('unselects the deleted VM even when the VMs change during the job', async () => {
     const vms = ref([firstVm, secondVm])
-    selectedVmId.value = secondVm.id
+    routeQueryMock.query.value = secondVm.id
 
     // The deleted VMs leave the collection before the job is over
     mockDeleteSuccess(
@@ -239,7 +221,7 @@ describe('on confirm', () => {
 
     await deleteAndConfirm(vms)
 
-    expect(selectedVmId.value).toBe('')
+    expect(routeQueryMock.query.value).toBe('')
   })
 })
 

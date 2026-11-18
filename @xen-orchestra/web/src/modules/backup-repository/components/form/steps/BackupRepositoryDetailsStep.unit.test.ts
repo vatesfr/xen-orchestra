@@ -5,17 +5,21 @@ import BackupRepositoryS3Fields from '@/modules/backup-repository/components/for
 import BackupRepositorySmbFields from '@/modules/backup-repository/components/form/fields/BackupRepositorySmbFields.vue'
 import BackupRepositoryDetailsStep from '@/modules/backup-repository/components/form/steps/BackupRepositoryDetailsStep.vue'
 import { useNewBackupRepositoryForm } from '@/modules/backup-repository/form/new/use-new-backup-repository-form.ts'
-import type { useXoProxyCollection } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
+import { proxyCollectionMock } from '@/test/mock-xo-proxy-collection.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
 import { mockModule } from '@/test/spy-on-module.ts'
 import { mount, type VueWrapper } from '@vue/test-utils'
-import { ref } from 'vue'
 import type { BackupRepositoryType } from 'xo-remote-parser'
 
-mockModule(import('@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'), () => ({
-  useXoProxyCollection: (() => ({ proxies: ref([]) })) as unknown as typeof useXoProxyCollection,
-}))
+mockModule(
+  import('@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'),
+  () => import('@/test/mock-xo-proxy-collection.ts')
+)
+
+beforeEach(() => {
+  proxyCollectionMock.reset()
+})
 
 const FIELDS = {
   local: BackupRepositoryLocalFields,

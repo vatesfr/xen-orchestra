@@ -1,18 +1,11 @@
-import type { FrontXoHost, useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
-import type {
-  FrontXoNetwork,
-  useXoNetworkCollection,
-} from '@/modules/network/remote-resources/use-xo-network-collection.ts'
-import type { FrontXoPbd, useXoPbdCollection } from '@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'
-import type { FrontXoPif, useXoPifCollection } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
-import type { FrontXoPool, useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
-import type {
-  FrontXoSr,
-  useXoSrCollection,
-} from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
-import type { FrontXoVbd, useXoVbdCollection } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
-import type { FrontXoVdi, useXoVdiCollection } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
-import type { FrontXoVif, useXoVifCollection } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
+import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
+import type { FrontXoNetwork } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
+import type { FrontXoPbd } from '@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'
+import type { FrontXoPif } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
+import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
+import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
+import type { FrontXoVbd } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
+import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
 import VmMigrateDrawer from '@/modules/vm/components/drawer/VmMigrateDrawer.vue'
 import VmMigrateVdisTable from '@/modules/vm/components/form/migrate/VmMigrateVdisTable.vue'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
@@ -26,69 +19,56 @@ import { createVbd } from '@/test/create-vbd.ts'
 import { createVdi } from '@/test/create-vdi.ts'
 import { createVm } from '@/test/create-vm.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
-import { groupBy } from '@/test/group-by.ts'
 import { t } from '@/test/i18n.ts'
+import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
+import { vmDeviceCollectionsMock } from '@/test/mock-xo-vm-device-collections.ts'
 import { mockModule } from '@/test/spy-on-module.ts'
 import { flushPromises, mount, type VueWrapper } from '@vue/test-utils'
-import { computed, type MaybeRefOrGetter, ref, toValue } from 'vue'
 
-const {
-  useXoPoolCollectionMock,
-  useXoHostCollectionMock,
-  useXoNetworkCollectionMock,
-  useXoPifCollectionMock,
-  useXoSrCollectionMock,
-  useXoPbdCollectionMock,
-  useXoVbdCollectionMock,
-  useXoVdiCollectionMock,
-  useXoVifCollectionMock,
-} = vi.hoisted(() => ({
-  useXoPoolCollectionMock: vi.fn(),
-  useXoHostCollectionMock: vi.fn(),
-  useXoNetworkCollectionMock: vi.fn(),
-  useXoPifCollectionMock: vi.fn(),
-  useXoSrCollectionMock: vi.fn(),
-  useXoPbdCollectionMock: vi.fn(),
-  useXoVbdCollectionMock: vi.fn(),
-  useXoVdiCollectionMock: vi.fn(),
-  useXoVifCollectionMock: vi.fn(),
-}))
+mockModule(
+  import('@/modules/pool/remote-resources/use-xo-pool-collection.ts'),
+  () => import('@/test/mock-xo-collections.ts')
+)
 
-mockModule(import('@/modules/pool/remote-resources/use-xo-pool-collection.ts'), () => ({
-  useXoPoolCollection: useXoPoolCollectionMock as unknown as typeof useXoPoolCollection,
-}))
+mockModule(
+  import('@/modules/host/remote-resources/use-xo-host-collection.ts'),
+  () => import('@/test/mock-xo-collections.ts')
+)
 
-mockModule(import('@/modules/host/remote-resources/use-xo-host-collection.ts'), () => ({
-  useXoHostCollection: useXoHostCollectionMock as unknown as typeof useXoHostCollection,
-}))
+mockModule(
+  import('@/modules/network/remote-resources/use-xo-network-collection.ts'),
+  () => import('@/test/mock-xo-collections.ts')
+)
 
-mockModule(import('@/modules/network/remote-resources/use-xo-network-collection.ts'), () => ({
-  useXoNetworkCollection: useXoNetworkCollectionMock as unknown as typeof useXoNetworkCollection,
-}))
+mockModule(
+  import('@/modules/pif/remote-resources/use-xo-pif-collection.ts'),
+  () => import('@/test/mock-xo-collections.ts')
+)
 
-mockModule(import('@/modules/pif/remote-resources/use-xo-pif-collection.ts'), () => ({
-  useXoPifCollection: useXoPifCollectionMock as unknown as typeof useXoPifCollection,
-}))
+mockModule(
+  import('@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'),
+  () => import('@/test/mock-xo-collections.ts')
+)
 
-mockModule(import('@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'), () => ({
-  useXoSrCollection: useXoSrCollectionMock as unknown as typeof useXoSrCollection,
-}))
+mockModule(
+  import('@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'),
+  () => import('@/test/mock-xo-collections.ts')
+)
 
-mockModule(import('@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'), () => ({
-  useXoPbdCollection: useXoPbdCollectionMock as unknown as typeof useXoPbdCollection,
-}))
+mockModule(
+  import('@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'),
+  () => import('@/test/mock-xo-vm-device-collections.ts')
+)
 
-mockModule(import('@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'), () => ({
-  useXoVbdCollection: useXoVbdCollectionMock as unknown as typeof useXoVbdCollection,
-}))
+mockModule(
+  import('@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'),
+  () => import('@/test/mock-xo-vm-device-collections.ts')
+)
 
-mockModule(import('@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'), () => ({
-  useXoVdiCollection: useXoVdiCollectionMock as unknown as typeof useXoVdiCollection,
-}))
-
-mockModule(import('@/modules/vif/remote-resources/use-xo-vif-collection.ts'), () => ({
-  useXoVifCollection: useXoVifCollectionMock as unknown as typeof useXoVifCollection,
-}))
+mockModule(
+  import('@/modules/vif/remote-resources/use-xo-vif-collection.ts'),
+  () => import('@/test/mock-xo-vm-device-collections.ts')
+)
 
 const POOL_ID = 'pool-1' as FrontXoPool['id']
 const SOURCE_HOST_ID = 'host-src' as FrontXoHost['id']
@@ -128,65 +108,19 @@ const vdis = [createVdi({ id: VDI_ID, name_label: 'Disk', $SR: SR_ID, $pool: POO
 
 const vbds = [createVbd({ id: VBD_ID, VDI: VDI_ID })]
 
-// The SR is reachable from the target host unless a test disconnects it
-const loadedPbds = ref<FrontXoPbd[]>([])
-
 beforeEach(() => {
-  useXoPoolCollectionMock.mockReset()
-  useXoHostCollectionMock.mockReset()
-  useXoNetworkCollectionMock.mockReset()
-  useXoPifCollectionMock.mockReset()
-  useXoSrCollectionMock.mockReset()
-  useXoPbdCollectionMock.mockReset()
-  useXoVbdCollectionMock.mockReset()
-  useXoVdiCollectionMock.mockReset()
-  useXoVifCollectionMock.mockReset()
+  xoCollectionsMock.reset()
+  vmDeviceCollectionsMock.reset()
 
-  loadedPbds.value = [sourceHostPbd, targetHostPbd]
-
-  useXoPoolCollectionMock.mockReturnValue({
-    pools: computed(() => pools),
-    useGetPoolById: (id: MaybeRefOrGetter<FrontXoPool['id'] | undefined>) =>
-      computed(() => pools.find(pool => pool.id === toValue(id))),
-  })
-
-  useXoHostCollectionMock.mockReturnValue({
-    hostsByPool: computed(() => groupBy(hosts, host => host.$pool)),
-    getHostById: (id: FrontXoHost['id'] | undefined) => hosts.find(host => host.id === id),
-  })
-
-  useXoNetworkCollectionMock.mockReturnValue({
-    networks: computed(() => networks),
-    getNetworkById: (id: FrontXoNetwork['id'] | undefined) => networks.find(network => network.id === id),
-  })
-
-  useXoPifCollectionMock.mockReturnValue({
-    pifsByHost: computed(() => groupBy(pifs, pif => pif.$host)),
-    getPifsByIds: (ids: FrontXoPif['id'][]) => pifs.filter(pif => ids.includes(pif.id)),
-  })
-
-  useXoSrCollectionMock.mockReturnValue({
-    srs: computed(() => srs),
-    getSrById: (id: FrontXoSr['id'] | undefined) => srs.find(sr => sr.id === id),
-  })
-
-  useXoPbdCollectionMock.mockReturnValue({
-    pbdsBySr: computed(() => groupBy(loadedPbds.value, pbd => pbd.SR)),
-    getPbdsByIds: (ids: FrontXoPbd['id'][]) => loadedPbds.value.filter(pbd => ids.includes(pbd.id)),
-  })
-
-  useXoVbdCollectionMock.mockReturnValue({
-    getVbdsByIds: (ids: FrontXoVbd['id'][]) => vbds.filter(vbd => ids.includes(vbd.id)),
-  })
-
-  useXoVdiCollectionMock.mockReturnValue({
-    useGetVdisByIds: (ids: MaybeRefOrGetter<FrontXoVdi['id'][]>) =>
-      computed(() => vdis.filter(vdi => toValue(ids).includes(vdi.id))),
-  })
-
-  useXoVifCollectionMock.mockReturnValue({
-    useGetVifsByIds: (ids: MaybeRefOrGetter<FrontXoVif['id'][]>) => computed(() => toValue(ids).map(() => undefined)),
-  })
+  xoCollectionsMock.pools.value = pools
+  xoCollectionsMock.hosts.value = hosts
+  xoCollectionsMock.networks.value = networks
+  xoCollectionsMock.pifs.value = pifs
+  xoCollectionsMock.srs.value = srs
+  // The SR is reachable from the target host unless a test disconnects it
+  xoCollectionsMock.pbds.value = [sourceHostPbd, targetHostPbd]
+  vmDeviceCollectionsMock.vbds.value = vbds
+  vmDeviceCollectionsMock.vdis.value = vdis
 })
 
 async function mountDrawer(vm: FrontXoVm = createVm({ $pool: POOL_ID, $container: SOURCE_HOST_ID, $VBDs: [VBD_ID] })) {
@@ -310,7 +244,7 @@ describe('mapping step', () => {
   })
 
   it('stays on the mapping step and lists the errors when a disk has no destination SR', async () => {
-    loadedPbds.value = [sourceHostPbd]
+    xoCollectionsMock.pbds.value = [sourceHostPbd]
 
     const wrapper = await mountDrawerAtMappingStep()
 
@@ -324,7 +258,7 @@ describe('mapping step', () => {
   })
 
   it('hides the errors again when going back to the general step', async () => {
-    loadedPbds.value = [sourceHostPbd]
+    xoCollectionsMock.pbds.value = [sourceHostPbd]
 
     const wrapper = await mountDrawerAtMappingStep()
     await submit(wrapper)

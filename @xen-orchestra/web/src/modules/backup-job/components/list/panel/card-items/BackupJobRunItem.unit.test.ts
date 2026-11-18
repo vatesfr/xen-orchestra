@@ -1,38 +1,29 @@
 import BackupJobRunItem from '@/modules/backup-job/components/list/panel/card-items/BackupJobRunItem.vue'
 import type { FrontXoBackupLog } from '@/modules/backup-log/remote-resources/use-xo-backup-log-collection.ts'
-import type {
-  FrontXoSchedule,
-  useXoScheduleCollection,
-} from '@/modules/schedule/remote-resources/use-xo-schedule-collection.ts'
+import type { FrontXoSchedule } from '@/modules/schedule/remote-resources/use-xo-schedule-collection.ts'
 import { createBackupLog, createBackupLogTask } from '@/test/create-backup-log.ts'
 import { createSchedule } from '@/test/create-schedule.ts'
 import { findCardLabelledValues } from '@/test/find-rendered-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
+import { scheduleCollectionMock } from '@/test/mock-xo-schedule-collection.ts'
 import { mockModule } from '@/test/spy-on-module.ts'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiLogEntryViewer from '@core/components/ui/log-entry-viewer/UiLogEntryViewer.vue'
 import { formatDateTime } from '@core/utils/time.util.ts'
 import { mount } from '@vue/test-utils'
-import { computed, toValue, type MaybeRefOrGetter } from 'vue'
-
-const { schedules } = vi.hoisted(() => ({
-  schedules: [] as FrontXoSchedule[],
-}))
 
 mockModule(import('@/shared/remote-resources/use-xo-routes.ts'), () => import('@/test/mock-xo-routes.ts'))
 
-mockModule(import('@/modules/schedule/remote-resources/use-xo-schedule-collection.ts'), () => ({
-  useXoScheduleCollection: (() => ({
-    useGetScheduleById: (id: MaybeRefOrGetter<FrontXoSchedule['id'] | undefined>) =>
-      computed(() => schedules.find(schedule => schedule.id === toValue(id))),
-  })) as unknown as typeof useXoScheduleCollection,
-}))
+mockModule(
+  import('@/modules/schedule/remote-resources/use-xo-schedule-collection.ts'),
+  () => import('@/test/mock-xo-schedule-collection.ts')
+)
 
 const schedule = createSchedule({ id: 'schedule-789' as FrontXoSchedule['id'], name: 'Nightly' })
 
 beforeEach(() => {
-  schedules.splice(0, schedules.length, schedule)
+  scheduleCollectionMock.schedules.value = [schedule]
 })
 
 function findScheduleRow(wrapper: ReturnType<typeof mountRun>) {
@@ -74,13 +65,13 @@ describe('schedule', () => {
   })
 
   it('names a schedule without name as untitled', () => {
-    schedules.splice(0, schedules.length, { ...schedule, name: '' })
+    scheduleCollectionMock.schedules.value = [{ ...schedule, name: '' }]
 
     expect(findCardLabelledValues(mountRun(createBackupLog()))[t('schedule')]).toBe(t('untitled'))
   })
 
   it('shows the id of a deleted schedule, without link', () => {
-    schedules.splice(0, schedules.length)
+    scheduleCollectionMock.schedules.value = []
 
     const wrapper = mountRun(createBackupLog())
 

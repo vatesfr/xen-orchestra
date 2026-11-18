@@ -1,67 +1,36 @@
 import PluginConfigurationDrawer from '@/modules/plugin/components/drawer/PluginConfigurationDrawer.vue'
 import PluginTestDrawer from '@/modules/plugin/components/drawer/PluginTestDrawer.vue'
 import { useXoPluginActions } from '@/modules/plugin/composables/use-xo-plugin-actions.composable.ts'
-import type { useXoPluginConfigurationDelete } from '@/modules/plugin/composables/use-xo-plugin-configuration-delete.composable.ts'
-import type { useXoPluginDrawerJob } from '@/modules/plugin/composables/use-xo-plugin-drawer-job.composable.ts'
-import type { useXoPluginAutoloadJob } from '@/modules/plugin/jobs/xo-plugin-autoload.job.ts'
-import type { useXoPluginChangeStateJob } from '@/modules/plugin/jobs/xo-plugin-change-state.job.ts'
+import { useXoPluginConfigurationDelete } from '@/modules/plugin/composables/use-xo-plugin-configuration-delete.composable.ts'
+import { useXoPluginDrawerJob } from '@/modules/plugin/composables/use-xo-plugin-drawer-job.composable.ts'
+import { useXoPluginAutoloadJob } from '@/modules/plugin/jobs/xo-plugin-autoload.job.ts'
+import { useXoPluginChangeStateJob } from '@/modules/plugin/jobs/xo-plugin-change-state.job.ts'
 import { useXoPluginConfigureJob } from '@/modules/plugin/jobs/xo-plugin-configure.job.ts'
 import { useXoPluginTestJob } from '@/modules/plugin/jobs/xo-plugin-test.job.ts'
 import type { FrontXoPlugin } from '@/modules/plugin/remote-resources/use-xo-plugin-collection.ts'
-import { createJobResult } from '@/test/create-job-result.ts'
+import { createJobResult, toJobComposableResult } from '@/test/create-job-result.ts'
 import { createPlugin } from '@/test/create-plugin.ts'
 import { t } from '@/test/i18n.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
-import { mockModule } from '@/test/spy-on-module.ts'
+import { mockedExport } from '@/test/spy-on-module.ts'
 import { toValue } from 'vue'
 
-const {
-  useChangeStateJob,
-  useAutoloadJob,
-  useDrawerJob,
-  useDelete,
-  changeState,
-  updateAutoload,
-  configurePlugin,
-  testPlugin,
-  deleteConfiguration,
-} = vi.hoisted(() => ({
-  useChangeStateJob: vi.fn(),
-  useAutoloadJob: vi.fn(),
-  useDrawerJob: vi.fn(),
-  useDelete: vi.fn(),
-  changeState: vi.fn(),
-  updateAutoload: vi.fn(),
-  configurePlugin: vi.fn(),
-  testPlugin: vi.fn(),
-  deleteConfiguration: vi.fn(),
-}))
-
-mockModule(import('@/modules/plugin/jobs/xo-plugin-change-state.job.ts'), () => ({
-  useXoPluginChangeStateJob: useChangeStateJob as unknown as typeof useXoPluginChangeStateJob,
-}))
-
-mockModule(import('@/modules/plugin/jobs/xo-plugin-autoload.job.ts'), () => ({
-  useXoPluginAutoloadJob: useAutoloadJob as unknown as typeof useXoPluginAutoloadJob,
-}))
-
 // The composables open overlays and run jobs, which call the REST API
-mockModule(import('@/modules/plugin/composables/use-xo-plugin-drawer-job.composable.ts'), () => ({
-  useXoPluginDrawerJob: useDrawerJob as unknown as typeof useXoPluginDrawerJob,
-}))
+const useChangeStateJob = mockedExport(useXoPluginChangeStateJob)
+const useAutoloadJob = mockedExport(useXoPluginAutoloadJob)
+const useDrawerJob = mockedExport(useXoPluginDrawerJob)
+const useDelete = mockedExport(useXoPluginConfigurationDelete)
 
-mockModule(import('@/modules/plugin/composables/use-xo-plugin-configuration-delete.composable.ts'), () => ({
-  useXoPluginConfigurationDelete: useDelete as unknown as typeof useXoPluginConfigurationDelete,
-}))
+const changeState = vi.fn()
+const updateAutoload = vi.fn()
+const configurePlugin = vi.fn()
+const testPlugin = vi.fn()
+const deleteConfiguration = vi.fn()
 
 // Both drawer actions use the same composable, told apart by the job they run
 const drawerJobs = new Map<unknown, unknown>()
 
 beforeEach(() => {
-  useChangeStateJob.mockReset()
-  useAutoloadJob.mockReset()
-  useDrawerJob.mockReset()
-  useDelete.mockReset()
   changeState.mockReset()
   updateAutoload.mockReset()
   configurePlugin.mockReset()
@@ -83,14 +52,9 @@ function mockDrawerJob(useJob: unknown, openDrawer: () => void, state: Parameter
 }
 
 function mockDelete(state: Parameters<typeof createJobResult>[1] = {}) {
-  const { run, canRun, isRunning, errorMessage } = createJobResult(deleteConfiguration, state)
-
-  useDelete.mockReturnValue({
-    deleteConfiguration: run,
-    canDeleteConfiguration: canRun,
-    isDeletingConfiguration: isRunning,
-    deleteConfigurationErrorMessage: errorMessage,
-  })
+  useDelete.mockReturnValue(
+    toJobComposableResult(createJobResult(deleteConfiguration, state), 'deleteConfiguration', 'isDeletingConfiguration')
+  )
 }
 
 function mountActions(plugin: FrontXoPlugin = createPlugin()) {

@@ -4,34 +4,17 @@ import {
 } from '@/modules/backup-repository/jobs/xo-backup-repository-bulk-edit.job.ts'
 import type { EditBackupRepositoryPayload } from '@/modules/backup-repository/jobs/xo-backup-repository-edit.job.ts'
 import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
-import type { checkBackupRepositoryHealth } from '@/modules/backup-repository/utils/xo-backup-repository-health.util.ts'
-import type { fetchPatch } from '@/shared/utils/fetch.util.ts'
 import { createBr } from '@/test/create-br.ts'
 import { t } from '@/test/i18n.ts'
+import { backupRepositoryPatchMock } from '@/test/mock-backup-repository-patch.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
 import { silenceConsoleError } from '@/test/silence-console-error.ts'
-import { mockModule } from '@/test/spy-on-module.ts'
 
-const { patch, checkHealth } = vi.hoisted(() => ({
-  patch: vi.fn(),
-  checkHealth: vi.fn(),
-}))
-
-mockModule(import('@/shared/utils/fetch.util.ts'), () => ({
-  fetchPatch: patch as unknown as typeof fetchPatch,
-}))
-
-mockModule(import('@/modules/backup-repository/utils/xo-backup-repository-health.util.ts'), () => ({
-  checkBackupRepositoryHealth: checkHealth as unknown as typeof checkBackupRepositoryHealth,
-}))
+const { patch, checkHealth } = backupRepositoryPatchMock
 
 beforeEach(() => {
   vi.restoreAllMocks()
-  patch.mockReset()
-  checkHealth.mockReset()
-
-  patch.mockResolvedValue(undefined)
-  checkHealth.mockResolvedValue(undefined)
+  backupRepositoryPatchMock.reset()
 })
 
 const firstBr = createBr({ id: 'backup-repository-1' as FrontXoBackupRepository['id'] })

@@ -1,26 +1,22 @@
 import HostLink from '@/modules/host/components/HostLink.vue'
-import type { FrontXoHost, useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
+import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import { createHost } from '@/test/create-host.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
+import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
 import { mockModule } from '@/test/spy-on-module.ts'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import { objectIcon } from '@core/icons'
 import { HOST_POWER_STATE } from '@vates/types'
 import { mount } from '@vue/test-utils'
 
-const { isMasterHost } = vi.hoisted(() => ({
-  isMasterHost: vi.fn(),
-}))
-
-mockModule(import('@/modules/host/remote-resources/use-xo-host-collection.ts'), () => ({
-  useXoHostCollection: (() => ({ isMasterHost })) as unknown as typeof useXoHostCollection,
-}))
+mockModule(
+  import('@/modules/host/remote-resources/use-xo-host-collection.ts'),
+  () => import('@/test/mock-xo-collections.ts')
+)
 
 beforeEach(() => {
-  isMasterHost.mockReset()
-
-  isMasterHost.mockReturnValue(false)
+  xoCollectionsMock.reset()
 })
 
 function mountHostLink(host: FrontXoHost = createHost(), slots?: { default: string }) {
@@ -76,7 +72,7 @@ it('picks the halted icon for a halted host', () => {
 })
 
 it('flags the host as primary when it leads its pool', () => {
-  isMasterHost.mockReturnValue(true)
+  xoCollectionsMock.seedMasterHost(createHost())
 
   const link = mountHostLink().getComponent(UiLink)
 

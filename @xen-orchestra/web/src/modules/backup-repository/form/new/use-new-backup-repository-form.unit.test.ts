@@ -3,23 +3,28 @@ import {
   NFS_DEFAULT_PORT,
   SMB_DEFAULT_DOMAIN,
 } from '@/modules/backup-repository/utils/xo-backup-repository-details-payload.util.ts'
-import type { FrontXoProxy, useXoProxyCollection } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
+import type { FrontXoProxy } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
+import { createProxy } from '@/test/create-proxy.ts'
 import { dangerMessage } from '@/test/form-messages.ts'
+import { proxyCollectionMock } from '@/test/mock-xo-proxy-collection.ts'
 import { mountComposableWithI18n } from '@/test/mount-composable.ts'
 import { mockModule } from '@/test/spy-on-module.ts'
 import { flushPromises } from '@vue/test-utils'
-import { ref } from 'vue'
 import { type BackupRepositoryType, format as formatBackupRepositoryUrl } from 'xo-remote-parser'
 
 const PROXY_ID = 'proxy-1' as FrontXoProxy['id']
 
 const ENCRYPTION_KEY = '0123456789abcdef0123456789ABCDEF'
 
-mockModule(import('@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'), () => ({
-  useXoProxyCollection: (() => ({
-    proxies: ref([{ id: 'proxy-1', name: 'Proxy 1' }]),
-  })) as unknown as typeof useXoProxyCollection,
-}))
+mockModule(
+  import('@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'),
+  () => import('@/test/mock-xo-proxy-collection.ts')
+)
+
+beforeEach(() => {
+  proxyCollectionMock.reset()
+  proxyCollectionMock.proxies.value = [createProxy()]
+})
 
 function mountNewForm() {
   return mountComposableWithI18n(() => useNewBackupRepositoryForm())

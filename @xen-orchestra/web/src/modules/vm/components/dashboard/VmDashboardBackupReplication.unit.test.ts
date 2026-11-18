@@ -1,48 +1,37 @@
-import type { useXoSrUtils } from '@/modules/storage-repository/composables/xo-sr-utils.composable.ts'
-import type { useXoSrCollection } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
+import { useXoSrUtils } from '@/modules/storage-repository/composables/xo-sr-utils.composable.ts'
+import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import VmDashboardBackupReplication from '@/modules/vm/components/dashboard/VmDashboardBackupReplication.vue'
-import type { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import type { XoVmDashboard } from '@/modules/vm/types/vm-dashboard.type.ts'
 import { createSr } from '@/test/create-sr.ts'
 import { createVm } from '@/test/create-vm.ts'
 import { findLabelledValues } from '@/test/find-rendered-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
-import { mockModule } from '@/test/spy-on-module.ts'
+import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
+import { vmCollectionMock } from '@/test/mock-xo-vm-collection.ts'
+import { mockModule, mockedExport } from '@/test/spy-on-module.ts'
 import { objectIcon } from '@core/icons'
 import { formatDateTime } from '@core/utils/time.util.ts'
 import { mount } from '@vue/test-utils'
-import { computed, ref } from 'vue'
+import { computed } from 'vue'
 
-const { useXoSrCollectionMock, useXoSrUtilsMock, getSrById, getVmById } = vi.hoisted(() => ({
-  useXoSrCollectionMock: vi.fn(),
-  useXoSrUtilsMock: vi.fn(),
-  getSrById: vi.fn(),
-  getVmById: vi.fn(),
-}))
+const useXoSrUtilsMock = mockedExport(useXoSrUtils)
 
-mockModule(import('@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'), () => ({
-  useXoSrCollection: useXoSrCollectionMock as unknown as typeof useXoSrCollection,
-}))
+mockModule(
+  import('@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'),
+  () => import('@/test/mock-xo-collections.ts')
+)
 
-mockModule(import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'), () => ({
-  useXoVmCollection: (() => ({ getVmById })) as unknown as typeof useXoVmCollection,
-}))
-
-mockModule(import('@/modules/storage-repository/composables/xo-sr-utils.composable.ts'), () => ({
-  useXoSrUtils: useXoSrUtilsMock as unknown as typeof useXoSrUtils,
-}))
+mockModule(
+  import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'),
+  () => import('@/test/mock-xo-vm-collection.ts')
+)
 
 beforeEach(() => {
-  useXoSrCollectionMock.mockReset()
-  useXoSrUtilsMock.mockReset()
-  getSrById.mockReset()
-  getVmById.mockReset()
+  xoCollectionsMock.reset()
+  vmCollectionMock.reset()
 
-  useXoSrCollectionMock.mockReturnValue({ getSrById, areSrsReady: ref(true), hasSrFetchError: ref(false) })
   useXoSrUtilsMock.mockReturnValue({ srStatusIcon: computed(() => objectIcon('sr', 'connected')) })
-  getSrById.mockReturnValue(undefined)
-  getVmById.mockReturnValue(undefined)
 })
 
 type VmReplication = NonNullable<NonNullable<XoVmDashboard['backupsInfo']>['replication']>
@@ -75,7 +64,7 @@ it('shows a loader while the dashboard has not reported any replication yet', ()
 })
 
 it('shows a loader while the storage repositories are still loading', () => {
-  useXoSrCollectionMock.mockReturnValue({ getSrById, areSrsReady: ref(false), hasSrFetchError: ref(false) })
+  xoCollectionsMock.areSrsReady.value = false
 
   const wrapper = mountReplication(createDashboard(createReplication()))
 
@@ -89,7 +78,7 @@ it('shows an error message when the dashboard failed', () => {
 })
 
 it('shows an error message when the storage repositories failed to load', () => {
-  useXoSrCollectionMock.mockReturnValue({ getSrById, areSrsReady: ref(true), hasSrFetchError: ref(true) })
+  xoCollectionsMock.hasSrFetchError.value = true
 
   const wrapper = mountReplication(createDashboard(createReplication()))
 
@@ -103,10 +92,9 @@ it('reports that the VM is not replicated when the replication is empty', () => 
 })
 
 it('shows the replicated VM, its date and its storage repository', () => {
-  getVmById.mockReturnValue(createVm({ name_label: 'Web server' }))
-  getSrById.mockReturnValue(createSr({ name_label: 'Backup SR' }))
-
   const replication = createReplication({ sr: 'sr-1' as VmReplication['sr'] })
+  vmCollectionMock.vms.value = [createVm({ id: replication.id, name_label: 'Web server' })]
+  xoCollectionsMock.srs.value = [createSr({ id: 'sr-1' as FrontXoSr['id'], name_label: 'Backup SR' })]
 
   const wrapper = mountReplication(createDashboard(replication))
 

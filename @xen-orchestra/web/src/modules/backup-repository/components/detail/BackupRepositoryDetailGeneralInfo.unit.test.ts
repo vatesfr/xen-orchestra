@@ -1,28 +1,22 @@
 import BackupRepositoryDetailGeneralInfo from '@/modules/backup-repository/components/detail/BackupRepositoryDetailGeneralInfo.vue'
 import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
-import type { useXoProxyCollection } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
 import { createBr } from '@/test/create-br.ts'
+import { createProxy } from '@/test/create-proxy.ts'
 import { findLabelledValues } from '@/test/find-rendered-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
+import { proxyCollectionMock } from '@/test/mock-xo-proxy-collection.ts'
 import { mockModule } from '@/test/spy-on-module.ts'
-import type { XoProxy } from '@vates/types'
 import { mount } from '@vue/test-utils'
-import { computed } from 'vue'
 import { parse as parseBackupRepositoryUrl } from 'xo-remote-parser'
 
-const { useGetProxyById } = vi.hoisted(() => ({
-  useGetProxyById: vi.fn(),
-}))
-
-mockModule(import('@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'), () => ({
-  useXoProxyCollection: (() => ({ useGetProxyById })) as unknown as typeof useXoProxyCollection,
-}))
+mockModule(
+  import('@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'),
+  () => import('@/test/mock-xo-proxy-collection.ts')
+)
 
 beforeEach(() => {
-  useGetProxyById.mockReset()
-
-  useGetProxyById.mockReturnValue(computed(() => undefined))
+  proxyCollectionMock.reset()
 })
 
 function mountCard(br: FrontXoBackupRepository = createBr()) {
@@ -91,8 +85,8 @@ it('shows an unrecognized url as unknown type and storage mode', () => {
 })
 
 it('shows the proxy the repository goes through', () => {
-  const proxy = { id: 'proxy-1' as XoProxy['id'], name: 'Remote site proxy' }
-  useGetProxyById.mockReturnValue(computed(() => proxy))
+  const proxy = createProxy({ name: 'Remote site proxy' })
+  proxyCollectionMock.proxies.value = [proxy]
 
   const wrapper = mountCard(createBr({ proxy: proxy.id }))
 

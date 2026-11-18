@@ -1,26 +1,26 @@
 import HostSystemGeneralInformation from '@/modules/host/components/system/HostSystemGeneralInformation.vue'
-import type { FrontXoHost, useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
-import type { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
+import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import { createHost } from '@/test/create-host.ts'
 import { findCopiedValues } from '@/test/find-rendered-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
+import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
 import { mockModule } from '@/test/spy-on-module.ts'
 import { mount } from '@vue/test-utils'
-import { computed } from 'vue'
 
-mockModule(import('@/modules/pool/remote-resources/use-xo-pool-collection.ts'), () => ({
-  useXoPoolCollection: (() => ({
-    useGetPoolById: () => computed(() => undefined),
-  })) as unknown as typeof useXoPoolCollection,
-}))
+mockModule(
+  import('@/modules/pool/remote-resources/use-xo-pool-collection.ts'),
+  () => import('@/test/mock-xo-collections.ts')
+)
 
-mockModule(import('@/modules/host/remote-resources/use-xo-host-collection.ts'), () => ({
-  useXoHostCollection: (() => ({
-    getMasterHostByPoolId: () => undefined,
-    isMasterHost: () => false,
-  })) as unknown as typeof useXoHostCollection,
-}))
+mockModule(
+  import('@/modules/host/remote-resources/use-xo-host-collection.ts'),
+  () => import('@/test/mock-xo-collections.ts')
+)
+
+beforeEach(() => {
+  xoCollectionsMock.reset()
+})
 
 it('offers to copy the name and the UUID of the host', () => {
   const wrapper = mount(HostSystemGeneralInformation, {

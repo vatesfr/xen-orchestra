@@ -1,52 +1,40 @@
 import BackupJobBackedUpVmsCard from '@/modules/backup-job/components/list/panel/cards/BackupJobBackedUpVmsCard.vue'
 import type { FrontXoVmBackupJob } from '@/modules/backup-job/remote-resources/use-xo-backup-job-collection.ts'
-import type { FrontXoPool, useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
-import type { FrontXoVm, useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
+import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
+import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { createPool } from '@/test/create-pool.ts'
 import { createVm } from '@/test/create-vm.ts'
 import { findCardLabelledValues } from '@/test/find-rendered-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
+import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
+import { vmCollectionMock } from '@/test/mock-xo-vm-collection.ts'
 import { mockModule } from '@/test/spy-on-module.ts'
 import VtsTag from '@core/components/tag/VtsTag.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
 import { mount } from '@vue/test-utils'
 
-const { vms, pools } = vi.hoisted(() => ({
-  vms: [] as FrontXoVm[],
-  pools: [] as FrontXoPool[],
-}))
+mockModule(
+  import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'),
+  () => import('@/test/mock-xo-vm-collection.ts')
+)
 
-mockModule(import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'), async () => {
-  const { ref } = await import('vue')
-
-  return {
-    useXoVmCollection: (() => ({
-      vms: ref(vms),
-      getVmsByIds: (ids: FrontXoVm['id'][]) => vms.filter(vm => ids.includes(vm.id)),
-    })) as unknown as typeof useXoVmCollection,
-  }
-})
-
-mockModule(import('@/modules/pool/remote-resources/use-xo-pool-collection.ts'), () => ({
-  useXoPoolCollection: (() => ({
-    getPoolsByIds: (ids: FrontXoPool['id'][] = []) => pools.filter(pool => ids.includes(pool.id)),
-  })) as unknown as typeof useXoPoolCollection,
-}))
+mockModule(
+  import('@/modules/pool/remote-resources/use-xo-pool-collection.ts'),
+  () => import('@/test/mock-xo-collections.ts')
+)
 
 const firstPool = createPool({ id: 'pool-1' as FrontXoPool['id'], name_label: 'First pool' })
 const secondPool = createPool({ id: 'pool-2' as FrontXoPool['id'], name_label: 'Second pool' })
 
 beforeEach(() => {
-  vms.splice(
-    0,
-    vms.length,
-    ...Array.from({ length: 6 }, (_, index) =>
-      createVm({ id: `vm-${index + 1}` as FrontXoVm['id'], name_label: `VM ${index + 1}`, tags: ['test'] })
-    )
+  vmCollectionMock.reset()
+  xoCollectionsMock.reset()
+  vmCollectionMock.vms.value = Array.from({ length: 6 }, (_, index) =>
+    createVm({ id: `vm-${index + 1}` as FrontXoVm['id'], name_label: `VM ${index + 1}`, tags: ['test'] })
   )
-  pools.splice(0, pools.length, firstPool, secondPool)
+  xoCollectionsMock.pools.value = [firstPool, secondPool]
 })
 
 function mountBackedUpVmsCard(backedUpVms: FrontXoVmBackupJob['vms']) {

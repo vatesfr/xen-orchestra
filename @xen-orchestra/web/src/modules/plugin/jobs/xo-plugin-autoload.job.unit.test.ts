@@ -1,23 +1,15 @@
 import { useXoPluginAutoloadJob } from '@/modules/plugin/jobs/xo-plugin-autoload.job.ts'
 import type { FrontXoPlugin } from '@/modules/plugin/remote-resources/use-xo-plugin-collection.ts'
-import type { fetchPatch } from '@/shared/utils/fetch.util.ts'
+import { fetchPatch } from '@/shared/utils/fetch.util.ts'
 import { createPlugin } from '@/test/create-plugin.ts'
 import { t } from '@/test/i18n.ts'
 import { expectJobRunning } from '@/test/job-running.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
-import { mockModule } from '@/test/spy-on-module.ts'
+import { mockedExport } from '@/test/spy-on-module.ts'
 
-const { patch } = vi.hoisted(() => ({
-  patch: vi.fn(),
-}))
-
-mockModule(import('@/shared/utils/fetch.util.ts'), () => ({
-  fetchPatch: patch as unknown as typeof fetchPatch,
-}))
+const patch = mockedExport(fetchPatch)
 
 beforeEach(() => {
-  patch.mockReset()
-
   patch.mockResolvedValue(undefined)
 })
 

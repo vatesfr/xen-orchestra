@@ -1,22 +1,15 @@
 import { useXoBackupJobDeleteJob } from '@/modules/backup-job/jobs/xo-backup-job-delete.job.ts'
 import type { FrontAnyXoBackupJob } from '@/modules/backup-job/remote-resources/use-xo-backup-job-collection.ts'
-import type { fetchDelete } from '@/shared/utils/fetch.util.ts'
+import { fetchDelete } from '@/shared/utils/fetch.util.ts'
 import { createVmBackupJob } from '@/test/create-backup-job.ts'
 import { t } from '@/test/i18n.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
-import { mockModule } from '@/test/spy-on-module.ts'
+import { mockedExport } from '@/test/spy-on-module.ts'
 
-const { del } = vi.hoisted(() => ({
-  del: vi.fn(),
-}))
-
-mockModule(import('@/shared/utils/fetch.util.ts'), () => ({
-  fetchDelete: del as unknown as typeof fetchDelete,
-}))
+const del = mockedExport(fetchDelete)
 
 beforeEach(() => {
   vi.restoreAllMocks()
-  del.mockReset()
   del.mockResolvedValue(undefined)
 })
 

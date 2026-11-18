@@ -1,13 +1,7 @@
 import BackupJobsTable from '@/modules/backup-job/components/list/BackupJobsTable.vue'
 import type { FrontAnyXoBackupJob } from '@/modules/backup-job/remote-resources/use-xo-backup-job-collection.ts'
-import type {
-  FrontXoBackupLog,
-  useXoBackupLogCollection,
-} from '@/modules/backup-log/remote-resources/use-xo-backup-log-collection.ts'
-import type {
-  FrontXoSchedule,
-  useXoScheduleCollection,
-} from '@/modules/schedule/remote-resources/use-xo-schedule-collection.ts'
+import type { FrontXoBackupLog } from '@/modules/backup-log/remote-resources/use-xo-backup-log-collection.ts'
+import type { FrontXoSchedule } from '@/modules/schedule/remote-resources/use-xo-schedule-collection.ts'
 import { createMetadataBackupJob, createMirrorBackupJob, createVmBackupJob } from '@/test/create-backup-job.ts'
 import { createBackupLog } from '@/test/create-backup-log.ts'
 import { createSchedule } from '@/test/create-schedule.ts'
@@ -15,6 +9,8 @@ import { createTestRouter } from '@/test/create-test-router.ts'
 import { getButton } from '@/test/get-button.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
+import { backupLogCollectionMock } from '@/test/mock-xo-backup-log-collection.ts'
+import { scheduleCollectionMock } from '@/test/mock-xo-schedule-collection.ts'
 import { pickSelectOption } from '@/test/select.ts'
 import { mockModule } from '@/test/spy-on-module.ts'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
@@ -23,38 +19,23 @@ import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiLoader from '@core/components/ui/loader/UiLoader.vue'
 import type { XoSchedule, XoSr } from '@vates/types'
 import { flushPromises, mount, type VueWrapper } from '@vue/test-utils'
-import { ref } from 'vue'
 import type { Router } from 'vue-router'
-
-const { areBackupLogsReady, getLastNBackupLogsByJobId, backupLogsByJobId, schedulesByJobId } = vi.hoisted(() => ({
-  areBackupLogsReady: { value: true },
-  getLastNBackupLogsByJobId: vi.fn(),
-  backupLogsByJobId: new Map<string, FrontXoBackupLog[]>(),
-  schedulesByJobId: new Map<string, FrontXoSchedule[]>(),
-}))
 
 mockModule(import('@/shared/remote-resources/use-xo-routes.ts'), () => import('@/test/mock-xo-routes.ts'))
 
-mockModule(import('@/modules/backup-log/remote-resources/use-xo-backup-log-collection.ts'), () => ({
-  useXoBackupLogCollection: (() => ({
-    areBackupLogsReady: ref(areBackupLogsReady.value),
-    getLastNBackupLogsByJobId,
-    backupLogsByJobId: ref(backupLogsByJobId),
-  })) as unknown as typeof useXoBackupLogCollection,
-}))
+mockModule(
+  import('@/modules/backup-log/remote-resources/use-xo-backup-log-collection.ts'),
+  () => import('@/test/mock-xo-backup-log-collection.ts')
+)
 
-mockModule(import('@/modules/schedule/remote-resources/use-xo-schedule-collection.ts'), () => ({
-  useXoScheduleCollection: (() => ({
-    schedulesByJobId: ref(schedulesByJobId),
-  })) as unknown as typeof useXoScheduleCollection,
-}))
+mockModule(
+  import('@/modules/schedule/remote-resources/use-xo-schedule-collection.ts'),
+  () => import('@/test/mock-xo-schedule-collection.ts')
+)
 
 beforeEach(() => {
-  areBackupLogsReady.value = true
-  getLastNBackupLogsByJobId.mockReset()
-  getLastNBackupLogsByJobId.mockReturnValue([])
-  backupLogsByJobId.clear()
-  schedulesByJobId.clear()
+  backupLogCollectionMock.reset()
+  scheduleCollectionMock.reset()
 })
 
 function mountTable(backupJobs: FrontAnyXoBackupJob[], router?: Router) {
@@ -69,9 +50,8 @@ function createNamedBackupJob(name: string) {
 }
 
 function setBackupLogs(backupJob: FrontAnyXoBackupJob, statuses: FrontXoBackupLog['status'][], start = Date.now()) {
-  backupLogsByJobId.set(
-    backupJob.id,
-    statuses.map(status => createBackupLog({ jobId: backupJob.id, status, start }))
+  backupLogCollectionMock.backupLogs.value.push(
+    ...statuses.map(status => createBackupLog({ jobId: backupJob.id, status, start }))
   )
 }
 
@@ -154,12 +134,10 @@ describe('mode', () => {
 
 describe('last runs', () => {
   it('shows the status of the last runs of the backup job', () => {
-    getLastNBackupLogsByJobId.mockReturnValue([
-      createBackupLog({ status: 'failure' }),
-      createBackupLog({ status: 'success' }),
-    ])
+    const backupJob = createVmBackupJob()
+    setBackupLogs(backupJob, ['failure', 'success'])
 
-    const cell = findCell(mountTable([createVmBackupJob()]), t('last-n-runs', { n: 3 }))
+    const cell = findCell(mountTable([backupJob]), t('last-n-runs', { n: 3 }))
 
     const statuses = cell.findAllComponents(VtsStatus) as VueWrapper<InstanceType<typeof VtsStatus>>[]
 
@@ -167,7 +145,7 @@ describe('last runs', () => {
   })
 
   it('shows a loader while the backup logs are loading', () => {
-    areBackupLogsReady.value = false
+    backupLogCollectionMock.areBackupLogsReady.value = false
 
     const cell = findCell(mountTable([createVmBackupJob()]), t('last-n-runs', { n: 3 }))
 
@@ -178,10 +156,10 @@ describe('last runs', () => {
 describe('status', () => {
   it('shows the backup job as enabled when at least one of its schedules is enabled', () => {
     const backupJob = createVmBackupJob()
-    schedulesByJobId.set(backupJob.id, [
+    scheduleCollectionMock.schedules.value = [
       createSchedule({ id: 'schedule-1' as FrontXoSchedule['id'], jobId: backupJob.id, enabled: false }),
       createSchedule({ id: 'schedule-2' as FrontXoSchedule['id'], jobId: backupJob.id, enabled: true }),
-    ])
+    ]
 
     const cell = findCell(mountTable([backupJob]), t('status'))
 
@@ -247,11 +225,11 @@ describe('filters', () => {
   it('filters the backup jobs on their status, enabled with at least one enabled schedule', async () => {
     const enabledJob = createNamedBackupJob('Enabled job')
     const disabledJob = createNamedBackupJob('Disabled job')
-    schedulesByJobId.set(enabledJob.id, [
+    scheduleCollectionMock.schedules.value = [
       createSchedule({ jobId: enabledJob.id, enabled: false }),
       createSchedule({ jobId: enabledJob.id, enabled: true }),
-    ])
-    schedulesByJobId.set(disabledJob.id, [createSchedule({ jobId: disabledJob.id, enabled: false })])
+      createSchedule({ jobId: disabledJob.id, enabled: false }),
+    ]
 
     const wrapper = mountTable([enabledJob, disabledJob, createNamedBackupJob('Job without schedule')])
 
@@ -303,7 +281,7 @@ describe('filters', () => {
   it('combines the filters', async () => {
     const enabledFailedJob = createNamedBackupJob('Enabled failed job')
     const disabledFailedJob = createNamedBackupJob('Disabled failed job')
-    schedulesByJobId.set(enabledFailedJob.id, [createSchedule({ jobId: enabledFailedJob.id, enabled: true })])
+    scheduleCollectionMock.schedules.value = [createSchedule({ jobId: enabledFailedJob.id, enabled: true })]
     setBackupLogs(enabledFailedJob, ['failure'])
     setBackupLogs(disabledFailedJob, ['failure'])
 

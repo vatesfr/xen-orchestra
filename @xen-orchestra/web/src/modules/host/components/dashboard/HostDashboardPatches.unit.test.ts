@@ -1,25 +1,18 @@
 import HostDashboardPatches from '@/modules/host/components/dashboard/HostDashboardPatches.vue'
 import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
-import type {
-  MissingPatch,
+import {
+  type MissingPatch,
   useXoHostMissingPatchesCollection,
 } from '@/modules/host/remote-resources/use-xo-host-missing-patches-collection.ts'
 import { createHost } from '@/test/create-host.ts'
 import { findTableRows } from '@/test/find-rendered-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
-import { mockModule } from '@/test/spy-on-module.ts'
+import { mockedExport } from '@/test/spy-on-module.ts'
 import { mount } from '@vue/test-utils'
 import { ref } from 'vue'
 
-const { useXoHostMissingPatchesCollectionMock } = vi.hoisted(() => ({
-  useXoHostMissingPatchesCollectionMock: vi.fn(),
-}))
-
-mockModule(import('@/modules/host/remote-resources/use-xo-host-missing-patches-collection.ts'), () => ({
-  useXoHostMissingPatchesCollection:
-    useXoHostMissingPatchesCollectionMock as unknown as typeof useXoHostMissingPatchesCollection,
-}))
+const useXoHostMissingPatchesCollectionMock = mockedExport(useXoHostMissingPatchesCollection)
 
 const host = createHost({ id: 'host-1' as FrontXoHost['id'] })
 
@@ -31,7 +24,6 @@ function givenMissingPatches(missingPatches: MissingPatch[], areReady = true) {
 }
 
 beforeEach(() => {
-  useXoHostMissingPatchesCollectionMock.mockReset()
   givenMissingPatches([])
 })
 

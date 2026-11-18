@@ -1,47 +1,43 @@
 import type { FrontXoNetwork } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
-import type { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
+import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import { useXoTrafficRuleEditOrderJob } from '@/modules/traffic-rules/jobs/xo-traffic-rule-edit-order.job.ts'
-import type { useXoTaskUtils } from '@/shared/composables/xo-task-utils.composable.ts'
-import type { fetchPost } from '@/shared/utils/fetch.util.ts'
+import { fetchPost } from '@/shared/utils/fetch.util.ts'
+import { createPool } from '@/test/create-pool.ts'
 import { t } from '@/test/i18n.ts'
+import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
+import { taskUtilsMock } from '@/test/mock-xo-task-utils.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
-import { mockModule } from '@/test/spy-on-module.ts'
+import { mockModule, mockedExport } from '@/test/spy-on-module.ts'
 import { SDN_CONTROLLER_OF_METHOD_KEY, type TrafficRule, type XoNetwork } from '@vates/types'
 
-const { post, monitorTask, pool } = vi.hoisted(() => ({
-  post: vi.fn(),
-  monitorTask: vi.fn(),
-  pool: { otherConfig: {} as Record<string, string> },
-}))
+const post = mockedExport(fetchPost)
 
-mockModule(import('@/shared/utils/fetch.util.ts'), () => ({
-  fetchPost: post as unknown as typeof fetchPost,
-}))
+const { monitorTask } = taskUtilsMock
 
 // The task collection would open an SSE subscription
-mockModule(import('@/shared/composables/xo-task-utils.composable.ts'), () => ({
-  useXoTaskUtils: (() => ({ monitorTask })) as unknown as typeof useXoTaskUtils,
-}))
+mockModule(import('@/shared/composables/xo-task-utils.composable.ts'), () => import('@/test/mock-xo-task-utils.ts'))
 
-mockModule(import('@/modules/pool/remote-resources/use-xo-pool-collection.ts'), () => ({
-  useXoPoolCollection: (() => ({
-    getPoolById: () => pool,
-  })) as unknown as typeof useXoPoolCollection,
-}))
+mockModule(
+  import('@/modules/pool/remote-resources/use-xo-pool-collection.ts'),
+  () => import('@/test/mock-xo-collections.ts')
+)
 
 beforeEach(() => {
   vi.restoreAllMocks()
-  post.mockReset()
-  monitorTask.mockReset()
+  taskUtilsMock.reset()
 
   post.mockImplementation(async (url: string) => ({ taskId: `task-of-${url}` }))
-  monitorTask.mockResolvedValue(undefined)
-  pool.otherConfig = { [SDN_CONTROLLER_OF_METHOD_KEY]: 'xapi-plugin' }
+  xoCollectionsMock.reset()
+  givenPoolOtherConfig({ [SDN_CONTROLLER_OF_METHOD_KEY]: 'xapi-plugin' })
 })
 
 const NETWORK_ID = 'network-1' as XoNetwork['id']
 
 const NETWORK = { id: NETWORK_ID, $pool: 'pool-1' } as FrontXoNetwork
+
+function givenPoolOtherConfig(otherConfig: FrontXoPool['otherConfig']) {
+  xoCollectionsMock.pools.value = [createPool({ id: NETWORK.$pool, otherConfig })]
+}
 
 const ENDPOINT = `plugins/sdn-controller/networks/${NETWORK_ID}/actions/update_traffic_rule`
 
@@ -205,7 +201,7 @@ describe('validate', () => {
   })
 
   it('cannot run without the XAPI plugin', () => {
-    pool.otherConfig = {}
+    givenPoolOtherConfig({})
 
     const job = mountEditOrderJob([createRule('a', 200), createRule('b', 100)], undefined)
 

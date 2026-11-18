@@ -1,33 +1,28 @@
-import type { FrontXoHost, useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
+import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
 import type { VmMigratePayload } from '@/modules/vm/form/migrate/use-vm-migrate-form.ts'
 import { useXoVmMigrateJob } from '@/modules/vm/jobs/xo-vm-migrate.job.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
-import type { useXoTaskUtils } from '@/shared/composables/xo-task-utils.composable.ts'
-import type { fetchPost } from '@/shared/utils/fetch.util.ts'
+import { fetchPost } from '@/shared/utils/fetch.util.ts'
 import { createHost } from '@/test/create-host.ts'
 import { createVm } from '@/test/create-vm.ts'
 import { t } from '@/test/i18n.ts'
+import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
+import { taskUtilsMock } from '@/test/mock-xo-task-utils.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
-import { mockModule } from '@/test/spy-on-module.ts'
+import { mockModule, mockedExport } from '@/test/spy-on-module.ts'
 import { VM_OPERATIONS, VM_POWER_STATE } from '@vates/types'
 import { flushPromises } from '@vue/test-utils'
 import { ref } from 'vue'
 
-const { fetchPostMock, monitorTaskMock } = vi.hoisted(() => ({
-  fetchPostMock: vi.fn(),
-  monitorTaskMock: vi.fn(),
-}))
+const fetchPostMock = mockedExport(fetchPost)
 
-mockModule(import('@/shared/utils/fetch.util.ts'), () => ({
-  fetchPost: fetchPostMock as unknown as typeof fetchPost,
-}))
+const { monitorTask: monitorTaskMock } = taskUtilsMock
 
-mockModule(import('@/shared/composables/xo-task-utils.composable.ts'), () => ({
-  useXoTaskUtils: (() => ({ monitorTask: monitorTaskMock })) as unknown as typeof useXoTaskUtils,
-}))
+// The task collection would open an SSE subscription
+mockModule(import('@/shared/composables/xo-task-utils.composable.ts'), () => import('@/test/mock-xo-task-utils.ts'))
 
 const POOL_ID = 'pool-source' as FrontXoPool['id']
 const OTHER_POOL_ID = 'pool-other' as FrontXoPool['id']
@@ -40,11 +35,10 @@ const hosts = [
   createHost({ id: OTHER_POOL_HOST_ID, $pool: OTHER_POOL_ID }),
 ]
 
-mockModule(import('@/modules/host/remote-resources/use-xo-host-collection.ts'), () => ({
-  useXoHostCollection: (() => ({
-    getHostById: (id: FrontXoHost['id']) => hosts.find(host => host.id === id),
-  })) as unknown as typeof useXoHostCollection,
-}))
+mockModule(
+  import('@/modules/host/remote-resources/use-xo-host-collection.ts'),
+  () => import('@/test/mock-xo-collections.ts')
+)
 
 const payload: VmMigratePayload = { hostId: HOST_ID }
 
@@ -69,11 +63,11 @@ function mountMigrateJob(
 }
 
 beforeEach(() => {
-  fetchPostMock.mockReset()
-  monitorTaskMock.mockReset()
+  taskUtilsMock.reset()
+  xoCollectionsMock.reset()
+  xoCollectionsMock.hosts.value = hosts
 
   fetchPostMock.mockResolvedValue({ taskId: TASK_ID })
-  monitorTaskMock.mockResolvedValue(undefined)
 })
 
 describe('validate', () => {

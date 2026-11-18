@@ -6,33 +6,22 @@ import {
   MAX_TRAFFIC_RULE_PRIORITY,
   MIN_TRAFFIC_RULE_PRIORITY,
 } from '@/modules/traffic-rules/utils/xo-traffic-rule.util.ts'
-import type { useXoTaskUtils } from '@/shared/composables/xo-task-utils.composable.ts'
-import type { fetchPost } from '@/shared/utils/fetch.util.ts'
+import { fetchPost } from '@/shared/utils/fetch.util.ts'
 import { t } from '@/test/i18n.ts'
+import { taskUtilsMock } from '@/test/mock-xo-task-utils.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
-import { mockModule } from '@/test/spy-on-module.ts'
+import { mockModule, mockedExport } from '@/test/spy-on-module.ts'
 import type { XoNetwork } from '@vates/types'
 
-const { post, monitorTask } = vi.hoisted(() => ({
-  post: vi.fn(),
-  monitorTask: vi.fn(),
-}))
-
-mockModule(import('@/shared/utils/fetch.util.ts'), () => ({
-  fetchPost: post as unknown as typeof fetchPost,
-}))
+const post = mockedExport(fetchPost)
 
 // The task collection would open an SSE subscription
-mockModule(import('@/shared/composables/xo-task-utils.composable.ts'), () => ({
-  useXoTaskUtils: (() => ({ monitorTask })) as unknown as typeof useXoTaskUtils,
-}))
+mockModule(import('@/shared/composables/xo-task-utils.composable.ts'), () => import('@/test/mock-xo-task-utils.ts'))
 
 beforeEach(() => {
-  post.mockReset()
-  monitorTask.mockReset()
+  taskUtilsMock.reset()
 
   post.mockResolvedValue({ taskId: 'task-1' })
-  monitorTask.mockResolvedValue(undefined)
 })
 
 function createPayload(overrides: Partial<TrafficRulePayload> = {}): TrafficRulePayload {

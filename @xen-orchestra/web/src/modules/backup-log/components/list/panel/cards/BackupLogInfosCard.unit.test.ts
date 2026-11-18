@@ -1,84 +1,64 @@
 import type { useXoBackupJobCollection } from '@/modules/backup-job/remote-resources/use-xo-backup-job-collection.ts'
 import BackupLogInfosCard from '@/modules/backup-log/components/list/panel/cards/BackupLogInfosCard.vue'
 import type { FrontXoBackupLog } from '@/modules/backup-log/remote-resources/use-xo-backup-log-collection.ts'
-import type { useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
-import type { useXoPbdCollection } from '@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'
-import type {
-  FrontXoSr,
-  useXoSrCollection,
-} from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
-import type { FrontXoVm, useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
-import type { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
+import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
+import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { createBackupLog, createBackupLogSrTask, createBackupLogVmTask } from '@/test/create-backup-log.ts'
 import { createSr } from '@/test/create-sr.ts'
 import { createVm } from '@/test/create-vm.ts'
 import { findCardCopiedValues, findCardLabelledValues } from '@/test/find-rendered-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
+import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
+import { vmCollectionMock } from '@/test/mock-xo-vm-collection.ts'
 import { mockModule } from '@/test/spy-on-module.ts'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
 import { objectIcon } from '@core/icons'
 import { formatDateTime } from '@core/utils/time.util.ts'
 import { mount } from '@vue/test-utils'
-import { computed, ref } from 'vue'
+import { computed } from 'vue'
 
-const { buildXo5Route, useGetBackupJobById, getVmById, getSrById } = vi.hoisted(() => ({
-  buildXo5Route: vi.fn(),
+const { useGetBackupJobById } = vi.hoisted(() => ({
   useGetBackupJobById: vi.fn(),
-  getVmById: vi.fn(),
-  getSrById: vi.fn(),
 }))
 
-mockModule(import('@/shared/remote-resources/use-xo-routes.ts'), () => ({
-  useXoRoutes: (() => ({ buildXo5Route })) as unknown as typeof useXoRoutes,
-}))
+mockModule(import('@/shared/remote-resources/use-xo-routes.ts'), () => import('@/test/mock-xo-routes.ts'))
 
 mockModule(import('@/modules/backup-job/remote-resources/use-xo-backup-job-collection.ts'), () => ({
   useXoBackupJobCollection: (() => ({ useGetBackupJobById })) as unknown as typeof useXoBackupJobCollection,
 }))
 
-mockModule(import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'), () => ({
-  useXoVmCollection: (() => ({ getVmById })) as unknown as typeof useXoVmCollection,
-}))
+mockModule(
+  import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'),
+  () => import('@/test/mock-xo-vm-collection.ts')
+)
 
-mockModule(import('@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'), () => ({
-  useXoSrCollection: (() => ({ getSrById })) as unknown as typeof useXoSrCollection,
-}))
+mockModule(
+  import('@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'),
+  () => import('@/test/mock-xo-collections.ts')
+)
 
-mockModule(import('@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'), () => ({
-  useXoPbdCollection: (() => ({
-    getPbdsByIds: () => [],
-    pbdsBySr: ref(new Map()),
-  })) as unknown as typeof useXoPbdCollection,
-}))
+mockModule(
+  import('@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'),
+  () => import('@/test/mock-xo-collections.ts')
+)
 
-mockModule(import('@/modules/host/remote-resources/use-xo-host-collection.ts'), () => ({
-  useXoHostCollection: (() => ({ getHostById: () => undefined })) as unknown as typeof useXoHostCollection,
-}))
+mockModule(
+  import('@/modules/host/remote-resources/use-xo-host-collection.ts'),
+  () => import('@/test/mock-xo-collections.ts')
+)
 
 beforeEach(() => {
-  buildXo5Route.mockReset()
   useGetBackupJobById.mockReset()
-  getVmById.mockReset()
-  getSrById.mockReset()
+  vmCollectionMock.reset()
+  xoCollectionsMock.reset()
 
-  buildXo5Route.mockImplementation((path: string) => `https://xo5.example.com/#${path}`)
   mockBackupJob({ name: 'QA delta' })
-  mockVms([])
-  mockSrs([])
 })
 
 function mockBackupJob(backupJob: { name: string; type?: string } | undefined) {
   useGetBackupJobById.mockReturnValue(computed(() => backupJob))
-}
-
-function mockVms(vms: FrontXoVm[]) {
-  getVmById.mockImplementation((id: FrontXoVm['id']) => vms.find(vm => vm.id === id))
-}
-
-function mockSrs(srs: FrontXoSr[]) {
-  getSrById.mockImplementation((id: FrontXoSr['id']) => srs.find(sr => sr.id === id))
 }
 
 function mountCard(backupLog: FrontXoBackupLog = createBackupLog()) {
@@ -141,8 +121,8 @@ it('lists every row of the card, in order', () => {
 })
 
 it('shows the information of the log and offers to copy them', () => {
-  mockVms([createVm({ id: 'vm-1' as FrontXoVm['id'], name_label: 'Alpha VM' })])
-  mockSrs([createSr({ id: 'sr-1' as FrontXoSr['id'], name_label: 'Alpha-Backup-SR' })])
+  vmCollectionMock.vms.value = [createVm({ id: 'vm-1' as FrontXoVm['id'], name_label: 'Alpha VM' })]
+  xoCollectionsMock.srs.value = [createSr({ id: 'sr-1' as FrontXoSr['id'], name_label: 'Alpha-Backup-SR' })]
 
   const backupLog = createBackupLog({
     start: 1_700_000_000_000,
@@ -167,10 +147,10 @@ it('shows the information of the log and offers to copy them', () => {
 
 describe('VM', () => {
   it('shows one row per VM, labelled on the first one only, and a VM not found without copy', () => {
-    mockVms([
+    vmCollectionMock.vms.value = [
       createVm({ id: 'vm-1' as FrontXoVm['id'], name_label: 'Alpha VM' }),
       createVm({ id: 'vm-3' as FrontXoVm['id'], name_label: 'Gamma VM' }),
-    ])
+    ]
 
     const wrapper = mountCard(
       createBackupLog({
@@ -191,7 +171,7 @@ describe('VM', () => {
   })
 
   it('links a VM to its dashboard, with the icon of its power state', () => {
-    mockVms([createVm({ id: 'vm-1' as FrontXoVm['id'] })])
+    vmCollectionMock.vms.value = [createVm({ id: 'vm-1' as FrontXoVm['id'] })]
 
     const vmLink = findRow(
       mountCard(createBackupLog({ tasks: [createBackupLogVmTask('vm-1')] })),
@@ -223,7 +203,7 @@ describe('VM', () => {
 
 describe('SR', () => {
   it('shows one row per SR, labelled on the first one only, and the id of an SR not found', () => {
-    mockSrs([createSr({ id: 'sr-1' as FrontXoSr['id'], name_label: 'Alpha-Backup-SR' })])
+    xoCollectionsMock.srs.value = [createSr({ id: 'sr-1' as FrontXoSr['id'], name_label: 'Alpha-Backup-SR' })]
 
     const wrapper = mountCard(
       createBackupLog({
@@ -241,7 +221,7 @@ describe('SR', () => {
   })
 
   it('links an SR to its page', () => {
-    mockSrs([createSr({ id: 'sr-1' as FrontXoSr['id'] })])
+    xoCollectionsMock.srs.value = [createSr({ id: 'sr-1' as FrontXoSr['id'] })]
 
     const wrapper = mountCard(
       createBackupLog({ tasks: [createBackupLogVmTask('vm-1', [createBackupLogSrTask('sr-1')])] })

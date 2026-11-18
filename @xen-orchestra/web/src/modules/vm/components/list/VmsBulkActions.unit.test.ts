@@ -1,26 +1,25 @@
 import VmsBulkActions from '@/modules/vm/components/list/VmsBulkActions.vue'
 import type { useVmBulkPowerStateActions } from '@/modules/vm/composables/use-vm-bulk-power-state-actions.composable.ts'
 import type { useVmDelete } from '@/modules/vm/composables/use-vm-delete.composable.ts'
-import type { useXoVmSnapshotJob } from '@/modules/vm/jobs/xo-vm-snapshot.job.ts'
+import { useXoVmSnapshotJob } from '@/modules/vm/jobs/xo-vm-snapshot.job.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { createActionItem } from '@/test/create-action-item.ts'
-import { createJobResult } from '@/test/create-job-result.ts'
+import { createJobResult, toJobComposableResult } from '@/test/create-job-result.ts'
 import { createVm } from '@/test/create-vm.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
-import { mockModule } from '@/test/spy-on-module.ts'
+import { mockModule, mockedExport } from '@/test/spy-on-module.ts'
 import type { ActionItem, GroupActionItem } from '@core/components/menu/VtsActionsMenu.vue'
 import VtsTableBulkActions from '@core/components/table/VtsTableBulkActions.vue'
 import { mount } from '@vue/test-utils'
 import { type MaybeRefOrGetter, ref, toValue } from 'vue'
 
-const { snapshot, deleteVms, useSnapshotJob, useDelete, powerStateActions } = vi.hoisted(() => ({
-  snapshot: vi.fn(),
-  deleteVms: vi.fn(),
-  useSnapshotJob: vi.fn(),
-  useDelete: vi.fn(),
-  powerStateActions: [] as ActionItem[],
-}))
+const useSnapshotJob = mockedExport(useXoVmSnapshotJob)
+
+const snapshot = vi.fn()
+const deleteVms = vi.fn()
+const useDelete = vi.fn()
+const powerStateActions = [] as ActionItem[]
 
 // The jobs and composables call the REST API and open SSE subscriptions
 mockModule(import('@/modules/vm/composables/use-vm-bulk-power-state-actions.composable.ts'), () => ({
@@ -29,22 +28,15 @@ mockModule(import('@/modules/vm/composables/use-vm-bulk-power-state-actions.comp
   })) as unknown as typeof useVmBulkPowerStateActions,
 }))
 
-mockModule(import('@/modules/vm/jobs/xo-vm-snapshot.job.ts'), () => ({
-  useXoVmSnapshotJob: useSnapshotJob as unknown as typeof useXoVmSnapshotJob,
-}))
-
 mockModule(import('@/modules/vm/composables/use-vm-delete.composable.ts'), () => ({
-  useVmDelete: ((vms: unknown) => {
-    const { run, canRun, isRunning, errorMessage } = useDelete(vms)
-
-    return { deleteVms: run, canDeleteVms: canRun, isDeletingVms: isRunning, deleteVmsErrorMessage: errorMessage }
-  }) as unknown as typeof useVmDelete,
+  useVmDelete: ((vms: unknown) =>
+    toJobComposableResult(useDelete(vms), 'deleteVms', 'isDeletingVms')) as unknown as typeof useVmDelete,
 }))
 
 beforeEach(() => {
   snapshot.mockReset()
   deleteVms.mockReset()
-  useSnapshotJob.mockReset().mockReturnValue(createJobResult(snapshot))
+  useSnapshotJob.mockReturnValue(createJobResult(snapshot))
   useDelete.mockReset().mockReturnValue(createJobResult(deleteVms))
   powerStateActions.splice(0, Infinity, createActionItem({ label: 'Start' }), createActionItem({ label: 'Pause' }))
 })

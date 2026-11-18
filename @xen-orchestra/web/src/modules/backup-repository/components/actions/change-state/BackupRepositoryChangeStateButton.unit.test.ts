@@ -1,39 +1,20 @@
 import BackupRepositoryChangeStateButton from '@/modules/backup-repository/components/actions/change-state/BackupRepositoryChangeStateButton.vue'
-import type { useXoBackupRepositoryChangeStateJob } from '@/modules/backup-repository/jobs/xo-backup-repository-change-state.job.ts'
+import { useXoBackupRepositoryChangeStateJob } from '@/modules/backup-repository/jobs/xo-backup-repository-change-state.job.ts'
 import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
 import { createBr } from '@/test/create-br.ts'
+import { createJobStub } from '@/test/create-job-result.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
-import { mockModule } from '@/test/spy-on-module.ts'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import { mount } from '@vue/test-utils'
-import { ref, toValue } from 'vue'
-
-const { useChangeStateJob, run } = vi.hoisted(() => ({
-  useChangeStateJob: vi.fn(),
-  run: vi.fn(),
-}))
+import { toValue } from 'vue'
 
 // The job patches the repositories through the REST API
-mockModule(import('@/modules/backup-repository/jobs/xo-backup-repository-change-state.job.ts'), () => ({
-  useXoBackupRepositoryChangeStateJob: useChangeStateJob as unknown as typeof useXoBackupRepositoryChangeStateJob,
-}))
+const changeStateJob = createJobStub(useXoBackupRepositoryChangeStateJob)
 
 beforeEach(() => {
-  useChangeStateJob.mockReset()
-  run.mockReset()
-
-  mockChangeStateJob()
+  changeStateJob.reset()
 })
-
-function mockChangeStateJob({ canRun = true, isRunning = false }: { canRun?: boolean; isRunning?: boolean } = {}) {
-  useChangeStateJob.mockReturnValue({
-    run,
-    canRun: ref(canRun),
-    isRunning: ref(isRunning),
-    errorMessage: ref(canRun ? undefined : 'Backup repository state change in progress…'),
-  })
-}
 
 function mountButton(br: FrontXoBackupRepository = createBr()) {
   return mount(BackupRepositoryChangeStateButton, {
@@ -44,7 +25,7 @@ function mountButton(br: FrontXoBackupRepository = createBr()) {
 
 // The job receives the repositories and the targeted state as getters
 function findJobArgs() {
-  const [brs, enabled] = useChangeStateJob.mock.lastCall ?? []
+  const [brs, enabled] = changeStateJob.use.mock.lastCall ?? []
 
   return { brs: toValue(brs), enabled: toValue(enabled) }
 }
@@ -84,17 +65,17 @@ describe('on a disabled repository', () => {
 it('runs the job when clicking the button', async () => {
   await mountButton().getComponent(UiButton).trigger('click')
 
-  expect(run).toHaveBeenCalledOnce()
+  expect(changeStateJob.run).toHaveBeenCalledOnce()
 })
 
 it('disables the button when the job cannot run', () => {
-  mockChangeStateJob({ canRun: false })
+  changeStateJob.setState({ canRun: false })
 
   expect(mountButton().getComponent(UiButton).props('disabled')).toBe(true)
 })
 
 it('shows the button as busy while the job runs', () => {
-  mockChangeStateJob({ isRunning: true })
+  changeStateJob.setState({ isRunning: true })
 
   expect(mountButton().getComponent(UiButton).props('busy')).toBe(true)
 })

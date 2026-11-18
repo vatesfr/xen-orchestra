@@ -1,23 +1,15 @@
 import { useXoPluginDeleteConfigurationJob } from '@/modules/plugin/jobs/xo-plugin-delete-configuration.job.ts'
 import type { FrontXoPlugin } from '@/modules/plugin/remote-resources/use-xo-plugin-collection.ts'
-import type { fetchDelete } from '@/shared/utils/fetch.util.ts'
+import { fetchDelete } from '@/shared/utils/fetch.util.ts'
 import { createPlugin } from '@/test/create-plugin.ts'
 import { t } from '@/test/i18n.ts'
 import { expectJobRunning } from '@/test/job-running.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
-import { mockModule } from '@/test/spy-on-module.ts'
+import { mockedExport } from '@/test/spy-on-module.ts'
 
-const { remove } = vi.hoisted(() => ({
-  remove: vi.fn(),
-}))
-
-mockModule(import('@/shared/utils/fetch.util.ts'), () => ({
-  fetchDelete: remove as unknown as typeof fetchDelete,
-}))
+const remove = mockedExport(fetchDelete)
 
 beforeEach(() => {
-  remove.mockReset()
-
   remove.mockResolvedValue(undefined)
 })
 

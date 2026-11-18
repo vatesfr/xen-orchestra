@@ -2,6 +2,8 @@ import type { useOverlay as realUseOverlay } from '@core/packages/overlay/use-ov
 
 type OverlayOpen = ReturnType<typeof vi.fn>
 
+type OverlayEvents = { onConfirm?: () => void }
+
 type RecordedOverlay = Record<string, unknown> & { open: OverlayOpen }
 
 const overlays: RecordedOverlay[] = []
@@ -15,6 +17,16 @@ export const overlayMock = {
   },
   getOverlay<TOptions>(index = 0) {
     return this.getOverlays<TOptions>()[index]
+  },
+  // Runs the `onConfirm` event of the first overlay opened, given when opening it or else declared with the overlay
+  confirmOpened() {
+    const openedOverlay = this.getOverlays<{ events?: OverlayEvents }>().find(
+      overlay => overlay.open.mock.calls.length > 0
+    )
+
+    const openEvents: OverlayEvents | undefined = openedOverlay?.open.mock.lastCall?.[0]?.events
+
+    ;(openEvents?.onConfirm ?? openedOverlay?.events?.onConfirm)?.()
   },
   reset() {
     overlays.length = 0

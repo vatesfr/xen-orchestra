@@ -8,61 +8,38 @@ import BackupJobSchedulesCard from '@/modules/backup-job/components/list/panel/c
 import BackupJobSettingsCard from '@/modules/backup-job/components/list/panel/cards/BackupJobSettingsCard.vue'
 import BackupJobTargetsCard from '@/modules/backup-job/components/list/panel/cards/BackupJobTargetsCard.vue'
 import type { FrontAnyXoBackupJob } from '@/modules/backup-job/remote-resources/use-xo-backup-job-collection.ts'
-import type {
-  FrontXoBackupLog,
-  useXoBackupLogCollection,
-} from '@/modules/backup-log/remote-resources/use-xo-backup-log-collection.ts'
 import type { useXoBackupRepositoryCollection } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
-import type { useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
-import type { useXoPbdCollection } from '@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'
-import type { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
-import type { useXoProxyCollection } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
-import type {
-  FrontXoSchedule,
-  useXoScheduleCollection,
-} from '@/modules/schedule/remote-resources/use-xo-schedule-collection.ts'
-import type { useXoSrCollection } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
-import type { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
+import type { FrontXoSchedule } from '@/modules/schedule/remote-resources/use-xo-schedule-collection.ts'
 import { createMetadataBackupJob, createVmBackupJob } from '@/test/create-backup-job.ts'
 import { createBackupLog } from '@/test/create-backup-log.ts'
 import { createSchedule } from '@/test/create-schedule.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
+import { backupLogCollectionMock } from '@/test/mock-xo-backup-log-collection.ts'
+import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
+import { proxyCollectionMock } from '@/test/mock-xo-proxy-collection.ts'
+import { scheduleCollectionMock } from '@/test/mock-xo-schedule-collection.ts'
+import { vmCollectionMock } from '@/test/mock-xo-vm-collection.ts'
 import { mockModule } from '@/test/spy-on-module.ts'
 import UiAlert from '@core/components/ui/alert/UiAlert.vue'
 import { mount } from '@vue/test-utils'
-import { ref } from 'vue'
-
-const { schedulesByJobId, backupLogsByJobId } = vi.hoisted(() => ({
-  schedulesByJobId: new Map<string, FrontXoSchedule[]>(),
-  backupLogsByJobId: new Map<string, FrontXoBackupLog[]>(),
-}))
 
 mockModule(import('@/shared/remote-resources/use-xo-routes.ts'), () => import('@/test/mock-xo-routes.ts'))
 
-mockModule(import('@/modules/schedule/remote-resources/use-xo-schedule-collection.ts'), async () => {
-  const { computed: vueComputed, ref: vueRef } = await import('vue')
+mockModule(
+  import('@/modules/schedule/remote-resources/use-xo-schedule-collection.ts'),
+  () => import('@/test/mock-xo-schedule-collection.ts')
+)
 
-  return {
-    useXoScheduleCollection: (() => ({
-      schedulesByJobId: vueRef(schedulesByJobId),
-      useGetScheduleById: () => vueComputed(() => undefined),
-    })) as unknown as typeof useXoScheduleCollection,
-  }
-})
+mockModule(
+  import('@/modules/backup-log/remote-resources/use-xo-backup-log-collection.ts'),
+  () => import('@/test/mock-xo-backup-log-collection.ts')
+)
 
-mockModule(import('@/modules/backup-log/remote-resources/use-xo-backup-log-collection.ts'), () => ({
-  useXoBackupLogCollection: (() => ({
-    getLastNBackupLogsByJobId: (jobId: string) => backupLogsByJobId.get(jobId) ?? [],
-  })) as unknown as typeof useXoBackupLogCollection,
-}))
-
-mockModule(import('@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'), () => ({
-  useXoSrCollection: (() => ({
-    getSrsByIds: () => [],
-    getSrById: () => undefined,
-  })) as unknown as typeof useXoSrCollection,
-}))
+mockModule(
+  import('@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'),
+  () => import('@/test/mock-xo-collections.ts')
+)
 
 mockModule(import('@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'), () => ({
   useXoBackupRepositoryCollection: (() => ({
@@ -70,47 +47,39 @@ mockModule(import('@/modules/backup-repository/remote-resources/use-xo-backup-re
   })) as unknown as typeof useXoBackupRepositoryCollection,
 }))
 
-mockModule(import('@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'), async () => {
-  const { computed: vueComputed } = await import('vue')
+mockModule(
+  import('@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'),
+  () => import('@/test/mock-xo-proxy-collection.ts')
+)
 
-  return {
-    useXoProxyCollection: (() => ({
-      useGetProxyById: () => vueComputed(() => undefined),
-    })) as unknown as typeof useXoProxyCollection,
-  }
-})
+mockModule(
+  import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'),
+  () => import('@/test/mock-xo-vm-collection.ts')
+)
 
-mockModule(import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'), async () => {
-  const { ref: vueRef } = await import('vue')
+mockModule(
+  import('@/modules/pool/remote-resources/use-xo-pool-collection.ts'),
+  () => import('@/test/mock-xo-collections.ts')
+)
 
-  return {
-    useXoVmCollection: (() => ({
-      vms: vueRef([]),
-      getVmsByIds: () => [],
-    })) as unknown as typeof useXoVmCollection,
-  }
-})
+mockModule(
+  import('@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'),
+  () => import('@/test/mock-xo-collections.ts')
+)
 
-mockModule(import('@/modules/pool/remote-resources/use-xo-pool-collection.ts'), () => ({
-  useXoPoolCollection: (() => ({ getPoolsByIds: () => [] })) as unknown as typeof useXoPoolCollection,
-}))
-
-mockModule(import('@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'), () => ({
-  useXoPbdCollection: (() => ({
-    getPbdsByIds: () => [],
-    pbdsBySr: ref(new Map()),
-  })) as unknown as typeof useXoPbdCollection,
-}))
-
-mockModule(import('@/modules/host/remote-resources/use-xo-host-collection.ts'), () => ({
-  useXoHostCollection: (() => ({ getHostById: () => undefined })) as unknown as typeof useXoHostCollection,
-}))
+mockModule(
+  import('@/modules/host/remote-resources/use-xo-host-collection.ts'),
+  () => import('@/test/mock-xo-collections.ts')
+)
 
 const vmBackupJob = createVmBackupJob()
 
 beforeEach(() => {
-  schedulesByJobId.clear()
-  backupLogsByJobId.clear()
+  scheduleCollectionMock.reset()
+  backupLogCollectionMock.reset()
+  proxyCollectionMock.reset()
+  xoCollectionsMock.reset()
+  vmCollectionMock.reset()
 })
 
 const global = { ...createGlobalTestConfig(), stubs: { BackupJobDeleteButton: true, BackupJobMoreActions: true } }
@@ -123,8 +92,8 @@ function mountSidePanel(backupJob: FrontAnyXoBackupJob) {
 }
 
 it('shows every card of a VM backup job', () => {
-  schedulesByJobId.set(vmBackupJob.id, [createSchedule({ jobId: vmBackupJob.id })])
-  backupLogsByJobId.set(vmBackupJob.id, [createBackupLog({ jobId: vmBackupJob.id })])
+  scheduleCollectionMock.schedules.value = [createSchedule({ jobId: vmBackupJob.id })]
+  backupLogCollectionMock.backupLogs.value = [createBackupLog({ jobId: vmBackupJob.id })]
 
   const wrapper = mountSidePanel(vmBackupJob)
 
@@ -148,10 +117,10 @@ it('hides the backed up VMs of a metadata job', () => {
 })
 
 it('advises to split a backup job with several schedules', () => {
-  schedulesByJobId.set(vmBackupJob.id, [
+  scheduleCollectionMock.schedules.value = [
     createSchedule({ id: 'schedule-1' as FrontXoSchedule['id'], jobId: vmBackupJob.id }),
     createSchedule({ id: 'schedule-2' as FrontXoSchedule['id'], jobId: vmBackupJob.id }),
-  ])
+  ]
 
   const alert = mountSidePanel(vmBackupJob).getComponent(UiAlert)
 
@@ -160,7 +129,7 @@ it('advises to split a backup job with several schedules', () => {
 })
 
 it('gives no advice for a backup job with a single schedule', () => {
-  schedulesByJobId.set(vmBackupJob.id, [createSchedule({ jobId: vmBackupJob.id })])
+  scheduleCollectionMock.schedules.value = [createSchedule({ jobId: vmBackupJob.id })]
 
   expect(mountSidePanel(vmBackupJob).findComponent(UiAlert).exists()).toBe(false)
 })
@@ -188,7 +157,7 @@ it('offers the other actions of the backup job in the more actions menu', async 
 
 it('gives the schedules of the backup job to the infos card', () => {
   const schedules = [createSchedule({ jobId: vmBackupJob.id })]
-  schedulesByJobId.set(vmBackupJob.id, schedules)
+  scheduleCollectionMock.schedules.value = schedules
 
   expect(mountSidePanel(vmBackupJob).getComponent(BackupJobInfosCard).props('schedules')).toEqual(schedules)
 })

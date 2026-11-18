@@ -1,37 +1,26 @@
-import type { FrontXoVbd, useXoVbdCollection } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
-import type { useXoVdiCollection } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
 import { useVmEnhancedData } from '@/modules/vm/composables/use-vm-enhanced-data.composable.ts'
 import { createEnhancedDataHelpers } from '@/test/create-enhanced-data-helpers.ts'
-import { createVbd } from '@/test/create-vbd.ts'
-import { createVdi } from '@/test/create-vdi.ts'
 import { createVm } from '@/test/create-vm.ts'
+import { vmDeviceCollectionsMock } from '@/test/mock-xo-vm-device-collections.ts'
+import { seedVmDisks } from '@/test/seed-vm-disks.ts'
 import { mockModule } from '@/test/spy-on-module.ts'
 import { objectIcon } from '@core/icons'
 import { formatSizeRaw } from '@core/utils/size.util.ts'
 import { VM_OPERATIONS, VM_POWER_STATE } from '@vates/types'
 import { ref } from 'vue'
 
-const { getVbdsByIds } = vi.hoisted(() => ({
-  getVbdsByIds: vi.fn(),
-}))
+mockModule(
+  import('@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'),
+  () => import('@/test/mock-xo-vm-device-collections.ts')
+)
 
-const { getVdiById } = vi.hoisted(() => ({
-  getVdiById: vi.fn(),
-}))
-
-mockModule(import('@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'), () => ({
-  useXoVbdCollection: (() => ({ getVbdsByIds })) as unknown as typeof useXoVbdCollection,
-}))
-
-mockModule(import('@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'), () => ({
-  useXoVdiCollection: (() => ({ getVdiById })) as unknown as typeof useXoVdiCollection,
-}))
+mockModule(
+  import('@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'),
+  () => import('@/test/mock-xo-vm-device-collections.ts')
+)
 
 beforeEach(() => {
-  getVbdsByIds.mockReset()
-  getVdiById.mockReset()
-  getVbdsByIds.mockReturnValue([])
-  getVdiById.mockReturnValue(undefined)
+  vmDeviceCollectionsMock.reset()
 })
 
 const { mountEnhancedData, mountFirstFilterable, mountFirstDisplayData } = createEnhancedDataHelpers(
@@ -50,25 +39,15 @@ describe('filterableVms', () => {
   })
 
   it('sums the disk space from each VBD-linked VDI', () => {
-    getVbdsByIds.mockReturnValue([
-      createVbd({ VDI: 'vdi-a' as FrontXoVbd['VDI'] }),
-      createVbd({ VDI: 'vdi-b' as FrontXoVbd['VDI'] }),
+    const filterableVm = mountFirstFilterable([
+      createVm({ $VBDs: seedVmDisks([{ vdi: { size: 1000 } }, { vdi: { size: 2000 } }]) }),
     ])
-    getVdiById.mockImplementation((id: string) => createVdi({ size: id === 'vdi-a' ? 1000 : 2000 }))
-
-    const filterableVm = mountFirstFilterable()
 
     expect(filterableVm.diskSpaceSize).toBe(3000)
   })
 
   it('ignores VBDs whose VDI cannot be resolved', () => {
-    getVbdsByIds.mockReturnValue([
-      createVbd({ VDI: 'vdi-a' as FrontXoVbd['VDI'] }),
-      createVbd({ VDI: 'vdi-missing' as FrontXoVbd['VDI'] }),
-    ])
-    getVdiById.mockImplementation((id: string) => (id === 'vdi-a' ? createVdi({ size: 1500 }) : undefined))
-
-    const filterableVm = mountFirstFilterable()
+    const filterableVm = mountFirstFilterable([createVm({ $VBDs: seedVmDisks([{ vdi: { size: 1500 } }, {}]) })])
 
     expect(filterableVm.diskSpaceSize).toBe(1500)
   })
@@ -102,10 +81,7 @@ describe('getDisplayData', () => {
   })
 
   it('formats the summed disk space for display', () => {
-    getVbdsByIds.mockReturnValue([createVbd({ VDI: 'vdi-a' as FrontXoVbd['VDI'] })])
-    getVdiById.mockReturnValue(createVdi({ size: 5000 }))
-
-    const displayData = mountFirstDisplayData()
+    const displayData = mountFirstDisplayData([createVm({ $VBDs: seedVmDisks([{ vdi: { size: 5000 } }]) })])
 
     expect(displayData.formattedDiskSpace).toEqual(formatSizeRaw(5000, 1))
   })

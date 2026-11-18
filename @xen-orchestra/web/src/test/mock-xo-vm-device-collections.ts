@@ -14,11 +14,8 @@ import type {
   FrontXoVif,
   useXoVifCollection as realUseXoVifCollection,
 } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
-import { computed, type MaybeRefOrGetter, ref, toValue } from 'vue'
-
-function filterByIds<TRecord extends { id: string }>(records: TRecord[], ids: string[]) {
-  return records.filter(record => ids.includes(record.id))
-}
+import { createMockCollection } from '@/test/find-by-id.ts'
+import { ref } from 'vue'
 
 // Shared state of the mocked collections of the disks and network interfaces of XO VMs: a test sets the objects it
 // needs, reset it in `beforeEach`
@@ -44,16 +41,11 @@ export const vmDeviceCollectionsMock = {
 // Use as `mockModule(import('<collection module>'), () => import('@/test/mock-xo-vm-device-collections.ts'))`
 // for each collection below: every mocked module picks its own export
 export const useXoVbdCollection = (() => ({
-  vbds: vmDeviceCollectionsMock.vbds,
-  areVbdsReady: vmDeviceCollectionsMock.areVbdsReady,
-  getVbdById: (id: FrontXoVbd['id']) => vmDeviceCollectionsMock.vbds.value.find(vbd => vbd.id === id),
-  getVbdsByIds: (ids: FrontXoVbd['id'][]) => filterByIds(vmDeviceCollectionsMock.vbds.value, ids),
+  ...createMockCollection('Vbd', 'Vbds', vmDeviceCollectionsMock.vbds, vmDeviceCollectionsMock.areVbdsReady),
 })) as unknown as typeof realUseXoVbdCollection
 
 export const useXoVdiCollection = (() => ({
-  vdis: vmDeviceCollectionsMock.vdis,
-  areVdisReady: vmDeviceCollectionsMock.areVdisReady,
-  getVdiById: (id: FrontXoVdi['id']) => vmDeviceCollectionsMock.vdis.value.find(vdi => vdi.id === id),
+  ...createMockCollection('Vdi', 'Vdis', vmDeviceCollectionsMock.vdis, vmDeviceCollectionsMock.areVdisReady),
 })) as unknown as typeof realUseXoVdiCollection
 
 export const useXoVdiSnapshotCollection = (() => ({
@@ -63,10 +55,5 @@ export const useXoVdiSnapshotCollection = (() => ({
 })) as unknown as typeof realUseXoVdiSnapshotCollection
 
 export const useXoVifCollection = (() => ({
-  vifs: vmDeviceCollectionsMock.vifs,
-  areVifsReady: vmDeviceCollectionsMock.areVifsReady,
-  getVifsByIds: (ids: FrontXoVif['id'][]) => filterByIds(vmDeviceCollectionsMock.vifs.value, ids),
-  getVifById: (id: FrontXoVif['id'] | undefined) => vmDeviceCollectionsMock.vifs.value.find(vif => vif.id === id),
-  useGetVifById: (id: MaybeRefOrGetter<FrontXoVif['id'] | undefined>) =>
-    computed(() => vmDeviceCollectionsMock.vifs.value.find(vif => vif.id === toValue(id))),
+  ...createMockCollection('Vif', 'Vifs', vmDeviceCollectionsMock.vifs, vmDeviceCollectionsMock.areVifsReady),
 })) as unknown as typeof realUseXoVifCollection

@@ -1,99 +1,43 @@
-import type { useBackupJobDelete } from '@/modules/backup-job/composables/use-backup-job-delete.composable.ts'
+import { useBackupJobDelete } from '@/modules/backup-job/composables/use-backup-job-delete.composable.ts'
 import { useXoBackupJobActions } from '@/modules/backup-job/composables/use-xo-backup-job-actions.composable.ts'
-import type { useXoBackupJobChangeStateJob } from '@/modules/backup-job/jobs/xo-backup-job-change-state.job.ts'
-import type { useXoBackupJobDuplicateJob } from '@/modules/backup-job/jobs/xo-backup-job-duplicate.job.ts'
-import type { useXoBackupJobRunJob } from '@/modules/backup-job/jobs/xo-backup-job-run.job.ts'
-import type {
-  FrontXoSchedule,
-  useXoScheduleCollection,
-} from '@/modules/schedule/remote-resources/use-xo-schedule-collection.ts'
+import { useXoBackupJobChangeStateJob } from '@/modules/backup-job/jobs/xo-backup-job-change-state.job.ts'
+import { useXoBackupJobDuplicateJob } from '@/modules/backup-job/jobs/xo-backup-job-duplicate.job.ts'
+import { useXoBackupJobRunJob } from '@/modules/backup-job/jobs/xo-backup-job-run.job.ts'
 import { createVmBackupJob } from '@/test/create-backup-job.ts'
-import { createJobResult } from '@/test/create-job-result.ts'
+import { createJobStub, toJobComposableResult } from '@/test/create-job-result.ts'
 import { createSchedule } from '@/test/create-schedule.ts'
 import { t } from '@/test/i18n.ts'
+import { scheduleCollectionMock } from '@/test/mock-xo-schedule-collection.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
 import { mockModule } from '@/test/spy-on-module.ts'
-import { ref, toValue } from 'vue'
+import { toValue } from 'vue'
 
-const {
-  useChangeStateJob,
-  useRunJob,
-  useDuplicateJob,
-  useDelete,
-  changeState,
-  runBackupJobs,
-  duplicate,
-  deleteBackupJobs,
-  schedulesByJobId,
-} = vi.hoisted(() => ({
-  useChangeStateJob: vi.fn(),
-  useRunJob: vi.fn(),
-  useDuplicateJob: vi.fn(),
-  useDelete: vi.fn(),
-  changeState: vi.fn(),
-  runBackupJobs: vi.fn(),
-  duplicate: vi.fn(),
-  deleteBackupJobs: vi.fn(),
-  schedulesByJobId: new Map<string, FrontXoSchedule[]>(),
-}))
-
-mockModule(import('@/modules/schedule/remote-resources/use-xo-schedule-collection.ts'), () => ({
-  useXoScheduleCollection: (() => ({
-    schedulesByJobId: ref(schedulesByJobId),
-  })) as unknown as typeof useXoScheduleCollection,
-}))
-
-mockModule(import('@/modules/backup-job/jobs/xo-backup-job-change-state.job.ts'), () => ({
-  useXoBackupJobChangeStateJob: useChangeStateJob as unknown as typeof useXoBackupJobChangeStateJob,
-}))
-
-mockModule(import('@/modules/backup-job/jobs/xo-backup-job-run.job.ts'), () => ({
-  useXoBackupJobRunJob: useRunJob as unknown as typeof useXoBackupJobRunJob,
-}))
-
-mockModule(import('@/modules/backup-job/jobs/xo-backup-job-duplicate.job.ts'), () => ({
-  useXoBackupJobDuplicateJob: useDuplicateJob as unknown as typeof useXoBackupJobDuplicateJob,
-}))
-
+const changeStateJob = createJobStub(useXoBackupJobChangeStateJob)
+const runJob = createJobStub(useXoBackupJobRunJob)
+const duplicateJob = createJobStub(useXoBackupJobDuplicateJob)
 // The composable opens the delete modals and runs the delete job, which calls the REST API
-mockModule(import('@/modules/backup-job/composables/use-backup-job-delete.composable.ts'), () => ({
-  useBackupJobDelete: useDelete as unknown as typeof useBackupJobDelete,
-}))
+const deleteJob = createJobStub(useBackupJobDelete, result =>
+  toJobComposableResult(result, 'deleteBackupJobs', 'isDeletingBackupJobs')
+)
+
+mockModule(
+  import('@/modules/schedule/remote-resources/use-xo-schedule-collection.ts'),
+  () => import('@/test/mock-xo-schedule-collection.ts')
+)
 
 const backupJob = createVmBackupJob()
 
 beforeEach(() => {
-  useChangeStateJob.mockReset()
-  useRunJob.mockReset()
-  useDuplicateJob.mockReset()
-  useDelete.mockReset()
-  changeState.mockReset()
-  runBackupJobs.mockReset()
-  duplicate.mockReset()
-  deleteBackupJobs.mockReset()
-  schedulesByJobId.clear()
-
-  useChangeStateJob.mockReturnValue(createJobResult(changeState))
-  useRunJob.mockReturnValue(createJobResult(runBackupJobs))
-  useDuplicateJob.mockReturnValue(createJobResult(duplicate))
-  mockDelete()
+  changeStateJob.reset()
+  runJob.reset()
+  duplicateJob.reset()
+  deleteJob.reset()
+  scheduleCollectionMock.reset()
 })
 
-function mockDelete(state: Parameters<typeof createJobResult>[1] = {}) {
-  const { run, canRun, isRunning, errorMessage } = createJobResult(deleteBackupJobs, state)
-
-  useDelete.mockReturnValue({
-    deleteBackupJobs: run,
-    canDeleteBackupJobs: canRun,
-    isDeletingBackupJobs: isRunning,
-    deleteBackupJobsErrorMessage: errorMessage,
-  })
-}
-
 function setSchedulesEnabled(...enabled: boolean[]) {
-  schedulesByJobId.set(
-    backupJob.id,
-    enabled.map(isEnabled => createSchedule({ jobId: backupJob.id, enabled: isEnabled }))
+  scheduleCollectionMock.schedules.value = enabled.map(isEnabled =>
+    createSchedule({ jobId: backupJob.id, enabled: isEnabled })
   )
 }
 
@@ -102,7 +46,7 @@ function mountActions() {
 }
 
 // The jobs receive their arguments as getters
-function findLastArgs(useJob: typeof useChangeStateJob) {
+function findLastArgs(useJob: ReturnType<typeof vi.fn>) {
   return (useJob.mock.lastCall ?? []).map(arg => toValue(arg))
 }
 
@@ -136,14 +80,14 @@ describe('changeStateAction', () => {
       const { changeStateAction } = mountActions()
 
       expect({ label: changeStateAction.label, icon: changeStateAction.icon }).toEqual({ label: t(label), icon })
-      expect(findLastArgs(useChangeStateJob)).toEqual([[backupJob], targetedState])
+      expect(findLastArgs(changeStateJob.use)).toEqual([[backupJob], targetedState])
     }
   )
 
   it('runs the job on click', () => {
     mountActions().changeStateAction.onClick()
 
-    expect(changeState).toHaveBeenCalledOnce()
+    expect(changeStateJob.run).toHaveBeenCalledOnce()
   })
 
   it('can run when the job can run', () => {
@@ -151,13 +95,13 @@ describe('changeStateAction', () => {
   })
 
   it('is disabled, with the reason as hint, when the job cannot run', () => {
-    useChangeStateJob.mockReturnValue(createJobResult(changeState, { canRun: false, errorMessage: 'no schedule' }))
+    changeStateJob.setState({ canRun: false, errorMessage: 'no schedule' })
 
     expect(mountActions().changeStateAction).toMatchObject({ disabled: true, hint: 'no schedule' })
   })
 
   it('is busy while the job runs', () => {
-    useChangeStateJob.mockReturnValue(createJobResult(changeState, { canRun: false, isRunning: true }))
+    changeStateJob.setState({ canRun: false, isRunning: true })
 
     expect(mountActions().changeStateAction.busy).toBe(true)
   })
@@ -170,8 +114,8 @@ describe('manualRunAction', () => {
     manualRunAction.onClick()
 
     expect(manualRunAction).toMatchObject({ label: t('action:manual-run'), icon: 'fa:play' })
-    expect(findLastArgs(useRunJob)).toEqual([[backupJob]])
-    expect(runBackupJobs).toHaveBeenCalledOnce()
+    expect(findLastArgs(runJob.use)).toEqual([[backupJob]])
+    expect(runJob.run).toHaveBeenCalledOnce()
   })
 
   it('can run when the job can run', () => {
@@ -179,13 +123,13 @@ describe('manualRunAction', () => {
   })
 
   it('is disabled, with the reason as hint, when the job cannot run', () => {
-    useRunJob.mockReturnValue(createJobResult(runBackupJobs, { canRun: false, errorMessage: 'already running' }))
+    runJob.setState({ canRun: false, errorMessage: 'already running' })
 
     expect(mountActions().manualRunAction).toMatchObject({ disabled: true, hint: 'already running' })
   })
 
   it('is busy while the job runs', () => {
-    useRunJob.mockReturnValue(createJobResult(runBackupJobs, { canRun: false, isRunning: true }))
+    runJob.setState({ canRun: false, isRunning: true })
 
     expect(mountActions().manualRunAction.busy).toBe(true)
   })
@@ -198,8 +142,8 @@ describe('duplicateAction', () => {
     duplicateAction.onClick()
 
     expect(duplicateAction).toMatchObject({ label: t('action:duplicate'), icon: 'action:duplicate' })
-    expect(findLastArgs(useDuplicateJob)).toEqual([[backupJob]])
-    expect(duplicate).toHaveBeenCalledOnce()
+    expect(findLastArgs(duplicateJob.use)).toEqual([[backupJob]])
+    expect(duplicateJob.run).toHaveBeenCalledOnce()
   })
 
   it('can run when the job can run', () => {
@@ -207,13 +151,13 @@ describe('duplicateAction', () => {
   })
 
   it('is disabled, with the reason as hint, when the job cannot run', () => {
-    useDuplicateJob.mockReturnValue(createJobResult(duplicate, { canRun: false, errorMessage: 'in progress' }))
+    duplicateJob.setState({ canRun: false, errorMessage: 'in progress' })
 
     expect(mountActions().duplicateAction).toMatchObject({ disabled: true, hint: 'in progress' })
   })
 
   it('is busy while the job runs', () => {
-    useDuplicateJob.mockReturnValue(createJobResult(duplicate, { canRun: false, isRunning: true }))
+    duplicateJob.setState({ canRun: false, isRunning: true })
 
     expect(mountActions().duplicateAction.busy).toBe(true)
   })
@@ -231,8 +175,8 @@ describe('deleteAction', () => {
       accent: 'danger',
       separator: true,
     })
-    expect(findLastArgs(useDelete)).toEqual([[backupJob]])
-    expect(deleteBackupJobs).toHaveBeenCalledOnce()
+    expect(findLastArgs(deleteJob.use)).toEqual([[backupJob]])
+    expect(deleteJob.run).toHaveBeenCalledOnce()
   })
 
   it('can run when the backup job can be deleted', () => {
@@ -240,13 +184,13 @@ describe('deleteAction', () => {
   })
 
   it('is disabled, with the reason as hint, when the backup job cannot be deleted', () => {
-    mockDelete({ canRun: false, errorMessage: 'in progress' })
+    deleteJob.setState({ canRun: false, errorMessage: 'in progress' })
 
     expect(mountActions().deleteAction).toMatchObject({ disabled: true, hint: 'in progress' })
   })
 
   it('is busy while the backup job is being deleted', () => {
-    mockDelete({ canRun: false, isRunning: true })
+    deleteJob.setState({ canRun: false, isRunning: true })
 
     expect(mountActions().deleteAction.busy).toBe(true)
   })

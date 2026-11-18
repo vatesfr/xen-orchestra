@@ -1,28 +1,21 @@
 import AppHeaderMenu from '@/modules/navigation/components/AppHeaderMenu.vue'
-import type { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
-import type { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
+import { vmCollectionMock } from '@/test/mock-xo-vm-collection.ts'
 import { mockModule } from '@/test/spy-on-module.ts'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { mount, type VueWrapper } from '@vue/test-utils'
-import { computed, nextTick } from 'vue'
+import { nextTick } from 'vue'
 
-const { buildXo5Route } = vi.hoisted(() => ({
-  buildXo5Route: vi.fn(),
-}))
+mockModule(import('@/shared/remote-resources/use-xo-routes.ts'), () => import('@/test/mock-xo-routes.ts'))
 
-mockModule(import('@/shared/remote-resources/use-xo-routes.ts'), () => ({
-  useXoRoutes: (() => ({ buildXo5Route })) as unknown as typeof useXoRoutes,
-}))
-
-mockModule(import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'), () => ({
-  useXoVmCollection: (() => ({ vms: computed(() => []) })) as unknown as typeof useXoVmCollection,
-}))
+mockModule(
+  import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'),
+  () => import('@/test/mock-xo-vm-collection.ts')
+)
 
 beforeEach(() => {
-  buildXo5Route.mockReset()
-  buildXo5Route.mockImplementation((path: string) => `https://xo5.example.com/#${path}`)
+  vmCollectionMock.reset()
 })
 
 async function mountOpenedMenu() {

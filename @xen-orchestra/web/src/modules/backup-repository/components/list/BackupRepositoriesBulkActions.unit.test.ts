@@ -1,83 +1,41 @@
 import BackupRepositoriesBulkActions from '@/modules/backup-repository/components/list/BackupRepositoriesBulkActions.vue'
-import type { useBackupRepositoryForget } from '@/modules/backup-repository/composables/use-backup-repository-forget.composable.ts'
-import type { useBulkEditBackupRepositories } from '@/modules/backup-repository/composables/use-bulk-edit-backup-repositories.composable.ts'
-import type { useXoBackupRepositoryBenchmarkJob } from '@/modules/backup-repository/jobs/xo-backup-repository-benchmark.job.ts'
+import { useBackupRepositoryForget } from '@/modules/backup-repository/composables/use-backup-repository-forget.composable.ts'
+import { useBulkEditBackupRepositories } from '@/modules/backup-repository/composables/use-bulk-edit-backup-repositories.composable.ts'
 import type { useXoBackupRepositoryChangeStateJob } from '@/modules/backup-repository/jobs/xo-backup-repository-change-state.job.ts'
 import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
 import { createBr } from '@/test/create-br.ts'
+import { createJobStub, toJobComposableResult } from '@/test/create-job-result.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
-import { resetStubs } from '@/test/reset-stubs.ts'
+import { benchmarkJobMock } from '@/test/mock-backup-repository-benchmark-job.ts'
 import { mockModule } from '@/test/spy-on-module.ts'
 import type { ActionItem, GroupActionItem } from '@core/components/menu/VtsActionsMenu.vue'
 import VtsTableBulkActions from '@core/components/table/VtsTableBulkActions.vue'
 import { mount } from '@vue/test-utils'
-import { ref, toValue } from 'vue'
+import { toValue } from 'vue'
 
-type MockedJobState = { canRun?: boolean; isRunning?: boolean; errorMessage?: string }
-
-const { connect, disable, edit, benchmark, forget, jobStates } = vi.hoisted(() => ({
-  connect: vi.fn(),
-  disable: vi.fn(),
-  edit: vi.fn(),
-  benchmark: vi.fn(),
-  forget: vi.fn(),
-  jobStates: {} as Record<'connect' | 'disable' | 'edit' | 'benchmark' | 'forget', MockedJobState>,
-}))
-
-function toJobState({ canRun = true, isRunning = false, errorMessage }: MockedJobState = {}) {
-  return { canRun: ref(canRun), isRunning: ref(isRunning), errorMessage: ref(errorMessage) }
+const jobs = {
+  connect: createJobStub(),
+  disable: createJobStub(),
+  edit: createJobStub(useBulkEditBackupRepositories, result =>
+    toJobComposableResult(result, 'editBackupRepositories', 'isEditingBackupRepositories')
+  ),
+  benchmark: benchmarkJobMock,
+  forget: createJobStub(useBackupRepositoryForget, result =>
+    toJobComposableResult(result, 'forgetBackupRepositories', 'isForgettingBackupRepositories')
+  ),
 }
 
 // The jobs and the edit and forget composables call the REST API and open SSE subscriptions
 mockModule(import('@/modules/backup-repository/jobs/xo-backup-repository-change-state.job.ts'), () => ({
   useXoBackupRepositoryChangeStateJob: ((_brs: unknown, enabled: unknown) =>
     toValue(enabled)
-      ? { run: connect, ...toJobState(jobStates.connect) }
-      : { run: disable, ...toJobState(jobStates.disable) }) as unknown as typeof useXoBackupRepositoryChangeStateJob,
-}))
-
-mockModule(import('@/modules/backup-repository/composables/use-bulk-edit-backup-repositories.composable.ts'), () => ({
-  useBulkEditBackupRepositories: (() => {
-    const { canRun, isRunning, errorMessage } = toJobState(jobStates.edit)
-
-    return {
-      editBackupRepositories: edit,
-      canEditBackupRepositories: canRun,
-      isEditingBackupRepositories: isRunning,
-      editBackupRepositoriesErrorMessage: errorMessage,
-    }
-  }) as unknown as typeof useBulkEditBackupRepositories,
-}))
-
-mockModule(import('@/modules/backup-repository/jobs/xo-backup-repository-benchmark.job.ts'), () => ({
-  useXoBackupRepositoryBenchmarkJob: (() => ({
-    run: benchmark,
-    ...toJobState(jobStates.benchmark),
-  })) as unknown as typeof useXoBackupRepositoryBenchmarkJob,
-}))
-
-mockModule(import('@/modules/backup-repository/composables/use-backup-repository-forget.composable.ts'), () => ({
-  useBackupRepositoryForget: (() => {
-    const { canRun, isRunning, errorMessage } = toJobState(jobStates.forget)
-
-    return {
-      forgetBackupRepositories: forget,
-      canForgetBackupRepositories: canRun,
-      isForgettingBackupRepositories: isRunning,
-      forgetBackupRepositoriesErrorMessage: errorMessage,
-    }
-  }) as unknown as typeof useBackupRepositoryForget,
+      ? jobs.connect.use()
+      : jobs.disable.use()) as unknown as typeof useXoBackupRepositoryChangeStateJob,
 }))
 
 beforeEach(() => {
-  resetStubs(connect, disable, edit, benchmark, forget)
-
-  jobStates.connect = {}
-  jobStates.disable = {}
-  jobStates.edit = {}
-  jobStates.benchmark = {}
-  jobStates.forget = {}
+  Object.values(jobs).forEach(job => job.reset())
 })
 
 function mountBulkActions(brs: FrontXoBackupRepository[] = [createBr()]) {
@@ -105,9 +63,9 @@ describe('without selection', () => {
   })
 
   it('explains why edit, test speed and forget cannot run', () => {
-    jobStates.edit = { canRun: false, errorMessage: 'No backup repository to edit' }
-    jobStates.benchmark = { canRun: false, errorMessage: 'Missing backup repository' }
-    jobStates.forget = { canRun: false, errorMessage: 'No backup repository to forget' }
+    jobs.edit.setState({ canRun: false, errorMessage: 'No backup repository to edit' })
+    jobs.benchmark.setState({ canRun: false, errorMessage: 'Missing backup repository' })
+    jobs.forget.setState({ canRun: false, errorMessage: 'No backup repository to forget' })
 
     const { editAction, testSpeed, forgetAction } = findActions(mountBulkActions([]))
 
@@ -133,19 +91,19 @@ describe('with a selection', () => {
     testSpeed.onClick?.()
     forgetAction.onClick?.()
 
-    expect(connect).toHaveBeenCalledOnce()
-    expect(disable).toHaveBeenCalledOnce()
-    expect(edit).toHaveBeenCalledOnce()
-    expect(benchmark).toHaveBeenCalledOnce()
-    expect(forget).toHaveBeenCalledOnce()
+    expect(jobs.connect.run).toHaveBeenCalledOnce()
+    expect(jobs.disable.run).toHaveBeenCalledOnce()
+    expect(jobs.edit.run).toHaveBeenCalledOnce()
+    expect(jobs.benchmark.run).toHaveBeenCalledOnce()
+    expect(jobs.forget.run).toHaveBeenCalledOnce()
   })
 
   it('reflects the state of each job', () => {
-    jobStates.connect = { isRunning: true }
-    jobStates.disable = { canRun: false, errorMessage: 'Backup repository state change in progress…' }
-    jobStates.edit = { canRun: false, isRunning: true, errorMessage: 'Backup repositories edition in progress…' }
-    jobStates.benchmark = { canRun: false, errorMessage: '2 selected backup repositories are disabled' }
-    jobStates.forget = { canRun: false, errorMessage: 'Used by 1 backup job, remove it from the job first' }
+    jobs.connect.setState({ isRunning: true })
+    jobs.disable.setState({ canRun: false, errorMessage: 'Backup repository state change in progress…' })
+    jobs.edit.setState({ canRun: false, isRunning: true, errorMessage: 'Backup repositories edition in progress…' })
+    jobs.benchmark.setState({ canRun: false, errorMessage: '2 selected backup repositories are disabled' })
+    jobs.forget.setState({ canRun: false, errorMessage: 'Used by 1 backup job, remove it from the job first' })
 
     const { connectAction, disableAction, editAction, testSpeed, forgetAction } = findActions(mountBulkActions())
 

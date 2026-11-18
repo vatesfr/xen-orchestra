@@ -1,51 +1,37 @@
 import HostDashboardVmsStatus from '@/modules/host/components/dashboard/HostDashboardVmsStatus.vue'
-import type { FrontXoHost, useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
-import type { FrontXoVm, useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
+import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
+import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { createHost } from '@/test/create-host.ts'
 import { createVm } from '@/test/create-vm.ts'
 import { findCardNumbers, findLegends } from '@/test/find-rendered-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
+import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
+import { vmCollectionMock } from '@/test/mock-xo-vm-collection.ts'
 import { mockModule } from '@/test/spy-on-module.ts'
 import { VM_POWER_STATE } from '@vates/types'
 import { mount } from '@vue/test-utils'
-import { nextTick, ref } from 'vue'
+import { nextTick } from 'vue'
 
-const { useXoHostCollectionMock, useXoVmCollectionMock } = vi.hoisted(() => ({
-  useXoHostCollectionMock: vi.fn(),
-  useXoVmCollectionMock: vi.fn(),
-}))
+mockModule(
+  import('@/modules/host/remote-resources/use-xo-host-collection.ts'),
+  () => import('@/test/mock-xo-collections.ts')
+)
 
-mockModule(import('@/modules/host/remote-resources/use-xo-host-collection.ts'), () => ({
-  useXoHostCollection: useXoHostCollectionMock as unknown as typeof useXoHostCollection,
-}))
-
-mockModule(import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'), () => ({
-  useXoVmCollection: useXoVmCollectionMock as unknown as typeof useXoVmCollection,
-}))
+mockModule(
+  import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'),
+  () => import('@/test/mock-xo-vm-collection.ts')
+)
 
 const host = createHost({ id: 'host-1' as FrontXoHost['id'] })
 
-const vmsByHost = ref(new Map<FrontXoHost['id'], FrontXoVm[]>())
-
-function givenVmsByHost(vms: Map<FrontXoHost['id'], FrontXoVm[]>) {
-  vmsByHost.value = vms
-  useXoVmCollectionMock.mockReturnValue({ vmsByHost, areVmsReady: ref(true) })
-}
-
-function givenHostVms(vms: FrontXoVm[]) {
-  givenVmsByHost(new Map([[host.id, vms]]))
-}
-
-function createVmInState(id: string, powerState: FrontXoVm['power_state']) {
-  return createVm({ id: id as FrontXoVm['id'], power_state: powerState })
+function createVmInState(id: string, powerState: FrontXoVm['power_state'], hostId = host.id) {
+  return createVm({ id: id as FrontXoVm['id'], $container: hostId, power_state: powerState })
 }
 
 beforeEach(() => {
-  useXoHostCollectionMock.mockReset()
-  useXoVmCollectionMock.mockReset()
-  useXoHostCollectionMock.mockReturnValue({ areHostsReady: ref(true) })
-  givenHostVms([])
+  xoCollectionsMock.reset()
+  vmCollectionMock.reset()
 })
 
 function mountVmsStatus() {
@@ -62,7 +48,7 @@ it('renders the card title', () => {
 })
 
 it('shows a loader instead of the statuses while the hosts are still loading', () => {
-  useXoHostCollectionMock.mockReturnValue({ areHostsReady: ref(false) })
+  xoCollectionsMock.areHostsReady.value = false
 
   const wrapper = mountVmsStatus()
 
@@ -71,7 +57,7 @@ it('shows a loader instead of the statuses while the hosts are still loading', (
 })
 
 it('shows a loader instead of the statuses while the VMs are still loading', () => {
-  useXoVmCollectionMock.mockReturnValue({ vmsByHost: ref(new Map()), areVmsReady: ref(false) })
+  vmCollectionMock.areVmsReady.value = false
 
   const wrapper = mountVmsStatus()
 
@@ -80,13 +66,13 @@ it('shows a loader instead of the statuses while the VMs are still loading', () 
 })
 
 it('counts the VMs of the host in each power state', () => {
-  givenHostVms([
+  vmCollectionMock.vms.value = [
     createVmInState('vm-1', VM_POWER_STATE.RUNNING),
     createVmInState('vm-2', VM_POWER_STATE.RUNNING),
     createVmInState('vm-3', VM_POWER_STATE.PAUSED),
     createVmInState('vm-4', VM_POWER_STATE.SUSPENDED),
     createVmInState('vm-5', VM_POWER_STATE.HALTED),
-  ])
+  ]
 
   const wrapper = mountVmsStatus()
 
@@ -99,7 +85,10 @@ it('counts the VMs of the host in each power state', () => {
 })
 
 it('totals the VMs of the host', () => {
-  givenHostVms([createVmInState('vm-1', VM_POWER_STATE.RUNNING), createVmInState('vm-2', VM_POWER_STATE.HALTED)])
+  vmCollectionMock.vms.value = [
+    createVmInState('vm-1', VM_POWER_STATE.RUNNING),
+    createVmInState('vm-2', VM_POWER_STATE.HALTED),
+  ]
 
   const wrapper = mountVmsStatus()
 
@@ -118,7 +107,7 @@ it('keeps every power state in the legend for a host without VM', () => {
 })
 
 it('leaves out the VMs running on another host', () => {
-  givenVmsByHost(new Map([['host-2' as FrontXoHost['id'], [createVmInState('vm-1', VM_POWER_STATE.RUNNING)]]]))
+  vmCollectionMock.vms.value = [createVmInState('vm-1', VM_POWER_STATE.RUNNING, 'host-2' as FrontXoHost['id'])]
 
   const wrapper = mountVmsStatus()
 
@@ -126,13 +115,14 @@ it('leaves out the VMs running on another host', () => {
 })
 
 it('follows the VMs of the host as the collection changes', async () => {
-  givenHostVms([createVmInState('vm-1', VM_POWER_STATE.RUNNING)])
+  vmCollectionMock.vms.value = [createVmInState('vm-1', VM_POWER_STATE.RUNNING)]
 
   const wrapper = mountVmsStatus()
 
-  vmsByHost.value = new Map([
-    [host.id, [createVmInState('vm-1', VM_POWER_STATE.RUNNING), createVmInState('vm-2', VM_POWER_STATE.HALTED)]],
-  ])
+  vmCollectionMock.vms.value = [
+    createVmInState('vm-1', VM_POWER_STATE.RUNNING),
+    createVmInState('vm-2', VM_POWER_STATE.HALTED),
+  ]
   await nextTick()
 
   expect(findLegends(wrapper)).toEqual([

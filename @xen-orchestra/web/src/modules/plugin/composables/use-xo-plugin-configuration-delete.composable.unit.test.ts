@@ -1,31 +1,23 @@
 import { useXoPluginConfigurationDelete } from '@/modules/plugin/composables/use-xo-plugin-configuration-delete.composable.ts'
-import type { useXoPluginDeleteConfigurationJob } from '@/modules/plugin/jobs/xo-plugin-delete-configuration.job.ts'
+import { useXoPluginDeleteConfigurationJob } from '@/modules/plugin/jobs/xo-plugin-delete-configuration.job.ts'
 import { createJobResult } from '@/test/create-job-result.ts'
 import { createPlugin } from '@/test/create-plugin.ts'
 import { t } from '@/test/i18n.ts'
+import { deleteModalMock } from '@/test/mock-delete-modal.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
-import { mockModule } from '@/test/spy-on-module.ts'
-import type { useDeleteModal } from '@core/composables/modals/use-delete-modal.ts'
-
-const { run, useDeleteConfigurationJob, openModal } = vi.hoisted(() => ({
-  run: vi.fn(),
-  useDeleteConfigurationJob: vi.fn(),
-  openModal: vi.fn(),
-}))
+import { mockModule, mockedExport } from '@/test/spy-on-module.ts'
 
 // The job deletes the configuration through the REST API
-mockModule(import('@/modules/plugin/jobs/xo-plugin-delete-configuration.job.ts'), () => ({
-  useXoPluginDeleteConfigurationJob: useDeleteConfigurationJob as unknown as typeof useXoPluginDeleteConfigurationJob,
-}))
+const useDeleteConfigurationJob = mockedExport(useXoPluginDeleteConfigurationJob)
 
-mockModule(import('@core/composables/modals/use-delete-modal.ts'), () => ({
-  useDeleteModal: (() => ({ open: openModal })) as unknown as typeof useDeleteModal,
-}))
+const run = vi.fn()
+
+mockModule(import('@core/composables/modals/use-delete-modal.ts'), () => import('@/test/mock-delete-modal.ts'))
 
 beforeEach(() => {
   run.mockReset()
-  useDeleteConfigurationJob.mockReset().mockReturnValue(createJobResult(run))
-  openModal.mockReset()
+  useDeleteConfigurationJob.mockReturnValue(createJobResult(run))
+  deleteModalMock.reset()
 })
 
 const plugin = createPlugin({
@@ -37,14 +29,10 @@ function mountDelete() {
   return mountComposable(() => useXoPluginConfigurationDelete(plugin)).wrapper.vm
 }
 
-function confirmDeletion() {
-  openModal.mock.calls[0][0].events.onConfirm()
-}
-
 it('asks to confirm the deletion of the configuration of the plugin', () => {
   mountDelete().deleteConfiguration()
 
-  expect(openModal.mock.calls[0][0].props).toEqual({
+  expect(deleteModalMock.open.mock.calls[0][0].props).toEqual({
     subject: t('plugin:configuration-of', { name: 'transport-email' }),
     description: t('plugin:delete-configuration-info'),
     confirmLabel: t('action:delete-configuration'),
@@ -60,7 +48,7 @@ it('does not delete anything until confirmed', () => {
 it('deletes the configuration in the background once confirmed, so the modal closes right away', () => {
   mountDelete().deleteConfiguration()
 
-  confirmDeletion()
+  deleteModalMock.confirm()
 
   expect(run).toHaveBeenCalledWith({ detached: true })
 })

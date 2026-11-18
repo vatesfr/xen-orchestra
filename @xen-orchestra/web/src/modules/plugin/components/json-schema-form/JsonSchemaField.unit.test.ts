@@ -1,9 +1,6 @@
-import type { useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import JsonSchemaField from '@/modules/plugin/components/json-schema-form/JsonSchemaField.vue'
 import type { JsonSchema } from '@/modules/plugin/utils/json-schema.util.ts'
-import type { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
-import type { useXoSrCollection } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
-import type { FrontXoVm, useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
+import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { OBFUSCATED_VALUE } from '@/shared/constants.ts'
 import { createVm } from '@/test/create-vm.ts'
 import { getButton } from '@/test/get-button.ts'
@@ -11,45 +8,44 @@ import { getCheckbox } from '@/test/get-checkbox.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { getNumberedItemLabel } from '@/test/json-schema-item-label.ts'
+import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
+import { vmCollectionMock } from '@/test/mock-xo-vm-collection.ts'
 import { mountJsonSchemaForm } from '@/test/mount-json-schema-form.ts'
 import { findSelectOptionLabels, openSelect, pickSelectOption } from '@/test/select.ts'
 import { mockModule } from '@/test/spy-on-module.ts'
 import { mount, type VueWrapper } from '@vue/test-utils'
-import { h, nextTick, ref } from 'vue'
+import { h, nextTick } from 'vue'
 
-mockModule(import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'), () => ({
-  useXoVmCollection: (() => ({
-    vms: ref([createVm({ id: 'vm-1' as FrontXoVm['id'], name_label: 'Web server' })]),
-    areVmsReady: ref(true),
-    hasVmFetchError: ref(false),
-  })) as unknown as typeof useXoVmCollection,
-}))
+mockModule(
+  import('@/modules/host/remote-resources/use-xo-host-collection.ts'),
+  () => import('@/test/mock-xo-collections.ts')
+)
 
-mockModule(import('@/modules/host/remote-resources/use-xo-host-collection.ts'), () => ({
-  useXoHostCollection: (() => ({
-    hosts: ref([]),
-    areHostsReady: ref(true),
-    hasHostFetchError: ref(false),
-  })) as unknown as typeof useXoHostCollection,
-}))
+mockModule(
+  import('@/modules/pool/remote-resources/use-xo-pool-collection.ts'),
+  () => import('@/test/mock-xo-collections.ts')
+)
 
-// The pools fail to load, to test a field without options
-mockModule(import('@/modules/pool/remote-resources/use-xo-pool-collection.ts'), () => ({
-  useXoPoolCollection: (() => ({
-    pools: ref([]),
-    arePoolsReady: ref(false),
-    hasPoolFetchError: ref(true),
-  })) as unknown as typeof useXoPoolCollection,
-}))
+mockModule(
+  import('@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'),
+  () => import('@/test/mock-xo-collections.ts')
+)
 
-// The SRs never load, to test a field waiting for its options
-mockModule(import('@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'), () => ({
-  useXoSrCollection: (() => ({
-    srs: ref([]),
-    areSrsReady: ref(false),
-    hasSrFetchError: ref(false),
-  })) as unknown as typeof useXoSrCollection,
-}))
+mockModule(
+  import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'),
+  () => import('@/test/mock-xo-vm-collection.ts')
+)
+
+beforeEach(() => {
+  xoCollectionsMock.reset()
+  vmCollectionMock.reset()
+  vmCollectionMock.vms.value = [createVm({ id: 'vm-1' as FrontXoVm['id'], name_label: 'Web server' })]
+  // The pools fail to load, to test a field without options
+  xoCollectionsMock.arePoolsReady.value = false
+  xoCollectionsMock.hasPoolFetchError.value = true
+  // The SRs never load, to test a field waiting for its options
+  xoCollectionsMock.areSrsReady.value = false
+})
 
 function mountField(props: {
   schema: JsonSchema

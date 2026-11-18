@@ -2,47 +2,39 @@ import BackupRepositoryTestSpeedButton from '@/modules/backup-repository/compone
 import BackupRepositoryEditButton from '@/modules/backup-repository/components/actions/edit/BackupRepositoryEditButton.vue'
 import BackupRepositoryForgetButton from '@/modules/backup-repository/components/actions/forget/BackupRepositoryForgetButton.vue'
 import BackupRepositoryHeader from '@/modules/backup-repository/components/BackupRepositoryHeader.vue'
-import type { useXoBackupRepositoryBenchmarkJob } from '@/modules/backup-repository/jobs/xo-backup-repository-benchmark.job.ts'
+import type { useBackupRepositoryForget } from '@/modules/backup-repository/composables/use-backup-repository-forget.composable.ts'
 import type { useXoBackupRepositoryChangeStateJob } from '@/modules/backup-repository/jobs/xo-backup-repository-change-state.job.ts'
 import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
 import { createBr } from '@/test/create-br.ts'
+import { createJobResult, toJobComposableResult } from '@/test/create-job-result.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
+import { benchmarkJobMock } from '@/test/mock-backup-repository-benchmark-job.ts'
 import { mockModule } from '@/test/spy-on-module.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiHeadBar from '@core/components/ui/head-bar/UiHeadBar.vue'
 import { objectIcon } from '@core/icons'
 import { mount } from '@vue/test-utils'
-import { computed } from 'vue'
 
 // The action jobs subscribe to server events, unavailable in tests
 mockModule(import('@/modules/backup-repository/jobs/xo-backup-repository-change-state.job.ts'), () => ({
-  useXoBackupRepositoryChangeStateJob: (() => ({
-    run: vi.fn(),
-    canRun: computed(() => true),
-    isRunning: computed(() => false),
-    errorMessage: computed(() => undefined),
-  })) as unknown as typeof useXoBackupRepositoryChangeStateJob,
-}))
-
-mockModule(import('@/modules/backup-repository/jobs/xo-backup-repository-benchmark.job.ts'), () => ({
-  useXoBackupRepositoryBenchmarkJob: (() => ({
-    run: vi.fn(),
-    canRun: computed(() => true),
-    isRunning: computed(() => false),
-    errorMessage: computed(() => undefined),
-  })) as unknown as typeof useXoBackupRepositoryBenchmarkJob,
+  useXoBackupRepositoryChangeStateJob: (() =>
+    createJobResult(vi.fn())) as unknown as typeof useXoBackupRepositoryChangeStateJob,
 }))
 
 mockModule(import('@/modules/backup-repository/composables/use-backup-repository-forget.composable.ts'), () => ({
-  useBackupRepositoryForget: () => ({
-    forgetBackupRepositories: vi.fn(),
-    canForgetBackupRepositories: computed(() => true),
-    isForgettingBackupRepositories: computed(() => false),
-    forgetBackupRepositoriesErrorMessage: computed(() => undefined),
-  }),
+  useBackupRepositoryForget: (() =>
+    toJobComposableResult(
+      createJobResult(vi.fn()),
+      'forgetBackupRepositories',
+      'isForgettingBackupRepositories'
+    )) as unknown as typeof useBackupRepositoryForget,
 }))
+
+beforeEach(() => {
+  benchmarkJobMock.reset()
+})
 
 function mountHeader(br: FrontXoBackupRepository = createBr()) {
   return mount(BackupRepositoryHeader, {

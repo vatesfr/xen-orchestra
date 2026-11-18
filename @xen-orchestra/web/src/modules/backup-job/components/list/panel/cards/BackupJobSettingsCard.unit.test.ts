@@ -1,27 +1,22 @@
 import BackupJobSettingsCard from '@/modules/backup-job/components/list/panel/cards/BackupJobSettingsCard.vue'
 import type { FrontAnyXoBackupJob } from '@/modules/backup-job/remote-resources/use-xo-backup-job-collection.ts'
-import type { FrontXoProxy, useXoProxyCollection } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
+import type { FrontXoProxy } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
 import { createMetadataBackupJob, createMirrorBackupJob, createVmBackupJob } from '@/test/create-backup-job.ts'
+import { createProxy } from '@/test/create-proxy.ts'
 import { findCardLabelledValueLists, findCardLabelledValues } from '@/test/find-rendered-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
+import { proxyCollectionMock } from '@/test/mock-xo-proxy-collection.ts'
 import { mockModule } from '@/test/spy-on-module.ts'
 import VtsCopyAllMenuItem from '@core/components/copy-all-menu-item/VtsCopyAllMenuItem.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import type { XoSchedule } from '@vates/types'
 import { mount } from '@vue/test-utils'
-import { computed, toValue, type MaybeRefOrGetter } from 'vue'
 
-const { proxies } = vi.hoisted(() => ({
-  proxies: [] as FrontXoProxy[],
-}))
-
-mockModule(import('@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'), () => ({
-  useXoProxyCollection: (() => ({
-    useGetProxyById: (id: MaybeRefOrGetter<FrontXoProxy['id'] | undefined>) =>
-      computed(() => proxies.find(proxy => proxy.id === toValue(id))),
-  })) as unknown as typeof useXoProxyCollection,
-}))
+mockModule(
+  import('@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'),
+  () => import('@/test/mock-xo-proxy-collection.ts')
+)
 
 const scheduleId = 'schedule-1' as XoSchedule['id']
 
@@ -35,7 +30,7 @@ const recipients = [
 ]
 
 beforeEach(() => {
-  proxies.length = 0
+  proxyCollectionMock.reset()
 })
 
 function mountSettingsCard(backupJob: FrontAnyXoBackupJob) {
@@ -103,7 +98,7 @@ describe('rows', () => {
 
 describe('values', () => {
   it('shows the values of the settings', () => {
-    proxies.push({ id: 'proxy-123' as FrontXoProxy['id'], name: 'Main proxy' })
+    proxyCollectionMock.proxies.value = [createProxy({ id: 'proxy-123' as FrontXoProxy['id'], name: 'Main proxy' })]
 
     const backupJob = createVmBackupJob({
       mode: 'full',

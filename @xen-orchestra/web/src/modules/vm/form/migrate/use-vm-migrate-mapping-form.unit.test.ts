@@ -1,19 +1,13 @@
 import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
-import type {
-  FrontXoNetwork,
-  useXoNetworkCollection,
-} from '@/modules/network/remote-resources/use-xo-network-collection.ts'
-import type { FrontXoPbd, useXoPbdCollection } from '@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'
-import type { FrontXoPif, useXoPifCollection } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
+import type { FrontXoNetwork } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
+import type { FrontXoPbd } from '@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'
+import type { FrontXoPif } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
 import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
-import type {
-  FrontXoSr,
-  useXoSrCollection,
-} from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
+import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import type { FrontXoVbd } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
-import type { FrontXoVdi, useXoVdiCollection } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
-import type { FrontXoVif, useXoVifCollection } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
-import type { useXoVmVbdsUtils } from '@/modules/vm/composables/xo-vm-vbd-utils.composable.ts'
+import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
+import type { FrontXoVif } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
+import { useXoVmVbdsUtils } from '@/modules/vm/composables/xo-vm-vbd-utils.composable.ts'
 import { useVmMigrateMappingForm } from '@/modules/vm/form/migrate/use-vm-migrate-mapping-form.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { createNetwork } from '@/test/create-network.ts'
@@ -24,57 +18,44 @@ import { createVbd } from '@/test/create-vbd.ts'
 import { createVdi } from '@/test/create-vdi.ts'
 import { createVif } from '@/test/create-vif.ts'
 import { createVm } from '@/test/create-vm.ts'
-import { groupBy } from '@/test/group-by.ts'
+import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
+import { vmDeviceCollectionsMock } from '@/test/mock-xo-vm-device-collections.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
-import { mockModule } from '@/test/spy-on-module.ts'
+import { mockModule, mockedExport } from '@/test/spy-on-module.ts'
 import { VM_POWER_STATE } from '@vates/types'
-import { computed, type MaybeRefOrGetter, nextTick, ref, toValue } from 'vue'
+import { computed, nextTick, ref } from 'vue'
 
-const {
-  useXoVmVbdsUtilsMock,
-  useXoVdiCollectionMock,
-  useXoSrCollectionMock,
-  useXoPbdCollectionMock,
-  useXoVifCollectionMock,
-  useXoNetworkCollectionMock,
-  useXoPifCollectionMock,
-} = vi.hoisted(() => ({
-  useXoVmVbdsUtilsMock: vi.fn(),
-  useXoVdiCollectionMock: vi.fn(),
-  useXoSrCollectionMock: vi.fn(),
-  useXoPbdCollectionMock: vi.fn(),
-  useXoVifCollectionMock: vi.fn(),
-  useXoNetworkCollectionMock: vi.fn(),
-  useXoPifCollectionMock: vi.fn(),
-}))
+const useXoVmVbdsUtilsMock = mockedExport(useXoVmVbdsUtils)
 
-mockModule(import('@/modules/vm/composables/xo-vm-vbd-utils.composable.ts'), () => ({
-  useXoVmVbdsUtils: useXoVmVbdsUtilsMock as unknown as typeof useXoVmVbdsUtils,
-}))
+mockModule(
+  import('@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'),
+  () => import('@/test/mock-xo-vm-device-collections.ts')
+)
 
-mockModule(import('@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'), () => ({
-  useXoVdiCollection: useXoVdiCollectionMock as unknown as typeof useXoVdiCollection,
-}))
+mockModule(
+  import('@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'),
+  () => import('@/test/mock-xo-collections.ts')
+)
 
-mockModule(import('@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'), () => ({
-  useXoSrCollection: useXoSrCollectionMock as unknown as typeof useXoSrCollection,
-}))
+mockModule(
+  import('@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'),
+  () => import('@/test/mock-xo-collections.ts')
+)
 
-mockModule(import('@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'), () => ({
-  useXoPbdCollection: useXoPbdCollectionMock as unknown as typeof useXoPbdCollection,
-}))
+mockModule(
+  import('@/modules/vif/remote-resources/use-xo-vif-collection.ts'),
+  () => import('@/test/mock-xo-vm-device-collections.ts')
+)
 
-mockModule(import('@/modules/vif/remote-resources/use-xo-vif-collection.ts'), () => ({
-  useXoVifCollection: useXoVifCollectionMock as unknown as typeof useXoVifCollection,
-}))
+mockModule(
+  import('@/modules/network/remote-resources/use-xo-network-collection.ts'),
+  () => import('@/test/mock-xo-collections.ts')
+)
 
-mockModule(import('@/modules/network/remote-resources/use-xo-network-collection.ts'), () => ({
-  useXoNetworkCollection: useXoNetworkCollectionMock as unknown as typeof useXoNetworkCollection,
-}))
-
-mockModule(import('@/modules/pif/remote-resources/use-xo-pif-collection.ts'), () => ({
-  useXoPifCollection: useXoPifCollectionMock as unknown as typeof useXoPifCollection,
-}))
+mockModule(
+  import('@/modules/pif/remote-resources/use-xo-pif-collection.ts'),
+  () => import('@/test/mock-xo-collections.ts')
+)
 
 const POOL_A = 'pool-a' as FrontXoPool['id']
 const POOL_B = 'pool-b' as FrontXoPool['id']
@@ -153,58 +134,22 @@ const pifs = [
   createPif({ id: PIF_B_OTHER_HOST, $host: HOST_B2, $pool: POOL_B, $network: NET_B_OTHER_HOST }),
 ]
 
-// The collections load lazily, so each source is a ref a test can fill after the form is mounted
+// The collections load lazily, so a test can fill one after the form is mounted
 const loadedVbds = ref<FrontXoVbd[]>([])
-const loadedVdis = ref<FrontXoVdi[]>([])
-const loadedPbds = ref<FrontXoPbd[]>([])
-const loadedVifs = ref<FrontXoVif[]>([])
-const loadedPifs = ref<FrontXoPif[]>([])
 
 beforeEach(() => {
-  useXoVmVbdsUtilsMock.mockReset()
-  useXoVdiCollectionMock.mockReset()
-  useXoSrCollectionMock.mockReset()
-  useXoPbdCollectionMock.mockReset()
-  useXoVifCollectionMock.mockReset()
-  useXoNetworkCollectionMock.mockReset()
-  useXoPifCollectionMock.mockReset()
+  xoCollectionsMock.reset()
+  vmDeviceCollectionsMock.reset()
 
   loadedVbds.value = vbds
-  loadedVdis.value = vdis
-  loadedPbds.value = pbds
-  loadedVifs.value = vifs
-  loadedPifs.value = pifs
+  vmDeviceCollectionsMock.vdis.value = vdis
+  xoCollectionsMock.srs.value = srs
+  xoCollectionsMock.pbds.value = pbds
+  vmDeviceCollectionsMock.vifs.value = vifs
+  xoCollectionsMock.networks.value = networks
+  xoCollectionsMock.pifs.value = pifs
 
   useXoVmVbdsUtilsMock.mockReturnValue({ notCdDriveVbds: computed(() => loadedVbds.value) })
-
-  useXoVdiCollectionMock.mockReturnValue({
-    useGetVdisByIds: (ids: MaybeRefOrGetter<FrontXoVdi['id'][]>) =>
-      computed(() => loadedVdis.value.filter(vdi => toValue(ids).includes(vdi.id))),
-  })
-
-  useXoSrCollectionMock.mockReturnValue({
-    srs: computed(() => srs),
-    getSrById: (id: FrontXoSr['id'] | undefined) => srs.find(sr => sr.id === id),
-  })
-
-  useXoPbdCollectionMock.mockReturnValue({
-    pbdsBySr: computed(() => groupBy(loadedPbds.value, pbd => pbd.SR)),
-  })
-
-  useXoVifCollectionMock.mockReturnValue({
-    useGetVifsByIds: (ids: MaybeRefOrGetter<FrontXoVif['id'][]>) =>
-      computed(() => loadedVifs.value.filter(vif => toValue(ids).includes(vif.id))),
-  })
-
-  useXoNetworkCollectionMock.mockReturnValue({
-    networks: computed(() => networks),
-    getNetworkById: (id: FrontXoNetwork['id'] | undefined) => networks.find(network => network.id === id),
-  })
-
-  useXoPifCollectionMock.mockReturnValue({
-    pifsByHost: computed(() => groupBy(loadedPifs.value, pif => pif.$host)),
-    getPifsByIds: (ids: FrontXoPif['id'][]) => loadedPifs.value.filter(pif => ids.includes(pif.id)),
-  })
 })
 
 function mountMappingForm(
@@ -267,7 +212,7 @@ describe('intra-pool migration', () => {
   })
 
   it('treats an SR whose PBD on the target host is detached as not connected', () => {
-    loadedPbds.value = pbds.map(pbd => (pbd.host === HOST_A2 ? { ...pbd, attached: false } : pbd))
+    xoCollectionsMock.pbds.value = pbds.map(pbd => (pbd.host === HOST_A2 ? { ...pbd, attached: false } : pbd))
 
     const { form } = mountMappingForm(POOL_A, HOST_A2)
 
@@ -462,7 +407,7 @@ describe('inter-pool migration', () => {
   })
 
   it('pre-fills a network sharing a VLAN with the source network when no name matches', () => {
-    loadedPifs.value = pifs.map(pif => (pif.id === PIF_A_GUEST ? { ...pif, vlan: 20 } : pif))
+    xoCollectionsMock.pifs.value = pifs.map(pif => (pif.id === PIF_A_GUEST ? { ...pif, vlan: 20 } : pif))
 
     const { form } = mountMappingForm(POOL_B, HOST_B1)
 
@@ -517,13 +462,13 @@ describe('target change', () => {
 
 describe('collections loaded after the target host is chosen', () => {
   it('builds the VDI rows once the VDIs arrive', async () => {
-    loadedVdis.value = []
+    vmDeviceCollectionsMock.vdis.value = []
 
     const { form } = mountMappingForm(POOL_A, HOST_A2)
 
     expect(form.vdiRows).toEqual([])
 
-    loadedVdis.value = vdis
+    vmDeviceCollectionsMock.vdis.value = vdis
     await nextTick()
 
     expect(form.vdiRows.map(row => [row.vdi.id, row.targetSrId])).toEqual([
@@ -533,14 +478,14 @@ describe('collections loaded after the target host is chosen', () => {
   })
 
   it('builds the VIF rows once the VIFs arrive', async () => {
-    loadedVifs.value = []
+    vmDeviceCollectionsMock.vifs.value = []
 
     const { form } = mountMappingForm(POOL_B, HOST_B1)
 
     expect(form.vifRows).toEqual([])
     expect(form.hasMissingNetwork).toBe(false)
 
-    loadedVifs.value = vifs
+    vmDeviceCollectionsMock.vifs.value = vifs
     await nextTick()
 
     expect(form.vifRows.map(row => [row.vif.id, row.targetNetworkId])).toEqual([
@@ -551,7 +496,7 @@ describe('collections loaded after the target host is chosen', () => {
   })
 
   it('unflags a shared disk once the PBDs arrive', async () => {
-    loadedPbds.value = []
+    xoCollectionsMock.pbds.value = []
 
     const { form } = mountMappingForm(POOL_A, HOST_A2)
 
@@ -560,7 +505,7 @@ describe('collections loaded after the target host is chosen', () => {
       [true, undefined],
     ])
 
-    loadedPbds.value = pbds
+    xoCollectionsMock.pbds.value = pbds
     await nextTick()
 
     expect(form.vdiRows.map(row => [row.requiresSr, row.targetSrId])).toEqual([
@@ -570,27 +515,27 @@ describe('collections loaded after the target host is chosen', () => {
   })
 
   it('pre-fills the networks once the PIFs arrive', async () => {
-    loadedPifs.value = []
+    xoCollectionsMock.pifs.value = []
 
     const { form } = mountMappingForm(POOL_B, HOST_B1)
 
     expect(form.availableNetworks).toEqual([])
     expect(form.vifRows.map(row => row.targetNetworkId)).toEqual([undefined, undefined])
 
-    loadedPifs.value = pifs
+    xoCollectionsMock.pifs.value = pifs
     await nextTick()
 
     expect(form.vifRows.map(row => row.targetNetworkId)).toEqual([NET_B_PROD, undefined])
   })
 
   it('keeps the choices already made when the rows are rebuilt', async () => {
-    loadedVdis.value = vdis.filter(vdi => vdi.id === VDI_SHARED)
+    vmDeviceCollectionsMock.vdis.value = vdis.filter(vdi => vdi.id === VDI_SHARED)
 
     const { form } = mountMappingForm(POOL_B, HOST_B1)
 
     form.setTargetSrId(VDI_SHARED, SR_B)
 
-    loadedVdis.value = vdis
+    vmDeviceCollectionsMock.vdis.value = vdis
     await nextTick()
 
     expect(form.vdiRows.map(row => row.targetSrId)).toEqual([SR_B, undefined])

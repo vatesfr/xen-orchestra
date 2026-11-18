@@ -66,6 +66,19 @@ export function resetModuleSpies() {
 }
 
 /**
+ * The spy `global-module-mocks.ts` put on an export, to stub the whole export: what a test tells it to do applies to that
+ * test only, and it calls the real export again before the next one. Typed as a plain `vi.fn()`, so a test can make it
+ * return only what the code under test reads.
+ */
+export function mockedExport(exportedFn: unknown) {
+  if (!vi.isMockFunction(exportedFn)) {
+    throw new Error('mockedExport: expected a function export of a module of global-module-mocks.ts')
+  }
+
+  return exportedFn as unknown as ReturnType<typeof vi.fn<Procedure>>
+}
+
+/**
  * Replaces exports of a module mocked in `global-module-mocks.ts`, in every test of the file: called with the same
  * arguments as `vi.mock`, at the top level of the test file. Before each test, each spy of an export the factory
  * returns calls the factory's function instead; an export it does not return stays the real one. The factory runs

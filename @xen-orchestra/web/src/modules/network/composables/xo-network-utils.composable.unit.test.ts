@@ -1,11 +1,11 @@
-import type { FrontXoHost, useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import { useXoNetworkUtils } from '@/modules/network/composables/xo-network-utils.composable.ts'
 import type { FrontXoNetwork } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
 import { ENCAPSULATION_LABELS } from '@/modules/network/utils/xo-network.util.ts'
-import type { FrontXoPif, useXoPifCollection } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
+import type { FrontXoPif } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
 import { createHost } from '@/test/create-host.ts'
 import { createNetwork } from '@/test/create-network.ts'
 import { createPif } from '@/test/create-pif.ts'
+import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
 import { mockModule } from '@/test/spy-on-module.ts'
 import {
@@ -18,26 +18,20 @@ import {
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { pifs, hosts } = vi.hoisted(() => ({
-  pifs: { value: [] as FrontXoPif[] },
-  hosts: { value: [] as FrontXoHost[] },
-}))
+const { pifs, hosts } = xoCollectionsMock
 
-mockModule(import('@/modules/host/remote-resources/use-xo-host-collection.ts'), () => ({
-  useXoHostCollection: (() => ({
-    getHostById: (id: FrontXoHost['id']) => hosts.value.find(host => host.id === id),
-  })) as unknown as typeof useXoHostCollection,
-}))
+mockModule(
+  import('@/modules/host/remote-resources/use-xo-host-collection.ts'),
+  () => import('@/test/mock-xo-collections.ts')
+)
 
-mockModule(import('@/modules/pif/remote-resources/use-xo-pif-collection.ts'), () => ({
-  useXoPifCollection: (() => ({
-    getPifsByNetworkId: (networkId: FrontXoNetwork['id']) => pifs.value.filter(pif => pif.$network === networkId),
-  })) as unknown as typeof useXoPifCollection,
-}))
+mockModule(
+  import('@/modules/pif/remote-resources/use-xo-pif-collection.ts'),
+  () => import('@/test/mock-xo-collections.ts')
+)
 
 beforeEach(() => {
-  pifs.value = []
-  hosts.value = []
+  xoCollectionsMock.reset()
 })
 
 function createPrivateNetwork(otherConfig: Record<string, string> = {}) {

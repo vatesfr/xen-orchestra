@@ -1,27 +1,25 @@
 import PluginMainActions from '@/modules/plugin/components/actions/PluginMainActions.vue'
-import type { useXoPluginActions } from '@/modules/plugin/composables/use-xo-plugin-actions.composable.ts'
-import { createPluginActions } from '@/test/create-plugin-actions.ts'
 import { createPlugin } from '@/test/create-plugin.ts'
 import { findTooltipContent } from '@/test/find-tooltip-content.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
+import { pluginActionsMock } from '@/test/mock-xo-plugin-actions.ts'
 import { mockModule } from '@/test/spy-on-module.ts'
 import type { LeafActionItem } from '@core/components/menu/VtsActionsMenu.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import { mount } from '@vue/test-utils'
 
-const { useActions, changeState, configure } = vi.hoisted(() => ({
-  useActions: vi.fn(),
+const { changeState, configure } = vi.hoisted(() => ({
   changeState: vi.fn(),
   configure: vi.fn(),
 }))
 
-// The composable runs the plugin jobs, which call the REST API
-mockModule(import('@/modules/plugin/composables/use-xo-plugin-actions.composable.ts'), () => ({
-  useXoPluginActions: useActions as unknown as typeof useXoPluginActions,
-}))
+mockModule(
+  import('@/modules/plugin/composables/use-xo-plugin-actions.composable.ts'),
+  () => import('@/test/mock-xo-plugin-actions.ts')
+)
 
 beforeEach(() => {
-  useActions.mockReset()
+  pluginActionsMock.reset()
   changeState.mockReset()
   configure.mockReset()
 
@@ -29,12 +27,10 @@ beforeEach(() => {
 })
 
 function mockActions(loadOverrides: Partial<LeafActionItem> = {}) {
-  useActions.mockReturnValue(
-    createPluginActions({
-      loadAction: { onClick: changeState, ...loadOverrides },
-      configureAction: { onClick: configure },
-    })
-  )
+  pluginActionsMock.setActions({
+    loadAction: { onClick: changeState, ...loadOverrides },
+    configureAction: { onClick: configure },
+  })
 }
 
 function mountButtons() {
