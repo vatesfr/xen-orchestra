@@ -2,6 +2,7 @@ import { useV2vVmSettingsEdit } from '@/modules/v2v/composables/use-v2v-vm-setti
 import type { V2vVmOverrides } from '@/modules/v2v/types/v2v-migration-list.type.ts'
 import { overlayMock } from '@/test/mock-overlay.ts'
 import { mountV2vVmMapping, readV2vStoredListVm } from '@/test/mount-v2v-vm-mapping.ts'
+import { mockModule } from '@/test/spy-on-module.ts'
 import {
   V2V_DEBIAN_TEMPLATE,
   V2V_DISK_OVERRIDES,
@@ -16,7 +17,7 @@ type OverlayOptions = {
   }
 }
 
-vi.mock(import('@core/packages/overlay/use-overlay.ts'), () => import('@/test/mock-overlay.ts'))
+mockModule(import('@core/packages/overlay/use-overlay.ts'), () => import('@/test/mock-overlay.ts'))
 
 beforeEach(() => {
   overlayMock.reset()

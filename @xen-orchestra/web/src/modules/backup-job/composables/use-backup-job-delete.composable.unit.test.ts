@@ -4,6 +4,7 @@ import type { FrontAnyXoBackupJob } from '@/modules/backup-job/remote-resources/
 import { createVmBackupJob } from '@/test/create-backup-job.ts'
 import { t } from '@/test/i18n.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
+import { mockModule } from '@/test/spy-on-module.ts'
 import type { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import type { useOverlay } from '@core/packages/overlay/use-overlay.ts'
 import { ref } from 'vue'
@@ -20,7 +21,7 @@ const { overlays, run, selectedBackupJobId } = vi.hoisted(() => ({
   selectedBackupJobId: { value: '' },
 }))
 
-vi.mock(import('@/modules/backup-job/jobs/xo-backup-job-delete.job.ts'), () => ({
+mockModule(import('@/modules/backup-job/jobs/xo-backup-job-delete.job.ts'), () => ({
   useXoBackupJobDeleteJob: (() => ({
     run,
     canRun: ref(true),
@@ -29,11 +30,11 @@ vi.mock(import('@/modules/backup-job/jobs/xo-backup-job-delete.job.ts'), () => (
   })) as unknown as typeof useXoBackupJobDeleteJob,
 }))
 
-vi.mock(import('@core/composables/route-query.composable.ts'), () => ({
+mockModule(import('@core/composables/route-query.composable.ts'), () => ({
   useRouteQuery: (() => selectedBackupJobId) as unknown as typeof useRouteQuery,
 }))
 
-vi.mock(import('@core/packages/overlay/use-overlay.ts'), () => ({
+mockModule(import('@core/packages/overlay/use-overlay.ts'), () => ({
   useOverlay: (({ events }: Pick<MockedOverlay, 'events'>) => {
     const overlay = { open: vi.fn(), events }
 

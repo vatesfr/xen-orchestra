@@ -5,6 +5,7 @@ import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collecti
 import type { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import { createVm } from '@/test/create-vm.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
+import { mockModule } from '@/test/spy-on-module.ts'
 import type { useBlockedModal } from '@core/composables/modals/use-blocked-modal.ts'
 import type { useOverlay } from '@core/packages/overlay/use-overlay.ts'
 import { flushPromises } from '@vue/test-utils'
@@ -22,19 +23,19 @@ const { useXoVmMigrateJobMock, runMock, useOverlayMock, openBlockedModalMock, bu
   buildXo5Route: vi.fn(),
 }))
 
-vi.mock(import('@/modules/vm/jobs/xo-vm-migrate.job.ts'), () => ({
+mockModule(import('@/modules/vm/jobs/xo-vm-migrate.job.ts'), () => ({
   useXoVmMigrateJob: useXoVmMigrateJobMock as unknown as typeof useXoVmMigrateJob,
 }))
 
-vi.mock(import('@core/packages/overlay/use-overlay.ts'), () => ({
+mockModule(import('@core/packages/overlay/use-overlay.ts'), () => ({
   useOverlay: useOverlayMock as unknown as typeof useOverlay,
 }))
 
-vi.mock(import('@core/composables/modals/use-blocked-modal.ts'), () => ({
+mockModule(import('@core/composables/modals/use-blocked-modal.ts'), () => ({
   useBlockedModal: (() => ({ open: openBlockedModalMock })) as unknown as typeof useBlockedModal,
 }))
 
-vi.mock(import('@/shared/remote-resources/use-xo-routes.ts'), () => ({
+mockModule(import('@/shared/remote-resources/use-xo-routes.ts'), () => ({
   useXoRoutes: (() => ({ buildXo5Route })) as unknown as typeof useXoRoutes,
 }))
 

@@ -9,6 +9,7 @@ import { createBr } from '@/test/create-br.ts'
 import { overlayMock } from '@/test/mock-overlay.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
 import { silenceConsoleError } from '@/test/silence-console-error.ts'
+import { mockModule } from '@/test/spy-on-module.ts'
 import { KEEP_OVERLAY_OPEN } from '@core/packages/overlay/symbols.ts'
 import { ref, toValue } from 'vue'
 
@@ -23,11 +24,11 @@ const { useBulkEditJob, run } = vi.hoisted(() => ({
 }))
 
 // The job patches the repositories through the REST API
-vi.mock(import('@/modules/backup-repository/jobs/xo-backup-repository-bulk-edit.job.ts'), () => ({
+mockModule(import('@/modules/backup-repository/jobs/xo-backup-repository-bulk-edit.job.ts'), () => ({
   useXoBackupRepositoryBulkEditJob: useBulkEditJob as unknown as typeof useXoBackupRepositoryBulkEditJob,
 }))
 
-vi.mock(import('@core/packages/overlay/use-overlay.ts'), () => import('@/test/mock-overlay.ts'))
+mockModule(import('@core/packages/overlay/use-overlay.ts'), () => import('@/test/mock-overlay.ts'))
 
 beforeEach(() => {
   vi.restoreAllMocks()

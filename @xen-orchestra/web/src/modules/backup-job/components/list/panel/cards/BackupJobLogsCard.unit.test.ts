@@ -5,13 +5,14 @@ import type { useXoScheduleCollection } from '@/modules/schedule/remote-resource
 import { createBackupLog } from '@/test/create-backup-log.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
+import { mockModule } from '@/test/spy-on-module.ts'
 import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
 import { mount } from '@vue/test-utils'
 import { computed } from 'vue'
 
-vi.mock(import('@/shared/remote-resources/use-xo-routes.ts'), () => import('@/test/mock-xo-routes.ts'))
+mockModule(import('@/shared/remote-resources/use-xo-routes.ts'), () => import('@/test/mock-xo-routes.ts'))
 
-vi.mock(import('@/modules/schedule/remote-resources/use-xo-schedule-collection.ts'), () => ({
+mockModule(import('@/modules/schedule/remote-resources/use-xo-schedule-collection.ts'), () => ({
   useXoScheduleCollection: (() => ({
     useGetScheduleById: () => computed(() => undefined),
   })) as unknown as typeof useXoScheduleCollection,

@@ -13,6 +13,7 @@ import { createSr } from '@/test/create-sr.ts'
 import { findCardLabelledValueLists, findCardLabelledValues } from '@/test/find-rendered-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
+import { mockModule } from '@/test/spy-on-module.ts'
 import VtsCopyAllMenuItem from '@core/components/copy-all-menu-item/VtsCopyAllMenuItem.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
@@ -25,22 +26,22 @@ const { srs } = vi.hoisted(() => ({
   srs: [] as FrontXoSr[],
 }))
 
-vi.mock(import('@/shared/remote-resources/use-xo-routes.ts'), () => import('@/test/mock-xo-routes.ts'))
+mockModule(import('@/shared/remote-resources/use-xo-routes.ts'), () => import('@/test/mock-xo-routes.ts'))
 
-vi.mock(import('@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'), () => ({
+mockModule(import('@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'), () => ({
   useXoSrCollection: (() => ({
     getSrById: (id: FrontXoSr['id']) => srs.find(sr => sr.id === id),
   })) as unknown as typeof useXoSrCollection,
 }))
 
-vi.mock(import('@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'), () => ({
+mockModule(import('@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'), () => ({
   useXoPbdCollection: (() => ({
     getPbdsByIds: () => [],
     pbdsBySr: ref(new Map()),
   })) as unknown as typeof useXoPbdCollection,
 }))
 
-vi.mock(import('@/modules/host/remote-resources/use-xo-host-collection.ts'), () => ({
+mockModule(import('@/modules/host/remote-resources/use-xo-host-collection.ts'), () => ({
   useXoHostCollection: (() => ({ getHostById: () => undefined })) as unknown as typeof useXoHostCollection,
 }))
 

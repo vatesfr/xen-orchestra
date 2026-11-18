@@ -7,6 +7,8 @@ import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote
 import { createBr } from '@/test/create-br.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
+import { resetStubs } from '@/test/reset-stubs.ts'
+import { mockModule } from '@/test/spy-on-module.ts'
 import type { ActionItem, GroupActionItem } from '@core/components/menu/VtsActionsMenu.vue'
 import VtsTableBulkActions from '@core/components/table/VtsTableBulkActions.vue'
 import { mount } from '@vue/test-utils'
@@ -28,14 +30,14 @@ function toJobState({ canRun = true, isRunning = false, errorMessage }: MockedJo
 }
 
 // The jobs and the edit and forget composables call the REST API and open SSE subscriptions
-vi.mock(import('@/modules/backup-repository/jobs/xo-backup-repository-change-state.job.ts'), () => ({
+mockModule(import('@/modules/backup-repository/jobs/xo-backup-repository-change-state.job.ts'), () => ({
   useXoBackupRepositoryChangeStateJob: ((_brs: unknown, enabled: unknown) =>
     toValue(enabled)
       ? { run: connect, ...toJobState(jobStates.connect) }
       : { run: disable, ...toJobState(jobStates.disable) }) as unknown as typeof useXoBackupRepositoryChangeStateJob,
 }))
 
-vi.mock(import('@/modules/backup-repository/composables/use-bulk-edit-backup-repositories.composable.ts'), () => ({
+mockModule(import('@/modules/backup-repository/composables/use-bulk-edit-backup-repositories.composable.ts'), () => ({
   useBulkEditBackupRepositories: (() => {
     const { canRun, isRunning, errorMessage } = toJobState(jobStates.edit)
 
@@ -48,14 +50,14 @@ vi.mock(import('@/modules/backup-repository/composables/use-bulk-edit-backup-rep
   }) as unknown as typeof useBulkEditBackupRepositories,
 }))
 
-vi.mock(import('@/modules/backup-repository/jobs/xo-backup-repository-benchmark.job.ts'), () => ({
+mockModule(import('@/modules/backup-repository/jobs/xo-backup-repository-benchmark.job.ts'), () => ({
   useXoBackupRepositoryBenchmarkJob: (() => ({
     run: benchmark,
     ...toJobState(jobStates.benchmark),
   })) as unknown as typeof useXoBackupRepositoryBenchmarkJob,
 }))
 
-vi.mock(import('@/modules/backup-repository/composables/use-backup-repository-forget.composable.ts'), () => ({
+mockModule(import('@/modules/backup-repository/composables/use-backup-repository-forget.composable.ts'), () => ({
   useBackupRepositoryForget: (() => {
     const { canRun, isRunning, errorMessage } = toJobState(jobStates.forget)
 
@@ -69,9 +71,7 @@ vi.mock(import('@/modules/backup-repository/composables/use-backup-repository-fo
 }))
 
 beforeEach(() => {
-  for (const action of [connect, disable, edit, benchmark, forget]) {
-    action.mockReset()
-  }
+  resetStubs(connect, disable, edit, benchmark, forget)
 
   jobStates.connect = {}
   jobStates.disable = {}

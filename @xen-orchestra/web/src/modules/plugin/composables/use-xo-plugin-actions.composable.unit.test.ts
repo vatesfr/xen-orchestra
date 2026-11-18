@@ -12,6 +12,7 @@ import { createJobResult } from '@/test/create-job-result.ts'
 import { createPlugin } from '@/test/create-plugin.ts'
 import { t } from '@/test/i18n.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
+import { mockModule } from '@/test/spy-on-module.ts'
 import { toValue } from 'vue'
 
 const {
@@ -36,20 +37,20 @@ const {
   deleteConfiguration: vi.fn(),
 }))
 
-vi.mock(import('@/modules/plugin/jobs/xo-plugin-change-state.job.ts'), () => ({
+mockModule(import('@/modules/plugin/jobs/xo-plugin-change-state.job.ts'), () => ({
   useXoPluginChangeStateJob: useChangeStateJob as unknown as typeof useXoPluginChangeStateJob,
 }))
 
-vi.mock(import('@/modules/plugin/jobs/xo-plugin-autoload.job.ts'), () => ({
+mockModule(import('@/modules/plugin/jobs/xo-plugin-autoload.job.ts'), () => ({
   useXoPluginAutoloadJob: useAutoloadJob as unknown as typeof useXoPluginAutoloadJob,
 }))
 
 // The composables open overlays and run jobs, which call the REST API
-vi.mock(import('@/modules/plugin/composables/use-xo-plugin-drawer-job.composable.ts'), () => ({
+mockModule(import('@/modules/plugin/composables/use-xo-plugin-drawer-job.composable.ts'), () => ({
   useXoPluginDrawerJob: useDrawerJob as unknown as typeof useXoPluginDrawerJob,
 }))
 
-vi.mock(import('@/modules/plugin/composables/use-xo-plugin-configuration-delete.composable.ts'), () => ({
+mockModule(import('@/modules/plugin/composables/use-xo-plugin-configuration-delete.composable.ts'), () => ({
   useXoPluginConfigurationDelete: useDelete as unknown as typeof useXoPluginConfigurationDelete,
 }))
 

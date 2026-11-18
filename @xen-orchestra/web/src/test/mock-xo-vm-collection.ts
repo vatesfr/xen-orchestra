@@ -15,7 +15,7 @@ export const vmCollectionMock = {
   },
 }
 
-// Use as `vi.mock(import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'), () => import('@/test/mock-xo-vm-collection.ts'))`
+// Use as `mockModule(import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'), () => import('@/test/mock-xo-vm-collection.ts'))`
 export const useXoVmCollection = (() => ({
   vms: vmCollectionMock.vms,
   areVmsReady: vmCollectionMock.areVmsReady,

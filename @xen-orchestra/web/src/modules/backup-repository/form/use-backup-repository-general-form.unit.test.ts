@@ -10,12 +10,13 @@ import { requiredMessage } from '@/test/form-messages.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
+import { mockModule } from '@/test/spy-on-module.ts'
 import UiInput from '@core/components/ui/input/UiInput.vue'
 import { flushPromises, mount } from '@vue/test-utils'
 import { defineComponent, h, reactive, ref } from 'vue'
 import type { BackupRepositoryType } from 'xo-remote-parser'
 
-vi.mock(import('@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'), () => ({
+mockModule(import('@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'), () => ({
   useXoProxyCollection: (() => ({ proxies: ref([]) })) as unknown as typeof useXoProxyCollection,
 }))
 

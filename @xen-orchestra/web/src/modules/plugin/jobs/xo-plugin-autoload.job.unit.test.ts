@@ -5,12 +5,13 @@ import { createPlugin } from '@/test/create-plugin.ts'
 import { t } from '@/test/i18n.ts'
 import { expectJobRunning } from '@/test/job-running.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
+import { mockModule } from '@/test/spy-on-module.ts'
 
 const { patch } = vi.hoisted(() => ({
   patch: vi.fn(),
 }))
 
-vi.mock(import('@/shared/utils/fetch.util.ts'), () => ({
+mockModule(import('@/shared/utils/fetch.util.ts'), () => ({
   fetchPatch: patch as unknown as typeof fetchPatch,
 }))
 

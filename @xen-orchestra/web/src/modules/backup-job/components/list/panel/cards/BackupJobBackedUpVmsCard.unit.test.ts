@@ -7,6 +7,7 @@ import { createVm } from '@/test/create-vm.ts'
 import { findCardLabelledValues } from '@/test/find-rendered-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
+import { mockModule } from '@/test/spy-on-module.ts'
 import VtsTag from '@core/components/tag/VtsTag.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
@@ -17,7 +18,7 @@ const { vms, pools } = vi.hoisted(() => ({
   pools: [] as FrontXoPool[],
 }))
 
-vi.mock(import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'), async () => {
+mockModule(import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'), async () => {
   const { ref } = await import('vue')
 
   return {
@@ -28,7 +29,7 @@ vi.mock(import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'), async (
   }
 })
 
-vi.mock(import('@/modules/pool/remote-resources/use-xo-pool-collection.ts'), () => ({
+mockModule(import('@/modules/pool/remote-resources/use-xo-pool-collection.ts'), () => ({
   useXoPoolCollection: (() => ({
     getPoolsByIds: (ids: FrontXoPool['id'][] = []) => pools.filter(pool => ids.includes(pool.id)),
   })) as unknown as typeof useXoPoolCollection,

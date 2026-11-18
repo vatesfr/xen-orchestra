@@ -15,6 +15,7 @@ import { findCardLabelledValues, findTags } from '@/test/find-rendered-values.ts
 import { findTooltipContent } from '@/test/find-tooltip-content.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
+import { mockModule } from '@/test/spy-on-module.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
 import { objectIcon } from '@core/icons'
@@ -33,27 +34,27 @@ const { useGetPoolById, getVmHost, isMasterHost, buildXo5Route, useXoUserResourc
     useXoVmTemplateCollectionMock: vi.fn(),
   }))
 
-vi.mock(import('@/modules/pool/remote-resources/use-xo-pool-collection.ts'), () => ({
+mockModule(import('@/modules/pool/remote-resources/use-xo-pool-collection.ts'), () => ({
   useXoPoolCollection: (() => ({ useGetPoolById })) as unknown as typeof useXoPoolCollection,
 }))
 
-vi.mock(import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'), () => ({
+mockModule(import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'), () => ({
   useXoVmCollection: (() => ({ getVmHost })) as unknown as typeof useXoVmCollection,
 }))
 
-vi.mock(import('@/modules/host/remote-resources/use-xo-host-collection.ts'), () => ({
+mockModule(import('@/modules/host/remote-resources/use-xo-host-collection.ts'), () => ({
   useXoHostCollection: (() => ({ isMasterHost })) as unknown as typeof useXoHostCollection,
 }))
 
-vi.mock(import('@/modules/user/remote-resources/use-xo-user.ts'), () => ({
+mockModule(import('@/modules/user/remote-resources/use-xo-user.ts'), () => ({
   useXoUserResource: useXoUserResourceMock as unknown as typeof useXoUserResource,
 }))
 
-vi.mock(import('@/modules/vm/remote-resources/use-xo-vm-template-collection.ts'), () => ({
+mockModule(import('@/modules/vm/remote-resources/use-xo-vm-template-collection.ts'), () => ({
   useXoVmTemplateCollection: useXoVmTemplateCollectionMock as unknown as typeof useXoVmTemplateCollection,
 }))
 
-vi.mock(import('@/shared/remote-resources/use-xo-routes.ts'), () => ({
+mockModule(import('@/shared/remote-resources/use-xo-routes.ts'), () => ({
   useXoRoutes: (() => ({ buildXo5Route })) as unknown as typeof useXoRoutes,
 }))
 

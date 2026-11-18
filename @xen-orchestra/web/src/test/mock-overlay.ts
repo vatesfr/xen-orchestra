@@ -21,7 +21,7 @@ export const overlayMock = {
   },
 }
 
-// Use as `vi.mock(import('@core/packages/overlay/use-overlay.ts'), () => import('@/test/mock-overlay.ts'))`
+// Use as `mockModule(import('@core/packages/overlay/use-overlay.ts'), () => import('@/test/mock-overlay.ts'))`
 export const useOverlay = ((options: Record<string, unknown>) => {
   const open = vi.fn()
 

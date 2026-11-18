@@ -14,6 +14,7 @@ import { createSr } from '@/test/create-sr.ts'
 import { createVm } from '@/test/create-vm.ts'
 import { t } from '@/test/i18n.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
+import { mockModule } from '@/test/spy-on-module.ts'
 
 const { vmsById, srsById, brsById } = vi.hoisted(() => ({
   vmsById: new Map<string, FrontXoVm>(),
@@ -21,19 +22,19 @@ const { vmsById, srsById, brsById } = vi.hoisted(() => ({
   brsById: new Map<string, FrontXoBackupRepository>(),
 }))
 
-vi.mock(import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'), () => ({
+mockModule(import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'), () => ({
   useXoVmCollection: (() => ({
     getVmById: (id: string) => vmsById.get(id),
   })) as unknown as typeof useXoVmCollection,
 }))
 
-vi.mock(import('@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'), () => ({
+mockModule(import('@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'), () => ({
   useXoSrCollection: (() => ({
     getSrById: (id: string) => srsById.get(id),
   })) as unknown as typeof useXoSrCollection,
 }))
 
-vi.mock(import('@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'), () => ({
+mockModule(import('@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'), () => ({
   useXoBackupRepositoryCollection: (() => ({
     getBackupRepositoryById: (id: string) => brsById.get(id),
   })) as unknown as typeof useXoBackupRepositoryCollection,

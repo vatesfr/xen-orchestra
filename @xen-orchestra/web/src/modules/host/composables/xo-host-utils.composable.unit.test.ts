@@ -5,6 +5,7 @@ import type { FrontXoVm, useXoVmCollection } from '@/modules/vm/remote-resources
 import { createHost } from '@/test/create-host.ts'
 import { createVm } from '@/test/create-vm.ts'
 import { mountComposable, mountComposableWithI18n } from '@/test/mount-composable.ts'
+import { mockModule } from '@/test/spy-on-module.ts'
 import { getRelativeTime } from '@core/composables/relative-time.composable.ts'
 import { HOST_ALLOWED_OPERATIONS, HOST_POWER_STATE, VM_OPERATIONS } from '@vates/types'
 import { type MaybeRefOrGetter, ref } from 'vue'
@@ -14,7 +15,7 @@ const { vmsByHost } = vi.hoisted(() => ({
   vmsByHost: { value: new Map<string, unknown[]>() },
 }))
 
-vi.mock(import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'), () => ({
+mockModule(import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'), () => ({
   useXoVmCollection: (() => ({ vmsByHost })) as unknown as typeof useXoVmCollection,
 }))
 

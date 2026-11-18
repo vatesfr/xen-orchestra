@@ -10,6 +10,7 @@ import { createBr } from '@/test/create-br.ts'
 import { t } from '@/test/i18n.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
 import { silenceConsoleError } from '@/test/silence-console-error.ts'
+import { mockModule } from '@/test/spy-on-module.ts'
 import { ref } from 'vue'
 
 const { post, monitorTask, backupJobs } = vi.hoisted(() => ({
@@ -18,16 +19,16 @@ const { post, monitorTask, backupJobs } = vi.hoisted(() => ({
   backupJobs: { value: [] as unknown[] },
 }))
 
-vi.mock(import('@/shared/utils/fetch.util.ts'), () => ({
+mockModule(import('@/shared/utils/fetch.util.ts'), () => ({
   fetchPost: post as unknown as typeof fetchPost,
 }))
 
 // The task and backup job collections would open SSE subscriptions
-vi.mock(import('@/shared/composables/xo-task-utils.composable.ts'), () => ({
+mockModule(import('@/shared/composables/xo-task-utils.composable.ts'), () => ({
   useXoTaskUtils: (() => ({ monitorTask })) as unknown as typeof useXoTaskUtils,
 }))
 
-vi.mock(import('@/modules/backup-job/remote-resources/use-xo-backup-job-collection.ts'), () => ({
+mockModule(import('@/modules/backup-job/remote-resources/use-xo-backup-job-collection.ts'), () => ({
   useXoBackupJobCollection: (() => ({
     backupJobs: ref(backupJobs.value),
   })) as unknown as typeof useXoBackupJobCollection,

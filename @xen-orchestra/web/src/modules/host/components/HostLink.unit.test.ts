@@ -3,6 +3,7 @@ import type { FrontXoHost, useXoHostCollection } from '@/modules/host/remote-res
 import { createHost } from '@/test/create-host.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
+import { mockModule } from '@/test/spy-on-module.ts'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import { objectIcon } from '@core/icons'
 import { HOST_POWER_STATE } from '@vates/types'
@@ -12,7 +13,7 @@ const { isMasterHost } = vi.hoisted(() => ({
   isMasterHost: vi.fn(),
 }))
 
-vi.mock(import('@/modules/host/remote-resources/use-xo-host-collection.ts'), () => ({
+mockModule(import('@/modules/host/remote-resources/use-xo-host-collection.ts'), () => ({
   useXoHostCollection: (() => ({ isMasterHost })) as unknown as typeof useXoHostCollection,
 }))
 

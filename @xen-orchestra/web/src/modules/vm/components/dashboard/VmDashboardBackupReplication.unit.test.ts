@@ -8,6 +8,7 @@ import { createVm } from '@/test/create-vm.ts'
 import { findLabelledValues } from '@/test/find-rendered-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
+import { mockModule } from '@/test/spy-on-module.ts'
 import { objectIcon } from '@core/icons'
 import { formatDateTime } from '@core/utils/time.util.ts'
 import { mount } from '@vue/test-utils'
@@ -20,15 +21,15 @@ const { useXoSrCollectionMock, useXoSrUtilsMock, getSrById, getVmById } = vi.hoi
   getVmById: vi.fn(),
 }))
 
-vi.mock(import('@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'), () => ({
+mockModule(import('@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'), () => ({
   useXoSrCollection: useXoSrCollectionMock as unknown as typeof useXoSrCollection,
 }))
 
-vi.mock(import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'), () => ({
+mockModule(import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'), () => ({
   useXoVmCollection: (() => ({ getVmById })) as unknown as typeof useXoVmCollection,
 }))
 
-vi.mock(import('@/modules/storage-repository/composables/xo-sr-utils.composable.ts'), () => ({
+mockModule(import('@/modules/storage-repository/composables/xo-sr-utils.composable.ts'), () => ({
   useXoSrUtils: useXoSrUtilsMock as unknown as typeof useXoSrUtils,
 }))
 

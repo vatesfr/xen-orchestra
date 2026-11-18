@@ -15,6 +15,7 @@ import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
 import { mountV2vListStepComposable, type MountV2vListStepOptions } from '@/test/mount-v2v-list-step.ts'
 import { resetV2vCollectionMocks } from '@/test/reset-v2v-collection-mocks.ts'
 import { silenceConsoleError } from '@/test/silence-console-error.ts'
+import { mockModule } from '@/test/spy-on-module.ts'
 import { SERVER_ERROR_MESSAGE, stubFetchServerError } from '@/test/stub-fetch-response.ts'
 import { V2V_DEFAULT_TEMPLATE } from '@/test/v2v-mapping-fixtures.ts'
 import {
@@ -26,7 +27,7 @@ import { V2V_DB_VM, V2V_WEB_VM } from '@/test/v2v-vms-fixtures.ts'
 import { V2V_LIST_POOL } from '@/test/v2v-wizard-fixtures.ts'
 import { flushPromises } from '@vue/test-utils'
 
-vi.mock(
+mockModule(
   import('@/modules/pool/remote-resources/use-xo-pool-collection.ts'),
   () => import('@/test/mock-xo-collections.ts')
 )

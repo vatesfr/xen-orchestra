@@ -14,6 +14,7 @@ import { createBackupLog } from '@/test/create-backup-log.ts'
 import { createSchedule } from '@/test/create-schedule.ts'
 import { t } from '@/test/i18n.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
+import { mockModule } from '@/test/spy-on-module.ts'
 import { ref } from 'vue'
 
 const { post, schedulesByJobId, backupLogsByJobId } = vi.hoisted(() => ({
@@ -22,17 +23,17 @@ const { post, schedulesByJobId, backupLogsByJobId } = vi.hoisted(() => ({
   backupLogsByJobId: new Map<string, FrontXoBackupLog[]>(),
 }))
 
-vi.mock(import('@/shared/utils/fetch.util.ts'), () => ({
+mockModule(import('@/shared/utils/fetch.util.ts'), () => ({
   fetchPost: post as unknown as typeof fetchPost,
 }))
 
-vi.mock(import('@/modules/schedule/remote-resources/use-xo-schedule-collection.ts'), () => ({
+mockModule(import('@/modules/schedule/remote-resources/use-xo-schedule-collection.ts'), () => ({
   useXoScheduleCollection: (() => ({
     schedulesByJobId: ref(schedulesByJobId),
   })) as unknown as typeof useXoScheduleCollection,
 }))
 
-vi.mock(import('@/modules/backup-log/remote-resources/use-xo-backup-log-collection.ts'), () => ({
+mockModule(import('@/modules/backup-log/remote-resources/use-xo-backup-log-collection.ts'), () => ({
   useXoBackupLogCollection: (() => ({
     backupLogsByJobId: ref(backupLogsByJobId),
   })) as unknown as typeof useXoBackupLogCollection,

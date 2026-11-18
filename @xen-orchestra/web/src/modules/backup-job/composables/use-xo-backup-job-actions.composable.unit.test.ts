@@ -12,6 +12,7 @@ import { createJobResult } from '@/test/create-job-result.ts'
 import { createSchedule } from '@/test/create-schedule.ts'
 import { t } from '@/test/i18n.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
+import { mockModule } from '@/test/spy-on-module.ts'
 import { ref, toValue } from 'vue'
 
 const {
@@ -36,26 +37,26 @@ const {
   schedulesByJobId: new Map<string, FrontXoSchedule[]>(),
 }))
 
-vi.mock(import('@/modules/schedule/remote-resources/use-xo-schedule-collection.ts'), () => ({
+mockModule(import('@/modules/schedule/remote-resources/use-xo-schedule-collection.ts'), () => ({
   useXoScheduleCollection: (() => ({
     schedulesByJobId: ref(schedulesByJobId),
   })) as unknown as typeof useXoScheduleCollection,
 }))
 
-vi.mock(import('@/modules/backup-job/jobs/xo-backup-job-change-state.job.ts'), () => ({
+mockModule(import('@/modules/backup-job/jobs/xo-backup-job-change-state.job.ts'), () => ({
   useXoBackupJobChangeStateJob: useChangeStateJob as unknown as typeof useXoBackupJobChangeStateJob,
 }))
 
-vi.mock(import('@/modules/backup-job/jobs/xo-backup-job-run.job.ts'), () => ({
+mockModule(import('@/modules/backup-job/jobs/xo-backup-job-run.job.ts'), () => ({
   useXoBackupJobRunJob: useRunJob as unknown as typeof useXoBackupJobRunJob,
 }))
 
-vi.mock(import('@/modules/backup-job/jobs/xo-backup-job-duplicate.job.ts'), () => ({
+mockModule(import('@/modules/backup-job/jobs/xo-backup-job-duplicate.job.ts'), () => ({
   useXoBackupJobDuplicateJob: useDuplicateJob as unknown as typeof useXoBackupJobDuplicateJob,
 }))
 
 // The composable opens the delete modals and runs the delete job, which calls the REST API
-vi.mock(import('@/modules/backup-job/composables/use-backup-job-delete.composable.ts'), () => ({
+mockModule(import('@/modules/backup-job/composables/use-backup-job-delete.composable.ts'), () => ({
   useBackupJobDelete: useDelete as unknown as typeof useBackupJobDelete,
 }))
 

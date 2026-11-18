@@ -12,6 +12,7 @@ import { hasRequested } from '@/test/fetch-requests.ts'
 import { v2vVmRowsCollectionsMock } from '@/test/mock-xo-v2v-vm-rows-collections.ts'
 import { mountV2vListStepComposable, type MountV2vListStepOptions } from '@/test/mount-v2v-list-step.ts'
 import { resetV2vCollectionMocks } from '@/test/reset-v2v-collection-mocks.ts'
+import { mockModule } from '@/test/spy-on-module.ts'
 import {
   createV2vReviewStepList,
   V2V_REVIEW_START_ENDPOINT,
@@ -20,47 +21,47 @@ import {
 import { V2V_LISTED_VM } from '@/test/v2v-vms-fixtures.ts'
 import { V2V_LIST_POOL } from '@/test/v2v-wizard-fixtures.ts'
 
-vi.mock(
+mockModule(
   import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'),
   () => import('@/test/mock-xo-v2v-vm-rows-collections.ts')
 )
-vi.mock(
+mockModule(
   import('@/modules/task/remote-resources/use-xo-task-collection.ts'),
   () => import('@/test/mock-xo-v2v-vm-rows-collections.ts')
 )
-vi.mock(
+mockModule(
   import('@/modules/snapshot/components/remote-resources/use-xo-vm-snapshot-collection.ts'),
   () => import('@/test/mock-xo-v2v-vm-rows-collections.ts')
 )
-vi.mock(
+mockModule(
   import('@/modules/pool/remote-resources/use-xo-pool-collection.ts'),
   () => import('@/test/mock-xo-collections.ts')
 )
-vi.mock(
+mockModule(
   import('@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'),
   () => import('@/test/mock-xo-collections.ts')
 )
-vi.mock(
+mockModule(
   import('@/modules/network/remote-resources/use-xo-network-collection.ts'),
   () => import('@/test/mock-xo-collections.ts')
 )
-vi.mock(
+mockModule(
   import('@/modules/vm/remote-resources/use-xo-vm-template-collection.ts'),
   () => import('@/test/mock-xo-collections.ts')
 )
-vi.mock(
+mockModule(
   import('@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'),
   () => import('@/test/mock-xo-vm-device-collections.ts')
 )
-vi.mock(
+mockModule(
   import('@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'),
   () => import('@/test/mock-xo-vm-device-collections.ts')
 )
-vi.mock(
+mockModule(
   import('@/modules/vif/remote-resources/use-xo-vif-collection.ts'),
   () => import('@/test/mock-xo-vm-device-collections.ts')
 )
-vi.mock(import('@core/composables/modals/use-delete-modal.ts'), () => import('@/test/mock-delete-modal.ts'))
+mockModule(import('@core/composables/modals/use-delete-modal.ts'), () => import('@/test/mock-delete-modal.ts'))
 
 function mountReviewStep(options?: MountV2vListStepOptions) {
   return mountV2vListStepComposable(

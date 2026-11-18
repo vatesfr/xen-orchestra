@@ -19,36 +19,37 @@ import { mountComposableWithI18n } from '@/test/mount-composable.ts'
 import { mountWithSelect } from '@/test/mount-with-select.ts'
 import { seedV2vDestinationPools, V2V_MANAGEMENT_NETWORK_ID } from '@/test/seed-v2v-destination-pools.ts'
 import { findSelectOptionLabels, findShownSelections, openSelect } from '@/test/select.ts'
+import { mockModule } from '@/test/spy-on-module.ts'
 import type { FormSelectId } from '@core/packages/form-select'
 import VtsSelect from '@core/components/select/VtsSelect.vue'
 import { flushPromises } from '@vue/test-utils'
 import { h, nextTick, ref } from 'vue'
 
-vi.mock(
+mockModule(
   import('@/modules/pool/remote-resources/use-xo-pool-collection.ts'),
   () => import('@/test/mock-xo-collections.ts')
 )
-vi.mock(
+mockModule(
   import('@/modules/host/remote-resources/use-xo-host-collection.ts'),
   () => import('@/test/mock-xo-collections.ts')
 )
-vi.mock(
+mockModule(
   import('@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'),
   () => import('@/test/mock-xo-collections.ts')
 )
-vi.mock(
+mockModule(
   import('@/modules/network/remote-resources/use-xo-network-collection.ts'),
   () => import('@/test/mock-xo-collections.ts')
 )
-vi.mock(
+mockModule(
   import('@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'),
   () => import('@/test/mock-xo-collections.ts')
 )
-vi.mock(
+mockModule(
   import('@/modules/pif/remote-resources/use-xo-pif-collection.ts'),
   () => import('@/test/mock-xo-collections.ts')
 )
-vi.mock(
+mockModule(
   import('@/modules/vm/remote-resources/use-xo-vm-template-collection.ts'),
   () => import('@/test/mock-xo-collections.ts')
 )

@@ -1,5 +1,6 @@
 import type { FrontXoTask, useXoTaskCollection } from '@/modules/task/remote-resources/use-xo-task-collection.ts'
 import { useXoTaskUtils } from '@/shared/composables/xo-task-utils.composable.ts'
+import { mockModule } from '@/test/spy-on-module.ts'
 import { nextTick, ref } from 'vue'
 
 const { task } = vi.hoisted(() => ({
@@ -7,7 +8,7 @@ const { task } = vi.hoisted(() => ({
 }))
 
 // The task collection would open an SSE subscription
-vi.mock(import('@/modules/task/remote-resources/use-xo-task-collection.ts'), () => ({
+mockModule(import('@/modules/task/remote-resources/use-xo-task-collection.ts'), () => ({
   useXoTaskCollection: (() => ({
     useGetTaskById: () => task.value,
   })) as unknown as typeof useXoTaskCollection,

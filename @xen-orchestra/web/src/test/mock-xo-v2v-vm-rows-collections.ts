@@ -27,7 +27,7 @@ export const v2vVmRowsCollectionsMock = {
   },
 }
 
-// Use as `vi.mock(import('<collection module>'), () => import('@/test/mock-xo-v2v-vm-rows-collections.ts'))`
+// Use as `mockModule(import('<collection module>'), () => import('@/test/mock-xo-v2v-vm-rows-collections.ts'))`
 // for each collection below: every mocked module picks its own export
 export { useXoVmCollection } from '@/test/mock-xo-vm-collection.ts'
 

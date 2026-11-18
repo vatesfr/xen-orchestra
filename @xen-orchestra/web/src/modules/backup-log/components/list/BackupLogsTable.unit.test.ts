@@ -10,6 +10,7 @@ import { createVm } from '@/test/create-vm.ts'
 import { findTableColumnCells } from '@/test/find-table-cells.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
+import { mockModule } from '@/test/spy-on-module.ts'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import { objectIcon } from '@core/icons'
 import { mount } from '@vue/test-utils'
@@ -20,28 +21,28 @@ const { getBackupJobById, getVmById } = vi.hoisted(() => ({
   getVmById: vi.fn(),
 }))
 
-vi.mock(import('@/shared/remote-resources/use-xo-routes.ts'), () => import('@/test/mock-xo-routes.ts'))
+mockModule(import('@/shared/remote-resources/use-xo-routes.ts'), () => import('@/test/mock-xo-routes.ts'))
 
-vi.mock(import('@/modules/backup-job/remote-resources/use-xo-backup-job-collection.ts'), () => ({
+mockModule(import('@/modules/backup-job/remote-resources/use-xo-backup-job-collection.ts'), () => ({
   useXoBackupJobCollection: (() => ({ getBackupJobById })) as unknown as typeof useXoBackupJobCollection,
 }))
 
-vi.mock(import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'), () => ({
+mockModule(import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'), () => ({
   useXoVmCollection: (() => ({ getVmById })) as unknown as typeof useXoVmCollection,
 }))
 
-vi.mock(import('@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'), () => ({
+mockModule(import('@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'), () => ({
   useXoSrCollection: (() => ({ getSrById: () => undefined })) as unknown as typeof useXoSrCollection,
 }))
 
-vi.mock(import('@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'), () => ({
+mockModule(import('@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'), () => ({
   useXoPbdCollection: (() => ({
     getPbdsByIds: () => [],
     pbdsBySr: ref(new Map()),
   })) as unknown as typeof useXoPbdCollection,
 }))
 
-vi.mock(import('@/modules/host/remote-resources/use-xo-host-collection.ts'), () => ({
+mockModule(import('@/modules/host/remote-resources/use-xo-host-collection.ts'), () => ({
   useXoHostCollection: (() => ({ getHostById: () => undefined })) as unknown as typeof useXoHostCollection,
 }))
 

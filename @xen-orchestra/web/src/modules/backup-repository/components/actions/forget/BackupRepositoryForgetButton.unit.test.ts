@@ -4,6 +4,7 @@ import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote
 import { createBr } from '@/test/create-br.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
+import { mockModule } from '@/test/spy-on-module.ts'
 import VtsActionButton from '@core/components/action-button/VtsActionButton.vue'
 import { mount } from '@vue/test-utils'
 import { ref, toValue } from 'vue'
@@ -14,7 +15,7 @@ const { useForget, forget } = vi.hoisted(() => ({
 }))
 
 // The composable calls the REST API and opens SSE subscriptions
-vi.mock(import('@/modules/backup-repository/composables/use-backup-repository-forget.composable.ts'), () => ({
+mockModule(import('@/modules/backup-repository/composables/use-backup-repository-forget.composable.ts'), () => ({
   useBackupRepositoryForget: useForget as unknown as typeof useBackupRepositoryForget,
 }))
 

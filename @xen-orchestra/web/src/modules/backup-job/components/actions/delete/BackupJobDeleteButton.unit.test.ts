@@ -4,6 +4,7 @@ import type { FrontAnyXoBackupJob } from '@/modules/backup-job/remote-resources/
 import { createVmBackupJob } from '@/test/create-backup-job.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
+import { mockModule } from '@/test/spy-on-module.ts'
 import VtsActionButton from '@core/components/action-button/VtsActionButton.vue'
 import { mount } from '@vue/test-utils'
 import { ref, toValue } from 'vue'
@@ -13,7 +14,7 @@ const { useDelete, deleteBackupJobs } = vi.hoisted(() => ({
   deleteBackupJobs: vi.fn(),
 }))
 
-vi.mock(import('@/modules/backup-job/composables/use-backup-job-delete.composable.ts'), () => ({
+mockModule(import('@/modules/backup-job/composables/use-backup-job-delete.composable.ts'), () => ({
   useBackupJobDelete: useDelete as unknown as typeof useBackupJobDelete,
 }))
 

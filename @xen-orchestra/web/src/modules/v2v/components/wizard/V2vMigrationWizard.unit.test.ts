@@ -10,9 +10,10 @@ import { t } from '@/test/i18n.ts'
 import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
 import { mountComponentOnV2vWizard, type V2vWizardSetup } from '@/test/mount-on-v2v-wizard.ts'
 import { seedV2vListPool } from '@/test/seed-v2v-list-pool.ts'
+import { mockModule } from '@/test/spy-on-module.ts'
 import { V2V_EMPTY_LIST, V2V_LIST_POOL, V2V_LIST_WITH_VMS, V2V_WIZARD_SOURCE } from '@/test/v2v-wizard-fixtures.ts'
 
-vi.mock(
+mockModule(
   import('@/modules/pool/remote-resources/use-xo-pool-collection.ts'),
   () => import('@/test/mock-xo-collections.ts')
 )

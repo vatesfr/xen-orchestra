@@ -12,7 +12,7 @@ export const v2vStatusMock = {
   },
 }
 
-// Use as `vi.mock(import('@/modules/v2v/remote-resources/use-xo-v2v-status.ts'), () => import('@/test/mock-xo-v2v-status.ts'))`
+// Use as `mockModule(import('@/modules/v2v/remote-resources/use-xo-v2v-status.ts'), () => import('@/test/mock-xo-v2v-status.ts'))`
 export const useXoV2vStatus = (() => ({
   canConnectV2vSource: v2vStatusMock.canConnectV2vSource,
   v2vPrerequisite: v2vStatusMock.v2vPrerequisite,

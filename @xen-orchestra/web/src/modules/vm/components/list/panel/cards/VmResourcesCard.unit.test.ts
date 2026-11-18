@@ -8,6 +8,7 @@ import { createVm } from '@/test/create-vm.ts'
 import { findCardLabelledValues } from '@/test/find-rendered-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
+import { mockModule } from '@/test/spy-on-module.ts'
 import { mount } from '@vue/test-utils'
 
 const { getVbdsByIds } = vi.hoisted(() => ({
@@ -18,11 +19,11 @@ const { getVdiById } = vi.hoisted(() => ({
   getVdiById: vi.fn(),
 }))
 
-vi.mock(import('@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'), () => ({
+mockModule(import('@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'), () => ({
   useXoVbdCollection: (() => ({ getVbdsByIds })) as unknown as typeof useXoVbdCollection,
 }))
 
-vi.mock(import('@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'), () => ({
+mockModule(import('@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'), () => ({
   useXoVdiCollection: (() => ({ getVdiById })) as unknown as typeof useXoVdiCollection,
 }))
 

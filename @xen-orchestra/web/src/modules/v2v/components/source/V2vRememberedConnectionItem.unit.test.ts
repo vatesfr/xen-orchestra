@@ -8,6 +8,7 @@ import { findTitle } from '@/test/find-titles.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { vmCollectionMock } from '@/test/mock-xo-vm-collection.ts'
+import { mockModule } from '@/test/spy-on-module.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import MenuItem from '@core/components/menu/MenuItem.vue'
 import VtsRelativeTime from '@core/components/relative-time/VtsRelativeTime.vue'
@@ -16,7 +17,7 @@ import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import { mount } from '@vue/test-utils'
 import { omit } from 'lodash-es'
 
-vi.mock(
+mockModule(
   import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'),
   () => import('@/test/mock-xo-vm-collection.ts')
 )

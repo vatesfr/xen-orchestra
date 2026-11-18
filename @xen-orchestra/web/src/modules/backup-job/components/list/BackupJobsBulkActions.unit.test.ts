@@ -7,6 +7,7 @@ import type { FrontAnyXoBackupJob } from '@/modules/backup-job/remote-resources/
 import { createVmBackupJob } from '@/test/create-backup-job.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
+import { mockModule } from '@/test/spy-on-module.ts'
 import type { ActionItem, GroupActionItem } from '@core/components/menu/VtsActionsMenu.vue'
 import VtsTableBulkActions from '@core/components/table/VtsTableBulkActions.vue'
 import { mount } from '@vue/test-utils'
@@ -31,28 +32,28 @@ function toJobState({ canRun = true, isRunning = false, errorMessage }: MockedJo
   return { canRun: ref(canRun), isRunning: ref(isRunning), errorMessage: ref(errorMessage) }
 }
 
-vi.mock(import('@/modules/backup-job/jobs/xo-backup-job-change-state.job.ts'), () => ({
+mockModule(import('@/modules/backup-job/jobs/xo-backup-job-change-state.job.ts'), () => ({
   useXoBackupJobChangeStateJob: ((_backupJobs: unknown, enabled: unknown) =>
     toValue(enabled)
       ? { run: actions.enable, ...toJobState(jobStates.enable) }
       : { run: actions.disable, ...toJobState(jobStates.disable) }) as unknown as typeof useXoBackupJobChangeStateJob,
 }))
 
-vi.mock(import('@/modules/backup-job/jobs/xo-backup-job-run.job.ts'), () => ({
+mockModule(import('@/modules/backup-job/jobs/xo-backup-job-run.job.ts'), () => ({
   useXoBackupJobRunJob: (() => ({
     run: actions.run,
     ...toJobState(jobStates.run),
   })) as unknown as typeof useXoBackupJobRunJob,
 }))
 
-vi.mock(import('@/modules/backup-job/jobs/xo-backup-job-duplicate.job.ts'), () => ({
+mockModule(import('@/modules/backup-job/jobs/xo-backup-job-duplicate.job.ts'), () => ({
   useXoBackupJobDuplicateJob: (() => ({
     run: actions.duplicate,
     ...toJobState(jobStates.duplicate),
   })) as unknown as typeof useXoBackupJobDuplicateJob,
 }))
 
-vi.mock(import('@/modules/backup-job/composables/use-backup-job-delete.composable.ts'), () => ({
+mockModule(import('@/modules/backup-job/composables/use-backup-job-delete.composable.ts'), () => ({
   useBackupJobDelete: (() => {
     const { canRun, isRunning, errorMessage } = toJobState(jobStates.delete)
 

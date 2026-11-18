@@ -6,6 +6,7 @@ import { createPlugin } from '@/test/create-plugin.ts'
 import { overlayMock } from '@/test/mock-overlay.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
 import { silenceConsoleError } from '@/test/silence-console-error.ts'
+import { mockModule } from '@/test/spy-on-module.ts'
 import { KEEP_OVERLAY_OPEN } from '@core/packages/overlay/symbols.ts'
 import type { Ref } from 'vue'
 
@@ -23,7 +24,7 @@ const { useJob, run, drawer } = vi.hoisted(() => ({
   drawer: vi.fn(),
 }))
 
-vi.mock(import('@core/packages/overlay/use-overlay.ts'), () => import('@/test/mock-overlay.ts'))
+mockModule(import('@core/packages/overlay/use-overlay.ts'), () => import('@/test/mock-overlay.ts'))
 
 const PAYLOAD = { to: 'admin@example.org' }
 

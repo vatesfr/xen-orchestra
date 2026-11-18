@@ -19,6 +19,7 @@ import { v2vVmRowsCollectionsMock } from '@/test/mock-xo-v2v-vm-rows-collections
 import { mountV2vVmsStep } from '@/test/mount-v2v-vms-step.ts'
 import { resetV2vCollectionMocks } from '@/test/reset-v2v-collection-mocks.ts'
 import { seedV2vListPool } from '@/test/seed-v2v-list-pool.ts'
+import { mockModule } from '@/test/spy-on-module.ts'
 import { V2V_DEFAULT_SR, V2V_SSD_SR, withV2vGoneDeviceOverrides } from '@/test/v2v-mapping-fixtures.ts'
 import { readV2vMigrationListStorage } from '@/test/v2v-migration-list-storage.ts'
 import { V2V_SELECTED_VM_CHECK } from '@/test/v2v-selected-vm-checks.ts'
@@ -26,35 +27,35 @@ import { V2V_DB_VM, V2V_LISTED_VM, V2V_RDM_VM, V2V_WEB_VM } from '@/test/v2v-vms
 import { V2V_EMPTY_LIST, V2V_LIST_POOL, V2V_OTHER_POOL } from '@/test/v2v-wizard-fixtures.ts'
 import type { XoV2vVm } from '@vates/types'
 
-vi.mock(
+mockModule(
   import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'),
   () => import('@/test/mock-xo-v2v-vm-rows-collections.ts')
 )
-vi.mock(
+mockModule(
   import('@/modules/task/remote-resources/use-xo-task-collection.ts'),
   () => import('@/test/mock-xo-v2v-vm-rows-collections.ts')
 )
-vi.mock(
+mockModule(
   import('@/modules/snapshot/components/remote-resources/use-xo-vm-snapshot-collection.ts'),
   () => import('@/test/mock-xo-v2v-vm-rows-collections.ts')
 )
-vi.mock(
+mockModule(
   import('@/modules/pool/remote-resources/use-xo-pool-collection.ts'),
   () => import('@/test/mock-xo-collections.ts')
 )
-vi.mock(
+mockModule(
   import('@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'),
   () => import('@/test/mock-xo-collections.ts')
 )
-vi.mock(
+mockModule(
   import('@/modules/network/remote-resources/use-xo-network-collection.ts'),
   () => import('@/test/mock-xo-collections.ts')
 )
-vi.mock(
+mockModule(
   import('@/modules/vm/remote-resources/use-xo-vm-template-collection.ts'),
   () => import('@/test/mock-xo-collections.ts')
 )
-vi.mock(import('@core/composables/modals/use-delete-modal.ts'), () => import('@/test/mock-delete-modal.ts'))
+mockModule(import('@core/composables/modals/use-delete-modal.ts'), () => import('@/test/mock-delete-modal.ts'))
 
 const LIST = createV2vMigrationList({ vms: createV2vMigrationListVmsOf([V2V_WEB_VM.id, V2V_DB_VM.id, V2V_RDM_VM.id]) })
 

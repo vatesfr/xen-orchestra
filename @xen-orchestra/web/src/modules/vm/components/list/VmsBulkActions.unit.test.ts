@@ -8,6 +8,7 @@ import { createJobResult } from '@/test/create-job-result.ts'
 import { createVm } from '@/test/create-vm.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
+import { mockModule } from '@/test/spy-on-module.ts'
 import type { ActionItem, GroupActionItem } from '@core/components/menu/VtsActionsMenu.vue'
 import VtsTableBulkActions from '@core/components/table/VtsTableBulkActions.vue'
 import { mount } from '@vue/test-utils'
@@ -22,17 +23,17 @@ const { snapshot, deleteVms, useSnapshotJob, useDelete, powerStateActions } = vi
 }))
 
 // The jobs and composables call the REST API and open SSE subscriptions
-vi.mock(import('@/modules/vm/composables/use-vm-bulk-power-state-actions.composable.ts'), () => ({
+mockModule(import('@/modules/vm/composables/use-vm-bulk-power-state-actions.composable.ts'), () => ({
   useVmBulkPowerStateActions: (() => ({
     powerStateActions: ref(powerStateActions),
   })) as unknown as typeof useVmBulkPowerStateActions,
 }))
 
-vi.mock(import('@/modules/vm/jobs/xo-vm-snapshot.job.ts'), () => ({
+mockModule(import('@/modules/vm/jobs/xo-vm-snapshot.job.ts'), () => ({
   useXoVmSnapshotJob: useSnapshotJob as unknown as typeof useXoVmSnapshotJob,
 }))
 
-vi.mock(import('@/modules/vm/composables/use-vm-delete.composable.ts'), () => ({
+mockModule(import('@/modules/vm/composables/use-vm-delete.composable.ts'), () => ({
   useVmDelete: ((vms: unknown) => {
     const { run, canRun, isRunning, errorMessage } = useDelete(vms)
 

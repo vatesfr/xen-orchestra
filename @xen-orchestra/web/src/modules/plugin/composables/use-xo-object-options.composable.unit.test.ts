@@ -11,6 +11,7 @@ import { createHost } from '@/test/create-host.ts'
 import { createSr } from '@/test/create-sr.ts'
 import { createVm } from '@/test/create-vm.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
+import { mockModule } from '@/test/spy-on-module.ts'
 import { toValue } from 'vue'
 
 const { collections, mockCollection } = await vi.hoisted(async () => {
@@ -42,7 +43,7 @@ const { collections, mockCollection } = await vi.hoisted(async () => {
 
 type CollectionName = keyof typeof collections
 
-vi.mock(import('@/modules/host/remote-resources/use-xo-host-collection.ts'), () => ({
+mockModule(import('@/modules/host/remote-resources/use-xo-host-collection.ts'), () => ({
   useXoHostCollection: mockCollection('host', [
     'hosts',
     'areHostsReady',
@@ -50,7 +51,7 @@ vi.mock(import('@/modules/host/remote-resources/use-xo-host-collection.ts'), () 
   ]) as unknown as typeof useXoHostCollection,
 }))
 
-vi.mock(import('@/modules/pool/remote-resources/use-xo-pool-collection.ts'), () => ({
+mockModule(import('@/modules/pool/remote-resources/use-xo-pool-collection.ts'), () => ({
   useXoPoolCollection: mockCollection('pool', [
     'pools',
     'arePoolsReady',
@@ -58,7 +59,7 @@ vi.mock(import('@/modules/pool/remote-resources/use-xo-pool-collection.ts'), () 
   ]) as unknown as typeof useXoPoolCollection,
 }))
 
-vi.mock(import('@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'), () => ({
+mockModule(import('@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'), () => ({
   useXoSrCollection: mockCollection('sr', [
     'srs',
     'areSrsReady',
@@ -66,7 +67,7 @@ vi.mock(import('@/modules/storage-repository/remote-resources/use-xo-sr-collecti
   ]) as unknown as typeof useXoSrCollection,
 }))
 
-vi.mock(import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'), () => ({
+mockModule(import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'), () => ({
   useXoVmCollection: mockCollection('vm', [
     'vms',
     'areVmsReady',

@@ -10,6 +10,7 @@ import { findV2vRouteQuery, getV2vVmsQuery, V2V_VMS_FILTER_QUERY_KEY } from '@/t
 import { writeLocalStorageFromAnotherTab } from '@/test/local-storage.ts'
 import { v2vVmRowsCollectionsMock } from '@/test/mock-xo-v2v-vm-rows-collections.ts'
 import { mountV2vVmsStep } from '@/test/mount-v2v-vms-step.ts'
+import { mockModule } from '@/test/spy-on-module.ts'
 import { readV2vMigrationListVmIds } from '@/test/v2v-migration-list-storage.ts'
 import {
   V2V_DATASTORE_A_FILTER,
@@ -26,35 +27,35 @@ import { V2V_EMPTY_LIST } from '@/test/v2v-wizard-fixtures.ts'
 import type { XoV2vInventory, XoV2vVm } from '@vates/types'
 import { flushPromises } from '@vue/test-utils'
 
-vi.mock(
+mockModule(
   import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'),
   () => import('@/test/mock-xo-v2v-vm-rows-collections.ts')
 )
-vi.mock(
+mockModule(
   import('@/modules/task/remote-resources/use-xo-task-collection.ts'),
   () => import('@/test/mock-xo-v2v-vm-rows-collections.ts')
 )
-vi.mock(
+mockModule(
   import('@/modules/snapshot/components/remote-resources/use-xo-vm-snapshot-collection.ts'),
   () => import('@/test/mock-xo-v2v-vm-rows-collections.ts')
 )
-vi.mock(
+mockModule(
   import('@/modules/pool/remote-resources/use-xo-pool-collection.ts'),
   () => import('@/test/mock-xo-collections.ts')
 )
-vi.mock(
+mockModule(
   import('@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'),
   () => import('@/test/mock-xo-collections.ts')
 )
-vi.mock(
+mockModule(
   import('@/modules/network/remote-resources/use-xo-network-collection.ts'),
   () => import('@/test/mock-xo-collections.ts')
 )
-vi.mock(
+mockModule(
   import('@/modules/vm/remote-resources/use-xo-vm-template-collection.ts'),
   () => import('@/test/mock-xo-collections.ts')
 )
-vi.mock(import('@core/composables/modals/use-delete-modal.ts'), () => import('@/test/mock-delete-modal.ts'))
+mockModule(import('@core/composables/modals/use-delete-modal.ts'), () => import('@/test/mock-delete-modal.ts'))
 
 async function mountVmsStep({
   filter,

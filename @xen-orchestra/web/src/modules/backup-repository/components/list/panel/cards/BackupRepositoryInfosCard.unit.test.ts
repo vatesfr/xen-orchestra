@@ -5,6 +5,7 @@ import { createBr } from '@/test/create-br.ts'
 import { findCardCopiedValues, findCardLabelledValues } from '@/test/find-rendered-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
+import { mockModule } from '@/test/spy-on-module.ts'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
 import { objectIcon } from '@core/icons'
@@ -17,7 +18,7 @@ const { useGetProxyById } = vi.hoisted(() => ({
   useGetProxyById: vi.fn(),
 }))
 
-vi.mock(import('@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'), () => ({
+mockModule(import('@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'), () => ({
   useXoProxyCollection: (() => ({ useGetProxyById })) as unknown as typeof useXoProxyCollection,
 }))
 

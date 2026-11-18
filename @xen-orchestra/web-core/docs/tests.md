@@ -33,7 +33,7 @@ XO 6 tests import the generic helpers through `@core-test` too, so a helper exis
 - [Assert behavior, not implementation](./tests/assert-behavior.md) — the one rule that outranks the others
 - [File layout and structure](./tests/file-structure.md) — where a test lives, how it is named, how it is organized
 - [Setup: prefer helpers over `beforeEach`](./tests/setup-helpers.md) — local helpers, auto-unmount
-- [Mocking dependencies](./tests/mocking.md) — the typed `vi.mock` form, shared mock modules
+- [Mocking dependencies](./tests/mocking.md) — the typed `vi.mock` form (`mockModule` in XO 6), shared mock modules
 - [Testing pure utilities](./tests/testing-utilities.md) — `*.util.ts`, called directly
 - [Testing composables](./tests/testing-composables.md) — mounting in a Vue context, reactivity, `useI18n`
 - [Testing components](./tests/testing-components.md) — `mount`, querying rendered output, translations, what `happy-dom` cannot do

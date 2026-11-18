@@ -4,6 +4,7 @@ import { createPluginActions } from '@/test/create-plugin-actions.ts'
 import { createPlugin } from '@/test/create-plugin.ts'
 import { findTooltipContent } from '@/test/find-tooltip-content.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
+import { mockModule } from '@/test/spy-on-module.ts'
 import type { LeafActionItem } from '@core/components/menu/VtsActionsMenu.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import { mount } from '@vue/test-utils'
@@ -15,7 +16,7 @@ const { useActions, changeState, configure } = vi.hoisted(() => ({
 }))
 
 // The composable runs the plugin jobs, which call the REST API
-vi.mock(import('@/modules/plugin/composables/use-xo-plugin-actions.composable.ts'), () => ({
+mockModule(import('@/modules/plugin/composables/use-xo-plugin-actions.composable.ts'), () => ({
   useXoPluginActions: useActions as unknown as typeof useXoPluginActions,
 }))
 

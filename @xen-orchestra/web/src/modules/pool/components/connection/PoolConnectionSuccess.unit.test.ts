@@ -8,12 +8,13 @@ import { getButton } from '@/test/get-button.ts'
 import { getSuccessState } from '@/test/get-success-state.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
+import { mockModule } from '@/test/spy-on-module.ts'
 import { mount } from '@vue/test-utils'
 import { computed, ref, toValue, type MaybeRefOrGetter } from 'vue'
 
 const servers = ref<FrontXoServer[]>([])
 
-vi.mock(import('@/modules/server/remote-resources/use-xo-server-collection.ts'), () => ({
+mockModule(import('@/modules/server/remote-resources/use-xo-server-collection.ts'), () => ({
   useXoServerCollection: (() => ({
     useGetServerById: (id: MaybeRefOrGetter<FrontXoServer['id']>) =>
       computed(() => servers.value.find(server => server.id === toValue(id))),

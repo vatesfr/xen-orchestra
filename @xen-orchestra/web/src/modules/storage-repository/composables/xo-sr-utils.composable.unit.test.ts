@@ -6,12 +6,13 @@ import { createPbd } from '@/test/create-pbd.ts'
 import { createSr } from '@/test/create-sr.ts'
 import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
 import { mountComposableWithI18n } from '@/test/mount-composable.ts'
+import { mockModule } from '@/test/spy-on-module.ts'
 
-vi.mock(
+mockModule(
   import('@/modules/host/remote-resources/use-xo-host-collection.ts'),
   () => import('@/test/mock-xo-collections.ts')
 )
-vi.mock(
+mockModule(
   import('@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'),
   () => import('@/test/mock-xo-collections.ts')
 )

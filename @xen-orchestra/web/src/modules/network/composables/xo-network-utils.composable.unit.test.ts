@@ -7,6 +7,7 @@ import { createHost } from '@/test/create-host.ts'
 import { createNetwork } from '@/test/create-network.ts'
 import { createPif } from '@/test/create-pif.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
+import { mockModule } from '@/test/spy-on-module.ts'
 import {
   SDN_CONTROLLER_ENCAPSULATION_KEY,
   SDN_CONTROLLER_ENCRYPTED_KEY,
@@ -22,13 +23,13 @@ const { pifs, hosts } = vi.hoisted(() => ({
   hosts: { value: [] as FrontXoHost[] },
 }))
 
-vi.mock(import('@/modules/host/remote-resources/use-xo-host-collection.ts'), () => ({
+mockModule(import('@/modules/host/remote-resources/use-xo-host-collection.ts'), () => ({
   useXoHostCollection: (() => ({
     getHostById: (id: FrontXoHost['id']) => hosts.value.find(host => host.id === id),
   })) as unknown as typeof useXoHostCollection,
 }))
 
-vi.mock(import('@/modules/pif/remote-resources/use-xo-pif-collection.ts'), () => ({
+mockModule(import('@/modules/pif/remote-resources/use-xo-pif-collection.ts'), () => ({
   useXoPifCollection: (() => ({
     getPifsByNetworkId: (networkId: FrontXoNetwork['id']) => pifs.value.filter(pif => pif.$network === networkId),
   })) as unknown as typeof useXoPifCollection,

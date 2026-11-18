@@ -10,17 +10,18 @@ import { createBr } from '@/test/create-br.ts'
 import { t } from '@/test/i18n.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
 import { silenceConsoleError } from '@/test/silence-console-error.ts'
+import { mockModule } from '@/test/spy-on-module.ts'
 
 const { patch, checkHealth } = vi.hoisted(() => ({
   patch: vi.fn(),
   checkHealth: vi.fn(),
 }))
 
-vi.mock(import('@/shared/utils/fetch.util.ts'), () => ({
+mockModule(import('@/shared/utils/fetch.util.ts'), () => ({
   fetchPatch: patch as unknown as typeof fetchPatch,
 }))
 
-vi.mock(import('@/modules/backup-repository/utils/xo-backup-repository-health.util.ts'), () => ({
+mockModule(import('@/modules/backup-repository/utils/xo-backup-repository-health.util.ts'), () => ({
   checkBackupRepositoryHealth: checkHealth as unknown as typeof checkBackupRepositoryHealth,
 }))
 

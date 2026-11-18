@@ -4,10 +4,11 @@ import { createV2vConnection } from '@/test/create-v2v-connection.ts'
 import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
 import { seedV2vListPool } from '@/test/seed-v2v-list-pool.ts'
+import { mockModule } from '@/test/spy-on-module.ts'
 import { createConnectedV2vContext, v2vConnectionProvide } from '@/test/v2v-connection-provide.ts'
 import { V2V_LIST_POOL } from '@/test/v2v-wizard-fixtures.ts'
 
-vi.mock(
+mockModule(
   import('@/modules/pool/remote-resources/use-xo-pool-collection.ts'),
   () => import('@/test/mock-xo-collections.ts')
 )

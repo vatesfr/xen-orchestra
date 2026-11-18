@@ -5,6 +5,7 @@ import type { FrontXoVm, useXoVmCollection } from '@/modules/vm/remote-resources
 import { createPool } from '@/test/create-pool.ts'
 import { createVm } from '@/test/create-vm.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
+import { mockModule } from '@/test/spy-on-module.ts'
 import { ref } from 'vue'
 
 const { vms, pools } = vi.hoisted(() => ({
@@ -12,7 +13,7 @@ const { vms, pools } = vi.hoisted(() => ({
   pools: [] as FrontXoPool[],
 }))
 
-vi.mock(import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'), async () => {
+mockModule(import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'), async () => {
   const { ref: vueRef } = await import('vue')
 
   return {
@@ -23,7 +24,7 @@ vi.mock(import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'), async (
   }
 })
 
-vi.mock(import('@/modules/pool/remote-resources/use-xo-pool-collection.ts'), () => ({
+mockModule(import('@/modules/pool/remote-resources/use-xo-pool-collection.ts'), () => ({
   useXoPoolCollection: (() => ({
     getPoolsByIds: (ids: FrontXoPool['id'][] = []) => pools.filter(pool => ids.includes(pool.id)),
   })) as unknown as typeof useXoPoolCollection,

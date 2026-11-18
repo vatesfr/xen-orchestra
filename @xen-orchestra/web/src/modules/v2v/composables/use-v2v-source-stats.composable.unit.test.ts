@@ -4,9 +4,10 @@ import { createV2vColdAndWarmImportVms, createV2vImportVm } from '@/test/create-
 import { V2V_TEST_SOURCE } from '@/test/create-v2v-inventory.ts'
 import { vmCollectionMock } from '@/test/mock-xo-vm-collection.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
+import { mockModule } from '@/test/spy-on-module.ts'
 import { type MaybeRefOrGetter, nextTick, ref } from 'vue'
 
-vi.mock(
+mockModule(
   import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'),
   () => import('@/test/mock-xo-vm-collection.ts')
 )

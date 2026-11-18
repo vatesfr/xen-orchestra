@@ -12,6 +12,7 @@ import { v2vStatusMock } from '@/test/mock-xo-v2v-status.ts'
 import { mountComposableWithI18n } from '@/test/mount-composable.ts'
 import { NOW } from '@/test/now.ts'
 import { silenceConsoleError } from '@/test/silence-console-error.ts'
+import { mockModule } from '@/test/spy-on-module.ts'
 import { SERVER_ERROR_MESSAGE, stubFetchResponse, stubFetchServerError } from '@/test/stub-fetch-response.ts'
 import { stubV2vInvalidCredentialsResponse } from '@/test/stub-v2v-invalid-credentials-response.ts'
 import { v2vConnectionProvide } from '@/test/v2v-connection-provide.ts'
@@ -20,9 +21,9 @@ import { V2V_PLATFORM, type XoV2vConnection } from '@vates/types'
 import { flushPromises } from '@vue/test-utils'
 import { omit } from 'lodash-es'
 
-vi.mock(import('@/modules/v2v/remote-resources/use-xo-v2v-status.ts'), () => import('@/test/mock-xo-v2v-status.ts'))
+mockModule(import('@/modules/v2v/remote-resources/use-xo-v2v-status.ts'), () => import('@/test/mock-xo-v2v-status.ts'))
 
-vi.mock(import('@core/composables/modals/use-delete-modal.ts'), () => import('@/test/mock-delete-modal.ts'))
+mockModule(import('@core/composables/modals/use-delete-modal.ts'), () => import('@/test/mock-delete-modal.ts'))
 
 beforeEach(() => {
   v2vStatusMock.reset()

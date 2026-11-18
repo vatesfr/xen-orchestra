@@ -11,6 +11,7 @@ import { createVmBackupJob } from '@/test/create-backup-job.ts'
 import { createSchedule } from '@/test/create-schedule.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
+import { mockModule } from '@/test/spy-on-module.ts'
 import type { ActionItem } from '@core/components/menu/VtsActionsMenu.vue'
 import VtsActionItems from '@core/components/menu/VtsActionItems.vue'
 import { mount } from '@vue/test-utils'
@@ -28,13 +29,13 @@ function toJobState(run: unknown) {
   return { run, canRun: ref(true), isRunning: ref(false), errorMessage: ref(undefined) }
 }
 
-vi.mock(import('@/modules/schedule/remote-resources/use-xo-schedule-collection.ts'), () => ({
+mockModule(import('@/modules/schedule/remote-resources/use-xo-schedule-collection.ts'), () => ({
   useXoScheduleCollection: (() => ({
     schedulesByJobId: ref(schedulesByJobId),
   })) as unknown as typeof useXoScheduleCollection,
 }))
 
-vi.mock(import('@/modules/backup-job/jobs/xo-backup-job-change-state.job.ts'), () => ({
+mockModule(import('@/modules/backup-job/jobs/xo-backup-job-change-state.job.ts'), () => ({
   useXoBackupJobChangeStateJob: ((...args: unknown[]) => {
     changeStateArgs.push(args)
 
@@ -42,11 +43,11 @@ vi.mock(import('@/modules/backup-job/jobs/xo-backup-job-change-state.job.ts'), (
   }) as unknown as typeof useXoBackupJobChangeStateJob,
 }))
 
-vi.mock(import('@/modules/backup-job/jobs/xo-backup-job-run.job.ts'), () => ({
+mockModule(import('@/modules/backup-job/jobs/xo-backup-job-run.job.ts'), () => ({
   useXoBackupJobRunJob: (() => toJobState(runBackupJobs)) as unknown as typeof useXoBackupJobRunJob,
 }))
 
-vi.mock(import('@/modules/backup-job/jobs/xo-backup-job-duplicate.job.ts'), () => ({
+mockModule(import('@/modules/backup-job/jobs/xo-backup-job-duplicate.job.ts'), () => ({
   useXoBackupJobDuplicateJob: (() => toJobState(duplicate)) as unknown as typeof useXoBackupJobDuplicateJob,
 }))
 

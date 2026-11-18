@@ -9,6 +9,7 @@ import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collecti
 import { createSr } from '@/test/create-sr.ts'
 import { createVm } from '@/test/create-vm.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
+import { mockModule } from '@/test/spy-on-module.ts'
 import { VM_POWER_STATE } from '@vates/types'
 import { computed, nextTick, ref } from 'vue'
 
@@ -19,15 +20,15 @@ const { useXoSrCollectionMock, useXoPbdCollectionMock, getSrLocation, getSrSelec
   getSrSelectLabel: vi.fn(),
 }))
 
-vi.mock(import('@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'), () => ({
+mockModule(import('@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'), () => ({
   useXoSrCollection: useXoSrCollectionMock as unknown as typeof useXoSrCollection,
 }))
 
-vi.mock(import('@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'), () => ({
+mockModule(import('@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'), () => ({
   useXoPbdCollection: useXoPbdCollectionMock as unknown as typeof useXoPbdCollection,
 }))
 
-vi.mock(import('@/modules/storage-repository/composables/xo-sr-utils.composable.ts'), () => ({
+mockModule(import('@/modules/storage-repository/composables/xo-sr-utils.composable.ts'), () => ({
   useXoSrUtils: (() => ({ getSrLocation, getSrSelectLabel })) as unknown as typeof useXoSrUtils,
 }))
 

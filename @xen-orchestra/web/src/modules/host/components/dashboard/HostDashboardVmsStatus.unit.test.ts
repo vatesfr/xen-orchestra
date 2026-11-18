@@ -6,6 +6,7 @@ import { createVm } from '@/test/create-vm.ts'
 import { findCardNumbers, findLegends } from '@/test/find-rendered-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
+import { mockModule } from '@/test/spy-on-module.ts'
 import { VM_POWER_STATE } from '@vates/types'
 import { mount } from '@vue/test-utils'
 import { nextTick, ref } from 'vue'
@@ -15,11 +16,11 @@ const { useXoHostCollectionMock, useXoVmCollectionMock } = vi.hoisted(() => ({
   useXoVmCollectionMock: vi.fn(),
 }))
 
-vi.mock(import('@/modules/host/remote-resources/use-xo-host-collection.ts'), () => ({
+mockModule(import('@/modules/host/remote-resources/use-xo-host-collection.ts'), () => ({
   useXoHostCollection: useXoHostCollectionMock as unknown as typeof useXoHostCollection,
 }))
 
-vi.mock(import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'), () => ({
+mockModule(import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'), () => ({
   useXoVmCollection: useXoVmCollectionMock as unknown as typeof useXoVmCollection,
 }))
 

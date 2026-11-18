@@ -4,6 +4,7 @@ import { createPluginActions } from '@/test/create-plugin-actions.ts'
 import { createPlugin } from '@/test/create-plugin.ts'
 import { createTestRouter } from '@/test/create-test-router.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
+import { mockModule } from '@/test/spy-on-module.ts'
 import VtsActionCell from '@core/components/table/cells/VtsActionCell.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import { mount } from '@vue/test-utils'
@@ -13,7 +14,7 @@ const { useActions } = vi.hoisted(() => ({
 }))
 
 // The composable runs the plugin jobs, which call the REST API
-vi.mock(import('@/modules/plugin/composables/use-xo-plugin-actions.composable.ts'), () => ({
+mockModule(import('@/modules/plugin/composables/use-xo-plugin-actions.composable.ts'), () => ({
   useXoPluginActions: useActions as unknown as typeof useXoPluginActions,
 }))
 

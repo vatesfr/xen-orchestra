@@ -4,6 +4,7 @@ import { vmDeviceCollectionsMock } from '@/test/mock-xo-vm-device-collections.ts
 import { mountComposable } from '@/test/mount-composable.ts'
 import { resetV2vCollectionMocks } from '@/test/reset-v2v-collection-mocks.ts'
 import { seedV2vResumedVmCollections } from '@/test/seed-v2v-resumed-vm.ts'
+import { mockModule } from '@/test/spy-on-module.ts'
 import {
   V2V_DATA_DISK,
   V2V_DEFAULT_NETWORK,
@@ -16,15 +17,15 @@ import {
   V2V_VLAN_NIC,
 } from '@/test/v2v-mapping-fixtures.ts'
 
-vi.mock(
+mockModule(
   import('@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'),
   () => import('@/test/mock-xo-vm-device-collections.ts')
 )
-vi.mock(
+mockModule(
   import('@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'),
   () => import('@/test/mock-xo-vm-device-collections.ts')
 )
-vi.mock(
+mockModule(
   import('@/modules/vif/remote-resources/use-xo-vif-collection.ts'),
   () => import('@/test/mock-xo-vm-device-collections.ts')
 )

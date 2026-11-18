@@ -9,6 +9,7 @@ import { createVmBackupJob } from '@/test/create-backup-job.ts'
 import { createSchedule } from '@/test/create-schedule.ts'
 import { t } from '@/test/i18n.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
+import { mockModule } from '@/test/spy-on-module.ts'
 import { ref } from 'vue'
 
 const { patch, schedulesByJobId } = vi.hoisted(() => ({
@@ -16,11 +17,11 @@ const { patch, schedulesByJobId } = vi.hoisted(() => ({
   schedulesByJobId: new Map<string, FrontXoSchedule[]>(),
 }))
 
-vi.mock(import('@/shared/utils/fetch.util.ts'), () => ({
+mockModule(import('@/shared/utils/fetch.util.ts'), () => ({
   fetchPatch: patch as unknown as typeof fetchPatch,
 }))
 
-vi.mock(import('@/modules/schedule/remote-resources/use-xo-schedule-collection.ts'), () => ({
+mockModule(import('@/modules/schedule/remote-resources/use-xo-schedule-collection.ts'), () => ({
   useXoScheduleCollection: (() => ({
     schedulesByJobId: ref(schedulesByJobId),
   })) as unknown as typeof useXoScheduleCollection,

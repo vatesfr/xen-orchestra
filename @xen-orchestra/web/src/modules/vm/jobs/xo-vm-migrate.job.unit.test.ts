@@ -11,6 +11,7 @@ import { createHost } from '@/test/create-host.ts'
 import { createVm } from '@/test/create-vm.ts'
 import { t } from '@/test/i18n.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
+import { mockModule } from '@/test/spy-on-module.ts'
 import { VM_OPERATIONS, VM_POWER_STATE } from '@vates/types'
 import { flushPromises } from '@vue/test-utils'
 import { ref } from 'vue'
@@ -20,11 +21,11 @@ const { fetchPostMock, monitorTaskMock } = vi.hoisted(() => ({
   monitorTaskMock: vi.fn(),
 }))
 
-vi.mock(import('@/shared/utils/fetch.util.ts'), () => ({
+mockModule(import('@/shared/utils/fetch.util.ts'), () => ({
   fetchPost: fetchPostMock as unknown as typeof fetchPost,
 }))
 
-vi.mock(import('@/shared/composables/xo-task-utils.composable.ts'), () => ({
+mockModule(import('@/shared/composables/xo-task-utils.composable.ts'), () => ({
   useXoTaskUtils: (() => ({ monitorTask: monitorTaskMock })) as unknown as typeof useXoTaskUtils,
 }))
 
@@ -39,7 +40,7 @@ const hosts = [
   createHost({ id: OTHER_POOL_HOST_ID, $pool: OTHER_POOL_ID }),
 ]
 
-vi.mock(import('@/modules/host/remote-resources/use-xo-host-collection.ts'), () => ({
+mockModule(import('@/modules/host/remote-resources/use-xo-host-collection.ts'), () => ({
   useXoHostCollection: (() => ({
     getHostById: (id: FrontXoHost['id']) => hosts.find(host => host.id === id),
   })) as unknown as typeof useXoHostCollection,

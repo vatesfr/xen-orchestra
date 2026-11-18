@@ -10,6 +10,7 @@ import { createVm } from '@/test/create-vm.ts'
 import { findCopiedValues, findLabelledValues, findTags } from '@/test/find-rendered-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
+import { mockModule } from '@/test/spy-on-module.ts'
 import type { XoUser } from '@vates/types'
 import { VM_POWER_STATE } from '@vates/types'
 import { mount } from '@vue/test-utils'
@@ -25,23 +26,23 @@ const { useXoVmCollectionMock, useGetPoolById, getVmHost, isMasterHost, buildXo5
     useXoUserResourceMock: vi.fn(),
   }))
 
-vi.mock(import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'), () => ({
+mockModule(import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'), () => ({
   useXoVmCollection: useXoVmCollectionMock as unknown as typeof useXoVmCollection,
 }))
 
-vi.mock(import('@/modules/pool/remote-resources/use-xo-pool-collection.ts'), () => ({
+mockModule(import('@/modules/pool/remote-resources/use-xo-pool-collection.ts'), () => ({
   useXoPoolCollection: (() => ({ useGetPoolById })) as unknown as typeof useXoPoolCollection,
 }))
 
-vi.mock(import('@/modules/host/remote-resources/use-xo-host-collection.ts'), () => ({
+mockModule(import('@/modules/host/remote-resources/use-xo-host-collection.ts'), () => ({
   useXoHostCollection: (() => ({ isMasterHost })) as unknown as typeof useXoHostCollection,
 }))
 
-vi.mock(import('@/modules/user/remote-resources/use-xo-user.ts'), () => ({
+mockModule(import('@/modules/user/remote-resources/use-xo-user.ts'), () => ({
   useXoUserResource: useXoUserResourceMock as unknown as typeof useXoUserResource,
 }))
 
-vi.mock(import('@/shared/remote-resources/use-xo-routes.ts'), () => ({
+mockModule(import('@/shared/remote-resources/use-xo-routes.ts'), () => ({
   useXoRoutes: (() => ({ buildXo5Route })) as unknown as typeof useXoRoutes,
 }))
 

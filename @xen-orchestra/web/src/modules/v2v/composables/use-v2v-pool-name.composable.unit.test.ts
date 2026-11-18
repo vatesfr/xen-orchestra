@@ -2,10 +2,11 @@ import { useV2vPoolName, useV2vPoolNameGetter } from '@/modules/v2v/composables/
 import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
 import { seedV2vListPool } from '@/test/seed-v2v-list-pool.ts'
+import { mockModule } from '@/test/spy-on-module.ts'
 import { V2V_LIST_POOL, V2V_OTHER_POOL } from '@/test/v2v-wizard-fixtures.ts'
 import { ref } from 'vue'
 
-vi.mock(
+mockModule(
   import('@/modules/pool/remote-resources/use-xo-pool-collection.ts'),
   () => import('@/test/mock-xo-collections.ts')
 )

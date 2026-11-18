@@ -5,16 +5,17 @@ import { createHost } from '@/test/create-host.ts'
 import { findCopiedValues } from '@/test/find-rendered-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
+import { mockModule } from '@/test/spy-on-module.ts'
 import { mount } from '@vue/test-utils'
 import { computed } from 'vue'
 
-vi.mock(import('@/modules/pool/remote-resources/use-xo-pool-collection.ts'), () => ({
+mockModule(import('@/modules/pool/remote-resources/use-xo-pool-collection.ts'), () => ({
   useXoPoolCollection: (() => ({
     useGetPoolById: () => computed(() => undefined),
   })) as unknown as typeof useXoPoolCollection,
 }))
 
-vi.mock(import('@/modules/host/remote-resources/use-xo-host-collection.ts'), () => ({
+mockModule(import('@/modules/host/remote-resources/use-xo-host-collection.ts'), () => ({
   useXoHostCollection: (() => ({
     getMasterHostByPoolId: () => undefined,
     isMasterHost: () => false,

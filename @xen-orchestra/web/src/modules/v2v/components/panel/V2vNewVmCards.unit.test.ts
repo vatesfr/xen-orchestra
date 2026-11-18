@@ -8,6 +8,7 @@ import { createV2vNewMappingStepVm } from '@/test/create-v2v-mapping-step-vm.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
 import { mountV2vVmMappingComponent } from '@/test/mount-v2v-vm-mapping.ts'
+import { mockModule } from '@/test/spy-on-module.ts'
 import {
   V2V_DEFAULT_TEMPLATE,
   V2V_DISK_ROWS,
@@ -20,27 +21,27 @@ import {
 import { V2V_LIST_POOL } from '@/test/v2v-wizard-fixtures.ts'
 import { mount } from '@vue/test-utils'
 
-vi.mock(
+mockModule(
   import('@/modules/pool/remote-resources/use-xo-pool-collection.ts'),
   () => import('@/test/mock-xo-collections.ts')
 )
-vi.mock(
+mockModule(
   import('@/modules/host/remote-resources/use-xo-host-collection.ts'),
   () => import('@/test/mock-xo-collections.ts')
 )
-vi.mock(
+mockModule(
   import('@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'),
   () => import('@/test/mock-xo-collections.ts')
 )
-vi.mock(
+mockModule(
   import('@/modules/network/remote-resources/use-xo-network-collection.ts'),
   () => import('@/test/mock-xo-collections.ts')
 )
-vi.mock(
+mockModule(
   import('@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'),
   () => import('@/test/mock-xo-collections.ts')
 )
-vi.mock(
+mockModule(
   import('@/modules/vm/remote-resources/use-xo-vm-template-collection.ts'),
   () => import('@/test/mock-xo-collections.ts')
 )

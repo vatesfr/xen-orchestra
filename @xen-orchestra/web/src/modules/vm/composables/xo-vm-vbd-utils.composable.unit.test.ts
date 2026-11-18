@@ -4,13 +4,14 @@ import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collecti
 import { createVbd } from '@/test/create-vbd.ts'
 import { createVm } from '@/test/create-vm.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
+import { mockModule } from '@/test/spy-on-module.ts'
 import { ref } from 'vue'
 
 const { getVbdsByIds } = vi.hoisted(() => ({
   getVbdsByIds: vi.fn(),
 }))
 
-vi.mock(import('@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'), () => ({
+mockModule(import('@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'), () => ({
   useXoVbdCollection: (() => ({ getVbdsByIds })) as unknown as typeof useXoVbdCollection,
 }))
 

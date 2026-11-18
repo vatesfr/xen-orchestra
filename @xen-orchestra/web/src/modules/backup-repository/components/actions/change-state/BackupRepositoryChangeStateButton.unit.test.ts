@@ -4,6 +4,7 @@ import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote
 import { createBr } from '@/test/create-br.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
+import { mockModule } from '@/test/spy-on-module.ts'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import { mount } from '@vue/test-utils'
 import { ref, toValue } from 'vue'
@@ -14,7 +15,7 @@ const { useChangeStateJob, run } = vi.hoisted(() => ({
 }))
 
 // The job patches the repositories through the REST API
-vi.mock(import('@/modules/backup-repository/jobs/xo-backup-repository-change-state.job.ts'), () => ({
+mockModule(import('@/modules/backup-repository/jobs/xo-backup-repository-change-state.job.ts'), () => ({
   useXoBackupRepositoryChangeStateJob: useChangeStateJob as unknown as typeof useXoBackupRepositoryChangeStateJob,
 }))
 

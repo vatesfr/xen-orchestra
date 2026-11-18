@@ -14,6 +14,7 @@ import { createPool } from '@/test/create-pool.ts'
 import { createVm } from '@/test/create-vm.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { groupBy } from '@/test/group-by.ts'
+import { mockModule } from '@/test/spy-on-module.ts'
 import type { FormSelect, FormSelectId } from '@core/packages/form-select'
 import { mount } from '@vue/test-utils'
 import { computed, defineComponent, h, inject, nextTick, ref, toValue, type MaybeRefOrGetter } from 'vue'
@@ -26,19 +27,19 @@ const { useXoPoolCollectionMock, useXoHostCollectionMock, useXoNetworkCollection
     useXoPifCollectionMock: vi.fn(),
   }))
 
-vi.mock(import('@/modules/pool/remote-resources/use-xo-pool-collection.ts'), () => ({
+mockModule(import('@/modules/pool/remote-resources/use-xo-pool-collection.ts'), () => ({
   useXoPoolCollection: useXoPoolCollectionMock as unknown as typeof useXoPoolCollection,
 }))
 
-vi.mock(import('@/modules/host/remote-resources/use-xo-host-collection.ts'), () => ({
+mockModule(import('@/modules/host/remote-resources/use-xo-host-collection.ts'), () => ({
   useXoHostCollection: useXoHostCollectionMock as unknown as typeof useXoHostCollection,
 }))
 
-vi.mock(import('@/modules/network/remote-resources/use-xo-network-collection.ts'), () => ({
+mockModule(import('@/modules/network/remote-resources/use-xo-network-collection.ts'), () => ({
   useXoNetworkCollection: useXoNetworkCollectionMock as unknown as typeof useXoNetworkCollection,
 }))
 
-vi.mock(import('@/modules/pif/remote-resources/use-xo-pif-collection.ts'), () => ({
+mockModule(import('@/modules/pif/remote-resources/use-xo-pif-collection.ts'), () => ({
   useXoPifCollection: useXoPifCollectionMock as unknown as typeof useXoPifCollection,
 }))
 

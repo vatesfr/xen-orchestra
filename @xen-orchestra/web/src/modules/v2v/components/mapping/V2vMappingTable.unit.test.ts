@@ -15,6 +15,7 @@ import { findTableColumn, findTableColumnCells, findTableHeaders } from '@/test/
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { v2vVmActionsMock } from '@/test/mock-v2v-vm-actions.ts'
+import { mockModule } from '@/test/spy-on-module.ts'
 import { getV2vVmKindActionList } from '@/test/v2v-vm-kind-actions.ts'
 import VtsActionItems from '@core/components/menu/VtsActionItems.vue'
 import VtsActionsMenu from '@core/components/menu/VtsActionsMenu.vue'
@@ -25,7 +26,7 @@ import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import type { XoV2vVm } from '@vates/types'
 import { mount, type VueWrapper } from '@vue/test-utils'
 
-vi.mock(
+mockModule(
   import('@/modules/v2v/composables/use-v2v-vm-actions.composable.ts'),
   () => import('@/test/mock-v2v-vm-actions.ts')
 )

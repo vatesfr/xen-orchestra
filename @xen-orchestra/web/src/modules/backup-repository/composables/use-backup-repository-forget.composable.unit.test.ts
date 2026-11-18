@@ -6,6 +6,7 @@ import { createTestRouter } from '@/test/create-test-router.ts'
 import { t } from '@/test/i18n.ts'
 import { overlayMock } from '@/test/mock-overlay.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
+import { mockModule } from '@/test/spy-on-module.ts'
 import type { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { type MaybeRefOrGetter, ref } from 'vue'
 import type { Router } from 'vue-router'
@@ -22,7 +23,7 @@ const { run, selectedBrId } = vi.hoisted(() => ({
 }))
 
 // The job subscribes to server events, unavailable in tests
-vi.mock(import('@/modules/backup-repository/jobs/xo-backup-repository-forget.job.ts'), () => ({
+mockModule(import('@/modules/backup-repository/jobs/xo-backup-repository-forget.job.ts'), () => ({
   useXoBackupRepositoryForgetJob: (() => ({
     run,
     canRun: ref(true),
@@ -31,11 +32,11 @@ vi.mock(import('@/modules/backup-repository/jobs/xo-backup-repository-forget.job
   })) as unknown as typeof useXoBackupRepositoryForgetJob,
 }))
 
-vi.mock(import('@core/composables/route-query.composable.ts'), () => ({
+mockModule(import('@core/composables/route-query.composable.ts'), () => ({
   useRouteQuery: (() => selectedBrId) as unknown as typeof useRouteQuery,
 }))
 
-vi.mock(import('@core/packages/overlay/use-overlay.ts'), () => import('@/test/mock-overlay.ts'))
+mockModule(import('@core/packages/overlay/use-overlay.ts'), () => import('@/test/mock-overlay.ts'))
 
 let successHandled: Promise<void> | undefined
 

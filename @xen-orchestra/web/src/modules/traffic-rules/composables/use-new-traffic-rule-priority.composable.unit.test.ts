@@ -8,6 +8,7 @@ import type { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-
 import { createNetwork } from '@/test/create-network.ts'
 import { createVif } from '@/test/create-vif.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
+import { mockModule } from '@/test/spy-on-module.ts'
 import { SDN_CONTROLLER_OF_RULES_KEY, type TrafficRuleTargetType } from '@vates/types'
 import { computed, type MaybeRefOrGetter, toValue } from 'vue'
 
@@ -16,7 +17,7 @@ const { collections } = vi.hoisted(() => ({
 }))
 
 // The collections would open SSE subscriptions
-vi.mock(import('@/modules/network/remote-resources/use-xo-network-collection.ts'), () => ({
+mockModule(import('@/modules/network/remote-resources/use-xo-network-collection.ts'), () => ({
   useXoNetworkCollection: (() => {
     const getNetworkById = (id: FrontXoNetwork['id'] | undefined) =>
       collections.networks.find(network => network.id === id)
@@ -29,14 +30,14 @@ vi.mock(import('@/modules/network/remote-resources/use-xo-network-collection.ts'
   }) as unknown as typeof useXoNetworkCollection,
 }))
 
-vi.mock(import('@/modules/vif/remote-resources/use-xo-vif-collection.ts'), () => ({
+mockModule(import('@/modules/vif/remote-resources/use-xo-vif-collection.ts'), () => ({
   useXoVifCollection: (() => ({
     vifs: computed(() => collections.vifs),
     getVifById: (id: FrontXoVif['id']) => collections.vifs.find(vif => vif.id === id),
   })) as unknown as typeof useXoVifCollection,
 }))
 
-vi.mock(import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'), () => ({
+mockModule(import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'), () => ({
   useXoVmCollection: (() => ({
     getVmById: () => ({ name_label: 'VM' }),
   })) as unknown as typeof useXoVmCollection,

@@ -3,6 +3,7 @@ import { usePoolEnhancedData } from '@/modules/pool/composables/use-pool-enhance
 import { createEnhancedDataHelpers } from '@/test/create-enhanced-data-helpers.ts'
 import { createHost } from '@/test/create-host.ts'
 import { createServer } from '@/test/create-server.ts'
+import { mockModule } from '@/test/spy-on-module.ts'
 import { objectIcon } from '@core/icons'
 import { HOST_POWER_STATE } from '@vates/types'
 import { ref } from 'vue'
@@ -12,7 +13,7 @@ const { getHostById, isMasterHost } = vi.hoisted(() => ({
   isMasterHost: vi.fn(),
 }))
 
-vi.mock(import('@/modules/host/remote-resources/use-xo-host-collection.ts'), () => ({
+mockModule(import('@/modules/host/remote-resources/use-xo-host-collection.ts'), () => ({
   useXoHostCollection: (() => ({ getHostById, isMasterHost })) as unknown as typeof useXoHostCollection,
 }))
 

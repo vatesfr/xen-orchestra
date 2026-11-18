@@ -4,6 +4,7 @@ import { createJobResult } from '@/test/create-job-result.ts'
 import { createPlugin } from '@/test/create-plugin.ts'
 import { t } from '@/test/i18n.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
+import { mockModule } from '@/test/spy-on-module.ts'
 import type { useDeleteModal } from '@core/composables/modals/use-delete-modal.ts'
 
 const { run, useDeleteConfigurationJob, openModal } = vi.hoisted(() => ({
@@ -13,11 +14,11 @@ const { run, useDeleteConfigurationJob, openModal } = vi.hoisted(() => ({
 }))
 
 // The job deletes the configuration through the REST API
-vi.mock(import('@/modules/plugin/jobs/xo-plugin-delete-configuration.job.ts'), () => ({
+mockModule(import('@/modules/plugin/jobs/xo-plugin-delete-configuration.job.ts'), () => ({
   useXoPluginDeleteConfigurationJob: useDeleteConfigurationJob as unknown as typeof useXoPluginDeleteConfigurationJob,
 }))
 
-vi.mock(import('@core/composables/modals/use-delete-modal.ts'), () => ({
+mockModule(import('@core/composables/modals/use-delete-modal.ts'), () => ({
   useDeleteModal: (() => ({ open: openModal })) as unknown as typeof useDeleteModal,
 }))
 

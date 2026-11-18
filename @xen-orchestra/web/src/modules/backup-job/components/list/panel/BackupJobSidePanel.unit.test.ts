@@ -28,6 +28,7 @@ import { createBackupLog } from '@/test/create-backup-log.ts'
 import { createSchedule } from '@/test/create-schedule.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
+import { mockModule } from '@/test/spy-on-module.ts'
 import UiAlert from '@core/components/ui/alert/UiAlert.vue'
 import { mount } from '@vue/test-utils'
 import { ref } from 'vue'
@@ -37,9 +38,9 @@ const { schedulesByJobId, backupLogsByJobId } = vi.hoisted(() => ({
   backupLogsByJobId: new Map<string, FrontXoBackupLog[]>(),
 }))
 
-vi.mock(import('@/shared/remote-resources/use-xo-routes.ts'), () => import('@/test/mock-xo-routes.ts'))
+mockModule(import('@/shared/remote-resources/use-xo-routes.ts'), () => import('@/test/mock-xo-routes.ts'))
 
-vi.mock(import('@/modules/schedule/remote-resources/use-xo-schedule-collection.ts'), async () => {
+mockModule(import('@/modules/schedule/remote-resources/use-xo-schedule-collection.ts'), async () => {
   const { computed: vueComputed, ref: vueRef } = await import('vue')
 
   return {
@@ -50,26 +51,26 @@ vi.mock(import('@/modules/schedule/remote-resources/use-xo-schedule-collection.t
   }
 })
 
-vi.mock(import('@/modules/backup-log/remote-resources/use-xo-backup-log-collection.ts'), () => ({
+mockModule(import('@/modules/backup-log/remote-resources/use-xo-backup-log-collection.ts'), () => ({
   useXoBackupLogCollection: (() => ({
     getLastNBackupLogsByJobId: (jobId: string) => backupLogsByJobId.get(jobId) ?? [],
   })) as unknown as typeof useXoBackupLogCollection,
 }))
 
-vi.mock(import('@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'), () => ({
+mockModule(import('@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'), () => ({
   useXoSrCollection: (() => ({
     getSrsByIds: () => [],
     getSrById: () => undefined,
   })) as unknown as typeof useXoSrCollection,
 }))
 
-vi.mock(import('@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'), () => ({
+mockModule(import('@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'), () => ({
   useXoBackupRepositoryCollection: (() => ({
     getBackupRepositoriesByIds: () => [],
   })) as unknown as typeof useXoBackupRepositoryCollection,
 }))
 
-vi.mock(import('@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'), async () => {
+mockModule(import('@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'), async () => {
   const { computed: vueComputed } = await import('vue')
 
   return {
@@ -79,7 +80,7 @@ vi.mock(import('@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'), a
   }
 })
 
-vi.mock(import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'), async () => {
+mockModule(import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'), async () => {
   const { ref: vueRef } = await import('vue')
 
   return {
@@ -90,18 +91,18 @@ vi.mock(import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'), async (
   }
 })
 
-vi.mock(import('@/modules/pool/remote-resources/use-xo-pool-collection.ts'), () => ({
+mockModule(import('@/modules/pool/remote-resources/use-xo-pool-collection.ts'), () => ({
   useXoPoolCollection: (() => ({ getPoolsByIds: () => [] })) as unknown as typeof useXoPoolCollection,
 }))
 
-vi.mock(import('@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'), () => ({
+mockModule(import('@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'), () => ({
   useXoPbdCollection: (() => ({
     getPbdsByIds: () => [],
     pbdsBySr: ref(new Map()),
   })) as unknown as typeof useXoPbdCollection,
 }))
 
-vi.mock(import('@/modules/host/remote-resources/use-xo-host-collection.ts'), () => ({
+mockModule(import('@/modules/host/remote-resources/use-xo-host-collection.ts'), () => ({
   useXoHostCollection: (() => ({ getHostById: () => undefined })) as unknown as typeof useXoHostCollection,
 }))
 

@@ -5,6 +5,7 @@ import { createBr } from '@/test/create-br.ts'
 import { findLabelledValues } from '@/test/find-rendered-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
+import { mockModule } from '@/test/spy-on-module.ts'
 import type { XoProxy } from '@vates/types'
 import { mount } from '@vue/test-utils'
 import { computed } from 'vue'
@@ -14,7 +15,7 @@ const { useGetProxyById } = vi.hoisted(() => ({
   useGetProxyById: vi.fn(),
 }))
 
-vi.mock(import('@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'), () => ({
+mockModule(import('@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'), () => ({
   useXoProxyCollection: (() => ({ useGetProxyById })) as unknown as typeof useXoProxyCollection,
 }))
 

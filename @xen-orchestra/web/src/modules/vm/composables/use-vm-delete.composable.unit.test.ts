@@ -6,6 +6,7 @@ import { createTestRouter } from '@/test/create-test-router.ts'
 import { createVm } from '@/test/create-vm.ts'
 import { t } from '@/test/i18n.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
+import { mockModule } from '@/test/spy-on-module.ts'
 import type { useDeleteModal } from '@core/composables/modals/use-delete-modal.ts'
 import type { useTypeToConfirmModal } from '@core/composables/modals/use-type-to-confirm-modal.ts'
 import type { useRouteQuery } from '@core/composables/route-query.composable.ts'
@@ -27,20 +28,20 @@ const { run, useDeleteJob, openDeleteModal, openTypeToConfirmModal, partialDelet
 )
 
 // The job deletes the VMs through the REST API
-vi.mock(import('@/modules/vm/jobs/xo-vm-delete.job.ts'), () => ({
+mockModule(import('@/modules/vm/jobs/xo-vm-delete.job.ts'), () => ({
   useXoVmDeleteJob: useDeleteJob as unknown as typeof useXoVmDeleteJob,
 }))
 
-vi.mock(import('@core/composables/modals/use-delete-modal.ts'), () => ({
+mockModule(import('@core/composables/modals/use-delete-modal.ts'), () => ({
   useDeleteModal: (() => ({ open: openDeleteModal })) as unknown as typeof useDeleteModal,
 }))
 
-vi.mock(import('@core/composables/modals/use-type-to-confirm-modal.ts'), () => ({
+mockModule(import('@core/composables/modals/use-type-to-confirm-modal.ts'), () => ({
   useTypeToConfirmModal: (() => ({ open: openTypeToConfirmModal })) as unknown as typeof useTypeToConfirmModal,
 }))
 
 // The partial deletion drawer is the only overlay the composable opens directly
-vi.mock(import('@core/packages/overlay/use-overlay.ts'), () => ({
+mockModule(import('@core/packages/overlay/use-overlay.ts'), () => ({
   useOverlay: (({ events }: { events: typeof partialDeletionDrawer.events }) => {
     partialDeletionDrawer.events = events
 
@@ -48,7 +49,7 @@ vi.mock(import('@core/packages/overlay/use-overlay.ts'), () => ({
   }) as unknown as typeof useOverlay,
 }))
 
-vi.mock(import('@core/composables/route-query.composable.ts'), () => ({
+mockModule(import('@core/composables/route-query.composable.ts'), () => ({
   useRouteQuery: (() => selectedVmId) as unknown as typeof useRouteQuery,
 }))
 

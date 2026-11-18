@@ -8,6 +8,7 @@ import { createBr } from '@/test/create-br.ts'
 import { overlayMock } from '@/test/mock-overlay.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
 import { silenceConsoleError } from '@/test/silence-console-error.ts'
+import { mockModule } from '@/test/spy-on-module.ts'
 import { KEEP_OVERLAY_OPEN } from '@core/packages/overlay/symbols.ts'
 import { type Ref, ref } from 'vue'
 
@@ -23,11 +24,11 @@ const { useEditJob, run } = vi.hoisted(() => ({
   run: vi.fn(),
 }))
 
-vi.mock(import('@/modules/backup-repository/jobs/xo-backup-repository-edit.job.ts'), () => ({
+mockModule(import('@/modules/backup-repository/jobs/xo-backup-repository-edit.job.ts'), () => ({
   useXoBackupRepositoryEditJob: useEditJob as unknown as typeof useXoBackupRepositoryEditJob,
 }))
 
-vi.mock(import('@core/packages/overlay/use-overlay.ts'), () => import('@/test/mock-overlay.ts'))
+mockModule(import('@core/packages/overlay/use-overlay.ts'), () => import('@/test/mock-overlay.ts'))
 
 const PAYLOAD: EditBackupRepositoryPayload = {
   name: 'Weekly backups',

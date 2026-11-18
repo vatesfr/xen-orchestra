@@ -4,9 +4,10 @@ import type { BackupLogTask } from '@/modules/backup-log/composables/use-xo-back
 import type { FrontXoBackupLog } from '@/modules/backup-log/remote-resources/use-xo-backup-log-collection.ts'
 import { createBackupLog, createBackupLogTask } from '@/test/create-backup-log.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
+import { mockModule } from '@/test/spy-on-module.ts'
 import { type MaybeRefOrGetter, ref } from 'vue'
 
-vi.mock(import('@/modules/backup-log/composables/use-xo-backup-log-task-name.composable.ts'), () => ({
+mockModule(import('@/modules/backup-log/composables/use-xo-backup-log-task-name.composable.ts'), () => ({
   useXoBackupLogTaskName: (() => ({
     getTaskName: (task: BackupLogTask) => ({ name: `name of ${task.message}` }),
   })) as unknown as typeof useXoBackupLogTaskName,

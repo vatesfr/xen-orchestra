@@ -31,5 +31,5 @@ export const vmDeleteMock = {
   },
 }
 
-// Use as `vi.mock(import('@/modules/vm/composables/use-vm-delete.composable.ts'), () => import('@/test/mock-vm-delete.ts'))`
+// Use as `mockModule(import('@/modules/vm/composables/use-vm-delete.composable.ts'), () => import('@/test/mock-vm-delete.ts'))`
 export const useVmDelete = vmDeleteMock.useVmDelete as unknown as typeof realUseVmDelete

@@ -3,12 +3,13 @@ import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collecti
 import type { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import { createVm } from '@/test/create-vm.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
+import { mockModule } from '@/test/spy-on-module.ts'
 
 const { buildXo5Route } = vi.hoisted(() => ({
   buildXo5Route: vi.fn(),
 }))
 
-vi.mock(import('@/shared/remote-resources/use-xo-routes.ts'), () => ({
+mockModule(import('@/shared/remote-resources/use-xo-routes.ts'), () => ({
   useXoRoutes: (() => ({ buildXo5Route })) as unknown as typeof useXoRoutes,
 }))
 

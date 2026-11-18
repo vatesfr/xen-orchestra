@@ -8,6 +8,7 @@ import { createHost } from '@/test/create-host.ts'
 import { findTableRows } from '@/test/find-rendered-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
+import { mockModule } from '@/test/spy-on-module.ts'
 import { mount } from '@vue/test-utils'
 import { ref } from 'vue'
 
@@ -15,7 +16,7 @@ const { useXoHostMissingPatchesCollectionMock } = vi.hoisted(() => ({
   useXoHostMissingPatchesCollectionMock: vi.fn(),
 }))
 
-vi.mock(import('@/modules/host/remote-resources/use-xo-host-missing-patches-collection.ts'), () => ({
+mockModule(import('@/modules/host/remote-resources/use-xo-host-missing-patches-collection.ts'), () => ({
   useXoHostMissingPatchesCollection:
     useXoHostMissingPatchesCollectionMock as unknown as typeof useXoHostMissingPatchesCollection,
 }))

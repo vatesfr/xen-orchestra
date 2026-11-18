@@ -6,6 +6,7 @@ import { createJobResult } from '@/test/create-job-result.ts'
 import { createVm } from '@/test/create-vm.ts'
 import { t } from '@/test/i18n.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
+import { mockModule } from '@/test/spy-on-module.ts'
 import { VM_POWER_STATE } from '@vates/types'
 import { type MaybeRefOrGetter, ref, toValue } from 'vue'
 
@@ -17,11 +18,11 @@ const { unpause, resume, useUnpauseJob, useResumeJob } = vi.hoisted(() => ({
 }))
 
 // The jobs call the REST API and subscribe to server events
-vi.mock(import('@/modules/vm/jobs/xo-vm-unpause.job.ts'), () => ({
+mockModule(import('@/modules/vm/jobs/xo-vm-unpause.job.ts'), () => ({
   useXoVmUnpauseJob: useUnpauseJob as unknown as typeof useXoVmUnpauseJob,
 }))
 
-vi.mock(import('@/modules/vm/jobs/xo-vm-resume.job.ts'), () => ({
+mockModule(import('@/modules/vm/jobs/xo-vm-resume.job.ts'), () => ({
   useXoVmResumeJob: useResumeJob as unknown as typeof useXoVmResumeJob,
 }))
 

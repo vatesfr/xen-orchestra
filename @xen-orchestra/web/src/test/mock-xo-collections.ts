@@ -66,7 +66,7 @@ export const xoCollectionsMock = {
   },
 }
 
-// Use as `vi.mock(import('<collection module>'), () => import('@/test/mock-xo-collections.ts'))`
+// Use as `mockModule(import('<collection module>'), () => import('@/test/mock-xo-collections.ts'))`
 // for each collection below: every mocked module picks its own export
 export const useXoPoolCollection = (() => ({
   pools: xoCollectionsMock.pools,

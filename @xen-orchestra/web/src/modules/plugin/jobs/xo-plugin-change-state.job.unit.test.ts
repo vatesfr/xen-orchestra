@@ -7,6 +7,7 @@ import { t } from '@/test/i18n.ts'
 import { expectJobRunning } from '@/test/job-running.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
 import { silenceConsoleError } from '@/test/silence-console-error.ts'
+import { mockModule } from '@/test/spy-on-module.ts'
 
 const { post, patch, monitorTask } = vi.hoisted(() => ({
   post: vi.fn(),
@@ -14,13 +15,13 @@ const { post, patch, monitorTask } = vi.hoisted(() => ({
   monitorTask: vi.fn(),
 }))
 
-vi.mock(import('@/shared/utils/fetch.util.ts'), () => ({
+mockModule(import('@/shared/utils/fetch.util.ts'), () => ({
   fetchPost: post as unknown as typeof fetchPost,
   fetchPatch: patch as unknown as typeof fetchPatch,
 }))
 
 // The task collection would open an SSE subscription
-vi.mock(import('@/shared/composables/xo-task-utils.composable.ts'), () => ({
+mockModule(import('@/shared/composables/xo-task-utils.composable.ts'), () => ({
   useXoTaskUtils: (() => ({ monitorTask })) as unknown as typeof useXoTaskUtils,
 }))
 

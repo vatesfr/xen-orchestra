@@ -9,6 +9,7 @@ import { createVdi } from '@/test/create-vdi.ts'
 import { createVm } from '@/test/create-vm.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
+import { mockModule } from '@/test/spy-on-module.ts'
 import { formatSizeRaw } from '@core/utils/size.util.ts'
 import { mount } from '@vue/test-utils'
 
@@ -18,19 +19,19 @@ const { vmsById, vbdsById, vdisById } = vi.hoisted(() => ({
   vdisById: new Map<string, FrontXoVdi>(),
 }))
 
-vi.mock(import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'), () => ({
+mockModule(import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'), () => ({
   useXoVmCollection: (() => ({
     getVmById: (id: string) => vmsById.get(id),
   })) as unknown as typeof useXoVmCollection,
 }))
 
-vi.mock(import('@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'), () => ({
+mockModule(import('@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'), () => ({
   useXoVbdCollection: (() => ({
     getVbdsByIds: (ids: string[]) => ids.flatMap(id => vbdsById.get(id) ?? []),
   })) as unknown as typeof useXoVbdCollection,
 }))
 
-vi.mock(import('@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'), () => ({
+mockModule(import('@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'), () => ({
   useXoVdiCollection: (() => ({
     getVdiById: (id: string) => vdisById.get(id),
   })) as unknown as typeof useXoVdiCollection,

@@ -3,6 +3,7 @@ import type { FrontAnyXoBackupJob } from '@/modules/backup-job/remote-resources/
 import type { FrontXoProxy, useXoProxyCollection } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
 import { createMetadataBackupJob, createVmBackupJob } from '@/test/create-backup-job.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
+import { mockModule } from '@/test/spy-on-module.ts'
 import { formatSpeed } from '@core/utils/speed.util.ts'
 import { formatTimeout } from '@core/utils/time.util.ts'
 import type { XoProxy } from '@vates/types'
@@ -13,7 +14,7 @@ const { proxies } = vi.hoisted(() => ({
   proxies: [] as FrontXoProxy[],
 }))
 
-vi.mock(import('@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'), () => ({
+mockModule(import('@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'), () => ({
   useXoProxyCollection: (() => ({
     useGetProxyById: (id: MaybeRefOrGetter<FrontXoProxy['id'] | undefined>) =>
       computed(() => proxies.find(proxy => proxy.id === toValue(id))),

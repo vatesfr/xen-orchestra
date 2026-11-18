@@ -5,6 +5,7 @@ import { createEnhancedDataHelpers } from '@/test/create-enhanced-data-helpers.t
 import { createVbd } from '@/test/create-vbd.ts'
 import { createVdi } from '@/test/create-vdi.ts'
 import { createVm } from '@/test/create-vm.ts'
+import { mockModule } from '@/test/spy-on-module.ts'
 import { objectIcon } from '@core/icons'
 import { formatSizeRaw } from '@core/utils/size.util.ts'
 import { VM_OPERATIONS, VM_POWER_STATE } from '@vates/types'
@@ -18,11 +19,11 @@ const { getVdiById } = vi.hoisted(() => ({
   getVdiById: vi.fn(),
 }))
 
-vi.mock(import('@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'), () => ({
+mockModule(import('@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'), () => ({
   useXoVbdCollection: (() => ({ getVbdsByIds })) as unknown as typeof useXoVbdCollection,
 }))
 
-vi.mock(import('@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'), () => ({
+mockModule(import('@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'), () => ({
   useXoVdiCollection: (() => ({ getVdiById })) as unknown as typeof useXoVdiCollection,
 }))
 

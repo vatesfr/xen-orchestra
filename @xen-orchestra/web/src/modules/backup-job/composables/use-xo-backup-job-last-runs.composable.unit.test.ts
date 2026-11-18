@@ -4,6 +4,7 @@ import type { useXoBackupLogCollection } from '@/modules/backup-log/remote-resou
 import { createVmBackupJob } from '@/test/create-backup-job.ts'
 import { createBackupLog } from '@/test/create-backup-log.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
+import { mockModule } from '@/test/spy-on-module.ts'
 import { formatDateTime } from '@core/utils/time.util.ts'
 import { useI18n } from 'vue-i18n'
 
@@ -11,7 +12,7 @@ const { getLastNBackupLogsByJobId } = vi.hoisted(() => ({
   getLastNBackupLogsByJobId: vi.fn(),
 }))
 
-vi.mock(import('@/modules/backup-log/remote-resources/use-xo-backup-log-collection.ts'), () => ({
+mockModule(import('@/modules/backup-log/remote-resources/use-xo-backup-log-collection.ts'), () => ({
   useXoBackupLogCollection: (() => ({ getLastNBackupLogsByJobId })) as unknown as typeof useXoBackupLogCollection,
 }))
 

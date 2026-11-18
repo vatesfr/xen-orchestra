@@ -13,10 +13,11 @@ import { t } from '@/test/i18n.ts'
 import { getNumberedItemLabel } from '@/test/json-schema-item-label.ts'
 import { mountJsonSchemaForm } from '@/test/mount-json-schema-form.ts'
 import { findSelectOptionLabels, openSelect, pickSelectOption } from '@/test/select.ts'
+import { mockModule } from '@/test/spy-on-module.ts'
 import { mount, type VueWrapper } from '@vue/test-utils'
 import { h, nextTick, ref } from 'vue'
 
-vi.mock(import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'), () => ({
+mockModule(import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'), () => ({
   useXoVmCollection: (() => ({
     vms: ref([createVm({ id: 'vm-1' as FrontXoVm['id'], name_label: 'Web server' })]),
     areVmsReady: ref(true),
@@ -24,7 +25,7 @@ vi.mock(import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'), () => (
   })) as unknown as typeof useXoVmCollection,
 }))
 
-vi.mock(import('@/modules/host/remote-resources/use-xo-host-collection.ts'), () => ({
+mockModule(import('@/modules/host/remote-resources/use-xo-host-collection.ts'), () => ({
   useXoHostCollection: (() => ({
     hosts: ref([]),
     areHostsReady: ref(true),
@@ -33,7 +34,7 @@ vi.mock(import('@/modules/host/remote-resources/use-xo-host-collection.ts'), () 
 }))
 
 // The pools fail to load, to test a field without options
-vi.mock(import('@/modules/pool/remote-resources/use-xo-pool-collection.ts'), () => ({
+mockModule(import('@/modules/pool/remote-resources/use-xo-pool-collection.ts'), () => ({
   useXoPoolCollection: (() => ({
     pools: ref([]),
     arePoolsReady: ref(false),
@@ -42,7 +43,7 @@ vi.mock(import('@/modules/pool/remote-resources/use-xo-pool-collection.ts'), () 
 }))
 
 // The SRs never load, to test a field waiting for its options
-vi.mock(import('@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'), () => ({
+mockModule(import('@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'), () => ({
   useXoSrCollection: (() => ({
     srs: ref([]),
     areSrsReady: ref(false),

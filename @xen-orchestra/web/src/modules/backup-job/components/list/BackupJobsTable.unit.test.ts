@@ -16,6 +16,7 @@ import { getButton } from '@/test/get-button.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { pickSelectOption } from '@/test/select.ts'
+import { mockModule } from '@/test/spy-on-module.ts'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
@@ -32,9 +33,9 @@ const { areBackupLogsReady, getLastNBackupLogsByJobId, backupLogsByJobId, schedu
   schedulesByJobId: new Map<string, FrontXoSchedule[]>(),
 }))
 
-vi.mock(import('@/shared/remote-resources/use-xo-routes.ts'), () => import('@/test/mock-xo-routes.ts'))
+mockModule(import('@/shared/remote-resources/use-xo-routes.ts'), () => import('@/test/mock-xo-routes.ts'))
 
-vi.mock(import('@/modules/backup-log/remote-resources/use-xo-backup-log-collection.ts'), () => ({
+mockModule(import('@/modules/backup-log/remote-resources/use-xo-backup-log-collection.ts'), () => ({
   useXoBackupLogCollection: (() => ({
     areBackupLogsReady: ref(areBackupLogsReady.value),
     getLastNBackupLogsByJobId,
@@ -42,7 +43,7 @@ vi.mock(import('@/modules/backup-log/remote-resources/use-xo-backup-log-collecti
   })) as unknown as typeof useXoBackupLogCollection,
 }))
 
-vi.mock(import('@/modules/schedule/remote-resources/use-xo-schedule-collection.ts'), () => ({
+mockModule(import('@/modules/schedule/remote-resources/use-xo-schedule-collection.ts'), () => ({
   useXoScheduleCollection: (() => ({
     schedulesByJobId: ref(schedulesByJobId),
   })) as unknown as typeof useXoScheduleCollection,

@@ -12,41 +12,42 @@ import { mountComponentOnV2vWizard } from '@/test/mount-on-v2v-wizard.ts'
 import { mountV2vListStep } from '@/test/mount-v2v-list-step.ts'
 import { readV2vStoredListVm } from '@/test/mount-v2v-vm-mapping.ts'
 import { resetV2vCollectionMocks } from '@/test/reset-v2v-collection-mocks.ts'
+import { mockModule } from '@/test/spy-on-module.ts'
 import { V2V_GONE_VM_ID } from '@/test/v2v-mapping-step-fixtures.ts'
 import { readV2vMigrationListVmIds } from '@/test/v2v-migration-list-storage.ts'
 import { V2V_DB_VM, V2V_WEB_VM } from '@/test/v2v-vms-fixtures.ts'
 import VtsContentSidePanel from '@core/components/layout/VtsContentSidePanel.vue'
 import { flushPromises, type VueWrapper } from '@vue/test-utils'
 
-vi.mock(
+mockModule(
   import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'),
   () => import('@/test/mock-xo-v2v-vm-rows-collections.ts')
 )
-vi.mock(
+mockModule(
   import('@/modules/task/remote-resources/use-xo-task-collection.ts'),
   () => import('@/test/mock-xo-v2v-vm-rows-collections.ts')
 )
-vi.mock(
+mockModule(
   import('@/modules/snapshot/components/remote-resources/use-xo-vm-snapshot-collection.ts'),
   () => import('@/test/mock-xo-v2v-vm-rows-collections.ts')
 )
-vi.mock(
+mockModule(
   import('@/modules/pool/remote-resources/use-xo-pool-collection.ts'),
   () => import('@/test/mock-xo-collections.ts')
 )
-vi.mock(
+mockModule(
   import('@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'),
   () => import('@/test/mock-xo-collections.ts')
 )
-vi.mock(
+mockModule(
   import('@/modules/network/remote-resources/use-xo-network-collection.ts'),
   () => import('@/test/mock-xo-collections.ts')
 )
-vi.mock(
+mockModule(
   import('@/modules/vm/remote-resources/use-xo-vm-template-collection.ts'),
   () => import('@/test/mock-xo-collections.ts')
 )
-vi.mock(import('@core/composables/modals/use-delete-modal.ts'), () => import('@/test/mock-delete-modal.ts'))
+mockModule(import('@core/composables/modals/use-delete-modal.ts'), () => import('@/test/mock-delete-modal.ts'))
 
 // The children render what the step hands them, each covered by its own test: here only the wiring matters
 async function mountStep(vm?: string) {

@@ -3,6 +3,7 @@ import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote
 import type { useXoProxyCollection } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
 import { createBr } from '@/test/create-br.ts'
 import { mountComposableWithI18n } from '@/test/mount-composable.ts'
+import { mockModule } from '@/test/spy-on-module.ts'
 import type { XoProxy } from '@vates/types'
 import { computed, ref, toValue } from 'vue'
 import { parse as parseBackupRepositoryUrl } from 'xo-remote-parser'
@@ -11,7 +12,7 @@ const { useGetProxyById } = vi.hoisted(() => ({
   useGetProxyById: vi.fn(),
 }))
 
-vi.mock(import('@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'), () => ({
+mockModule(import('@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'), () => ({
   useXoProxyCollection: (() => ({ useGetProxyById })) as unknown as typeof useXoProxyCollection,
 }))
 

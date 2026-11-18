@@ -9,6 +9,7 @@ import { createSchedule } from '@/test/create-schedule.ts'
 import { findCardLabelledValues } from '@/test/find-rendered-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
+import { mockModule } from '@/test/spy-on-module.ts'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiLogEntryViewer from '@core/components/ui/log-entry-viewer/UiLogEntryViewer.vue'
 import { formatDateTime } from '@core/utils/time.util.ts'
@@ -19,9 +20,9 @@ const { schedules } = vi.hoisted(() => ({
   schedules: [] as FrontXoSchedule[],
 }))
 
-vi.mock(import('@/shared/remote-resources/use-xo-routes.ts'), () => import('@/test/mock-xo-routes.ts'))
+mockModule(import('@/shared/remote-resources/use-xo-routes.ts'), () => import('@/test/mock-xo-routes.ts'))
 
-vi.mock(import('@/modules/schedule/remote-resources/use-xo-schedule-collection.ts'), () => ({
+mockModule(import('@/modules/schedule/remote-resources/use-xo-schedule-collection.ts'), () => ({
   useXoScheduleCollection: (() => ({
     useGetScheduleById: (id: MaybeRefOrGetter<FrontXoSchedule['id'] | undefined>) =>
       computed(() => schedules.find(schedule => schedule.id === toValue(id))),

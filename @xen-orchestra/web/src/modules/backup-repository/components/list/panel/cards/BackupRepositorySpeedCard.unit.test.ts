@@ -6,6 +6,7 @@ import { createBr } from '@/test/create-br.ts'
 import { findCardCopiedValues, findCardLabelledValues } from '@/test/find-rendered-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
+import { mockModule } from '@/test/spy-on-module.ts'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import { formatSpeed } from '@core/utils/speed.util.ts'
 import { mount } from '@vue/test-utils'
@@ -17,7 +18,7 @@ const { useBenchmarkJob, run } = vi.hoisted(() => ({
 }))
 
 // The job monitors a task through a remote-resource collection, which would open an SSE subscription
-vi.mock(import('@/modules/backup-repository/jobs/xo-backup-repository-benchmark.job.ts'), () => ({
+mockModule(import('@/modules/backup-repository/jobs/xo-backup-repository-benchmark.job.ts'), () => ({
   useXoBackupRepositoryBenchmarkJob: useBenchmarkJob as unknown as typeof useXoBackupRepositoryBenchmarkJob,
 }))
 

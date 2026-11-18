@@ -10,6 +10,7 @@ import { findLabelledValues } from '@/test/find-rendered-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
+import { mockModule } from '@/test/spy-on-module.ts'
 import { flushPromises, mount } from '@vue/test-utils'
 import { computed, type MaybeRefOrGetter, ref, toValue } from 'vue'
 import type { BackupRepositoryType } from 'xo-remote-parser'
@@ -18,7 +19,7 @@ const { PROXY } = vi.hoisted(() => ({
   PROXY: { id: 'proxy-1', name: 'Proxy 1' } as FrontXoProxy,
 }))
 
-vi.mock(import('@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'), () => ({
+mockModule(import('@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'), () => ({
   useXoProxyCollection: (() => ({
     proxies: ref([PROXY]),
     useGetProxyById: (id: MaybeRefOrGetter<FrontXoProxy['id'] | undefined>) =>

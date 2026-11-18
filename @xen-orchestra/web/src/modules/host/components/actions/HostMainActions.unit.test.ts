@@ -6,13 +6,14 @@ import type { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-
 import { createHost } from '@/test/create-host.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
+import { mockModule } from '@/test/spy-on-module.ts'
 import MenuItem from '@core/components/menu/MenuItem.vue'
 import UiDropdownButton from '@core/components/ui/dropdown-button/UiDropdownButton.vue'
 import { IK_PANEL_ACTIONS_COMPACT } from '@core/utils/injection-keys.util.ts'
 import { mount } from '@vue/test-utils'
 import { computed, nextTick, ref } from 'vue'
 
-vi.mock(import('@/modules/host/remote-resources/use-xo-host-collection.ts'), () => ({
+mockModule(import('@/modules/host/remote-resources/use-xo-host-collection.ts'), () => ({
   useXoHostCollection: (() => ({
     useGetHostById: () => ref(undefined),
     areHostsFetching: ref(false),
@@ -21,18 +22,18 @@ vi.mock(import('@/modules/host/remote-resources/use-xo-host-collection.ts'), () 
   })) as unknown as typeof useXoHostCollection,
 }))
 
-vi.mock(import('@/modules/pool/remote-resources/use-xo-pool-collection.ts'), () => ({
+mockModule(import('@/modules/pool/remote-resources/use-xo-pool-collection.ts'), () => ({
   useXoPoolCollection: (() => ({
     getPoolById: () => undefined,
     hasPoolById: () => true,
   })) as unknown as typeof useXoPoolCollection,
 }))
 
-vi.mock(import('@/modules/task/remote-resources/use-xo-task-collection.ts'), () => ({
+mockModule(import('@/modules/task/remote-resources/use-xo-task-collection.ts'), () => ({
   useXoTaskCollection: (() => ({ useGetTaskById: () => undefined })) as unknown as typeof useXoTaskCollection,
 }))
 
-vi.mock(import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'), () => ({
+mockModule(import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'), () => ({
   useXoVmCollection: (() => ({ vmsByHost: ref(new Map()) })) as unknown as typeof useXoVmCollection,
 }))
 

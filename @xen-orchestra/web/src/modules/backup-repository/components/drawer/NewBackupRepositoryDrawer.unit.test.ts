@@ -7,10 +7,11 @@ import { findDrawerButtonLabels, submitDrawer } from '@/test/drawer.ts'
 import { getButton } from '@/test/get-button.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
+import { mockModule } from '@/test/spy-on-module.ts'
 import { flushPromises, mount, type VueWrapper } from '@vue/test-utils'
 import { computed, ref } from 'vue'
 
-vi.mock(import('@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'), () => ({
+mockModule(import('@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'), () => ({
   useXoProxyCollection: (() => ({
     proxies: ref([]),
     useGetProxyById: () => computed(() => undefined),

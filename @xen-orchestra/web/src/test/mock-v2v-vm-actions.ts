@@ -29,5 +29,5 @@ export const v2vVmActionsMock = {
   },
 }
 
-// Use as `vi.mock(import('@/modules/v2v/composables/use-v2v-vm-actions.composable.ts'), () => import('@/test/mock-v2v-vm-actions.ts'))`
+// Use as `mockModule(import('@/modules/v2v/composables/use-v2v-vm-actions.composable.ts'), () => import('@/test/mock-v2v-vm-actions.ts'))`
 export const { useV2vNewVmActions, useV2vResumedVmActions, useV2vNotFoundVmActions } = v2vVmActionsMock

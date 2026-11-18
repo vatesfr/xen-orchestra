@@ -5,6 +5,7 @@ import { createTestRouter } from '@/test/create-test-router.ts'
 import { findLabelledValues, findTags } from '@/test/find-rendered-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
+import { mockModule } from '@/test/spy-on-module.ts'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import { mount } from '@vue/test-utils'
@@ -15,7 +16,7 @@ const { objectOptions } = vi.hoisted(() => ({
 }))
 
 // The options come from the XO object collections, which subscribe to server events
-vi.mock(import('@/modules/plugin/composables/use-xo-object-options.composable.ts'), () => ({
+mockModule(import('@/modules/plugin/composables/use-xo-object-options.composable.ts'), () => ({
   useXoObjectOptions: objectOptions as unknown as typeof useXoObjectOptions,
 }))
 

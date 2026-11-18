@@ -4,6 +4,7 @@ import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote
 import { createBr } from '@/test/create-br.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
+import { mockModule } from '@/test/spy-on-module.ts'
 import VtsActionButton from '@core/components/action-button/VtsActionButton.vue'
 import { mount } from '@vue/test-utils'
 import { ref, toValue } from 'vue'
@@ -14,7 +15,7 @@ const { useEdit, edit } = vi.hoisted(() => ({
 }))
 
 // The composable runs the edit job, which calls the REST API
-vi.mock(import('@/modules/backup-repository/composables/use-edit-backup-repository.composable.ts'), () => ({
+mockModule(import('@/modules/backup-repository/composables/use-edit-backup-repository.composable.ts'), () => ({
   useEditBackupRepository: useEdit as unknown as typeof useEditBackupRepository,
 }))
 

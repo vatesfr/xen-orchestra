@@ -4,12 +4,13 @@ import type { fetchDelete } from '@/shared/utils/fetch.util.ts'
 import { createVmBackupJob } from '@/test/create-backup-job.ts'
 import { t } from '@/test/i18n.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
+import { mockModule } from '@/test/spy-on-module.ts'
 
 const { del } = vi.hoisted(() => ({
   del: vi.fn(),
 }))
 
-vi.mock(import('@/shared/utils/fetch.util.ts'), () => ({
+mockModule(import('@/shared/utils/fetch.util.ts'), () => ({
   fetchDelete: del as unknown as typeof fetchDelete,
 }))
 

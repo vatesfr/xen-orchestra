@@ -5,6 +5,7 @@ import { createHost } from '@/test/create-host.ts'
 import { findCopiedValues, findLabelledValues, findTags } from '@/test/find-rendered-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
+import { mockModule } from '@/test/spy-on-module.ts'
 import { HOST_POWER_STATE } from '@vates/types'
 import { mount } from '@vue/test-utils'
 import { ref } from 'vue'
@@ -15,11 +16,11 @@ const { useXoHostCollectionMock, getMasterHostByPoolId, isMasterHost } = vi.hois
   isMasterHost: vi.fn(),
 }))
 
-vi.mock(import('@/modules/host/remote-resources/use-xo-host-collection.ts'), () => ({
+mockModule(import('@/modules/host/remote-resources/use-xo-host-collection.ts'), () => ({
   useXoHostCollection: useXoHostCollectionMock as unknown as typeof useXoHostCollection,
 }))
 
-vi.mock(import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'), () => ({
+mockModule(import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'), () => ({
   useXoVmCollection: (() => ({ vmsByHost: ref(new Map()) })) as unknown as typeof useXoVmCollection,
 }))
 

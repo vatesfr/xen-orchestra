@@ -5,6 +5,7 @@ import { createMetadataBackupJob, createMirrorBackupJob, createVmBackupJob } fro
 import { findCardLabelledValueLists, findCardLabelledValues } from '@/test/find-rendered-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
+import { mockModule } from '@/test/spy-on-module.ts'
 import VtsCopyAllMenuItem from '@core/components/copy-all-menu-item/VtsCopyAllMenuItem.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import type { XoSchedule } from '@vates/types'
@@ -15,7 +16,7 @@ const { proxies } = vi.hoisted(() => ({
   proxies: [] as FrontXoProxy[],
 }))
 
-vi.mock(import('@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'), () => ({
+mockModule(import('@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'), () => ({
   useXoProxyCollection: (() => ({
     useGetProxyById: (id: MaybeRefOrGetter<FrontXoProxy['id'] | undefined>) =>
       computed(() => proxies.find(proxy => proxy.id === toValue(id))),

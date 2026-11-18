@@ -17,5 +17,5 @@ export const deleteModalMock = {
   },
 }
 
-// Use as `vi.mock(import('@core/composables/modals/use-delete-modal.ts'), () => import('@/test/mock-delete-modal.ts'))`
+// Use as `mockModule(import('@core/composables/modals/use-delete-modal.ts'), () => import('@/test/mock-delete-modal.ts'))`
 export const useDeleteModal = (() => ({ open: deleteModalMock.open })) as unknown as typeof realUseDeleteModal

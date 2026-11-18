@@ -26,6 +26,7 @@ import { createVif } from '@/test/create-vif.ts'
 import { createVm } from '@/test/create-vm.ts'
 import { groupBy } from '@/test/group-by.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
+import { mockModule } from '@/test/spy-on-module.ts'
 import { VM_POWER_STATE } from '@vates/types'
 import { computed, type MaybeRefOrGetter, nextTick, ref, toValue } from 'vue'
 
@@ -47,31 +48,31 @@ const {
   useXoPifCollectionMock: vi.fn(),
 }))
 
-vi.mock(import('@/modules/vm/composables/xo-vm-vbd-utils.composable.ts'), () => ({
+mockModule(import('@/modules/vm/composables/xo-vm-vbd-utils.composable.ts'), () => ({
   useXoVmVbdsUtils: useXoVmVbdsUtilsMock as unknown as typeof useXoVmVbdsUtils,
 }))
 
-vi.mock(import('@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'), () => ({
+mockModule(import('@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'), () => ({
   useXoVdiCollection: useXoVdiCollectionMock as unknown as typeof useXoVdiCollection,
 }))
 
-vi.mock(import('@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'), () => ({
+mockModule(import('@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'), () => ({
   useXoSrCollection: useXoSrCollectionMock as unknown as typeof useXoSrCollection,
 }))
 
-vi.mock(import('@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'), () => ({
+mockModule(import('@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'), () => ({
   useXoPbdCollection: useXoPbdCollectionMock as unknown as typeof useXoPbdCollection,
 }))
 
-vi.mock(import('@/modules/vif/remote-resources/use-xo-vif-collection.ts'), () => ({
+mockModule(import('@/modules/vif/remote-resources/use-xo-vif-collection.ts'), () => ({
   useXoVifCollection: useXoVifCollectionMock as unknown as typeof useXoVifCollection,
 }))
 
-vi.mock(import('@/modules/network/remote-resources/use-xo-network-collection.ts'), () => ({
+mockModule(import('@/modules/network/remote-resources/use-xo-network-collection.ts'), () => ({
   useXoNetworkCollection: useXoNetworkCollectionMock as unknown as typeof useXoNetworkCollection,
 }))
 
-vi.mock(import('@/modules/pif/remote-resources/use-xo-pif-collection.ts'), () => ({
+mockModule(import('@/modules/pif/remote-resources/use-xo-pif-collection.ts'), () => ({
   useXoPifCollection: useXoPifCollectionMock as unknown as typeof useXoPifCollection,
 }))
 

@@ -6,6 +6,7 @@ import type { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import { createVm } from '@/test/create-vm.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
+import { mockModule } from '@/test/spy-on-module.ts'
 import MenuItem from '@core/components/menu/MenuItem.vue'
 import UiDropdownButton from '@core/components/ui/dropdown-button/UiDropdownButton.vue'
 import { IK_PANEL_ACTIONS_COMPACT } from '@core/utils/injection-keys.util.ts'
@@ -16,15 +17,15 @@ const { buildXo5Route } = vi.hoisted(() => ({
   buildXo5Route: vi.fn(),
 }))
 
-vi.mock(import('@/shared/remote-resources/use-xo-routes.ts'), () => ({
+mockModule(import('@/shared/remote-resources/use-xo-routes.ts'), () => ({
   useXoRoutes: (() => ({ buildXo5Route })) as unknown as typeof useXoRoutes,
 }))
 
-vi.mock(import('@/modules/host/remote-resources/use-xo-host-collection.ts'), () => ({
+mockModule(import('@/modules/host/remote-resources/use-xo-host-collection.ts'), () => ({
   useXoHostCollection: (() => ({ getHostById: () => undefined })) as unknown as typeof useXoHostCollection,
 }))
 
-vi.mock(import('@/modules/task/remote-resources/use-xo-task-collection.ts'), () => ({
+mockModule(import('@/modules/task/remote-resources/use-xo-task-collection.ts'), () => ({
   useXoTaskCollection: (() => ({ useGetTaskById: () => undefined })) as unknown as typeof useXoTaskCollection,
 }))
 

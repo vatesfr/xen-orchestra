@@ -7,6 +7,7 @@ import { createPool } from '@/test/create-pool.ts'
 import { getButton, getUiButton } from '@/test/get-button.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
+import { mockModule } from '@/test/spy-on-module.ts'
 import { V2V_EXISTING_LIST } from '@/test/v2v-wizard-fixtures.ts'
 import UiAlert from '@core/components/ui/alert/UiAlert.vue'
 import { mount } from '@vue/test-utils'
@@ -31,7 +32,7 @@ const { destinationStepMock } = await vi.hoisted(async () => {
   }
 })
 
-vi.mock(import('@/modules/v2v/composables/use-v2v-destination-step.composable.ts'), () => ({
+mockModule(import('@/modules/v2v/composables/use-v2v-destination-step.composable.ts'), () => ({
   useV2vDestinationStep: (() => destinationStepMock) as unknown as typeof useV2vDestinationStep,
 }))
 

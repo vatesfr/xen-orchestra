@@ -8,6 +8,7 @@ import { createVm } from '@/test/create-vm.ts'
 import { findTooltipContent } from '@/test/find-tooltip-content.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
+import { mockModule } from '@/test/spy-on-module.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import UiHeadBar from '@core/components/ui/head-bar/UiHeadBar.vue'
 import { objectIcon } from '@core/icons'
@@ -18,15 +19,15 @@ const { buildXo5Route } = vi.hoisted(() => ({
   buildXo5Route: vi.fn(),
 }))
 
-vi.mock(import('@/shared/remote-resources/use-xo-routes.ts'), () => ({
+mockModule(import('@/shared/remote-resources/use-xo-routes.ts'), () => ({
   useXoRoutes: (() => ({ buildXo5Route })) as unknown as typeof useXoRoutes,
 }))
 
-vi.mock(import('@/modules/host/remote-resources/use-xo-host-collection.ts'), () => ({
+mockModule(import('@/modules/host/remote-resources/use-xo-host-collection.ts'), () => ({
   useXoHostCollection: (() => ({ getHostById: () => undefined })) as unknown as typeof useXoHostCollection,
 }))
 
-vi.mock(import('@/modules/task/remote-resources/use-xo-task-collection.ts'), () => ({
+mockModule(import('@/modules/task/remote-resources/use-xo-task-collection.ts'), () => ({
   useXoTaskCollection: (() => ({ useGetTaskById: () => undefined })) as unknown as typeof useXoTaskCollection,
 }))
 

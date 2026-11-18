@@ -5,6 +5,7 @@ import type { useXoTaskUtils } from '@/shared/composables/xo-task-utils.composab
 import type { fetchPost } from '@/shared/utils/fetch.util.ts'
 import { t } from '@/test/i18n.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
+import { mockModule } from '@/test/spy-on-module.ts'
 import { SDN_CONTROLLER_OF_METHOD_KEY, type TrafficRule, type XoNetwork } from '@vates/types'
 
 const { post, monitorTask, pool } = vi.hoisted(() => ({
@@ -13,16 +14,16 @@ const { post, monitorTask, pool } = vi.hoisted(() => ({
   pool: { otherConfig: {} as Record<string, string> },
 }))
 
-vi.mock(import('@/shared/utils/fetch.util.ts'), () => ({
+mockModule(import('@/shared/utils/fetch.util.ts'), () => ({
   fetchPost: post as unknown as typeof fetchPost,
 }))
 
 // The task collection would open an SSE subscription
-vi.mock(import('@/shared/composables/xo-task-utils.composable.ts'), () => ({
+mockModule(import('@/shared/composables/xo-task-utils.composable.ts'), () => ({
   useXoTaskUtils: (() => ({ monitorTask })) as unknown as typeof useXoTaskUtils,
 }))
 
-vi.mock(import('@/modules/pool/remote-resources/use-xo-pool-collection.ts'), () => ({
+mockModule(import('@/modules/pool/remote-resources/use-xo-pool-collection.ts'), () => ({
   useXoPoolCollection: (() => ({
     getPoolById: () => pool,
   })) as unknown as typeof useXoPoolCollection,

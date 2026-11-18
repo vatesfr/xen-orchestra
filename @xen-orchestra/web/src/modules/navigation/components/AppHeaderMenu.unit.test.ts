@@ -3,6 +3,7 @@ import type { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-
 import type { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
+import { mockModule } from '@/test/spy-on-module.ts'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { mount, type VueWrapper } from '@vue/test-utils'
 import { computed, nextTick } from 'vue'
@@ -11,11 +12,11 @@ const { buildXo5Route } = vi.hoisted(() => ({
   buildXo5Route: vi.fn(),
 }))
 
-vi.mock(import('@/shared/remote-resources/use-xo-routes.ts'), () => ({
+mockModule(import('@/shared/remote-resources/use-xo-routes.ts'), () => ({
   useXoRoutes: (() => ({ buildXo5Route })) as unknown as typeof useXoRoutes,
 }))
 
-vi.mock(import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'), () => ({
+mockModule(import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'), () => ({
   useXoVmCollection: (() => ({ vms: computed(() => []) })) as unknown as typeof useXoVmCollection,
 }))
 

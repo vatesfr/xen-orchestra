@@ -4,12 +4,13 @@ import { createHost } from '@/test/create-host.ts'
 import { findCardNumbers, findLegends } from '@/test/find-rendered-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
+import { mockModule } from '@/test/spy-on-module.ts'
 import { mount } from '@vue/test-utils'
 import { ref } from 'vue'
 
 const { useXoHostCollectionMock } = vi.hoisted(() => ({ useXoHostCollectionMock: vi.fn() }))
 
-vi.mock(import('@/modules/host/remote-resources/use-xo-host-collection.ts'), () => ({
+mockModule(import('@/modules/host/remote-resources/use-xo-host-collection.ts'), () => ({
   useXoHostCollection: useXoHostCollectionMock as unknown as typeof useXoHostCollection,
 }))
 

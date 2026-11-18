@@ -2,6 +2,7 @@ import { useXoPluginConfigurationPresets } from '@/modules/plugin/composables/us
 import type { FrontXoPlugin } from '@/modules/plugin/remote-resources/use-xo-plugin-collection.ts'
 import { createPlugin } from '@/test/create-plugin.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
+import { mockModule } from '@/test/spy-on-module.ts'
 import type { useFormSelect } from '@core/packages/form-select'
 import { computed, type MaybeRefOrGetter, type Ref, ref, shallowRef } from 'vue'
 
@@ -9,7 +10,7 @@ const { selectModel } = vi.hoisted(() => ({
   selectModel: { current: undefined as Ref<string | undefined> | undefined },
 }))
 
-vi.mock(import('@core/packages/form-select'), async importOriginal => {
+mockModule(import('@core/packages/form-select'), async importOriginal => {
   const original = await importOriginal()
 
   return {

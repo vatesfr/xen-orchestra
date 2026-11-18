@@ -3,6 +3,7 @@ import type { useXoBackupRepositoryBenchmarkJob } from '@/modules/backup-reposit
 import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
 import { createBr } from '@/test/create-br.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
+import { mockModule } from '@/test/spy-on-module.ts'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import { mount } from '@vue/test-utils'
 import { ref, toValue } from 'vue'
@@ -13,7 +14,7 @@ const { useBenchmarkJob, run } = vi.hoisted(() => ({
 }))
 
 // The job subscribes to server events, unavailable in tests
-vi.mock(import('@/modules/backup-repository/jobs/xo-backup-repository-benchmark.job.ts'), () => ({
+mockModule(import('@/modules/backup-repository/jobs/xo-backup-repository-benchmark.job.ts'), () => ({
   useXoBackupRepositoryBenchmarkJob: useBenchmarkJob as unknown as typeof useXoBackupRepositoryBenchmarkJob,
 }))
 

@@ -12,6 +12,7 @@ import { createJobResult } from '@/test/create-job-result.ts'
 import { createVm } from '@/test/create-vm.ts'
 import { t } from '@/test/i18n.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
+import { mockModule } from '@/test/spy-on-module.ts'
 import type { useActionModal } from '@core/composables/modals/use-action-modal.ts'
 import { VM_POWER_STATE } from '@vates/types'
 import { type MaybeRefOrGetter, toValue } from 'vue'
@@ -45,35 +46,35 @@ const { JOB_NAMES, runs, jobs, openModal } = vi.hoisted(() => {
 type JobName = (typeof JOB_NAMES)[number]
 
 // The jobs and the resume composable call the REST API and open SSE subscriptions
-vi.mock(import('@/modules/vm/jobs/xo-vm-start.job.ts'), () => ({
+mockModule(import('@/modules/vm/jobs/xo-vm-start.job.ts'), () => ({
   useXoVmStartJob: jobs.start as unknown as typeof useXoVmStartJob,
 }))
 
-vi.mock(import('@/modules/vm/jobs/xo-vm-pause.job.ts'), () => ({
+mockModule(import('@/modules/vm/jobs/xo-vm-pause.job.ts'), () => ({
   useXoVmPauseJob: jobs.pause as unknown as typeof useXoVmPauseJob,
 }))
 
-vi.mock(import('@/modules/vm/jobs/xo-vm-suspend.jobs.ts'), () => ({
+mockModule(import('@/modules/vm/jobs/xo-vm-suspend.jobs.ts'), () => ({
   useXoVmSuspendJob: jobs.suspend as unknown as typeof useXoVmSuspendJob,
 }))
 
-vi.mock(import('@/modules/vm/jobs/xo-vm-reboot.job.ts'), () => ({
+mockModule(import('@/modules/vm/jobs/xo-vm-reboot.job.ts'), () => ({
   useXoVmRebootJob: jobs.reboot as unknown as typeof useXoVmRebootJob,
 }))
 
-vi.mock(import('@/modules/vm/jobs/xo-vm-force-reboot.job.ts'), () => ({
+mockModule(import('@/modules/vm/jobs/xo-vm-force-reboot.job.ts'), () => ({
   useXoVmForceRebootJob: jobs.forceReboot as unknown as typeof useXoVmForceRebootJob,
 }))
 
-vi.mock(import('@/modules/vm/jobs/xo-vm-shutdown.job.ts'), () => ({
+mockModule(import('@/modules/vm/jobs/xo-vm-shutdown.job.ts'), () => ({
   useXoVmShutdownJob: jobs.shutdown as unknown as typeof useXoVmShutdownJob,
 }))
 
-vi.mock(import('@/modules/vm/jobs/xo-vm-force-shutdown.job.ts'), () => ({
+mockModule(import('@/modules/vm/jobs/xo-vm-force-shutdown.job.ts'), () => ({
   useXoVmForceShutdownJob: jobs.forceShutdown as unknown as typeof useXoVmForceShutdownJob,
 }))
 
-vi.mock(import('@/modules/vm/composables/use-vm-resume.composable.ts'), () => ({
+mockModule(import('@/modules/vm/composables/use-vm-resume.composable.ts'), () => ({
   useVmResume: ((vms: unknown) => {
     const { run, canRun, isRunning, errorMessage } = jobs.resume(vms)
 
@@ -81,7 +82,7 @@ vi.mock(import('@/modules/vm/composables/use-vm-resume.composable.ts'), () => ({
   }) as unknown as typeof useVmResume,
 }))
 
-vi.mock(import('@core/composables/modals/use-action-modal.ts'), () => ({
+mockModule(import('@core/composables/modals/use-action-modal.ts'), () => ({
   useActionModal: (() => ({ open: openModal })) as unknown as typeof useActionModal,
 }))
 

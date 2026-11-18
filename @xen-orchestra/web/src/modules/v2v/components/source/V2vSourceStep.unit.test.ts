@@ -6,6 +6,8 @@ import type { useV2vSourceStep } from '@/modules/v2v/composables/use-v2v-source-
 import { createV2vRememberedConnection } from '@/test/create-v2v-connection.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { vmCollectionMock } from '@/test/mock-xo-vm-collection.ts'
+import { resetStubs } from '@/test/reset-stubs.ts'
+import { mockModule } from '@/test/spy-on-module.ts'
 import { flushPromises, mount } from '@vue/test-utils'
 import { type Component, defineComponent } from 'vue'
 
@@ -28,7 +30,7 @@ const { sourceStepMock } = await vi.hoisted(async () => {
   }
 })
 
-vi.mock(import('@/modules/v2v/composables/use-v2v-source-step.composable.ts'), () => ({
+mockModule(import('@/modules/v2v/composables/use-v2v-source-step.composable.ts'), () => ({
   useV2vSourceStep: (() => ({
     ...sourceStepMock,
     prerequisite: { state: 'ok' },
@@ -36,7 +38,7 @@ vi.mock(import('@/modules/v2v/composables/use-v2v-source-step.composable.ts'), (
   })) as unknown as typeof useV2vSourceStep,
 }))
 
-vi.mock(
+mockModule(
   import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'),
   () => import('@/test/mock-xo-vm-collection.ts')
 )
@@ -44,7 +46,7 @@ vi.mock(
 const REMEMBERED = createV2vRememberedConnection({ host: 'remembered.lab' })
 
 beforeEach(() => {
-  vi.resetAllMocks()
+  resetStubs(...Object.values(sourceStepMock))
   vmCollectionMock.reset()
   sourceStepMock.rememberedConnections.value = [REMEMBERED]
   sourceStepMock.canConnect.value = true
