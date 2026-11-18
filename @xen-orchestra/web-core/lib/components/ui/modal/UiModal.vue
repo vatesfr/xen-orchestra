@@ -1,6 +1,6 @@
 <!-- v4 -->
 <template>
-  <form :class="className" class="ui-modal" @click.self="emit('dismiss')" @submit.prevent="emit('confirm')">
+  <form :class="className" class="ui-modal" novalidate @click.self="emit('dismiss')" @submit.prevent="emit('confirm')">
     <div
       ref="dialog"
       :aria-labelledby="slots.title ? titleId : undefined"
