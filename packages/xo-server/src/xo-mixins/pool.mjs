@@ -208,7 +208,8 @@ export default class Pools {
    *   runs or may run on it while something is left to restore and `force` is not set
    * @throws {Error} `incorrectState` (property `status`) if the record belongs to a live run
    * @throws {Error} `incorrectState` (property `unrestoredItems`, `actual` the items, `null` when the record cannot
-   *   be read) if something could not be restored and `force` is not set
+   *   be read, the ones the cleanup started with when the pool disconnected during it) if something could not be
+   *   restored and `force` is not set
    */
   async finalizeRollingUpdate(pool, { force = false, parentTask } = {}) {
     const { _app } = this
@@ -272,6 +273,14 @@ export default class Pools {
               await _app.restoreRpuLeftovers(pool, { record, items: unrestoredItems, recorder })
               // a write still pending would bring a deleted record back
               await recorder.flush()
+              // the pool may have disconnected meanwhile: what is left cannot
+              // be read, the items of the run stay the ones to restore
+              const xapi = _app.getXapi(pool)
+              if (xapi === undefined) {
+                refuse(unrestoredItems)
+              }
+              // what is left is read from the cache of the XAPI objects
+              await xapi.barrier()
               const itemsLeft = await this._listUnrestoredRpuItems(pool, record)
               if (itemsLeft.length > 0) {
                 refuse(itemsLeft)

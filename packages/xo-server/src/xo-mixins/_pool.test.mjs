@@ -104,6 +104,7 @@ function createPools({
   app.getXapi = () => ({
     pool: { ha_enabled: live.haEnabled, wlb_enabled: true, other_config: {} },
     getObjectByUuid: id => (id === 'h1' ? { name_label: 'host 1', enabled: live.hostEnabled } : undefined),
+    async barrier() {},
   })
   app.getOptionalPlugin = async () => undefined
   app.isRpuLoadBalancerReEnablePending = () => false
@@ -221,6 +222,52 @@ describe('Pools.finalizeRollingUpdate', function () {
     assert.equal(app.calls.filter(([name]) => name === 'restoreRpuLeftovers').length, 1)
   })
 
+  it('reads what is left once the XAPI events of the cleanup are received', async function () {
+    const { app, pools, store } = createPools({ record: makeDirtyRecord() })
+    // the cache of the XAPI objects only shows the cleanup after a barrier
+    let restored = false
+    let cached = false
+    app.restoreRpuLeftovers = async () => {
+      restored = true
+    }
+    app.getXapi = () => ({
+      pool: { ha_enabled: cached, wlb_enabled: true, other_config: {} },
+      getObjectByUuid: id => (id === 'h1' ? { name_label: 'host 1', enabled: cached } : undefined),
+      async barrier() {
+        cached = restored
+      },
+    })
+    await pools.finalizeRollingUpdate(pool)
+    assert.equal(store.values.has('pool-1'), false)
+  })
+
+  it('is refused when the XAPI events of the cleanup cannot be received, and keeps the record', async function () {
+    const { app, pools, store } = createPools({ record: makeDirtyRecord() })
+    const getXapi = app.getXapi
+    const barrierError = new Error('barrier failed')
+    app.getXapi = () => ({
+      ...getXapi(),
+      async barrier() {
+        throw barrierError
+      },
+    })
+    await assert.rejects(pools.finalizeRollingUpdate(pool), error => error === barrierError)
+    assert.equal(store.values.has('pool-1'), true)
+  })
+
+  it('is refused with what the run left when the pool disconnects during the cleanup, and keeps the record', async function () {
+    const { app, pools, store } = createPools({
+      record: makeDirtyRecord(),
+      restore() {
+        app.getXapi = () => undefined
+      },
+    })
+    await assert.rejects(pools.finalizeRollingUpdate(pool), error =>
+      incorrectState.is(error, { actual: dirtyItems, property: 'unrestoredItems' })
+    )
+    assert.equal(store.values.has('pool-1'), true)
+  })
+
   it('does not run the cleanup when the run left nothing unrestored', async function () {
     const { app, pools } = createPools({ record: makeRecord() })
     await pools.finalizeRollingUpdate(pool)
@@ -271,6 +318,7 @@ describe('Pools.finalizeRollingUpdate', function () {
           : id === 'h1'
             ? { name_label: 'host 1', enabled: true }
             : undefined,
+      async barrier() {},
     })
     await assert.rejects(pools.finalizeRollingUpdate(pool), error =>
       incorrectState.is(error, { actual: [{ type: 'vm', id: 'vm1', name: 'vm 1' }], property: 'unrestoredItems' })

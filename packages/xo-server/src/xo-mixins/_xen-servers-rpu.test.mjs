@@ -157,9 +157,6 @@ function createXenServers({
         throw new Error('WLB unreachable')
       }
     },
-    async barrier() {
-      calls.push(['xapi.barrier'])
-    },
     async rollingPoolUpdate(task, { acceptCurrentStateAsBaseline, rebootVm, shutdownPinnedVms, resume }) {
       calls.push(['xapi.rollingPoolUpdate', { acceptCurrentStateAsBaseline, rebootVm, shutdownPinnedVms }])
       if (resume !== noRpuResume) {
@@ -608,8 +605,6 @@ describe('XenServers.restoreRpuLeftovers', function () {
     assert.deepEqual(calls, [
       ['xapi.restoreRpuLeftovers', items],
       ['xapi.call', 'pool.set_wlb_enabled', true],
-      // the caller rechecks WLB from the cache
-      ['xapi.barrier'],
       ['recorder.settingRestored', 'wlb', undefined],
       ['loadPlugin', 'load-balancer'],
       ['recorder.settingRestored', 'loadBalancer', undefined],
@@ -648,7 +643,6 @@ describe('XenServers.restoreRpuLeftovers', function () {
     await xenServers.restoreRpuLeftovers(pool, { record: makeRecord(false), items: [items[0]], recorder })
     assert.deepEqual(calls, [
       ['reconnected xapi.call', 'pool.set_wlb_enabled'],
-      ['xapi.barrier'],
       ['recorder.settingRestored', 'wlb', undefined],
     ])
   })

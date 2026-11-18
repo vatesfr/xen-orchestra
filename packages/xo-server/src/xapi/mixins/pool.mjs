@@ -588,9 +588,6 @@ const methods = {
     if (idsOf('ha').length > 0 && ha?.srs !== undefined) {
       await this._restoreRpuHa(recorder, ha)
     }
-
-    // the caller reads the outcome from the cache of the XAPI objects
-    await attempt('wait for the XAPI events', () => this.barrier())
   },
 
   // Bring every VM back to the host it was running on before the reboot.

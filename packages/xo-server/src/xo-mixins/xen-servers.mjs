@@ -1033,14 +1033,11 @@ export default class XenServers {
     }
 
     if (idsOf('wlb').length > 0) {
-      await restoreRpuSetting(recorder, 'wlb', async () => {
-        // the restoration of the pool may have lasted minutes, and the master
-        // reconnected meanwhile
-        const xapi = this.getXapi(pool)
-        await xapi.call('pool.set_wlb_enabled', pool._xapiRef, true)
-        // the caller reads the outcome from the cache of the XAPI objects
-        await xapi.barrier()
-      })
+      // the restoration of the pool may have lasted minutes, and the master
+      // reconnected meanwhile
+      await restoreRpuSetting(recorder, 'wlb', () =>
+        this.getXapi(pool).call('pool.set_wlb_enabled', pool._xapiRef, true)
+      )
     }
     if (idsOf('loadBalancer').length > 0) {
       await restoreRpuSetting(recorder, 'loadBalancer', () =>
