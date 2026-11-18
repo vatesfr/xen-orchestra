@@ -47,6 +47,8 @@
 - [VM/Host] Main actions (shutdown, reboot, start, migrate, snapshot, new VM) are shown as buttons in the VM and host headers and move one by one into "More actions" when space runs out; "More actions" groups them under "Change state" and "Actions" sections, and VMs without guest tools get force shutdown and force reboot instead (PR [#10815](https://github.com/vatesfr/xen-orchestra/pull/10815))
 - [REST API] `POST /rest/v0/hosts/:id/actions/move_management_ip` to move the management IP configuration of a host to another PIF (PR [#10669](https://github.com/vatesfr/xen-orchestra/pull/10669))
 - [Hosts] The host actions of the treeview (change state, restart toolstack, enable or disable, detach, forget, download bugtools archive) are also available in host tables and side panels (PR [#10821](https://github.com/vatesfr/xen-orchestra/pull/10821))
+- [Servers] The objects of a pool which can no longer be reached are kept and flagged as disconnected, with the last time the pool was reached, instead of disappearing. They are flagged after 30 seconds instead of 5 minutes (`xapiMarkDisconnectedDelay`), and removed after 1 hour (`xapiStaleObjectsMaxAge`) (PR [#10611](https://github.com/vatesfr/xen-orchestra/pull/10611))
+- [Servers] The time allowed to fetch the objects of a pool on connection is now set by `xapiObjectsFetchTimeout` (5 minutes), no longer by `xapiMarkDisconnectedDelay` (PR [#10611](https://github.com/vatesfr/xen-orchestra/pull/10611))
 
 ### Bug fixes
 
@@ -97,6 +99,9 @@
 - xo-server minor
 - xo-server-audit minor
 - xo-server-load-balancer patch
+- xo-server-netbox patch
+- xo-server-perf-alert patch
+- xo-server-usage-report patch
 - xo-web minor
 
 <!--packages-end-->

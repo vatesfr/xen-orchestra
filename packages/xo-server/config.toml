@@ -34,8 +34,17 @@ guessVhdSizeOnImport = true
 # be turned for investigation by the administrator.
 verboseApiLogsOnErrors = false
 
-# if no events could be fetched during this delay, the server will be marked as disconnected
-xapiMarkDisconnectedDelay = '5 minutes'
+# if no events could be fetched during this delay, the objects of the pool are
+# flagged as stale and the server is shown as connecting until events are back
+xapiMarkDisconnectedDelay = '30 seconds'
+
+# if the objects of a pool could not be fetched during this delay, the
+# connection to it fails
+xapiObjectsFetchTimeout = '5 minutes'
+
+# once a pool is marked as disconnected, its objects are kept, flagged with
+# `$lastSeen`, until it is reconnected or at most during this delay
+xapiStaleObjectsMaxAge = '1 hour'
 
 # Delay before re-enabling the load balancer after a rolling pool update
 loadBalancerReEnableDelay = '30 minutes'
