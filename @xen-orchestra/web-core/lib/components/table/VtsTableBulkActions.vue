@@ -10,6 +10,7 @@
             :accent="action.buttonAccent"
             size="medium"
             :left-icon="action.icon"
+            right-icon="fa:angle-down"
             :disabled="action.disabled"
             :busy="action.busy"
             @click="open($event)"

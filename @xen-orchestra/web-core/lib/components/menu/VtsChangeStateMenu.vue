@@ -8,6 +8,7 @@
         accent="brand"
         size="medium"
         left-icon="action:change-state"
+        right-icon="fa:angle-down"
         @click="open($event)"
       >
         {{ t('action:change-state') }}
