@@ -4,15 +4,18 @@
     <template #icon>
       <VtsIcon :name="vmIcon" :tooltip="iconTooltip" size="medium" />
     </template>
-    <template v-if="hasPendingOperation" #status>
+    <template v-if="hasPendingOperation || vm.$lastSeen !== undefined" #status>
       <UiLoader
+        v-if="hasPendingOperation"
         v-tooltip="{
           placement: 'top',
           content: currentOperation,
         }"
       />
+      <StaleObjectTag :object="vm" />
     </template>
-    <template #actions>
+    <!-- actions cannot reach the pool of a stale object -->
+    <template v-if="vm.$lastSeen === undefined" #actions>
       <VmHeaderActions :vm />
     </template>
   </UiHeadBar>
@@ -71,6 +74,7 @@ import { useXo5VmRoute } from '@/modules/vm/composables/xo-vm-route-xo5.composab
 import { useXoVmUtils } from '@/modules/vm/composables/xo-vm-utils.composable.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { getVmIcon } from '@/modules/vm/utils/xo-vm.util.ts'
+import StaleObjectTag from '@/shared/components/stale-object/StaleObjectTag.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import TabList from '@core/components/tab-list/TabList.vue'
 import UiHeadBar from '@core/components/ui/head-bar/UiHeadBar.vue'

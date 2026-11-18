@@ -16,6 +16,7 @@ export type FrontXoSr = Pick<XoSr, (typeof srFields)[number]>
 
 const srFields = [
   'id',
+  '$lastSeen',
   'name_label',
   'name_description',
   '$pool',

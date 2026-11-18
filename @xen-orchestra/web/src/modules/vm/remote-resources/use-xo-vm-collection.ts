@@ -15,6 +15,7 @@ export type FrontXoVm = Pick<XoVm, (typeof vmFields)[number]>
 
 const vmFields = [
   'id',
+  '$lastSeen',
   'name_label',
   'name_description',
   'power_state',

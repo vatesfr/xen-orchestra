@@ -30,6 +30,7 @@ import VmsBulkActions from '@/modules/vm/components/list/VmsBulkActions.vue'
 import type { VmDisplayData } from '@/modules/vm/composables/use-vm-enhanced-data.composable.ts'
 import { useVmQueryBuilder } from '@/modules/vm/composables/use-vm-query-builder.composable.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
+import { useLastSeenFormatter } from '@/shared/composables/stale-object.composable.ts'
 import VtsQueryBuilder from '@core/components/query-builder/VtsQueryBuilder.vue'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
@@ -54,6 +55,11 @@ const {
 
 const { t } = useI18n()
 
+const formatLastSeen = useLastSeenFormatter()
+
+// the VMs of a disconnected pool are kept by XO but cannot be acted upon
+const isSelectable = (vm: FrontXoVm) => vm.$lastSeen === undefined
+
 const selectedVmId = useRouteQuery('id')
 
 const { items: filteredVms, searchBindings, schema, getDisplayData } = useVmQueryBuilder('vms', () => rawVms)
@@ -76,9 +82,9 @@ const {
   toggleSelection,
   selectionBindings,
 } = useTableSelection({
-  items: () => rawVms,
-  filteredItems: filteredVms,
-  pageItems: paginatedVms,
+  items: () => rawVms.filter(isSelectable),
+  filteredItems: () => filteredVms.value.filter(isSelectable),
+  pageItems: () => paginatedVms.value.filter(isSelectable),
   getItemId: vm => vm.id,
 })
 
@@ -91,10 +97,24 @@ const { HeadCells, BodyCells } = useVmColumns({
       checkbox: r =>
         r({
           selected: isSelected(vm.id),
+          disabled: !isSelectable(vm),
           onToggle: () => toggleSelection(vm.id),
         }),
       vm: r =>
-        r({ label: vm.name_label, to: `/vm/${vm.id}/dashboard`, icon: vm.vmIcon, iconTooltip: vm.vmIconTooltip }),
+        r({
+          label: vm.name_label,
+          to: `/vm/${vm.id}/dashboard`,
+          icon: vm.vmIcon,
+          iconTooltip: vm.vmIconTooltip,
+          // object of a disconnected pool, kept by XO but possibly outdated
+          rightIcon:
+            vm.$lastSeen === undefined
+              ? undefined
+              : {
+                  icon: 'status:warning-circle',
+                  tooltip: t('pool-disconnected-last-seen', { time: formatLastSeen(vm.$lastSeen) }),
+                },
+        }),
       ipAddresses: r => r(vm.ipAddresses),
       vcpus: r => r(vm.CPUs.number),
       ram: r => r(vm.formattedRam.value, vm.formattedRam.prefix),

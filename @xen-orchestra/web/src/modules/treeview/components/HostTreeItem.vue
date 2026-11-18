@@ -1,9 +1,9 @@
 <template>
   <VtsTreeItem :expanded="!branch.isCollapsed" :has-children="branch.hasChildren" :node-id="branch.data.id">
     <UiTreeItemLabel :route="`/host/${branch.data.id}`" icon="object:host" @toggle="branch.toggleCollapse()">
-      {{ branch.data.name_label }}
+      <span :class="{ stale: isStale }">{{ branch.data.name_label }}</span>
       <template #icon>
-        <VtsIcon :name="hostIcon" :tooltip="hostIconTooltip" size="medium" />
+        <VtsIcon :class="{ stale: isStale }" :name="hostIcon" :tooltip="hostIconTooltip" size="medium" />
       </template>
       <template #addons>
         <UiLoader
@@ -21,7 +21,7 @@
           size="small"
           variant="secondary"
         />
-        <VtsActionsMenu placement="bottom-start">
+        <VtsActionsMenu v-if="!isStale" placement="bottom-start">
           <HostMoreActions :host="branch.data" layout="change-state-submenu" />
         </VtsActionsMenu>
       </template>
@@ -36,6 +36,7 @@ import { useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host
 import { getHostIcon, getHostState } from '@/modules/host/utils/xo-host.util.ts'
 import type { HostBranch } from '@/modules/treeview/types/tree.type.ts'
 import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
+import { useStaleObject } from '@/shared/composables/stale-object.composable.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsActionsMenu from '@core/components/menu/VtsActionsMenu.vue'
 import VtsTreeItem from '@core/components/tree/VtsTreeItem.vue'
@@ -52,6 +53,8 @@ const { branch } = defineProps<{
 
 const { t } = useI18n()
 
+const { isStale, lastSeenLabel } = useStaleObject(() => branch.data)
+
 const { isMasterHost } = useXoHostCollection()
 const { runningVmsCountByContainer } = useXoVmCollection()
 
@@ -60,7 +63,18 @@ const { getHostStateDisplay, isChangingState, currentOperation, iconTooltip } = 
 const isMaster = computed(() => isMasterHost(branch.data.id))
 const hostIcon = computed(() => getHostIcon(branch.data))
 
-const hostIconTooltip = computed(() => iconTooltip.value || getHostStateDisplay(getHostState(branch.data)).text)
+const hostIconTooltip = computed(() =>
+  isStale.value
+    ? t('pool-disconnected-last-seen', { time: lastSeenLabel.value })
+    : iconTooltip.value || getHostStateDisplay(getHostState(branch.data)).text
+)
 
 const runningVmsCount = computed(() => runningVmsCountByContainer.value.get(branch.data.id) ?? 0)
 </script>
+
+<style lang="postcss" scoped>
+/* object of a disconnected pool, kept by XO but possibly outdated */
+.stale {
+  opacity: 0.5;
+}
+</style>
