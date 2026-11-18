@@ -23,7 +23,7 @@ import type { XenApiVdi, XoMessage, XoTask, XoVdi, XoAlarm, XoSr } from '@vates/
 import { SUPPORTED_VDI_FORMAT } from '@vates/types'
 import { acl } from '../middlewares/acl.middleware.mjs'
 import { AlarmService } from '../alarms/alarm.service.mjs'
-import { BASE_URL, escapeUnsafeComplexMatcher } from '../helpers/utils.helper.mjs'
+import { BASE_URL, escapeUnsafeComplexMatcher, getUrlOrigin } from '../helpers/utils.helper.mjs'
 import { genericAlarmsExample } from '../open-api/oa-examples/alarm.oa-example.mjs'
 import {
   asynchronousActionResp,
@@ -46,7 +46,7 @@ import { XapiXoController } from '../abstract-classes/xapi-xo-controller.mjs'
 import { messageIds, partialMessages } from '../open-api/oa-examples/message.oa-example.mjs'
 import { taskIds, partialTasks, taskLocation } from '../open-api/oa-examples/task.oa-example.mjs'
 import type { CreateActionReturnType } from '../abstract-classes/base-controller.mjs'
-import { getUrlOrigin, SrService, type CreateSrBody, type ImportVdiFromUrlBody } from './sr.service.mjs'
+import { SrService, type CreateSrBody, type ImportVdiFromUrlBody } from './sr.service.mjs'
 
 @Route('srs')
 @Security('*')
@@ -476,6 +476,10 @@ export class SrController extends XapiXoController<XoSr> {
     const srId = id as XoSr['id']
     const action = async () => {
       const vdiId = await this.#srService.importVdiFromUrl(srId, body)
+
+      if (sync) {
+        this.setHeader('Location', `${BASE_URL}/vdis/${vdiId}`)
+      }
       return { id: vdiId }
     }
 

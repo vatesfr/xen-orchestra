@@ -6,6 +6,7 @@ import { ApiError } from '../helpers/error.helper.mjs'
 import type { RestApi } from '../rest-api/rest-api.mjs'
 import { LicenseService } from '../licenses/license.service.mjs'
 import { invalidParameters } from 'xo-common/api-errors.js'
+import { getFileNameFromUrl } from '../helpers/utils.helper.mjs'
 
 // Derived from `xapi.SR_create` params, renamed to stay consistent with the XO SR
 // representation returned by `GET /srs/:id`: `hostId` (XO id, not XAPI ref),
@@ -22,26 +23,6 @@ export type ImportVdiFromUrlBody = {
   /** Defaults to the file name in the URL */
   name_label?: string
   name_description?: string
-}
-
-/**
- * Download URLs can contain secrets (e.g. `?token=…`), only their origin must be stored or logged
- */
-export function getUrlOrigin(url: string): string | undefined {
-  try {
-    return new URL(url).origin
-  } catch {
-    return undefined
-  }
-}
-
-function getFileNameFromUrl(url: URL): string {
-  const fileName = url.pathname.slice(url.pathname.lastIndexOf('/') + 1)
-  try {
-    return decodeURIComponent(fileName)
-  } catch {
-    return fileName
-  }
 }
 
 // SR types backed by network/SAN storage, every other type is local to the host

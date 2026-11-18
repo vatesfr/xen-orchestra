@@ -4,7 +4,8 @@ import type { Readable } from 'node:stream'
 import { SUPPORTED_VDI_FORMAT, type XoSr } from '@vates/types'
 import { invalidParameters } from 'xo-common/api-errors.js'
 
-import { getUrlOrigin, SrService, type CreateSrBody } from './sr.service.mjs'
+import { SrService, type CreateSrBody } from './sr.service.mjs'
+import { getUrlOrigin } from '../helpers/utils.helper.mjs'
 import { ApiError } from '../helpers/error.helper.mjs'
 import type { RestApi } from '../rest-api/rest-api.mjs'
 
