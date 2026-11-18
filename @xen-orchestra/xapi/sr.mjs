@@ -39,7 +39,15 @@ class Sr {
     )
 
     // https://developer-docs.citrix.com/projects/citrix-hypervisor-sdk/en/latest/xc-api-extensions/#sr
-    this.setFieldEntry('SR', ref, 'other_config', 'auto-scan', 'true').catch(warn)
+    //
+    // Only ISO SRs need periodic scans: their content changes outside of XAPI
+    // (ISO files added to the share). On SRs holding VM disks, each scan takes
+    // the SR lock, blocking snapshots and disk creations (and VM starts and
+    // stops on file and XOSTOR SRs), and on LVM SRs each of its LVM commands
+    // also takes the host-wide lock shared by all LVM SRs of the host.
+    //
+    // Same behavior as XenCenter; the XCP-ng installer does not set the key.
+    this.setFieldEntry('SR', ref, 'other_config', 'auto-scan', String(content_type === 'iso')).catch(warn)
 
     return ref
   }
