@@ -37,6 +37,11 @@ export function findCardLabelledValues(wrapper: QueryableWrapper): Record<string
   return Object.fromEntries(findPairs(wrapper, { root: CARD_KEY_VALUE_ROW_SELECTOR, label: '.key', value: '.value' }))
 }
 
+// The label of every `VtsTabularKeyValueRow` / `VtsKeyValueRow`, in order
+export function findRowLabels(wrapper: QueryableWrapper): string[] {
+  return wrapper.findAll(KEY_VALUE_ROW_SELECTOR).map(row => row.get('dt.label').text())
+}
+
 // The label of every `VtsCardRowKeyValue` row of a side-panel card, in order
 export function findCardRowLabels(wrapper: QueryableWrapper): string[] {
   return wrapper.findAll(CARD_KEY_VALUE_ROW_SELECTOR).map(row => row.get('.key').text())
@@ -139,4 +144,9 @@ export function findTags(wrapper: QueryableWrapper): string[] {
   const tags = wrapper.findAll('.ui-tag')
 
   return tags.map(tag => tag.text())
+}
+
+// The inline style of the fill of the `UiProgressBar` of a mounted component, its width the share it shows
+export function findProgressBarFillStyle(wrapper: Pick<VueWrapper, 'get'>): string | undefined {
+  return wrapper.get('.ui-progress-bar .fill').attributes('style')
 }

@@ -4,7 +4,7 @@ import type { FrontXoVmTemplate } from '@/modules/vm/remote-resources/use-xo-vm-
 import { createHost } from '@/test/create-host.ts'
 import { createPool } from '@/test/create-pool.ts'
 import { createVm } from '@/test/create-vm.ts'
-import { findCardLabelledValues, findTags } from '@/test/find-rendered-values.ts'
+import { findCardLabelledValues, findCardRowLabels, findTags } from '@/test/find-rendered-values.ts'
 import { findTooltipContent } from '@/test/find-tooltip-content.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
@@ -12,10 +12,10 @@ import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
 import { userResourceMock } from '@/test/mock-xo-user.ts'
 import { vmCollectionMock } from '@/test/mock-xo-vm-collection.ts'
 import { mockModule } from '@/test/spy-on-module.ts'
+import { itShowsVmCreator } from '@/test/vm-creator.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
 import { objectIcon } from '@core/icons'
-import type { XoUser } from '@vates/types'
 import { HOST_POWER_STATE, VM_OPERATIONS, VM_POWER_STATE } from '@vates/types'
 import { mount } from '@vue/test-utils'
 
@@ -92,7 +92,7 @@ it('shows the pending operation in the tooltip of the busy icon of the card titl
 it('lists every row of the card, in order', () => {
   const wrapper = mountInfoCard()
 
-  expect(wrapper.findAll('.vts-card-row-key-value').map(row => row.get('.key').text())).toEqual([
+  expect(findCardRowLabels(wrapper)).toEqual([
     t('state'),
     t('description'),
     t('tags'),
@@ -129,25 +129,36 @@ it('renders one tag per VM tag', () => {
   expect(findTags(wrapper)).toEqual(['production', 'billing'])
 })
 
-it('shows the name of the pool hosting the VM', () => {
-  xoCollectionsMock.pools.value = [createPool({ name_label: 'Production Pool' })]
+const POOL_AND_HOST_CASES = [
+  {
+    name: 'shows the name of the pool hosting the VM',
+    seed: () => {
+      xoCollectionsMock.pools.value = [createPool({ name_label: 'Production Pool' })]
+    },
+    label: t('pool'),
+    value: 'Production Pool',
+  },
+  { name: 'leaves the pool row empty when the pool is unknown', label: t('pool'), value: '' },
+  {
+    name: 'shows the name of the host running the VM',
+    seed: () => {
+      xoCollectionsMock.hosts.value = [
+        createHost({ name_label: 'Primary Host', power_state: HOST_POWER_STATE.RUNNING }),
+      ]
+    },
+    label: t('host'),
+    value: 'Primary Host',
+  },
+  { name: 'leaves the host row empty when the VM runs on no host', label: t('host'), value: '' },
+]
 
-  expect(findCardLabelledValues(mountInfoCard())).toMatchObject({ [t('pool')]: 'Production Pool' })
-})
+for (const { name, seed, label, value } of POOL_AND_HOST_CASES) {
+  it(name, () => {
+    seed?.()
 
-it('leaves the pool row empty when the pool is unknown', () => {
-  expect(findCardLabelledValues(mountInfoCard())).toMatchObject({ [t('pool')]: '' })
-})
-
-it('shows the name of the host running the VM', () => {
-  xoCollectionsMock.hosts.value = [createHost({ name_label: 'Primary Host', power_state: HOST_POWER_STATE.RUNNING })]
-
-  expect(findCardLabelledValues(mountInfoCard())).toMatchObject({ [t('host')]: 'Primary Host' })
-})
-
-it('leaves the host row empty when the VM runs on no host', () => {
-  expect(findCardLabelledValues(mountInfoCard())).toMatchObject({ [t('host')]: '' })
-})
+    expect(findCardLabelledValues(mountInfoCard())).toMatchObject({ [label]: value })
+  })
+}
 
 it('shows the name of the template the VM was created from', () => {
   xoCollectionsMock.templates.value = [createTemplate()]
@@ -176,18 +187,4 @@ it('ignores a same-uuid template belonging to another pool', () => {
   expect(findCardLabelledValues(wrapper)).toMatchObject({ [t('template')]: 'Debian 12 (removed)' })
 })
 
-it('shows the name of the user who created the VM', () => {
-  userResourceMock.user.value = { id: 'user-1', name: 'alice', email: 'alice@example.com' } as XoUser
-
-  expect(findCardLabelledValues(mountInfoCard())).toMatchObject({ [t('created-by')]: 'alice' })
-})
-
-it('falls back to the email of the user who created the VM', () => {
-  userResourceMock.user.value = { id: 'user-1', name: '', email: 'alice@example.com' } as XoUser
-
-  expect(findCardLabelledValues(mountInfoCard())).toMatchObject({ [t('created-by')]: 'alice@example.com' })
-})
-
-it('falls back to "Unknown" when the creator of the VM is not known', () => {
-  expect(findCardLabelledValues(mountInfoCard())).toMatchObject({ [t('created-by')]: t('unknown') })
-})
+itShowsVmCreator(() => findCardLabelledValues(mountInfoCard()), { withEmailFallback: true })

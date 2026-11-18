@@ -1,7 +1,8 @@
 import HostDashboardQuickInfo from '@/modules/host/components/dashboard/HostDashboardQuickInfo.vue'
 import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import { createHost } from '@/test/create-host.ts'
-import { findCopiedValues, findLabelledValues, findTags } from '@/test/find-rendered-values.ts'
+import { itShowsDashboardQuickInfo } from '@/test/dashboard-quick-info.ts'
+import { findLabelledValues } from '@/test/find-rendered-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
@@ -32,18 +33,10 @@ function mountQuickInfo(host: FrontXoHost = createHost()) {
   })
 }
 
-it('shows a busy state instead of the rows while the hosts are still loading', () => {
-  xoCollectionsMock.areHostsReady.value = false
-
-  const wrapper = mountQuickInfo()
-
-  expect(findLabelledValues(wrapper)).toEqual({})
-})
-
-it('lists every row of the card, in order', () => {
-  const wrapper = mountQuickInfo()
-
-  expect(wrapper.findAll('.vts-key-value-row').map(row => row.get('dt.label').text())).toEqual([
+itShowsDashboardQuickInfo(mountQuickInfo, {
+  objectName: 'host',
+  loadingCollection: 'hosts',
+  rows: [
     t('state'),
     t('ip-address'),
     t('started'),
@@ -55,7 +48,9 @@ it('lists every row of the card, in order', () => {
     t('cores-with-sockets'),
     t('ram'),
     t('tags'),
-  ])
+  ],
+  createWithAddress: (uuid, address) => createHost({ id: uuid as FrontXoHost['id'], address }),
+  createWithTags: tags => createHost({ tags }),
 })
 
 it('shows the identity, state and resources of the host', () => {
@@ -82,12 +77,6 @@ it('shows the identity, state and resources of the host', () => {
     [t('cores-with-sockets')]: '16 (2)',
     [t('ram')]: '4 GiB',
   })
-})
-
-it('offers to copy the IP address and the UUID of the host', () => {
-  const wrapper = mountQuickInfo(createHost({ id: 'host-42' as FrontXoHost['id'], address: '10.0.0.1' }))
-
-  expect(findCopiedValues(wrapper)).toEqual({ [t('ip-address')]: '10.0.0.1', [t('uuid')]: 'host-42' })
 })
 
 it('shows a running host that is not enabled as disabled', () => {
@@ -151,10 +140,4 @@ it('links to the master of the pool when the host is not it', () => {
 
 it('leaves the master row empty when the master of the pool is not known', () => {
   expect(findLabelledValues(mountQuickInfo())).toMatchObject({ [t('master')]: '' })
-})
-
-it('renders one tag per host tag', () => {
-  const wrapper = mountQuickInfo(createHost({ tags: ['production', 'billing'] }))
-
-  expect(findTags(wrapper)).toEqual(['production', 'billing'])
 })

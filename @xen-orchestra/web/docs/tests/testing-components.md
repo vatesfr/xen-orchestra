@@ -32,6 +32,7 @@ A label/value row is read through one query covering every row a user sees ([Ass
 | `findLabelledValues`         | every `VtsTabularKeyValueRow` / `VtsKeyValueRow` of a card         |
 | `findCardLabelledValues`     | every `VtsCardRowKeyValue` of a side-panel card                    |
 | `findCardLabelledValueLists` | every `VtsCardRowKeyValue`, each value of a multi-value row listed |
+| `findRowLabels`              | the label of every `VtsTabularKeyValueRow` / `VtsKeyValueRow`      |
 | `findCardRowLabels`          | the label of every `VtsCardRowKeyValue`, in order                  |
 | `findCopiedValues`           | what each copyable key/value row copies, keyed by label            |
 | `findCardCopiedValues`       | what each copyable `VtsCardRowKeyValue` copies, in order           |
@@ -144,6 +145,7 @@ A donut card and a progress-bar card both render their values through `UiLegend`
 | `findLegends`                 | every `UiLegend`, as ordered `[label, value]` pairs    |
 | `findProgressBarGroupLegends` | the same, grouped per `VtsProgressBarGroup`            |
 | `findCardNumbers`             | every `UiCardNumbers` a card lays out beside its chart |
+| `findProgressBarFillStyle`    | the inline style of the fill of the `UiProgressBar`    |
 
 ```typescript
 expect(findLegends(wrapper)).toEqual([

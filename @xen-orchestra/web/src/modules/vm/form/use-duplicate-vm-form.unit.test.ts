@@ -6,14 +6,13 @@ import { createSr } from '@/test/create-sr.ts'
 import { createVm } from '@/test/create-vm.ts'
 import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
+import { resetStubs } from '@/test/reset-stubs.ts'
 import { mockModule } from '@/test/spy-on-module.ts'
 import { VM_POWER_STATE } from '@vates/types'
 import { nextTick, ref } from 'vue'
 
-const { getSrLocation, getSrSelectLabel } = vi.hoisted(() => ({
-  getSrLocation: vi.fn(),
-  getSrSelectLabel: vi.fn(),
-}))
+const getSrLocation = vi.fn()
+const getSrSelectLabel = vi.fn()
 
 mockModule(
   import('@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'),
@@ -31,8 +30,7 @@ mockModule(import('@/modules/storage-repository/composables/xo-sr-utils.composab
 
 beforeEach(() => {
   xoCollectionsMock.reset()
-  getSrLocation.mockReset()
-  getSrSelectLabel.mockReset()
+  resetStubs(getSrLocation, getSrSelectLabel)
 
   getSrLocation.mockReturnValue('Local')
   getSrSelectLabel.mockImplementation((sr: FrontXoSr) => sr.name_label)

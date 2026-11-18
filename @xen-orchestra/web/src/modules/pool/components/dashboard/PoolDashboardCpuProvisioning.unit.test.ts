@@ -1,6 +1,7 @@
 import PoolDashboardCpuProvisioning from '@/modules/pool/components/dashboard/PoolDashboardCpuProvisioning.vue'
 import type { XoPoolDashboard } from '@/modules/pool/types/xo-pool-dashboard.type.ts'
-import { findCardNumbers, findLegends } from '@/test/find-rendered-values.ts'
+import { itShowsCpuProvisioningShare } from '@/test/cpu-provisioning-card.ts'
+import { findCardNumbers } from '@/test/find-rendered-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { mount } from '@vue/test-utils'
@@ -52,16 +53,9 @@ it('splits the CPUs of the pool between what is assigned and what it holds', () 
   ])
 })
 
-it('fills the progress bar with the share of the CPUs assigned', () => {
-  const wrapper = mountProvisioning()
-
-  expect(wrapper.get('.ui-progress-bar .fill').attributes('style')).toBe('width: 75%;')
-})
-
-it('labels the progress bar with the share of the CPUs assigned', () => {
-  const wrapper = mountProvisioning()
-
-  expect(findLegends(wrapper)).toEqual([[t('vcpus'), '75%']])
+itShowsCpuProvisioningShare(mountProvisioning, {
+  fill: 'fills the progress bar with the share of the CPUs assigned',
+  legend: 'labels the progress bar with the share of the CPUs assigned',
 })
 
 it('reports no CPU for a pool provisioning nothing', () => {

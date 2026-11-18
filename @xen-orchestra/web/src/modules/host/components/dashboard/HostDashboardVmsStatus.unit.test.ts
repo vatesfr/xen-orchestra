@@ -5,6 +5,7 @@ import { createHost } from '@/test/create-host.ts'
 import { createVm } from '@/test/create-vm.ts'
 import { findCardNumbers, findLegends } from '@/test/find-rendered-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
+import { itShowsHostDashboardCard } from '@/test/host-dashboard-card.ts'
 import { t } from '@/test/i18n.ts'
 import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
 import { vmCollectionMock } from '@/test/mock-xo-vm-collection.ts'
@@ -34,6 +35,16 @@ beforeEach(() => {
   vmCollectionMock.reset()
 })
 
+// The legend of the card: the count of each power state, in order
+function statusLegends(running: string, paused: string, suspended: string, halted: string) {
+  return [
+    [t('vm:status:running', 2), running],
+    [t('vm:status:paused', 2), paused],
+    [t('vm:status:suspended', 2), suspended],
+    [t('vm:status:halted', 2), halted],
+  ]
+}
+
 function mountVmsStatus() {
   return mount(HostDashboardVmsStatus, {
     props: { host },
@@ -41,28 +52,9 @@ function mountVmsStatus() {
   })
 }
 
-it('renders the card title', () => {
-  const wrapper = mountVmsStatus()
-
-  expect(wrapper.get('.ui-card-title').text()).toBe(t('vms-status'))
-})
-
-it('shows a loader instead of the statuses while the hosts are still loading', () => {
-  xoCollectionsMock.areHostsReady.value = false
-
-  const wrapper = mountVmsStatus()
-
-  expect(wrapper.find('.ui-loader').exists()).toBe(true)
-  expect(findLegends(wrapper)).toEqual([])
-})
-
-it('shows a loader instead of the statuses while the VMs are still loading', () => {
-  vmCollectionMock.areVmsReady.value = false
-
-  const wrapper = mountVmsStatus()
-
-  expect(wrapper.find('.ui-loader').exists()).toBe(true)
-  expect(findLegends(wrapper)).toEqual([])
+itShowsHostDashboardCard(mountVmsStatus, {
+  title: t('vms-status'),
+  loading: { collections: ['hosts', 'VMs'], content: 'the statuses', find: findLegends },
 })
 
 it('counts the VMs of the host in each power state', () => {
@@ -76,12 +68,7 @@ it('counts the VMs of the host in each power state', () => {
 
   const wrapper = mountVmsStatus()
 
-  expect(findLegends(wrapper)).toEqual([
-    [t('vm:status:running', 2), '2'],
-    [t('vm:status:paused', 2), '1'],
-    [t('vm:status:suspended', 2), '1'],
-    [t('vm:status:halted', 2), '1'],
-  ])
+  expect(findLegends(wrapper)).toEqual(statusLegends('2', '1', '1', '1'))
 })
 
 it('totals the VMs of the host', () => {
@@ -98,12 +85,7 @@ it('totals the VMs of the host', () => {
 it('keeps every power state in the legend for a host without VM', () => {
   const wrapper = mountVmsStatus()
 
-  expect(findLegends(wrapper)).toEqual([
-    [t('vm:status:running', 2), '0'],
-    [t('vm:status:paused', 2), '0'],
-    [t('vm:status:suspended', 2), '0'],
-    [t('vm:status:halted', 2), '0'],
-  ])
+  expect(findLegends(wrapper)).toEqual(statusLegends('0', '0', '0', '0'))
 })
 
 it('leaves out the VMs running on another host', () => {
@@ -125,11 +107,6 @@ it('follows the VMs of the host as the collection changes', async () => {
   ]
   await nextTick()
 
-  expect(findLegends(wrapper)).toEqual([
-    [t('vm:status:running', 2), '1'],
-    [t('vm:status:paused', 2), '0'],
-    [t('vm:status:suspended', 2), '0'],
-    [t('vm:status:halted', 2), '1'],
-  ])
+  expect(findLegends(wrapper)).toEqual(statusLegends('1', '0', '0', '1'))
   expect(findCardNumbers(wrapper)).toEqual([[t('total'), '2']])
 })

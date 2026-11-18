@@ -7,6 +7,7 @@ import {
 import { createHost } from '@/test/create-host.ts'
 import { findTableRows } from '@/test/find-rendered-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
+import { itShowsHostDashboardCard } from '@/test/host-dashboard-card.ts'
 import { t } from '@/test/i18n.ts'
 import { mockedExport } from '@/test/spy-on-module.ts'
 import { mount } from '@vue/test-utils'
@@ -34,11 +35,7 @@ function mountPatches() {
   })
 }
 
-it('renders the card title', () => {
-  const wrapper = mountPatches()
-
-  expect(wrapper.get('.ui-card-title').text()).toContain(t('patches'))
-})
+itShowsHostDashboardCard(mountPatches, { title: t('patches') })
 
 it('counts the missing patches next to the title', () => {
   givenMissingPatches([

@@ -33,70 +33,75 @@ it('renders the card title', () => {
   expect(wrapper.get('.ui-title').text()).toBe(t('vm-management'))
 })
 
-it('shows high availability as enabled when the VM has a restart priority', () => {
-  const wrapper = mountManagement(createVm({ high_availability: 'restart' }))
+const VM_SETTING_CASES: {
+  name: string
+  seed?: () => void
+  vm: Partial<FrontXoVm>
+  values: Record<string, string>
+}[] = [
+  {
+    name: 'shows high availability as enabled when the VM has a restart priority',
+    vm: { high_availability: 'restart' },
+    values: { [t('high-availability')]: t('enabled') },
+  },
+  {
+    name: 'shows high availability as disabled when the VM has no restart priority',
+    vm: { high_availability: '' },
+    values: { [t('high-availability')]: t('disabled') },
+  },
+  {
+    name: 'shows the name of the affinity host',
+    seed: () => {
+      xoCollectionsMock.hosts.value = [createHost({ id: 'host-1' as FrontXoHost['id'], name_label: 'Primary Host' })]
+    },
+    vm: { affinityHost: 'host-1' as FrontXoHost['id'] },
+    values: { [t('affinity-host')]: 'Primary Host' },
+  },
+  {
+    name: 'falls back to "None" when the VM has no affinity host',
+    vm: { affinityHost: undefined },
+    values: { [t('affinity-host')]: t('none') },
+  },
+  {
+    name: 'shows the VM as protected from accidental deletion when destroy is blocked',
+    vm: { blockedOperations: { [VM_OPERATIONS.DESTROY]: 'true' } as FrontXoVm['blockedOperations'] },
+    values: {
+      [t('protect-from-accidental-deletion')]: t('enabled'),
+      [t('protect-from-accidental-shutdown')]: t('disabled'),
+    },
+  },
+  {
+    name: 'shows the VM as protected from accidental shutdown when any shutdown operation is blocked',
+    vm: { blockedOperations: { [VM_OPERATIONS.HARD_SHUTDOWN]: 'true' } as FrontXoVm['blockedOperations'] },
+    values: {
+      [t('protect-from-accidental-deletion')]: t('disabled'),
+      [t('protect-from-accidental-shutdown')]: t('enabled'),
+    },
+  },
+  {
+    name: 'shows both protections as disabled when no operation is blocked',
+    vm: { blockedOperations: {} as FrontXoVm['blockedOperations'] },
+    values: {
+      [t('protect-from-accidental-deletion')]: t('disabled'),
+      [t('protect-from-accidental-shutdown')]: t('disabled'),
+    },
+  },
+  {
+    name: 'shows whether the VM starts automatically with its pool',
+    vm: { auto_poweron: true },
+    values: { [t('auto-power')]: t('enabled') },
+  },
+]
 
-  expect(findLabelledValues(wrapper)).toMatchObject({ [t('high-availability')]: t('enabled') })
-})
+for (const { name, seed, vm, values } of VM_SETTING_CASES) {
+  it(name, () => {
+    seed?.()
 
-it('shows high availability as disabled when the VM has no restart priority', () => {
-  const wrapper = mountManagement(createVm({ high_availability: '' }))
+    const wrapper = mountManagement(createVm(vm))
 
-  expect(findLabelledValues(wrapper)).toMatchObject({ [t('high-availability')]: t('disabled') })
-})
-
-it('shows the name of the affinity host', () => {
-  xoCollectionsMock.hosts.value = [createHost({ id: 'host-1' as FrontXoHost['id'], name_label: 'Primary Host' })]
-
-  const wrapper = mountManagement(createVm({ affinityHost: 'host-1' as FrontXoHost['id'] }))
-
-  expect(findLabelledValues(wrapper)).toMatchObject({ [t('affinity-host')]: 'Primary Host' })
-})
-
-it('falls back to "None" when the VM has no affinity host', () => {
-  const wrapper = mountManagement(createVm({ affinityHost: undefined }))
-
-  expect(findLabelledValues(wrapper)).toMatchObject({ [t('affinity-host')]: t('none') })
-})
-
-it('shows the VM as protected from accidental deletion when destroy is blocked', () => {
-  const wrapper = mountManagement(
-    createVm({ blockedOperations: { [VM_OPERATIONS.DESTROY]: 'true' } as FrontXoVm['blockedOperations'] })
-  )
-
-  expect(findLabelledValues(wrapper)).toMatchObject({
-    [t('protect-from-accidental-deletion')]: t('enabled'),
-    [t('protect-from-accidental-shutdown')]: t('disabled'),
+    expect(findLabelledValues(wrapper)).toMatchObject(values)
   })
-})
-
-it('shows the VM as protected from accidental shutdown when any shutdown operation is blocked', () => {
-  const wrapper = mountManagement(
-    createVm({
-      blockedOperations: { [VM_OPERATIONS.HARD_SHUTDOWN]: 'true' } as FrontXoVm['blockedOperations'],
-    })
-  )
-
-  expect(findLabelledValues(wrapper)).toMatchObject({
-    [t('protect-from-accidental-deletion')]: t('disabled'),
-    [t('protect-from-accidental-shutdown')]: t('enabled'),
-  })
-})
-
-it('shows both protections as disabled when no operation is blocked', () => {
-  const wrapper = mountManagement(createVm({ blockedOperations: {} as FrontXoVm['blockedOperations'] }))
-
-  expect(findLabelledValues(wrapper)).toMatchObject({
-    [t('protect-from-accidental-deletion')]: t('disabled'),
-    [t('protect-from-accidental-shutdown')]: t('disabled'),
-  })
-})
-
-it('shows whether the VM starts automatically with its pool', () => {
-  const wrapper = mountManagement(createVm({ auto_poweron: true }))
-
-  expect(findLabelledValues(wrapper)).toMatchObject({ [t('auto-power')]: t('enabled') })
-})
+}
 
 describe('start delay', () => {
   function mountStartDelay(startDelay: number) {

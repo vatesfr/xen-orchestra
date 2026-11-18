@@ -1,8 +1,9 @@
 import HostDashboardRamProvisioning from '@/modules/host/components/dashboard/HostDashboardRamProvisioning.vue'
 import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import { createHost } from '@/test/create-host.ts'
-import { findCardNumbers, findLegends } from '@/test/find-rendered-values.ts'
+import { findCardNumbers, findLegends, findProgressBarFillStyle } from '@/test/find-rendered-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
+import { itShowsHostDashboardCard } from '@/test/host-dashboard-card.ts'
 import { t } from '@/test/i18n.ts'
 import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
 import { mockModule } from '@/test/spy-on-module.ts'
@@ -24,19 +25,9 @@ function mountProvisioning(host: FrontXoHost = createHost({ memory: { size: 4294
   })
 }
 
-it('renders the card title', () => {
-  const wrapper = mountProvisioning()
-
-  expect(wrapper.get('.ui-card-title').text()).toBe(t('ram-provisioning'))
-})
-
-it('shows a loader instead of the provisioning while the hosts are still loading', () => {
-  xoCollectionsMock.areHostsReady.value = false
-
-  const wrapper = mountProvisioning()
-
-  expect(wrapper.find('.ui-loader').exists()).toBe(true)
-  expect(findCardNumbers(wrapper)).toEqual([])
+itShowsHostDashboardCard(mountProvisioning, {
+  title: t('ram-provisioning'),
+  loading: { collections: ['hosts'], content: 'the provisioning', find: findCardNumbers },
 })
 
 it('splits the memory of the host between what is assigned and what is left', () => {
@@ -51,7 +42,7 @@ it('splits the memory of the host between what is assigned and what is left', ()
 it('fills the progress bar with the share of the memory in use', () => {
   const wrapper = mountProvisioning()
 
-  expect(wrapper.get('.ui-progress-bar .fill').attributes('style')).toBe('width: 25%;')
+  expect(findProgressBarFillStyle(wrapper)).toBe('width: 25%;')
 })
 
 it('labels the progress bar with the name of the host', () => {

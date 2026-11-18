@@ -6,6 +6,7 @@ import {
   findHeadBarActionLabels,
   findMenuEntries,
   findMenuEntryIndex,
+  itMeasuresAgainOnPowerStateChange,
   openMoreActions,
 } from '@/test/head-bar-actions.ts'
 import { t } from '@/test/i18n.ts'
@@ -17,7 +18,7 @@ import UiDropdownButton from '@core/components/ui/dropdown-button/UiDropdownButt
 import { VM_POWER_STATE } from '@vates/types'
 import { mount } from '@vue/test-utils'
 
-const { collapsedCount, resetCollapsedCount } = collapseOnOverflowMock
+const { collapsedCount } = collapseOnOverflowMock
 
 mockModule(import('@/shared/remote-resources/use-xo-routes.ts'), () => import('@/test/mock-xo-routes.ts'))
 
@@ -149,10 +150,6 @@ describe('when the quick actions do not fit', () => {
   })
 })
 
-it('measures the header again when the quick actions change with the power state', async () => {
-  const wrapper = mountActions()
-
-  await wrapper.setProps({ vm: createVm({ id: 'vm-42' as FrontXoVm['id'], power_state: VM_POWER_STATE.HALTED }) })
-
-  expect(resetCollapsedCount).toHaveBeenCalledOnce()
-})
+itMeasuresAgainOnPowerStateChange(mountActions, () => ({
+  vm: createVm({ id: 'vm-42' as FrontXoVm['id'], power_state: VM_POWER_STATE.HALTED }),
+}))

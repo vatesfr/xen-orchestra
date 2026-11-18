@@ -7,7 +7,13 @@ import type { useXoBackupRepositoryChangeStateJob } from '@/modules/backup-repos
 import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
 import { createBr } from '@/test/create-br.ts'
 import { createJobResult, toJobComposableResult } from '@/test/create-job-result.ts'
-import { findBreadcrumbItems, findBreadcrumbLink, findHeadBarLabel } from '@/test/find-header.ts'
+import {
+  findBreadcrumbItems,
+  findBreadcrumbLink,
+  findHeadBarLabel,
+  getHeadBarActions,
+  getHeadBarIcon,
+} from '@/test/find-header.ts'
 import { findShownComponents } from '@/test/find-shown-components.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
@@ -15,7 +21,6 @@ import { benchmarkJobMock } from '@/test/mock-backup-repository-benchmark-job.ts
 import { mockModule } from '@/test/spy-on-module.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
-import UiHeadBar from '@core/components/ui/head-bar/UiHeadBar.vue'
 import { objectIcon } from '@core/icons'
 import { mount } from '@vue/test-utils'
 
@@ -48,7 +53,7 @@ function mountHeader(br: FrontXoBackupRepository = createBr()) {
 function findIcons(wrapper: ReturnType<typeof mountHeader>) {
   return {
     breadcrumb: findBreadcrumbItems(wrapper).at(-1)?.getComponent(VtsIcon).props('name'),
-    headBar: wrapper.getComponent(UiHeadBar).getComponent(VtsIcon).props('name'),
+    headBar: getHeadBarIcon(wrapper).props('name'),
   }
 }
 
@@ -75,7 +80,7 @@ it('links the breadcrumb back to the list of backup repositories', () => {
 it('offers to change the state of the repository', () => {
   const wrapper = mountHeader(createBr({ enabled: true }))
 
-  expect(wrapper.get('.ui-head-bar .actions').text()).toContain(t('action:disable'))
+  expect(getHeadBarActions(wrapper).text()).toContain(t('action:disable'))
 })
 
 it('offers to edit, to test the speed and to forget the repository in the more actions menu', async () => {
