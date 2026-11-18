@@ -53,6 +53,7 @@
 - [Menus] Submenus open when hovering their option and can be reached diagonally without opening the neighbouring ones, Escape closes them one level at a time, and menu buttons are announced to screen readers (PR [#10827](https://github.com/vatesfr/xen-orchestra/pull/10827))
 - [Modals] The confirm button of the modals asking to type a text is no longer disabled: confirming with a wrong text keeps the modal open and shows an error under the field (PR [#10826](https://github.com/vatesfr/xen-orchestra/pull/10826))
 - [xen-api] **Breaking:** `callAsync()`, `getResource()` and `putResource()` take an optional `AbortSignal` as first parameter instead of a promise-toolbox `CancelToken`, which is no longer supported (PR [#10740](https://github.com/vatesfr/xen-orchestra/pull/10740))
+- [Backups] When a VM is skipped because of an unhealthy VDI chain, XO scans its SR to restart the coalesce, unless one is already running, so the chain can be merged on SRs that are not scanned periodically (PR [#10837](https://github.com/vatesfr/xen-orchestra/pull/10837))
 
 ### Bug fixes
 

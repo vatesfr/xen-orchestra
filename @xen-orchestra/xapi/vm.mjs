@@ -20,6 +20,10 @@ import isVmRunning from './_isVmRunning.mjs'
 
 const { warn, error } = createLogger('xo:xapi:vm')
 
+// minimum delay between two SR scans started because of an unhealthy VDI chain,
+// in practice once per backup run since each run has its own connection
+const SR_GC_KICK_MIN_INTERVAL = 10 * 60e3
+
 const insecureAgent = new Agent({ connect: { rejectUnauthorized: false } })
 
 const BIOS_STRINGS_KEYS = new Set([
@@ -98,7 +102,7 @@ async function safeGetRecord(xapi, type, ref) {
 const noop = Function.prototype
 
 class Vm {
-  async _assertHealthyVdiChain(vdiRefOrUuid, cache, tolerance) {
+  async _assertHealthyVdiChain(vdiRefOrUuid, cache, tolerance, unhealthySrs) {
     let vdi = cache[vdiRefOrUuid]
     if (vdi === undefined) {
       try {
@@ -148,13 +152,14 @@ class Vm {
         !children[0].managed && // some SRs do not coalesce the leaf
         tolerance-- <= 0
       ) {
+        unhealthySrs?.add(srRef)
         throw new Error('unhealthy VDI chain')
       }
     }
 
     const parentUuid = vdi.sm_config['vhd-parent']
     if (parentUuid !== undefined) {
-      return this._assertHealthyVdiChain(parentUuid, cache, tolerance)
+      return this._assertHealthyVdiChain(parentUuid, cache, tolerance, unhealthySrs)
     }
   }
 
@@ -208,6 +213,57 @@ class Vm {
     }
   }
 
+  // The SM garbage collector, which coalesces VDI chains, is only started by
+  // an SR scan or a VDI deletion, and exits when it has nothing left it can do
+  // (e.g. after an aborted or failed coalesce). A backup skipped because of an
+  // unhealthy chain deletes no snapshot, so on an SR that is not scanned
+  // periodically (`other_config:auto-scan`) and where no other VDI is deleted,
+  // nothing would start it again.
+  //
+  // Never throws: the backup must still report the unhealthy chain.
+  async _kickSrGarbageCollector(srRef) {
+    try {
+      let kicks = this._srGcKicks
+      if (kicks === undefined) {
+        kicks = this._srGcKicks = new Map()
+      }
+      const now = Date.now()
+      if (now - (kicks.get(srRef) ?? -Infinity) < SR_GC_KICK_MIN_INTERVAL) {
+        return
+      }
+      kicks.set(srRef, now)
+
+      const { current_operations, uuid } = await this.getRecord('SR', srRef)
+      if (Object.values(current_operations).includes('scan')) {
+        return
+      }
+
+      // the garbage collector creates this task before its initial pause and
+      // keeps it pending until it exits: it is already running, a scan would
+      // only take the SR lock for nothing
+      const description = `Garbage collection for SR ${uuid}`
+      for (const object of Object.values(this.objects.all)) {
+        if (
+          object.$type === 'task' &&
+          object.status === 'pending' &&
+          object.name_label === 'Garbage Collection' &&
+          object.name_description === description
+        ) {
+          return
+        }
+      }
+
+      // only wait for the task to be created: the backup worker may disconnect
+      // right after, and the scan can take minutes
+      const taskRef = await this.call('Async.SR.scan', srRef)
+      this.watchTask(taskRef).catch(error => {
+        warn('_kickSrGarbageCollector, SR scan failed', { error, sr: srRef })
+      })
+    } catch (error) {
+      warn('_kickSrGarbageCollector, could not scan SR', { error, sr: srRef })
+    }
+  }
+
   async assertHealthyVdiChains(vmRef, tolerance = this._maxUncoalescedVdis) {
     const vdiRefs = {}
     ;(await this.getRecords('VBD', await this.getField('VM', vmRef, 'VBDs'))).forEach(({ VDI: ref }) => {
@@ -216,8 +272,24 @@ class Vm {
       }
     })
     const cache = { __proto__: null }
+
+    // check all the disks to find every SR with an unhealthy chain
+    const unhealthySrs = new Set()
+    let firstError
     for (const vdiRef of Object.keys(vdiRefs)) {
-      await this._assertHealthyVdiChain(vdiRef, cache, tolerance)
+      try {
+        await this._assertHealthyVdiChain(vdiRef, cache, tolerance, unhealthySrs)
+      } catch (error) {
+        if (firstError === undefined) {
+          firstError = error
+        }
+      }
+    }
+    if (firstError !== undefined) {
+      for (const srRef of unhealthySrs) {
+        await this._kickSrGarbageCollector(srRef)
+      }
+      throw firstError
     }
   }
 

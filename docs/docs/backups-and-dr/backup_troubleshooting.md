@@ -73,7 +73,7 @@ To check whether a coalesce job is currently active, look for a VHD process on t
 ps axf | grep vhd
 `}</Terminal>
 
-If no coalesce job is running and you can't find a reason why XCP-ng/XenServer hasn't started one, you can try to trigger it by rescanning the SR. This is harmless, but doesn't always start a coalesce. Open the problematic SR in the XOA UI and click the "Rescan All Disks" button towards the top right (the refresh circle icon). In the SR's Advanced tab, the "disks needing to be coalesced" list should then shrink progressively.
+When it skips a VM because of this protection, XO scans the SR to restart the coalesce, unless one is already running. If no coalesce job is running and the chain doesn't shrink, look for errors in `/var/log/SMlog` on the pool master: a coalesce that keeps failing (corrupted disk, not enough free space) is retried on each scan but never completes. You can also trigger it by rescanning the SR by hand. This is harmless, but doesn't always start a coalesce. Open the problematic SR in the XOA UI and click the "Rescan All Disks" button towards the top right (the refresh circle icon). In the SR's Advanced tab, the "disks needing to be coalesced" list should then shrink progressively.
 
 As a last resort, migrating the VM disks to another storage repository forces a coalesce: moving the VM to another host with its own storage and back will merge the VDI chain and get rid of the `VDI Chain Protection` message.
 
