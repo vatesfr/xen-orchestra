@@ -9,13 +9,15 @@ import { QUERY_SYNC } from '../rest-api'
  */
 
 // No ACL middleware: admins only, like the `sdnController.createPrivateNetwork` JSON-RPC method
+//
+// An action on the pools collection: the networks span several pools, so no single pool id goes before `actions`
 /**
  * @param {SdnController} controller
  * @returns {PluginRestRouteDefinition}
  */
 export function createPrivateNetworkRoute(controller) {
   return {
-    endpoint: '/private_networks',
+    endpoint: '/pools/actions/create_private_network',
     description:
       'Create a Global Private Network: one network per pool, whose hosts are linked by GRE or VXLAN tunnels.\n\n`pifIds` holds one PIF of each pool, the tunnels go through its network. The networks are created one pool after the other: if a pool fails, the networks of the pools before it stay.\n\nAnswers the ids of the created networks with `sync=true`. Otherwise the response points to the task, whose result holds them.',
     method: 'post',

@@ -531,7 +531,7 @@ describe('SDN Controller private networks', { skip: !process.env.SDN_CONTROLLER_
 
   // RestApiClient answers only the body, and the route's statuses are checked too
   const createPrivateNetwork = async (body, client = dispatchClient.restApiClient) => {
-    const response = await fetch(`${client.baseUrl}${BASE}/private_networks?sync=true`, {
+    const response = await fetch(`${client.baseUrl}${BASE}/pools/actions/create_private_network?sync=true`, {
       method: 'POST',
       headers: client.headers,
       body: JSON.stringify(body),
