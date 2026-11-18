@@ -527,6 +527,7 @@
   "form:error:maximum": "Must be {max} or less",
   "form:error:min-items": "Must contain at least {n} item | Must contain at least {n} items",
   "form:error:minimum": "Must be {min} or more",
+  "form:error:must-match": "Must match “{text}”",
   "form:error:required": "This field is required",
   "form:n-errors-summary": "{n} field needs attention | {n} fields need attention",
   "form:warning:out-of-range": "Should be between {min} and {max}",

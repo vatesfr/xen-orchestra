@@ -7,6 +7,7 @@ Testing uses **Vitest 4** with a single `unit` project (see `vitest.config.ts`):
 | `vitest.config.ts`                  | Runner config: `vue` + `vue-i18n` plugins, `@core` / `@core-test` aliases, `globals: true`            |
 | `test/setup.ts`                     | Global setup: auto-unmounts every mounted wrapper after each test                                     |
 | `test/create-global-test-config.ts` | `global` mount options: the real `vue-i18n`, a Pinia and a router (needed by `useUiStore`)            |
+| `test/i18n.ts`                      | The `t` of that `vue-i18n` instance, to build expected texts from their translation key               |
 | `test/mount-composable.ts`          | `mountComposable`: runs a composable inside a mounted component, its result read through `wrapper.vm` |
 | `tsconfig.vitest.json`              | Type-checks test files with the Vitest globals and the `@core-test` alias                             |
 | `tsconfig.app.json`                 | Type-checks the library, test files excluded                                                          |

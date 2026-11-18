@@ -527,6 +527,7 @@
   "form:error:maximum": "Doit être inférieur ou égal à {max}",
   "form:error:min-items": "Doit contenir au moins {n} élément | Doit contenir au moins {n} éléments",
   "form:error:minimum": "Doit être supérieur ou égal à {min}",
+  "form:error:must-match": "Doit correspondre à « {text} »",
   "form:error:required": "Ce champ est requis",
   "form:n-errors-summary": "{n} champ est à corriger | {n} champs sont à corriger",
   "form:warning:out-of-range": "Devrait être compris entre {min} et {max}",
