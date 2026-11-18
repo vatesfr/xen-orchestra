@@ -1,6 +1,6 @@
 # Testing components
 
-Components run in the same `unit` project as everything else: `@vue/test-utils` `mount` on `happy-dom`, **no browser needed**. Mount with `createGlobalTestConfig()` so the real `vue-i18n` instance and a fresh Pinia are installed, and give the repeated mount a helper (see [Setup](./setup-helpers.md)):
+Components run in the same `unit` project as everything else: `@vue/test-utils` `mount` on `happy-dom`, **no browser needed**. Mount with `createGlobalTestConfig()` so the real `vue-i18n` instance, the app form validation messages (`RegleVuePlugin` with `formValidationConfig`, as in `main.ts`) and a fresh Pinia are installed, and give the repeated mount a helper (see [Setup](./setup-helpers.md)):
 
 ```typescript
 import VmSystemGraphics from '@/modules/vm/components/system/VmSystemGraphics.vue'
@@ -60,6 +60,8 @@ expect(labelledValues).toEqual({ [t('vga')]: t('disabled'), [t('video-ram')]: '8
 ```
 
 Prefer this shape: one assertion covering every row a user sees, and it fails loudly when a value lands under the wrong label. Assert against **class names and semantic elements**, never a positional chain of child indexes.
+
+The class must exist for the component's own CSS: **never add a class only for a test**, and remove one whose CSS is gone. Without a styled class, query the component (`getComponent`), a styled class of a child component, or the text the user reads.
 
 `src/test/find-rendered-values.ts` does exactly that reduction, so a card test does not re-roll it:
 
@@ -128,6 +130,25 @@ Where the line falls:
 | a string the component composes from several translations  | a template literal of those `t(…)` calls                                           |
 | data reaching the component (a name, an id, an IP, a tag)  | the literal — it is the test's own input                                           |
 | a number the component formats (`'8 B'`, `'4 GiB'`, `'2'`) | the literal — deriving it would copy the template                                  |
+
+## Tables
+
+A table is read **by header label**, never by column position: `src/test/find-table-cells.ts` looks the label up in `thead th`, so a column added, moved or hidden does not shift the assertions.
+
+| Helper                                                   | Reads                                                                 |
+| -------------------------------------------------------- | --------------------------------------------------------------------- |
+| `findTableHeaders(wrapper)`                              | the header labels, in order (`''` for a checkbox column)              |
+| `findTableColumn(wrapper, label)`                        | the text of each cell of that column, one per body row                |
+| `findTableColumnCells(wrapper, label)`                   | the cells of that column, to query a link, a tag or a checkbox inside |
+| `findTableRows(wrapper)`, from `find-rendered-values.ts` | the cell texts of each body row, for a table read row by row          |
+
+```typescript
+expect(findTableHeaders(wrapper)).toEqual(['', t('vm'), t('size')])
+expect(findTableColumn(wrapper, t('size'))).toEqual(['80GiB', '120GiB'])
+expect(findTableColumnCells(wrapper, t('vm'))[0].getComponent(UiLink).attributes('href')).toBe('/vm/vm-42/dashboard')
+```
+
+A label missing from the header throws, naming the label, rather than reading an empty column.
 
 ## Chart cards
 
@@ -222,6 +243,13 @@ expect(
 ```
 
 Pushing before mounting is what makes the active tab assertable; without a push the router sits at its start location and nothing is active.
+
+## Selects
+
+How `FormSelect` and `VtsSelect` render and open their options belongs to the web-core tests, never to an XO 6 one:
+
+- A component that only passes select bindings on is mounted with `createGlobalTestConfig({ stubs: { FormSelect: true } })`, given `createSelectBindings`, and read with `findSelectStubLabels`.
+- The options a form builds (their labels, their custom properties) are read by mounting the form with `mountWithSelect`, rendering a `VtsSelect` for its select, then `openSelect` and `findSelectOptionLabels`; `findShownSelections` reads the selection each select shows.
 
 ## What `happy-dom` cannot do
 

@@ -1,7 +1,14 @@
 <template>
-  <MenuItem v-if="canDisplay" accent="neutral" icon="action:force-shutdown" :busy="isRunning" @click="openModal()">
+  <VtsActionButton
+    v-if="canDisplay"
+    variant="tertiary"
+    accent="brand"
+    icon="action:force-shutdown"
+    :busy="isRunning"
+    @click="openModal()"
+  >
     {{ t('action:force-shutdown') }}
-  </MenuItem>
+  </VtsActionButton>
 </template>
 
 <script setup lang="ts">
@@ -10,7 +17,7 @@ import { useXo5VmRoute } from '@/modules/vm/composables/xo-vm-route-xo5.composab
 import { useXoVmForceShutdownJob } from '@/modules/vm/jobs/xo-vm-force-shutdown.job.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { isVmAllowingOperation } from '@/modules/vm/utils/xo-vm.util.ts'
-import MenuItem from '@core/components/menu/MenuItem.vue'
+import VtsActionButton from '@core/components/action-button/VtsActionButton.vue'
 import { useBlockedModal } from '@core/composables/modals/use-blocked-modal.ts'
 import { VM_OPERATIONS } from '@vates/types'
 import { computed } from 'vue'
