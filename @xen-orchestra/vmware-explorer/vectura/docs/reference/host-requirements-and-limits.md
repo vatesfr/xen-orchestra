@@ -9,7 +9,7 @@ documentation is cited where it states the limit.
 
 | Requirement                                                            | Detail                                                                                                                                                                |
 | ---------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| ESXi 6.x, 7.x or 8.x, directly or through a vCenter                    | With a vCenter, `--host` names the vCenter and the ticket names the ESXi host that holds the virtual machine; the data port is opened on that host.                   |
+| ESXi 6.x, 7.x or 8.x directly; 6.5, 6.7, 7.x or 8.x through a vCenter  | With a vCenter, `--host` names the vCenter and the ticket names the ESXi host that holds the virtual machine; the data port is opened on that host.                   |
 | `SHA256 supported` in the data port's greeting, for the modern dialect | The ticket dialogue confirms the data port's certificate by its SHA-256. A host that does not announce it, ESXi 6.x, is read in the [legacy dialect](#esxi-6x-hosts). |
 | `NFCSSL supported` in the greeting, for `--transport nfcssl`           | Without it, only `--transport nfc` can run, in clear text. Every host measured, 6.0 included, announces it.                                                           |
 | Port 443 and port 902 reachable                                        | 443 for the management calls, on the vCenter when there is one; 902 for the greeting, the ticket dialogue and the disk, always on the ESXi host.                      |
