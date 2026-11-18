@@ -4,22 +4,12 @@ import { EventEmitter } from 'node:events'
 
 import Xo from './xo.mjs'
 
-const { afterEach, beforeEach, describe, it, mock } = test
+const { describe, it } = test
 
 // resolves with the arguments of the next `name` event of `emitter`
 const nextEvent = (emitter, name) => new Promise(resolve => emitter.once(name, (...args) => resolve(args)))
 
 describe('registerCollection', () => {
-  // the constructor arms a timer that is only disarmed on `core started`, which this test does not emit:
-  // the fake timers keep it from firing after the test ends
-  beforeEach(() => {
-    mock.timers.enable({ apis: ['setTimeout'] })
-  })
-
-  afterEach(() => {
-    mock.timers.reset()
-  })
-
   // the `backup-archive` SSE events are built from this wrapper: the collection emits arrays of items, the
   // emitter returned by `getXoEventEmitterByType` emits one `(object, previous)` event per item
   it('turns the array payloads of a collection into add, update and remove events', async () => {

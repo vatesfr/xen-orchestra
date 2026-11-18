@@ -5,6 +5,16 @@
 
 ### Security
 
+<<<<<<< HEAD
+=======
+- Fix authentication token validation
+- [Backup/File restore] Symbolic links are no longer followed: browsing or downloading a path that goes through one is refused, and the links met inside a restored folder are skipped (PR [#9941](https://github.com/vatesfr/xen-orchestra/pull/9941))
+- [Backup/Live mount] The iSCSI target of a mount only accepts connections from the host it is mounted on. **If the hosts reach XO or the proxy through a NAT**, set `iscsi.restrictToHost = false`, or live mounts fail (PR [#10426](https://github.com/vatesfr/xen-orchestra/pull/10426))
+- [Plugins/audit] Redact more sensitive values from new audit records (created API tokens, credentials and encryption keys in URLs, one-time download/upload links) (PR [#10618](https://github.com/vatesfr/xen-orchestra/pull/10618))
+- [Servers] Fix every pool showing as disconnected after running `xo-server-db` or `xo-server-recover-account`, even though XO was still connected to them (PR [#](https://github.com/vatesfr/xen-orchestra/pull/))
+- [Servers] Fix a server that could no longer be enabled (`incorrect state`) until xo-server was restarted (PR [#](https://github.com/vatesfr/xen-orchestra/pull/))
+
+>>>>>>> 7a9eb86b87 (fix(xo-server): keep server statuses in sync with the live connections)
 ### Enhancements
 
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
@@ -44,9 +54,15 @@
 - @vates/types minor
 - @xen-orchestra/backups patch
 - @xen-orchestra/rest-api minor
-- @xen-orchestra/web patch
-- @xen-orchestra/web-core patch
+- @xen-orchestra/vmware-explorer minor
+- @xen-orchestra/web minor
+- @xen-orchestra/web-core minor
+- xen-api minor
 - xo-collection patch
-- xo-server patch
+- xo-server minor
+- xo-server-audit minor
+- xo-server-load-balancer patch
+- xo-server-sdn-controller patch
+- xo-web minor
 
 <!--packages-end-->
