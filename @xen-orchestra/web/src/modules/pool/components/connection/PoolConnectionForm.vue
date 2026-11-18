@@ -145,6 +145,7 @@ async function onSubmit() {
     display: flex;
     width: 100%;
     justify-content: center;
+    align-items: center;
     gap: 2.4rem;
   }
 

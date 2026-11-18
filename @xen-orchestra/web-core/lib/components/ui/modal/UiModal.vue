@@ -131,6 +131,7 @@ provide(
 
       .content {
         width: 100%;
+        text-align: start;
       }
     }
   }
