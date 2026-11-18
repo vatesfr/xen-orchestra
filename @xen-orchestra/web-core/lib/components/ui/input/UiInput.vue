@@ -19,6 +19,8 @@
       :required
       :type
       :aria-busy="busy || undefined"
+      :aria-describedby="wrapperController?.describedBy"
+      :aria-invalid="wrapperController?.invalid || undefined"
       class="typo-body-regular input text-ellipsis"
       v-bind="attrs"
       @input="event => handleInput(event)"
