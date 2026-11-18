@@ -80,16 +80,26 @@ describe('vmLaunchOptionsRows', () => {
   it('overrides stopping the source of a VM', async () => {
     const { result } = await mountLaunch()
 
-    result.changeStopSource(V2V_DB_VM.id, false)
+    result.changeVmLaunchOption(V2V_DB_VM.id, 'stopSource', false)
 
     expect(result.vmLaunchOptionsRows[1].overrides).toEqual({ stopSource: false })
+  })
+
+  it('overrides docking the guest and starting a VM, next to its other overrides', async () => {
+    const { result } = await mountLaunch()
+
+    result.changeVmLaunchOption(V2V_DB_VM.id, 'stopSource', false)
+    result.changeVmLaunchOption(V2V_DB_VM.id, 'docking', true)
+    result.changeVmLaunchOption(V2V_DB_VM.id, 'startVm', true)
+
+    expect(result.vmLaunchOptionsRows[1].overrides).toEqual({ stopSource: false, docking: true, startVm: true })
   })
 
   it('clears the override of a VM set back to the launch settings', async () => {
     const { result } = await mountLaunch()
 
-    result.changeStopSource(V2V_DB_VM.id, false)
-    result.changeStopSource(V2V_DB_VM.id, true)
+    result.changeVmLaunchOption(V2V_DB_VM.id, 'stopSource', false)
+    result.changeVmLaunchOption(V2V_DB_VM.id, 'stopSource', true)
 
     expect(result.vmLaunchOptionsRows[1].overrides).toBeUndefined()
   })
@@ -130,7 +140,7 @@ describe('launch', () => {
     ])
     const { result } = await mountLaunch({ list })
 
-    result.changeStopSource(V2V_DB_VM.id, false)
+    result.changeVmLaunchOption(V2V_DB_VM.id, 'stopSource', false)
     await settleV2vLaunch(result.launch)
 
     const payload = createV2vStartPayload({

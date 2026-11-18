@@ -11,26 +11,23 @@ export type V2vStartPayloadInput = {
   vms: V2vStartVm[]
 }
 
-// The back end refuses to start or clean up a VM, to tag it or to give it new MACs: only what it accepts is sent,
-// whatever the list holds
-const UNSUPPORTED_DEFAULTS = { startVm: false, cleanup: false }
-
+// The back end refuses to tag a VM or to give it new MACs: only what it accepts is sent, whatever the list holds
 const UNSUPPORTED_VM_OPTIONS = { tags: [], keepMac: true }
 
 // A resumed VM keeps the mapping of its first sync, which the import reads from the XCP-ng VM
 function buildVm({ id, kind, disks, nics, template, overrides }: V2vStartVm): XoV2vStartPayloadVm {
   const mapping = kind === 'resume' ? {} : { disks, nics, template }
 
-  // An `undefined` key is not sent: the VM is then on the list defaults or the launch settings
-  return { id, ...mapping, stopSource: overrides?.stopSource, ...UNSUPPORTED_VM_OPTIONS }
+  // An option without override is not sent: the VM is then on the list defaults or the launch settings
+  return { id, ...mapping, ...overrides, ...UNSUPPORTED_VM_OPTIONS }
 }
 
 export function buildV2vStartPayload({ connection, defaults, settings, vms }: V2vStartPayloadInput): XoV2vStartPayload {
-  const { stopSource, stopOnError, concurrency } = settings
+  const { stopSource, docking, startVm, stopOnError, concurrency } = settings
 
   return {
     connection,
-    defaults: { ...defaults, stopSource, ...UNSUPPORTED_DEFAULTS },
+    defaults: { ...defaults, stopSource, docking, startVm },
     vms: vms.map(buildVm),
     stopOnError,
     concurrency,

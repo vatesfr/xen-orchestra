@@ -18,7 +18,7 @@ import { flushPromises } from '@vue/test-utils'
 
 // The settings a launch starts with
 export function createV2vLaunchSettings(overrides: Partial<V2vLaunchSettings> = {}): V2vLaunchSettings {
-  return { stopSource: true, stopOnError: true, concurrency: 2, ...overrides }
+  return { stopSource: true, docking: false, startVm: false, stopOnError: true, concurrency: 2, ...overrides }
 }
 
 // A new VM, ready to launch

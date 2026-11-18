@@ -10,6 +10,7 @@ import type {
   V2vLaunchError,
   V2vStartProblem,
   V2vStartVm,
+  V2vVmLaunchOption,
   V2vVmLaunchOptionsRow,
   V2vVmLaunchOverrides,
 } from '@/modules/v2v/types/v2v-launch.type.ts'
@@ -78,8 +79,8 @@ export function useV2vLaunch(
 
   const canLaunch = computed(() => launchCount.value > 0)
 
-  function changeStopSource(id: XoV2vVm['id'], value: boolean | undefined) {
-    const overrides = setV2vOverride(overridesById.get(id), 'stopSource', value, form.formData.stopSource)
+  function changeVmLaunchOption(id: XoV2vVm['id'], option: V2vVmLaunchOption, value: boolean | undefined) {
+    const overrides = setV2vOverride(overridesById.get(id), option, value, form.formData[option])
 
     if (overrides === undefined) {
       overridesById.delete(id)
@@ -147,7 +148,7 @@ export function useV2vLaunch(
     isLaunching,
     launchError,
     launched,
-    changeStopSource,
+    changeVmLaunchOption,
     launch,
   }
 }

@@ -13,13 +13,19 @@ async function validateConcurrency(concurrency: number) {
 const EMPTY_INPUT = '' as unknown as number
 
 describe('formData', () => {
-  it('starts stopping the source VMs and on the first error, two VMs at a time', () => {
+  it('starts stopping the source VMs and on the first error, two VMs at a time, without docking nor starting them', () => {
     expect(mountV2vLaunchForm().formData).toEqual(createV2vLaunchSettings())
   })
 })
 
 it.each([
   { bindings: 'stopSourceCheckboxBindings', labelKey: 'v2v:stop-source-vm', infoKey: 'v2v:stop-source-vm-info' },
+  { bindings: 'dockingCheckboxBindings', labelKey: 'v2v:docking-vm', infoKey: 'v2v:docking-vm-info' },
+  {
+    bindings: 'startVmCheckboxBindings',
+    labelKey: 'v2v:start-vm-on-xcp-ng',
+    infoKey: 'v2v:start-vm-on-xcp-ng-info',
+  },
   { bindings: 'stopOnErrorCheckboxBindings', labelKey: 'stop-on-error', infoKey: 'v2v:stop-on-error-info' },
 ] as const)('labels the $bindings checkbox and tells what it does', ({ bindings, labelKey, infoKey }) => {
   const form = mountV2vLaunchForm()
