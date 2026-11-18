@@ -11,8 +11,6 @@ export { Task }
 
 const { warn } = createLogger('xo:mixins:Tasks')
 
-const noop = Function.prototype
-
 // a copy, as the store returns: a live log keeps changing, and must not be changed by the caller. Like the store of
 // xo-server when it saves a log, circular references are replaced instead of making the copy fail.
 const copyLog = log => {
@@ -23,6 +21,19 @@ const copyLog = log => {
     json = jsonStringifySafe(log)
   }
   return JSON.parse(json)
+}
+
+// the tasks of a log tree that have not ended, each one after its subtasks
+function* openTasks(taskLog) {
+  const { tasks } = taskLog
+  if (tasks !== undefined) {
+    for (const subtask of tasks) {
+      yield* openTasks(subtask)
+    }
+  }
+  if (taskLog.status === 'pending') {
+    yield taskLog
+  }
 }
 
 const DEFAULT_BACKUP_LOG_KEEP_DURATION = 31 * 24 * 60 * 60 * 1000
@@ -173,10 +184,13 @@ export default class Tasks extends EventEmitter {
       .on('start', async () => {
         this.#store = await app.getStore('tasks')
 
-        for await (const taskLog of this.list({ filter: _ => _.status === 'pending' })) {
-          taskLog.status = 'interrupted'
-          taskLog.updatedAt = Date.now()
-          await this.#store.put(taskLog.id, taskLog)
+        // from the store only: list() also returns the live tasks, which must not be marked interrupted
+        for await (const [, taskLog] of this.#store.iterator()) {
+          if (taskLog.status === 'pending') {
+            taskLog.status = 'interrupted'
+            taskLog.updatedAt = Date.now()
+            await this.#store.put(taskLog.id, taskLog)
+          }
         }
 
         return () => this.#store.close()
@@ -265,8 +279,8 @@ export default class Tasks extends EventEmitter {
   createExternalProgressHandler({ abort, onRootTaskEnd, onRootTaskStart, onTaskUpdate } = {}) {
     // error thrown by the caller's onRootTaskEnd: the final state must still be buffered (see onTaskUpdate below)
     let rootEndError
-    // ids of the tasks accepted by makeOnProgress and not yet ended, in start order
-    const openIds = new Set()
+    // logs of the root tasks accepted by makeOnProgress and not yet ended: end() walks their trees
+    const openRoots = new Set()
     let closed = false
     // a source that keeps sending events after end() is reported once
     let warnedAfterClose = false
@@ -275,8 +289,8 @@ export default class Tasks extends EventEmitter {
       onRootTaskEnd: (taskLog, event) => {
         // the task can no longer be aborted once it ended
         this.#tasks.delete(taskLog.id)
-        // subtasks the source left open are ended with their root: end() must not end them again
-        openIds.clear()
+        // subtasks the source left open end with their root: end() no longer sees them
+        openRoots.delete(taskLog)
 
         try {
           onRootTaskEnd?.(taskLog, event)
@@ -286,7 +300,7 @@ export default class Tasks extends EventEmitter {
       },
       onRootTaskStart: (taskLog, event) => {
         // tracked here, once makeOnProgress has registered it, in case the caller's hook throws
-        openIds.add(taskLog.id)
+        openRoots.add(taskLog)
         if (abort !== undefined) {
           this.#tasks.set(taskLog.id, { abort })
         }
@@ -298,9 +312,6 @@ export default class Tasks extends EventEmitter {
         if (taskLog.$root === undefined) {
           warn('event of a task without root task ignored', { event })
           return
-        }
-        if (event.type === 'start') {
-          openIds.add(taskLog.id)
         }
         this.#bufferTaskUpdate(taskLog)
         onTaskUpdate?.(taskLog, event)
@@ -317,14 +328,14 @@ export default class Tasks extends EventEmitter {
         if (rootEndError !== undefined) {
           const rootError = rootEndError.error
           rootEndError = undefined
-          warn('failure in task update hook after the root task end hook failed', { error, event })
+          // the update hook may rethrow the same error, like handleBackupLog() and forwardResult() for backups: only
+          // another error is worth a warning
+          if (error !== rootError) {
+            warn('failure in task update hook after the root task end hook failed', { error, event })
+          }
           throw rootError
         }
         throw error
-      } finally {
-        if (event.type === 'end') {
-          openIds.delete(event.id)
-        }
       }
 
       if (rootEndError !== undefined) {
@@ -347,30 +358,38 @@ export default class Tasks extends EventEmitter {
 
     function end({ status = 'interrupted', reason } = {}) {
       // nothing to end: not started yet, or already ended
-      if (openIds.size === 0) {
+      if (openRoots.size === 0) {
         return
       }
       closed = true
 
-      // the root task was started first
-      const [rootId] = openIds
+      // like the result of an event sent by a worker or a proxy: the update hook then rethrows the same object as the
+      // root end hook (handleBackupLog() and forwardResult() for backups), which the log keeps serialized
+      const result = reason instanceof Error ? serializeError(reason) : reason
+
       let thrown
-      // children were started after their parents: end them first, the root last
-      for (const id of [...openIds].reverse()) {
-        try {
-          feed({ type: 'end', id, timestamp: Date.now(), status, result: reason })
-        } catch (error) {
-          // the root end error carries the result of the task: it wins, like in feed(); the others are logged
-          if (thrown === undefined) {
-            thrown = { error, id }
-          } else if (id === rootId) {
-            warn('failure in task end hook, superseded by the root task error', thrown)
-            thrown = { error, id }
-          } else {
-            warn('failure in task end hook', { error, id })
+      for (const root of [...openRoots]) {
+        // listed before ending them, as ending a task may sort the subtasks of its parent (handleBackupLog)
+        for (const { id } of [...openTasks(root)]) {
+          try {
+            feed({ type: 'end', id, timestamp: Date.now(), status, result })
+          } catch (error) {
+            // a root end error carries the result of its task: the first one wins, like in feed(); the others are
+            // logged
+            const isRoot = id === root.id
+            if (thrown === undefined) {
+              thrown = { error, id, isRoot }
+            } else if (isRoot && !thrown.isRoot) {
+              warn('failure in task end hook, superseded by the root task error', {
+                error: thrown.error,
+                id: thrown.id,
+              })
+              thrown = { error, id, isRoot }
+            } else {
+              warn('failure in task end hook', { error, id })
+            }
           }
         }
-        openIds.delete(id)
       }
 
       if (thrown !== undefined) {
@@ -452,6 +471,8 @@ export default class Tasks extends EventEmitter {
       log = await this.#getStored(id)
     } catch (error) {
       if (noSuchObject.is(error)) {
+        // nothing to delete, but #gc waits for cb
+        cb?.()
         return
       }
       throw error
@@ -492,15 +513,53 @@ export default class Tasks extends EventEmitter {
     }
   }
 
+  /**
+   * Lists the logs of the tasks: a live task in its latest state, like get(), even if it is not stored yet.
+   */
   async *list({ filter, limit = Infinity } = {}) {
     const predicate = filter === undefined ? stubTrue : typeof filter === 'function' ? filter : iteratee(filter)
+    const liveLogs = this.#liveLogs
 
-    for await (const [, taskLog] of this.#store.iterator()) {
+    // ids of the live tasks already listed from the store
+    const listed = new Set()
+    for await (const [, storedLog] of this.#store.iterator()) {
+      const { id } = storedLog
+      const liveLog = liveLogs.get(id)
+      let taskLog = storedLog
+      if (liveLog !== undefined) {
+        listed.add(id)
+        taskLog = copyLog(liveLog)
+      } else if (storedLog.status === 'pending') {
+        // pending logs of the previous runs are marked interrupted at start: this one belongs to a task that ended or
+        // was deleted since the listing read the store
+        try {
+          taskLog = await this.#getStored(id)
+        } catch (error) {
+          if (noSuchObject.is(error)) {
+            continue
+          }
+          throw error
+        }
+      }
       if (predicate(taskLog)) {
         yield taskLog
 
         if (--limit < 1) {
-          break
+          return
+        }
+      }
+    }
+
+    // live tasks the store did not list: not stored yet, or stored after the listing started
+    for (const [id, liveLog] of liveLogs) {
+      if (!listed.has(id)) {
+        const taskLog = copyLog(liveLog)
+        if (predicate(taskLog)) {
+          yield taskLog
+
+          if (--limit < 1) {
+            return
+          }
         }
       }
     }
@@ -510,6 +569,9 @@ export default class Tasks extends EventEmitter {
     // always called later: the caller may use the value returned by watch() in cb (e.g. to stop watching), and an
     // error of cb must not escape as an uncaught exception
     let stopped = false
+    const stop = () => {
+      stopped = true
+    }
     const callLater = taskLog =>
       setImmediate(() => {
         if (stopped) {
@@ -528,7 +590,7 @@ export default class Tasks extends EventEmitter {
       const liveLog = this.#liveLogs.get(id)
       if (liveLog !== undefined && liveLog.status !== 'pending') {
         callLater(liveLog)
-        return noop
+        return stop
       }
 
       // live task
@@ -537,21 +599,21 @@ export default class Tasks extends EventEmitter {
         this.on(id, callLater)
 
         return () => {
-          stopped = true
+          stop()
           this.off(id, callLater)
         }
       }
     }
 
-    const stop = watchLive()
-    if (stop !== undefined) {
-      return stop
+    const stopLive = watchLive()
+    if (stopLive !== undefined) {
+      return stopLive
     }
 
     // unknown task will throw noSuchObject
     const taskLog = await this.get(id)
 
     // the first event of the task may have arrived while the store was read: watch it until it ends
-    return watchLive() ?? (callLater(taskLog), noop)
+    return watchLive() ?? (callLater(taskLog), stop)
   }
 }

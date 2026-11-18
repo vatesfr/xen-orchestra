@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict'
+import { Readable } from 'node:stream'
 import { describe, it } from 'node:test'
 import { setTimeout as sleep } from 'node:timers/promises'
 
@@ -34,6 +35,8 @@ function makeApp() {
   const failing = new Set()
   const failingGets = new Set()
   const heldGets = new Map()
+  // listed by createReadStream but missing from the store, as if deleted right after being listed
+  const listedOnly = new Map()
   const store = {
     async get(id) {
       const held = heldGets.get(id)
@@ -67,6 +70,10 @@ function makeApp() {
     async *iterator() {
       yield* [...data].map(([key, value]) => [key, structuredClone(value)])
     },
+    createReadStream({ reverse = false } = {}) {
+      const entries = [...data, ...listedOnly].map(([key, value]) => ({ key, value: structuredClone(value) }))
+      return Readable.from(reverse ? entries.reverse() : entries)
+    },
     close() {},
   }
 
@@ -87,6 +94,10 @@ function makeApp() {
     // the next get of `id` fails with an error other than NotFoundError
     failGet(id) {
       failingGets.add(id)
+    },
+    // createReadStream lists `id` although the store does not have it, as if it was deleted right after being listed
+    listDeleted(id, value) {
+      listedOnly.set(id, value)
     },
     // the next get of `id` waits until the returned function is called, then reads the store
     holdGet(id) {
@@ -310,6 +321,35 @@ describe('Tasks', () => {
       return promise
     }
 
+    it('does not call the watcher of a finished task once it was stopped', async () => {
+      const fake = makeApp()
+      const tasks = new Tasks(fake.app)
+      await fake.start()
+
+      const onLogFct = tasks.createExternalProgressHandler()
+      const timestamp = Date.now()
+      onLogFct({ type: 'start', id: 'live-final', timestamp, properties: { name: 'backup run' } })
+      onLogFct({ type: 'end', id: 'live-final', timestamp: timestamp + 1, status: 'success', result: 'done' })
+      const task = tasks.create({ name: 'stored' })
+      await task.run(() => 'ok')
+      await flush()
+
+      // final state of a task already stored, and of a live task whose final write is not done yet
+      const calls = []
+      const stopStored = await tasks.watch(task.id, () => calls.push('stored'))
+      stopStored()
+      const release = fake.holdPut('live-again')
+      onLogFct({ type: 'start', id: 'live-again', timestamp, properties: { name: 'backup run' } })
+      onLogFct({ type: 'end', id: 'live-again', timestamp: timestamp + 1, status: 'success', result: 'done' })
+      const stopLive = await tasks.watch('live-again', () => calls.push('live'))
+      stopLive()
+      await flush()
+      release()
+      await flush()
+
+      assert.deepEqual(calls, [])
+    })
+
     it('REST-style wait resolves on a running external task', async () => {
       const fake = makeApp()
       const tasks = new Tasks(fake.app)
@@ -392,6 +432,41 @@ describe('Tasks', () => {
       assert.equal((await pFinal).status, 'failure')
       await flush()
       assert.equal(fake.data.get(task.id).status, 'failure')
+    })
+
+    it('sends remove once the stored log of a clear-on-success task is deleted', async () => {
+      const fake = makeApp()
+      const tasks = new Tasks(fake.app)
+      await fake.start()
+
+      const removed = []
+      tasks.on('remove', log => removed.push(log.id))
+      const task = tasks.create({ name: 'clear on success' }, { clearLogOnSuccess: true })
+      await task.run(async () => {
+        await flush()
+        assert.equal(fake.data.get(task.id).status, 'pending')
+        return 'ok'
+      })
+      await flush()
+
+      assert.deepEqual(removed, [task.id])
+      assert.equal(fake.data.has(task.id), false)
+    })
+
+    it('sends neither update nor remove for a clear-on-success task that ends before its first write', async () => {
+      const fake = makeApp()
+      const tasks = new Tasks(fake.app)
+      await fake.start()
+
+      const events = []
+      tasks.on('update', log => events.push(`update ${log.id}`))
+      tasks.on('remove', log => events.push(`remove ${log.id}`))
+      const task = tasks.create({ name: 'clear on success' }, { clearLogOnSuccess: true })
+      await task.run(() => 'ok')
+      await flush()
+
+      assert.deepEqual(fake.puts, [])
+      assert.deepEqual(events, [])
     })
 
     it('calls the hooks of a handler without options as before, for a successful task', async () => {
@@ -665,6 +740,89 @@ describe('Tasks', () => {
         assert.equal(stored.status, 'interrupted')
         assert.equal(stored.tasks[0].status, 'interrupted')
       })
+
+      it('does not warn when the update hook rethrows the Error given as the reason of a failure', async () => {
+        const fake = makeApp()
+        const tasks = new Tasks(fake.app)
+        await fake.start()
+
+        // like forwardResult() and handleBackupLog() of backups: both throw the result of a failed root task
+        const forwardResult = log => {
+          if (log.status === 'failure') {
+            throw log.result
+          }
+        }
+        const onLogFct = tasks.createExternalProgressHandler({
+          onRootTaskEnd: forwardResult,
+          onTaskUpdate: (log, event) => {
+            if (event.type === 'end' && log.$root === log) {
+              forwardResult(log)
+            }
+          },
+        })
+        const id = 'root-end-error-reason'
+        onLogFct({ type: 'start', id, timestamp: Date.now(), properties: { name: 'backup run' } })
+
+        await withLogs(logs => {
+          assert.throws(() => onLogFct.end({ status: 'failure', reason: new Error('worker killed') }), {
+            message: 'worker killed',
+          })
+          const warnings = logs.filter(log => log.message.startsWith('failure in task update hook'))
+          assert.equal(warnings.length, 0)
+        })
+        await flush()
+        assert.equal(fake.data.get(id).status, 'failure')
+        assert.equal(fake.data.get(id).result.message, 'worker killed')
+      })
+
+      it('ends the open tasks of a root still open when another root of the same source ended', async () => {
+        const fake = makeApp()
+        const tasks = new Tasks(fake.app)
+        await fake.start()
+
+        const onLogFct = tasks.createExternalProgressHandler()
+        const timestamp = Date.now()
+        onLogFct({ type: 'start', id: 'first-root', timestamp, properties: { name: 'backup run' } })
+        startRootAndChild(onLogFct, 'second-root', timestamp)
+        onLogFct({ type: 'end', id: 'first-root', timestamp: timestamp + 2, status: 'success', result: 'done' })
+
+        onLogFct.end({ reason: 'source lost' })
+        await flush()
+
+        assert.equal(fake.data.get('first-root').status, 'success')
+        const stored = fake.data.get('second-root')
+        assert.equal(stored.status, 'interrupted')
+        assert.equal(stored.tasks[0].status, 'interrupted')
+      })
+
+      it('ends the subtasks before their parent', async () => {
+        const fake = makeApp()
+        const tasks = new Tasks(fake.app)
+        await fake.start()
+
+        const ended = []
+        const onLogFct = tasks.createExternalProgressHandler({
+          onTaskUpdate: (log, event) => {
+            if (event.type === 'end') {
+              ended.push(log.id)
+            }
+          },
+        })
+        const timestamp = Date.now()
+        const start = (id, parentId) => onLogFct({ type: 'start', id, parentId, timestamp, properties: { name: id } })
+        start('nested-root')
+        start('vm', 'nested-root')
+        start('export', 'vm')
+        start('other-vm', 'nested-root')
+        onLogFct.end({ reason: 'source lost' })
+
+        assert.equal(ended.length, 4)
+        const assertEndsBefore = (subtask, parent) =>
+          assert.ok(ended.indexOf(subtask) < ended.indexOf(parent), `unexpected order: ${ended.join(', ')}`)
+        assertEndsBefore('export', 'vm')
+        assertEndsBefore('vm', 'nested-root')
+        assertEndsBefore('other-vm', 'nested-root')
+      })
     })
 
     describe('real caller shapes of a failing root task', () => {
@@ -828,13 +986,53 @@ describe('Tasks', () => {
         onLogFct({ type: 'start', id, timestamp, properties: { name: 'backup run' } })
         onLogFct({ type: 'start', id: `${id}-child`, parentId: id, timestamp, properties: { name: 'vm' } })
 
-        assert.throws(
-          () => onLogFct({ type: 'end', id, timestamp: timestamp + 1, status: 'failure', result: 'x' }),
-          /root end boom/
-        )
+        await withLogs(logs => {
+          assert.throws(
+            () => onLogFct({ type: 'end', id, timestamp: timestamp + 1, status: 'failure', result: 'x' }),
+            /root end boom/
+          )
+          // the update hook threw another error: it is logged
+          const warnings = logs.filter(log => log.message.startsWith('failure in task update hook'))
+          assert.equal(warnings.length, 1)
+        })
         assert.doesNotThrow(() =>
           onLogFct({ type: 'end', id: `${id}-child`, timestamp: timestamp + 2, status: 'success' })
         )
+      })
+
+      it('does not warn when the update hook rethrows the error of the root end hook', async () => {
+        const fake = makeApp()
+        const tasks = new Tasks(fake.app)
+        await fake.start()
+
+        // like forwardResult() and handleBackupLog() of backups: both throw the result of a failed root task
+        const forwardResult = log => {
+          if (log.status === 'failure') {
+            throw log.result
+          }
+        }
+        const onLogFct = tasks.createExternalProgressHandler({
+          onRootTaskEnd: forwardResult,
+          onTaskUpdate: (log, event) => {
+            if (event.type === 'end' && log.$root === log) {
+              forwardResult(log)
+            }
+          },
+        })
+        const id = 'root-same-error'
+        const timestamp = Date.now()
+        onLogFct({ type: 'start', id, timestamp, properties: { name: 'backup run' } })
+
+        // a proxy or a worker sends the error of the task serialized
+        const result = { message: 'job failed' }
+        await withLogs(logs => {
+          assert.throws(
+            () => onLogFct({ type: 'end', id, timestamp: timestamp + 1, status: 'failure', result }),
+            error => error === result
+          )
+          const warnings = logs.filter(log => log.message.startsWith('failure in task update hook'))
+          assert.equal(warnings.length, 0)
+        })
       })
 
       it('ignores the end of a subtask whose start was rejected for an unknown parent', async () => {
@@ -1130,6 +1328,141 @@ describe('Tasks', () => {
         fake.failGet(task.id)
         await assert.rejects(tasks.deleteLog(task.id), /read of .* failed/)
         assert.equal(fake.data.get(task.id).status, 'success')
+      })
+    })
+
+    describe('list()', () => {
+      const listAll = async tasks => {
+        const logs = []
+        for await (const log of tasks.list()) {
+          logs.push(log)
+        }
+        return logs
+      }
+
+      it('lists a live task in its latest state while its final write is held', async () => {
+        const fake = makeApp()
+        const tasks = new Tasks(fake.app)
+        await fake.start()
+
+        const id = 'ext-list-held'
+        const onLogFct = tasks.createExternalProgressHandler()
+        const timestamp = Date.now()
+        onLogFct({ type: 'start', id, timestamp, properties: { name: 'backup run' } })
+        await flush()
+        const release = fake.holdPut(id)
+        onLogFct({ type: 'end', id, timestamp: timestamp + 1, status: 'success', result: 'done' })
+        await flush()
+
+        assert.equal(fake.data.get(id).status, 'pending')
+        assert.deepEqual(
+          (await listAll(tasks)).map(log => [log.id, log.status]),
+          [[id, 'success']]
+        )
+
+        release()
+        await flush()
+      })
+
+      it('lists a live task not stored yet, once', async () => {
+        const fake = makeApp()
+        const tasks = new Tasks(fake.app)
+        await fake.start()
+
+        const id = 'ext-list-new'
+        const onLogFct = tasks.createExternalProgressHandler()
+        const release = fake.holdPut(id)
+        onLogFct({ type: 'start', id, timestamp: Date.now(), properties: { name: 'backup run' } })
+        await flush()
+
+        assert.equal(fake.data.has(id), false)
+        assert.deepEqual(
+          (await listAll(tasks)).map(log => log.id),
+          [id]
+        )
+
+        release()
+        await flush()
+        assert.equal(fake.data.has(id), true)
+        assert.deepEqual(
+          (await listAll(tasks)).map(log => log.id),
+          [id]
+        )
+      })
+
+      it('lists the final state of a task that ends while the store is being listed', async () => {
+        const fake = makeApp()
+        const tasks = new Tasks(fake.app)
+        await fake.start()
+
+        const onLogFct = tasks.createExternalProgressHandler()
+        const timestamp = Date.now()
+        onLogFct({ type: 'start', id: 'first', timestamp, properties: { name: 'backup run' } })
+        onLogFct({ type: 'start', id: 'second', timestamp, properties: { name: 'backup run' } })
+        await flush()
+
+        // the store is read once, when the listing starts
+        const iterator = tasks.list()[Symbol.asyncIterator]()
+        const logs = [(await iterator.next()).value]
+        onLogFct({ type: 'end', id: 'second', timestamp: timestamp + 1, status: 'success', result: 'done' })
+        await flush()
+        logs.push((await iterator.next()).value)
+
+        assert.deepEqual(logs.map(log => [log.id, log.status]).sort(), [
+          ['first', 'pending'],
+          ['second', 'success'],
+        ])
+      })
+
+      it('does not list a task that is deleted while the store is being listed', async () => {
+        const fake = makeApp()
+        const tasks = new Tasks(fake.app)
+        await fake.start()
+
+        const onLogFct = tasks.createExternalProgressHandler()
+        const timestamp = Date.now()
+        onLogFct({ type: 'start', id: 'kept', timestamp, properties: { name: 'backup run' } })
+        onLogFct({ type: 'start', id: 'deleted', timestamp, properties: { name: 'backup run' } })
+        await flush()
+
+        const iterator = tasks.list()[Symbol.asyncIterator]()
+        const logs = [(await iterator.next()).value]
+        await tasks.deleteLog('deleted')
+        for (let next = await iterator.next(); !next.done; next = await iterator.next()) {
+          logs.push(next.value)
+        }
+
+        assert.deepEqual(
+          logs.map(log => log.id),
+          ['kept']
+        )
+      })
+
+      it('marks the pending logs of the store interrupted at start', async () => {
+        const fake = makeApp()
+        fake.data.set('old', { id: 'old', properties: { name: 'backup run' }, start: 0, status: 'pending' })
+        const tasks = new Tasks(fake.app)
+        await fake.start()
+
+        assert.equal((await tasks.get('old')).status, 'interrupted')
+      })
+    })
+
+    describe('clearLogs', () => {
+      it('finishes when a listed log was deleted meanwhile', async () => {
+        const fake = makeApp()
+        const tasks = new Tasks(fake.app)
+        await fake.start()
+
+        const task = tasks.create({ name: 'stored' })
+        await task.run(() => 'ok')
+        await flush()
+        // e.g. the log of a clear-on-success task, deleted once its success was notified
+        fake.listDeleted('deleted', { id: 'deleted', properties: { name: 'API call' }, start: 0, status: 'success' })
+
+        const result = await Promise.race([tasks.clearLogs().then(() => 'done'), sleep(200).then(() => 'timeout')])
+        assert.equal(result, 'done')
+        assert.equal(fake.data.has(task.id), false)
       })
     })
 
