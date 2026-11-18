@@ -9,26 +9,20 @@ import { vmCollectionMock, mockXoVmCollection } from '@/test/mock-xo-vm-collecti
 import { resetStubs } from '@/test/reset-stubs.ts'
 import { mockModule } from '@/test/spy-on-module.ts'
 import { flushPromises, mount } from '@vue/test-utils'
-import { type Component, defineComponent } from 'vue'
+import { type Component, defineComponent, ref } from 'vue'
 
-const { sourceStepMock } = await vi.hoisted(async () => {
-  const vue = await import('vue')
-
-  return {
-    sourceStepMock: {
-      form: {},
-      rememberedConnections: vue.ref<ReturnType<typeof createV2vRememberedConnection>[]>([]),
-      canConnect: vue.ref(true),
-      isConnecting: vue.ref(false),
-      submit: vi.fn(),
-      connectRemembered: vi.fn(async () => ({ isPasswordRequired: false })),
-      editRemembered: vi.fn(),
-      forgetRemembered: vi.fn(),
-      forgetRememberedPassword: vi.fn(),
-      cancel: vi.fn(),
-    },
-  }
-})
+const sourceStepMock = {
+  form: {},
+  rememberedConnections: ref<ReturnType<typeof createV2vRememberedConnection>[]>([]),
+  canConnect: ref(true),
+  isConnecting: ref(false),
+  submit: vi.fn(),
+  connectRemembered: vi.fn(async () => ({ isPasswordRequired: false })),
+  editRemembered: vi.fn(),
+  forgetRemembered: vi.fn(),
+  forgetRememberedPassword: vi.fn(),
+  cancel: vi.fn(),
+}
 
 mockModule(import('@/modules/v2v/composables/use-v2v-source-step.composable.ts'), () => ({
   useV2vSourceStep: (() => ({

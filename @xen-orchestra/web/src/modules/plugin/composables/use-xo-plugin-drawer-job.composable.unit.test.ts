@@ -11,11 +11,9 @@ import type { Ref } from 'vue'
 
 type OverlayOptions = { component: unknown }
 
-const { useJob, run, drawer } = vi.hoisted(() => ({
-  useJob: vi.fn(),
-  run: vi.fn(),
-  drawer: vi.fn(),
-}))
+const useJob = vi.fn()
+const run = vi.fn()
+const drawer = vi.fn()
 
 mockOverlay()
 

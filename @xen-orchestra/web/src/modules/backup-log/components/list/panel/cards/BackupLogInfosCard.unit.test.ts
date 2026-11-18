@@ -28,9 +28,7 @@ import { formatDateTime } from '@core/utils/time.util.ts'
 import { mount } from '@vue/test-utils'
 import { computed } from 'vue'
 
-const { useGetBackupJobById } = vi.hoisted(() => ({
-  useGetBackupJobById: vi.fn(),
-}))
+const useGetBackupJobById = vi.fn()
 
 mockXoRoutes()
 

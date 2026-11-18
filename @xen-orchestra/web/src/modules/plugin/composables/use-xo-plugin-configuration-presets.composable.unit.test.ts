@@ -6,9 +6,7 @@ import { mockModule } from '@/test/spy-on-module.ts'
 import type { useFormSelect } from '@core/packages/form-select'
 import { computed, type MaybeRefOrGetter, type Ref, ref, shallowRef } from 'vue'
 
-const { selectModel } = vi.hoisted(() => ({
-  selectModel: { current: undefined as Ref<string | undefined> | undefined },
-}))
+const selectModel = { current: undefined as Ref<string | undefined> | undefined }
 
 mockModule(import('@core/packages/form-select'), async importOriginal => {
   const original = await importOriginal()

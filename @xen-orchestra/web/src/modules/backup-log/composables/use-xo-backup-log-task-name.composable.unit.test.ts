@@ -15,9 +15,7 @@ import { vmCollectionMock, mockXoVmCollection } from '@/test/mock-xo-vm-collecti
 import { mountComposable } from '@/test/mount-composable.ts'
 import { mockModule } from '@/test/spy-on-module.ts'
 
-const { brsById } = vi.hoisted(() => ({
-  brsById: new Map<string, FrontXoBackupRepository>(),
-}))
+const brsById = new Map<string, FrontXoBackupRepository>()
 
 mockXoVmCollection()
 

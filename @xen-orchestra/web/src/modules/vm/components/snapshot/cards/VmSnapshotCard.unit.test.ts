@@ -10,9 +10,7 @@ import { mockModule } from '@/test/spy-on-module.ts'
 import { formatDateTime } from '@core/utils/time.util.ts'
 import { mount } from '@vue/test-utils'
 
-const { buildXo5VmSnapshotRoute } = vi.hoisted(() => ({
-  buildXo5VmSnapshotRoute: vi.fn(),
-}))
+const buildXo5VmSnapshotRoute = vi.fn()
 
 mockModule(import('@/modules/snapshot/composables/xo-vm-snapshot-route-xo5.composable.ts'), () => ({
   useXo5VmSnapshotRoute: (() => ({ buildXo5VmSnapshotRoute })) as unknown as typeof useXo5VmSnapshotRoute,

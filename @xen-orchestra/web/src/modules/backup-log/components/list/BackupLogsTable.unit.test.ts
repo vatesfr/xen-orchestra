@@ -15,9 +15,7 @@ import UiLink from '@core/components/ui/link/UiLink.vue'
 import { objectIcon } from '@core/icons'
 import { mount } from '@vue/test-utils'
 
-const { getBackupJobById } = vi.hoisted(() => ({
-  getBackupJobById: vi.fn(),
-}))
+const getBackupJobById = vi.fn()
 
 mockXoRoutes()
 

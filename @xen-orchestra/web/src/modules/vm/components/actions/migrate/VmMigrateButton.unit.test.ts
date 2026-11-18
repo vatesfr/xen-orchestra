@@ -9,9 +9,7 @@ import { IK_HIDE_ACTION_BUTTON_BUSY, IK_IN_MENU } from '@core/utils/injection-ke
 import { mount } from '@vue/test-utils'
 import { ref } from 'vue'
 
-const { migrateVm } = vi.hoisted(() => ({
-  migrateVm: vi.fn(),
-}))
+const migrateVm = vi.fn()
 
 const canMigrateVm = ref(true)
 const isMigratingVm = ref(false)
