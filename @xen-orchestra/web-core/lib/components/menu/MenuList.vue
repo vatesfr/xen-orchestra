@@ -16,6 +16,7 @@
 
 <script lang="ts" setup>
 import { useDisabled } from '@core/composables/disabled.composable.ts'
+import { useMenuListNavigation } from '@core/composables/menu-list-navigation.composable.ts'
 import {
   IK_CLOSE_MENU,
   IK_IN_MENU,
@@ -68,17 +69,34 @@ let clearClickOutsideEvent: (() => void) | undefined
 
 const hasTrigger = useSlots().trigger !== undefined
 
+const isSubmenu = inject(IK_IN_MENU, false)
+
 provide(IK_IN_MENU, true)
 
 whenever(
   () => !isOpen.value,
   () => clearClickOutsideEvent?.()
 )
-if (slots.trigger && inject(IK_CLOSE_MENU, undefined) === undefined) {
-  provide(IK_CLOSE_MENU, () => (isOpen.value = false))
+
+const closeParentMenu = inject(IK_CLOSE_MENU, undefined)
+
+if (slots.trigger && closeParentMenu === undefined) {
+  provide(IK_CLOSE_MENU, close)
 }
 
-const open = (event: MouseEvent) => {
+const closeMenuChain = closeParentMenu ?? close
+
+const { focusFirstItem } = useMenuListNavigation({
+  target: () => (hasTrigger ? menu.value : undefined),
+  isHorizontal: () => props.horizontal ?? false,
+  canCloseWithArrowLeft: () => isSubmenu && !isParentHorizontal.value,
+  onClose: close,
+  onLeave: closeMenuChain,
+})
+
+let triggerElement: HTMLElement | undefined
+
+const open = (event: Event) => {
   if (isOpen.value) {
     return (isOpen.value = false)
   }
@@ -86,6 +104,8 @@ const open = (event: MouseEvent) => {
   isOpen.value = true
 
   const trigger = event.currentTarget as HTMLElement
+
+  triggerElement = trigger
 
   nextTick(() => {
     clearClickOutsideEvent = onClickOutside(menu, () => (isOpen.value = false), {
@@ -100,7 +120,17 @@ const open = (event: MouseEvent) => {
     })
 
     placementSide.value = menuElement.dataset.placement?.split('-')[0]
+
+    focusFirstItem()
   })
+}
+
+function close() {
+  if (document.activeElement?.closest('.menu-list')) {
+    triggerElement?.focus()
+  }
+
+  isOpen.value = false
 }
 </script>
 

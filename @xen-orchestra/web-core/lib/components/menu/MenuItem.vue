@@ -24,6 +24,7 @@
           class="typo-body-bold-small"
           :icon
           @click="open"
+          @keydown="openSubmenuOnKeydown($event, open)"
         >
           <slot />
           <VtsIcon :name="submenuIcon" size="medium" class="submenu-icon" />
@@ -65,6 +66,17 @@ const isParentHorizontal = inject(
 const isDisabled = useDisabled(() => disabled)
 
 const submenuIcon = computed((): IconName => (isParentHorizontal.value ? 'fa:angle-down' : 'fa:angle-right'))
+
+const submenuKey = computed(() => (isParentHorizontal.value ? 'ArrowDown' : 'ArrowRight'))
+
+function openSubmenuOnKeydown(event: KeyboardEvent, openSubmenu: (event: Event) => void) {
+  if (event.key !== submenuKey.value) {
+    return
+  }
+
+  event.preventDefault()
+  openSubmenu(event)
+}
 
 const isHandlingClick = ref(false)
 const isBusy = computed(() => isHandlingClick.value || busy === true)
