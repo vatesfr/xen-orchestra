@@ -14,8 +14,14 @@
     <UiTabItem v-bind="tab(TAB.SLOTS, slotParams)">Slots</UiTabItem>
     <UiTabItem v-bind="tab(TAB.SETTINGS, settingParams)">Settings</UiTabItem>
     <MenuList placement="bottom">
-      <template #trigger="{ open, isOpen }">
-        <UiTabItem :active="isOpen" :disabled="presets === undefined" class="preset-tab" @click="open">
+      <template #trigger="{ open, isOpen, bindings }">
+        <UiTabItem
+          v-bind="bindings"
+          :active="isOpen"
+          :disabled="presets === undefined"
+          class="preset-tab"
+          @click="open"
+        >
           <VtsIcon name="fa:sliders" size="medium" />
           Presets
         </UiTabItem>

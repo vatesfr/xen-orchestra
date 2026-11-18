@@ -5,12 +5,13 @@
     :placement
     @action="handleMenuAction?.()"
   >
-    <template #trigger="{ open, isOpen }">
+    <template #trigger="{ open, isOpen, bindings }">
       <UiButtonIcon
         v-tooltip="{
           placement: 'top',
           content: resolvedLabel,
         }"
+        v-bind="bindings"
         :aria-label="resolvedLabel"
         icon="action:more-actions"
         accent="brand"

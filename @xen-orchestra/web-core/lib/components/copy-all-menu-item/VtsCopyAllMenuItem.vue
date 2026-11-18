@@ -1,11 +1,12 @@
 <template>
   <VtsResponsiveMenu :title="t('action:copy-all')" placement="bottom-end">
-    <template #trigger="{ open }">
+    <template #trigger="{ open, bindings }">
       <UiButtonIcon
         v-tooltip="{
           placement: 'left',
           content: tooltipContent,
         }"
+        v-bind="bindings"
         :icon
         accent="brand"
         size="small"

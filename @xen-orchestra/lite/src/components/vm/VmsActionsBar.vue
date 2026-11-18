@@ -1,7 +1,8 @@
 <template>
   <VtsMobileMenu v-if="uiStore.isSmall" :title="t('actions')">
-    <template #trigger="{ isOpen, open }">
+    <template #trigger="{ isOpen, open, bindings }">
       <UiButtonIcon
+        v-bind="bindings"
         accent="brand"
         size="small"
         :disabled="selectedRefs.length === 0"
