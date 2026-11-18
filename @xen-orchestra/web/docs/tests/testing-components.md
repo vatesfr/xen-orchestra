@@ -164,7 +164,7 @@ Three things shape those assertions:
 `createGlobalTestConfig()` installs a router on **every** mount, built by `src/test/create-test-router.ts` over the **real generated routes** on an in-memory history. Two unrelated things need it:
 
 - A component rendering `RouterLink`. Without a router the link resolves to a plain element and its scoped slot (`isActive`, `href`) is never invoked, so the markup renders **empty instead of failing** — a tab bar silently becomes no tabs, and an assertion on it passes vacuously.
-- Anything reaching `useUiStore` (`VtsStateHero`, `VtsKeyValueRow`, `TabItem`…). That store calls `useRouter()`/`useRoute()` in its setup, so a router-less mount logs two `injection "Symbol(router)" not found` warnings, and reading `uiStore.hasUi` would throw on `route.query`.
+- Anything reaching `useUiStore` (`VtsStateHero`, `VtsKeyValueRow`, `UiTabItem`…). That store calls `useRouter()`/`useRoute()` in its setup, so a router-less mount logs two `injection "Symbol(router)" not found` warnings, and reading `uiStore.hasUi` would throw on `route.query`.
 
 Because the routes are the real ones, `href` assertions are real paths (`/vm/vm-42/system`) rather than a stub's echo of its own prop. Page components are swapped for an empty one: a test never renders a page, and installing a router runs an initial navigation that would otherwise import the whole page module graph.
 
@@ -178,8 +178,8 @@ const wrapper = mount(VmHeader, { props: { vm }, global: createGlobalTestConfig(
 
 expect(
   wrapper
-    .findAll('.tab-item')
-    .filter(tab => tab.classes('active'))
+    .findAllComponents(UiTabItem)
+    .filter(tab => tab.props('active'))
     .map(tab => tab.text())
 ).toEqual([t('system')])
 ```
@@ -188,7 +188,7 @@ Pushing before mounting is what makes the active tab assertable; without a push 
 
 ## Selects
 
-How `FormSelect` and `VtsSelect` render and open their options belongs to the web-core tests, never to an XO 6 one:
+How `VtsSelect` renders and opens its options belongs to the web-core tests, never to an XO 6 one; XO 6's `FormSelect` wraps it:
 
 - A component that only passes select bindings on is mounted with `createGlobalTestConfig({ stubs: { FormSelect: true } })`, given `createSelectBindings`, and read with `findSelectStubLabels`.
 - The options a form builds (their labels, their custom properties) are read by mounting the form with `mountWithSelect`, rendering a `VtsSelect` for its select, then `openSelect` and `findSelectOptionLabels`; `findShownSelections` reads the selection each select shows.

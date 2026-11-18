@@ -23,7 +23,7 @@ it('renders the message in a success alert', () => {
 })
 ```
 
-The test file sits next to the component, named `<ComponentName>.unit.test.ts` (no `.vue`). Group with `describe` only when the component has several distinct behaviors to separate; a small component reads better as flat `it`s.
+Where the test file lives and how it groups its tests: see [File layout and structure](./file-structure.md).
 
 ## What a web-core component test covers
 

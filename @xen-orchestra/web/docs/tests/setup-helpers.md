@@ -24,6 +24,6 @@ it('maps poolName from the server pool label', () => {
 })
 ```
 
-Types are inferred from the composable itself, so `filterableServer` is a `ServerFilterableData` and `mountFirstDisplayData()` a `ServerDisplayData` — no annotation at the call site. `mountEnhancedData` returns the mounted instance, for the reactivity test.
+Types are inferred from the composable itself, so `filterableServer` is a `PoolFilterableData` and `mountFirstDisplayData()` a `PoolDisplayData` — no annotation at the call site. `mountEnhancedData` returns the mounted instance, for the reactivity test.
 
 Adding a new `use<X>EnhancedData` test means three lines of wiring, not three copied helpers.

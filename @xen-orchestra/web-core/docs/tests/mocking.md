@@ -5,16 +5,16 @@ Keep the mock boundary tight: **mock only what reaches outside the code under te
 Use the **typed** mock form — `vi.mock(import('<module>'), …)` — so a rename breaks type-check instead of silently leaving a stale mock. Create the stub functions with `vi.hoisted` (a plain `const fn = vi.fn()` referenced in the factory throws, because the mock is hoisted above imports), and reset them in `beforeEach`:
 
 ```typescript
-const { getItemById } = vi.hoisted(() => ({
-  getItemById: vi.fn(),
+const { sendCtrlAltDel } = vi.hoisted(() => ({
+  sendCtrlAltDel: vi.fn(),
 }))
 
-vi.mock(import('@core/composables/use-item-collection.ts'), () => ({
-  useItemCollection: (() => ({ getItemById })) as unknown as typeof useItemCollection,
+vi.mock(import('@core/composables/remote-console.composable.ts'), () => ({
+  useRemoteConsole: (() => ({ sendCtrlAltDel })) as unknown as typeof useRemoteConsole,
 }))
 
 beforeEach(() => {
-  getItemById.mockReset()
+  sendCtrlAltDel.mockReset()
 })
 ```
 
@@ -23,10 +23,10 @@ Note the cast: the typed form checks the factory return against the **whole** mo
 When several test files mock the same module with the same shape, the mock lives once in the package's test infrastructure (`test/` in web-core, `src/test/` in XO 6) and the test file only points `vi.mock` to it; its exported state is read and changed by the tests, and reset in `beforeEach`:
 
 ```typescript
-vi.mock(import('@core/composables/use-item-collection.ts'), () => import('@core-test/mock-item-collection.ts'))
+vi.mock(import('@core/composables/remote-console.composable.ts'), () => import('@core-test/mock-remote-console.ts'))
 
 beforeEach(() => {
-  itemCollectionMock.reset()
+  remoteConsoleMock.reset()
 })
 ```
 

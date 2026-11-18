@@ -54,7 +54,7 @@ Testing uses **Vitest 4** with a single `unit` project (see `vitest.config.ts`):
 
 Test files sit next to the code they test, as `lib/**/*.unit.test.ts`. Shared test infrastructure lives in `test/`, outside `lib/`. The shared `scripts/npmignore` keeps all of it out of the published package.
 
-`@xen-orchestra/web` and `@xen-orchestra/lite` type-check `web-core/lib` as part of their own sources: their tsconfigs exclude the web-core test files, which they would otherwise check without the Vitest globals. `@xen-orchestra/web` maps `@core-test` in its `vite.config.ts` and `tsconfig.vitest.json` to import the shared helpers.
+`@xen-orchestra/web` and `@xen-orchestra/lite` type-check `web-core/lib` as part of their own sources: their app tsconfigs exclude its `*.unit.test.ts`, which they would otherwise check without the Vitest globals. How XO 6 imports `web-core/test/` is in its [test runner](../../web/docs/tests/running-tests.md) page.
 
 `test.alias` maps `placement.js` to its ESM build: the package only declares a `module` entry, which the Node-style resolution used by Vitest ignores.
 
