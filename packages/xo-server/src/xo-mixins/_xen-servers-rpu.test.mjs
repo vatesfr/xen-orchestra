@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict'
-import { after, describe, it, mock } from 'node:test'
+import { after, describe, it } from 'node:test'
 import { mkdtempSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
@@ -89,11 +89,7 @@ function createXenServers({
       }
     },
   }
-  // the constructor arms a timeout that rejects if the `core started` hook,
-  // never fired here, does not set up the server collection in time
-  mock.timers.enable({ apis: ['setTimeout'] })
   const xenServers = new XenServers(app, { safeMode: true })
-  mock.timers.reset()
   // no server is registered in the test: stub the XAPI lookup
   xenServers.getXapi = () => ({
     pool: { $master: { software_version: softwareVersion } },
