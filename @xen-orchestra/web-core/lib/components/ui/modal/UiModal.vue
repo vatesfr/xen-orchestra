@@ -1,7 +1,14 @@
 <!-- v4 -->
 <template>
   <form :class="className" class="ui-modal" @click.self="emit('dismiss')" @submit.prevent="emit('confirm')">
-    <div :aria-labelledby="slots.title ? titleId : undefined" aria-modal="true" class="modal" role="dialog">
+    <div
+      ref="dialog"
+      :aria-labelledby="slots.title ? titleId : undefined"
+      aria-modal="true"
+      class="modal"
+      role="dialog"
+      tabindex="-1"
+    >
       <UiButtonIcon
         v-if="onDismiss"
         :accent
@@ -33,9 +40,10 @@ import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import type { IconName } from '@core/icons'
 import { useOverlayEscape } from '@core/packages/overlay/use-overlay-escape.ts'
+import { useOverlayFocus } from '@core/packages/overlay/use-overlay-focus.ts'
 import { IK_OVERLAY_ACCENT } from '@core/utils/injection-keys.util.ts'
 import { toVariants } from '@core/utils/to-variants.util.ts'
-import { computed, provide, useId } from 'vue'
+import { computed, provide, useId, useTemplateRef } from 'vue'
 
 export type ModalAccent = 'info' | 'warning' | 'danger'
 
@@ -57,6 +65,8 @@ const slots = defineSlots<{
 }>()
 
 useOverlayEscape(() => emit('dismiss'))
+
+useOverlayFocus(useTemplateRef('dialog'))
 
 const titleId = useId()
 
@@ -88,6 +98,7 @@ provide(
     border-radius: 1rem;
     border-width: 0.1rem;
     border-style: solid;
+    outline: none;
 
     &:not(:has(.buttons)) {
       padding-bottom: 3.2rem;

@@ -1,6 +1,6 @@
 <!-- v1.0 -->
 <template>
-  <div :class="[{ active, disabled }, className]" class="menu-trigger">
+  <div :class="[{ active, disabled }, className]" class="menu-trigger" tabindex="-1">
     <VtsIcon :name="icon" size="medium" :busy />
     <slot />
   </div>
@@ -31,6 +31,18 @@ const className = computed(() => toVariants({ accent }))
   padding-inline: 1.6rem;
   gap: 0.8rem;
   height: 4.5rem;
+
+  &:focus-visible {
+    outline: none;
+
+    &::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border: 0.2rem solid var(--color-brand-txt-base);
+      border-radius: 0.4rem;
+    }
+  }
 
   &.disabled {
     color: var(--color-neutral-txt-secondary);
