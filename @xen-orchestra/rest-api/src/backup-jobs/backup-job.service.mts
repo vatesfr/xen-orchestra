@@ -15,6 +15,8 @@ import type {
 import type { RestApi } from '../rest-api/rest-api.mjs'
 import { assertValidCron, vmContainsNoBakTag } from '../helpers/utils.helper.mjs'
 import type { CreateBackupJobBody, CreateBackupJobSchedule, UpdateBackupJobBody } from './backup-job.type.mjs'
+import { compileExpression, isExpression } from '@xen-orchestra/backups/_expressionPredicate.mjs'
+import { buildRunContext, buildVmContext } from '@xen-orchestra/backups/_buildContext.mjs'
 
 export class BackupJobService {
   #backupJobTypes = ['backup', 'metadataBackup', 'mirrorBackup']
@@ -69,12 +71,24 @@ export class BackupJobService {
    */
   assertJobHasValidExpressions(type: AnyXoBackupJob['type'], job: UpdateBackupJobBody): void {
     if (type === 'backup') {
-      const { srs, remotes, settings } = job as Extract<UpdateBackupJobBody, { srs?: unknown }>
+      const { srs, remotes, vms, settings } = job as Extract<UpdateBackupJobBody, { srs?: unknown }>
       assertValidExpression('srs', srs)
       assertValidExpression('remotes', remotes)
+      assertValidExpression('vms', vms)
       assertValidSettingsExpression(settings, ['healthCheckVmsWithTags', 'fullInterval'])
     } else if (type === 'mirrorBackup') {
-      assertValidSettingsExpression(job.settings, ['healthCheckVmsWithTags', 'vmFilter'])
+      const { filter, remotes, settings } = job as Extract<UpdateBackupJobBody, { sourceRemote?: unknown }>
+      assertValidSettingsExpression(settings, ['healthCheckVmsWithTags', 'vmFilter'])
+      assertValidExpression('remotes', remotes)
+      if (filter != null && filter.vm.uuid.__or.length === 0) {
+        throw invalidParameters('filter must contain at least one VM', [
+          { instancePath: '/filter/vm/uuid/__or', message: 'must NOT have fewer than 1 items' },
+        ])
+      }
+    } else if (type === 'metadataBackup') {
+      const { remotes, pools } = job as Extract<UpdateBackupJobBody, { pools?: unknown }>
+      assertValidExpression('remotes', remotes)
+      assertValidExpression('pools', pools)
     }
   }
 
@@ -95,8 +109,16 @@ export class BackupJobService {
       return vmIds.some(id => id === vm.id)
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (_) {
-      const predicate = createPredicate(backupJob.vms)
-      return predicate(vm)
+      let isMatchingVm: (vm: XoVm) => boolean
+      if (isExpression(backupJob.vms)) {
+        const predicate = compileExpression(backupJob.vms)
+        const runContext = buildRunContext(new Date(), backupJob.settings['']?.timezone)
+        isMatchingVm = vm => predicate(buildVmContext(vm, runContext))
+      } else {
+        isMatchingVm = createPredicate(backupJob.vms)
+      }
+
+      return isMatchingVm(vm)
     }
   }
 
