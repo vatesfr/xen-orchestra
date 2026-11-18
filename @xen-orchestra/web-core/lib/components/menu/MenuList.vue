@@ -1,13 +1,17 @@
 <!-- v1.0 -->
 <template>
-  <slot :is-open="isOpen" :open="open" name="trigger" />
+  <slot :bindings="triggerBindings" :is-open="isOpen" :open="open" name="trigger" />
   <Teleport :disabled="!hasTrigger" to="body">
     <ul
       v-if="!hasTrigger || isOpen"
+      :id="menuId"
       ref="menu"
+      :aria-orientation="horizontal ? 'horizontal' : undefined"
       :class="{ horizontal, border: !noBorder }"
       class="menu-list"
+      role="menu"
       v-bind="$attrs"
+      @pointerenter="parentLevel?.enterSubmenu()"
     >
       <slot />
     </ul>
@@ -16,46 +20,68 @@
 
 <script lang="ts" setup>
 import { useDisabled } from '@core/composables/disabled.composable.ts'
+import { useMenuLevel } from '@core/composables/menu-level.composable.ts'
 import { useMenuListNavigation } from '@core/composables/menu-list-navigation.composable.ts'
+import { useMenuPopup } from '@core/composables/menu-popup.composable.ts'
 import {
   IK_CLOSE_MENU,
   IK_IN_MENU,
   IK_MENU_HORIZONTAL,
+  IK_MENU_LEVEL,
   IK_MENU_PLACEMENT_SIDE,
 } from '@core/utils/injection-keys.util.ts'
-import { placeOverlay } from '@core/utils/placement.util.ts'
-import { onClickOutside, unrefElement, whenever } from '@vueuse/core'
 import type { Options } from 'placement.js'
-import { computed, inject, nextTick, provide, ref, useSlots } from 'vue'
+import { computed, inject, nextTick, provide, shallowRef, useId, useTemplateRef, watch } from 'vue'
+
+export type MenuTriggerBindings = {
+  'aria-haspopup': 'menu' | 'dialog'
+  'aria-expanded': boolean
+  'aria-controls'?: string
+}
 
 defineOptions({
   inheritAttrs: false,
 })
 
-const props = defineProps<{
+const { horizontal, noBorder, disabled, placement, anchor } = defineProps<{
   horizontal?: boolean
   noBorder?: boolean
   disabled?: boolean
   placement?: Options['placement']
+  anchor?: HTMLElement
 }>()
 
-const slots = useSlots()
-const isOpen = ref(false)
-const menu = ref()
+const isOpen = defineModel<boolean>('open', { default: false })
+
+const slots = defineSlots<{
+  default(): any
+  trigger?(props: { isOpen: boolean; open: (event: Event) => void; bindings: MenuTriggerBindings }): any
+}>()
+
+const hasTrigger = slots.trigger !== undefined
+const menu = useTemplateRef<HTMLElement>('menu')
+const menuId = useId()
+const triggerElement = shallowRef<HTMLElement>()
+const anchorElement = computed(() => anchor ?? triggerElement.value)
+
+const triggerBindings = computed<MenuTriggerBindings>(() => ({
+  'aria-haspopup': 'menu',
+  'aria-expanded': isOpen.value,
+  'aria-controls': isOpen.value ? menuId : undefined,
+}))
+
 const isParentHorizontal = inject(
   IK_MENU_HORIZONTAL,
   computed(() => false)
 )
 provide(
   IK_MENU_HORIZONTAL,
-  computed(() => props.horizontal ?? false)
+  computed(() => horizontal)
 )
 
-useDisabled(() => props.disabled)
+useDisabled(() => disabled)
 
 const parentPlacementSide = inject(IK_MENU_PLACEMENT_SIDE, undefined)
-const placementSide = ref<string>()
-provide(IK_MENU_PLACEMENT_SIDE, placementSide)
 
 const defaultPlacement = computed<Options['placement']>(() => {
   if (isParentHorizontal.value) {
@@ -65,73 +91,58 @@ const defaultPlacement = computed<Options['placement']>(() => {
   return parentPlacementSide?.value === 'left' ? 'left-start' : 'right-start'
 })
 
-let clearClickOutsideEvent: (() => void) | undefined
-
-const hasTrigger = useSlots().trigger !== undefined
-
-const isSubmenu = inject(IK_IN_MENU, false)
+const parentLevel = inject(IK_MENU_LEVEL, undefined)
+const isSubmenu = hasTrigger && parentLevel !== undefined
+const level = useMenuLevel({ isPopup: hasTrigger, horizontal: () => horizontal })
+provide(IK_MENU_LEVEL, level)
 
 provide(IK_IN_MENU, true)
 
-whenever(
-  () => !isOpen.value,
-  () => clearClickOutsideEvent?.()
-)
+const { placementSide, close } = useMenuPopup(menu, {
+  isOpen,
+  anchor: anchorElement,
+  placement: () => placement ?? defaultPlacement.value,
+  closesOnClickOutside: hasTrigger && parentLevel?.isPopup !== true,
+  hasOpenSubmenu: () => level.openedItemId.value !== undefined,
+  onClosed: () => level.close(),
+})
+provide(IK_MENU_PLACEMENT_SIDE, placementSide)
 
-const closeParentMenu = inject(IK_CLOSE_MENU, undefined)
+const injectedCloseMenu = inject(IK_CLOSE_MENU, undefined)
+const closeMenu = injectedCloseMenu ?? close
 
-if (slots.trigger && closeParentMenu === undefined) {
-  provide(IK_CLOSE_MENU, close)
+if (injectedCloseMenu === undefined) {
+  provide(IK_CLOSE_MENU, hasTrigger ? close : level.close)
 }
-
-const closeMenuChain = closeParentMenu ?? close
 
 const { focusFirstItem } = useMenuListNavigation({
   target: () => (hasTrigger ? menu.value : undefined),
-  isHorizontal: () => props.horizontal ?? false,
+  isHorizontal: () => horizontal,
   canCloseWithArrowLeft: () => isSubmenu && !isParentHorizontal.value,
-  onClose: close,
-  onLeave: closeMenuChain,
+  onClose: () => close(true),
+  onLeave: () => closeMenu(true),
 })
 
-let triggerElement: HTMLElement | undefined
-
-const open = (event: Event) => {
+async function open(event: Event) {
   if (isOpen.value) {
-    return (isOpen.value = false)
+    isOpen.value = false
+    return
   }
 
+  triggerElement.value = event.currentTarget as HTMLElement
   isOpen.value = true
 
-  const trigger = event.currentTarget as HTMLElement
-
-  triggerElement = trigger
-
-  nextTick(() => {
-    clearClickOutsideEvent = onClickOutside(menu, () => (isOpen.value = false), {
-      ignore: () => [trigger, '.menu-list'],
-      controls: false,
-    })
-
-    const menuElement = unrefElement(menu)
-
-    placeOverlay(trigger, menuElement, {
-      placement: props.placement ?? defaultPlacement.value,
-    })
-
-    placementSide.value = menuElement.dataset.placement?.split('-')[0]
-
-    focusFirstItem()
-  })
+  await nextTick()
+  focusFirstItem()
 }
 
-function close() {
-  if (document.activeElement?.closest('.menu-list')) {
-    triggerElement?.focus()
+watch(menu, (menuElement, _, onCleanup) => {
+  if (menuElement !== null && isSubmenu) {
+    onCleanup(parentLevel.registerSubmenu(menuElement))
   }
+})
 
-  isOpen.value = false
-}
+defineExpose({ focusFirstItem })
 </script>
 
 <style lang="postcss" scoped>

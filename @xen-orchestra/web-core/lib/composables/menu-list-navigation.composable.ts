@@ -63,6 +63,10 @@ export function useMenuListNavigation({
   }
 
   useEventListener(target, 'keydown', (event: KeyboardEvent) => {
+    if (event.defaultPrevented) {
+      return
+    }
+
     const position = itemPositionByKey.value[event.key]
 
     if (position !== undefined) {

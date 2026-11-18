@@ -1,20 +1,20 @@
 <template>
   <VtsMobileMenu v-if="uiStore.isSmall" :title :section-title @action="emit('action')">
-    <template #trigger="{ open, isOpen }">
-      <slot :is-open :open="() => open()" name="trigger" />
+    <template #trigger="{ open, isOpen, bindings }">
+      <slot :bindings :is-open :open="() => open()" name="trigger" />
     </template>
     <slot />
   </VtsMobileMenu>
   <MenuList v-else :placement>
-    <template #trigger="{ open, isOpen }">
-      <slot :is-open :open name="trigger" />
+    <template #trigger="{ open, isOpen, bindings }">
+      <slot :bindings :is-open :open name="trigger" />
     </template>
     <slot />
   </MenuList>
 </template>
 
 <script lang="ts" setup>
-import MenuList from '@core/components/menu/MenuList.vue'
+import MenuList, { type MenuTriggerBindings } from '@core/components/menu/MenuList.vue'
 import VtsMobileMenu from '@core/components/menu/VtsMobileMenu.vue'
 import { useDisabled } from '@core/composables/disabled.composable.ts'
 import { useUiStore } from '@core/stores/ui.store.ts'
@@ -33,7 +33,7 @@ const emit = defineEmits<{
 
 defineSlots<{
   default(): any
-  trigger(props: { open: (event: MouseEvent) => void; isOpen: boolean }): any
+  trigger(props: { open: (event: MouseEvent) => void; isOpen: boolean; bindings: MenuTriggerBindings }): any
 }>()
 
 const uiStore = useUiStore()
