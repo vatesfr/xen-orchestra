@@ -3,6 +3,8 @@ import type { useVmMigrate } from '@/modules/vm/composables/use-vm-migrate.compo
 import { createVm } from '@/test/create-vm.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
+import UiButton from '@core/components/ui/button/UiButton.vue'
+import { IK_HIDE_ACTION_BUTTON_BUSY, IK_IN_MENU } from '@core/utils/injection-keys.util.ts'
 import { mount } from '@vue/test-utils'
 import { ref } from 'vue'
 
@@ -34,8 +36,14 @@ beforeEach(() => {
   migrateVmErrorMessage.value = undefined
 })
 
-function mountButton() {
-  return mount(VmMigrateButton, { props: { vm: createVm() }, global: createGlobalTestConfig() })
+function mountButton({ isInMenu = true, isBusyHidden = false } = {}) {
+  return mount(VmMigrateButton, {
+    props: { vm: createVm() },
+    global: {
+      ...createGlobalTestConfig(),
+      provide: { [IK_IN_MENU as symbol]: isInMenu, [IK_HIDE_ACTION_BUTTON_BUSY as symbol]: isBusyHidden },
+    },
+  })
 }
 
 function findTrigger(wrapper: ReturnType<typeof mountButton>) {
@@ -92,4 +100,35 @@ it('is busy, not disabled, while the VM is being migrated', async () => {
   expect(findTrigger(wrapper).classes('active')).toBe(true)
   expect(wrapper.find('.em-dash-prefix').exists()).toBe(false)
   expect(migrateVm).not.toHaveBeenCalled()
+})
+
+describe('outside of a menu', () => {
+  it('is a button opening the migration', async () => {
+    const wrapper = mountButton({ isInMenu: false })
+
+    await wrapper.getComponent(UiButton).trigger('click')
+
+    expect(wrapper.find('.menu-trigger').exists()).toBe(false)
+    expect(wrapper.getComponent(UiButton).text()).toBe(t('action:migrate'))
+    expect(migrateVm).toHaveBeenCalledOnce()
+  })
+
+  it('is disabled with the reason as a tooltip when the VM cannot be migrated', () => {
+    canMigrateVm.value = false
+    migrateVmErrorMessage.value = t('job:vm-migrate:paused')
+
+    const wrapper = mountButton({ isInMenu: false })
+
+    expect(wrapper.getComponent(UiButton).props('disabled')).toBe(true)
+    expect(wrapper.find('.em-dash-prefix').exists()).toBe(false)
+  })
+
+  it('is disabled without a loader while the VM is being migrated, when the loader is hidden', () => {
+    isMigratingVm.value = true
+
+    const wrapper = mountButton({ isInMenu: false, isBusyHidden: true })
+
+    expect(wrapper.getComponent(UiButton).props('busy')).toBe(false)
+    expect(wrapper.getComponent(UiButton).props('disabled')).toBe(true)
+  })
 })

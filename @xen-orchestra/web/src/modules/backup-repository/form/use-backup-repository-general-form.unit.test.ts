@@ -6,13 +6,13 @@ import {
 } from '@/modules/backup-repository/form/use-backup-repository-general-form.ts'
 import type { useXoProxyCollection } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
 import { OBFUSCATED_VALUE } from '@/shared/constants.ts'
+import { requiredMessage } from '@/test/form-messages.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
 import UiInput from '@core/components/ui/input/UiInput.vue'
 import { flushPromises, mount } from '@vue/test-utils'
 import { defineComponent, h, reactive, ref } from 'vue'
-import { useI18n } from 'vue-i18n'
 import type { BackupRepositoryType } from 'xo-remote-parser'
 
 vi.mock(import('@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'), () => ({
@@ -26,11 +26,7 @@ function createGeneralFormData(): BackupRepositoryGeneralFormData {
 }
 
 async function mountGeneralForm(formData: Partial<BackupRepositoryGeneralFormData> = {}) {
-  const result = mountComposable(() => {
-    const { t } = useI18n()
-
-    return { ...useBackupRepositoryGeneralForm(reactive(createGeneralFormData())), t }
-  }).wrapper.vm
+  const result = mountComposable(() => useBackupRepositoryGeneralForm(reactive(createGeneralFormData()))).wrapper.vm
 
   const { type, ...otherFormData } = formData
 
@@ -156,9 +152,9 @@ describe('validate', () => {
     const result = await mountGeneralForm()
 
     expect(await result.validate()).toBe(false)
-    expect(result.bindings.name.error).toBeDefined()
-    expect(result.bindings.type.error).toBeDefined()
-    expect(result.bindings.backupFormat.error).toBeDefined()
+    expect(result.bindings.name.error).toEqual(requiredMessage())
+    expect(result.bindings.type.error).toEqual(requiredMessage())
+    expect(result.bindings.backupFormat.error).toEqual(requiredMessage())
   })
 
   it('accepts a name, a type and a format, without proxy nor encryption', async () => {
@@ -171,7 +167,7 @@ describe('validate', () => {
     const result = await mountGeneralForm({ name: 'My repository', type: 's3', encrypted: true })
 
     expect(await result.validate()).toBe(false)
-    expect(result.bindings.encryptionKey.error).toBeDefined()
+    expect(result.bindings.encryptionKey.error).toEqual(requiredMessage())
   })
 
   it('accepts any encryption key, its format being checked by the form using it', async () => {
@@ -263,7 +259,7 @@ describe('multi-edit mode', () => {
   }
 
   // The selects display the label of their selected option
-  function findSelectedLabels(
+  function findShownSelections(
     formData: Partial<BackupRepositoryGeneralFormData>,
     mixedFields?: (keyof BackupRepositoryGeneralFormData)[]
   ) {
@@ -284,7 +280,7 @@ describe('multi-edit mode', () => {
   }
 
   it('shows the mixed value on the type, the format and the proxy which differ between the repositories', () => {
-    expect(findSelectedLabels({ name: 'My repository' }, ['type', 'backupFormat', 'proxy'])).toEqual({
+    expect(findShownSelections({ name: 'My repository' }, ['type', 'backupFormat', 'proxy'])).toEqual({
       [t('type')]: t('mixed-value'),
       [t('backup-format')]: t('mixed-value'),
       [t('proxy')]: t('mixed-value'),
@@ -292,7 +288,7 @@ describe('multi-edit mode', () => {
   })
 
   it('shows the values shared by all the repositories', () => {
-    const selectedLabels = findSelectedLabels({
+    const selectedLabels = findShownSelections({
       name: 'My repository',
       type: 'nfs',
       backupFormat: 'block',
@@ -304,7 +300,7 @@ describe('multi-edit mode', () => {
   })
 
   it('removes the proxy of all the repositories with "None"', () => {
-    expect(findSelectedLabels({ name: 'My repository', proxy: null }, ['proxy'])[t('proxy')]).toBe(t('none'))
+    expect(findShownSelections({ name: 'My repository', proxy: null }, ['proxy'])[t('proxy')]).toBe(t('none'))
   })
 
   it('accepts a type and a format left mixed', async () => {
