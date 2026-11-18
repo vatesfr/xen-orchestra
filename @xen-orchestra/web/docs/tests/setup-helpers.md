@@ -1,36 +1,10 @@
-# Setup: prefer helpers over `beforeEach`
+# Setup helpers (XO 6)
 
-Reserve `beforeEach` for **mock resets only**. Repeated setup goes into small local helper/factory functions at the top of the file:
-
-A composable mounted with different fixture overrides across a file gets one helper taking those overrides — never a `mountComposable(...)` call repeated per test:
-
-```typescript
-function mountVmUtils(overrides: Partial<FrontXoVm> = {}) {
-  return mountComposable(() => useXoVmUtils(createVm(overrides))).wrapper.vm
-}
-
-it('is true while a state-changing operation is pending', () => {
-  const result = mountVmUtils({ current_operations: { task1: VM_OPERATIONS.CLEAN_REBOOT } })
-
-  expect(result.isChangingState).toBe(true)
-})
-```
-
-A helper returning `wrapper.vm` serves a **reactivity** test too, as long as it accepts the source as a `ref` (`MaybeRefOrGetter`): `wrapper.vm` keeps following the updates. Only a test that must call a function returned by the composable, or build its expected value, _inside_ the `setup` callback stays inline (see [Testing composables](./testing-composables.md)).
-
-Because mocks are read lazily, calling `getX.mockReturnValue(...)` in the test body _before_ invoking the helper still takes effect.
-
-This applies to **navigation into the result** too, not only to mounting. An expression such as `result.filterableServers[0]`, repeated across a `describe` block, is repeated setup — give it a helper and assert on a named local, rather than re-deriving it in every test.
-
-The exception is a **reactivity** test: it must keep reading through the mounted `vm` after reassigning the source ref. A helper returning a snapshot of the first item would defeat the test.
-
-## Unmounting
-
-`src/test/setup.ts` calls `enableAutoUnmount(afterEach)`, so every wrapper — `mount` or `mountComposable` — is unmounted after the test that created it. Never unmount by hand for cleanup, and never mount in `beforeAll`: that wrapper would be torn down after the first test. The one `wrapper.unmount()` allowed is the act of a test asserting what `onUnmounted` does.
+The shared rules — helpers over `beforeEach`, auto-unmount — are in [Setup](../../../web-core/docs/tests/setup-helpers.md). XO 6 adds:
 
 ## Local storage
 
-`src/test/setup.ts` clears `localStorage` before each test, so every test starts with an empty storage. Never clear it again in a test file: store what a test needs in its own setup (e.g. `seedV2vMigrationList`).
+`src/test/setup.ts` stubs `fetch` (see [Mocking](./mocking.md#network)), calls `enableAutoUnmount(afterEach)` and clears `localStorage` before each test, so every test starts with an empty storage. Never clear it again in a test file: store what a test needs in its own setup (e.g. `seedV2vMigrationList`).
 
 ## Shared helpers: `use<X>EnhancedData`
 

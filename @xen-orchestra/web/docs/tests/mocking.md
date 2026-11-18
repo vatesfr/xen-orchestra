@@ -1,26 +1,6 @@
-# Mocking dependencies
+# Mocking (XO 6)
 
-Keep the mock boundary tight: **mock only the remote-resource collections / stores** a composable depends on, and let pure utilities and icon helpers run for real.
-
-Use the **typed** mock form — `vi.mock(import('<module>'), …)` — so a rename breaks type-check instead of silently leaving a stale mock. Create the stub functions with `vi.hoisted` (a plain `const fn = vi.fn()` referenced in the factory throws, because the mock is hoisted above imports), and reset them in `beforeEach`:
-
-```typescript
-const { getHostById, isMasterHost } = vi.hoisted(() => ({
-  getHostById: vi.fn(),
-  isMasterHost: vi.fn(),
-}))
-
-vi.mock(import('@/modules/host/remote-resources/use-xo-host-collection.ts'), () => ({
-  useXoHostCollection: (() => ({ getHostById, isMasterHost })) as unknown as typeof useXoHostCollection,
-}))
-
-beforeEach(() => {
-  getHostById.mockReset()
-  isMasterHost.mockReset()
-})
-```
-
-Note the cast: the typed form checks the factory return against the **whole** module, so a partial mock of a large export needs `as unknown as typeof useX` (with an `import type { useX }`).
+The typed `vi.mock` form, `vi.hoisted` and shared mock modules are in [Mocking dependencies](../../../web-core/docs/tests/mocking.md). In XO 6, **mock only the remote-resource collections / stores** a composable depends on.
 
 When several test files mock the same remote resource (a collection or a single resource) with the same shape, the mock lives once in `src/test/` and the test file only points `vi.mock` to it; its exported state is read and changed by the tests, and reset in `beforeEach`:
 

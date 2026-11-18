@@ -6,7 +6,7 @@
   - `xo-host.util.ts` → `xo-host.util.unit.test.ts`
   - `use-pool-enhanced-data.composable.ts` → `use-pool-enhanced-data.composable.unit.test.ts`
   - `VmSystemGraphics.vue` → `VmSystemGraphics.unit.test.ts` (the `.vue` is dropped)
-- Shared test data **factories** and helpers live in `src/test/`.
+- Shared test infrastructure lives apart from the code: `test/` in web-core (alias `@core-test`), `src/test/` in XO 6 (alias `@/test`) — see [Shared test helpers](../tests.md#shared-test-helpers).
 
 ## Structuring a test file
 
@@ -32,13 +32,13 @@ describe('getHostCoreSocketInfo', () => {
 
 ## Do not import from `vitest`
 
-`globals: true` (in `vite.config.ts`) together with `"types": ["vitest/globals"]` make `describe`, `it`, `expect`, `vi` and `beforeEach` available globally. **Never** add `import { ... } from 'vitest'`.
+`globals: true` (in the package's `vitest.config.ts` / `vite.config.ts`) together with `"types": ["vitest/globals"]` make `describe`, `it`, `expect`, `vi` and `beforeEach` available globally. **Never** add `import { ... } from 'vitest'`.
 
 Those types are declared in `tsconfig.vitest.json`, not in `tsconfig.app.json`, so they are ambient in test files only. A `expect()` left behind in production code is a type error rather than a runtime `ReferenceError` in the browser.
 
 The two projects split on the file name:
 
-| Project                | Covers                                                 | Test globals |
-| ---------------------- | ------------------------------------------------------ | ------------ |
-| `tsconfig.app.json`    | everything **except** `*.unit.test.ts` and `src/test/` | no           |
-| `tsconfig.vitest.json` | everything, tests included                             | yes          |
+| Project                | Covers                                                                                    | Test globals |
+| ---------------------- | ----------------------------------------------------------------------------------------- | ------------ |
+| `tsconfig.app.json`    | everything **except** `*.unit.test.ts` and the test infrastructure (`test/`, `src/test/`) | no           |
+| `tsconfig.vitest.json` | everything, tests included; XO 6 also includes `web-core/test/` for `@core-test`          | yes          |
