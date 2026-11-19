@@ -1,4 +1,5 @@
-import { EnvHttpProxyAgent } from 'undici'
+// fetch from the same undici as the dispatcher: Node 26's global fetch rejects it
+import { EnvHttpProxyAgent, fetch } from 'undici'
 import { ProxyAgent } from 'proxy-agent'
 
 const { env } = process

@@ -76,6 +76,7 @@
 - [REST API] `GET /rest/v0/tasks/{id}?wait=true` now returns when a backup, metadata backup or restore ends, instead of waiting until the task is interrupted (PR [#10778](https://github.com/vatesfr/xen-orchestra/pull/10778))
 - [Backups] A backup job that fails as a whole is now marked as failed in its task, instead of staying pending until XO restarts (PR [#10778](https://github.com/vatesfr/xen-orchestra/pull/10778))
 - [REST API/Tasks] Aborting a running backup task that can't be aborted now fails with `forbidden operation` instead of `no such task` (with `sync=true`: 403 instead of 404) (PR [#10778](https://github.com/vatesfr/xen-orchestra/pull/10778))
+- [V2V, Import, Web hooks, Proxy] Fix ESXi import, VM import from a URL, web hooks, XO Proxy calls and patches failing on Node 26 with a TypeError or a fetch error (PR [#10721](https://github.com/vatesfr/xen-orchestra/pull/10721))
 
 ### Packages to release
 
@@ -103,6 +104,7 @@
 - @xen-orchestra/log major
 - @xen-orchestra/mixins minor
 - @xen-orchestra/proxy minor
+- @xen-orchestra/proxy-cli patch
 - @xen-orchestra/qa-test minor
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/vmware-explorer minor
@@ -110,6 +112,7 @@
 - @xen-orchestra/web-core minor
 - @xen-orchestra/xapi major
 - xen-api major
+- xo-cli patch
 - xo-server minor
 - xo-server-audit minor
 - xo-server-load-balancer patch

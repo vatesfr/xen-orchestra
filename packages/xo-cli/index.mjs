@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
-import { Agent } from 'undici'
+// fetch from the same undici as the dispatcher: Node 26's global fetch rejects it
+import { Agent, fetch } from 'undici'
 import { createReadStream, createWriteStream, readFileSync } from 'fs'
 import { PassThrough, pipeline, Readable } from 'stream'
 import { stat } from 'fs/promises'

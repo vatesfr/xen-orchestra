@@ -14,7 +14,8 @@ import { FAIL_ON_QUEUE } from 'limit-concurrency-decorator'
 import { getStreamAsBuffer } from 'get-stream'
 import { ignoreErrors, timeout } from 'promise-toolbox'
 import { invalidParameters, noSuchObject, unauthorized } from 'xo-common/api-errors.js'
-import { Agent } from 'undici'
+// fetch from the same undici as the dispatcher: Node 26's global fetch rejects it
+import { Agent, fetch } from 'undici'
 import { Readable } from 'node:stream'
 import { Ref } from 'xen-api'
 
