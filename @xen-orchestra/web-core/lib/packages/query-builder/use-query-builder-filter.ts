@@ -1,11 +1,12 @@
 import { type SearchBindings, useDebouncedSearch } from '@core/composables/debounced-search.composable.ts'
+import { tryParseFilter } from '@core/packages/query-builder/filter-string.ts'
 import { toComputed } from '@core/utils/to-computed.util.ts'
 import { useRouteQuery } from '@vueuse/router'
-import { parse } from 'complex-matcher'
-import { computed, type ComputedRef, type MaybeRefOrGetter, ref, watch } from 'vue'
+import { computed, type ComputedRef, type MaybeRefOrGetter, ref, type Ref, watch } from 'vue'
 
 export type UseQueryBuilderFilterReturn<TSource> = {
   items: ComputedRef<TSource[]>
+  filter: Ref<string>
   searchBindings: ComputedRef<SearchBindings>
 }
 
@@ -38,13 +39,7 @@ export function useQueryBuilderFilter<TSource>(
 
   const sources = toComputed(sourcesRaw)
 
-  const mainNode = computed(() => {
-    try {
-      return parse(debouncedFilter.value)
-    } catch {
-      return undefined
-    }
-  })
+  const mainNode = computed(() => tryParseFilter(debouncedFilter.value))
 
   const predicate = computed(() => {
     if (mainNode.value === undefined) {
@@ -56,5 +51,5 @@ export function useQueryBuilderFilter<TSource>(
 
   const items = computed(() => (predicate.value ? sources.value.filter(predicate.value) : sources.value))
 
-  return { items, searchBindings }
+  return { items, filter: appliedFilter, searchBindings }
 }

@@ -5,8 +5,9 @@ import type {
 } from '@/modules/backup-repository/jobs/xo-backup-repository-edit.job.ts'
 import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
 import { createBr } from '@/test/create-br.ts'
+import { overlayMock } from '@/test/mock-overlay.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
-import type { useOverlay } from '@core/packages/overlay/use-overlay.ts'
+import { silenceConsoleError } from '@/test/silence-console-error.ts'
 import { KEEP_OVERLAY_OPEN } from '@core/packages/overlay/symbols.ts'
 import { type Ref, ref } from 'vue'
 
@@ -17,20 +18,16 @@ type OverlayOptions = {
   }
 }
 
-const { useEditJob, run, useOverlayMock, open } = vi.hoisted(() => ({
+const { useEditJob, run } = vi.hoisted(() => ({
   useEditJob: vi.fn(),
   run: vi.fn(),
-  useOverlayMock: vi.fn(),
-  open: vi.fn(),
 }))
 
 vi.mock(import('@/modules/backup-repository/jobs/xo-backup-repository-edit.job.ts'), () => ({
   useXoBackupRepositoryEditJob: useEditJob as unknown as typeof useXoBackupRepositoryEditJob,
 }))
 
-vi.mock(import('@core/packages/overlay/use-overlay.ts'), () => ({
-  useOverlay: useOverlayMock as unknown as typeof useOverlay,
-}))
+vi.mock(import('@core/packages/overlay/use-overlay.ts'), () => import('@/test/mock-overlay.ts'))
 
 const PAYLOAD: EditBackupRepositoryPayload = {
   name: 'Weekly backups',
@@ -42,10 +39,9 @@ const PAYLOAD: EditBackupRepositoryPayload = {
 beforeEach(() => {
   useEditJob.mockReset()
   run.mockReset()
-  useOverlayMock.mockReset()
-  open.mockReset()
+  overlayMock.reset()
 
-  vi.spyOn(console, 'error').mockImplementation(() => {})
+  silenceConsoleError()
 
   useEditJob.mockReturnValue({
     run,
@@ -53,16 +49,10 @@ beforeEach(() => {
     isRunning: ref(false),
     errorMessage: ref(undefined),
   })
-
-  useOverlayMock.mockReturnValue({ open, abort: vi.fn() })
 })
 
 function mountEditBackupRepository(br: FrontXoBackupRepository = createBr()) {
   return mountComposable(() => useEditBackupRepository(br)).wrapper.vm
-}
-
-function getOverlayOptions(): OverlayOptions {
-  return useOverlayMock.mock.calls[0][0]
 }
 
 function getJobArgs() {
@@ -107,13 +97,13 @@ describe('editBackupRepository', () => {
 
     mountEditBackupRepository(br).editBackupRepository()
 
-    expect(open).toHaveBeenCalledWith({ props: expect.objectContaining({ br }) })
+    expect(overlayMock.getOverlay().open).toHaveBeenCalledWith({ props: expect.objectContaining({ br }) })
   })
 
   it('closes the drawer when it is cancelled', () => {
     mountEditBackupRepository()
 
-    expect(getOverlayOptions().events.onCancel).toBe(true)
+    expect(overlayMock.getOverlay<OverlayOptions>().events.onCancel).toBe(true)
   })
 })
 
@@ -122,7 +112,7 @@ describe('onConfirm', () => {
     run.mockImplementation(async () => expect(getJobArgs().payload.value).toEqual(PAYLOAD))
     mountEditBackupRepository()
 
-    const response = await getOverlayOptions().events.onConfirm(PAYLOAD)
+    const response = await overlayMock.getOverlay<OverlayOptions>().events.onConfirm(PAYLOAD)
 
     expect(run).toHaveBeenCalledOnce()
     expect(response).toBeUndefined()
@@ -132,7 +122,7 @@ describe('onConfirm', () => {
     run.mockRejectedValue(new Error('Edition failed'))
     mountEditBackupRepository()
 
-    const response = await getOverlayOptions().events.onConfirm(PAYLOAD)
+    const response = await overlayMock.getOverlay<OverlayOptions>().events.onConfirm(PAYLOAD)
 
     expect(response).toBe(KEEP_OVERLAY_OPEN)
   })

@@ -1,6 +1,9 @@
 <template>
   <VtsSidePanel :has-selection="!!host" @close="emit('close')">
-    <template v-if="host">
+    <template v-if="host" #actions>
+      <HostMainActions :host />
+    </template>
+    <template v-if="host" #default>
       <HostInfoCard :host />
       <HostSrsCard :host />
       <HostNetworkCard :host />
@@ -13,6 +16,7 @@
 </template>
 
 <script setup lang="ts">
+import HostMainActions from '@/modules/host/components/actions/HostMainActions.vue'
 import HostHardwareSpecificationsCard from '@/modules/host/components/list/panel/card/HostHardwareSpecificationsCard.vue'
 import HostInfoCard from '@/modules/host/components/list/panel/card/HostInfoCard.vue'
 import HostNetworkCard from '@/modules/host/components/list/panel/card/HostNetworkCard.vue'

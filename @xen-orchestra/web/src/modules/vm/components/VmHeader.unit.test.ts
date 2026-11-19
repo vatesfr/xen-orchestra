@@ -1,3 +1,5 @@
+import type { useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
+import type { useXoTaskCollection } from '@/modules/task/remote-resources/use-xo-task-collection.ts'
 import VmHeader from '@/modules/vm/components/VmHeader.vue'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import type { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
@@ -18,6 +20,14 @@ const { buildXo5Route } = vi.hoisted(() => ({
 
 vi.mock(import('@/shared/remote-resources/use-xo-routes.ts'), () => ({
   useXoRoutes: (() => ({ buildXo5Route })) as unknown as typeof useXoRoutes,
+}))
+
+vi.mock(import('@/modules/host/remote-resources/use-xo-host-collection.ts'), () => ({
+  useXoHostCollection: (() => ({ getHostById: () => undefined })) as unknown as typeof useXoHostCollection,
+}))
+
+vi.mock(import('@/modules/task/remote-resources/use-xo-task-collection.ts'), () => ({
+  useXoTaskCollection: (() => ({ useGetTaskById: () => undefined })) as unknown as typeof useXoTaskCollection,
 }))
 
 beforeEach(() => {
@@ -112,16 +122,11 @@ it('marks no tab as active while no VM page is open', async () => {
   expect(findTabs(wrapper).filter(tab => tab.classes('active'))).toHaveLength(0)
 })
 
-it('links to the XO 5 page managing the lifecycle of the VM', async () => {
+it('offers the quick actions of the VM and the more-actions menu', async () => {
   const wrapper = await mountHeader()
 
-  expect(wrapper.get('.ui-head-bar .actions a').attributes('href')).toBe('https://xo5.example.com/#/vms/vm-42/general')
-})
-
-it('offers the state-change and more-actions menus', async () => {
-  const wrapper = await mountHeader()
-
-  expect(wrapper.get('.ui-head-bar .actions').text()).toContain(t('action:change-state'))
+  expect(wrapper.get('.ui-head-bar .actions').text()).not.toContain(t('action:change-state'))
+  expect(wrapper.get('.ui-head-bar .actions').text()).toContain(t('action:migrate'))
   expect(wrapper.find('.ui-head-bar .actions button.ui-button-icon').exists()).toBe(true)
 })
 

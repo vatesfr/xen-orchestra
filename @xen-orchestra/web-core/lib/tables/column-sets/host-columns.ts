@@ -1,4 +1,5 @@
 import { defineColumns } from '@core/packages/table/define-columns.ts'
+import { useActionColumn } from '@core/tables/column-definitions/action-column.ts'
 import { useAddressColumn } from '@core/tables/column-definitions/address-column.ts'
 import { useCheckboxColumn } from '@core/tables/column-definitions/checkbox-column.ts'
 import { useLinkColumn } from '@core/tables/column-definitions/link-column.ts'
@@ -19,5 +20,6 @@ export const useHostColumns = defineColumns(() => {
     tags: useTagColumn({ headerLabel: () => t('tags') }),
     srStatus: useStatusColumn({ headerLabel: () => t('status') }),
     selectItem: useSelectItemColumn(),
+    actions: useActionColumn({}),
   }
 })

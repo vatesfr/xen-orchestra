@@ -4,6 +4,7 @@
     <button
       :id="wrapperController?.id"
       ref="dropZoneRef"
+      :aria-describedby="wrapperController?.describedBy"
       type="button"
       class="dropzone"
       :class="{ 'is-over-dropzone': isOverDropZone }"

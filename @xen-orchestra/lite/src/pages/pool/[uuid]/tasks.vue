@@ -1,11 +1,13 @@
 <template>
-  <UiCard>
-    <UiTitle>
-      {{ t('tasks') }}
-      <UiCounter :value="pendingTasks.length" accent="info" size="medium" variant="primary" />
-    </UiTitle>
-    <TasksTable :finished-tasks="finishedTasks" :pending-tasks="pendingTasks" />
-  </UiCard>
+  <div class="scroll-container">
+    <UiCard>
+      <UiTitle>
+        {{ t('tasks') }}
+        <UiCounter :value="pendingTasks.length" accent="info" size="medium" variant="primary" />
+      </UiTitle>
+      <TasksTable :finished-tasks="finishedTasks" :pending-tasks="pendingTasks" />
+    </UiCard>
+  </div>
 </template>
 
 <script lang="ts" setup>
@@ -27,6 +29,12 @@ titleStore.setCount(() => pendingTasks.value.length)
 </script>
 
 <style lang="postcss" scoped>
+.scroll-container {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
 .ui-card {
   margin: 1rem;
 }

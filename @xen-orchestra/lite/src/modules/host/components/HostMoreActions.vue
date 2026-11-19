@@ -1,5 +1,13 @@
 <template>
-  <VtsChangeStateMenuItem v-if="showChangeState">
+  <template v-if="layout === 'sections'">
+    <HostPowerStateActions :host :exclude>
+      <template #title>
+        <VtsMenuTitle>{{ t('action:change-state') }}</VtsMenuTitle>
+      </template>
+    </HostPowerStateActions>
+    <VtsMenuTitle>{{ t('actions') }}</VtsMenuTitle>
+  </template>
+  <VtsChangeStateMenuItem v-else-if="layout === 'change-state-submenu'">
     <HostPowerStateActions :host />
   </VtsChangeStateMenuItem>
   <HostRestartToolstackButton :host />
@@ -7,7 +15,7 @@
   <HostEnableButton v-else :host />
   <HostDetachButton :host />
   <HostForgetButton :host />
-  <VtsDivider type="stretch" />
+  <VtsDivider v-if="layout !== 'sections'" type="stretch" />
   <HostDownloadButton :host-opaque-ref="host.$ref" />
 </template>
 
@@ -20,16 +28,26 @@ import HostEnableButton from '@/modules/host/components/actions/enable/HostEnabl
 import HostForgetButton from '@/modules/host/components/actions/forget/HostForgetButton.vue'
 import HostPowerStateActions from '@/modules/host/components/actions/HostPowerStateActions.vue'
 import HostRestartToolstackButton from '@/modules/host/components/actions/restart-toolstack/HostRestartToolstackButton.vue'
+import type { HostQuickAction } from '@/modules/host/composables/host-quick-actions.composable.ts'
 import { useHostMetricsStore } from '@/stores/xen-api/host-metrics.store.ts'
 import VtsDivider from '@core/components/divider/VtsDivider.vue'
 import VtsChangeStateMenuItem from '@core/components/menu/VtsChangeStateMenuItem.vue'
+import VtsMenuTitle from '@core/components/menu/VtsMenuTitle.vue'
 import { HOST_POWER_STATE } from '@vates/types'
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 
-const { host } = defineProps<{
+const {
+  host,
+  layout = 'actions-only',
+  exclude = {},
+} = defineProps<{
   host: XenApiHost
-  showChangeState?: boolean
+  layout?: 'actions-only' | 'change-state-submenu' | 'sections'
+  exclude?: Partial<Record<HostQuickAction, boolean>>
 }>()
+
+const { t } = useI18n()
 
 const { getHostPowerState } = useHostMetricsStore().subscribe()
 

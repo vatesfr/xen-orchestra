@@ -1,0 +1,35 @@
+import type { FrontXoNetwork } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
+import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
+import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
+import type { FrontXoVmTemplate } from '@/modules/vm/remote-resources/use-xo-vm-template-collection.ts'
+import type { XoV2vDisk, XoV2vNic, XoV2vVm } from '@vates/types'
+
+export type V2vDestinationDefaults = {
+  sr: FrontXoSr['id']
+  network: FrontXoNetwork['id']
+  template: FrontXoVmTemplate['id']
+}
+
+// An absent override leaves the VM on its default
+export type V2vMigrationListVm = {
+  id: XoV2vVm['id']
+  disks?: Record<XoV2vDisk['key'], FrontXoSr['id']>
+  nics?: Record<XoV2vNic['key'], FrontXoNetwork['id']>
+  template?: FrontXoVmTemplate['id']
+  keepMac?: boolean
+  tags?: string[]
+}
+
+export type V2vMigrationList = {
+  version: 1
+  sourceId: string
+  poolId: FrontXoPool['id']
+  defaults: V2vDestinationDefaults
+  vms: V2vMigrationListVm[]
+}
+
+export type V2vMigrationListKey = Pick<V2vMigrationList, 'sourceId' | 'poolId'>
+
+export type V2vVmOverrides = Omit<V2vMigrationListVm, 'id'>
+
+export type V2vVmUpdate = (id: XoV2vVm['id'], getNextVm: (vm: V2vMigrationListVm) => V2vMigrationListVm) => void

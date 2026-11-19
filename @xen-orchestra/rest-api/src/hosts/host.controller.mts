@@ -458,6 +458,76 @@ export class HostController extends XapiXoController<XoHost> {
   }
 
   /**
+   * Required privilege:
+   * - resource: pif, actions: update:dns, update:gateway, update:ip, update:management,
+   *   update:mode, update:netmask (on the target PIF and on the previous management PIF)
+   *
+   * Move the management IP configuration (IP, netmask, gateway, DNS) of the host
+   * to the given PIF, then remove it from the previous management PIF.
+   *
+   * The target PIF must be attached and must not have an IP address configured.
+   * The current management PIF must use a static IP configuration.
+   *
+   * @example id "b61a5c92-700e-4966-a13b-00633f03eea8"
+   * @example body { "pifId": "d9e42451-3794-089f-de81-4ee0e6137bee" }
+   */
+  @Example(taskLocation)
+  @Extension('x-mcp-exposure', 'deny')
+  @Post('{id}/actions/move_management_ip')
+  @Middlewares([
+    json(),
+    acl({
+      resource: 'pif',
+      actions: ['update:dns', 'update:gateway', 'update:ip', 'update:management', 'update:mode', 'update:netmask'],
+      objectIds: ({ req, restApi }) => {
+        const host = restApi.getObject<XoHost>(req.params.id as XoHost['id'], 'host')
+        const managementPif = host.$PIFs
+          .map(id => restApi.getObject<XoPif>(id as XoPif['id'], 'PIF'))
+          .find(hostPif => hostPif.management)
+        if (managementPif) {
+          return [req.body.pifId as XoPif['id'], managementPif.id]
+        } else {
+          return [req.body.pifId as XoPif['id']]
+        }
+      },
+    }),
+  ])
+  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
+  @Response(noContentResp.status, noContentResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(badRequestResp.status, badRequestResp.description)
+  @Response(invalidParametersResp.status, invalidParametersResp.description)
+  @Response(internalServerErrorResp.status, internalServerErrorResp.description)
+  @Response(incorrectStateResp.status, incorrectStateResp.description)
+  moveManagementIp(
+    @Path() id: string,
+    @Body() body: { pifId: string },
+    @Query() sync?: boolean
+  ): CreateActionReturnType<void> {
+    const hostId = id as XoHost['id']
+    const pif = this.restApi.getObject<XoPif>(body.pifId as XoPif['id'], 'PIF')
+
+    if (pif.$host !== hostId) {
+      throw invalidParameters(`the PIF ${pif.id} does not belong to host ${hostId}`)
+    }
+
+    const action = async () => {
+      await this.#hostService.moveManagementIp(hostId, body.pifId as XoPif['id'])
+    }
+
+    return this.createAction<void>(action, {
+      sync,
+      statusCode: noContentResp.status,
+      taskProperties: {
+        name: 'move management IP configuration',
+        objectId: hostId,
+        params: body,
+      },
+    })
+  }
+
+  /**
    * Required privileges:
    * - resource: host, action: disable
    * - resource: host, action: evacuate (if `evacuate: true`)

@@ -1054,12 +1054,20 @@ watch(canResizeExistingDisks, canResize => {
 
 <style scoped lang="postcss">
 .new {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+
   .head-select {
     max-width: 100%;
   }
 
   .card-container {
-    margin: 0.8rem;
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 0.8rem;
   }
 
   .template-container {

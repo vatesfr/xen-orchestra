@@ -13,6 +13,9 @@ import { importDisksFromDatastore, importStream } from './importDisksfromDatasto
 import { buildDiskChainByNode } from './buildChainByNode.mjs'
 import { assertKnownDevices, resolveDestinations } from './_deviceMapping.mjs'
 import { getSourceId } from './_sourceId.mjs'
+import { findDockingIso, dockImportedVm } from './_docking.mjs'
+import { FIRST_BOOT_LEFT_TO_XO, isFirstBootLeftToXo } from './_dockingInputs.mjs'
+import { firstBootOfDockedVm } from './_firstBoot.mjs'
 import { finished, PassThrough } from 'node:stream'
 import { Ref } from 'xen-api'
 
@@ -23,14 +26,24 @@ const { warn } = createLogger('xo:mixins:vmware')
 const SOURCE_PLATFORM = 'vmware'
 const isFromThisPlatform = otherConfig => (otherConfig.sourcePlatform ?? SOURCE_PLATFORM) === SOURCE_PLATFORM
 
+/**
+ * @typedef {{ isDocked: true, reports: object }} DockedGuest - with the reports of `dockImportedVm`
+ * @typedef {{ isDocked: false }} UndockedGuest - the docking failed, the task says why
+ */
+
+// once XO stops following a first boot which waits for it, the user has to take over
+const withFirstBootHint = (message, reports = {}) =>
+  isFirstBootLeftToXo(reports) ? `${message}. ${FIRST_BOOT_LEFT_TO_XO}` : message
+
 export default class MigrateVm {
   constructor(app) {
     this._app = app
   }
 
   async #connectToEsxi(host, user, password, sslVerify) {
-    const esxi = await Task.run({ properties: { name: `connecting to ${host}` } }, async () => {
-      const esxi = new Esxi(host, user, password, sslVerify)
+    const esxi = new Esxi(host, user, password, sslVerify)
+    // returns nothing: what a step returns is kept as the result of its task
+    await Task.run({ properties: { name: `connecting to ${host}` } }, async () => {
       try {
         await fromEvent(esxi, 'ready')
       } catch (error) {
@@ -39,7 +52,6 @@ export default class MigrateVm {
         await this.#closeEsxi(esxi, host)
         throw error
       }
-      return esxi
     })
     return new Disposable(() => this.#closeEsxi(esxi, host), esxi)
   }
@@ -106,9 +118,11 @@ export default class MigrateVm {
       return this.#updateVmMetadata(existingVm, metadata)
     }
     // no reliable candidate : create a new VM
-    return await Task.run({ properties: { name: 'creating VM on XCP side' } }, async () => {
+    let vm
+    // returns nothing: the whole VM would be kept as the result of the task
+    await Task.run({ properties: { name: 'creating VM on XCP side' } }, async () => {
       // got data, ready to start creating
-      const vm = await xapi._getOrWaitObject(
+      vm = await xapi._getOrWaitObject(
         await xapi.VM_create({
           ...OTHER_CONFIG_TEMPLATE,
           memory_dynamic_max: memory,
@@ -156,9 +170,8 @@ export default class MigrateVm {
         const ref = await xapi.VBD_create({ type: 'CD', VM: vm.$ref, VDI: Ref.EMPTY })
         $defer.onFailure(() => xapi.call('VBD.destroy', ref))
       }
-
-      return vm
     })
+    return vm
   }
 
   async #importDisks($defer, { esxi, metadata, sourceId, sr, srsByNode, stopSource, vm, vmId }) {
@@ -169,12 +182,9 @@ export default class MigrateVm {
     if (isRunning && !stopSource) {
       Task.warning(`Data after the last snapshot on vmware won't be migrated to XCP-ng`)
     }
-    const chainsByNodes = await Task.run(
-      { properties: { name: `build disks and snapshots chains for ${vmId}` } },
-      async () => {
-        return buildDiskChainByNode(disks, snapshots)
-      }
-    )
+    const chainsByNodes = await Task.run({ properties: { name: 'build disks and snapshots chains' } }, async () => {
+      return buildDiskChainByNode(disks, snapshots)
+    })
 
     const coldChainsByNodes = {}
     const runningChainByNodes = {}
@@ -212,7 +222,9 @@ export default class MigrateVm {
       [V2V_VM_OTHER_CONFIG.SOURCE_ID]: sourceId,
       [V2V_VM_OTHER_CONFIG.SOURCE_VM_INSTANCE_UUID]: metadata.instanceUuid,
     })
-    await vm.$snapshot({ name_label: `after ${isRunning ? 'partial' : 'complete'} import from V2V` })
+    await Task.run({ properties: { name: 'taking a snapshot of the imported VM' } }, async () => {
+      await vm.$snapshot({ name_label: `after ${isRunning ? 'partial' : 'complete'} import from V2V` })
+    })
     if (isRunning) {
       if (stopSource) {
         await Task.run({ properties: { name: 'stopping source VM' } }, async () => {
@@ -235,12 +247,60 @@ export default class MigrateVm {
           sourceVmId: vmId,
           sourceSnapshotId: null,
         })
-        await vm.$snapshot({ name_label: 'complete import from V2V' })
+        await Task.run({ properties: { name: 'taking a snapshot of the imported VM' } }, async () => {
+          await vm.$snapshot({ name_label: 'complete import from V2V' })
+        })
       } else {
         await Task.info(`VM was running, no stop source. We'll keep the partial import.`)
       }
     }
   }
+
+  // once the import is complete, before the lock on start is removed: the VM cannot be started by somebody else
+  // between two runs of the ISO. A failed docking does not fail the import: the data is there, the snapshot of the
+  // import is the rollback
+  /** @returns {Promise<DockedGuest | UndockedGuest>} */
+  async #dockVm({ followFirstBoot, metadata, vm }) {
+    const xapi = vm.$xapi
+    try {
+      let reports
+      // returns nothing: each run of the ISO already traces its report in its own task
+      await Task.run({ properties: { name: 'Autopilot docking: preparing the guest for XCP-ng' } }, async () => {
+        reports = await dockImportedVm({ xapi, vmRef: vm.$ref, metadata, followFirstBoot })
+      })
+      return { isDocked: true, reports }
+    } catch (error) {
+      warn('the guest could not be docked', { error, vmId: vm.uuid, sourceVmId: metadata.vmId })
+      Task.warning(withFirstBootHint(`the guest could not be docked: ${error.message}`, error.reports))
+      return { isDocked: false }
+    }
+  }
+
+  // once the import is complete and the lock on start removed: failing to start the VM must not fail the import,
+  // which would destroy the VM
+  async #startVm({ metadata, vm }) {
+    const xapi = vm.$xapi
+    try {
+      await Task.run({ properties: { name: 'starting the VM' } }, () => xapi.call('VM.start', vm.$ref, false, false))
+    } catch (error) {
+      warn('failed to start the imported VM', { error, vmId: vm.uuid, sourceVmId: metadata.vmId })
+      Task.warning(`the VM could not be started: ${error.message}`)
+    }
+  }
+
+  // starts a docked guest and follows its first boot, which does not fail the import either
+  async #startDockedVm({ metadata, reports, vm }) {
+    const xapi = vm.$xapi
+    try {
+      await Task.run({ properties: { name: 'first boot on XCP-ng' } }, () =>
+        firstBootOfDockedVm({ xapi, vmRef: vm.$ref, metadata, reports })
+      )
+    } catch (error) {
+      warn('the first boot of the docked guest failed', { error, vmId: vm.uuid, sourceVmId: metadata.vmId })
+      Task.warning(withFirstBootHint(`the first boot on XCP-ng failed: ${error.message}`, reports))
+    }
+  }
+
   @decorateWith(deferrable)
   async migrationfromEsxi(
     $defer,
@@ -257,6 +317,10 @@ export default class MigrateVm {
       vm: vmId,
       stopSource,
       template: templateId,
+      // prepare the guest to boot on XCP-ng with the docking ISO, once the import is complete. Off by default
+      docking = false,
+      // start the VM once the import is complete, and follow the first boot of a docked guest. Off by default
+      startVm = false,
     }
   ) {
     const app = this._app
@@ -269,12 +333,16 @@ export default class MigrateVm {
     const template = app.getXapiObject(templateId)
     const xapi = sr.$xapi
 
-    let metadata = await Task.run({ properties: { name: `get metadata of ${vmId}` } }, async () => {
+    let metadata = await Task.run({ properties: { name: 'get metadata' } }, async () => {
       return esxi.getTransferableVmMetadata(vmId)
     })
     // before anything is done on either side: a mapping which cannot be applied would import the
     // device to the default destination
     assertKnownDevices(metadata, { srIdsByNode, networkIdsByNic, vmId })
+    if (docking) {
+      // a docking which cannot run would only be known once the disks are transferred
+      findDockingIso(xapi, { sourceVmId: vmId })
+    }
     const { srsByNode, network, networksByNic } = resolveDestinations(app, {
       sr,
       srId,
@@ -290,7 +358,7 @@ export default class MigrateVm {
     let isChangeTrackingEnabled = false
     let isChangeTrackingNew = false
     try {
-      isChangeTrackingNew = await Task.run({ properties: { name: `enabling change tracking on ${vmId}` } }, () =>
+      isChangeTrackingNew = await Task.run({ properties: { name: 'enabling change tracking' } }, () =>
         esxi.enableChangeTracking(vmId)
       )
       isChangeTrackingEnabled = true
@@ -325,7 +393,7 @@ export default class MigrateVm {
     if (isSnapshotRequired || isSnapshotUseful) {
       let snapshotTaskInfo
       try {
-        snapshotTaskInfo = await Task.run({ properties: { name: `taking a snapshot of ${vmId}` } }, () => {
+        snapshotTaskInfo = await Task.run({ properties: { name: 'taking a snapshot of the source VM' } }, () => {
           return esxi.snapshot(vmId, '[V2V] migration to XCP-ng', 'created automatically during migration')
         })
       } catch (error) {
@@ -342,7 +410,7 @@ export default class MigrateVm {
       if (!isRunning && snapshotId !== undefined) {
         // only taken to start the tracking, which outlives it: a powered off VM is read as it is,
         // nothing would ever remove this snapshot from the source
-        await Task.run({ properties: { name: `removing the snapshot of ${vmId}` } }, () =>
+        await Task.run({ properties: { name: 'removing the snapshot of the source VM' } }, () =>
           esxi.removeSnapshot(snapshotId)
         ).catch(error => {
           Task.abortSignal?.throwIfAborted()
@@ -353,9 +421,8 @@ export default class MigrateVm {
       }
 
       if (snapshotTaskInfo !== undefined) {
-        metadata = await Task.run(
-          { properties: { name: `updating metadata of ${vmId} after taking a snapshot` } },
-          () => esxi.getTransferableVmMetadata(vmId)
+        metadata = await Task.run({ properties: { name: 'updating metadata after taking a snapshot' } }, () =>
+          esxi.getTransferableVmMetadata(vmId)
         )
       }
     }
@@ -367,16 +434,42 @@ export default class MigrateVm {
     const sourceId = getSourceId(esxi.instanceUuid, host)
     await this.#importDisks($defer, { esxi, metadata, sourceId, stopSource, vm, sr, srsByNode, vmId })
     Task.abortSignal?.throwIfAborted()
+    const isComplete = stopSource || metadata.powerState === 'poweredOff'
+    // the guest is only docked, and the VM only started, once the import is complete
+    if (!isComplete && (docking || startVm)) {
+      Task.info('the import is partial: the guest is neither docked nor started until an import completes it')
+    }
+    const isDocking = docking && isComplete
+    const isStarting = startVm && isComplete
+    /** @type {DockedGuest | UndockedGuest | undefined} undefined when no docking is run */
+    let dockingOutcome
+    if (isDocking) {
+      // the VM is started once docked, XO follows its first boot and does its reboots
+      dockingOutcome = await this.#dockVm({ followFirstBoot: isStarting, metadata, vm })
+    }
+    Task.abortSignal?.throwIfAborted()
     await Task.run({ properties: { name: 'Finishing transfer' } }, async () => {
       // remove the importing in label
       await vm.set_name_label(metadata.name_label)
-      const wasStopped = metadata.powerState === 'poweredOff'
 
       // remove lock on start if the VM has been completly imported
-      if (stopSource || wasStopped) {
+      if (isComplete) {
         await asyncMapSettled(['start', 'start_on'], op => vm.update_blocked_operations(op, null))
       }
     })
+
+    if (!isStarting) {
+      if (dockingOutcome?.isDocked && metadata.firmware === 'uefi' && metadata.secureBoot) {
+        // the docking disabled it, the first boot would have enabled it again
+        Task.warning('Secure Boot was enabled on the source: enable it again once the VM has booted')
+      }
+    } else if (dockingOutcome === undefined) {
+      await this.#startVm({ metadata, vm })
+    } else if (dockingOutcome.isDocked) {
+      await this.#startDockedVm({ metadata, reports: dockingOutcome.reports, vm })
+    } else {
+      Task.warning('the VM is not started: its guest could not be docked')
+    }
 
     return vm.uuid
   }
