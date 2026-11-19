@@ -17,7 +17,6 @@
 </template>
 
 <script lang="ts" setup>
-import { usePrivilegeScopeSelection } from '@/modules/role/composables/use-privilege-scope-selection.composable.ts'
 import { useSrQueryBuilder } from '@/modules/storage-repository/composables/use-sr-query-builder.composable.ts'
 import { useXoSrUtils } from '@/modules/storage-repository/composables/xo-sr-utils.composable.ts'
 import {
@@ -29,6 +28,7 @@ import VtsQueryBuilder from '@core/components/query-builder/VtsQueryBuilder.vue'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
 import { usePagination } from '@core/composables/pagination.composable.ts'
+import { useTableSelection } from '@core/composables/table-selection.composable.ts'
 import { useTableState } from '@core/composables/table-state.composable.ts'
 import { icon } from '@core/icons'
 import { useSrColumns } from '@core/tables/column-sets/sr-columns.ts'
@@ -77,12 +77,12 @@ const { pageRecords: paginatedSrs, paginationBindings } = usePagination('privile
   ignoreRoute: true,
 })
 
-const { pageSelectionModel, isSelected, toggleSelection, selectionBindings } = usePrivilegeScopeSelection({
-  selectedIds,
+const { pageSelectionModel, isSelected, toggleSelection, selectionBindings } = useTableSelection({
   items: visibleSrs,
   filteredItems: filteredSrs,
   pageItems: paginatedSrs,
-  isReady: areSrsReady,
+  getItemId: (sr): string => sr.id,
+  selectedIds,
 })
 
 function getPrimaryIcon(sr: FrontXoSr) {

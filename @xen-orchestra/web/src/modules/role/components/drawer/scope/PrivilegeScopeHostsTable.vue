@@ -22,11 +22,11 @@ import { type FrontXoHost, useXoHostCollection } from '@/modules/host/remote-res
 import { getHostIcon } from '@/modules/host/utils/xo-host.util.ts'
 import { useXoPifCollection } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
 import { getHostIpAddresses } from '@/modules/pif/utils/xo-pif.util.ts'
-import { usePrivilegeScopeSelection } from '@/modules/role/composables/use-privilege-scope-selection.composable.ts'
 import VtsQueryBuilder from '@core/components/query-builder/VtsQueryBuilder.vue'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
 import { usePagination } from '@core/composables/pagination.composable.ts'
+import { useTableSelection } from '@core/composables/table-selection.composable.ts'
 import { useTableState } from '@core/composables/table-state.composable.ts'
 import { icon } from '@core/icons'
 import { useHostColumns } from '@core/tables/column-sets/host-columns.ts'
@@ -76,12 +76,12 @@ const { pageRecords: paginatedHosts, paginationBindings } = usePagination('privi
   ignoreRoute: true,
 })
 
-const { pageSelectionModel, isSelected, toggleSelection, selectionBindings } = usePrivilegeScopeSelection({
-  selectedIds,
+const { pageSelectionModel, isSelected, toggleSelection, selectionBindings } = useTableSelection({
   items: visibleHosts,
   filteredItems: filteredHosts,
   pageItems: paginatedHosts,
-  isReady,
+  getItemId: (host): string => host.id,
+  selectedIds,
 })
 
 function getMasterIcon(host: FrontXoHost) {
