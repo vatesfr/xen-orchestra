@@ -6,6 +6,7 @@ export default {
     firstname: true,
     lastname: true,
     name: true,
+    otp: true,
     password: true,
     permission: true,
     preferences: true,

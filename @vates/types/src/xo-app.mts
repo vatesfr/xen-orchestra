@@ -658,7 +658,7 @@ export type XoApp = EventEmitter & {
       name?: string
       password?: string
       permission?: string
-      preferences?: Record<string, string>
+      preferences?: Record<string, unknown>
       username?: string
     }
   ): Promise<void>

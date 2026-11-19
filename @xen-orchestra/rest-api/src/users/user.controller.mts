@@ -18,7 +18,12 @@ import {
   Tags,
 } from 'tsoa'
 import { createLogger } from '@xen-orchestra/log'
-import { forbiddenOperation } from 'xo-common/api-errors.js'
+import {
+  forbiddenOperation,
+  incorrectState,
+  invalidParameters as invalidParametersError,
+} from 'xo-common/api-errors.js'
+import { verifyTotp } from '@vates/otp'
 import { inject } from 'inversify'
 import { json, type Request as ExRequest } from 'express'
 import { provide } from 'inversify-binding-decorators'
@@ -26,9 +31,11 @@ import type { XoAuthenticationToken, XoGroup, XoTask, XoUser } from '@vates/type
 
 import { acl, actionIfNotSelfUser, actionsFromBody } from '../middlewares/acl.middleware.mjs'
 import {
+  asynchronousActionResp,
   badRequestResp,
   createdResp,
   forbiddenOperationResp,
+  incorrectStateResp,
   internalServerErrorResp,
   invalidParameters,
   noContentResp,
@@ -50,8 +57,9 @@ import type { SendObjects } from '../helpers/helper.type.mjs'
 import { limitAndFilterArray } from '../helpers/utils.helper.mjs'
 import type { UpdateUserRequestBody } from './user.type.mjs'
 import { XoController } from '../abstract-classes/xo-controller.mjs'
+import type { CreateActionReturnType } from '../abstract-classes/base-controller.mjs'
 import { groupIds, partialGroups } from '../open-api/oa-examples/group.oa-example.mjs'
-import { partialTasks, taskIds } from '../open-api/oa-examples/task.oa-example.mjs'
+import { partialTasks, taskIds, taskLocation } from '../open-api/oa-examples/task.oa-example.mjs'
 import { redirectMeAlias } from './user.middleware.mjs'
 import { aclPrivilegeIds, partialAclPrivileges } from '../open-api/oa-examples/acl-privilege.oa-example.mjs'
 import type { AnyPrivilege } from '@xen-orchestra/acl'
@@ -256,6 +264,110 @@ export class UserController extends XoController<XoUser> {
   @Response(notFoundResp.status, notFoundResp.description)
   async deleteUser(@Path() id: string): Promise<void> {
     await this.restApi.xoApp.deleteUser(id as XoUser['id'])
+  }
+
+  /**
+   * You can only enable OTP for yourself, and only if it is not already enabled (disable it first to change it)
+   *
+   * `token` must be a valid TOTP code generated from `secret`, to make sure it has been saved in an authenticator app
+   *
+   * @example id "me"
+   * @example body { "secret": "JBSWY3DPEHPK3PXP", "token": "123456" }
+   */
+  @Example(taskLocation)
+  @Extension('x-mcp-exposure', 'deny')
+  @Post('{id}/actions/enable_otp')
+  @Security('*', ['acl'])
+  @Middlewares(json())
+  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
+  @Response(noContentResp.status, noContentResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  @Response(incorrectStateResp.status, incorrectStateResp.description)
+  @Response(invalidParameters.status, invalidParameters.description)
+  async enableOtp(
+    @Path() id: string,
+    @Body() body: { secret: string; token: string },
+    @Query() sync?: boolean
+  ): CreateActionReturnType<void> {
+    const userId = id as XoUser['id']
+    if (this.restApi.getCurrentUser().id !== userId) {
+      throw forbiddenOperation('enable OTP', 'you can only enable OTP for yourself')
+    }
+
+    return this.createAction<void>(
+      async () => {
+        const user = await this.getObject(userId)
+        if (user.preferences.otp !== undefined) {
+          throw incorrectState({
+            actual: user.preferences.otp,
+            expected: 'undefined',
+            object: userId,
+            property: 'preferences.otp',
+          })
+        }
+
+        let isTokenValid: boolean
+        try {
+          isTokenValid = await verifyTotp(body.token, { secret: body.secret })
+        } catch (error) {
+          throw invalidParametersError('invalid OTP secret', {
+            cause: error instanceof Error ? error.message : JSON.stringify(error),
+          })
+        }
+        if (!isTokenValid) {
+          throw invalidParametersError('invalid OTP token')
+        }
+
+        await this.restApi.xoApp.updateUser(userId, { preferences: { otp: body.secret } })
+      },
+      {
+        sync,
+        statusCode: noContentResp.status,
+        taskProperties: {
+          name: 'enable OTP',
+          objectId: userId,
+        },
+      }
+    )
+  }
+
+  /**
+   * Required privilege:
+   * - resource: user, action: update:otp (if not self)
+   *
+   * @example id "722d17b9-699b-49d2-8193-be1ac573d3de"
+   */
+  @Example(taskLocation)
+  @Extension('x-mcp-exposure', 'deny')
+  @Post('{id}/actions/disable_otp')
+  @Middlewares(
+    acl({
+      resource: 'user',
+      action: actionIfNotSelfUser<'user'>('update:otp'),
+      objectId: 'params.id',
+      getObject: aclMiddlewareGetUser,
+    })
+  )
+  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
+  @Response(noContentResp.status, noContentResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  disableOtp(@Path() id: string, @Query() sync?: boolean): CreateActionReturnType<void> {
+    const userId = id as XoUser['id']
+
+    return this.createAction<void>(
+      async () => {
+        await this.restApi.xoApp.updateUser(userId, { preferences: { otp: null } })
+      },
+      {
+        sync,
+        statusCode: noContentResp.status,
+        taskProperties: {
+          name: 'disable OTP',
+          objectId: userId,
+        },
+      }
+    )
   }
 
   /**
