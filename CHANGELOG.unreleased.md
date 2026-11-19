@@ -123,5 +123,4 @@
 - xo-server-sdn-controller patch
 - xo-web minor
 
-
 <!--packages-end-->
