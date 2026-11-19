@@ -5,14 +5,10 @@ import { findCardNumbers, findLegends, findProgressBarFillStyle } from '@/test/f
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { itShowsHostDashboardCard } from '@/test/host-dashboard-card.ts'
 import { t } from '@/test/i18n.ts'
-import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
-import { mockModule } from '@/test/spy-on-module.ts'
+import { xoCollectionsMock, mockXoCollections } from '@/test/mock-xo-collections.ts'
 import { mount } from '@vue/test-utils'
 
-mockModule(
-  import('@/modules/host/remote-resources/use-xo-host-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
+mockXoCollections('host')
 
 beforeEach(() => {
   xoCollectionsMock.reset()

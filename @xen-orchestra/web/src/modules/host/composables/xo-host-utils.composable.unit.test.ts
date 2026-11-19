@@ -4,18 +4,14 @@ import type { XoHostState } from '@/modules/host/utils/xo-host.util.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { createHost } from '@/test/create-host.ts'
 import { createVm } from '@/test/create-vm.ts'
-import { vmCollectionMock } from '@/test/mock-xo-vm-collection.ts'
+import { vmCollectionMock, mockXoVmCollection } from '@/test/mock-xo-vm-collection.ts'
 import { mountComposable, mountComposableWithI18n } from '@/test/mount-composable.ts'
-import { mockModule } from '@/test/spy-on-module.ts'
 import { getRelativeTime } from '@core/composables/relative-time.composable.ts'
 import { HOST_ALLOWED_OPERATIONS, HOST_POWER_STATE, VM_OPERATIONS } from '@vates/types'
 import { type MaybeRefOrGetter, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-mockModule(
-  import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'),
-  () => import('@/test/mock-xo-vm-collection.ts')
-)
+mockXoVmCollection()
 
 beforeEach(() => {
   vmCollectionMock.reset()

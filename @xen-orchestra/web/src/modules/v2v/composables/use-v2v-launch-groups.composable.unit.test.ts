@@ -5,11 +5,12 @@ import { useV2vSelectedVmLabels } from '@/modules/v2v/composables/use-v2v-select
 import { useV2vSelectedVms } from '@/modules/v2v/composables/use-v2v-selected-vms.composable.ts'
 import { DISKOR_POOL_NAME } from '@/test/create-pool.ts'
 import { getV2vVmIds } from '@/test/create-v2v-vm-row.ts'
-import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
-import { v2vVmRowsCollectionsMock } from '@/test/mock-xo-v2v-vm-rows-collections.ts'
+import { mockDeleteModal } from '@/test/mock-delete-modal.ts'
+import { xoCollectionsMock, mockXoCollections } from '@/test/mock-xo-collections.ts'
+import { v2vVmRowsCollectionsMock, mockXoV2vVmRowsCollections } from '@/test/mock-xo-v2v-vm-rows-collections.ts'
+import { mockXoVmDeviceCollections } from '@/test/mock-xo-vm-device-collections.ts'
 import { mountV2vListStepComposable, type MountV2vListStepOptions } from '@/test/mount-v2v-list-step.ts'
 import { resetV2vCollectionMocks } from '@/test/reset-v2v-collection-mocks.ts'
-import { mockModule } from '@/test/spy-on-module.ts'
 import { V2V_DEFAULT_SR, V2V_SSD_SR } from '@/test/v2v-mapping-fixtures.ts'
 import { V2V_DB_SYNC_SNAPSHOT, V2V_GONE_VM_ID, V2V_MAPPING_STEP_INVENTORY } from '@/test/v2v-mapping-step-fixtures.ts'
 import {
@@ -24,47 +25,10 @@ import { V2V_DB_VM, V2V_LISTED_VM, V2V_WEB_VM } from '@/test/v2v-vms-fixtures.ts
 import { V2V_LIST_POOL } from '@/test/v2v-wizard-fixtures.ts'
 import type { XoV2vDisk } from '@vates/types'
 
-mockModule(
-  import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'),
-  () => import('@/test/mock-xo-v2v-vm-rows-collections.ts')
-)
-mockModule(
-  import('@/modules/task/remote-resources/use-xo-task-collection.ts'),
-  () => import('@/test/mock-xo-v2v-vm-rows-collections.ts')
-)
-mockModule(
-  import('@/modules/snapshot/components/remote-resources/use-xo-vm-snapshot-collection.ts'),
-  () => import('@/test/mock-xo-v2v-vm-rows-collections.ts')
-)
-mockModule(
-  import('@/modules/pool/remote-resources/use-xo-pool-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
-mockModule(
-  import('@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
-mockModule(
-  import('@/modules/network/remote-resources/use-xo-network-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
-mockModule(
-  import('@/modules/vm/remote-resources/use-xo-vm-template-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
-mockModule(
-  import('@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'),
-  () => import('@/test/mock-xo-vm-device-collections.ts')
-)
-mockModule(
-  import('@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'),
-  () => import('@/test/mock-xo-vm-device-collections.ts')
-)
-mockModule(
-  import('@/modules/vif/remote-resources/use-xo-vif-collection.ts'),
-  () => import('@/test/mock-xo-vm-device-collections.ts')
-)
-mockModule(import('@core/composables/modals/use-delete-modal.ts'), () => import('@/test/mock-delete-modal.ts'))
+mockXoV2vVmRowsCollections()
+mockXoCollections('network', 'pool', 'sr', 'vmTemplate')
+mockXoVmDeviceCollections('vbd', 'vdi', 'vif')
+mockDeleteModal()
 
 // The disks of the factory all share one key and chain: the DB VM gets two distinct ones, only the first held by its
 // import

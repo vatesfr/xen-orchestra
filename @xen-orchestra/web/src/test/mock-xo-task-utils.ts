@@ -1,4 +1,5 @@
 import type { useXoTaskUtils as realUseXoTaskUtils } from '@/shared/composables/xo-task-utils.composable.ts'
+import { mockModule } from '@/test/spy-on-module.ts'
 
 // `monitorTask` waits for a task of the task collection, which would open an SSE subscription: a test sets what it
 // answers (a task settling with no result after a reset), reset it in `beforeEach`
@@ -19,7 +20,12 @@ export function answerPostsWithTask(post: MockedPost) {
   post.mockImplementation(async (url: string) => ({ taskId: `task-of-${url}` }))
 }
 
-// Use as `mockModule(import('@/shared/composables/xo-task-utils.composable.ts'), () => import('@/test/mock-xo-task-utils.ts'))`
+// Mocked with `mockXoTaskUtils()`
 export const useXoTaskUtils = (() => ({
   monitorTask: taskUtilsMock.monitorTask,
 })) as unknown as typeof realUseXoTaskUtils
+
+// Replaces the module in every test of the file: call it at the top level of the test file
+export function mockXoTaskUtils() {
+  mockModule(import('@/shared/composables/xo-task-utils.composable.ts'), () => import('@/test/mock-xo-task-utils.ts'))
+}

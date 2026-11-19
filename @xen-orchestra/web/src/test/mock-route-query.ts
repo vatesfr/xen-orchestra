@@ -1,3 +1,4 @@
+import { mockModule } from '@/test/spy-on-module.ts'
 import type { useRouteQuery as realUseRouteQuery } from '@core/composables/route-query.composable.ts'
 import { ref } from 'vue'
 
@@ -10,5 +11,10 @@ export const routeQueryMock = {
   },
 }
 
-// Use as `mockModule(import('@core/composables/route-query.composable.ts'), () => import('@/test/mock-route-query.ts'))`
+// Mocked with `mockRouteQuery()`
 export const useRouteQuery = (() => routeQueryMock.query) as unknown as typeof realUseRouteQuery
+
+// Replaces the module in every test of the file: call it at the top level of the test file
+export function mockRouteQuery() {
+  mockModule(import('@core/composables/route-query.composable.ts'), () => import('@/test/mock-route-query.ts'))
+}

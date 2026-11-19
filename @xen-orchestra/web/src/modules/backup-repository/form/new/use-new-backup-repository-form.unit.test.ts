@@ -6,9 +6,8 @@ import {
 import type { FrontXoProxy } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
 import { createProxy } from '@/test/create-proxy.ts'
 import { dangerMessage } from '@/test/form-messages.ts'
-import { proxyCollectionMock } from '@/test/mock-xo-proxy-collection.ts'
+import { proxyCollectionMock, mockXoProxyCollection } from '@/test/mock-xo-proxy-collection.ts'
 import { mountComposableWithI18n } from '@/test/mount-composable.ts'
-import { mockModule } from '@/test/spy-on-module.ts'
 import { flushPromises } from '@vue/test-utils'
 import { type BackupRepositoryType, format as formatBackupRepositoryUrl } from 'xo-remote-parser'
 
@@ -16,10 +15,7 @@ const PROXY_ID = 'proxy-1' as FrontXoProxy['id']
 
 const ENCRYPTION_KEY = '0123456789abcdef0123456789ABCDEF'
 
-mockModule(
-  import('@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'),
-  () => import('@/test/mock-xo-proxy-collection.ts')
-)
+mockXoProxyCollection()
 
 beforeEach(() => {
   proxyCollectionMock.reset()

@@ -8,9 +8,9 @@ import { type DashboardCardProps, itShowsDashboardCardStates } from '@/test/dash
 import { findLabelledValues, findRowLabels } from '@/test/find-rendered-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
-import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
-import { vmCollectionMock } from '@/test/mock-xo-vm-collection.ts'
-import { mockModule, mockedExport } from '@/test/spy-on-module.ts'
+import { xoCollectionsMock, mockXoCollections } from '@/test/mock-xo-collections.ts'
+import { vmCollectionMock, mockXoVmCollection } from '@/test/mock-xo-vm-collection.ts'
+import { mockedExport } from '@/test/spy-on-module.ts'
 import { objectIcon } from '@core/icons'
 import { formatDateTime } from '@core/utils/time.util.ts'
 import { hasLoader } from '@core-test/expect-loader.ts'
@@ -19,15 +19,9 @@ import { computed } from 'vue'
 
 const useXoSrUtilsMock = mockedExport(useXoSrUtils)
 
-mockModule(
-  import('@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
+mockXoCollections('sr')
 
-mockModule(
-  import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'),
-  () => import('@/test/mock-xo-vm-collection.ts')
-)
+mockXoVmCollection()
 
 beforeEach(() => {
   xoCollectionsMock.reset()

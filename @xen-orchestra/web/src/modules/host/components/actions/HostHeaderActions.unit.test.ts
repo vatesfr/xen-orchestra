@@ -10,40 +10,22 @@ import {
   openMoreActions,
 } from '@/test/head-bar-actions.ts'
 import { t } from '@/test/i18n.ts'
-import { collapseOnOverflowMock } from '@/test/mock-collapse-on-overflow.ts'
-import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
-import { taskCollectionMock } from '@/test/mock-xo-task-collection.ts'
-import { vmCollectionMock } from '@/test/mock-xo-vm-collection.ts'
-import { mockModule } from '@/test/spy-on-module.ts'
+import { collapseOnOverflowMock, mockCollapseOnOverflow } from '@/test/mock-collapse-on-overflow.ts'
+import { xoCollectionsMock, mockXoCollections } from '@/test/mock-xo-collections.ts'
+import { taskCollectionMock, mockXoTaskCollection } from '@/test/mock-xo-task-collection.ts'
+import { vmCollectionMock, mockXoVmCollection } from '@/test/mock-xo-vm-collection.ts'
 import { HOST_POWER_STATE } from '@vates/types'
 import { mount } from '@vue/test-utils'
 
 const { collapsedCount } = collapseOnOverflowMock
 
-mockModule(
-  import('@/modules/host/remote-resources/use-xo-host-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
+mockXoCollections('host', 'pool')
 
-mockModule(
-  import('@/modules/pool/remote-resources/use-xo-pool-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
+mockXoTaskCollection()
 
-mockModule(
-  import('@/modules/task/remote-resources/use-xo-task-collection.ts'),
-  () => import('@/test/mock-xo-task-collection.ts')
-)
+mockXoVmCollection()
 
-mockModule(
-  import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'),
-  () => import('@/test/mock-xo-vm-collection.ts')
-)
-
-mockModule(
-  import('@core/composables/collapse-on-overflow.composable.ts'),
-  () => import('@/test/mock-collapse-on-overflow.ts')
-)
+mockCollapseOnOverflow()
 
 beforeEach(() => {
   xoCollectionsMock.reset()

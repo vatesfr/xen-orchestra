@@ -1,19 +1,15 @@
 import { useV2vWizard } from '@/modules/v2v/composables/use-v2v-wizard.composable.ts'
 import { UNKNOWN_POOL_ID } from '@/test/create-pool.ts'
 import { createV2vMigrationList } from '@/test/create-v2v-migration-list.ts'
-import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
+import { xoCollectionsMock, mockXoCollections } from '@/test/mock-xo-collections.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
 import { mountOnV2vWizard, type V2vWizardSetup } from '@/test/mount-on-v2v-wizard.ts'
 import { seedV2vListPool } from '@/test/seed-v2v-list-pool.ts'
-import { mockModule } from '@/test/spy-on-module.ts'
 import { V2V_EMPTY_LIST, V2V_LIST_POOL, V2V_LIST_WITH_VMS, V2V_WIZARD_SOURCE } from '@/test/v2v-wizard-fixtures.ts'
 import { nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-mockModule(
-  import('@/modules/pool/remote-resources/use-xo-pool-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
+mockXoCollections('pool')
 
 const UNKNOWN_POOL_LIST = createV2vMigrationList({ poolId: UNKNOWN_POOL_ID })
 

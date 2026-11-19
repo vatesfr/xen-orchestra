@@ -4,28 +4,18 @@ import type { FrontXoVif } from '@/modules/vif/remote-resources/use-xo-vif-colle
 import { createNetwork } from '@/test/create-network.ts'
 import { createVif } from '@/test/create-vif.ts'
 import { createVm } from '@/test/create-vm.ts'
-import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
-import { vmCollectionMock } from '@/test/mock-xo-vm-collection.ts'
-import { vmDeviceCollectionsMock } from '@/test/mock-xo-vm-device-collections.ts'
+import { xoCollectionsMock, mockXoCollections } from '@/test/mock-xo-collections.ts'
+import { vmCollectionMock, mockXoVmCollection } from '@/test/mock-xo-vm-collection.ts'
+import { vmDeviceCollectionsMock, mockXoVmDeviceCollections } from '@/test/mock-xo-vm-device-collections.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
-import { mockModule } from '@/test/spy-on-module.ts'
 import { SDN_CONTROLLER_OF_RULES_KEY, type TrafficRuleTargetType } from '@vates/types'
 
 // The collections would open SSE subscriptions
-mockModule(
-  import('@/modules/network/remote-resources/use-xo-network-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
+mockXoCollections('network')
 
-mockModule(
-  import('@/modules/vif/remote-resources/use-xo-vif-collection.ts'),
-  () => import('@/test/mock-xo-vm-device-collections.ts')
-)
+mockXoVmDeviceCollections('vif')
 
-mockModule(
-  import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'),
-  () => import('@/test/mock-xo-vm-collection.ts')
-)
+mockXoVmCollection()
 
 function withRules(...priorities: number[]) {
   const rules = priorities.map(priority =>

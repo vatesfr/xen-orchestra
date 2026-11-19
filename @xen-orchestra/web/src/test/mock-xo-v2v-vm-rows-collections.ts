@@ -3,8 +3,9 @@ import type {
   useXoVmSnapshotCollection as realUseXoVmSnapshotCollection,
 } from '@/modules/snapshot/components/remote-resources/use-xo-vm-snapshot-collection.ts'
 import { createMockCollection } from '@/test/find-by-id.ts'
-import { taskCollectionMock } from '@/test/mock-xo-task-collection.ts'
-import { vmCollectionMock } from '@/test/mock-xo-vm-collection.ts'
+import { mockXoTaskCollection, taskCollectionMock } from '@/test/mock-xo-task-collection.ts'
+import { mockXoVmCollection, vmCollectionMock } from '@/test/mock-xo-vm-collection.ts'
+import { mockModule } from '@/test/spy-on-module.ts'
 import { ref } from 'vue'
 
 // Shared state of the mocked collections the V2V VM rows are built from: a test sets the objects it needs, reset it
@@ -24,11 +25,7 @@ export const v2vVmRowsCollectionsMock = {
   },
 }
 
-// Use as `mockModule(import('<collection module>'), () => import('@/test/mock-xo-v2v-vm-rows-collections.ts'))`
-// for each collection below: every mocked module picks its own export
-export { useXoVmCollection } from '@/test/mock-xo-vm-collection.ts'
-export { useXoTaskCollection } from '@/test/mock-xo-task-collection.ts'
-
+// Mocked with `mockXoV2vVmRowsCollections()`
 export const useXoVmSnapshotCollection = (() => ({
   ...createMockCollection(
     'Snapshot',
@@ -37,3 +34,13 @@ export const useXoVmSnapshotCollection = (() => ({
     v2vVmRowsCollectionsMock.areSnapshotsReady
   ),
 })) as unknown as typeof realUseXoVmSnapshotCollection
+
+// Replaces the three collection modules in every test of the file: call it at the top level of the test file
+export function mockXoV2vVmRowsCollections() {
+  mockModule(
+    import('@/modules/snapshot/components/remote-resources/use-xo-vm-snapshot-collection.ts'),
+    () => import('@/test/mock-xo-v2v-vm-rows-collections.ts')
+  )
+  mockXoTaskCollection()
+  mockXoVmCollection()
+}

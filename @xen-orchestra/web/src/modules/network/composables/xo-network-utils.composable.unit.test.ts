@@ -5,9 +5,8 @@ import type { FrontXoPif } from '@/modules/pif/remote-resources/use-xo-pif-colle
 import { createHost } from '@/test/create-host.ts'
 import { createNetwork } from '@/test/create-network.ts'
 import { createPif } from '@/test/create-pif.ts'
-import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
+import { xoCollectionsMock, mockXoCollections } from '@/test/mock-xo-collections.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
-import { mockModule } from '@/test/spy-on-module.ts'
 import {
   SDN_CONTROLLER_ENCAPSULATION_KEY,
   SDN_CONTROLLER_ENCRYPTED_KEY,
@@ -20,15 +19,7 @@ import { useI18n } from 'vue-i18n'
 
 const { pifs, hosts } = xoCollectionsMock
 
-mockModule(
-  import('@/modules/host/remote-resources/use-xo-host-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
-
-mockModule(
-  import('@/modules/pif/remote-resources/use-xo-pif-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
+mockXoCollections('host', 'pif')
 
 beforeEach(() => {
   xoCollectionsMock.reset()

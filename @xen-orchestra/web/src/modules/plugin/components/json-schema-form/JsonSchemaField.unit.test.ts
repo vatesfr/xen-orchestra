@@ -8,33 +8,16 @@ import { getCheckbox } from '@/test/get-checkbox.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { getNumberedItemLabel } from '@/test/json-schema-item-label.ts'
-import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
-import { vmCollectionMock } from '@/test/mock-xo-vm-collection.ts'
+import { xoCollectionsMock, mockXoCollections } from '@/test/mock-xo-collections.ts'
+import { vmCollectionMock, mockXoVmCollection } from '@/test/mock-xo-vm-collection.ts'
 import { mountJsonSchemaForm } from '@/test/mount-json-schema-form.ts'
 import { findSelectOptionLabels, openSelect, pickSelectOption } from '@/test/select.ts'
-import { mockModule } from '@/test/spy-on-module.ts'
 import { mount, type VueWrapper } from '@vue/test-utils'
 import { h, nextTick } from 'vue'
 
-mockModule(
-  import('@/modules/host/remote-resources/use-xo-host-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
+mockXoCollections('host', 'pool', 'sr')
 
-mockModule(
-  import('@/modules/pool/remote-resources/use-xo-pool-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
-
-mockModule(
-  import('@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
-
-mockModule(
-  import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'),
-  () => import('@/test/mock-xo-vm-collection.ts')
-)
+mockXoVmCollection()
 
 beforeEach(() => {
   xoCollectionsMock.reset()

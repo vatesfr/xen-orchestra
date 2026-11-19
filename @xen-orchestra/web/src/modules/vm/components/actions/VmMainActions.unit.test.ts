@@ -2,21 +2,15 @@ import VmMainActions from '@/modules/vm/components/actions/VmMainActions.vue'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { createVm } from '@/test/create-vm.ts'
 import { itCompactsMainActions } from '@/test/main-actions.ts'
-import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
-import { taskCollectionMock } from '@/test/mock-xo-task-collection.ts'
-import { mockModule } from '@/test/spy-on-module.ts'
+import { xoCollectionsMock, mockXoCollections } from '@/test/mock-xo-collections.ts'
+import { mockXoRoutes } from '@/test/mock-xo-routes.ts'
+import { taskCollectionMock, mockXoTaskCollection } from '@/test/mock-xo-task-collection.ts'
 
-mockModule(import('@/shared/remote-resources/use-xo-routes.ts'), () => import('@/test/mock-xo-routes.ts'))
+mockXoRoutes()
 
-mockModule(
-  import('@/modules/host/remote-resources/use-xo-host-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
+mockXoCollections('host')
 
-mockModule(
-  import('@/modules/task/remote-resources/use-xo-task-collection.ts'),
-  () => import('@/test/mock-xo-task-collection.ts')
-)
+mockXoTaskCollection()
 
 beforeEach(() => {
   xoCollectionsMock.reset()

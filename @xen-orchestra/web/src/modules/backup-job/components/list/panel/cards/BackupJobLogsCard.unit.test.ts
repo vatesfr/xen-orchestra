@@ -4,17 +4,14 @@ import type { FrontXoBackupLog } from '@/modules/backup-log/remote-resources/use
 import { createBackupLog } from '@/test/create-backup-log.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
-import { scheduleCollectionMock } from '@/test/mock-xo-schedule-collection.ts'
-import { mockModule } from '@/test/spy-on-module.ts'
+import { mockXoRoutes } from '@/test/mock-xo-routes.ts'
+import { scheduleCollectionMock, mockXoScheduleCollection } from '@/test/mock-xo-schedule-collection.ts'
 import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
 import { mount } from '@vue/test-utils'
 
-mockModule(import('@/shared/remote-resources/use-xo-routes.ts'), () => import('@/test/mock-xo-routes.ts'))
+mockXoRoutes()
 
-mockModule(
-  import('@/modules/schedule/remote-resources/use-xo-schedule-collection.ts'),
-  () => import('@/test/mock-xo-schedule-collection.ts')
-)
+mockXoScheduleCollection()
 
 beforeEach(() => {
   scheduleCollectionMock.reset()

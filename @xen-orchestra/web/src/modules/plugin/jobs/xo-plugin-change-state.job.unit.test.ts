@@ -5,10 +5,10 @@ import { createPlugin } from '@/test/create-plugin.ts'
 import { t } from '@/test/i18n.ts'
 import { itCanRun, itCannotRun, itRejectsWithRequestError } from '@/test/job-cases.ts'
 import { expectJobRunning } from '@/test/job-running.ts'
-import { answerPostsWithTask, taskUtilsMock } from '@/test/mock-xo-task-utils.ts'
+import { answerPostsWithTask, taskUtilsMock, mockXoTaskUtils } from '@/test/mock-xo-task-utils.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
 import { silenceConsoleError } from '@/test/silence-console-error.ts'
-import { mockModule, mockedExport } from '@/test/spy-on-module.ts'
+import { mockedExport } from '@/test/spy-on-module.ts'
 
 const post = mockedExport(fetchPost)
 const patch = mockedExport(fetchPatch)
@@ -16,7 +16,7 @@ const patch = mockedExport(fetchPatch)
 const { monitorTask } = taskUtilsMock
 
 // The task collection would open an SSE subscription
-mockModule(import('@/shared/composables/xo-task-utils.composable.ts'), () => import('@/test/mock-xo-task-utils.ts'))
+mockXoTaskUtils()
 
 beforeEach(() => {
   vi.restoreAllMocks()

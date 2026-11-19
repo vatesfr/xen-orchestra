@@ -7,15 +7,14 @@ import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote
 import { createBr } from '@/test/create-br.ts'
 import { createJobStub } from '@/test/create-job-result.ts'
 import { itRunsJobFromDrawer } from '@/test/drawer-job.ts'
-import { overlayMock } from '@/test/mock-overlay.ts'
+import { overlayMock, mockOverlay } from '@/test/mock-overlay.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
 import { silenceConsoleError } from '@/test/silence-console-error.ts'
-import { mockModule } from '@/test/spy-on-module.ts'
 import type { Ref } from 'vue'
 
 const editJob = createJobStub(useXoBackupRepositoryEditJob)
 
-mockModule(import('@core/packages/overlay/use-overlay.ts'), () => import('@/test/mock-overlay.ts'))
+mockOverlay()
 
 const PAYLOAD: EditBackupRepositoryPayload = {
   name: 'Weekly backups',

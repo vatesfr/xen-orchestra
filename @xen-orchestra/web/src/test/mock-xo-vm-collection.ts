@@ -7,6 +7,7 @@ import { extractVmHostId } from '@/modules/vm/utils/xo-vm.util.ts'
 import { createMockCollection, findById } from '@/test/find-by-id.ts'
 import { groupBy } from '@/test/group-by.ts'
 import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
+import { mockModule } from '@/test/spy-on-module.ts'
 import { computed, type MaybeRefOrGetter, ref } from 'vue'
 
 // Shared state of the mocked VM collection: a test sets the VMs it needs, reset it in `beforeEach`
@@ -24,8 +25,7 @@ export const vmCollectionMock = {
   },
 }
 
-// Use as `mockModule(import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'), () => import('@/test/mock-xo-vm-collection.ts'))`.
-// As in the real collection, a VM is on the host of its `$container`, read from the hosts of `mock-xo-collections.ts`
+// Mocked with `mockXoVmCollection()`: As in the real collection, a VM is on the host of its `$container`, read from the hosts of `mock-xo-collections.ts`
 export const useXoVmCollection = ((options?: { isEnabled?: MaybeRefOrGetter<boolean> }) => {
   vmCollectionMock.isEnabled = options?.isEnabled
 
@@ -46,3 +46,11 @@ export const useXoVmCollection = ((options?: { isEnabled?: MaybeRefOrGetter<bool
     },
   }
 }) as unknown as typeof realUseXoVmCollection
+
+// Replaces the module in every test of the file: call it at the top level of the test file
+export function mockXoVmCollection() {
+  mockModule(
+    import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'),
+    () => import('@/test/mock-xo-vm-collection.ts')
+  )
+}

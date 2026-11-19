@@ -6,16 +6,12 @@ import BackupRepositorySmbFields from '@/modules/backup-repository/components/fo
 import BackupRepositoryDetailsStep from '@/modules/backup-repository/components/form/steps/BackupRepositoryDetailsStep.vue'
 import { useNewBackupRepositoryForm } from '@/modules/backup-repository/form/new/use-new-backup-repository-form.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
-import { proxyCollectionMock } from '@/test/mock-xo-proxy-collection.ts'
+import { proxyCollectionMock, mockXoProxyCollection } from '@/test/mock-xo-proxy-collection.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
-import { mockModule } from '@/test/spy-on-module.ts'
 import { mount, type VueWrapper } from '@vue/test-utils'
 import type { BackupRepositoryType } from 'xo-remote-parser'
 
-mockModule(
-  import('@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'),
-  () => import('@/test/mock-xo-proxy-collection.ts')
-)
+mockXoProxyCollection()
 
 beforeEach(() => {
   proxyCollectionMock.reset()

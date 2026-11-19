@@ -7,27 +7,15 @@ import { createBackupLog, createBackupLogVmTask } from '@/test/create-backup-log
 import { createVm } from '@/test/create-vm.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
-import { vmCollectionMock } from '@/test/mock-xo-vm-collection.ts'
-import { vmDeviceCollectionsMock } from '@/test/mock-xo-vm-device-collections.ts'
+import { vmCollectionMock, mockXoVmCollection } from '@/test/mock-xo-vm-collection.ts'
+import { vmDeviceCollectionsMock, mockXoVmDeviceCollections } from '@/test/mock-xo-vm-device-collections.ts'
 import { seedVmDisks } from '@/test/seed-vm-disks.ts'
-import { mockModule } from '@/test/spy-on-module.ts'
 import { formatSizeRaw } from '@core/utils/size.util.ts'
 import { mount } from '@vue/test-utils'
 
-mockModule(
-  import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'),
-  () => import('@/test/mock-xo-vm-collection.ts')
-)
+mockXoVmCollection()
 
-mockModule(
-  import('@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'),
-  () => import('@/test/mock-xo-vm-device-collections.ts')
-)
-
-mockModule(
-  import('@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'),
-  () => import('@/test/mock-xo-vm-device-collections.ts')
-)
+mockXoVmDeviceCollections('vbd', 'vdi')
 
 beforeEach(() => {
   vmCollectionMock.reset()

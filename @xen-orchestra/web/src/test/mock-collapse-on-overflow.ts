@@ -1,3 +1,4 @@
+import { mockModule } from '@/test/spy-on-module.ts'
 import type { useCollapseOnOverflow as realUseCollapseOnOverflow } from '@core/composables/collapse-on-overflow.composable.ts'
 import { ref } from 'vue'
 
@@ -13,8 +14,16 @@ export const collapseOnOverflowMock = {
   },
 }
 
-// Use as `mockModule(import('@core/composables/collapse-on-overflow.composable.ts'), () => import('@/test/mock-collapse-on-overflow.ts'))`
+// Mocked with `mockCollapseOnOverflow()`
 export const useCollapseOnOverflow = (() => ({
   collapsedCount: collapseOnOverflowMock.collapsedCount,
   reset: collapseOnOverflowMock.resetCollapsedCount,
 })) as unknown as typeof realUseCollapseOnOverflow
+
+// Replaces the module in every test of the file: call it at the top level of the test file
+export function mockCollapseOnOverflow() {
+  mockModule(
+    import('@core/composables/collapse-on-overflow.composable.ts'),
+    () => import('@/test/mock-collapse-on-overflow.ts')
+  )
+}

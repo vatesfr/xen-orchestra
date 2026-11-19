@@ -1,18 +1,9 @@
 import { useV2vTargetNameGetters } from '@/modules/v2v/composables/use-v2v-target-name-getters.composable.ts'
-import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
+import { xoCollectionsMock, mockXoCollections } from '@/test/mock-xo-collections.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
-import { mockModule } from '@/test/spy-on-module.ts'
 import { V2V_SSD_SR, V2V_VLAN_NETWORK } from '@/test/v2v-mapping-fixtures.ts'
 
-mockModule(
-  import('@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
-
-mockModule(
-  import('@/modules/network/remote-resources/use-xo-network-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
+mockXoCollections('network', 'sr')
 
 function mountNameGetters() {
   return mountComposable(() => useV2vTargetNameGetters()).wrapper.vm

@@ -9,15 +9,11 @@ import FormCheckbox from '@/shared/components/form/FormCheckbox.vue'
 import FormTextInput from '@/shared/components/form/FormTextInput.vue'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
-import { proxyCollectionMock } from '@/test/mock-xo-proxy-collection.ts'
-import { mockModule } from '@/test/spy-on-module.ts'
+import { proxyCollectionMock, mockXoProxyCollection } from '@/test/mock-xo-proxy-collection.ts'
 import { flushPromises, mount, type VueWrapper } from '@vue/test-utils'
 import { defineComponent, h, reactive } from 'vue'
 
-mockModule(
-  import('@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'),
-  () => import('@/test/mock-xo-proxy-collection.ts')
-)
+mockXoProxyCollection()
 
 beforeEach(() => {
   proxyCollectionMock.reset()

@@ -18,44 +18,18 @@ import { createVbd } from '@/test/create-vbd.ts'
 import { createVdi } from '@/test/create-vdi.ts'
 import { createVif } from '@/test/create-vif.ts'
 import { createVm } from '@/test/create-vm.ts'
-import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
-import { vmDeviceCollectionsMock } from '@/test/mock-xo-vm-device-collections.ts'
+import { xoCollectionsMock, mockXoCollections } from '@/test/mock-xo-collections.ts'
+import { vmDeviceCollectionsMock, mockXoVmDeviceCollections } from '@/test/mock-xo-vm-device-collections.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
-import { mockModule, mockedExport } from '@/test/spy-on-module.ts'
+import { mockedExport } from '@/test/spy-on-module.ts'
 import { VM_POWER_STATE } from '@vates/types'
 import { computed, nextTick, ref } from 'vue'
 
 const useXoVmVbdsUtilsMock = mockedExport(useXoVmVbdsUtils)
 
-mockModule(
-  import('@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'),
-  () => import('@/test/mock-xo-vm-device-collections.ts')
-)
+mockXoVmDeviceCollections('vdi', 'vif')
 
-mockModule(
-  import('@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
-
-mockModule(
-  import('@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
-
-mockModule(
-  import('@/modules/vif/remote-resources/use-xo-vif-collection.ts'),
-  () => import('@/test/mock-xo-vm-device-collections.ts')
-)
-
-mockModule(
-  import('@/modules/network/remote-resources/use-xo-network-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
-
-mockModule(
-  import('@/modules/pif/remote-resources/use-xo-pif-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
+mockXoCollections('network', 'pbd', 'pif', 'sr')
 
 const POOL_A = 'pool-a' as FrontXoPool['id']
 const POOL_B = 'pool-b' as FrontXoPool['id']

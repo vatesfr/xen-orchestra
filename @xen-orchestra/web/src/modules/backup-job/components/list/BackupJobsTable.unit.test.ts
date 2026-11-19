@@ -9,10 +9,10 @@ import { createTestRouter } from '@/test/create-test-router.ts'
 import { getButton } from '@/test/get-button.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
-import { backupLogCollectionMock } from '@/test/mock-xo-backup-log-collection.ts'
-import { scheduleCollectionMock } from '@/test/mock-xo-schedule-collection.ts'
+import { backupLogCollectionMock, mockXoBackupLogCollection } from '@/test/mock-xo-backup-log-collection.ts'
+import { mockXoRoutes } from '@/test/mock-xo-routes.ts'
+import { scheduleCollectionMock, mockXoScheduleCollection } from '@/test/mock-xo-schedule-collection.ts'
 import { pickSelectOption } from '@/test/select.ts'
-import { mockModule } from '@/test/spy-on-module.ts'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
@@ -21,17 +21,11 @@ import type { XoSchedule, XoSr } from '@vates/types'
 import { flushPromises, mount, type VueWrapper } from '@vue/test-utils'
 import type { Router } from 'vue-router'
 
-mockModule(import('@/shared/remote-resources/use-xo-routes.ts'), () => import('@/test/mock-xo-routes.ts'))
+mockXoRoutes()
 
-mockModule(
-  import('@/modules/backup-log/remote-resources/use-xo-backup-log-collection.ts'),
-  () => import('@/test/mock-xo-backup-log-collection.ts')
-)
+mockXoBackupLogCollection()
 
-mockModule(
-  import('@/modules/schedule/remote-resources/use-xo-schedule-collection.ts'),
-  () => import('@/test/mock-xo-schedule-collection.ts')
-)
+mockXoScheduleCollection()
 
 beforeEach(() => {
   backupLogCollectionMock.reset()

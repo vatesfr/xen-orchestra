@@ -3,17 +3,13 @@ import type { V2vMappingStepVm } from '@/modules/v2v/types/v2v-mapping-step.type
 import type { V2vVmActionList } from '@/modules/v2v/types/v2v-vm-actions.type.ts'
 import { V2V_NEW_STEP_VM, V2V_RESUMED_STEP_VM, V2V_NOT_FOUND_STEP_VM } from '@/test/create-v2v-mapping-step-vm.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
-import { v2vVmActionsMock } from '@/test/mock-v2v-vm-actions.ts'
-import { mockModule } from '@/test/spy-on-module.ts'
+import { v2vVmActionsMock, mockV2vVmActions } from '@/test/mock-v2v-vm-actions.ts'
 import { getV2vVmKindActionList } from '@/test/v2v-vm-kind-actions.ts'
 import type { LeafActionItem } from '@core/components/menu/VtsActionsMenu.vue'
 import { mount, type VueWrapper } from '@vue/test-utils'
 import { defineComponent, h, type PropType, toValue } from 'vue'
 
-mockModule(
-  import('@/modules/v2v/composables/use-v2v-vm-actions.composable.ts'),
-  () => import('@/test/mock-v2v-vm-actions.ts')
-)
+mockV2vVmActions()
 
 beforeEach(() => {
   v2vVmActionsMock.reset()

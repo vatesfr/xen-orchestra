@@ -2,16 +2,12 @@ import { usePoolEnhancedData } from '@/modules/pool/composables/use-pool-enhance
 import { createEnhancedDataHelpers } from '@/test/create-enhanced-data-helpers.ts'
 import { createHost } from '@/test/create-host.ts'
 import { createServer } from '@/test/create-server.ts'
-import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
-import { mockModule } from '@/test/spy-on-module.ts'
+import { xoCollectionsMock, mockXoCollections } from '@/test/mock-xo-collections.ts'
 import { objectIcon } from '@core/icons'
 import { HOST_POWER_STATE } from '@vates/types'
 import { ref } from 'vue'
 
-mockModule(
-  import('@/modules/host/remote-resources/use-xo-host-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
+mockXoCollections('host')
 
 beforeEach(() => {
   xoCollectionsMock.reset()

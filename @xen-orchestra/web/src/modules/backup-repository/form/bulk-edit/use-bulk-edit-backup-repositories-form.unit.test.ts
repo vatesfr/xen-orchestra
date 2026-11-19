@@ -5,17 +5,13 @@ import { OBFUSCATED_VALUE } from '@/shared/constants.ts'
 import { createBr } from '@/test/create-br.ts'
 import { createProxy } from '@/test/create-proxy.ts'
 import { t } from '@/test/i18n.ts'
-import { proxyCollectionMock } from '@/test/mock-xo-proxy-collection.ts'
+import { proxyCollectionMock, mockXoProxyCollection } from '@/test/mock-xo-proxy-collection.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
-import { mockModule } from '@/test/spy-on-module.ts'
 import { parse as parseBackupRepositoryUrl } from 'xo-remote-parser'
 
 const PROXY_ID = 'proxy-1' as FrontXoProxy['id']
 
-mockModule(
-  import('@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'),
-  () => import('@/test/mock-xo-proxy-collection.ts')
-)
+mockXoProxyCollection()
 
 beforeEach(() => {
   proxyCollectionMock.reset()

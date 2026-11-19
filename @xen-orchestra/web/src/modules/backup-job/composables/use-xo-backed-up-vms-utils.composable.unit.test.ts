@@ -4,21 +4,14 @@ import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-co
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { createPool } from '@/test/create-pool.ts'
 import { createVm } from '@/test/create-vm.ts'
-import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
-import { vmCollectionMock } from '@/test/mock-xo-vm-collection.ts'
+import { xoCollectionsMock, mockXoCollections } from '@/test/mock-xo-collections.ts'
+import { vmCollectionMock, mockXoVmCollection } from '@/test/mock-xo-vm-collection.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
-import { mockModule } from '@/test/spy-on-module.ts'
 import { ref } from 'vue'
 
-mockModule(
-  import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'),
-  () => import('@/test/mock-xo-vm-collection.ts')
-)
+mockXoVmCollection()
 
-mockModule(
-  import('@/modules/pool/remote-resources/use-xo-pool-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
+mockXoCollections('pool')
 
 const firstPool = createPool({ id: 'pool-1' as FrontXoPool['id'], name_label: 'First pool' })
 const secondPool = createPool({ id: 'pool-2' as FrontXoPool['id'], name_label: 'Second pool' })

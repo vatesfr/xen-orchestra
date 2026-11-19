@@ -3,17 +3,14 @@ import type { FrontAnyXoBackupJob } from '@/modules/backup-job/remote-resources/
 import { fetchPatch } from '@/shared/utils/fetch.util.ts'
 import { t } from '@/test/i18n.ts'
 import { itCannotRun, itReportsEachResult } from '@/test/job-cases.ts'
-import { scheduleCollectionMock } from '@/test/mock-xo-schedule-collection.ts'
+import { scheduleCollectionMock, mockXoScheduleCollection } from '@/test/mock-xo-schedule-collection.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
 import { seedBackupJobWithSchedules } from '@/test/seed-backup-job-schedules.ts'
-import { mockModule, mockedExport } from '@/test/spy-on-module.ts'
+import { mockedExport } from '@/test/spy-on-module.ts'
 
 const patch = mockedExport(fetchPatch)
 
-mockModule(
-  import('@/modules/schedule/remote-resources/use-xo-schedule-collection.ts'),
-  () => import('@/test/mock-xo-schedule-collection.ts')
-)
+mockXoScheduleCollection()
 
 beforeEach(() => {
   vi.restoreAllMocks()

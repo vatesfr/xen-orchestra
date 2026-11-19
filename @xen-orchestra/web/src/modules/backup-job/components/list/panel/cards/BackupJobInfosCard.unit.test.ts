@@ -13,30 +13,17 @@ import {
 } from '@/test/find-rendered-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
-import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
-import { mockModule } from '@/test/spy-on-module.ts'
+import { xoCollectionsMock, mockXoCollections } from '@/test/mock-xo-collections.ts'
+import { mockXoRoutes } from '@/test/mock-xo-routes.ts'
 import VtsCopyAllMenuItem from '@core/components/copy-all-menu-item/VtsCopyAllMenuItem.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
 import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
 import type { XoSchedule } from '@vates/types'
 import { mount, type VueWrapper } from '@vue/test-utils'
 
-mockModule(import('@/shared/remote-resources/use-xo-routes.ts'), () => import('@/test/mock-xo-routes.ts'))
+mockXoRoutes()
 
-mockModule(
-  import('@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
-
-mockModule(
-  import('@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
-
-mockModule(
-  import('@/modules/host/remote-resources/use-xo-host-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
+mockXoCollections('host', 'pbd', 'sr')
 
 const firstScheduleId = 'schedule-1' as XoSchedule['id']
 const secondScheduleId = 'schedule-2' as XoSchedule['id']

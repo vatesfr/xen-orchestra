@@ -12,17 +12,16 @@ import {
   itUnselectsOnSuccess,
 } from '@/test/detached-selection-job.ts'
 import { t } from '@/test/i18n.ts'
-import { overlayMock } from '@/test/mock-overlay.ts'
-import { routeQueryMock } from '@/test/mock-route-query.ts'
-import { mockModule } from '@/test/spy-on-module.ts'
+import { overlayMock, mockOverlay } from '@/test/mock-overlay.ts'
+import { routeQueryMock, mockRouteQuery } from '@/test/mock-route-query.ts'
 import { type MaybeRefOrGetter, toValue } from 'vue'
 
 const deleteJob = createJobStub(useXoBackupJobDeleteJob)
 const detachedRun = createDetachedJobRun(deleteJob.run)
 
-mockModule(import('@core/composables/route-query.composable.ts'), () => import('@/test/mock-route-query.ts'))
+mockRouteQuery()
 
-mockModule(import('@core/packages/overlay/use-overlay.ts'), () => import('@/test/mock-overlay.ts'))
+mockOverlay()
 
 beforeEach(() => {
   vi.restoreAllMocks()

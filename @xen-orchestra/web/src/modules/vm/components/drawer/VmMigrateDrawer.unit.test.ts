@@ -20,55 +20,13 @@ import { createVdi } from '@/test/create-vdi.ts'
 import { createVm } from '@/test/create-vm.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
-import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
-import { vmDeviceCollectionsMock } from '@/test/mock-xo-vm-device-collections.ts'
-import { mockModule } from '@/test/spy-on-module.ts'
+import { xoCollectionsMock, mockXoCollections } from '@/test/mock-xo-collections.ts'
+import { vmDeviceCollectionsMock, mockXoVmDeviceCollections } from '@/test/mock-xo-vm-device-collections.ts'
 import { flushPromises, mount, type VueWrapper } from '@vue/test-utils'
 
-mockModule(
-  import('@/modules/pool/remote-resources/use-xo-pool-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
+mockXoCollections('host', 'network', 'pbd', 'pif', 'pool', 'sr')
 
-mockModule(
-  import('@/modules/host/remote-resources/use-xo-host-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
-
-mockModule(
-  import('@/modules/network/remote-resources/use-xo-network-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
-
-mockModule(
-  import('@/modules/pif/remote-resources/use-xo-pif-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
-
-mockModule(
-  import('@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
-
-mockModule(
-  import('@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
-
-mockModule(
-  import('@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'),
-  () => import('@/test/mock-xo-vm-device-collections.ts')
-)
-
-mockModule(
-  import('@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'),
-  () => import('@/test/mock-xo-vm-device-collections.ts')
-)
-
-mockModule(
-  import('@/modules/vif/remote-resources/use-xo-vif-collection.ts'),
-  () => import('@/test/mock-xo-vm-device-collections.ts')
-)
+mockXoVmDeviceCollections('vbd', 'vdi', 'vif')
 
 const POOL_ID = 'pool-1' as FrontXoPool['id']
 const SOURCE_HOST_ID = 'host-src' as FrontXoHost['id']

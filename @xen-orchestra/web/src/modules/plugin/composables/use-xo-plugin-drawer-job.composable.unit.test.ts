@@ -4,10 +4,9 @@ import type { FrontXoPlugin } from '@/modules/plugin/remote-resources/use-xo-plu
 import { createJobResult } from '@/test/create-job-result.ts'
 import { createPlugin } from '@/test/create-plugin.ts'
 import { itRunsJobFromDrawer } from '@/test/drawer-job.ts'
-import { overlayMock } from '@/test/mock-overlay.ts'
+import { overlayMock, mockOverlay } from '@/test/mock-overlay.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
 import { silenceConsoleError } from '@/test/silence-console-error.ts'
-import { mockModule } from '@/test/spy-on-module.ts'
 import type { Ref } from 'vue'
 
 type OverlayOptions = { component: unknown }
@@ -18,7 +17,7 @@ const { useJob, run, drawer } = vi.hoisted(() => ({
   drawer: vi.fn(),
 }))
 
-mockModule(import('@core/packages/overlay/use-overlay.ts'), () => import('@/test/mock-overlay.ts'))
+mockOverlay()
 
 const PAYLOAD = { to: 'admin@example.org' }
 

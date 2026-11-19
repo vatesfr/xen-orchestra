@@ -10,31 +10,12 @@ import { createPif } from '@/test/create-pif.ts'
 import { createPool } from '@/test/create-pool.ts'
 import { createVm } from '@/test/create-vm.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
-import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
-import { mockModule } from '@/test/spy-on-module.ts'
+import { xoCollectionsMock, mockXoCollections } from '@/test/mock-xo-collections.ts'
 import type { FormSelect, FormSelectId } from '@core/packages/form-select'
 import { mount } from '@vue/test-utils'
 import { defineComponent, h, inject, nextTick } from 'vue'
 
-mockModule(
-  import('@/modules/pool/remote-resources/use-xo-pool-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
-
-mockModule(
-  import('@/modules/host/remote-resources/use-xo-host-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
-
-mockModule(
-  import('@/modules/network/remote-resources/use-xo-network-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
-
-mockModule(
-  import('@/modules/pif/remote-resources/use-xo-pif-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
+mockXoCollections('host', 'network', 'pif', 'pool')
 
 const POOL_ID = 'pool-1' as FrontXoPool['id']
 const OTHER_POOL_ID = 'pool-2' as FrontXoPool['id']

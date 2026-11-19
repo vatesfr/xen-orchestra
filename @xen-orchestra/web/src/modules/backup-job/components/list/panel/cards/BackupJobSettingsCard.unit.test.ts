@@ -6,17 +6,13 @@ import { createProxy } from '@/test/create-proxy.ts'
 import { findCardLabelledValueLists, findCardLabelledValues } from '@/test/find-rendered-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
-import { proxyCollectionMock } from '@/test/mock-xo-proxy-collection.ts'
-import { mockModule } from '@/test/spy-on-module.ts'
+import { proxyCollectionMock, mockXoProxyCollection } from '@/test/mock-xo-proxy-collection.ts'
 import VtsCopyAllMenuItem from '@core/components/copy-all-menu-item/VtsCopyAllMenuItem.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import type { XoSchedule } from '@vates/types'
 import { mount } from '@vue/test-utils'
 
-mockModule(
-  import('@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'),
-  () => import('@/test/mock-xo-proxy-collection.ts')
-)
+mockXoProxyCollection()
 
 const scheduleId = 'schedule-1' as XoSchedule['id']
 

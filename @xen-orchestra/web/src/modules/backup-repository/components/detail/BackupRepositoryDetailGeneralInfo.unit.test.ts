@@ -3,12 +3,9 @@ import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote
 import { itShowsBrGeneralInfo } from '@/test/br-general-info.ts'
 import { findTitleLabel } from '@/test/find-card-title.ts'
 import { t } from '@/test/i18n.ts'
-import { mockModule } from '@/test/spy-on-module.ts'
+import { mockXoProxyCollection } from '@/test/mock-xo-proxy-collection.ts'
 
-mockModule(
-  import('@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'),
-  () => import('@/test/mock-xo-proxy-collection.ts')
-)
+mockXoProxyCollection()
 
 const mountCard = itShowsBrGeneralInfo(BackupRepositoryDetailGeneralInfo, {
   kind: 'detail',

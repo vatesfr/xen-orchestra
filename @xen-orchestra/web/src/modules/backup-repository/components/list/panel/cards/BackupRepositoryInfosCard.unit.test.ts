@@ -5,15 +5,12 @@ import { createBr } from '@/test/create-br.ts'
 import { findPanelCardTitle } from '@/test/find-card-title.ts'
 import { findCardCopiedValues, findCardRowLabels } from '@/test/find-rendered-values.ts'
 import { t } from '@/test/i18n.ts'
-import { mockModule } from '@/test/spy-on-module.ts'
+import { mockXoProxyCollection } from '@/test/mock-xo-proxy-collection.ts'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
 import { objectIcon } from '@core/icons'
 
-mockModule(
-  import('@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'),
-  () => import('@/test/mock-xo-proxy-collection.ts')
-)
+mockXoProxyCollection()
 
 const mountCard = itShowsBrGeneralInfo(BackupRepositoryInfosCard, {
   kind: 'panel',

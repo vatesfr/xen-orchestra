@@ -1,3 +1,4 @@
+import { mockModule } from '@/test/spy-on-module.ts'
 import type { useOverlay as realUseOverlay } from '@core/packages/overlay/use-overlay.ts'
 
 type OverlayOpen = ReturnType<typeof vi.fn>
@@ -39,7 +40,7 @@ export const overlayMock = {
   },
 }
 
-// Use as `mockModule(import('@core/packages/overlay/use-overlay.ts'), () => import('@/test/mock-overlay.ts'))`
+// Mocked with `mockOverlay()`
 export const useOverlay = ((options: Record<string, unknown>) => {
   const open = vi.fn()
 
@@ -47,3 +48,8 @@ export const useOverlay = ((options: Record<string, unknown>) => {
 
   return { open, abort: vi.fn() }
 }) as unknown as typeof realUseOverlay
+
+// Replaces the module in every test of the file: call it at the top level of the test file
+export function mockOverlay() {
+  mockModule(import('@core/packages/overlay/use-overlay.ts'), () => import('@/test/mock-overlay.ts'))
+}

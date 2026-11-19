@@ -3,9 +3,8 @@ import { useV2vVmMapping } from '@/modules/v2v/composables/use-v2v-vm-mapping.co
 import type { V2vAccentedLabel } from '@/modules/v2v/types/v2v-accented-label.type.ts'
 import { createV2vDisk, createV2vVm } from '@/test/create-v2v-inventory.ts'
 import { createV2vMigrationListVm } from '@/test/create-v2v-migration-list.ts'
-import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
+import { xoCollectionsMock, mockXoCollections } from '@/test/mock-xo-collections.ts'
 import { mountV2vVmMapping, type MountV2vVmMappingOptions, V2V_OTHER_LIST_VM } from '@/test/mount-v2v-vm-mapping.ts'
-import { mockModule } from '@/test/spy-on-module.ts'
 import {
   V2V_DATA_DISK,
   V2V_DEFAULT_TEMPLATE,
@@ -22,30 +21,7 @@ import { V2V_LIST_POOL } from '@/test/v2v-wizard-fixtures.ts'
 import type { InfoAccent } from '@core/components/ui/info/UiInfo.vue'
 import type { XoV2vDatastore, XoV2vHost, XoV2vVm } from '@vates/types'
 
-mockModule(
-  import('@/modules/pool/remote-resources/use-xo-pool-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
-mockModule(
-  import('@/modules/host/remote-resources/use-xo-host-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
-mockModule(
-  import('@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
-mockModule(
-  import('@/modules/network/remote-resources/use-xo-network-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
-mockModule(
-  import('@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
-mockModule(
-  import('@/modules/vm/remote-resources/use-xo-vm-template-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
+mockXoCollections('host', 'network', 'pbd', 'pool', 'sr', 'vmTemplate')
 
 type MountOptions = MountV2vVmMappingOptions & {
   vm?: XoV2vVm

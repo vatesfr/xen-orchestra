@@ -5,7 +5,7 @@ import V2vSourceStep from '@/modules/v2v/components/source/V2vSourceStep.vue'
 import type { useV2vSourceStep } from '@/modules/v2v/composables/use-v2v-source-step.composable.ts'
 import { createV2vRememberedConnection } from '@/test/create-v2v-connection.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
-import { vmCollectionMock } from '@/test/mock-xo-vm-collection.ts'
+import { vmCollectionMock, mockXoVmCollection } from '@/test/mock-xo-vm-collection.ts'
 import { resetStubs } from '@/test/reset-stubs.ts'
 import { mockModule } from '@/test/spy-on-module.ts'
 import { flushPromises, mount } from '@vue/test-utils'
@@ -38,10 +38,7 @@ mockModule(import('@/modules/v2v/composables/use-v2v-source-step.composable.ts')
   })) as unknown as typeof useV2vSourceStep,
 }))
 
-mockModule(
-  import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'),
-  () => import('@/test/mock-xo-vm-collection.ts')
-)
+mockXoVmCollection()
 
 const REMEMBERED = createV2vRememberedConnection({ host: 'remembered.lab' })
 

@@ -7,22 +7,15 @@ import { findCardNumbers, findLegends } from '@/test/find-rendered-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { itShowsHostDashboardCard } from '@/test/host-dashboard-card.ts'
 import { t } from '@/test/i18n.ts'
-import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
-import { vmCollectionMock } from '@/test/mock-xo-vm-collection.ts'
-import { mockModule } from '@/test/spy-on-module.ts'
+import { xoCollectionsMock, mockXoCollections } from '@/test/mock-xo-collections.ts'
+import { vmCollectionMock, mockXoVmCollection } from '@/test/mock-xo-vm-collection.ts'
 import { VM_POWER_STATE } from '@vates/types'
 import { mount } from '@vue/test-utils'
 import { nextTick } from 'vue'
 
-mockModule(
-  import('@/modules/host/remote-resources/use-xo-host-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
+mockXoCollections('host')
 
-mockModule(
-  import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'),
-  () => import('@/test/mock-xo-vm-collection.ts')
-)
+mockXoVmCollection()
 
 const host = createHost({ id: 'host-1' as FrontXoHost['id'] })
 

@@ -10,8 +10,8 @@ import { createBr } from '@/test/create-br.ts'
 import { createSr } from '@/test/create-sr.ts'
 import { createVm } from '@/test/create-vm.ts'
 import { t } from '@/test/i18n.ts'
-import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
-import { vmCollectionMock } from '@/test/mock-xo-vm-collection.ts'
+import { xoCollectionsMock, mockXoCollections } from '@/test/mock-xo-collections.ts'
+import { vmCollectionMock, mockXoVmCollection } from '@/test/mock-xo-vm-collection.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
 import { mockModule } from '@/test/spy-on-module.ts'
 
@@ -19,15 +19,9 @@ const { brsById } = vi.hoisted(() => ({
   brsById: new Map<string, FrontXoBackupRepository>(),
 }))
 
-mockModule(
-  import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'),
-  () => import('@/test/mock-xo-vm-collection.ts')
-)
+mockXoVmCollection()
 
-mockModule(
-  import('@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
+mockXoCollections('sr')
 
 mockModule(import('@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'), () => ({
   useXoBackupRepositoryCollection: (() => ({

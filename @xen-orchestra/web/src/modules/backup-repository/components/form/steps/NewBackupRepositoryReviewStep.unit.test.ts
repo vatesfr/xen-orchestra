@@ -10,18 +10,14 @@ import { findTitleLabel } from '@/test/find-card-title.ts'
 import { findLabelledValues } from '@/test/find-rendered-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
-import { proxyCollectionMock } from '@/test/mock-xo-proxy-collection.ts'
+import { proxyCollectionMock, mockXoProxyCollection } from '@/test/mock-xo-proxy-collection.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
-import { mockModule } from '@/test/spy-on-module.ts'
 import { flushPromises, mount } from '@vue/test-utils'
 import type { BackupRepositoryType } from 'xo-remote-parser'
 
 const PROXY = createProxy()
 
-mockModule(
-  import('@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'),
-  () => import('@/test/mock-xo-proxy-collection.ts')
-)
+mockXoProxyCollection()
 
 beforeEach(() => {
   proxyCollectionMock.reset()

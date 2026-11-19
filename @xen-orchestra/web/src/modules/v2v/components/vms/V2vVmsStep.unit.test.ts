@@ -13,13 +13,13 @@ import { getV2vVmIds, getV2vVmNames } from '@/test/create-v2v-vm-row.ts'
 import { findV2vRouteQuery, getV2vVmsQuery } from '@/test/create-v2v-wizard-router.ts'
 import { getButton, getUiButton } from '@/test/get-button.ts'
 import { t } from '@/test/i18n.ts'
-import { deleteModalMock } from '@/test/mock-delete-modal.ts'
-import { v2vVmRowsCollectionsMock } from '@/test/mock-xo-v2v-vm-rows-collections.ts'
+import { deleteModalMock, mockDeleteModal } from '@/test/mock-delete-modal.ts'
+import { mockXoCollections } from '@/test/mock-xo-collections.ts'
+import { v2vVmRowsCollectionsMock, mockXoV2vVmRowsCollections } from '@/test/mock-xo-v2v-vm-rows-collections.ts'
 import { mountComponentOnV2vWizard } from '@/test/mount-on-v2v-wizard.ts'
 import { mountV2vVmsStep } from '@/test/mount-v2v-vms-step.ts'
 import { resetV2vCollectionMocks } from '@/test/reset-v2v-collection-mocks.ts'
 import { seedV2vListPool } from '@/test/seed-v2v-list-pool.ts'
-import { mockModule } from '@/test/spy-on-module.ts'
 import { readV2vMigrationListStorage } from '@/test/v2v-migration-list-storage.ts'
 import {
   V2V_DATASTORE_B,
@@ -34,35 +34,9 @@ import VtsContentSidePanel from '@core/components/layout/VtsContentSidePanel.vue
 import VtsQueryBuilder from '@core/components/query-builder/VtsQueryBuilder.vue'
 import { flushPromises, type VueWrapper } from '@vue/test-utils'
 
-mockModule(
-  import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'),
-  () => import('@/test/mock-xo-v2v-vm-rows-collections.ts')
-)
-mockModule(
-  import('@/modules/task/remote-resources/use-xo-task-collection.ts'),
-  () => import('@/test/mock-xo-v2v-vm-rows-collections.ts')
-)
-mockModule(
-  import('@/modules/snapshot/components/remote-resources/use-xo-vm-snapshot-collection.ts'),
-  () => import('@/test/mock-xo-v2v-vm-rows-collections.ts')
-)
-mockModule(
-  import('@/modules/pool/remote-resources/use-xo-pool-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
-mockModule(
-  import('@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
-mockModule(
-  import('@/modules/network/remote-resources/use-xo-network-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
-mockModule(
-  import('@/modules/vm/remote-resources/use-xo-vm-template-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
-mockModule(import('@core/composables/modals/use-delete-modal.ts'), () => import('@/test/mock-delete-modal.ts'))
+mockXoV2vVmRowsCollections()
+mockXoCollections('network', 'pool', 'sr', 'vmTemplate')
+mockDeleteModal()
 
 const DATASTORE_B_AND_NAME_FILTER = `${V2V_DATASTORE_B_FILTER} name:${V2V_LISTED_VM.name}`
 

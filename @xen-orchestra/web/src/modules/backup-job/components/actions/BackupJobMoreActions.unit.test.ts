@@ -8,8 +8,7 @@ import { createJobStub } from '@/test/create-job-result.ts'
 import { createSchedule } from '@/test/create-schedule.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
-import { scheduleCollectionMock } from '@/test/mock-xo-schedule-collection.ts'
-import { mockModule } from '@/test/spy-on-module.ts'
+import { scheduleCollectionMock, mockXoScheduleCollection } from '@/test/mock-xo-schedule-collection.ts'
 import type { ActionItem } from '@core/components/menu/VtsActionsMenu.vue'
 import VtsActionItems from '@core/components/menu/VtsActionItems.vue'
 import { mount } from '@vue/test-utils'
@@ -19,10 +18,7 @@ const changeStateJob = createJobStub(useXoBackupJobChangeStateJob)
 const runJob = createJobStub(useXoBackupJobRunJob)
 const duplicateJob = createJobStub(useXoBackupJobDuplicateJob)
 
-mockModule(
-  import('@/modules/schedule/remote-resources/use-xo-schedule-collection.ts'),
-  () => import('@/test/mock-xo-schedule-collection.ts')
-)
+mockXoScheduleCollection()
 
 const backupJob = createVmBackupJob()
 

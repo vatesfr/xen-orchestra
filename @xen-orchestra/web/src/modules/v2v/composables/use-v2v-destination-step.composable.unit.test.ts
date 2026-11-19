@@ -9,43 +9,15 @@ import {
   createV2vMigrationListVms,
 } from '@/test/create-v2v-migration-list.ts'
 import { createV2vWizardRouter, findV2vRouteQuery } from '@/test/create-v2v-wizard-router.ts'
-import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
+import { xoCollectionsMock, mockXoCollections } from '@/test/mock-xo-collections.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
 import { seedV2vDestinationPools } from '@/test/seed-v2v-destination-pools.ts'
-import { mockModule } from '@/test/spy-on-module.ts'
 import { createConnectedV2vContext, v2vConnectionProvide } from '@/test/v2v-connection-provide.ts'
 import { readV2vMigrationListStorage, seedV2vMigrationList } from '@/test/v2v-migration-list-storage.ts'
 import { flushPromises } from '@vue/test-utils'
 import { nextTick } from 'vue'
 
-mockModule(
-  import('@/modules/pool/remote-resources/use-xo-pool-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
-mockModule(
-  import('@/modules/host/remote-resources/use-xo-host-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
-mockModule(
-  import('@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
-mockModule(
-  import('@/modules/network/remote-resources/use-xo-network-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
-mockModule(
-  import('@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
-mockModule(
-  import('@/modules/pif/remote-resources/use-xo-pif-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
-mockModule(
-  import('@/modules/vm/remote-resources/use-xo-vm-template-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
+mockXoCollections('host', 'network', 'pbd', 'pif', 'pool', 'sr', 'vmTemplate')
 
 const POOL = createPool()
 

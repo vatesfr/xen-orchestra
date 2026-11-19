@@ -1,4 +1,5 @@
 import type { useXoUserResource as realUseXoUserResource } from '@/modules/user/remote-resources/use-xo-user.ts'
+import { mockModule } from '@/test/spy-on-module.ts'
 import type { XoUser } from '@vates/types'
 import { ref } from 'vue'
 
@@ -10,5 +11,10 @@ export const userResourceMock = {
   },
 }
 
-// Use as `mockModule(import('@/modules/user/remote-resources/use-xo-user.ts'), () => import('@/test/mock-xo-user.ts'))`
+// Mocked with `mockXoUser()`
 export const useXoUserResource = (() => ({ user: userResourceMock.user })) as unknown as typeof realUseXoUserResource
+
+// Replaces the module in every test of the file: call it at the top level of the test file
+export function mockXoUser() {
+  mockModule(import('@/modules/user/remote-resources/use-xo-user.ts'), () => import('@/test/mock-xo-user.ts'))
+}

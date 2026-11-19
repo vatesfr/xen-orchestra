@@ -5,20 +5,11 @@ import { findPanelCardTitleLabel } from '@/test/find-card-title.ts'
 import { findCardLabelledValues } from '@/test/find-rendered-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
-import { vmDeviceCollectionsMock } from '@/test/mock-xo-vm-device-collections.ts'
+import { vmDeviceCollectionsMock, mockXoVmDeviceCollections } from '@/test/mock-xo-vm-device-collections.ts'
 import { seedVmDisks } from '@/test/seed-vm-disks.ts'
-import { mockModule } from '@/test/spy-on-module.ts'
 import { mount } from '@vue/test-utils'
 
-mockModule(
-  import('@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'),
-  () => import('@/test/mock-xo-vm-device-collections.ts')
-)
-
-mockModule(
-  import('@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'),
-  () => import('@/test/mock-xo-vm-device-collections.ts')
-)
+mockXoVmDeviceCollections('vbd', 'vdi')
 
 beforeEach(() => {
   vmDeviceCollectionsMock.reset()

@@ -9,15 +9,15 @@ import {
 import { fetchPost } from '@/shared/utils/fetch.util.ts'
 import { t } from '@/test/i18n.ts'
 import { itCanRun, itCannotRun } from '@/test/job-cases.ts'
-import { answerPostsWithTask, taskUtilsMock } from '@/test/mock-xo-task-utils.ts'
+import { answerPostsWithTask, taskUtilsMock, mockXoTaskUtils } from '@/test/mock-xo-task-utils.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
-import { mockModule, mockedExport } from '@/test/spy-on-module.ts'
+import { mockedExport } from '@/test/spy-on-module.ts'
 import type { XoNetwork } from '@vates/types'
 
 const post = mockedExport(fetchPost)
 
 // The task collection would open an SSE subscription
-mockModule(import('@/shared/composables/xo-task-utils.composable.ts'), () => import('@/test/mock-xo-task-utils.ts'))
+mockXoTaskUtils()
 
 beforeEach(() => {
   taskUtilsMock.reset()

@@ -13,17 +13,16 @@ import {
   itUnselectsOnSuccess,
 } from '@/test/detached-selection-job.ts'
 import { t } from '@/test/i18n.ts'
-import { overlayMock } from '@/test/mock-overlay.ts'
-import { routeQueryMock } from '@/test/mock-route-query.ts'
-import { mockModule } from '@/test/spy-on-module.ts'
+import { overlayMock, mockOverlay } from '@/test/mock-overlay.ts'
+import { routeQueryMock, mockRouteQuery } from '@/test/mock-route-query.ts'
 
 // The job subscribes to server events, unavailable in tests
 const forgetJob = createJobStub(useXoBackupRepositoryForgetJob)
 const detachedRun = createDetachedJobRun(forgetJob.run)
 
-mockModule(import('@core/composables/route-query.composable.ts'), () => import('@/test/mock-route-query.ts'))
+mockRouteQuery()
 
-mockModule(import('@core/packages/overlay/use-overlay.ts'), () => import('@/test/mock-overlay.ts'))
+mockOverlay()
 
 beforeEach(() => {
   vi.restoreAllMocks()

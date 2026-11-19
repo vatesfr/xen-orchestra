@@ -7,15 +7,11 @@ import { findTitleLabel } from '@/test/find-card-title.ts'
 import { findLabelledValues } from '@/test/find-rendered-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
-import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
-import { mockModule } from '@/test/spy-on-module.ts'
+import { xoCollectionsMock, mockXoCollections } from '@/test/mock-xo-collections.ts'
 import { VM_OPERATIONS } from '@vates/types'
 import { mount } from '@vue/test-utils'
 
-mockModule(
-  import('@/modules/host/remote-resources/use-xo-host-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
+mockXoCollections('host')
 
 beforeEach(() => {
   xoCollectionsMock.reset()

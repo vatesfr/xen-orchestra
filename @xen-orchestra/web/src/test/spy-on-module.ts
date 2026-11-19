@@ -111,3 +111,14 @@ export function mockModule<TModule>(
     }
   })
 }
+
+/**
+ * The helper of a shared mock module standing for several modules: called with the keys of the modules a test file
+ * needs, at its top level, it points each one to the mock module's exports with `mockModule`.
+ */
+export function defineModuleMocks<TKey extends string>(
+  modules: Record<TKey, () => Promise<object>>,
+  mockExports: () => Promise<object>
+) {
+  return (...keys: TKey[]) => keys.forEach(key => mockModule(modules[key](), mockExports))
+}

@@ -4,7 +4,8 @@ import { useXoVmMigrateJob } from '@/modules/vm/jobs/xo-vm-migrate.job.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { createJobResult } from '@/test/create-job-result.ts'
 import { createVm } from '@/test/create-vm.ts'
-import { overlayMock } from '@/test/mock-overlay.ts'
+import { overlayMock, mockOverlay } from '@/test/mock-overlay.ts'
+import { mockXoRoutes } from '@/test/mock-xo-routes.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
 import { mockModule, mockedExport } from '@/test/spy-on-module.ts'
 import type { useBlockedModal } from '@core/composables/modals/use-blocked-modal.ts'
@@ -18,13 +19,13 @@ const useXoVmMigrateJobMock = mockedExport(useXoVmMigrateJob)
 const runMock = vi.fn()
 const openBlockedModalMock = vi.fn()
 
-mockModule(import('@core/packages/overlay/use-overlay.ts'), () => import('@/test/mock-overlay.ts'))
+mockOverlay()
 
 mockModule(import('@core/composables/modals/use-blocked-modal.ts'), () => ({
   useBlockedModal: (() => ({ open: openBlockedModalMock })) as unknown as typeof useBlockedModal,
 }))
 
-mockModule(import('@/shared/remote-resources/use-xo-routes.ts'), () => import('@/test/mock-xo-routes.ts'))
+mockXoRoutes()
 
 const payload: VmMigratePayload = { hostId: 'host-target' as VmMigratePayload['hostId'] }
 

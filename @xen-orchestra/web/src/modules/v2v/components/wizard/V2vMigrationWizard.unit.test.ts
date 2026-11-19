@@ -7,16 +7,12 @@ import V2vMigrationWizard from '@/modules/v2v/components/wizard/V2vMigrationWiza
 import V2vWizardHeader from '@/modules/v2v/components/wizard/V2vWizardHeader.vue'
 import { findShownComponents } from '@/test/find-shown-components.ts'
 import { t } from '@/test/i18n.ts'
-import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
+import { xoCollectionsMock, mockXoCollections } from '@/test/mock-xo-collections.ts'
 import { mountComponentOnV2vWizard, type V2vWizardSetup } from '@/test/mount-on-v2v-wizard.ts'
 import { seedV2vListPool } from '@/test/seed-v2v-list-pool.ts'
-import { mockModule } from '@/test/spy-on-module.ts'
 import { V2V_EMPTY_LIST, V2V_LIST_POOL, V2V_LIST_WITH_VMS, V2V_WIZARD_SOURCE } from '@/test/v2v-wizard-fixtures.ts'
 
-mockModule(
-  import('@/modules/pool/remote-resources/use-xo-pool-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
+mockXoCollections('pool')
 
 // Which step shows, and what it is summarized with, belongs to useV2vWizard: here only the composition matters
 async function mountWizard(setup: V2vWizardSetup = {}) {

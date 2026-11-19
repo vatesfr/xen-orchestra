@@ -3,15 +3,11 @@ import type { FrontAnyXoBackupJob } from '@/modules/backup-job/remote-resources/
 import type { FrontXoBackupLog } from '@/modules/backup-log/remote-resources/use-xo-backup-log-collection.ts'
 import { createVmBackupJob } from '@/test/create-backup-job.ts'
 import { createBackupLog } from '@/test/create-backup-log.ts'
-import { backupLogCollectionMock } from '@/test/mock-xo-backup-log-collection.ts'
+import { backupLogCollectionMock, mockXoBackupLogCollection } from '@/test/mock-xo-backup-log-collection.ts'
 import { mountComposableWithI18n } from '@/test/mount-composable.ts'
-import { mockModule } from '@/test/spy-on-module.ts'
 import { formatDateTime } from '@core/utils/time.util.ts'
 
-mockModule(
-  import('@/modules/backup-log/remote-resources/use-xo-backup-log-collection.ts'),
-  () => import('@/test/mock-xo-backup-log-collection.ts')
-)
+mockXoBackupLogCollection()
 
 const backupJob = createVmBackupJob()
 

@@ -15,6 +15,7 @@ import type {
   useXoVifCollection as realUseXoVifCollection,
 } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
 import { createMockCollection } from '@/test/find-by-id.ts'
+import { defineModuleMocks } from '@/test/spy-on-module.ts'
 import { ref } from 'vue'
 
 // Shared state of the mocked collections of the disks and network interfaces of XO VMs: a test sets the objects it
@@ -38,8 +39,7 @@ export const vmDeviceCollectionsMock = {
   },
 }
 
-// Use as `mockModule(import('<collection module>'), () => import('@/test/mock-xo-vm-device-collections.ts'))`
-// for each collection below: every mocked module picks its own export
+// Mocked with `mockXoVmDeviceCollections(...collections)`: every mocked module picks its own export
 export const useXoVbdCollection = (() => ({
   ...createMockCollection('Vbd', 'Vbds', vmDeviceCollectionsMock.vbds, vmDeviceCollectionsMock.areVbdsReady),
 })) as unknown as typeof realUseXoVbdCollection
@@ -55,3 +55,14 @@ export const useXoVdiSnapshotCollection = (() => ({
 export const useXoVifCollection = (() => ({
   ...createMockCollection('Vif', 'Vifs', vmDeviceCollectionsMock.vifs, vmDeviceCollectionsMock.areVifsReady),
 })) as unknown as typeof realUseXoVifCollection
+
+// Replaces the modules of the given collections in every test of the file: call it at the top level of the test file
+export const mockXoVmDeviceCollections = defineModuleMocks(
+  {
+    vbd: () => import('@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'),
+    vdi: () => import('@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'),
+    vdiSnapshot: () => import('@/modules/vdi/remote-resources/use-xo-vdi-snapshot-collection.ts'),
+    vif: () => import('@/modules/vif/remote-resources/use-xo-vif-collection.ts'),
+  },
+  () => import('@/test/mock-xo-vm-device-collections.ts')
+)

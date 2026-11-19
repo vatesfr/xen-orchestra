@@ -7,31 +7,22 @@ import { findHeadBarLabel, findHeadBarLoader, findHeadBarStatus, getHeadBarIcon 
 import { findTooltipContent } from '@/test/find-tooltip-content.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
-import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
-import { taskCollectionMock } from '@/test/mock-xo-task-collection.ts'
-import { vmCollectionMock } from '@/test/mock-xo-vm-collection.ts'
-import { mockModule } from '@/test/spy-on-module.ts'
+import { xoCollectionsMock, mockXoCollections } from '@/test/mock-xo-collections.ts'
+import { mockXoRoutes } from '@/test/mock-xo-routes.ts'
+import { taskCollectionMock, mockXoTaskCollection } from '@/test/mock-xo-task-collection.ts'
+import { vmCollectionMock, mockXoVmCollection } from '@/test/mock-xo-vm-collection.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import { objectIcon } from '@core/icons'
 import { HOST_ALLOWED_OPERATIONS, HOST_POWER_STATE, VM_OPERATIONS } from '@vates/types'
 import { mount } from '@vue/test-utils'
 
-mockModule(
-  import('@/modules/host/remote-resources/use-xo-host-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
+mockXoCollections('host')
 
-mockModule(
-  import('@/modules/task/remote-resources/use-xo-task-collection.ts'),
-  () => import('@/test/mock-xo-task-collection.ts')
-)
+mockXoTaskCollection()
 
-mockModule(
-  import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'),
-  () => import('@/test/mock-xo-vm-collection.ts')
-)
+mockXoVmCollection()
 
-mockModule(import('@/shared/remote-resources/use-xo-routes.ts'), () => import('@/test/mock-xo-routes.ts'))
+mockXoRoutes()
 
 beforeEach(() => {
   xoCollectionsMock.reset()

@@ -32,6 +32,6 @@ beforeEach(() => {
 })
 ```
 
-`vi.mock` is hoisted: it cannot be wrapped in a helper, so one `vi.mock(path, () => import(...))` line per file is the convention, not a duplication (in XO 6, one `mockModule(path, () => import(...))` line).
+`vi.mock` is hoisted: it cannot be wrapped in a helper, so one `vi.mock(path, () => import(...))` line per file is the convention, not a duplication. XO 6's `mockModule` is not hoisted: each shared mock module exports the helper calling it, see [XO 6 mocking](../../../web/docs/tests/mocking.md).
 
 The XO 6 shared mocks (remote-resource collections, modals, overlays) and the network stub are listed in [XO 6 mocking](../../../web/docs/tests/mocking.md).

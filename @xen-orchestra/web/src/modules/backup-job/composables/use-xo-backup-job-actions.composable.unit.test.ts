@@ -8,9 +8,8 @@ import { createVmBackupJob } from '@/test/create-backup-job.ts'
 import { createJobStub, toJobComposableResult } from '@/test/create-job-result.ts'
 import { createSchedule } from '@/test/create-schedule.ts'
 import { t } from '@/test/i18n.ts'
-import { scheduleCollectionMock } from '@/test/mock-xo-schedule-collection.ts'
+import { scheduleCollectionMock, mockXoScheduleCollection } from '@/test/mock-xo-schedule-collection.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
-import { mockModule } from '@/test/spy-on-module.ts'
 import { toValue } from 'vue'
 
 const changeStateJob = createJobStub(useXoBackupJobChangeStateJob)
@@ -21,10 +20,7 @@ const deleteJob = createJobStub(useBackupJobDelete, result =>
   toJobComposableResult(result, 'deleteBackupJobs', 'isDeletingBackupJobs')
 )
 
-mockModule(
-  import('@/modules/schedule/remote-resources/use-xo-schedule-collection.ts'),
-  () => import('@/test/mock-xo-schedule-collection.ts')
-)
+mockXoScheduleCollection()
 
 const backupJob = createVmBackupJob()
 

@@ -1,19 +1,16 @@
 import AppHeaderMenu from '@/modules/navigation/components/AppHeaderMenu.vue'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
-import { vmCollectionMock } from '@/test/mock-xo-vm-collection.ts'
-import { mockModule } from '@/test/spy-on-module.ts'
+import { mockXoRoutes } from '@/test/mock-xo-routes.ts'
+import { vmCollectionMock, mockXoVmCollection } from '@/test/mock-xo-vm-collection.ts'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { findLinks } from '@core-test/find-links.ts'
 import { mount, type VueWrapper } from '@vue/test-utils'
 import { nextTick } from 'vue'
 
-mockModule(import('@/shared/remote-resources/use-xo-routes.ts'), () => import('@/test/mock-xo-routes.ts'))
+mockXoRoutes()
 
-mockModule(
-  import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'),
-  () => import('@/test/mock-xo-vm-collection.ts')
-)
+mockXoVmCollection()
 
 beforeEach(() => {
   vmCollectionMock.reset()

@@ -9,17 +9,13 @@ import { V2V_NEW_STEP_VM, V2V_RESUMED_STEP_VM, V2V_NOT_FOUND_STEP_VM } from '@/t
 import { findShownComponents } from '@/test/find-shown-components.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
-import { v2vVmActionsMock } from '@/test/mock-v2v-vm-actions.ts'
-import { mockModule } from '@/test/spy-on-module.ts'
+import { v2vVmActionsMock, mockV2vVmActions } from '@/test/mock-v2v-vm-actions.ts'
 import { getV2vVmKindActionList } from '@/test/v2v-vm-kind-actions.ts'
 import VtsSidePanel from '@core/components/panel/VtsSidePanel.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import { mount, type VueWrapper } from '@vue/test-utils'
 
-mockModule(
-  import('@/modules/v2v/composables/use-v2v-vm-actions.composable.ts'),
-  () => import('@/test/mock-v2v-vm-actions.ts')
-)
+mockV2vVmActions()
 
 beforeEach(() => {
   v2vVmActionsMock.reset()

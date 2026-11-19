@@ -2,25 +2,13 @@ import { useV2vVmRows } from '@/modules/v2v/composables/use-v2v-vm-rows.composab
 import { createV2vImportTask } from '@/test/create-task.ts'
 import { createV2vImportVm, createV2vPartialImportSnapshot } from '@/test/create-v2v-import-vm.ts'
 import { createV2vInventory, createV2vVm } from '@/test/create-v2v-inventory.ts'
-import { v2vVmRowsCollectionsMock } from '@/test/mock-xo-v2v-vm-rows-collections.ts'
+import { v2vVmRowsCollectionsMock, mockXoV2vVmRowsCollections } from '@/test/mock-xo-v2v-vm-rows-collections.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
-import { mockModule } from '@/test/spy-on-module.ts'
 import { createConnectedV2vContext, v2vConnectionProvide } from '@/test/v2v-connection-provide.ts'
 import type { XoV2vInventory, XoV2vVm } from '@vates/types'
 import { type MaybeRefOrGetter, ref } from 'vue'
 
-mockModule(
-  import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'),
-  () => import('@/test/mock-xo-v2v-vm-rows-collections.ts')
-)
-mockModule(
-  import('@/modules/task/remote-resources/use-xo-task-collection.ts'),
-  () => import('@/test/mock-xo-v2v-vm-rows-collections.ts')
-)
-mockModule(
-  import('@/modules/snapshot/components/remote-resources/use-xo-vm-snapshot-collection.ts'),
-  () => import('@/test/mock-xo-v2v-vm-rows-collections.ts')
-)
+mockXoV2vVmRowsCollections()
 
 const VM_1 = createV2vVm({ name: 'app-01' })
 

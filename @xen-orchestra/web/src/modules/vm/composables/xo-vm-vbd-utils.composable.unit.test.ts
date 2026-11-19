@@ -3,16 +3,12 @@ import { useXoVmVbdsUtils } from '@/modules/vm/composables/xo-vm-vbd-utils.compo
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { createVbd } from '@/test/create-vbd.ts'
 import { createVm } from '@/test/create-vm.ts'
-import { vmDeviceCollectionsMock } from '@/test/mock-xo-vm-device-collections.ts'
+import { vmDeviceCollectionsMock, mockXoVmDeviceCollections } from '@/test/mock-xo-vm-device-collections.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
 import { seedVmDisks } from '@/test/seed-vm-disks.ts'
-import { mockModule } from '@/test/spy-on-module.ts'
 import { ref } from 'vue'
 
-mockModule(
-  import('@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'),
-  () => import('@/test/mock-xo-vm-device-collections.ts')
-)
+mockXoVmDeviceCollections('vbd')
 
 beforeEach(() => {
   vmDeviceCollectionsMock.reset()

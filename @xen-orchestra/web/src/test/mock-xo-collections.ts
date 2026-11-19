@@ -31,6 +31,7 @@ import type {
 import { createPool } from '@/test/create-pool.ts'
 import { createMockCollection, findById } from '@/test/find-by-id.ts'
 import { groupBy } from '@/test/group-by.ts'
+import { defineModuleMocks } from '@/test/spy-on-module.ts'
 import { computed, type MaybeRefOrGetter, ref } from 'vue'
 
 // Shared state of the mocked collections: a test sets the objects it needs, reset it in `beforeEach`
@@ -97,8 +98,7 @@ function recordingIsEnabled<TCollection>(
   }
 }
 
-// Use as `mockModule(import('<collection module>'), () => import('@/test/mock-xo-collections.ts'))`
-// for each collection below: every mocked module picks its own export
+// Mocked with `mockXoCollections(...collections)`: every mocked module picks its own export
 export const useXoPoolCollection = recordingIsEnabled('pool', () => ({
   ...createMockCollection('Pool', 'Pools', xoCollectionsMock.pools, xoCollectionsMock.arePoolsReady),
   hasPoolFetchError: xoCollectionsMock.hasPoolFetchError,
@@ -148,3 +148,17 @@ export const useXoVmTemplateCollection = (() => ({
   ...createMockCollection('Template', 'Templates', xoCollectionsMock.templates, xoCollectionsMock.areTemplatesReady),
   vmsTemplatesByPool: computed(() => groupBy(xoCollectionsMock.templates.value, template => template.$pool)),
 })) as unknown as typeof realUseXoVmTemplateCollection
+
+// Replaces the modules of the given collections in every test of the file: call it at the top level of the test file
+export const mockXoCollections = defineModuleMocks(
+  {
+    host: () => import('@/modules/host/remote-resources/use-xo-host-collection.ts'),
+    network: () => import('@/modules/network/remote-resources/use-xo-network-collection.ts'),
+    pbd: () => import('@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'),
+    pif: () => import('@/modules/pif/remote-resources/use-xo-pif-collection.ts'),
+    pool: () => import('@/modules/pool/remote-resources/use-xo-pool-collection.ts'),
+    sr: () => import('@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'),
+    vmTemplate: () => import('@/modules/vm/remote-resources/use-xo-vm-template-collection.ts'),
+  },
+  () => import('@/test/mock-xo-collections.ts')
+)

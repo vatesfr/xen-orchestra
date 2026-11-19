@@ -10,10 +10,10 @@ import { createHost } from '@/test/create-host.ts'
 import { createVm } from '@/test/create-vm.ts'
 import { t } from '@/test/i18n.ts'
 import { itCanRun, itCannotRun, itRejectsWithRequestError } from '@/test/job-cases.ts'
-import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
-import { answerPostsWithTask, taskUtilsMock } from '@/test/mock-xo-task-utils.ts'
+import { xoCollectionsMock, mockXoCollections } from '@/test/mock-xo-collections.ts'
+import { answerPostsWithTask, taskUtilsMock, mockXoTaskUtils } from '@/test/mock-xo-task-utils.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
-import { mockModule, mockedExport } from '@/test/spy-on-module.ts'
+import { mockedExport } from '@/test/spy-on-module.ts'
 import { VM_OPERATIONS, VM_POWER_STATE } from '@vates/types'
 import { flushPromises } from '@vue/test-utils'
 import { ref } from 'vue'
@@ -23,7 +23,7 @@ const fetchPostMock = mockedExport(fetchPost)
 const { monitorTask: monitorTaskMock } = taskUtilsMock
 
 // The task collection would open an SSE subscription
-mockModule(import('@/shared/composables/xo-task-utils.composable.ts'), () => import('@/test/mock-xo-task-utils.ts'))
+mockXoTaskUtils()
 
 const POOL_ID = 'pool-source' as FrontXoPool['id']
 const OTHER_POOL_ID = 'pool-other' as FrontXoPool['id']
@@ -35,10 +35,7 @@ const hosts = [
   createHost({ id: OTHER_POOL_HOST_ID, $pool: OTHER_POOL_ID }),
 ]
 
-mockModule(
-  import('@/modules/host/remote-resources/use-xo-host-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
+mockXoCollections('host')
 
 const payload: VmMigratePayload = { hostId: HOST_ID }
 

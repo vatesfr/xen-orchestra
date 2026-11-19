@@ -15,9 +15,9 @@ import {
   itUnselectsOnSuccess,
 } from '@/test/detached-selection-job.ts'
 import { t } from '@/test/i18n.ts'
-import { deleteModalMock } from '@/test/mock-delete-modal.ts'
-import { overlayMock } from '@/test/mock-overlay.ts'
-import { routeQueryMock } from '@/test/mock-route-query.ts'
+import { deleteModalMock, mockDeleteModal } from '@/test/mock-delete-modal.ts'
+import { overlayMock, mockOverlay } from '@/test/mock-overlay.ts'
+import { routeQueryMock, mockRouteQuery } from '@/test/mock-route-query.ts'
 import { mockModule, mockedExport } from '@/test/spy-on-module.ts'
 import type { useTypeToConfirmModal } from '@core/composables/modals/use-type-to-confirm-modal.ts'
 import { type MaybeRefOrGetter, ref, toValue } from 'vue'
@@ -29,16 +29,16 @@ const run = vi.fn()
 const detachedRun = createDetachedJobRun(run)
 const openTypeToConfirmModal = vi.fn()
 
-mockModule(import('@core/composables/modals/use-delete-modal.ts'), () => import('@/test/mock-delete-modal.ts'))
+mockDeleteModal()
 
 mockModule(import('@core/composables/modals/use-type-to-confirm-modal.ts'), () => ({
   useTypeToConfirmModal: (() => ({ open: openTypeToConfirmModal })) as unknown as typeof useTypeToConfirmModal,
 }))
 
 // The partial deletion drawer is the only overlay the composable opens directly
-mockModule(import('@core/packages/overlay/use-overlay.ts'), () => import('@/test/mock-overlay.ts'))
+mockOverlay()
 
-mockModule(import('@core/composables/route-query.composable.ts'), () => import('@/test/mock-route-query.ts'))
+mockRouteQuery()
 
 beforeEach(() => {
   run.mockReset()

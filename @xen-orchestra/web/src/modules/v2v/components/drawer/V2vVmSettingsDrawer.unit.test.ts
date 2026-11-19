@@ -7,13 +7,12 @@ import { cancelDrawer, findDrawerButtonLabels, submitDrawer } from '@/test/drawe
 import { findTitles } from '@/test/find-titles.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
-import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
+import { xoCollectionsMock, mockXoCollections } from '@/test/mock-xo-collections.ts'
 import {
   mountV2vVmMappingComponent,
   V2V_FULLY_OVERRIDDEN_LIST_VM,
   V2V_LIST_VM_OVERRIDES,
 } from '@/test/mount-v2v-vm-mapping.ts'
-import { mockModule } from '@/test/spy-on-module.ts'
 import {
   V2V_DATA_DISK,
   V2V_DEBIAN_TEMPLATE,
@@ -36,30 +35,7 @@ import UiDrawer from '@core/components/ui/drawer/UiDrawer.vue'
 import type { XoV2vVm } from '@vates/types'
 import { mount, type VueWrapper } from '@vue/test-utils'
 
-mockModule(
-  import('@/modules/pool/remote-resources/use-xo-pool-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
-mockModule(
-  import('@/modules/host/remote-resources/use-xo-host-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
-mockModule(
-  import('@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
-mockModule(
-  import('@/modules/network/remote-resources/use-xo-network-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
-mockModule(
-  import('@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
-mockModule(
-  import('@/modules/vm/remote-resources/use-xo-vm-template-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
+mockXoCollections('host', 'network', 'pbd', 'pool', 'sr', 'vmTemplate')
 
 // The tables and the fields render what the drawer hands them, each covered by its own test: here only the wiring
 // matters. As an overlay, the drawer renders outside the wizard: it is handed the inventory, never its connection

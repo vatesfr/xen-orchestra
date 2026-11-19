@@ -15,31 +15,23 @@ import { createBackupLog } from '@/test/create-backup-log.ts'
 import { createSchedule } from '@/test/create-schedule.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
-import { backupLogCollectionMock } from '@/test/mock-xo-backup-log-collection.ts'
-import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
-import { proxyCollectionMock } from '@/test/mock-xo-proxy-collection.ts'
-import { scheduleCollectionMock } from '@/test/mock-xo-schedule-collection.ts'
-import { vmCollectionMock } from '@/test/mock-xo-vm-collection.ts'
+import { backupLogCollectionMock, mockXoBackupLogCollection } from '@/test/mock-xo-backup-log-collection.ts'
+import { xoCollectionsMock, mockXoCollections } from '@/test/mock-xo-collections.ts'
+import { proxyCollectionMock, mockXoProxyCollection } from '@/test/mock-xo-proxy-collection.ts'
+import { mockXoRoutes } from '@/test/mock-xo-routes.ts'
+import { scheduleCollectionMock, mockXoScheduleCollection } from '@/test/mock-xo-schedule-collection.ts'
+import { vmCollectionMock, mockXoVmCollection } from '@/test/mock-xo-vm-collection.ts'
 import { mockModule } from '@/test/spy-on-module.ts'
 import UiAlert from '@core/components/ui/alert/UiAlert.vue'
 import { mount } from '@vue/test-utils'
 
-mockModule(import('@/shared/remote-resources/use-xo-routes.ts'), () => import('@/test/mock-xo-routes.ts'))
+mockXoRoutes()
 
-mockModule(
-  import('@/modules/schedule/remote-resources/use-xo-schedule-collection.ts'),
-  () => import('@/test/mock-xo-schedule-collection.ts')
-)
+mockXoScheduleCollection()
 
-mockModule(
-  import('@/modules/backup-log/remote-resources/use-xo-backup-log-collection.ts'),
-  () => import('@/test/mock-xo-backup-log-collection.ts')
-)
+mockXoBackupLogCollection()
 
-mockModule(
-  import('@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
+mockXoCollections('host', 'pbd', 'pool', 'sr')
 
 mockModule(import('@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'), () => ({
   useXoBackupRepositoryCollection: (() => ({
@@ -47,30 +39,9 @@ mockModule(import('@/modules/backup-repository/remote-resources/use-xo-backup-re
   })) as unknown as typeof useXoBackupRepositoryCollection,
 }))
 
-mockModule(
-  import('@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'),
-  () => import('@/test/mock-xo-proxy-collection.ts')
-)
+mockXoProxyCollection()
 
-mockModule(
-  import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'),
-  () => import('@/test/mock-xo-vm-collection.ts')
-)
-
-mockModule(
-  import('@/modules/pool/remote-resources/use-xo-pool-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
-
-mockModule(
-  import('@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
-
-mockModule(
-  import('@/modules/host/remote-resources/use-xo-host-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
+mockXoVmCollection()
 
 const vmBackupJob = createVmBackupJob()
 

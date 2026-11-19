@@ -2,16 +2,12 @@ import PluginsTable from '@/modules/plugin/components/list/PluginsTable.vue'
 import { createPlugin } from '@/test/create-plugin.ts'
 import { createTestRouter } from '@/test/create-test-router.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
-import { pluginActionsMock } from '@/test/mock-xo-plugin-actions.ts'
-import { mockModule } from '@/test/spy-on-module.ts'
+import { pluginActionsMock, mockXoPluginActions } from '@/test/mock-xo-plugin-actions.ts'
 import VtsActionCell from '@core/components/table/cells/VtsActionCell.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import { mount } from '@vue/test-utils'
 
-mockModule(
-  import('@/modules/plugin/composables/use-xo-plugin-actions.composable.ts'),
-  () => import('@/test/mock-xo-plugin-actions.ts')
-)
+mockXoPluginActions()
 
 beforeEach(() => {
   pluginActionsMock.reset()

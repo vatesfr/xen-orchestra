@@ -8,15 +8,11 @@ import { createBr } from '@/test/create-br.ts'
 import { submitDrawer } from '@/test/drawer.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
-import { proxyCollectionMock } from '@/test/mock-xo-proxy-collection.ts'
-import { mockModule } from '@/test/spy-on-module.ts'
+import { proxyCollectionMock, mockXoProxyCollection } from '@/test/mock-xo-proxy-collection.ts'
 import { flushPromises, mount, type VueWrapper } from '@vue/test-utils'
 import { parse as parseBackupRepositoryUrl } from 'xo-remote-parser'
 
-mockModule(
-  import('@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'),
-  () => import('@/test/mock-xo-proxy-collection.ts')
-)
+mockXoProxyCollection()
 
 beforeEach(() => {
   proxyCollectionMock.reset()

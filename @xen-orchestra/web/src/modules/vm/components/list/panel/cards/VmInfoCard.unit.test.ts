@@ -9,10 +9,10 @@ import { findCardLabelledValues, findCardRowLabels, findTags } from '@/test/find
 import { findTooltipContent } from '@/test/find-tooltip-content.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
-import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
-import { userResourceMock } from '@/test/mock-xo-user.ts'
-import { vmCollectionMock } from '@/test/mock-xo-vm-collection.ts'
-import { mockModule } from '@/test/spy-on-module.ts'
+import { xoCollectionsMock, mockXoCollections } from '@/test/mock-xo-collections.ts'
+import { mockXoRoutes } from '@/test/mock-xo-routes.ts'
+import { userResourceMock, mockXoUser } from '@/test/mock-xo-user.ts'
+import { vmCollectionMock, mockXoVmCollection } from '@/test/mock-xo-vm-collection.ts'
 import { itShowsVmCreator } from '@/test/vm-creator.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
@@ -20,29 +20,13 @@ import { objectIcon } from '@core/icons'
 import { HOST_POWER_STATE, VM_OPERATIONS, VM_POWER_STATE } from '@vates/types'
 import { mount } from '@vue/test-utils'
 
-mockModule(
-  import('@/modules/pool/remote-resources/use-xo-pool-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
+mockXoCollections('host', 'pool', 'vmTemplate')
 
-mockModule(
-  import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'),
-  () => import('@/test/mock-xo-vm-collection.ts')
-)
+mockXoVmCollection()
 
-mockModule(
-  import('@/modules/host/remote-resources/use-xo-host-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
+mockXoUser()
 
-mockModule(import('@/modules/user/remote-resources/use-xo-user.ts'), () => import('@/test/mock-xo-user.ts'))
-
-mockModule(
-  import('@/modules/vm/remote-resources/use-xo-vm-template-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
-
-mockModule(import('@/shared/remote-resources/use-xo-routes.ts'), () => import('@/test/mock-xo-routes.ts'))
+mockXoRoutes()
 
 beforeEach(() => {
   xoCollectionsMock.reset()

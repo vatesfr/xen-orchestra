@@ -3,10 +3,10 @@ import {
   type NewBackupRepositoryPayload,
   useXoBackupRepositoryCreateJob,
 } from '@/modules/backup-repository/jobs/xo-backup-repository-create.job.ts'
-import { overlayMock } from '@/test/mock-overlay.ts'
+import { overlayMock, mockOverlay } from '@/test/mock-overlay.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
 import { silenceConsoleError } from '@/test/silence-console-error.ts'
-import { mockModule, mockedExport } from '@/test/spy-on-module.ts'
+import { mockedExport } from '@/test/spy-on-module.ts'
 import { KEEP_OVERLAY_OPEN } from '@core/packages/overlay/symbols.ts'
 import type { Ref } from 'vue'
 
@@ -21,7 +21,7 @@ const useCreateJob = mockedExport(useXoBackupRepositoryCreateJob)
 
 const run = vi.fn()
 
-mockModule(import('@core/packages/overlay/use-overlay.ts'), () => import('@/test/mock-overlay.ts'))
+mockOverlay()
 
 const PAYLOAD: NewBackupRepositoryPayload = {
   name: 'Nightly backups',

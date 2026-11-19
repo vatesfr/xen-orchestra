@@ -4,18 +4,17 @@ import {
   useV2vResumedVmActions,
 } from '@/modules/v2v/composables/use-v2v-vm-actions.composable.ts'
 import { V2V_NEW_STEP_VM, V2V_RESUMED_STEP_VM, V2V_NOT_FOUND_STEP_VM } from '@/test/create-v2v-mapping-step-vm.ts'
-import { overlayMock } from '@/test/mock-overlay.ts'
-import { vmDeleteMock } from '@/test/mock-vm-delete.ts'
+import { overlayMock, mockOverlay } from '@/test/mock-overlay.ts'
+import { vmDeleteMock, mockVmDelete } from '@/test/mock-vm-delete.ts'
 import { mountComposableWithI18n } from '@/test/mount-composable.ts'
-import { mockModule } from '@/test/spy-on-module.ts'
 import { v2vConnectionProvide } from '@/test/v2v-connection-provide.ts'
 import { toValue } from 'vue'
 
 // The settings drawer is an overlay of the app, out of reach of a unit test
-mockModule(import('@core/packages/overlay/use-overlay.ts'), () => import('@/test/mock-overlay.ts'))
+mockOverlay()
 
 // The composable calls the REST API and opens modals
-mockModule(import('@/modules/vm/composables/use-vm-delete.composable.ts'), () => import('@/test/mock-vm-delete.ts'))
+mockVmDelete()
 
 beforeEach(() => {
   overlayMock.reset()

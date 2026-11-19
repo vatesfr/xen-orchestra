@@ -6,14 +6,10 @@ import { findDrawerButtonLabels, submitDrawer } from '@/test/drawer.ts'
 import { getButton } from '@/test/get-button.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
-import { proxyCollectionMock } from '@/test/mock-xo-proxy-collection.ts'
-import { mockModule } from '@/test/spy-on-module.ts'
+import { proxyCollectionMock, mockXoProxyCollection } from '@/test/mock-xo-proxy-collection.ts'
 import { flushPromises, mount, type VueWrapper } from '@vue/test-utils'
 
-mockModule(
-  import('@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'),
-  () => import('@/test/mock-xo-proxy-collection.ts')
-)
+mockXoProxyCollection()
 
 beforeEach(() => {
   proxyCollectionMock.reset()

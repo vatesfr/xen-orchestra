@@ -1,15 +1,11 @@
 import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import { useV2vIsUnknownPool } from '@/modules/v2v/composables/use-v2v-is-unknown-pool.composable.ts'
 import { createPool, UNKNOWN_POOL_ID } from '@/test/create-pool.ts'
-import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
+import { xoCollectionsMock, mockXoCollections } from '@/test/mock-xo-collections.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
-import { mockModule } from '@/test/spy-on-module.ts'
 import { ref } from 'vue'
 
-mockModule(
-  import('@/modules/pool/remote-resources/use-xo-pool-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
+mockXoCollections('pool')
 
 const POOL = createPool()
 

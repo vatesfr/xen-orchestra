@@ -7,23 +7,16 @@ import { createVm } from '@/test/create-vm.ts'
 import { findCardLabelledValues } from '@/test/find-rendered-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
-import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
-import { vmCollectionMock } from '@/test/mock-xo-vm-collection.ts'
-import { mockModule } from '@/test/spy-on-module.ts'
+import { xoCollectionsMock, mockXoCollections } from '@/test/mock-xo-collections.ts'
+import { vmCollectionMock, mockXoVmCollection } from '@/test/mock-xo-vm-collection.ts'
 import VtsTag from '@core/components/tag/VtsTag.vue'
 import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
 import { findLinks } from '@core-test/find-links.ts'
 import { mount } from '@vue/test-utils'
 
-mockModule(
-  import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'),
-  () => import('@/test/mock-xo-vm-collection.ts')
-)
+mockXoVmCollection()
 
-mockModule(
-  import('@/modules/pool/remote-resources/use-xo-pool-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
+mockXoCollections('pool')
 
 const firstPool = createPool({ id: 'pool-1' as FrontXoPool['id'], name_label: 'First pool' })
 const secondPool = createPool({ id: 'pool-2' as FrontXoPool['id'], name_label: 'Second pool' })

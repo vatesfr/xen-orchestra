@@ -3,6 +3,7 @@ import type {
   useXoTaskCollection as realUseXoTaskCollection,
 } from '@/modules/task/remote-resources/use-xo-task-collection.ts'
 import { createMockCollection } from '@/test/find-by-id.ts'
+import { mockModule } from '@/test/spy-on-module.ts'
 import { ref } from 'vue'
 
 // Shared state of the mocked task collection: a test sets the tasks it needs, reset it in `beforeEach`
@@ -15,7 +16,15 @@ export const taskCollectionMock = {
   },
 }
 
-// Use as `mockModule(import('@/modules/task/remote-resources/use-xo-task-collection.ts'), () => import('@/test/mock-xo-task-collection.ts'))`
+// Mocked with `mockXoTaskCollection()`
 export const useXoTaskCollection = (() => ({
   ...createMockCollection('Task', 'Tasks', taskCollectionMock.tasks, taskCollectionMock.areTasksReady),
 })) as unknown as typeof realUseXoTaskCollection
+
+// Replaces the module in every test of the file: call it at the top level of the test file
+export function mockXoTaskCollection() {
+  mockModule(
+    import('@/modules/task/remote-resources/use-xo-task-collection.ts'),
+    () => import('@/test/mock-xo-task-collection.ts')
+  )
+}

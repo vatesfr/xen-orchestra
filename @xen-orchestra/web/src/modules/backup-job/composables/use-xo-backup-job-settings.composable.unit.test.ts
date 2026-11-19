@@ -2,18 +2,14 @@ import { useXoBackupJobSettings } from '@/modules/backup-job/composables/use-xo-
 import type { FrontAnyXoBackupJob } from '@/modules/backup-job/remote-resources/use-xo-backup-job-collection.ts'
 import { createMetadataBackupJob, createVmBackupJob } from '@/test/create-backup-job.ts'
 import { createProxy } from '@/test/create-proxy.ts'
-import { proxyCollectionMock } from '@/test/mock-xo-proxy-collection.ts'
+import { proxyCollectionMock, mockXoProxyCollection } from '@/test/mock-xo-proxy-collection.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
-import { mockModule } from '@/test/spy-on-module.ts'
 import { formatSpeed } from '@core/utils/speed.util.ts'
 import { formatTimeout } from '@core/utils/time.util.ts'
 import type { XoProxy } from '@vates/types'
 import { useI18n } from 'vue-i18n'
 
-mockModule(
-  import('@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'),
-  () => import('@/test/mock-xo-proxy-collection.ts')
-)
+mockXoProxyCollection()
 
 beforeEach(() => {
   proxyCollectionMock.reset()

@@ -7,10 +7,9 @@ import type { EditBackupRepositoryPayload } from '@/modules/backup-repository/jo
 import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
 import { createTwoBrs } from '@/test/create-br.ts'
 import { createJobStub } from '@/test/create-job-result.ts'
-import { overlayMock } from '@/test/mock-overlay.ts'
+import { overlayMock, mockOverlay } from '@/test/mock-overlay.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
 import { silenceConsoleError } from '@/test/silence-console-error.ts'
-import { mockModule } from '@/test/spy-on-module.ts'
 import { KEEP_OVERLAY_OPEN } from '@core/packages/overlay/symbols.ts'
 import { toValue } from 'vue'
 
@@ -22,7 +21,7 @@ type MockedOverlay = {
 // The job patches the repositories through the REST API
 const bulkEditJob = createJobStub(useXoBackupRepositoryBulkEditJob)
 
-mockModule(import('@core/packages/overlay/use-overlay.ts'), () => import('@/test/mock-overlay.ts'))
+mockOverlay()
 
 beforeEach(() => {
   vi.restoreAllMocks()

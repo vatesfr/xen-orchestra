@@ -4,7 +4,7 @@ import { useDuplicateVmForm } from '@/modules/vm/form/use-duplicate-vm-form.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { createSr } from '@/test/create-sr.ts'
 import { createVm } from '@/test/create-vm.ts'
-import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
+import { xoCollectionsMock, mockXoCollections } from '@/test/mock-xo-collections.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
 import { resetStubs } from '@/test/reset-stubs.ts'
 import { mockModule } from '@/test/spy-on-module.ts'
@@ -14,15 +14,7 @@ import { nextTick, ref } from 'vue'
 const getSrLocation = vi.fn()
 const getSrSelectLabel = vi.fn()
 
-mockModule(
-  import('@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
-
-mockModule(
-  import('@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
+mockXoCollections('pbd', 'sr')
 
 mockModule(import('@/modules/storage-repository/composables/xo-sr-utils.composable.ts'), () => ({
   useXoSrUtils: (() => ({ getSrLocation, getSrSelectLabel })) as unknown as typeof useXoSrUtils,

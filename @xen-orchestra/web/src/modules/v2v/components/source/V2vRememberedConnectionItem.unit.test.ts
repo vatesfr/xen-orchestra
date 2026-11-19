@@ -6,8 +6,7 @@ import { createV2vImportVm } from '@/test/create-v2v-import-vm.ts'
 import { findParts } from '@/test/find-parts.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
-import { vmCollectionMock } from '@/test/mock-xo-vm-collection.ts'
-import { mockModule } from '@/test/spy-on-module.ts'
+import { vmCollectionMock, mockXoVmCollection } from '@/test/mock-xo-vm-collection.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import MenuItem from '@core/components/menu/MenuItem.vue'
 import VtsRelativeTime from '@core/components/relative-time/VtsRelativeTime.vue'
@@ -17,10 +16,7 @@ import { findTitle } from '@core-test/find-title.ts'
 import { mount } from '@vue/test-utils'
 import { omit } from 'lodash-es'
 
-mockModule(
-  import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'),
-  () => import('@/test/mock-xo-vm-collection.ts')
-)
+mockXoVmCollection()
 
 beforeEach(() => {
   vmCollectionMock.reset()

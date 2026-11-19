@@ -4,18 +4,10 @@ import { ONE_GB } from '@/shared/constants.ts'
 import { createHost } from '@/test/create-host.ts'
 import { createPbd } from '@/test/create-pbd.ts'
 import { createSr } from '@/test/create-sr.ts'
-import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
+import { xoCollectionsMock, mockXoCollections } from '@/test/mock-xo-collections.ts'
 import { mountComposableWithI18n } from '@/test/mount-composable.ts'
-import { mockModule } from '@/test/spy-on-module.ts'
 
-mockModule(
-  import('@/modules/host/remote-resources/use-xo-host-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
-mockModule(
-  import('@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
+mockXoCollections('host', 'pbd')
 
 const HOST = createHost({ name_label: 'Host A' })
 const LOCAL_SR = createSr({ shared: false })

@@ -6,16 +6,13 @@ import { createVmBackupJob } from '@/test/create-backup-job.ts'
 import { createSchedule } from '@/test/create-schedule.ts'
 import { t } from '@/test/i18n.ts'
 import { itCannotRun, itReportsEachResult } from '@/test/job-cases.ts'
-import { scheduleCollectionMock } from '@/test/mock-xo-schedule-collection.ts'
+import { scheduleCollectionMock, mockXoScheduleCollection } from '@/test/mock-xo-schedule-collection.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
-import { mockModule, mockedExport } from '@/test/spy-on-module.ts'
+import { mockedExport } from '@/test/spy-on-module.ts'
 
 const post = mockedExport(fetchPost)
 
-mockModule(
-  import('@/modules/schedule/remote-resources/use-xo-schedule-collection.ts'),
-  () => import('@/test/mock-xo-schedule-collection.ts')
-)
+mockXoScheduleCollection()
 
 beforeEach(() => {
   vi.restoreAllMocks()

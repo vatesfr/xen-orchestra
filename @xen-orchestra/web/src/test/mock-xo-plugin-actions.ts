@@ -1,5 +1,6 @@
 import type { useXoPluginActions as realUseXoPluginActions } from '@/modules/plugin/composables/use-xo-plugin-actions.composable.ts'
 import { createPluginActions } from '@/test/create-plugin-actions.ts'
+import { mockModule } from '@/test/spy-on-module.ts'
 
 type PluginActions = ReturnType<typeof createPluginActions>
 
@@ -21,5 +22,13 @@ export const pluginActionsMock = {
   },
 }
 
-// Use as `mockModule(import('@/modules/plugin/composables/use-xo-plugin-actions.composable.ts'), () => import('@/test/mock-xo-plugin-actions.ts'))`
+// Mocked with `mockXoPluginActions()`
 export const useXoPluginActions = pluginActionsMock.useXoPluginActions as unknown as typeof realUseXoPluginActions
+
+// Replaces the module in every test of the file: call it at the top level of the test file
+export function mockXoPluginActions() {
+  mockModule(
+    import('@/modules/plugin/composables/use-xo-plugin-actions.composable.ts'),
+    () => import('@/test/mock-xo-plugin-actions.ts')
+  )
+}

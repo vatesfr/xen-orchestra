@@ -1,23 +1,14 @@
 import { useVmEnhancedData } from '@/modules/vm/composables/use-vm-enhanced-data.composable.ts'
 import { createEnhancedDataHelpers } from '@/test/create-enhanced-data-helpers.ts'
 import { createVm } from '@/test/create-vm.ts'
-import { vmDeviceCollectionsMock } from '@/test/mock-xo-vm-device-collections.ts'
+import { vmDeviceCollectionsMock, mockXoVmDeviceCollections } from '@/test/mock-xo-vm-device-collections.ts'
 import { seedVmDisks } from '@/test/seed-vm-disks.ts'
-import { mockModule } from '@/test/spy-on-module.ts'
 import { objectIcon } from '@core/icons'
 import { formatSizeRaw } from '@core/utils/size.util.ts'
 import { VM_OPERATIONS, VM_POWER_STATE } from '@vates/types'
 import { ref } from 'vue'
 
-mockModule(
-  import('@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'),
-  () => import('@/test/mock-xo-vm-device-collections.ts')
-)
-
-mockModule(
-  import('@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'),
-  () => import('@/test/mock-xo-vm-device-collections.ts')
-)
+mockXoVmDeviceCollections('vbd', 'vdi')
 
 beforeEach(() => {
   vmDeviceCollectionsMock.reset()

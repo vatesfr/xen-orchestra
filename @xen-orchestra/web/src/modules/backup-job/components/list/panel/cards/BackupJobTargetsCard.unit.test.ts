@@ -5,22 +5,13 @@ import { createBr } from '@/test/create-br.ts'
 import { createSr } from '@/test/create-sr.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
-import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
-import { mockModule } from '@/test/spy-on-module.ts'
+import { xoCollectionsMock, mockXoCollections } from '@/test/mock-xo-collections.ts'
 import VtsDivider from '@core/components/divider/VtsDivider.vue'
 import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
 import { findLinks } from '@core-test/find-links.ts'
 import { mount } from '@vue/test-utils'
 
-mockModule(
-  import('@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
-
-mockModule(
-  import('@/modules/host/remote-resources/use-xo-host-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
+mockXoCollections('host', 'pbd')
 
 beforeEach(() => {
   xoCollectionsMock.reset()

@@ -6,19 +6,16 @@ import { createSchedule } from '@/test/create-schedule.ts'
 import { findCardLabelledValues, getCardRow, getCardRowLink } from '@/test/find-rendered-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
-import { scheduleCollectionMock } from '@/test/mock-xo-schedule-collection.ts'
-import { mockModule } from '@/test/spy-on-module.ts'
+import { mockXoRoutes } from '@/test/mock-xo-routes.ts'
+import { scheduleCollectionMock, mockXoScheduleCollection } from '@/test/mock-xo-schedule-collection.ts'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiLogEntryViewer from '@core/components/ui/log-entry-viewer/UiLogEntryViewer.vue'
 import { formatDateTime } from '@core/utils/time.util.ts'
 import { mount } from '@vue/test-utils'
 
-mockModule(import('@/shared/remote-resources/use-xo-routes.ts'), () => import('@/test/mock-xo-routes.ts'))
+mockXoRoutes()
 
-mockModule(
-  import('@/modules/schedule/remote-resources/use-xo-schedule-collection.ts'),
-  () => import('@/test/mock-xo-schedule-collection.ts')
-)
+mockXoScheduleCollection()
 
 const schedule = createSchedule({ id: 'schedule-789' as FrontXoSchedule['id'], name: 'Nightly' })
 

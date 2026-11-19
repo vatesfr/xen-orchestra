@@ -1,15 +1,11 @@
 import type { FrontXoTask } from '@/modules/task/remote-resources/use-xo-task-collection.ts'
 import { useXoTaskUtils } from '@/shared/composables/xo-task-utils.composable.ts'
 import { createTask } from '@/test/create-task.ts'
-import { taskCollectionMock } from '@/test/mock-xo-task-collection.ts'
-import { mockModule } from '@/test/spy-on-module.ts'
+import { taskCollectionMock, mockXoTaskCollection } from '@/test/mock-xo-task-collection.ts'
 import { nextTick } from 'vue'
 
 // The task collection would open an SSE subscription
-mockModule(
-  import('@/modules/task/remote-resources/use-xo-task-collection.ts'),
-  () => import('@/test/mock-xo-task-collection.ts')
-)
+mockXoTaskCollection()
 
 const TASK_ID = 'task-123' as FrontXoTask['id']
 
