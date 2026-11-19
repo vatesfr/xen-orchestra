@@ -14,7 +14,7 @@ The updater keeps Xen Orchestra itself up to date, including the Node.js runtime
 
 Since XOA has privileged access to your whole infrastructure, keeping its OS up to date is critical. Some updates, such as a new kernel, only take effect after a reboot: **don't postpone it**. Rebooting XOA doesn't affect your VMs, but schedule it outside your backup windows, as running backup jobs will likely hang.
 
-For a newer base system, [replace your XOA](migrate_to_new_xoa.md) with a freshly deployed one.
+For a newer base system, [replace your XOA](https://docs.vates.tech/kb/vkb-1031/) with a freshly deployed one.
 :::
 
 :::tip
