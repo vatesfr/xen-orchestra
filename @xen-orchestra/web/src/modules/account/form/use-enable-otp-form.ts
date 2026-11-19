@@ -1,4 +1,4 @@
-import { required, withMessage } from '@core/packages/form-validation'
+import { type Maybe, required, withMessage } from '@core/packages/form-validation'
 import { useValidatedForm } from '@core/packages/validated-form'
 import { toComputed } from '@core/utils/to-computed.util.ts'
 import type { XoUser } from '@vates/types'
@@ -25,8 +25,8 @@ export function useEnableOtpForm(rawUser: MaybeRefOrGetter<XoUser>) {
 
   const formData = reactive<EnableOtpFormData>({ code: '' })
 
-  async function isCodeValid(code: string) {
-    if (code === '') {
+  async function isCodeValid(code: Maybe<string>) {
+    if (!code) {
       return true
     }
 

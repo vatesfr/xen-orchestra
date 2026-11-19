@@ -1,5 +1,5 @@
 import type { ChangeXoUserPasswordPayload } from '@/modules/account/jobs/xo-user-password-change.job.ts'
-import { required, withMessage } from '@core/packages/form-validation'
+import { type Maybe, required, withMessage } from '@core/packages/form-validation'
 import { useValidatedForm } from '@core/packages/validated-form'
 import { reactive } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -27,7 +27,7 @@ export function useChangePasswordForm() {
         confirmPassword: {
           required,
           sameAs: withMessage(
-            (value: string) => value === formData.newPassword,
+            (value: Maybe<string>) => value === formData.newPassword,
             () => t('password-confirmation-different')
           ),
         },

@@ -51,6 +51,8 @@ The same goes for `mock-xo-v2v-vm-rows-collections.ts`, the VM, task and VM snap
 
 `mock-xo-routes.ts` stands for `useXoRoutes`, the XO 5 routes the app fetches: an XO 5 link reads `https://xo5.example.com/#<path>`.
 
+`mock-xo-user.ts` stands for `useXoUserResource`, the user the app fetches: `xoUserMock.forceReload` is the spy to read the reloads of the user a caller asked for, and `xoUserMock.reset()` goes in `beforeEach`.
+
 `mock-xo-v2v-status.ts` stands for `useXoV2vStatus`, the V2V prerequisite the server reports: `v2vStatusMock` holds `canConnectV2vSource` and `v2vPrerequisite` (true and `{ state: 'ok' }` after a reset).
 
 `mock-vm-delete.ts` stands for `useVmDelete`, which calls the REST API and opens modals: `vmDeleteMock.useVmDelete` is the spy to read the VMs a caller asked to delete, `vmDeleteMock.deleteVms` the one the caller runs, `vmDeleteMock.setDeleting(true)` holds the VMs as being deleted, `vmDeleteMock.setBlocked(message)` makes them undeletable for that reason, and `vmDeleteMock.reset()` goes in `beforeEach`.

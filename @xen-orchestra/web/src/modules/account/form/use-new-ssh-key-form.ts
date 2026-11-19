@@ -1,5 +1,5 @@
 import type { SshKey } from '@/modules/account/types/ssh-key.type.ts'
-import { required, withMessage } from '@core/packages/form-validation'
+import { type Maybe, required, withMessage } from '@core/packages/form-validation'
 import { useValidatedForm } from '@core/packages/validated-form'
 import { type MaybeRefOrGetter, reactive, toValue } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -23,7 +23,7 @@ export function useNewSshKeyForm(existingSshKeys: MaybeRefOrGetter<SshKey[]>) {
         key: {
           required,
           unique: withMessage(
-            (value: string) => !toValue(existingSshKeys).some(({ key }) => key === value),
+            (value: Maybe<string>) => !toValue(existingSshKeys).some(({ key }) => key === value),
             () => t('ssh-key-already-exists')
           ),
         },
