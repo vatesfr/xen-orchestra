@@ -474,6 +474,7 @@ export class SrController extends XapiXoController<XoSr> {
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(invalidParametersResp.status, invalidParametersResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
+  @Response(502, 'The remote server is unreachable or failed to provide the file')
   async srImportVdiFromUrl(
     @Path() id: string,
     @Body() body: ImportVdiFromUrlBody,

@@ -139,21 +139,23 @@ export class SrService {
       // `fetch` transparently decompresses gzip, but `Content-Length` would still be the compressed size
       response = await fetch(url, { headers: { 'accept-encoding': 'identity' } })
     } catch (error) {
-      throw new Error(`failed to download ${origin}`, { cause: error })
+      // the remote server is unreachable (DNS, connection refused, TLS…)
+      throw new ApiError(`failed to download ${origin}`, 502, { cause: error })
     }
+    // the failures below come from the remote server, not from XO nor from the caller: 502 Bad Gateway
     if (!response.ok) {
       await response.body?.cancel() // free the socket
-      throw invalidParameters(`failed to download ${origin}: ${response.status} ${response.statusText}`)
+      throw new ApiError(`failed to download ${origin}: ${response.status} ${response.statusText}`, 502)
     }
     if (response.body === null) {
-      throw new Error(`failed to download ${origin}: empty response body`)
+      throw new ApiError(`failed to download ${origin}: empty response body`, 502)
     }
 
     // raw imports need the size of the VDI before reading the stream
     const contentLength = response.headers.get('content-length')
     if (contentLength === null) {
       await response.body.cancel()
-      throw invalidParameters(`the remote server did not provide a Content-Length for ${origin}`)
+      throw new ApiError(`the remote server did not provide a Content-Length for ${origin}`, 502)
     }
 
     const stream: Readable & { length?: number } = Readable.fromWeb(response.body)

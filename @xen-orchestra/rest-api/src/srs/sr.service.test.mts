@@ -176,6 +176,7 @@ describe('SrService.validateImportVdiFromUrl and SrService.importVdiFromUrl', ()
   }
 
   const isInvalidParameters = (error: unknown) => invalidParameters.is(error)
+  const isBadGateway = (error: unknown): error is ApiError => error instanceof ApiError && error.status === 502
 
   it('imports the URL content as a raw VDI in the ISO SR and returns the VDI uuid', async t => {
     const { response } = createResponse({ headers: { 'content-length': '3' } })
@@ -262,13 +263,13 @@ describe('SrService.validateImportVdiFromUrl and SrService.importVdiFromUrl', ()
     assert.equal(fetchMock.mock.callCount(), 0)
   })
 
-  it('rejects with invalid parameters when the remote server returns an error, and frees the response body', async t => {
+  it('rejects with 502 when the remote server returns an error, and frees the response body', async t => {
     const { body, response } = createResponse({ status: 404 })
     t.mock.method(globalThis, 'fetch', async () => response)
     const { calls, service } = setup()
 
     await assert.rejects(service.importVdiFromUrl(SR_ID, new URL('https://example.net/missing.iso'), {}), error => {
-      assert.ok(invalidParameters.is(error))
+      assert.ok(isBadGateway(error))
       assert.match((error as Error).message, /404/)
       return true
     })
@@ -276,7 +277,7 @@ describe('SrService.validateImportVdiFromUrl and SrService.importVdiFromUrl', ()
     assert.equal(calls.SR_importVdi.length, 0)
   })
 
-  it('keeps the URL origin and the original error as cause when the download cannot start', async t => {
+  it('rejects with 502 when the download cannot start, keeping the URL origin and the original error as cause', async t => {
     const networkError = new TypeError('fetch failed', { cause: new Error('getaddrinfo ENOTFOUND example.net') })
     t.mock.method(globalThis, 'fetch', async () => {
       throw networkError
@@ -284,7 +285,7 @@ describe('SrService.validateImportVdiFromUrl and SrService.importVdiFromUrl', ()
     const { calls, service } = setup()
 
     await assert.rejects(service.importVdiFromUrl(SR_ID, new URL('https://example.net/debian.iso'), {}), error => {
-      assert.ok(error instanceof Error)
+      assert.ok(isBadGateway(error))
       assert.match(error.message, /https:\/\/example\.net/)
       assert.equal(error.cause, networkError)
       return true
@@ -303,16 +304,21 @@ describe('SrService.validateImportVdiFromUrl and SrService.importVdiFromUrl', ()
     assert.equal(stream.destroyed, true)
   })
 
-  it('rejects with invalid parameters when there is no Content-Length, and frees the response body', async t => {
+  it('rejects with 502 when there is no Content-Length, and frees the response body', async t => {
     const { body, response } = createResponse()
     t.mock.method(globalThis, 'fetch', async () => response)
     const { calls, service } = setup()
 
-    await assert.rejects(
-      service.importVdiFromUrl(SR_ID, new URL('https://example.net/debian.iso'), {}),
-      isInvalidParameters
-    )
+    await assert.rejects(service.importVdiFromUrl(SR_ID, new URL('https://example.net/debian.iso'), {}), isBadGateway)
     assert.equal(body.cancelled, true)
+    assert.equal(calls.SR_importVdi.length, 0)
+  })
+
+  it('rejects with 502 when the response has no body', async t => {
+    t.mock.method(globalThis, 'fetch', async () => new Response(null, { status: 200 }))
+    const { calls, service } = setup()
+
+    await assert.rejects(service.importVdiFromUrl(SR_ID, new URL('https://example.net/debian.iso'), {}), isBadGateway)
     assert.equal(calls.SR_importVdi.length, 0)
   })
 
