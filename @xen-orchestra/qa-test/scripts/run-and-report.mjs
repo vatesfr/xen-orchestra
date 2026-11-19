@@ -37,12 +37,21 @@ function getBranchName() {
   }
 }
 
+function getCommitHash() {
+  try {
+    return execSync('git rev-parse --short HEAD', { encoding: 'utf8', cwd: ROOT }).trim()
+  } catch {
+    return 'unknown'
+  }
+}
+
 function formatDatetime(date) {
-  // "2026-05-20 08:42 UTC"
-  return date
-    .toISOString()
-    .replace('T', ' ')
-    .replace(/:\d{2}\.\d+Z$/, ' UTC')
+  // "19/11/2026 13:43 (Paris)"
+  return `${date.toLocaleString('fr-FR', {
+    timeZone: 'Europe/Paris',
+    dateStyle: 'short',
+    timeStyle: 'short',
+  })} (Paris)`
 }
 
 // ---------------------------------------------------------------------------
@@ -123,14 +132,16 @@ if (process.argv.includes('--smtp-test')) {
 // ---------------------------------------------------------------------------
 
 const branch = getBranchName()
+const commitHash = getCommitHash()
 const startedAt = new Date()
 
 process.stderr.write(`[run-and-report] branch=${branch}\n`)
 
 const { success, output, logFilePath } = await runTests()
 
+const emoji = success ? '✅' : '❌'
 const status = success ? 'success' : 'failure'
-const subject = `test run ${formatDatetime(startedAt)} ${branch} ${status}`
+const subject = `${emoji} ${status} test run ${formatDatetime(startedAt)} on ${branch}@${commitHash}`
 
 // Attach the full structured debug log if we found its path
 const attachments = []
