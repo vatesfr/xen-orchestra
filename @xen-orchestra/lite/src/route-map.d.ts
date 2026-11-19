@@ -961,6 +961,13 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/story/web-core/ui/overridden/ui-overridden': RouteRecordInfo<
+      '/story/web-core/ui/overridden/ui-overridden',
+      '/story/web-core/ui/overridden/ui-overridden',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
     '/story/web-core/ui/panel/ui-panel': RouteRecordInfo<
       '/story/web-core/ui/panel/ui-panel',
       '/story/web-core/ui/panel/ui-panel',
@@ -2060,6 +2067,12 @@ declare module 'vue-router/auto-routes' {
     'src/stories/web-core/ui/object-link/ui-object-link.story.vue': {
       routes:
         | '/story/web-core/ui/object-link/ui-object-link'
+      views:
+        | never
+    }
+    'src/stories/web-core/ui/overridden/ui-overridden.story.vue': {
+      routes:
+        | '/story/web-core/ui/overridden/ui-overridden'
       views:
         | never
     }
