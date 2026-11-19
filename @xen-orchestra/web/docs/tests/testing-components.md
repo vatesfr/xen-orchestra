@@ -34,6 +34,12 @@ A label/value row is read through one query covering every row a user sees ([Ass
 | `findCardLabelledValueLists` | every `VtsCardRowKeyValue`, each value of a multi-value row listed |
 | `findRowLabels`              | the label of every `VtsTabularKeyValueRow` / `VtsKeyValueRow`      |
 | `findCardRowLabels`          | the label of every `VtsCardRowKeyValue`, in order                  |
+| `findCardRows`               | every `VtsCardRowKeyValue` as `[label, value]` pairs, in order     |
+| `getCardRow`                 | the `VtsCardRowKeyValue` with that label, to query its link / copy |
+| `hasCardRowCopy`             | whether the `VtsCardRowKeyValue` with that label offers a copy     |
+| `getCardRowLink`             | the link of the `VtsCardRowKeyValue` with that label               |
+| `findCardRowElements`        | every `VtsCardRowKeyValue` as its key and value elements           |
+| `findCardRowLinks`           | every link of the `VtsCardRowKeyValue` rows, as `[text, href]`     |
 | `findCopiedValues`           | what each copyable key/value row copies, keyed by label            |
 | `findCardCopiedValues`       | what each copyable `VtsCardRowKeyValue` copies, in order           |
 
@@ -46,6 +52,8 @@ A row offers a copy button through its `copy` prop (copies its `value`) or its `
 ```typescript
 expect(findCopiedValues(wrapper)).toEqual({ [t('ip-address')]: '10.0.0.1', [t('uuid')]: 'vm-42' })
 ```
+
+`findCardRows` keeps rows sharing a label (one row per VM, labelled on the first one only), which `findCardLabelledValues` would collapse. A check on the row elements themselves (whether a button sits inside a row) uses the exported `CARD_KEY_VALUE_ROW_SELECTOR`, never the raw class.
 
 Both read one value per row. A `VtsCardRowKeyValue` given several `values` (an address list, report recipients) renders them all under a single label, so read it with `findCardLabelledValueLists` instead:
 

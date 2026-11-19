@@ -10,6 +10,15 @@ export const taskUtilsMock = {
   },
 }
 
+type MockedPost = {
+  mockImplementation(implementation: (url: string) => Promise<{ taskId: string }>): unknown
+}
+
+// Makes the mocked `fetchPost` answer each request with the task `task-of-<url>`, the one `monitorTask` then waits for
+export function answerPostsWithTask(post: MockedPost) {
+  post.mockImplementation(async (url: string) => ({ taskId: `task-of-${url}` }))
+}
+
 // Use as `mockModule(import('@/shared/composables/xo-task-utils.composable.ts'), () => import('@/test/mock-xo-task-utils.ts'))`
 export const useXoTaskUtils = (() => ({
   monitorTask: taskUtilsMock.monitorTask,

@@ -3,9 +3,11 @@ import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-co
 import { useXoTrafficRuleEditOrderJob } from '@/modules/traffic-rules/jobs/xo-traffic-rule-edit-order.job.ts'
 import { fetchPost } from '@/shared/utils/fetch.util.ts'
 import { createPool } from '@/test/create-pool.ts'
+import { createTrafficRule } from '@/test/create-traffic-rule.ts'
 import { t } from '@/test/i18n.ts'
+import { itCannotRun, itCanRun } from '@/test/job-cases.ts'
 import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
-import { taskUtilsMock } from '@/test/mock-xo-task-utils.ts'
+import { answerPostsWithTask, taskUtilsMock } from '@/test/mock-xo-task-utils.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
 import { mockModule, mockedExport } from '@/test/spy-on-module.ts'
 import { SDN_CONTROLLER_OF_METHOD_KEY, type TrafficRule, type XoNetwork } from '@vates/types'
@@ -26,7 +28,7 @@ beforeEach(() => {
   vi.restoreAllMocks()
   taskUtilsMock.reset()
 
-  post.mockImplementation(async (url: string) => ({ taskId: `task-of-${url}` }))
+  answerPostsWithTask(post)
   xoCollectionsMock.reset()
   givenPoolOtherConfig({ [SDN_CONTROLLER_OF_METHOD_KEY]: 'xapi-plugin' })
 })
@@ -42,17 +44,7 @@ function givenPoolOtherConfig(otherConfig: FrontXoPool['otherConfig']) {
 const ENDPOINT = `plugins/sdn-controller/networks/${NETWORK_ID}/actions/update_traffic_rule`
 
 function createRule(id: string, priority: number | undefined): TrafficRule {
-  return {
-    id,
-    allow: true,
-    protocol: 'TCP',
-    ipRange: '10.0.0.0/8',
-    direction: 'to',
-    priority,
-    networkId: NETWORK_ID,
-    type: 'network',
-    sourceId: NETWORK_ID,
-  }
+  return createTrafficRule({ id, priority, networkId: NETWORK_ID, sourceId: NETWORK_ID })
 }
 
 function mountEditOrderJob(
@@ -93,40 +85,30 @@ describe('run', () => {
     expect(getNewPriorities()[0]).toBeGreaterThan(300)
   })
 
-  it('never gives a priority a rule of the network already has', async () => {
-    const [firstRule, secondRule, thirdRule, fourthRule] = [
-      createRule('a', 400),
-      createRule('b', 300),
-      createRule('c', 200),
-      createRule('d', 100),
-    ]
+  // `priorities`: the rules of the network; `order`: the new order, as indexes, leaving out a rule added on the network
+  // while the order was being edited
+  it.each([
+    {
+      name: 'never gives a priority a rule of the network already has',
+      priorities: [400, 300, 200, 100],
+      order: [1, 3, 0, 2],
+      taken: [400, 300, 200, 100],
+    },
+    {
+      name: 'never gives a priority a rule of the network missing from the order already has',
+      priorities: [5, 2, 0, 1, 3],
+      order: [0, 2, 1, 3],
+      taken: [3],
+    },
+  ])('$name', async ({ priorities, order, taken }) => {
+    const rules = priorities.map((priority, index) => createRule(`rule-${index}`, priority))
 
     await mountEditOrderJob(
-      [firstRule, secondRule, thirdRule, fourthRule],
-      [secondRule, fourthRule, firstRule, thirdRule]
+      rules,
+      order.map(index => rules[index])
     ).run()
 
-    const newPriorities = getNewPriorities()
-
-    newPriorities.forEach(priority => expect([400, 300, 200, 100]).not.toContain(priority))
-  })
-
-  it('never gives a priority a rule of the network missing from the order already has', async () => {
-    const [firstRule, secondRule, thirdRule, fourthRule] = [
-      createRule('a', 5),
-      createRule('b', 2),
-      createRule('c', 0),
-      createRule('d', 1),
-    ]
-    // added on the network while the order was being edited
-    const addedRule = createRule('x', 3)
-
-    await mountEditOrderJob(
-      [firstRule, secondRule, thirdRule, fourthRule, addedRule],
-      [firstRule, thirdRule, secondRule, fourthRule]
-    ).run()
-
-    getNewPriorities().forEach(priority => expect(priority).not.toBe(3))
+    getNewPriorities().forEach(priority => expect(taken).not.toContain(priority))
   })
 
   it('renumbers all the rules when there is no room between the kept ones', async () => {
@@ -172,40 +154,39 @@ describe('run', () => {
 })
 
 describe('validate', () => {
-  it('can run with at least 2 rules on a network using the XAPI plugin', () => {
-    const rules = [createRule('a', 200), createRule('b', 100)]
+  itCanRun([
+    {
+      name: 'can run with at least 2 rules on a network using the XAPI plugin',
+      mountJob: () => mountEditOrderJob([createRule('a', 200), createRule('b', 100)], undefined),
+    },
+  ])
 
-    expect(mountEditOrderJob(rules, undefined).canRun).toBe(true)
-  })
+  itCannotRun([
+    {
+      name: 'cannot run without a network',
+      mountJob: () =>
+        mountComposable(() =>
+          useXoTrafficRuleEditOrderJob(
+            () => [createRule('a', 200), createRule('b', 100)],
+            () => undefined,
+            () => undefined
+          )
+        ).wrapper.vm,
+      errorMessage: t('job:arg:network-required'),
+    },
+    {
+      name: 'cannot run with less than 2 rules',
+      mountJob: () => mountEditOrderJob([createRule('a', 100)], undefined),
+      errorMessage: t('job:traffic-rule-edit-order:not-enough-rules', { n: 2 }),
+    },
+    {
+      name: 'cannot run without the XAPI plugin',
+      mountJob: () => {
+        givenPoolOtherConfig({})
 
-  it('cannot run without a network', () => {
-    const rules = [createRule('a', 200), createRule('b', 100)]
-
-    const job = mountComposable(() =>
-      useXoTrafficRuleEditOrderJob(
-        () => rules,
-        () => undefined,
-        () => undefined
-      )
-    ).wrapper.vm
-
-    expect(job.canRun).toBe(false)
-    expect(job.errorMessage).toBe(t('job:arg:network-required'))
-  })
-
-  it('cannot run with less than 2 rules', () => {
-    const job = mountEditOrderJob([createRule('a', 100)], undefined)
-
-    expect(job.canRun).toBe(false)
-    expect(job.errorMessage).toBe(t('job:traffic-rule-edit-order:not-enough-rules', { n: 2 }))
-  })
-
-  it('cannot run without the XAPI plugin', () => {
-    givenPoolOtherConfig({})
-
-    const job = mountEditOrderJob([createRule('a', 200), createRule('b', 100)], undefined)
-
-    expect(job.canRun).toBe(false)
-    expect(job.errorMessage).toBe(t('traffic-rules:xapi-plugin-required'))
-  })
+        return mountEditOrderJob([createRule('a', 200), createRule('b', 100)], undefined)
+      },
+      errorMessage: t('traffic-rules:xapi-plugin-required'),
+    },
+  ])
 })

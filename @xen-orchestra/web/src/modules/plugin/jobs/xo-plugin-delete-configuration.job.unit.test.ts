@@ -3,6 +3,7 @@ import type { FrontXoPlugin } from '@/modules/plugin/remote-resources/use-xo-plu
 import { fetchDelete } from '@/shared/utils/fetch.util.ts'
 import { createPlugin } from '@/test/create-plugin.ts'
 import { t } from '@/test/i18n.ts'
+import { itCanRun, itCannotRun, itRejectsWithRequestError } from '@/test/job-cases.ts'
 import { expectJobRunning } from '@/test/job-running.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
 import { mockedExport } from '@/test/spy-on-module.ts'
@@ -30,44 +31,41 @@ describe('run', () => {
     expect(remove).toHaveBeenCalledWith('plugins/transport-email/configuration')
   })
 
-  it('propagates the error of the request', async () => {
-    const error = new Error('request failed')
-    remove.mockRejectedValue(error)
-
-    await expect(mountDeleteConfigurationJob(configuredPlugin).run()).rejects.toBe(error)
+  itRejectsWithRequestError('propagates the error of the request', {
+    request: remove,
+    errorMessage: 'request failed',
+    run: () => mountDeleteConfigurationJob(configuredPlugin).run(),
   })
 })
 
 describe('validate', () => {
-  it('can run on an unloaded plugin with a saved configuration', () => {
-    const job = mountDeleteConfigurationJob(configuredPlugin)
+  itCanRun([
+    {
+      name: 'can run on an unloaded plugin with a saved configuration',
+      mountJob: () => mountDeleteConfigurationJob(configuredPlugin),
+    },
+  ])
 
-    expect(job.canRun).toBe(true)
-    expect(job.errorMessage).toBeUndefined()
-  })
-
-  it('cannot run without plugin', () => {
-    const job = mountDeleteConfigurationJob(undefined)
-
-    expect(job.canRun).toBe(false)
-    expect(job.errorMessage).toBe(t('job:plugin-delete-configuration:missing-plugin'))
-  })
-
-  it('cannot run on a plugin without saved configuration, even if it is configured', () => {
-    const job = mountDeleteConfigurationJob(
-      createPlugin({ configurationSchema: { type: 'object' }, configuration: undefined, configured: true })
-    )
-
-    expect(job.canRun).toBe(false)
-    expect(job.errorMessage).toBe(t('job:plugin-delete-configuration:no-configuration'))
-  })
-
-  it('cannot run on a loaded plugin, as the API rejects it', () => {
-    const job = mountDeleteConfigurationJob(createPlugin({ ...configuredPlugin, loaded: true }))
-
-    expect(job.canRun).toBe(false)
-    expect(job.errorMessage).toBe(t('job:plugin-delete-configuration:loaded'))
-  })
+  itCannotRun([
+    {
+      name: 'cannot run without plugin',
+      mountJob: () => mountDeleteConfigurationJob(undefined),
+      errorMessage: t('job:plugin-delete-configuration:missing-plugin'),
+    },
+    {
+      name: 'cannot run on a plugin without saved configuration, even if it is configured',
+      mountJob: () =>
+        mountDeleteConfigurationJob(
+          createPlugin({ configurationSchema: { type: 'object' }, configuration: undefined, configured: true })
+        ),
+      errorMessage: t('job:plugin-delete-configuration:no-configuration'),
+    },
+    {
+      name: 'cannot run on a loaded plugin, as the API rejects it',
+      mountJob: () => mountDeleteConfigurationJob(createPlugin({ ...configuredPlugin, loaded: true })),
+      errorMessage: t('job:plugin-delete-configuration:loaded'),
+    },
+  ])
 
   it('cannot run while the configuration is being deleted', () => {
     remove.mockReturnValue(new Promise(() => {}))

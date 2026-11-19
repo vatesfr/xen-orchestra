@@ -4,6 +4,7 @@ import { t } from '@/test/i18n.ts'
 import { vmCollectionMock } from '@/test/mock-xo-vm-collection.ts'
 import { mockModule } from '@/test/spy-on-module.ts'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
+import { findLinks } from '@core-test/find-links.ts'
 import { mount, type VueWrapper } from '@vue/test-utils'
 import { nextTick } from 'vue'
 
@@ -35,10 +36,8 @@ function findTitle(wrapper: VueWrapper) {
   return findPanel(wrapper).get('.header .typo-h6').text()
 }
 
-function findLinks(wrapper: VueWrapper) {
-  return findPanel(wrapper)
-    .findAll('.menu-item a')
-    .map(link => [link.text(), link.attributes('href')])
+function findMenuLinks(wrapper: VueWrapper) {
+  return findLinks(findPanel(wrapper), '.menu-item a')
 }
 
 function findBackButton(wrapper: VueWrapper) {
@@ -74,7 +73,7 @@ it('lists the link to XO 5 and the third party apps', async () => {
   const wrapper = await mountOpenedMenu()
 
   expect(findTitle(wrapper)).toBe(t('more-actions'))
-  expect(findLinks(wrapper)).toEqual([[t('action:open-app', { name: t('xo-5') }), 'https://xo5.example.com/#/']])
+  expect(findMenuLinks(wrapper)).toEqual([[t('action:open-app', { name: t('xo-5') }), 'https://xo5.example.com/#/']])
   expect(findPanel(wrapper).text()).toContain(t('third-parties'))
 })
 
@@ -84,7 +83,7 @@ it('opens the third party apps in place', async () => {
   await openThirdParties(wrapper)
 
   expect(findTitle(wrapper)).toBe(t('third-parties'))
-  expect(findLinks(wrapper)).toEqual([
+  expect(findMenuLinks(wrapper)).toEqual([
     [t('action:install-app', { name: 'DC Scope' }), 'https://xo5.example.com/#/hub/recipes'],
     [t('action:install-app', { name: 'DC Netscope' }), 'https://xo5.example.com/#/hub/recipes'],
   ])

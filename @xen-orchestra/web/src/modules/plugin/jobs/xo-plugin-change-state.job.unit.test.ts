@@ -3,8 +3,9 @@ import type { FrontXoPlugin } from '@/modules/plugin/remote-resources/use-xo-plu
 import { fetchPatch, fetchPost } from '@/shared/utils/fetch.util.ts'
 import { createPlugin } from '@/test/create-plugin.ts'
 import { t } from '@/test/i18n.ts'
+import { itCanRun, itCannotRun, itRejectsWithRequestError } from '@/test/job-cases.ts'
 import { expectJobRunning } from '@/test/job-running.ts'
-import { taskUtilsMock } from '@/test/mock-xo-task-utils.ts'
+import { answerPostsWithTask, taskUtilsMock } from '@/test/mock-xo-task-utils.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
 import { silenceConsoleError } from '@/test/silence-console-error.ts'
 import { mockModule, mockedExport } from '@/test/spy-on-module.ts'
@@ -21,7 +22,7 @@ beforeEach(() => {
   vi.restoreAllMocks()
   taskUtilsMock.reset()
 
-  post.mockResolvedValue({ taskId: 'task-1' })
+  answerPostsWithTask(post)
   patch.mockResolvedValue(undefined)
 })
 
@@ -41,7 +42,7 @@ describe('run', () => {
     await mountChangeStateJob(plugin, loaded).run()
 
     expect(post).toHaveBeenCalledWith(`plugins/transport-email/actions/${action}`)
-    expect(monitorTask).toHaveBeenCalledWith('task-1')
+    expect(monitorTask).toHaveBeenCalledWith(`task-of-plugins/transport-email/actions/${action}`)
     expect(patch).toHaveBeenCalledWith('plugins/transport-email', { autoload: loaded })
   })
 
@@ -52,12 +53,11 @@ describe('run', () => {
     await expect(mountChangeStateJob(unloadedPlugin, true).run()).resolves.toBeUndefined()
   })
 
-  it('fails, without syncing the autoload, when the task fails', async () => {
-    const error = new Error('plugin load failed')
-    monitorTask.mockRejectedValue(error)
-
-    await expect(mountChangeStateJob(unloadedPlugin, true).run()).rejects.toBe(error)
-    expect(patch).not.toHaveBeenCalled()
+  itRejectsWithRequestError('fails, without syncing the autoload, when the task fails', {
+    request: monitorTask,
+    errorMessage: 'plugin load failed',
+    run: () => mountChangeStateJob(unloadedPlugin, true).run(),
+    expectAfter: () => expect(patch).not.toHaveBeenCalled(),
   })
 
   it('does not run when the plugin cannot change state', async () => {
@@ -69,48 +69,51 @@ describe('run', () => {
 })
 
 describe('validate', () => {
-  it.each([
-    { plugin: unloadedPlugin, loaded: true },
-    { plugin: loadedPlugin, loaded: false },
-  ])('can run when loaded becomes $loaded', ({ plugin, loaded }) => {
-    const job = mountChangeStateJob(plugin, loaded)
+  itCanRun(
+    [
+      { plugin: unloadedPlugin, loaded: true },
+      { plugin: loadedPlugin, loaded: false },
+    ].map(({ plugin, loaded }) => ({
+      name: `can run when loaded becomes ${loaded}`,
+      mountJob: () => mountChangeStateJob(plugin, loaded),
+    }))
+  )
 
-    expect(job.canRun).toBe(true)
-    expect(job.errorMessage).toBeUndefined()
-  })
-
-  it.each([
-    { case: 'without plugin', plugin: undefined, loaded: true, key: 'job:plugin-change-state:missing-plugin' },
-    {
-      case: 'to load a loaded plugin',
-      plugin: loadedPlugin,
-      loaded: true,
-      key: 'job:plugin-change-state:already-loaded',
-    },
-    {
-      case: 'to load a plugin which is not configured',
-      plugin: createPlugin({ loaded: false, configured: false }),
-      loaded: true,
-      key: 'job:plugin-change-state:not-configured',
-    },
-    {
-      case: 'to unload an unloaded plugin',
-      plugin: unloadedPlugin,
-      loaded: false,
-      key: 'job:plugin-change-state:already-unloaded',
-    },
-    {
-      case: 'to unload a plugin which cannot be unloaded',
-      plugin: createPlugin({ loaded: true, unloadable: false }),
-      loaded: false,
-      key: 'job:plugin-change-state:not-unloadable',
-    },
-  ] as const)('cannot run $case', ({ plugin, loaded, key }) => {
-    const job = mountChangeStateJob(plugin, loaded)
-
-    expect(job.canRun).toBe(false)
-    expect(job.errorMessage).toBe(t(key))
-  })
+  itCannotRun(
+    (
+      [
+        { case: 'without plugin', plugin: undefined, loaded: true, key: 'job:plugin-change-state:missing-plugin' },
+        {
+          case: 'to load a loaded plugin',
+          plugin: loadedPlugin,
+          loaded: true,
+          key: 'job:plugin-change-state:already-loaded',
+        },
+        {
+          case: 'to load a plugin which is not configured',
+          plugin: createPlugin({ loaded: false, configured: false }),
+          loaded: true,
+          key: 'job:plugin-change-state:not-configured',
+        },
+        {
+          case: 'to unload an unloaded plugin',
+          plugin: unloadedPlugin,
+          loaded: false,
+          key: 'job:plugin-change-state:already-unloaded',
+        },
+        {
+          case: 'to unload a plugin which cannot be unloaded',
+          plugin: createPlugin({ loaded: true, unloadable: false }),
+          loaded: false,
+          key: 'job:plugin-change-state:not-unloadable',
+        },
+      ] as const
+    ).map(({ case: name, plugin, loaded, key }) => ({
+      name: `cannot run ${name}`,
+      mountJob: () => mountChangeStateJob(plugin, loaded),
+      errorMessage: t(key),
+    }))
+  )
 
   it.each([
     { plugin: unloadedPlugin, loaded: true, key: 'job:plugin-change-state:load-in-progress' },

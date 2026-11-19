@@ -2,7 +2,8 @@ import BackupRepositoryInfosCard from '@/modules/backup-repository/components/li
 import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
 import { itShowsBrGeneralInfo } from '@/test/br-general-info.ts'
 import { createBr } from '@/test/create-br.ts'
-import { findCardCopiedValues, findCardLabelledValues, findCardRowLabels } from '@/test/find-rendered-values.ts'
+import { findPanelCardTitle } from '@/test/find-card-title.ts'
+import { findCardCopiedValues, findCardRowLabels } from '@/test/find-rendered-values.ts'
 import { t } from '@/test/i18n.ts'
 import { mockModule } from '@/test/spy-on-module.ts'
 import UiLink from '@core/components/ui/link/UiLink.vue'
@@ -15,7 +16,7 @@ mockModule(
 )
 
 const mountCard = itShowsBrGeneralInfo(BackupRepositoryInfosCard, {
-  findValues: findCardLabelledValues,
+  kind: 'panel',
   plain: { name: 'shows the status, type, storage mode and encryption of a plain repository' },
   unknownUrl: {
     name: ', and does not offer to copy the type',
@@ -30,8 +31,8 @@ const mountCard = itShowsBrGeneralInfo(BackupRepositoryInfosCard, {
 it('renders the name and the id of the repository as the card title', () => {
   const wrapper = mountCard(createBr({ name: 'Nightly backups', id: 'br-42' as FrontXoBackupRepository['id'] }))
 
-  expect(wrapper.get('.ui-panel-card-title').text()).toContain('Nightly backups')
-  expect(wrapper.get('.ui-panel-card-title').text()).toContain('br-42')
+  expect(findPanelCardTitle(wrapper)).toContain('Nightly backups')
+  expect(findPanelCardTitle(wrapper)).toContain('br-42')
 })
 
 it('links the title to the backup repository page', () => {

@@ -8,8 +8,8 @@ import { t } from '@/test/i18n.ts'
 import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
 import { mockModule } from '@/test/spy-on-module.ts'
 import VtsDivider from '@core/components/divider/VtsDivider.vue'
-import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
+import { findLinks } from '@core-test/find-links.ts'
 import { mount } from '@vue/test-utils'
 
 mockModule(
@@ -44,7 +44,7 @@ it('lists the storage repositories, then the backup repositories, linked to thei
     t('storage-repositories'),
     t('backup-repositories'),
   ])
-  expect(wrapper.findAllComponents(UiLink).map(link => [link.text(), link.attributes('href')])).toEqual([
+  expect(findLinks(wrapper)).toEqual([
     ['Replication SR', '/sr/sr-1/general'],
     ['Backup BR', '/admin/backup-repository/br-1/general'],
   ])

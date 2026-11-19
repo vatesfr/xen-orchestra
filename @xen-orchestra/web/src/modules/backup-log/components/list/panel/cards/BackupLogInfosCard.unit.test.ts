@@ -6,7 +6,15 @@ import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collecti
 import { createBackupLog, createBackupLogSrTask, createBackupLogVmTask } from '@/test/create-backup-log.ts'
 import { createSr } from '@/test/create-sr.ts'
 import { createVm } from '@/test/create-vm.ts'
-import { findCardCopiedValues, findCardLabelledValues } from '@/test/find-rendered-values.ts'
+import { findPanelCardTitle } from '@/test/find-card-title.ts'
+import {
+  findCardCopiedValues,
+  findCardLabelledValues,
+  findCardRowLabels,
+  findCardRows,
+  getCardRowLink,
+  hasCardRowCopy,
+} from '@/test/find-rendered-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
@@ -68,28 +76,14 @@ function mountCard(backupLog: FrontXoBackupLog = createBackupLog()) {
   })
 }
 
-function findRows(wrapper: ReturnType<typeof mountCard>) {
-  return wrapper.findAll('.vts-card-row-key-value').map(row => [row.get('.key').text(), row.get('.value').text()])
-}
-
-function findRow(wrapper: ReturnType<typeof mountCard>, key: string) {
-  const row = wrapper.findAll('.vts-card-row-key-value').find(row => row.get('.key').text() === key)
-
-  if (row === undefined) {
-    throw new Error(`No row labelled "${key}"`)
-  }
-
-  return row
-}
-
 describe('title', () => {
   it('names the log after its start date and shows its id', () => {
     const backupLog = createBackupLog({ id: 'backup-log-42' as FrontXoBackupLog['id'] })
 
-    const title = mountCard(backupLog).get('.ui-panel-card-title')
+    const title = findPanelCardTitle(mountCard(backupLog))
 
-    expect(title.text()).toContain(t('log-name', { date: formatDateTime(backupLog.start) }))
-    expect(title.text()).toContain('backup-log-42')
+    expect(title).toContain(t('log-name', { date: formatDateTime(backupLog.start) }))
+    expect(title).toContain('backup-log-42')
   })
 
   it('links to the detail page of the log', () => {
@@ -110,14 +104,7 @@ describe('title', () => {
 it('lists every row of the card, in order', () => {
   const wrapper = mountCard()
 
-  expect(wrapper.findAll('.vts-card-row-key-value').map(row => row.get('.key').text())).toEqual([
-    t('backup-date'),
-    t('duration'),
-    t('vm'),
-    t('job'),
-    t('sr'),
-    t('status'),
-  ])
+  expect(findCardRowLabels(wrapper)).toEqual([t('backup-date'), t('duration'), t('vm'), t('job'), t('sr'), t('status')])
 })
 
 it('shows the information of the log and offers to copy them', () => {
@@ -158,14 +145,14 @@ describe('VM', () => {
       })
     )
 
-    const vmRows = findRows(wrapper).slice(2, 5)
+    const vmRows = findCardRows(wrapper).slice(2, 5)
 
     expect(vmRows).toEqual([
       [t('vm'), 'Alpha VM'],
       ['', t('vm-not-found')],
       ['', 'Gamma VM'],
     ])
-    expect(findRow(wrapper, '').findAll('.copy-button')).toHaveLength(0)
+    expect(hasCardRowCopy(wrapper, '')).toBe(false)
     expect(findCardCopiedValues(wrapper)).toContain('Alpha VM')
     expect(findCardCopiedValues(wrapper)).toContain('Gamma VM')
   })
@@ -173,10 +160,7 @@ describe('VM', () => {
   it('links a VM to its dashboard, with the icon of its power state', () => {
     vmCollectionMock.vms.value = [createVm({ id: 'vm-1' as FrontXoVm['id'] })]
 
-    const vmLink = findRow(
-      mountCard(createBackupLog({ tasks: [createBackupLogVmTask('vm-1')] })),
-      t('vm')
-    ).getComponent(UiLink)
+    const vmLink = getCardRowLink(mountCard(createBackupLog({ tasks: [createBackupLogVmTask('vm-1')] })), t('vm'))
 
     expect(vmLink.attributes('href')).toBe('/vm/vm-1/dashboard')
     expect(vmLink.props('icon')).toBe(objectIcon('vm', 'running'))
@@ -188,7 +172,7 @@ describe('VM', () => {
     const wrapper = mountCard(createBackupLog({ tasks: [] }))
 
     expect(findCardLabelledValues(wrapper)).toMatchObject({ [t('vm')]: '' })
-    expect(findRow(wrapper, t('vm')).find('.copy-button').exists()).toBe(false)
+    expect(hasCardRowCopy(wrapper, t('vm'))).toBe(false)
   })
 
   it('shows a VM not found, without copy, for a log of a VM backup without VM', () => {
@@ -197,7 +181,7 @@ describe('VM', () => {
     const wrapper = mountCard(createBackupLog({ tasks: [] }))
 
     expect(findCardLabelledValues(wrapper)).toMatchObject({ [t('vm')]: t('vm-not-found') })
-    expect(findRow(wrapper, t('vm')).find('.copy-button').exists()).toBe(false)
+    expect(hasCardRowCopy(wrapper, t('vm'))).toBe(false)
   })
 })
 
@@ -211,7 +195,7 @@ describe('SR', () => {
       })
     )
 
-    const srRows = findRows(wrapper).slice(4, 6)
+    const srRows = findCardRows(wrapper).slice(4, 6)
 
     expect(srRows).toEqual([
       [t('sr'), 'Alpha-Backup-SR'],
@@ -227,14 +211,14 @@ describe('SR', () => {
       createBackupLog({ tasks: [createBackupLogVmTask('vm-1', [createBackupLogSrTask('sr-1')])] })
     )
 
-    expect(findRow(wrapper, t('sr')).getComponent(UiLink).attributes('href')).toBe('/sr/sr-1/general')
+    expect(getCardRowLink(wrapper, t('sr')).attributes('href')).toBe('/sr/sr-1/general')
   })
 
   it('leaves the SR empty and not copyable for a log without SR', () => {
     const wrapper = mountCard(createBackupLog({ tasks: [] }))
 
     expect(findCardLabelledValues(wrapper)).toMatchObject({ [t('sr')]: '' })
-    expect(findRow(wrapper, t('sr')).find('.copy-button').exists()).toBe(false)
+    expect(hasCardRowCopy(wrapper, t('sr'))).toBe(false)
   })
 })
 
@@ -242,9 +226,7 @@ describe('job', () => {
   it('links the job to the backup repositories settings of XO 5', () => {
     const wrapper = mountCard()
 
-    expect(findRow(wrapper, t('job')).getComponent(UiLink).props('href')).toBe(
-      'https://xo5.example.com/#/settings/remotes'
-    )
+    expect(getCardRowLink(wrapper, t('job')).props('href')).toBe('https://xo5.example.com/#/settings/remotes')
   })
 
   it('shows an unknown job as untitled, without copy', () => {
@@ -253,7 +235,7 @@ describe('job', () => {
     const wrapper = mountCard()
 
     expect(findCardLabelledValues(wrapper)).toMatchObject({ [t('job')]: t('untitled') })
-    expect(findRow(wrapper, t('job')).find('.copy-button').exists()).toBe(false)
+    expect(hasCardRowCopy(wrapper, t('job'))).toBe(false)
   })
 })
 
@@ -261,5 +243,5 @@ it('leaves the duration empty and not copyable for a log that has not ended', ()
   const wrapper = mountCard(createBackupLog({ end: undefined }))
 
   expect(findCardLabelledValues(wrapper)).toMatchObject({ [t('duration')]: '' })
-  expect(findRow(wrapper, t('duration')).find('.copy-button').exists()).toBe(false)
+  expect(hasCardRowCopy(wrapper, t('duration'))).toBe(false)
 })

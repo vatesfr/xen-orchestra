@@ -11,6 +11,7 @@ import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collecti
 import { createJobResult, toJobComposableResult } from '@/test/create-job-result.ts'
 import { createVm } from '@/test/create-vm.ts'
 import { t } from '@/test/i18n.ts'
+import { confirmOpenedModal } from '@/test/mock-overlay.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
 import { mockedExport, mockModule } from '@/test/spy-on-module.ts'
 import type { useActionModal } from '@core/composables/modals/use-action-modal.ts'
@@ -92,10 +93,6 @@ function findActions(vms: FrontXoVm[] = [runningVm]) {
   return { start, pause, resume, suspend, reboot, forceReboot, shutdown, forceShutdown }
 }
 
-function confirmModal() {
-  openModal.mock.calls[0][0].events.onConfirm()
-}
-
 describe('powerStateActions', () => {
   it.each(['start', 'pause', 'resume', 'suspend'] as const)('runs the %s action in one click', name => {
     findActions()[name].onClick()
@@ -172,7 +169,7 @@ describe('actions requiring a confirmation', () => {
   it.each(confirmedActions)('runs the $action in the background once confirmed', ({ name }) => {
     findActions()[name].onClick()
 
-    confirmModal()
+    confirmOpenedModal([{ open: openModal }])
 
     expect(runs[name]).toHaveBeenCalledWith({ detached: true })
   })

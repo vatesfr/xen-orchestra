@@ -8,6 +8,18 @@ type RecordedOverlay = Record<string, unknown> & { open: OverlayOpen }
 
 const overlays: RecordedOverlay[] = []
 
+/**
+ * Runs the `onConfirm` event of the first of `modals` opened (overlays, or any modal mock with an `open` spy), given
+ * when opening it or else declared with the modal.
+ */
+export function confirmOpenedModal(modals: { open: OverlayOpen; events?: OverlayEvents }[]) {
+  const openedModal = modals.find(modal => modal.open.mock.calls.length > 0)
+
+  const openEvents: OverlayEvents | undefined = openedModal?.open.mock.lastCall?.[0]?.events
+
+  ;(openEvents?.onConfirm ?? openedModal?.events?.onConfirm)?.()
+}
+
 // An overlay cannot be opened from a unit test: each `useOverlay` call is recorded here, in call order, as the options
 // it was given and the `open` it got back. Reset it in `beforeEach`
 export const overlayMock = {
@@ -18,15 +30,9 @@ export const overlayMock = {
   getOverlay<TOptions>(index = 0) {
     return this.getOverlays<TOptions>()[index]
   },
-  // Runs the `onConfirm` event of the first overlay opened, given when opening it or else declared with the overlay
+  // Runs the `onConfirm` event of the first overlay opened, see `confirmOpenedModal`
   confirmOpened() {
-    const openedOverlay = this.getOverlays<{ events?: OverlayEvents }>().find(
-      overlay => overlay.open.mock.calls.length > 0
-    )
-
-    const openEvents: OverlayEvents | undefined = openedOverlay?.open.mock.lastCall?.[0]?.events
-
-    ;(openEvents?.onConfirm ?? openedOverlay?.events?.onConfirm)?.()
+    confirmOpenedModal(this.getOverlays<{ events?: OverlayEvents }>())
   },
   reset() {
     overlays.length = 0

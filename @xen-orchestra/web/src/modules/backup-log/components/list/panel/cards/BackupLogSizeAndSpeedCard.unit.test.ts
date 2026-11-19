@@ -6,7 +6,8 @@ import {
   createBackupLogTransferTask,
   createBackupLogVmTask,
 } from '@/test/create-backup-log.ts'
-import { findCardCopiedValues, findCardLabelledValues } from '@/test/find-rendered-values.ts'
+import { findPanelCardTitleLabel } from '@/test/find-card-title.ts'
+import { findCardCopiedValues, findCardLabelledValues, findCardRowLabels } from '@/test/find-rendered-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { formatSizeRaw } from '@core/utils/size.util.ts'
@@ -33,13 +34,13 @@ function createBackupLogWithTransfer(size: number, durationMs: number) {
 it('renders the card title', () => {
   const wrapper = mountCard()
 
-  expect(wrapper.get('.ui-panel-card-title .title').text()).toBe(t('size-and-speed'))
+  expect(findPanelCardTitleLabel(wrapper)).toBe(t('size-and-speed'))
 })
 
 it('lists the size then the speed', () => {
   const wrapper = mountCard()
 
-  expect(wrapper.findAll('.vts-card-row-key-value').map(row => row.get('.key').text())).toEqual([t('size'), t('speed')])
+  expect(findCardRowLabels(wrapper)).toEqual([t('size'), t('speed')])
 })
 
 it('shows the transferred size and speed, and offers to copy them', () => {

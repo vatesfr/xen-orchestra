@@ -3,6 +3,7 @@ import VmSystemManagement from '@/modules/vm/components/system/VmSystemManagemen
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { createHost } from '@/test/create-host.ts'
 import { createVm } from '@/test/create-vm.ts'
+import { findTitleLabel } from '@/test/find-card-title.ts'
 import { findLabelledValues } from '@/test/find-rendered-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
@@ -30,7 +31,7 @@ function mountManagement(vm: FrontXoVm = createVm()) {
 it('renders the card title', () => {
   const wrapper = mountManagement()
 
-  expect(wrapper.get('.ui-title').text()).toBe(t('vm-management'))
+  expect(findTitleLabel(wrapper)).toBe(t('vm-management'))
 })
 
 const VM_SETTING_CASES: {

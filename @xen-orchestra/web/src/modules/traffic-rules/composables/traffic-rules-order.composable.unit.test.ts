@@ -1,23 +1,10 @@
 import { useTrafficRulesOrder } from '@/modules/traffic-rules/composables/traffic-rules-order.composable.ts'
 import type { RankedTrafficRule } from '@/modules/traffic-rules/types.ts'
+import { createTrafficRule, getTrafficRuleIds } from '@/test/create-traffic-rule.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
-import type { XoNetwork } from '@vates/types'
-
-const NETWORK_ID = 'network-1' as XoNetwork['id']
 
 function createRule(id: string, rank: number): RankedTrafficRule {
-  return {
-    id,
-    allow: true,
-    protocol: 'TCP',
-    ipRange: '10.0.0.0/8',
-    direction: 'to',
-    priority: undefined,
-    networkId: NETWORK_ID,
-    type: 'network',
-    sourceId: NETWORK_ID,
-    rank,
-  }
+  return { ...createTrafficRule({ id, priority: undefined }), rank }
 }
 
 const RULE_A = createRule('rule-a', 1)
@@ -28,10 +15,6 @@ function mountTrafficRulesOrder(rules: RankedTrafficRule[] = [RULE_A, RULE_B, RU
   return mountComposable(() => useTrafficRulesOrder(() => rules)).wrapper.vm
 }
 
-function getOrderedIds(orderedRules: RankedTrafficRule[]) {
-  return orderedRules.map(rule => rule.id)
-}
-
 beforeEach(() => {
   localStorage.clear()
 })
@@ -40,7 +23,7 @@ describe('orderedRules', () => {
   it('starts in the order of the given rules', () => {
     const order = mountTrafficRulesOrder()
 
-    expect(getOrderedIds(order.orderedRules)).toEqual(['rule-a', 'rule-b', 'rule-c'])
+    expect(getTrafficRuleIds(order.orderedRules)).toEqual(['rule-a', 'rule-b', 'rule-c'])
   })
 
   it('does not mutate the given rules', () => {
@@ -49,49 +32,28 @@ describe('orderedRules', () => {
 
     order.moveRule(RULE_A, 1)
 
-    expect(getOrderedIds(rules)).toEqual(['rule-a', 'rule-b', 'rule-c'])
+    expect(getTrafficRuleIds(rules)).toEqual(['rule-a', 'rule-b', 'rule-c'])
   })
 })
 
 describe('moveRule', () => {
-  it('moves a rule up', () => {
+  it.each([
+    { name: 'moves a rule up', rule: RULE_C, offset: -1, expected: ['rule-a', 'rule-c', 'rule-b'] },
+    { name: 'moves a rule down', rule: RULE_A, offset: 1, expected: ['rule-b', 'rule-a', 'rule-c'] },
+    { name: 'does not move the first rule up', rule: RULE_A, offset: -1, expected: ['rule-a', 'rule-b', 'rule-c'] },
+    { name: 'does not move the last rule down', rule: RULE_C, offset: 1, expected: ['rule-a', 'rule-b', 'rule-c'] },
+    {
+      name: 'ignores a rule that is not in the order',
+      rule: createRule('rule-d', 4),
+      offset: -1,
+      expected: ['rule-a', 'rule-b', 'rule-c'],
+    },
+  ] as const)('$name', ({ rule, offset, expected }) => {
     const order = mountTrafficRulesOrder()
 
-    order.moveRule(RULE_C, -1)
+    order.moveRule(rule, offset)
 
-    expect(getOrderedIds(order.orderedRules)).toEqual(['rule-a', 'rule-c', 'rule-b'])
-  })
-
-  it('moves a rule down', () => {
-    const order = mountTrafficRulesOrder()
-
-    order.moveRule(RULE_A, 1)
-
-    expect(getOrderedIds(order.orderedRules)).toEqual(['rule-b', 'rule-a', 'rule-c'])
-  })
-
-  it('does not move the first rule up', () => {
-    const order = mountTrafficRulesOrder()
-
-    order.moveRule(RULE_A, -1)
-
-    expect(getOrderedIds(order.orderedRules)).toEqual(['rule-a', 'rule-b', 'rule-c'])
-  })
-
-  it('does not move the last rule down', () => {
-    const order = mountTrafficRulesOrder()
-
-    order.moveRule(RULE_C, 1)
-
-    expect(getOrderedIds(order.orderedRules)).toEqual(['rule-a', 'rule-b', 'rule-c'])
-  })
-
-  it('ignores a rule that is not in the order', () => {
-    const order = mountTrafficRulesOrder()
-
-    order.moveRule(createRule('rule-d', 4), -1)
-
-    expect(getOrderedIds(order.orderedRules)).toEqual(['rule-a', 'rule-b', 'rule-c'])
+    expect(getTrafficRuleIds(order.orderedRules)).toEqual(expected)
   })
 
   it('shows the page the moved rule lands on', () => {
@@ -100,7 +62,7 @@ describe('moveRule', () => {
     order.paginationBindings['onUpdate:showBy'](2)
     order.moveRule(RULE_B, 1)
 
-    expect(getOrderedIds(order.paginatedRules)).toEqual(['rule-b'])
+    expect(getTrafficRuleIds(order.paginatedRules)).toEqual(['rule-b'])
   })
 })
 

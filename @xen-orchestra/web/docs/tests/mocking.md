@@ -55,7 +55,7 @@ Collections always read together share one mock module exporting each of their c
 
 `mock-xo-task-collection.ts` stands for the task collection: `taskCollectionMock` holds `tasks` and `areTasksReady` (true after a reset), and its collection answers `getTaskById` and `useGetTaskById` from `tasks`.
 
-`mock-xo-task-utils.ts` stands for `useXoTaskUtils`, whose `monitorTask` waits for a task of the task collection: `taskUtilsMock.monitorTask` is the spy a job awaits (a task settling with no result after a reset), and `taskUtilsMock.reset()` goes in `beforeEach`.
+`mock-xo-task-utils.ts` stands for `useXoTaskUtils`, whose `monitorTask` waits for a task of the task collection: `taskUtilsMock.monitorTask` is the spy a job awaits (a task settling with no result after a reset), and `taskUtilsMock.reset()` goes in `beforeEach`. `answerPostsWithTask(post)` makes the mocked `fetchPost` answer each request with the task `task-of-<url>`.
 
 The same goes for `mock-xo-v2v-vm-rows-collections.ts`, the VM, task and VM snapshot collections the V2V VM rows are built from: `v2vVmRowsCollectionsMock` holds `vms`, `tasks`, `snapshots` and their `are…Ready` flags (true after a reset; set one to false to hold that collection as still loading). Its VMs are those of `mock-xo-vm-collection.ts` and its tasks those of `mock-xo-task-collection.ts`, which it re-exports and resets.
 
@@ -63,7 +63,7 @@ The same goes for `mock-xo-v2v-vm-rows-collections.ts`, the VM, task and VM snap
 
 `mock-discard-changes-modal.ts` stands for `useDiscardChangesModal`, whose overlay a unit test cannot answer: `discardChangesModalMock.answer('onConfirm' | 'onCancel')` sets how the next question is answered (`onConfirm` discards the changes, `onCancel` keeps editing), `discardChangesModalMock.open` is the spy to read whether it was asked, and `discardChangesModalMock.reset()` goes in `beforeEach`.
 
-`mock-overlay.ts` stands for `useOverlay`, whose overlays a unit test cannot open: each call is recorded in order, as the options it was given (its `component`, its `events`) and the `open` spy it got back; `overlayMock.getOverlay<TOptions>(index = 0)` / `overlayMock.getOverlays<TOptions>()` read them back, `TOptions` typing the events for the payload they take (call it directly, without a local wrapper), `overlayMock.confirmOpened()` runs the `onConfirm` event of the first overlay opened (the events given when opening it, else those declared with it), and `overlayMock.reset()` goes in `beforeEach`.
+`mock-overlay.ts` stands for `useOverlay`, whose overlays a unit test cannot open: each call is recorded in order, as the options it was given (its `component`, its `events`) and the `open` spy it got back; `overlayMock.getOverlay<TOptions>(index = 0)` / `overlayMock.getOverlays<TOptions>()` read them back, `TOptions` typing the events for the payload they take (call it directly, without a local wrapper), `overlayMock.confirmOpened()` runs the `onConfirm` event of the first overlay opened (the events given when opening it, else those declared with it) — `confirmOpenedModal(modals)` does the same on any set of modal mocks —, and `overlayMock.reset()` goes in `beforeEach`.
 
 `mock-v2v-vm-actions.ts` stands for `use-v2v-vm-actions.composable.ts`, whose composables open the settings drawer or delete an import VM: each `v2vVmActionsMock.useV2v*VmActions` spy returns fresh fake actions of its kind (read them back from `mock.results`), and `v2vVmActionsMock.reset()` goes in `beforeEach`.
 

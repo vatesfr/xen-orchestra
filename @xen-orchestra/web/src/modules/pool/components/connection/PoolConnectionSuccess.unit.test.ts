@@ -5,10 +5,10 @@ import type {
 } from '@/modules/server/remote-resources/use-xo-server-collection.ts'
 import { createServer } from '@/test/create-server.ts'
 import { getButton } from '@/test/get-button.ts'
-import { getSuccessState } from '@/test/get-success-state.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { mockModule } from '@/test/spy-on-module.ts'
+import { getSuccessState } from '@core-test/get-success-state.ts'
 import { mount } from '@vue/test-utils'
 import { computed, ref, toValue, type MaybeRefOrGetter } from 'vue'
 

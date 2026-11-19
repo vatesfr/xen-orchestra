@@ -1,6 +1,9 @@
 import { createTestRouter } from '@/test/create-test-router.ts'
+import { confirmOpenedModal, overlayMock } from '@/test/mock-overlay.ts'
 import { routeQueryMock } from '@/test/mock-route-query.ts'
-import { type MaybeRefOrGetter, ref } from 'vue'
+import { mountComposable } from '@/test/mount-composable.ts'
+import type { VueWrapper } from '@vue/test-utils'
+import { type MaybeRefOrGetter, ref, type ShallowUnwrapRef } from 'vue'
 import type { RouteLocationRaw, Router } from 'vue-router'
 
 type SettledResults = PromiseSettledResult<unknown>[]
@@ -33,28 +36,104 @@ export function createDetachedJobRun(run: ReturnType<typeof vi.fn>) {
 
 type DetachedJobRun = ReturnType<typeof createDetachedJobRun>
 
-type TypeToConfirmTexts = { title: string; description: string; confirmationText: string; confirmLabel: string }
+type ConfirmModal = { open: ReturnType<typeof vi.fn>; events?: { onConfirm?: () => void } }
 
-// What the composable opens its type to confirm modal with (an overlay of `mock-overlay.ts`) for several items
-export function typeToConfirmModalOpening(texts: TypeToConfirmTexts) {
-  return {
-    props: { accent: 'danger', icon: 'status:danger-picto', ...texts },
-    events: { onConfirm: expect.any(Function) },
-  }
+type ConfirmModals = { singleModal: ConfirmModal; typeToConfirmModal: ConfirmModal }
+
+type ConfirmedActionCase<TItem, TResult extends Record<string, unknown>> = {
+  // The composable under test, on the items
+  use: (items: MaybeRefOrGetter<TItem[]>) => TResult
+  // Starts its action, which opens its modal for a single item or its type to confirm modal for several
+  start: (result: VueWrapper<ShallowUnwrapRef<TResult>>['vm']) => void
+  detachedRun: DetachedJobRun
+  // Its two modals once mounted; by default the overlays of `mock-overlay.ts`, the single item one declared first
+  getModals?: () => ConfirmModals
 }
 
-type ConfirmModals = { singleModal: { open: unknown }; typeToConfirmModal: { open: unknown } }
+function getOverlayModals(): ConfirmModals {
+  const [singleModal, typeToConfirmModal] = overlayMock.getOverlays<{ events?: { onConfirm?: () => void } }>()
+
+  return { singleModal, typeToConfirmModal }
+}
+
+/**
+ * The action of a composable confirmed in a modal. `mount` mounts it on the items (with a test router by default),
+ * returning what the composable returns; `open` also starts the action: what the composable returns, and both modals. `confirm` also confirms the modal opened, then
+ * waits for the success handling of the detached job: the `confirm` of a {@link SelectionJobCase}.
+ */
+export function createConfirmedAction<TItem, TResult extends Record<string, unknown>>({
+  use,
+  start,
+  detachedRun,
+  getModals = getOverlayModals,
+}: ConfirmedActionCase<TItem, TResult>) {
+  function mount(items: MaybeRefOrGetter<TItem[]>, { router = createTestRouter() }: ConfirmOptions = {}) {
+    return mountComposable(() => use(items), { router }).wrapper.vm
+  }
+
+  function open(items: MaybeRefOrGetter<TItem[]>, options?: ConfirmOptions) {
+    const result = mount(items, options)
+
+    start(result)
+
+    return { result, ...getModals() }
+  }
+
+  async function confirm(items: MaybeRefOrGetter<TItem[]>, options?: ConfirmOptions) {
+    const { singleModal, typeToConfirmModal } = open(items, options)
+
+    confirmOpenedModal([singleModal, typeToConfirmModal])
+
+    await detachedRun.settled()
+  }
+
+  return { mount, open, confirm }
+}
+
+type ConfirmedAction<TItem> = { open: (items: TItem[]) => ConfirmModals }
+
+// What a composable opens a confirmation modal with: its props, and the `onConfirm` running its action
+export function confirmModalOpening(props: Record<string, unknown>) {
+  return { props, events: { onConfirm: expect.any(Function) } }
+}
+
+type TypeToConfirmTexts = { title: string; description: string; confirmationText: string; confirmLabel: string }
+
+/**
+ * Registers the test of a composable opening its modal for a single item, not its type to confirm modal:
+ * `openedWith` is what it opens it with, none for an overlay declaring its own props and events.
+ */
+export function itOpensSingleModal<TItem>(
+  name: string,
+  action: ConfirmedAction<TItem>,
+  item: TItem,
+  openedWith: unknown[]
+) {
+  it(name, () => {
+    const { singleModal, typeToConfirmModal } = action.open([item])
+
+    expect(singleModal.open.mock.calls).toEqual([openedWith])
+    expect(typeToConfirmModal.open).not.toHaveBeenCalled()
+  })
+}
 
 /**
  * Registers the test of a composable asking to type to confirm its action on several items, rather than opening its
- * modal for a single item: `start` mounts it on several items, starts the action and returns both modals.
+ * modal for a single item.
  */
-export function itAsksToTypeToConfirm(name: string, start: () => ConfirmModals, texts: TypeToConfirmTexts) {
+export function itAsksToTypeToConfirm<TItem>(
+  name: string,
+  action: ConfirmedAction<TItem>,
+  items: TItem[],
+  texts: TypeToConfirmTexts
+) {
   it(name, () => {
-    const { singleModal, typeToConfirmModal } = start()
+    const { singleModal, typeToConfirmModal } = action.open(items)
 
     expect(singleModal.open).not.toHaveBeenCalled()
-    expect(typeToConfirmModal.open).toHaveBeenCalledWith(typeToConfirmModalOpening(texts))
+    expect(typeToConfirmModal.open).toHaveBeenCalledWith(
+      confirmModalOpening({ accent: 'danger', icon: 'status:danger-picto', ...texts })
+    )
   })
 }
 
@@ -66,7 +145,7 @@ export async function createRouterOnPage(name: string, id: string) {
   return router
 }
 
-type SelectionJobCase<TItem extends { id: string }> = {
+export type SelectionJobCase<TItem extends { id: string }> = {
   // How the test names call an item, the items, the action done and being done
   wording: { item: string; items: string; done: string; doing: string }
   items: [TItem, TItem]

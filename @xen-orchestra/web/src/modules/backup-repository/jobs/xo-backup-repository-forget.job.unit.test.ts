@@ -7,7 +7,7 @@ import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote
 import { fetchPost } from '@/shared/utils/fetch.util.ts'
 import { createTwoBrs } from '@/test/create-br.ts'
 import { t } from '@/test/i18n.ts'
-import { itCannotRun, itReportsEachResult } from '@/test/job-cases.ts'
+import { itCannotRun, itMonitorsTaskPerTarget } from '@/test/job-cases.ts'
 import { taskUtilsMock } from '@/test/mock-xo-task-utils.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
 import { mockModule, mockedExport } from '@/test/spy-on-module.ts'
@@ -15,7 +15,6 @@ import { ref } from 'vue'
 
 const post = mockedExport(fetchPost)
 
-const { monitorTask } = taskUtilsMock
 const backupJobs = { value: [] as unknown[] }
 
 // The task and backup job collections would open SSE subscriptions
@@ -31,8 +30,6 @@ beforeEach(() => {
   vi.restoreAllMocks()
   taskUtilsMock.reset()
   backupJobs.value = []
-
-  post.mockImplementation(async (url: string) => ({ taskId: `task-of-${url}` }))
 })
 
 const [firstBr, secondBr] = createTwoBrs()
@@ -46,22 +43,13 @@ function mountForgetJob(brs: FrontXoBackupRepository[]) {
 }
 
 describe('run', () => {
-  it('forgets every repository and waits for each task', async () => {
-    await mountForgetJob([firstBr, secondBr]).run()
-
-    expect(post.mock.calls).toEqual([
-      [`backup-repositories/${firstBr.id}/actions/forget`],
-      [`backup-repositories/${secondBr.id}/actions/forget`],
-    ])
-    expect(monitorTask.mock.calls).toEqual([
-      [`task-of-backup-repositories/${firstBr.id}/actions/forget`],
-      [`task-of-backup-repositories/${secondBr.id}/actions/forget`],
-    ])
-  })
-
-  itReportsEachResult({
+  itMonitorsTaskPerTarget({
+    name: 'forgets every repository and waits for each task',
+    post,
+    targets: [firstBr, secondBr],
+    collection: 'backup-repositories',
+    action: 'forget',
     subject: 'repository',
-    request: monitorTask,
     errorMessage: 'Backup repository unreachable',
     run: () => mountForgetJob([firstBr, secondBr]).run(),
   })

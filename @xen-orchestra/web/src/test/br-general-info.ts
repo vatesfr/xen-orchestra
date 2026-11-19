@@ -1,10 +1,11 @@
 import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
+import { BR_CARD_READERS, type BrCardKind } from '@/test/br-card-kind.ts'
 import { createBr } from '@/test/create-br.ts'
 import { createProxy } from '@/test/create-proxy.ts'
-import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { proxyCollectionMock } from '@/test/mock-xo-proxy-collection.ts'
-import { mount, type VueWrapper } from '@vue/test-utils'
+import { mountWithProps } from '@/test/mount-with-props.ts'
+import type { VueWrapper } from '@vue/test-utils'
 import type { Component } from 'vue'
 import { parse as parseBackupRepositoryUrl } from 'xo-remote-parser'
 
@@ -12,8 +13,7 @@ import { parse as parseBackupRepositoryUrl } from 'xo-remote-parser'
 type ExtraCase = { name: string; expect: (wrapper: VueWrapper) => void }
 
 type BrGeneralInfoCase = {
-  // Reads the rendered values by their label
-  findValues: (wrapper: VueWrapper) => Record<string, string>
+  kind: BrCardKind
   // The test of a plain NFS repository: its name, the fields of the repository and the other values the card shows
   plain: { name: string; br?: Partial<FrontXoBackupRepository>; values?: Record<string, string> }
   unknownUrl?: ExtraCase
@@ -26,19 +26,15 @@ type BrGeneralInfoCase = {
  * unrecognized url and its proxy, read from the mocked proxy collection (`mock-xo-proxy-collection.ts`, which it
  * resets before each test). Returns the mount of the card, on a new repository by default.
  */
-export function itShowsBrGeneralInfo(
-  component: Component,
-  { findValues, plain, unknownUrl, proxy }: BrGeneralInfoCase
-) {
+export function itShowsBrGeneralInfo(component: Component, { kind, plain, unknownUrl, proxy }: BrGeneralInfoCase) {
+  const { findValues } = BR_CARD_READERS[kind]
+
   beforeEach(() => {
     proxyCollectionMock.reset()
   })
 
   function mountCard(br: FrontXoBackupRepository = createBr()) {
-    return mount(component, {
-      props: { br, parsedBrUrl: parseBackupRepositoryUrl(br.url) },
-      global: createGlobalTestConfig(),
-    })
+    return mountWithProps(component, { br, parsedBrUrl: parseBackupRepositoryUrl(br.url) })
   }
 
   it(plain.name, () => {

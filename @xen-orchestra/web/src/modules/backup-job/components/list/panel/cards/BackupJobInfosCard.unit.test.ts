@@ -5,14 +5,18 @@ import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/us
 import { createMetadataBackupJob, createVmBackupJob } from '@/test/create-backup-job.ts'
 import { createSchedule } from '@/test/create-schedule.ts'
 import { createSr } from '@/test/create-sr.ts'
-import { findCardLabelledValueLists, findCardLabelledValues } from '@/test/find-rendered-values.ts'
+import {
+  findCardLabelledValueLists,
+  findCardLabelledValues,
+  findCardRowLinks,
+  findCardRows,
+} from '@/test/find-rendered-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
 import { mockModule } from '@/test/spy-on-module.ts'
 import VtsCopyAllMenuItem from '@core/components/copy-all-menu-item/VtsCopyAllMenuItem.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
-import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
 import type { XoSchedule } from '@vates/types'
 import { mount, type VueWrapper } from '@vue/test-utils'
@@ -55,10 +59,6 @@ function findStatuses(wrapper: ReturnType<typeof mountInfosCard>) {
   return (wrapper.findAllComponents(VtsStatus) as VueWrapper<InstanceType<typeof VtsStatus>>[]).map(status =>
     status.props('status')
   )
-}
-
-function findValues(wrapper: ReturnType<typeof mountInfosCard>) {
-  return wrapper.findAll('.vts-card-row-key-value').map(row => row.get('.value').text())
 }
 
 it('titles the card with the backup job, linked to the XO 5 backup overview', () => {
@@ -141,10 +141,8 @@ it('links each health check SR to its page, and shows the id of a missing one', 
     },
   })
   const wrapper = mountInfosCard(backupJob)
-  const srLinks = wrapper.findAll('.vts-card-row-key-value').flatMap(row => row.findAllComponents(UiLink))
-
-  expect(srLinks.map(link => [link.text(), link.attributes('href')])).toEqual([['Health check SR', '/sr/sr-1/general']])
-  expect(findValues(wrapper)).toContain('sr-missing')
+  expect(findCardRowLinks(wrapper)).toEqual([['Health check SR', '/sr/sr-1/general']])
+  expect(findCardRows(wrapper).map(([, value]) => value)).toContain('sr-missing')
 })
 
 it('shows no mode nor health check for a metadata job', () => {

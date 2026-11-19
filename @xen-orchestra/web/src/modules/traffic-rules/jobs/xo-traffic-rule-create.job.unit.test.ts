@@ -8,7 +8,8 @@ import {
 } from '@/modules/traffic-rules/utils/xo-traffic-rule.util.ts'
 import { fetchPost } from '@/shared/utils/fetch.util.ts'
 import { t } from '@/test/i18n.ts'
-import { taskUtilsMock } from '@/test/mock-xo-task-utils.ts'
+import { itCanRun, itCannotRun } from '@/test/job-cases.ts'
+import { answerPostsWithTask, taskUtilsMock } from '@/test/mock-xo-task-utils.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
 import { mockModule, mockedExport } from '@/test/spy-on-module.ts'
 import type { XoNetwork } from '@vates/types'
@@ -21,7 +22,7 @@ mockModule(import('@/shared/composables/xo-task-utils.composable.ts'), () => imp
 beforeEach(() => {
   taskUtilsMock.reset()
 
-  post.mockResolvedValue({ taskId: 'task-1' })
+  answerPostsWithTask(post)
 })
 
 function createPayload(overrides: Partial<TrafficRulePayload> = {}): TrafficRulePayload {
@@ -64,26 +65,23 @@ describe('validate', () => {
     max: MAX_TRAFFIC_RULE_PRIORITY,
   })
 
-  it('can run without a priority', () => {
-    expect(mountCreateJob([createPayload()]).canRun).toBe(true)
-  })
+  itCanRun([
+    { name: 'can run without a priority', mountJob: () => mountCreateJob([createPayload()]) },
+    {
+      name: 'can run with the lowest and the highest allowed priorities',
+      mountJob: () =>
+        mountCreateJob([
+          createPayload({ priority: MIN_TRAFFIC_RULE_PRIORITY }),
+          createPayload({ priority: MAX_TRAFFIC_RULE_PRIORITY }),
+        ]),
+    },
+  ])
 
-  it('can run with the lowest and the highest allowed priorities', () => {
-    const payloads = [
-      createPayload({ priority: MIN_TRAFFIC_RULE_PRIORITY }),
-      createPayload({ priority: MAX_TRAFFIC_RULE_PRIORITY }),
-    ]
-
-    expect(mountCreateJob(payloads).canRun).toBe(true)
-  })
-
-  it.each([MIN_TRAFFIC_RULE_PRIORITY - 1, MAX_TRAFFIC_RULE_PRIORITY + 1, 10.5])(
-    'cannot run with the priority %s',
-    priority => {
-      const job = mountCreateJob([createPayload({ priority })])
-
-      expect(job.canRun).toBe(false)
-      expect(job.errorMessage).toBe(priorityError)
-    }
+  itCannotRun(
+    [MIN_TRAFFIC_RULE_PRIORITY - 1, MAX_TRAFFIC_RULE_PRIORITY + 1, 10.5].map(priority => ({
+      name: `cannot run with the priority ${priority}`,
+      mountJob: () => mountCreateJob([createPayload({ priority })]),
+      errorMessage: priorityError,
+    }))
   )
 })

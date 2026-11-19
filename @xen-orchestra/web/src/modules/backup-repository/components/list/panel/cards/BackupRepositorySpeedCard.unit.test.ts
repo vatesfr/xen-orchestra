@@ -1,8 +1,13 @@
 import BackupRepositorySpeedCard from '@/modules/backup-repository/components/list/panel/cards/BackupRepositorySpeedCard.vue'
 import { createTwiceBenchmarkedBr, LATEST_BR_BENCHMARK_RATES } from '@/test/create-br-benchmark.ts'
 import { createBr } from '@/test/create-br.ts'
-import { findPanelCardTitle } from '@/test/find-card-title.ts'
-import { findCardCopiedValues, findCardLabelledValues, findCardRowLabels } from '@/test/find-rendered-values.ts'
+import { findPanelCardTitleLabel } from '@/test/find-card-title.ts'
+import {
+  CARD_KEY_VALUE_ROW_SELECTOR,
+  findCardCopiedValues,
+  findCardLabelledValues,
+  findCardRowLabels,
+} from '@/test/find-rendered-values.ts'
 import { t } from '@/test/i18n.ts'
 import { itRunsJobFromButton } from '@/test/job-button.ts'
 import { benchmarkJobMock } from '@/test/mock-backup-repository-benchmark-job.ts'
@@ -14,7 +19,7 @@ import type { VueWrapper } from '@vue/test-utils'
 function findBenchmarkButton(wrapper: VueWrapper) {
   const [button] = wrapper
     .findAllComponents(UiButtonIcon)
-    .filter(iconButton => iconButton.element.closest('.vts-card-row-key-value') === null)
+    .filter(iconButton => iconButton.element.closest(CARD_KEY_VALUE_ROW_SELECTOR) === null)
 
   return button
 }
@@ -39,7 +44,7 @@ function findSpeeds(wrapper: VueWrapper) {
 it('renders the card title', () => {
   const wrapper = mountCard()
 
-  expect(findPanelCardTitle(wrapper)).toBe(t('speed'))
+  expect(findPanelCardTitleLabel(wrapper)).toBe(t('speed'))
 })
 
 it('lists the writing and reading speeds only', () => {

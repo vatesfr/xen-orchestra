@@ -42,15 +42,19 @@ XO 6 tests import the generic helpers through `@core-test` too, so a helper exis
 
 Testing uses **Vitest 4** with a single `unit` project (see `vitest.config.ts`): every test matches `**/*.unit.test.ts` and runs on `happy-dom`, CLI-only, no browser.
 
-| Path                                | Role                                                                                                  |
-| ----------------------------------- | ----------------------------------------------------------------------------------------------------- |
-| `vitest.config.ts`                  | Runner config: `vue` + `vue-i18n` plugins, `@core` / `@core-test` aliases, `globals: true`            |
-| `test/setup.ts`                     | Global setup: auto-unmounts every mounted wrapper after each test                                     |
-| `test/create-global-test-config.ts` | `global` mount options: the real `vue-i18n`, a Pinia and a router (needed by `useUiStore`)            |
-| `test/i18n.ts`                      | The `t` of that `vue-i18n` instance, to build expected texts from their translation key               |
-| `test/mount-composable.ts`          | `mountComposable`: runs a composable inside a mounted component, its result read through `wrapper.vm` |
-| `tsconfig.vitest.json`              | Type-checks test files with the Vitest globals and the `@core-test` alias                             |
-| `tsconfig.app.json`                 | Type-checks the library, test files excluded                                                          |
+| Path                                | Role                                                                                                                                                                              |
+| ----------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `vitest.config.ts`                  | Runner config: `vue` + `vue-i18n` plugins, `@core` / `@core-test` aliases, `globals: true`                                                                                        |
+| `test/setup.ts`                     | Global setup: auto-unmounts every mounted wrapper after each test                                                                                                                 |
+| `test/create-global-test-config.ts` | `global` mount options: the real `vue-i18n`, a Pinia and a router (needed by `useUiStore`)                                                                                        |
+| `test/i18n.ts`                      | The `t` of that `vue-i18n` instance, to build expected texts from their translation key                                                                                           |
+| `test/mount-composable.ts`          | `mountComposable`: runs a composable inside a mounted component, its result read through `wrapper.vm`                                                                             |
+| `test/get-success-state.ts`         | `getSuccessState`: the title, the message and the link of the `VtsSuccessStateHero` a wrapper renders, `undefined` without a title or a link (also used by XO 6)                  |
+| `test/find-links.ts`                | `findLinks(wrapper, selector?)`: every `UiLink` of a wrapper (or every plain link matching `selector`) as its `[text, href]`, in order (also used by XO 6)                        |
+| `test/expect-loader.ts`             | `hasLoader(wrapper)`: whether a `UiLoader` is rendered; `expectLoaderInsteadOf(wrapper, findContent)`: a `UiLoader` shown and the content it stands for empty (also used by XO 6) |
+| `test/find-title.ts`                | `findTitle`: the `.title` of a `VtsSuccessStateHero` or a list item, `undefined` without one (also used by XO 6)                                                                  |
+| `tsconfig.vitest.json`              | Type-checks test files with the Vitest globals and the `@core-test` alias                                                                                                         |
+| `tsconfig.app.json`                 | Type-checks the library, test files excluded                                                                                                                                      |
 
 Test files sit next to the code they test, as `lib/**/*.unit.test.ts`. Shared test infrastructure lives in `test/`, outside `lib/`. The shared `scripts/npmignore` keeps all of it out of the published package.
 

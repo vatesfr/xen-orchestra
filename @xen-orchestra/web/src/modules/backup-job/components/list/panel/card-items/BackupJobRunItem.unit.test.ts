@@ -3,7 +3,7 @@ import type { FrontXoBackupLog } from '@/modules/backup-log/remote-resources/use
 import type { FrontXoSchedule } from '@/modules/schedule/remote-resources/use-xo-schedule-collection.ts'
 import { createBackupLog, createBackupLogTask } from '@/test/create-backup-log.ts'
 import { createSchedule } from '@/test/create-schedule.ts'
-import { findCardLabelledValues } from '@/test/find-rendered-values.ts'
+import { findCardLabelledValues, getCardRow, getCardRowLink } from '@/test/find-rendered-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { scheduleCollectionMock } from '@/test/mock-xo-schedule-collection.ts'
@@ -25,10 +25,6 @@ const schedule = createSchedule({ id: 'schedule-789' as FrontXoSchedule['id'], n
 beforeEach(() => {
   scheduleCollectionMock.schedules.value = [schedule]
 })
-
-function findScheduleRow(wrapper: ReturnType<typeof mountRun>) {
-  return wrapper.findAll('.vts-card-row-key-value').find(row => row.get('.key').text() === t('schedule'))
-}
 
 function mountRun(backupRun: FrontXoBackupLog) {
   return mount(BackupJobRunItem, {
@@ -58,10 +54,10 @@ it('dates a run still in progress by its start', () => {
 
 describe('schedule', () => {
   it('links the schedule of the run to the XO 5 backup overview', () => {
-    const scheduleLink = findScheduleRow(mountRun(createBackupLog()))?.findComponent(UiLink)
+    const scheduleLink = getCardRowLink(mountRun(createBackupLog()), t('schedule'))
 
-    expect(scheduleLink?.text()).toBe('Nightly')
-    expect(scheduleLink?.attributes('href')).toBe('https://xo5.example.com/#/backup/overview')
+    expect(scheduleLink.text()).toBe('Nightly')
+    expect(scheduleLink.attributes('href')).toBe('https://xo5.example.com/#/backup/overview')
   })
 
   it('names a schedule without name as untitled', () => {
@@ -76,7 +72,7 @@ describe('schedule', () => {
     const wrapper = mountRun(createBackupLog())
 
     expect(findCardLabelledValues(wrapper)[t('schedule')]).toBe('schedule-789')
-    expect(findScheduleRow(wrapper)?.findComponent(UiLink).exists()).toBe(false)
+    expect(getCardRow(wrapper, t('schedule')).findComponent(UiLink).exists()).toBe(false)
   })
 })
 

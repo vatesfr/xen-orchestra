@@ -1,3 +1,4 @@
+import { confirmOpenedModal } from '@/test/mock-overlay.ts'
 import type { useDeleteModal as realUseDeleteModal } from '@core/composables/modals/use-delete-modal.ts'
 
 type DeleteModalEvent = 'onConfirm' | 'onCancel'
@@ -10,7 +11,7 @@ export const deleteModalMock = {
   },
   // For a confirmation that runs its `onConfirm` event instead of awaiting the answer
   confirm() {
-    this.open.mock.lastCall?.[0].events.onConfirm()
+    confirmOpenedModal([this])
   },
   reset() {
     this.open.mockReset()

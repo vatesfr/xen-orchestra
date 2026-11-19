@@ -11,8 +11,8 @@ import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
 import { vmCollectionMock } from '@/test/mock-xo-vm-collection.ts'
 import { mockModule } from '@/test/spy-on-module.ts'
 import VtsTag from '@core/components/tag/VtsTag.vue'
-import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
+import { findLinks } from '@core-test/find-links.ts'
 import { mount } from '@vue/test-utils'
 
 mockModule(
@@ -45,14 +45,14 @@ function mountBackedUpVmsCard(backedUpVms: FrontXoVmBackupJob['vms']) {
 }
 
 function findVmLinks(wrapper: ReturnType<typeof mountBackedUpVmsCard>) {
-  return wrapper.findAll('li').map(item => item.getComponent(UiLink))
+  return wrapper.findAll('li').flatMap(item => findLinks(item))
 }
 
 it('lists the VMs picked by hand, linked to their dashboard, without smart mode', () => {
   const wrapper = mountBackedUpVmsCard({ id: { __or: ['vm-1' as FrontXoVm['id'], 'vm-2' as FrontXoVm['id']] } })
 
   expect(findCardLabelledValues(wrapper)).toEqual({ [t('smart-mode')]: t('disabled') })
-  expect(findVmLinks(wrapper).map(link => [link.text(), link.attributes('href')])).toEqual([
+  expect(findVmLinks(wrapper)).toEqual([
     ['VM 1', '/vm/vm-1/dashboard'],
     ['VM 2', '/vm/vm-2/dashboard'],
   ])

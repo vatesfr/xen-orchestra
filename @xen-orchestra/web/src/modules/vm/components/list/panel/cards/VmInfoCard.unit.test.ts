@@ -4,6 +4,7 @@ import type { FrontXoVmTemplate } from '@/modules/vm/remote-resources/use-xo-vm-
 import { createHost } from '@/test/create-host.ts'
 import { createPool } from '@/test/create-pool.ts'
 import { createVm } from '@/test/create-vm.ts'
+import { findPanelCardTitle } from '@/test/find-card-title.ts'
 import { findCardLabelledValues, findCardRowLabels, findTags } from '@/test/find-rendered-values.ts'
 import { findTooltipContent } from '@/test/find-tooltip-content.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
@@ -69,8 +70,8 @@ function mountInfoCard(vm: FrontXoVm = createVm()) {
 it('renders the name and the id of the VM as the card title', () => {
   const wrapper = mountInfoCard(createVm({ name_label: 'Web server', id: 'vm-42' as FrontXoVm['id'] }))
 
-  expect(wrapper.get('.ui-panel-card-title').text()).toContain('Web server')
-  expect(wrapper.get('.ui-panel-card-title').text()).toContain('vm-42')
+  expect(findPanelCardTitle(wrapper)).toContain('Web server')
+  expect(findPanelCardTitle(wrapper)).toContain('vm-42')
 })
 
 it('shows the busy icon in the card title while the VM power state is changing', () => {

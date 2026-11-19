@@ -1,8 +1,8 @@
 import type { JobResultState } from '@/test/create-job-result.ts'
-import { createGlobalTestConfig } from '@/test/global-test-config.ts'
+import { mountWithProps } from '@/test/mount-with-props.ts'
 import type { IconName } from '@core/icons'
 import VtsActionButton from '@core/components/action-button/VtsActionButton.vue'
-import { mount, type VueWrapper } from '@vue/test-utils'
+import type { VueWrapper } from '@vue/test-utils'
 import { type Component, toValue } from 'vue'
 
 type ButtonJobStub = {
@@ -55,7 +55,7 @@ export function itRunsJobFromButton<TTarget>(
   })
 
   function mountButton(target: TTarget = createTarget()) {
-    return mount(component, { props: { [targetProp]: target }, global: createGlobalTestConfig() })
+    return mountWithProps(component, { [targetProp]: target })
   }
 
   if (offer !== undefined) {

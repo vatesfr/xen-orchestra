@@ -1,6 +1,7 @@
-import { findCardTitle } from '@/test/find-card-title.ts'
+import { itRendersCardTitle } from '@/test/dashboard-card.ts'
 import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
 import { vmCollectionMock } from '@/test/mock-xo-vm-collection.ts'
+import { expectLoaderInsteadOf } from '@core-test/expect-loader.ts'
 import type { VueWrapper } from '@vue/test-utils'
 
 // Holds a mocked collection as still loading (`mock-xo-collections.ts`, `mock-xo-vm-collection.ts`), by its name
@@ -25,9 +26,7 @@ type HostDashboardCardCase = {
  * each collection it waits for is still loading. The test file resets the collection mocks before each test.
  */
 export function itShowsHostDashboardCard(mountCard: () => VueWrapper, { title, loading }: HostDashboardCardCase) {
-  it('renders the card title', () => {
-    expect(findCardTitle(mountCard())).toBe(title)
-  })
+  itRendersCardTitle(mountCard, title)
 
   if (loading === undefined) {
     return
@@ -37,10 +36,7 @@ export function itShowsHostDashboardCard(mountCard: () => VueWrapper, { title, l
     it(`shows a loader instead of ${loading.content} while the ${collection} are still loading`, () => {
       HOLD_LOADING[collection]()
 
-      const wrapper = mountCard()
-
-      expect(wrapper.find('.ui-loader').exists()).toBe(true)
-      expect(loading.find(wrapper)).toEqual([])
+      expectLoaderInsteadOf(mountCard(), loading.find)
     })
   }
 }

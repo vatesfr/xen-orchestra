@@ -3,7 +3,7 @@ import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote
 import { fetchPost } from '@/shared/utils/fetch.util.ts'
 import { createBr, createTwoBrs } from '@/test/create-br.ts'
 import { t } from '@/test/i18n.ts'
-import { itCannotRun, itReportsEachResult } from '@/test/job-cases.ts'
+import { itCannotRun, itMonitorsTaskPerTarget } from '@/test/job-cases.ts'
 import { taskUtilsMock } from '@/test/mock-xo-task-utils.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
 import { mockModule, mockedExport } from '@/test/spy-on-module.ts'
@@ -19,7 +19,6 @@ beforeEach(() => {
   vi.restoreAllMocks()
   taskUtilsMock.reset()
 
-  post.mockImplementation(async (url: string) => ({ taskId: `task-of-${url}` }))
   monitorTask.mockResolvedValue({ writeRate: 100_000_000, readRate: 200_000_000 })
 })
 
@@ -30,22 +29,13 @@ function mountBenchmarkJob(brs: FrontXoBackupRepository[]) {
 }
 
 describe('run', () => {
-  it('benchmarks every repository and waits for each task', async () => {
-    await mountBenchmarkJob([firstBr, secondBr]).run()
-
-    expect(post.mock.calls).toEqual([
-      [`backup-repositories/${firstBr.id}/actions/benchmark`],
-      [`backup-repositories/${secondBr.id}/actions/benchmark`],
-    ])
-    expect(monitorTask.mock.calls).toEqual([
-      [`task-of-backup-repositories/${firstBr.id}/actions/benchmark`],
-      [`task-of-backup-repositories/${secondBr.id}/actions/benchmark`],
-    ])
-  })
-
-  itReportsEachResult({
+  itMonitorsTaskPerTarget({
+    name: 'benchmarks every repository and waits for each task',
+    post,
+    targets: [firstBr, secondBr],
+    collection: 'backup-repositories',
+    action: 'benchmark',
     subject: 'repository',
-    request: monitorTask,
     errorMessage: 'Backup repository unreachable',
     run: () => mountBenchmarkJob([firstBr, secondBr]).run(),
     fulfilledValue: { writeRate: 100_000_000, readRate: 200_000_000 },

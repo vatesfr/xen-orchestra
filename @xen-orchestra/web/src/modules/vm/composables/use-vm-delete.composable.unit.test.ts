@@ -2,26 +2,25 @@ import { useVmDelete } from '@/modules/vm/composables/use-vm-delete.composable.t
 import { useXoVmDeleteJob } from '@/modules/vm/jobs/xo-vm-delete.job.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { createJobResult } from '@/test/create-job-result.ts'
-import { createTestRouter } from '@/test/create-test-router.ts'
 import { createVm } from '@/test/create-vm.ts'
 import {
+  confirmModalOpening,
+  createConfirmedAction,
   createDetachedJobRun,
   createRouterOnPage,
+  type SelectionJobCase,
+  itAsksToTypeToConfirm,
+  itOpensSingleModal,
   itRedirectsOnSuccess,
   itUnselectsOnSuccess,
-  typeToConfirmModalOpening,
 } from '@/test/detached-selection-job.ts'
 import { t } from '@/test/i18n.ts'
 import { deleteModalMock } from '@/test/mock-delete-modal.ts'
 import { overlayMock } from '@/test/mock-overlay.ts'
 import { routeQueryMock } from '@/test/mock-route-query.ts'
-import { mountComposable } from '@/test/mount-composable.ts'
 import { mockModule, mockedExport } from '@/test/spy-on-module.ts'
 import type { useTypeToConfirmModal } from '@core/composables/modals/use-type-to-confirm-modal.ts'
 import { type MaybeRefOrGetter, ref, toValue } from 'vue'
-import type { Router } from 'vue-router'
-
-type PartialDeletionDrawer = { events: { onConfirm?: () => void } }
 
 // The job deletes the VMs through the REST API
 const useDeleteJob = mockedExport(useXoVmDeleteJob)
@@ -58,59 +57,47 @@ const protectedVm = createVm({
   blockedOperations: { destroy: 'Protected' } as FrontXoVm['blockedOperations'],
 })
 
-function mountDelete(vms: MaybeRefOrGetter<FrontXoVm[]>, { router = createTestRouter() }: { router?: Router } = {}) {
-  return mountComposable(() => useVmDelete(vms), { router }).wrapper.vm
-}
-
-async function deleteAndConfirm(vms: MaybeRefOrGetter<FrontXoVm[]>, options?: { router?: Router }) {
-  mountDelete(vms, options).deleteVms()
-
-  const [openOptions] = deleteModalMock.open.mock.lastCall ?? openTypeToConfirmModal.mock.lastCall ?? []
-
-  openOptions.events.onConfirm()
-
-  await detachedRun.settled()
-}
+const deleteAction = createConfirmedAction({
+  use: useVmDelete,
+  start: result => result.deleteVms(),
+  detachedRun,
+  getModals: () => ({ singleModal: deleteModalMock, typeToConfirmModal: { open: openTypeToConfirmModal } }),
+})
 
 const VM_PAGE = '/vm/[id]/dashboard'
 
-const deleteCase = {
+const deleteCase: SelectionJobCase<FrontXoVm> = {
   wording: { item: 'VM', items: 'VMs', done: 'deleted', doing: 'deleting' },
-  items: [firstVm, secondVm] as [FrontXoVm, FrontXoVm],
+  items: [firstVm, secondVm],
   detachedRun,
-  confirm: deleteAndConfirm,
+  confirm: deleteAction.confirm,
   errorMessage: 'VM is running',
 }
 
 describe('deleteVms', () => {
-  it('asks to confirm the deletion of a single VM by its name', () => {
-    mountDelete([firstVm]).deleteVms()
-
-    expect(deleteModalMock.open.mock.calls[0][0].props).toEqual({
+  itOpensSingleModal('asks to confirm the deletion of a single VM by its name', deleteAction, firstVm, [
+    confirmModalOpening({
       accent: 'danger',
       subject: 'Web server',
       description: t('vm-delete-warning'),
       confirmLabel: t('action:delete-n-vms', { n: 1 }),
-    })
-    expect(openTypeToConfirmModal).not.toHaveBeenCalled()
-  })
+    }),
+  ])
 
-  it('asks to type the number of VMs to confirm the deletion of several VMs', () => {
-    mountDelete([firstVm, secondVm]).deleteVms()
-
-    expect(openTypeToConfirmModal.mock.calls[0][0].props).toEqual(
-      typeToConfirmModalOpening({
-        title: t('modal:vm-delete-title', { n: 2 }),
-        description: t('modal:vms-delete-message', { n: 2 }),
-        confirmationText: t('n-vms', { n: 2 }),
-        confirmLabel: t('action:delete-n-vms', { n: 2 }),
-      }).props
-    )
-    expect(deleteModalMock.open).not.toHaveBeenCalled()
-  })
+  itAsksToTypeToConfirm(
+    'asks to type the number of VMs to confirm the deletion of several VMs',
+    deleteAction,
+    [firstVm, secondVm],
+    {
+      title: t('modal:vm-delete-title', { n: 2 }),
+      description: t('modal:vms-delete-message', { n: 2 }),
+      confirmationText: t('n-vms', { n: 2 }),
+      confirmLabel: t('action:delete-n-vms', { n: 2 }),
+    }
+  )
 
   it('does not delete anything until confirmed', () => {
-    mountDelete([firstVm, secondVm]).deleteVms()
+    deleteAction.open([firstVm, secondVm])
 
     expect(run).not.toHaveBeenCalled()
   })
@@ -118,7 +105,7 @@ describe('deleteVms', () => {
 
 describe('with protected VMs', () => {
   it('only hands the job the VMs not protected against deletion', () => {
-    mountDelete([firstVm, protectedVm, secondVm])
+    deleteAction.mount([firstVm, protectedVm, secondVm])
 
     const jobVms = toValue(useDeleteJob.mock.calls[0][0] as MaybeRefOrGetter<FrontXoVm[]>)
 
@@ -126,7 +113,7 @@ describe('with protected VMs', () => {
   })
 
   it('shows which VMs will be deleted and which are protected', () => {
-    mountDelete([firstVm, protectedVm]).deleteVms()
+    deleteAction.open([firstVm, protectedVm])
 
     expect(overlayMock.getOverlay().open).toHaveBeenCalledWith({
       props: { deletableVms: [firstVm], protectedVms: [protectedVm] },
@@ -136,9 +123,9 @@ describe('with protected VMs', () => {
   })
 
   it('deletes the other VMs once the partial deletion is confirmed', () => {
-    mountDelete([firstVm, protectedVm]).deleteVms()
+    deleteAction.open([firstVm, protectedVm])
 
-    overlayMock.getOverlay<PartialDeletionDrawer>().events.onConfirm?.()
+    overlayMock.confirmOpened()
 
     expect(run).toHaveBeenCalledWith({ detached: true, onSuccess: expect.any(Function) })
   })
@@ -147,14 +134,14 @@ describe('with protected VMs', () => {
     detachedRun.mockSuccess([{ status: 'fulfilled', value: undefined }])
     routeQueryMock.query.value = secondVm.id
 
-    mountDelete([protectedVm, secondVm]).deleteVms()
-    overlayMock.getOverlay<PartialDeletionDrawer>().events.onConfirm?.()
+    deleteAction.open([protectedVm, secondVm])
+    overlayMock.confirmOpened()
 
     expect(routeQueryMock.query.value).toBe('')
   })
 
   it('forbids deleting when every VM is protected', () => {
-    const result = mountDelete([protectedVm])
+    const result = deleteAction.mount([protectedVm])
 
     expect(result.canDeleteVms).toBe(false)
     expect(result.deleteVmsErrorMessage).toBe(t('job:vm-delete:blocked-operation'))
@@ -168,7 +155,7 @@ describe('on confirm', () => {
 it('exposes whether the VMs can be deleted, are being deleted, and why they cannot be', () => {
   useDeleteJob.mockReturnValue(createJobResult(run, { canRun: false, isRunning: true, errorMessage: 'In progress' }))
 
-  const result = mountDelete([firstVm])
+  const result = deleteAction.mount([firstVm])
 
   expect(result.canDeleteVms).toBe(false)
   expect(result.isDeletingVms).toBe(true)
@@ -191,7 +178,7 @@ describe('redirection', () => {
     })
     const router = await createRouterOnPage(VM_PAGE, firstVm.id)
 
-    await deleteAndConfirm(vms, { router })
+    await deleteAction.confirm(vms, { router })
 
     expect(router.currentRoute.value).toMatchObject({ name: '/host/[id]/vms', params: { id: firstVm.$container } })
   })

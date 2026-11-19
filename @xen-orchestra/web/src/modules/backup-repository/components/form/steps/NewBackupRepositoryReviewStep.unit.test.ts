@@ -6,6 +6,7 @@ import {
 } from '@/modules/backup-repository/utils/xo-backup-repository-details-payload.util.ts'
 import { MASKED_SECRET } from '@/modules/backup-repository/utils/xo-backup-repository.util.ts'
 import { createProxy } from '@/test/create-proxy.ts'
+import { findTitleLabel } from '@/test/find-card-title.ts'
 import { findLabelledValues } from '@/test/find-rendered-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
@@ -110,7 +111,7 @@ describe('details section', () => {
   it('is titled after the given details title', async () => {
     const { detailsSection } = await mountReviewStep()
 
-    expect(detailsSection.get('.ui-title .label').text()).toBe('Details')
+    expect(findTitleLabel(detailsSection)).toBe('Details')
   })
 
   it('shows the path of a local repository', async () => {
