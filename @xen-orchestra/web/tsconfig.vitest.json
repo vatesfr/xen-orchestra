@@ -1,7 +1,21 @@
 {
   "extends": "./tsconfig.app.json",
+  "include": [
+    "env.d.ts",
+    "./src/**/*",
+    "./src/**/*.vue",
+    "../web-core/env.d.ts",
+    "../web-core/lib/**/*",
+    "../web-core/lib/**/*.vue",
+    "../web-core/test/**/*"
+  ],
   "exclude": ["../web-core/lib/**/*.unit.test.ts", "../web-core/lib/**/*.unit.spec.ts"],
   "compilerOptions": {
-    "types": ["vitest/globals"]
+    "types": ["vitest/globals"],
+    "paths": {
+      "@/*": ["./src/*"],
+      "@core/*": ["../web-core/lib/*"],
+      "@core-test/*": ["../web-core/test/*"]
+    }
   }
 }

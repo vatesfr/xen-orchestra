@@ -1,43 +1,10 @@
-# Mocking dependencies
+# Mocking (XO 6)
 
-Keep the mock boundary tight: **mock only the remote-resource collections / stores** a composable depends on, and let pure utilities and icon helpers run for real.
+The typed `vi.mock` form, `vi.hoisted` and shared mock modules are in [Mocking dependencies](../../../web-core/docs/tests/mocking.md). In XO 6, **mock only the remote-resource collections / stores** a composable depends on.
 
-Use the **typed** mock form — `vi.mock(import('<module>'), …)` — so a rename breaks type-check instead of silently leaving a stale mock. Create the stub functions with `vi.hoisted` (a plain `const fn = vi.fn()` referenced in the factory throws, because the mock is hoisted above imports), and reset them in `beforeEach`:
+The shared mock modules of XO 6 live in `src/test/`. `mock-xo-vm-collection.ts` stands for `useXoVmCollection`: `vmCollectionMock.areVmsReady` is true after a reset; set it to false to hold the collection as still loading.
 
-```typescript
-const { getHostById, isMasterHost } = vi.hoisted(() => ({
-  getHostById: vi.fn(),
-  isMasterHost: vi.fn(),
-}))
-
-vi.mock(import('@/modules/host/remote-resources/use-xo-host-collection.ts'), () => ({
-  useXoHostCollection: (() => ({ getHostById, isMasterHost })) as unknown as typeof useXoHostCollection,
-}))
-
-beforeEach(() => {
-  getHostById.mockReset()
-  isMasterHost.mockReset()
-})
-```
-
-Note the cast: the typed form checks the factory return against the **whole** module, so a partial mock of a large export needs `as unknown as typeof useX` (with an `import type { useX }`).
-
-When several test files mock the same remote resource (a collection or a single resource) with the same shape, the mock lives once in `src/test/` and the test file only points `vi.mock` to it; its exported state is read and changed by the tests, and reset in `beforeEach`:
-
-```typescript
-vi.mock(
-  import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'),
-  () => import('@/test/mock-xo-vm-collection.ts')
-)
-
-beforeEach(() => {
-  vmCollectionMock.reset()
-})
-```
-
-`vmCollectionMock.areVmsReady` is true after a reset; set it to false to hold the collection as still loading.
-
-Collections always read together share one mock module exporting each of their composables: `mock-xo-collections.ts` stands for the pool, host, SR, network, PBD, PIF and VM template collections. Each `vi.mock` of these modules points to it (`vi.mock` is hoisted, it cannot be wrapped in a helper), and `xoCollectionsMock.reset()` resets them all. Its pool collection also answers `getPoolById`, `hasPoolById` and `useGetPoolById` from `pools`, its host collection `getHostById` from `hosts`, its SR and network collections `getSrById` and `getNetworkById`, its PBD collection `pbdsBySr` from `pbds`, and `arePoolsReady`, `areSrsReady`, `areNetworksReady` and `areTemplatesReady` (true after a reset) let a test hold that collection as still loading. `seedV2vListPool` (`seed-v2v-list-pool.ts`) seeds the pool of a V2V list and what it offers; `xoCollectionsMock.startLoadingPools()` empties the pools and clears `arePoolsReady`.
+Collections always read together share one mock module exporting each of their composables: `mock-xo-collections.ts` stands for the pool, host, SR, network, PBD, PIF and VM template collections. Each `vi.mock` of these modules points to it, and `xoCollectionsMock.reset()` resets them all. Its pool collection also answers `getPoolById`, `hasPoolById` and `useGetPoolById` from `pools`, its host collection `getHostById` from `hosts`, its SR and network collections `getSrById` and `getNetworkById`, its PBD collection `pbdsBySr` from `pbds`, and `arePoolsReady`, `areSrsReady`, `areNetworksReady` and `areTemplatesReady` (true after a reset) let a test hold that collection as still loading. `seedV2vListPool` (`seed-v2v-list-pool.ts`) seeds the pool of a V2V list and what it offers; `xoCollectionsMock.startLoadingPools()` empties the pools and clears `arePoolsReady`.
 
 The same goes for `mock-xo-v2v-vm-rows-collections.ts`, the VM, task and VM snapshot collections the V2V VM rows are built from: `v2vVmRowsCollectionsMock` holds `vms`, `tasks`, `snapshots` and their `are…Ready` flags (true after a reset; set one to false to hold that collection as still loading). Its VMs are those of `mock-xo-vm-collection.ts`, which it re-exports and resets.
 

@@ -14,7 +14,7 @@ import type { Router } from 'vue-router'
  *
  * The router is not only for components rendering `RouterLink`: the shared
  * `useUiStore` calls `useRouter()`/`useRoute()` in its setup, so every component
- * reaching that store (`VtsStateHero`, `VtsKeyValueRow`, `TabItem`…) needs one —
+ * reaching that store (`VtsStateHero`, `VtsKeyValueRow`, `UiTabItem`…) needs one —
  * without it the injections miss, and reading `uiStore.hasUi` would throw.
  *
  * Pass a `router` to navigate before mounting, which is what makes an active
