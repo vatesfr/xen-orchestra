@@ -28,7 +28,12 @@
 import { useNetworkDelete } from '@/modules/network/composables/use-network-delete.composable.ts'
 import { useXoNetworkUtils } from '@/modules/network/composables/xo-network-utils.composable.ts'
 import type { FrontXoNetwork } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
-import { getNetworkRoute, getNetworkStatus } from '@/modules/network/utils/xo-network.util.ts'
+import {
+  getNetworkDefaultLockingModeKey,
+  getNetworkRoute,
+  getNetworkStatus,
+  getNetworkVlan,
+} from '@/modules/network/utils/xo-network.util.ts'
 import { useXoPifCollection } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
 import VtsQueryBuilder from '@core/components/query-builder/VtsQueryBuilder.vue'
 import VtsRow from '@core/components/table/VtsRow.vue'
@@ -98,9 +103,9 @@ const state = useTableState({
 })
 
 // Networks without PIF or without VLAN (-1) come first
-const getNetworkVlanNumber = (network: FrontXoNetwork) => getPifsByNetworkId(network.id)[0]?.vlan ?? -1
+const getNetworkVlanNumber = (network: FrontXoNetwork) => getNetworkVlan(getPifsByNetworkId(network.id)) ?? -1
 
-const getLockingMode = (isLocked: boolean) => (isLocked ? t('disabled') : t('unlocked'))
+const getDefaultLockingMode = (network: FrontXoNetwork) => t(getNetworkDefaultLockingModeKey(network))
 
 const { compareStatuses } = useStatusLabel()
 
@@ -149,7 +154,7 @@ const { HeadCells, BodyCells, sortItems } = useNetworkColumns({
     vlan: (network1, network2) => getNetworkVlanNumber(network1) - getNetworkVlanNumber(network2),
     mtu: (network1, network2) => network1.MTU - network2.MTU,
     defaultLockingMode: (network1, network2) =>
-      compareStrings(getLockingMode(network1.defaultIsLocked), getLockingMode(network2.defaultIsLocked)),
+      compareStrings(getDefaultLockingMode(network1), getDefaultLockingMode(network2)),
   },
   initialSort: { id: 'network', direction: 'asc' },
 })

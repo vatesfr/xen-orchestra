@@ -37,25 +37,32 @@ import { compareStrings } from '@core/utils/compare-strings.util.ts'
 import { formatSizeRaw } from '@core/utils/size.util.ts'
 import { sortByNameDescription } from '@core/utils/sort-by-name-description.util.ts'
 import { sortByNameLabel } from '@core/utils/sort-by-name-label.util.ts'
+import { getUsageRatio } from '@core/utils/usage-ratio.util.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+
 const { vdis, vbds, busy, error } = defineProps<{
   vdis: XenApiVdi[]
   vbds: XenApiVbd[]
   busy?: boolean
   error?: boolean
 }>()
+
 const { t } = useI18n()
+
 const selectedVdiId = useRouteQuery('id')
+
 const { items: filteredVdis, searchBindings } = useSearchFilter(() => vdis)
+
 const state = useTableState({
   busy: () => busy,
   error: () => error,
   empty: () =>
     vdis.length === 0 ? t('no-vdi-detected') : filteredVdis.value.length === 0 ? { type: 'no-result' } : false,
 })
+
 const getFormat = (vdi: XenApiVdi) => getVdiFormat(vdi.sm_config['image-format'])
-const getUsageRatio = (vdi: XenApiVdi) => (vdi.virtual_size === 0 ? 0 : vdi.physical_utilisation / vdi.virtual_size)
+
 const { HeadCells, BodyCells, sortItems } = useVdiColumns({
   id: 'vdis',
   exclude: ['actions'],
@@ -63,6 +70,7 @@ const { HeadCells, BodyCells, sortItems } = useVdiColumns({
     const vdiVbds = computed(() => vbds.filter(vbd => vbd.VDI === vdi.$ref))
     const size = computed(() => formatSizeRaw(vdi.virtual_size, 2))
     const format = computed(() => getFormat(vdi))
+
     return {
       vdi: r =>
         r({
@@ -79,12 +87,16 @@ const { HeadCells, BodyCells, sortItems } = useVdiColumns({
   sort: {
     vdi: sortByNameLabel,
     description: sortByNameDescription,
-    usedSpace: (vdi1, vdi2) => getUsageRatio(vdi1) - getUsageRatio(vdi2),
+    usedSpace: (vdi1, vdi2) =>
+      getUsageRatio(vdi1.physical_utilisation, vdi1.virtual_size) -
+      getUsageRatio(vdi2.physical_utilisation, vdi2.virtual_size),
     size: (vdi1, vdi2) => vdi1.virtual_size - vdi2.virtual_size,
     format: (vdi1, vdi2) => compareStrings(getFormat(vdi1), getFormat(vdi2)),
   },
 })
+
 const sortedVdis = computed(() => sortItems(filteredVdis.value))
+
 const { pageRecords: paginatedVdis, paginationBindings } = usePagination('vdis', sortedVdis)
 </script>
 
