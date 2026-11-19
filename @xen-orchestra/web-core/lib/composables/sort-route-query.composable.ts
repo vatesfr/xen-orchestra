@@ -1,17 +1,29 @@
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
+import type { ColumnSortDirection } from '@core/packages/table/types.ts'
 
-export function useSortRouteQuery(id: string) {
-  return useRouteQuery(id, {
+export type RouteQuerySort = { id: string; direction: ColumnSortDirection }
+
+function isSortDirection(direction: string | undefined): direction is ColumnSortDirection {
+  return direction === 'asc' || direction === 'desc'
+}
+
+function toQuery(sort: RouteQuerySort | undefined) {
+  return sort ? [sort.id, sort.direction].join(',') : ''
+}
+
+export function useSortRouteQuery(name: string, defaultSort?: RouteQuerySort) {
+  return useRouteQuery<RouteQuerySort | undefined>(name, {
+    defaultQuery: toQuery(defaultSort),
     toData: query => {
-      if (!query) {
+      const [id, direction] = query.split(',')
+
+      if (!id || !isSortDirection(direction)) {
         return undefined
       }
 
-      const [id, direction] = query.split(',') as [string, 'asc' | 'desc']
-
       return { id, direction }
     },
-    toQuery: data => (data ? [data.id, data.direction].join(',') : ''),
+    toQuery,
   })
 }
 

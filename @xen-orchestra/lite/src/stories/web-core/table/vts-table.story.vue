@@ -46,6 +46,7 @@ const useDemoColumns = defineColumns(() => ({
 }))
 
 const { HeadCells, BodyCells, sortItems } = useDemoColumns({
+  id: 'demo-vms',
   body: (vm: DemoVm) => ({
     name: r => r(vm.name_label),
     description: r => r(vm.description),
