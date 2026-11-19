@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "target": "es2020",
+    "module": "node16", // this package is published as CommonJS, see `.cts` sources
+    "moduleResolution": "node16",
+    "types": ["node"], // Only use types from Node.js and packages that are explicitly imported
+    "strict": true,
+    "declaration": true, // Generates `.d.cts` files for type safety
+    "outDir": "dist",
+    "rootDir": "src"
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist"]
+}

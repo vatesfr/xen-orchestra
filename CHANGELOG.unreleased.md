@@ -97,6 +97,7 @@
 - @vates/syslog minor
 - @vates/types major
 - @xen-orchestra/acl minor
+- @xen-orchestra/async-map major
 - @xen-orchestra/autopilot-docking minor
 - @xen-orchestra/backups major
 - @xen-orchestra/fs minor
@@ -114,6 +115,7 @@
 - xo-server-audit minor
 - xo-server-load-balancer patch
 - xo-server-sdn-controller patch
+- xo-server-usage-report patch
 - xo-web minor
 
 <!--packages-end-->
