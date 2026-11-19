@@ -16,12 +16,34 @@ import { openVhd, VhdFile, VhdAbstract, Constants, VhdDirectory } from 'vhd-lib'
 import computeGeometryForSize from 'vhd-lib/_computeGeometryForSize.js'
 import { dirname, basename } from 'node:path'
 import { rimraf } from 'rimraf'
+import { resolveVhdAlias } from 'vhd-lib/aliases.js'
 
 const { beforeEach, afterEach, describe } = test
 
 let tempDir, handler, jobId, vdiId, basePath, relativePath
 const vmUuid = 'a1b2c3d4-0000-0000-0000-000000000000'
 const rootPath = `xo-vm-backups/${vmUuid}`
+
+// sum of the stored size of every file under `entry`, the reference `VhdDirectory#sizeOnDisk` is checked against
+async function getFullSize(handler, entry) {
+  let files
+  try {
+    files = await handler.list(entry, { prependDir: true })
+  } catch (error) {
+    if (error.code === 'ENOTDIR') {
+      return await handler.getSizeOnDisk(entry)
+    } else {
+      throw error
+    }
+  }
+
+  let size = 0
+  for (const file of files) {
+    size += await getFullSize(handler, file)
+  }
+
+  return size
+}
 
 beforeEach(async () => {
   tempDir = await pFromCallback(cb => tmp.dir(cb))
@@ -256,10 +278,19 @@ describe('RemoteAdapter#writeVhd validated by checkDisk', { concurrency: 1 }, ()
       const adapter = await getAdapter({ useVhdDirectory })
       const path = `${basePath}/${adapter.getVhdFileName('base')}`
 
-      const size = await adapter.writeVhd(path, new MockDisk(2, [0, 1], 0x42), {
+      const { size, sizeOnDisk } = await adapter.writeVhd(path, new MockDisk(2, [0, 1], 0x42), {
         validator: tmpPath => checkDisk(handler, tmpPath),
         uuid: uniqueIdBuffer(),
       })
+
+      if (mode === 'directory') {
+        assert.equal(
+          sizeOnDisk,
+          (await getFullSize(handler, await resolveVhdAlias(handler, path))) + (await handler.getSizeOnDisk(path))
+        )
+      } else {
+        assert.equal(sizeOnDisk, await handler.getSizeOnDisk(path))
+      }
 
       assert.ok(size > 0, 'reported size should be greater than 0')
       assert.equal(basename(path).endsWith('.alias.vhd'), useVhdDirectory)

@@ -51,7 +51,7 @@ declare module '@xen-orchestra/backup-archive/disks' {
   import type { RandomAccessDisk } from '@xen-orchestra/disk-transform'
 
   export interface RemoteDisk extends RandomAccessDisk {
-    getSizeOnDisk(): number
+    getStreamSize(): number
     getPath(): string
     getPaths(): string[]
     getUuid(): string

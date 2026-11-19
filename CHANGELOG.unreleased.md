@@ -53,6 +53,8 @@
 - [Menus] Submenus open when hovering their option and can be reached diagonally without opening the neighbouring ones, Escape closes them one level at a time, and menu buttons are announced to screen readers (PR [#10827](https://github.com/vatesfr/xen-orchestra/pull/10827))
 - [Modals] The confirm button of the modals asking to type a text is no longer disabled: confirming with a wrong text keeps the modal open and shows an error under the field (PR [#10826](https://github.com/vatesfr/xen-orchestra/pull/10826))
 - [xen-api] **Breaking:** `callAsync()`, `getResource()` and `putResource()` take an optional `AbortSignal` as first parameter instead of a promise-toolbox `CancelToken`, which is no longer supported (PR [#10740](https://github.com/vatesfr/xen-orchestra/pull/10740))
+- [Backups] Show the space actually used by each backup on its backup repository, compression and encryption included (XO6 VM dashboard, XOA dashboard backup usage, REST API) (PR [#10685](https://github.com/vatesfr/xen-orchestra/pull/10685))
+- [Backups] Indicate if a disk is a delta or a full (XO6 VM dashboard, XOA dashboard backup usage, REST API) (PR [#10685](https://github.com/vatesfr/xen-orchestra/pull/10685))
 
 ### Bug fixes
 
@@ -99,7 +101,9 @@
 - @vates/types major
 - @xen-orchestra/acl minor
 - @xen-orchestra/autopilot-docking minor
+- @xen-orchestra/backup-archive major
 - @xen-orchestra/backups major
+- @xen-orchestra/disk-cli minor
 - @xen-orchestra/fs minor
 - @xen-orchestra/log major
 - @xen-orchestra/mixins minor
@@ -110,6 +114,7 @@
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
 - @xen-orchestra/xapi major
+- vhd-lib major
 - xen-api major
 - xo-collection major
 - xo-server minor

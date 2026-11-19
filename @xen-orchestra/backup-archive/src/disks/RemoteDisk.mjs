@@ -36,8 +36,8 @@ export class RemoteDisk extends RandomAccessDisk {
    * Abstract
    * @returns {number} size
    */
-  getSizeOnDisk() {
-    throw new Error(`getSizeOnDisk must be implemented`)
+  getStreamSize() {
+    throw new Error(`getStreamSize must be implemented`)
   }
 
   /**
@@ -293,5 +293,23 @@ export class RemoteDisk extends RandomAccessDisk {
       throw new Error('parent of a RemoteDisk must be also a RemoteDisk')
     }
     return parent
+  }
+
+  /**
+   * Write the disk size to its size.json metadata file, if it is known.
+   *
+   * @returns  {Promise<void>}
+   */
+  async saveSizeOnDisk() {
+    throw new Error(`saveSizeOnDisk must be implemented`)
+  }
+
+  /**
+   * Returns the space used by the data and undefined if unknown
+   *
+   * @returns  {Promise<number|undefined>}
+   */
+  async readSizeOnDisk() {
+    throw new Error(`readSizeOnDisk must be implemented`)
   }
 }
