@@ -447,14 +447,11 @@ export type XoApp = EventEmitter & {
    * `assertBrowserMediaInsertable` reports the predictable failures synchronously, e.g. before
    * starting a task.
    */
-  insertBrowserMedia(params: {
-    id: XoBrowserMediaSession['id']
-    vmId: XoVm['id']
-  }): Promise<{ vdiId: XoVdi['id'] }>
+  insertBrowserMedia(params: { id: XoBrowserMediaSession['id']; vmId: XoVm['id'] }): Promise<{ vdiId: XoVdi['id'] }>
   assertBrowserMediaInsertable(params: { id: XoBrowserMediaSession['id']; vmId: XoVm['id'] }): void
   /** Eject the ISO of a browser media session, release its storage, and disconnect the browser */
   ejectBrowserMedia(id: XoBrowserMediaSession['id']): Promise<void>
-  getAllUsers(opts?: { obfuscatePassword?: boolean }): Promise<XoUser[]>
+  getAllUsers(opts?: { obfuscate?: boolean }): Promise<XoUser[]>
   getAllXenServers(): Promise<XoServer[]>
   getAuthenticationTokensForUser(userId: XoUser['id']): Promise<XoAuthenticationToken[]>
   /** Archive/host a live-mounted disk belongs to, as recorded by `mountBackupArchiveDisk` */
@@ -499,7 +496,7 @@ export type XoApp = EventEmitter & {
     /** object mode stream of keys */
     createKeyStream(opts?: XoStoreRangeOptions): Readable
   }>
-  getUser: (id: XoUser['id'], opts?: { obfuscatePassword?: boolean }) => Promise<XoUser>
+  getUser: (id: XoUser['id'], opts?: { obfuscate?: boolean }) => Promise<XoUser>
   getUserIdentityFields(): string[]
   getEsxiInventory(params: EsxiConnectionParams): Promise<VmwareInventory>
   getXapi(maybeId: XapiXoRecord['id'] | XapiXoRecord): Xapi

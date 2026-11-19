@@ -60,7 +60,7 @@ const log = createLogger('xo:rest-api:user-controller')
 const aclMiddlewareGetUser =
   ({ restApi }) =>
   (id: XoUser['id']) =>
-    restApi.xoApp.getUser(id, { obfuscatePassword: true })
+    restApi.xoApp.getUser(id, { obfuscate: true })
 
 @Route('users')
 @Security('*')
@@ -76,11 +76,11 @@ export class UserController extends XoController<XoUser> {
 
   // --- abstract methods
   async getAllCollectionObjects(): Promise<XoUser[]> {
-    return this.restApi.xoApp.getAllUsers({ obfuscatePassword: true })
+    return this.restApi.xoApp.getAllUsers({ obfuscate: true })
   }
 
   async getCollectionObject(id: XoUser['id']): Promise<XoUser> {
-    return this.restApi.xoApp.getUser(id, { obfuscatePassword: true })
+    return this.restApi.xoApp.getUser(id, { obfuscate: true })
   }
 
   /**

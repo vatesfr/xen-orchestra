@@ -20,7 +20,7 @@ export const partialUsers = [
 export const user = {
   email: 'admin@admin.net',
   permission: 'admin',
-  pw_hash: '***obfuscated***',
+  pw_hash: 'obfuscated-q3oi6d9X8uenGvdLnHk2',
   groups: ['7d98fee4-3357-41a7-ac3f-9124212badb7', '7981ba62-c395-4546-bfa4-d1261653a77f'],
   name: 'admin@admin.net',
   firstname: 'Ada',

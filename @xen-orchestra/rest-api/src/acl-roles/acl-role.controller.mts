@@ -481,7 +481,7 @@ export class AclRoleController extends XoController<XoAclRole> {
         ? []
         : await Promise.all(
             role.userIds.map(userId =>
-              this.restApi.xoApp.getUser(userId, { obfuscatePassword: true }).catch(err => {
+              this.restApi.xoApp.getUser(userId, { obfuscate: true }).catch(err => {
                 log.warn(`cannot resolve user: ${userId}`, err)
                 // if the user is not resolvable (E.g. not properly removed) do not hide it (as even if it doesn't exist, it is attached, so need to be cleaned)
                 return { id: userId } as XoUser

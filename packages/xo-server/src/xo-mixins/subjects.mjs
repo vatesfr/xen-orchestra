@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import filter from 'lodash/filter.js'
 import uniqBy from 'lodash/uniqBy.js'
 import { createLogger } from '@xen-orchestra/log'
+import Obfuscate from '@vates/obfuscate'
 import { ignoreErrors } from 'promise-toolbox'
 import { hash, needsRehash, verify } from 'hashy'
 import { invalidCredentials, noSuchObject, objectAlreadyExists } from 'xo-common/api-errors.js'
@@ -80,7 +81,7 @@ export default class {
       app.hooks.emit('registerCollection', {
         collection: usersDb,
         type: 'user',
-        decorate: user => this.#normalizeUser(user, { obfuscatePassword: true }),
+        decorate: user => this.#normalizeUser(user, { obfuscate: true }),
       })
 
       app.addConfigManager(
@@ -279,17 +280,27 @@ export default class {
 
   // TODO: this method will no longer be async when users are
   // integrated to the main collection.
-  async getUser(id, { obfuscatePassword = false } = {}) {
+  async getUser(id, { obfuscate = false } = {}) {
     const user = await this._getUser(id)
 
-    return this.#normalizeUser(user, { obfuscatePassword })
+    return this.#normalizeUser(user, { obfuscate })
   }
 
-  #normalizeUser(user, { obfuscatePassword = false } = {}) {
-    const normalizedUser = { ...user }
+  #normalizeUser(user, { obfuscate = false } = {}) {
+    const normalizedUser = structuredClone(user)
 
-    if (normalizedUser.pw_hash !== undefined && obfuscatePassword) {
-      normalizedUser.pw_hash = '***obfuscated***'
+    if (obfuscate) {
+      if (normalizedUser.pw_hash !== undefined) {
+        normalizedUser.pw_hash = Obfuscate.OBFUSCATED_VALUE
+      }
+
+      if (normalizedUser.preferences.otp !== undefined) {
+        normalizedUser.preferences.otp = Obfuscate.OBFUSCATED_VALUE
+      }
+
+      if (normalizedUser.preferences.xsCredentials?.apikey !== undefined) {
+        normalizedUser.preferences.xsCredentials.apikey = Obfuscate.OBFUSCATED_VALUE
+      }
     }
 
     if (!('name' in user)) {
@@ -299,11 +310,11 @@ export default class {
     return normalizedUser
   }
 
-  async getAllUsers({ obfuscatePassword = false } = {}) {
+  async getAllUsers({ obfuscate = false } = {}) {
     const users = await this._users.get()
 
     return users.map(user => {
-      return this.#normalizeUser(user, { obfuscatePassword })
+      return this.#normalizeUser(user, { obfuscate })
     })
   }
 
