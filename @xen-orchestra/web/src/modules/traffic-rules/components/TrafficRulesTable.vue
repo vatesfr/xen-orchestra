@@ -46,10 +46,10 @@
 import { useXoNetworkCollection } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
 import { getPoolNetworkRoute } from '@/modules/network/utils/xo-network.util.ts'
 import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
+import TrafficRuleTableActions from '@/modules/traffic-rules/components/actions/TrafficRuleTableActions.vue'
 import { useDirectionLabels } from '@/modules/traffic-rules/composables/direction-labels.composable.ts'
+import { useTrafficRulePolicy } from '@/modules/traffic-rules/composables/traffic-rule-policy.composable.ts'
 import { useTrafficRuleTarget } from '@/modules/traffic-rules/composables/traffic-rule-target.composable.ts'
-import { useTrafficRuleDelete } from '@/modules/traffic-rules/composables/use-traffic-rule-delete.composable.ts'
-import { useTrafficRuleEdit } from '@/modules/traffic-rules/composables/use-traffic-rule-edit.composable.ts'
 import type { EnrichedTrafficRule, RankedTrafficRule } from '@/modules/traffic-rules/types.ts'
 import { getNetworkRules, getTrafficRuleProtocolLabel } from '@/modules/traffic-rules/utils/xo-traffic-rule.util.ts'
 import { XO_LINKS } from '@/shared/constants.ts'
@@ -100,6 +100,8 @@ const selectedRuleId = useRouteQuery('id')
 const getTarget = useTrafficRuleTarget()
 
 const getDirectionLabels = useDirectionLabels()
+
+const getPolicy = useTrafficRulePolicy()
 
 const { getNetworkById, useGetNetworkById } = useXoNetworkCollection()
 
@@ -166,11 +168,6 @@ const { HeadCells, BodyCells } = useTrafficRulesColumns({
       network.value ? getPoolNetworkRoute(network.value.$pool, network.value.id) : undefined
     )
 
-    const { deleteTrafficRules, canDeleteTrafficRules, isDeletingTrafficRules, deleteTrafficRulesErrorMessage } =
-      useTrafficRuleDelete(() => [rule])
-
-    const { editTrafficRule, canEditTrafficRule, isEditingTrafficRule } = useTrafficRuleEdit(() => rule)
-
     return {
       network: r =>
         r({
@@ -179,7 +176,11 @@ const { HeadCells, BodyCells } = useTrafficRulesColumns({
           to: networkTo.value,
         }),
       priority: r => r(`${rule.rank}/${rule.networkRuleCount}`),
-      policy: r => r(t(rule.allow ? 'allow' : 'drop'), rule.allow ? 'success' : 'danger'),
+      policy: r => {
+        const policy = getPolicy(rule)
+
+        return r(policy.label, policy.accent)
+      },
       protocol: r => r(getTrafficRuleProtocolLabel(rule)),
       directionA: r => r(rule.directionA),
       target: r => r(rule.ipRange),
@@ -188,24 +189,8 @@ const { HeadCells, BodyCells } = useTrafficRulesColumns({
       actions: r =>
         r({
           onClick: () => (selectedRuleId.value = rule.id),
-          actions: [
-            {
-              label: t('action:edit'),
-              icon: 'action:edit',
-              onClick: () => editTrafficRule(),
-              busy: isEditingTrafficRule.value,
-              disabled: !canEditTrafficRule.value,
-            },
-            {
-              label: t('action:delete'),
-              icon: 'action:delete',
-              onClick: () => deleteTrafficRules(),
-              disabled: !canDeleteTrafficRules.value,
-              busy: isDeletingTrafficRules.value,
-              hint: deleteTrafficRulesErrorMessage.value,
-              accent: 'danger',
-            },
-          ],
+          component: TrafficRuleTableActions,
+          props: { rule, rules: rawRules, showEditOrder: showPriority },
         }),
     }
   },

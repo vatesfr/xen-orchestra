@@ -2,7 +2,7 @@
   <VtsStateHero class="vts-success-state-hero" type="all-good" format="card" size="medium">
     <div class="container">
       <div v-if="slots.title" class="typo-h1 title"><slot name="title" /></div>
-      <div class="content" :class="{ mobile: uiStore.isSmall, desktop: !uiStore.isLarge }">
+      <div class="content" :class="{ mobile: uiStore.isSmall, medium: !uiStore.isSmall && !uiStore.isLarge }">
         <UiAlert accent="success"><slot /></UiAlert>
         <div class="action-buttons" :class="{ mobile: uiStore.isSmall }">
           <slot name="actions" />
@@ -46,7 +46,7 @@ const uiStore = useUiStore()
     margin: 0 auto;
     width: 65%;
 
-    &.desktop {
+    &.medium {
       width: 80%;
     }
 
@@ -57,6 +57,7 @@ const uiStore = useUiStore()
     .action-buttons {
       display: flex;
       justify-content: center;
+      align-items: center;
       gap: 2.4rem;
 
       &.mobile {

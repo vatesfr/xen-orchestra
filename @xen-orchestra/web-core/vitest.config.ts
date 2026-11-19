@@ -13,6 +13,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@core': fileURLToPath(new URL('./lib', import.meta.url)),
+      '@core-test': fileURLToPath(new URL('./test', import.meta.url)),
     },
   },
   test: {

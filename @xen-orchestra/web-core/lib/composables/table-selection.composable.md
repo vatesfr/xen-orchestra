@@ -12,10 +12,31 @@ The selection is stored by item ID, so it is kept when changing page or filter.
 | `filteredItems` | `MaybeRefOrGetter<TItem[]>` | The items matching the current filter                        |
 | `pageItems`     | `MaybeRefOrGetter<TItem[]>` | The items displayed on the current page                      |
 | `getItemId`     | `(item: TItem) => TId`      | Returns the ID of an item (`TId` extends `CollectionItemId`) |
+| `selectedIds`   | `Ref<TId[]>`                | Optional ref holding the selected IDs (see below)            |
 
 `filteredItems` and `pageItems` must contain items of the same type as `items`. Only their IDs are used.
 
 The returned IDs keep the type `getItemId` returns (a branded ID stays branded).
+
+### `selectedIds`
+
+Without it, the selection is kept by the composable and starts empty.
+
+With it, the selection is read from and written to the given ref (a `defineModel` for example): its value when the composable is called is the initial selection, and it can be changed from outside.
+
+```typescript
+const selectedVmIds = defineModel<Vm['id'][]>('selectedVmIds', { required: true })
+
+const { pageSelectionModel, isSelected, toggleSelection, selectionBindings } = useTableSelection({
+  items: () => vms.value,
+  filteredItems: filteredVms,
+  pageItems: paginatedVms,
+  getItemId: vm => vm.id,
+  selectedIds: selectedVmIds,
+})
+```
+
+IDs that match no item of `items` are kept in the ref, so the selection can be set before the items are loaded. They are ignored by the returned values.
 
 ## Returned values
 

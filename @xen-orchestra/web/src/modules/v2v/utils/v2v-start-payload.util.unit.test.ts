@@ -23,17 +23,28 @@ function createRefusedLaunchError(errors: unknown) {
 }
 
 describe('buildV2vStartPayload', () => {
-  it('sends the connection, the launch settings and the list defaults, never starting nor cleaning up the VMs', () => {
+  it('sends the connection, the launch settings and the list defaults', () => {
     const payload = createV2vStartPayload({
       settings: createV2vLaunchSettings({ stopSource: false, stopOnError: false, concurrency: 4 }),
     })
 
     expect(payload).toMatchObject({
       connection: createV2vConnection(),
-      defaults: { ...createV2vDestinationDefaults(), stopSource: false, startVm: false, cleanup: false },
+      defaults: {
+        ...createV2vDestinationDefaults(),
+        stopSource: false,
+        docking: false,
+        startVm: false,
+      },
       stopOnError: false,
       concurrency: 4,
     })
+  })
+
+  it('sends docking the guests and starting the VMs when the launch settings ask for it', () => {
+    const payload = createV2vStartPayload({ settings: createV2vLaunchSettings({ docking: true, startVm: true }) })
+
+    expect(payload.defaults).toMatchObject({ stopSource: true, docking: true, startVm: true })
   })
 
   it('sends a new VM with its mapping overrides only', () => {
@@ -52,9 +63,15 @@ describe('buildV2vStartPayload', () => {
     ])
   })
 
-  it.each([true, false])('sends the stop source override (%s) of a VM', stopSource => {
-    expect(createV2vStartPayload({ vms: [createV2vStartVm({ overrides: { stopSource } })] }).vms).toEqual([
-      { id: 'vm-1', stopSource, tags: [], keepMac: true },
+  it.each([
+    { stopSource: true },
+    { stopSource: false },
+    { docking: true },
+    { startVm: true },
+    { stopSource: true, docking: true, startVm: false },
+  ])('sends the launch overrides %o of a VM', overrides => {
+    expect(createV2vStartPayload({ vms: [createV2vStartVm({ overrides })] }).vms).toEqual([
+      { id: 'vm-1', ...overrides, tags: [], keepMac: true },
     ])
   })
 

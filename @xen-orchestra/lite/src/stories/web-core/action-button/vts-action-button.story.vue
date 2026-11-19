@@ -20,8 +20,8 @@
     ]"
   >
     <MenuList v-if="settings.inMenu" placement="bottom-start">
-      <template #trigger="{ open }">
-        <UiButtonIcon accent="brand" icon="action:more-actions" size="medium" @click="open($event)" />
+      <template #trigger="{ open, bindings }">
+        <UiButtonIcon v-bind="bindings" accent="brand" icon="action:more-actions" size="medium" @click="open($event)" />
       </template>
       <VtsActionButton v-bind="properties">{{ settings.label }}</VtsActionButton>
     </MenuList>

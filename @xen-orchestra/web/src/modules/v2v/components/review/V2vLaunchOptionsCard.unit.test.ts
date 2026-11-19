@@ -1,5 +1,4 @@
 import V2vLaunchOptionsCard from '@/modules/v2v/components/review/V2vLaunchOptionsCard.vue'
-import V2vPreviewLabel from '@/modules/v2v/components/review/V2vPreviewLabel.vue'
 import FormCheckbox from '@/shared/components/form/FormCheckbox.vue'
 import { findAccentedInfos } from '@/test/find-accented-labels.ts'
 import { findCardTitle } from '@/test/find-card-title.ts'
@@ -16,6 +15,8 @@ function mountCard() {
   const wrapper = mount(V2vLaunchOptionsCard, {
     props: {
       stopSourceCheckboxBindings: form.stopSourceCheckboxBindings,
+      dockingCheckboxBindings: form.dockingCheckboxBindings,
+      startVmCheckboxBindings: form.startVmCheckboxBindings,
       stopOnErrorCheckboxBindings: form.stopOnErrorCheckboxBindings,
       concurrencyInputBindings: form.concurrencyInputBindings,
     },
@@ -41,29 +42,14 @@ it('shows its title and that the options apply to every VM unless overridden', (
   expect(findCardTitle(mountCard().wrapper)).toBe(`${t('default-options')} ${t('v2v:default-options-info')}`)
 })
 
-it('shows stopping the source VM first and stopping on error last, bound to the form', () => {
+it('shows stopping the source VM, docking the guest, starting the VM then stopping on error, bound to the form', () => {
   const { wrapper, form } = mountCard()
-  const [stopSource, , , stopOnError] = findCheckboxes(wrapper)
-
-  expect([stopSource, stopOnError]).toEqual([
+  expect(findCheckboxes(wrapper)).toEqual([
     { ...pickCheckboxBindings(form.stopSourceCheckboxBindings), disabled: false },
+    { ...pickCheckboxBindings(form.dockingCheckboxBindings), disabled: false },
+    { ...pickCheckboxBindings(form.startVmCheckboxBindings), disabled: false },
     { ...pickCheckboxBindings(form.stopOnErrorCheckboxBindings), disabled: false },
   ])
-})
-
-it('shows starting then cleaning up the VM in between, off and disabled, as not supported yet', () => {
-  const [, startVm, cleanup] = findCheckboxes(mountCard().wrapper)
-
-  expect([startVm, cleanup]).toEqual([
-    { label: t('v2v:start-vm-on-xcp-ng'), info: t('not-supported-yet'), modelValue: false, disabled: true },
-    { label: t('v2v:clean-up-vm'), info: t('not-supported-yet'), modelValue: false, disabled: true },
-  ])
-})
-
-it('tags cleaning up the VM as a preview', () => {
-  expect(mountCard().wrapper.getComponent(V2vPreviewLabel).getComponent(FormCheckbox).props('label')).toBe(
-    t('v2v:clean-up-vm')
-  )
 })
 
 it('tells the tags and the Keep MAC addresses option are not applied yet', () => {
@@ -75,13 +61,16 @@ it('tells the tags and the Keep MAC addresses option are not applied yet', () =>
 
 it.each([
   ['stop the source VM', 'v2v:stop-source-vm', 'stopSource'],
+  ['dock the guest', 'v2v:docking-vm', 'docking'],
+  ['start the VM', 'v2v:start-vm-on-xcp-ng', 'startVm'],
   ['stop on error', 'stop-on-error', 'stopOnError'],
 ] as const)('sets in the form whether to %s', async (_, labelKey, field) => {
   const { wrapper, form } = mountCard()
+  const value = !form.formData[field]
 
-  await getCheckbox(wrapper, t(labelKey)).setValue(false)
+  await getCheckbox(wrapper, t(labelKey)).setValue(value)
 
-  expect(form.formData[field]).toBe(false)
+  expect(form.formData[field]).toBe(value)
 })
 
 it('shows the concurrency input of the form', () => {

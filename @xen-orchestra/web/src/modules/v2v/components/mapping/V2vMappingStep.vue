@@ -11,7 +11,9 @@
         </UiButton>
       </V2vWizardStepActions>
     </div>
-    <V2vVmSidePanel :vm="selectedVm" :update-vm @close="close()" @remove="id => remove(id)" />
+    <template #panel>
+      <V2vVmSidePanel :vm="selectedVm" :update-vm @close="close()" @remove="id => remove(id)" />
+    </template>
   </VtsContentSidePanel>
 </template>
 

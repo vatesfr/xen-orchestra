@@ -10,7 +10,7 @@
   },
   "version": "0.78.0",
   "engines": {
-    "node": ">=14.18"
+    "node": ">=22.19"
   },
   "scripts": {
     "postversion": "npm publish --access public",

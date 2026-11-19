@@ -12,7 +12,7 @@
         </VtsRow>
       </tbody>
     </VtsTable>
-    <VtsFlagLegend v-if="flaggedRows.length > 0">{{ t('vifs-must-be-reassigned') }}</VtsFlagLegend>
+    <UiOverridden v-if="flaggedRows.length > 0">{{ t('vifs-must-be-reassigned') }}</UiOverridden>
     <VtsErrorList v-if="showErrors && flaggedRows.length > 0">
       <li v-for="row in flaggedRows" :key="row.vif.id">
         {{ t('vif-destination-network-required', { name: row.sourceNetwork?.name_label ?? row.vif.MAC }) }}
@@ -26,9 +26,9 @@ import type { FrontXoNetwork } from '@/modules/network/remote-resources/use-xo-n
 import { useXoPifCollection } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
 import type { VmMigrateVifRow } from '@/modules/vm/form/migrate/use-vm-migrate-mapping-form.ts'
 import VtsErrorList from '@core/components/error-list/VtsErrorList.vue'
-import VtsFlagLegend from '@core/components/table/VtsFlagLegend.vue'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
+import UiOverridden from '@core/components/ui/overridden/UiOverridden.vue'
 import { usePagination } from '@core/composables/pagination.composable.ts'
 import { useTableState } from '@core/composables/table-state.composable.ts'
 import { useFormSelect } from '@core/packages/form-select'

@@ -5,16 +5,18 @@
   </VtsStateHero>
   <template v-else>
     <PluginHeader v-if="uiStore.hasUi" :key="plugin.id" :plugin />
-    <div :key="plugin.id" class="container">
-      <UiAlert v-if="!plugin.configured" accent="warning">{{ t('plugin:needs-configuration') }}</UiAlert>
-      <VtsColumns>
-        <VtsColumn>
-          <PluginGeneralInfo :plugin />
-        </VtsColumn>
-        <VtsColumn>
-          <PluginConfigurationDetail :plugin />
-        </VtsColumn>
-      </VtsColumns>
+    <div :key="plugin.id" class="scroll-container">
+      <div class="container">
+        <UiAlert v-if="!plugin.configured" accent="warning">{{ t('plugin:needs-configuration') }}</UiAlert>
+        <VtsColumns>
+          <VtsColumn>
+            <PluginGeneralInfo :plugin />
+          </VtsColumn>
+          <VtsColumn>
+            <PluginConfigurationDetail :plugin />
+          </VtsColumn>
+        </VtsColumns>
+      </div>
     </div>
   </template>
 </template>
@@ -47,6 +49,12 @@ const plugin = useGetPluginById(() => route.params.id as FrontXoPlugin['id'])
 </script>
 
 <style scoped lang="postcss">
+.scroll-container {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
 .container {
   display: flex;
   flex-direction: column;

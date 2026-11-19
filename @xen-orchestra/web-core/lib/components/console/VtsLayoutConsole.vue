@@ -21,9 +21,11 @@ const uiStore = useUiStore()
 
 <style lang="postcss" scoped>
 .vts-layout-console {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
   display: flex;
   gap: 0.8rem;
-  height: 100%;
   padding: 0.8rem;
 
   &.mobile {

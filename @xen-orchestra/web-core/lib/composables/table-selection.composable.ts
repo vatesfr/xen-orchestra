@@ -1,6 +1,6 @@
 import { type CollectionItemId, useCollection } from '@core/packages/collection'
 import { useArrayMap } from '@vueuse/core'
-import { computed, type MaybeRefOrGetter, toValue } from 'vue'
+import { computed, type MaybeRefOrGetter, type Ref, toValue } from 'vue'
 
 export type SelectionBindings = {
   selectedCount: number
@@ -18,6 +18,7 @@ export function useTableSelection<TItem, TId extends CollectionItemId>(config: {
   filteredItems: MaybeRefOrGetter<NoInfer<TItem>[]>
   pageItems: MaybeRefOrGetter<NoInfer<TItem>[]>
   getItemId: (item: TItem) => TId
+  selectedIds?: Ref<NoInfer<TId>[]>
 }) {
   const filteredIds = computed(
     () => new Set<CollectionItemId>(toValue(config.filteredItems).map(item => config.getItemId(item)))
@@ -29,7 +30,7 @@ export function useTableSelection<TItem, TId extends CollectionItemId>(config: {
 
   const { useFlag, useSubset, clearFlag } = useCollection(config.items, {
     itemId: config.getItemId,
-    flags: { selected: true },
+    flags: { selected: { ids: config.selectedIds } },
   })
 
   const selectionFlag = useFlag('selected')

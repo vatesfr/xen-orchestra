@@ -26,10 +26,15 @@ const { currentStep, summary, poolId } = useV2vWizard()
 
 <style lang="postcss" scoped>
 .v2v-migration-wizard {
+  flex: 1;
+  min-height: 0;
   display: flex;
   flex-direction: column;
 
   .content {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
     padding: 1.6rem;
   }
 }
