@@ -6,6 +6,6 @@ export interface UpdateUserRequestBody {
   name?: string
   password?: string
   permission?: XoUser['permission']
-  preferences?: Record<string, string>
+  preferences?: Omit<XoUser['preferences'], 'otp'>
   username?: string
 }

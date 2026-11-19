@@ -24,6 +24,7 @@ import {
   invalidParameters as invalidParametersError,
 } from 'xo-common/api-errors.js'
 import { verifyTotp } from '@vates/otp'
+import { merge } from '@vates/obfuscate'
 import { inject } from 'inversify'
 import { json, type Request as ExRequest } from 'express'
 import { provide } from 'inversify-binding-decorators'
@@ -145,6 +146,9 @@ export class UserController extends XoController<XoUser> {
   /**
    * You cannot change your own `permission` (even with the right privilege)
    *
+   * `preferences` replaces all the existing preferences, except OTP (see the `enable_otp` and `disable_otp` actions).
+   * Obfuscated values (e.g. `xsCredentials.apikey`) can be sent back as is to keep them unchanged
+   *
    * Required privileges:
    * - resource: user, action: update (grants all fields)
    * - resource: user, action: update:firstname (if firstname is passed)
@@ -160,7 +164,7 @@ export class UserController extends XoController<XoUser> {
    *   "name": "updated user name",
    *   "password": "newP4ssword",
    *   "permission": "admin",
-   *   "preferences": {}
+   *   "preferences": { "sshKeys": [{ "key": "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAI...", "title": "laptop" }] }
    *  }
    */
   @Extension('x-mcp-exposure', 'confirm')
@@ -203,7 +207,21 @@ export class UserController extends XoController<XoUser> {
       }
     }
 
-    await this.restApi.xoApp.updateUser(user.id, body)
+    let preferences: Record<string, unknown> | undefined
+    if (body.preferences !== undefined) {
+      const { preferences: currentPreferences } = await this.restApi.xoApp.getUser(user.id)
+
+      // replace all preferences, except OTP which is managed by the enable_otp and disable_otp actions
+      preferences = Object.fromEntries(
+        Object.keys(currentPreferences)
+          .filter(key => key !== 'otp')
+          .map(key => [key, null])
+      )
+      // restore the obfuscated values sent back by the client
+      Object.assign(preferences, merge(body.preferences, currentPreferences))
+    }
+
+    await this.restApi.xoApp.updateUser(user.id, { ...body, preferences })
   }
 
   /**

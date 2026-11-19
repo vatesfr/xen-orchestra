@@ -864,7 +864,13 @@ export type XoUser = {
   name?: string
   permission: 'none' | 'admin'
   pw_hash?: string
-  preferences: Record<string, string>
+  preferences: {
+    defaultHomeFilters?: { [type: string]: string }
+    filters?: { [type: string]: { [name: string]: string } }
+    sshKeys?: { key: string; title: string }[]
+    xsCredentials?: { apikey: string; username: string }
+    otp?: string
+  }
   username?: string
 }
 
