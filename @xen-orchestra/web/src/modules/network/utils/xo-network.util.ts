@@ -46,6 +46,15 @@ export function getNetworkIcon(pifs: FrontXoPif[]): IconName {
   return objectIcon('network', getNetworkStatus(pifs))
 }
 
+// The VLAN of the network's first PIF: -1 when it has no VLAN, undefined when the network has no PIF
+export function getNetworkVlan(pifs: FrontXoPif[]): number | undefined {
+  return pifs[0]?.vlan
+}
+
+export function getNetworkDefaultLockingModeKey(network: FrontXoNetwork) {
+  return network.defaultIsLocked ? 'disabled' : 'unlocked'
+}
+
 export function getNetworkType(network: FrontXoNetwork): NetworkType {
   if (isPrivateNetwork(network)) {
     return NETWORK_TYPE.PRIVATE

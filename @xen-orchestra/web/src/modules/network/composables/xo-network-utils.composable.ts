@@ -2,8 +2,10 @@ import { type FrontXoHost, useXoHostCollection } from '@/modules/host/remote-res
 import type { FrontXoNetwork } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
 import {
   ENCAPSULATION_LABELS,
+  getNetworkDefaultLockingModeKey,
   getNetworkEncapsulation,
   getNetworkType,
+  getNetworkVlan,
   isEncryptedNetwork,
   NETWORK_TYPE,
 } from '@/modules/network/utils/xo-network.util.ts'
@@ -25,16 +27,20 @@ export function useXoNetworkUtils(rawNetwork: MaybeRefOrGetter<FrontXoNetwork | 
   const pifs = computed(() => (network.value !== undefined ? getPifsByNetworkId(network.value.id) : []))
 
   const networkVlan = computed(() => {
-    if (pifs.value.length === 0) {
+    const vlan = getNetworkVlan(pifs.value)
+
+    if (vlan === undefined) {
       return
     }
 
-    return pifs.value[0].vlan !== -1 ? pifs.value[0].vlan.toString() : t('none')
+    return vlan !== -1 ? vlan.toString() : t('none')
   })
 
   const networkNbd = computed(() => (network.value?.nbd ? t('on') : t('off')))
 
-  const networkDefaultLockingMode = computed(() => (network.value?.defaultIsLocked ? t('disabled') : t('unlocked')))
+  const networkDefaultLockingMode = computed(() =>
+    network.value !== undefined ? t(getNetworkDefaultLockingModeKey(network.value)) : t('unlocked')
+  )
 
   const networkType = computed(() => (network.value !== undefined ? getNetworkType(network.value) : undefined))
 

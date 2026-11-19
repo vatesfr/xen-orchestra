@@ -42,6 +42,7 @@ import { compareStrings } from '@core/utils/compare-strings.util.ts'
 import { sortByNameDescription } from '@core/utils/sort-by-name-description.util.ts'
 import { sortByNameLabel } from '@core/utils/sort-by-name-label.util.ts'
 import { shouldShowTargetCount } from '@core/utils/sr.utils.ts'
+import { getUsageRatio } from '@core/utils/usage-ratio.util.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -95,8 +96,6 @@ function getPrimaryIcon(sr: XenApiSr) {
     tooltip: t('default-storage-repository'),
   }
 }
-
-const getUsageRatio = (sr: XenApiSr) => (sr.physical_size === 0 ? 0 : sr.physical_utilisation / sr.physical_size)
 
 const { HeadCells, BodyCells, sortItems } = useSrColumns({
   id: 'srs',
@@ -185,7 +184,9 @@ const { HeadCells, BodyCells, sortItems } = useSrColumns({
     description: sortByNameDescription,
     storageFormat: (sr1, sr2) => compareStrings(sr1.type, sr2.type),
     accessMode: (sr1, sr2) => Number(sr1.shared) - Number(sr2.shared),
-    usedSpace: (sr1, sr2) => getUsageRatio(sr1) - getUsageRatio(sr2),
+    usedSpace: (sr1, sr2) =>
+      getUsageRatio(sr1.physical_utilisation, sr1.physical_size) -
+      getUsageRatio(sr2.physical_utilisation, sr2.physical_size),
   },
   initialSort: { id: 'storageRepository', direction: 'asc' },
 })
