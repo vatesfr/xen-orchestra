@@ -10,7 +10,7 @@ This page explains what the SDN controller does and how it builds its networks. 
 
 An SDN controller (Software-Defined Networking controller) manages software network switches from a central place. Each XCP-ng host runs its own virtual switch, Open vSwitch (OVS). A single OVS bridge works well on its own, but to build a network that spans several hosts, someone has to configure all their bridges together, and keep them consistent when hosts and VMs come and go.
 
-In Xen Orchestra, that someone is the **SDN controller plugin** (included in XOA Premium). It runs inside `xo-server`, so there is no extra appliance to deploy, and it provides:
+In Xen Orchestra, that someone is the **SDN controller plugin**. On XOA, it requires a Vates VMS subscription that includes it. It runs inside `xo-server`, so there is no extra appliance to deploy, and it provides:
 
 - **Private networks**, pool-wide or cross-pool: one isolated layer 2 network for VMs spread across several hosts, and even across pools in different locations.
 - **Encryption** of these networks, with IPsec.

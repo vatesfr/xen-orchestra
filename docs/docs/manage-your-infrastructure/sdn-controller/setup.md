@@ -14,7 +14,7 @@ Check these before you start: the encapsulation, the encryption and the MTU are 
 
 ### Xen Orchestra {#requirements-xo}
 
-- The SDN controller plugin is included in **XOA Premium**.
+- On XOA, the SDN controller plugin requires a **Vates VMS subscription** that includes it.
 - **Enable the plugin on only one Xen Orchestra instance.** Two controllers managing the same pools would fight over the same Open vSwitch bridges.
 
 ### Network connectivity {#connectivity}
