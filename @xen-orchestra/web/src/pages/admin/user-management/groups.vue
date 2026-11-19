@@ -7,7 +7,9 @@
       </UiCard>
     </div>
 
-    <GroupSidePanel :group="selectedGroup" @close="selectedGroup = undefined" />
+    <template #panel>
+      <GroupSidePanel :group="selectedGroup" @close="selectedGroup = undefined" />
+    </template>
   </VtsContentSidePanel>
 </template>
 
