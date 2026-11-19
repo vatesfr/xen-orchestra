@@ -21,8 +21,8 @@ $ xo-disk-cli --help
 Usage: xo-disk-cli <command> <handler-url> <path> [options]
 
 Commands:
-  info       Show disk info (virtual size, uid, parent uid, block size); --chain shows the full parent chain, --size adds the size on disk
-  list       List all disks at a path and display their properties in a table; --size adds the size on disk
+  info       Show disk info (virtual size, uid, parent uid, block size); --chain shows the full parent chain, --size adds the stream size
+  list       List all disks at a path and display their properties in a table; --size adds the stream size
   transform  Convert a disk to another format and write to stdout (raw | vhd | qcow2)
 ```
 
@@ -48,8 +48,8 @@ Disk info: /xo-vm-backups/<vm-uuid>/vdis/<vdi-uuid>/snapshot.vhd
 ```
 
 By default the disk is opened without reading its block allocation table, which
-is cheap but does not allow computing the size on disk. Pass `--size` to read
-the block allocation table and print the size on disk as an extra line:
+is cheap but does not allow computing the stream size. Pass `--size` to read
+the block allocation table and print the stream size as an extra line:
 
 ```
 $ xo-disk-cli info file:///mnt/backups /xo-vm-backups/<vm-uuid>/vdis/<vdi-uuid>/snapshot.vhd --size
@@ -58,7 +58,7 @@ Disk info: /xo-vm-backups/<vm-uuid>/vdis/<vdi-uuid>/snapshot.vhd
   Parent UID:   <parent-uuid>
   Virtual size: 8.00 GiB (8589934592 bytes)
   Block size:   2.00 MiB (2097152 bytes)
-  Size on disk: 128.00 MiB (134217728 bytes)
+  Stream size: 128.00 MiB (134217728 bytes)
 ```
 
 With `--chain`, the disk's full parent chain is opened and each disk is printed
@@ -91,7 +91,7 @@ xo-disk-cli list <handler-url> <dir-path> [--size]
 ```
 
 By default disks are opened without reading their block allocation table (cheap),
-so the "Size on disk" column is omitted:
+so the "Stream size" column is omitted:
 
 ```
 $ xo-disk-cli list file:///mnt/backups /xo-vm-backups/<vm-uuid>/vdis/<vdi-uuid>/
@@ -103,12 +103,12 @@ $ xo-disk-cli list file:///mnt/backups /xo-vm-backups/<vm-uuid>/vdis/<vdi-uuid>/
 └──────────────┴──────────────────────────────────────┴──────────────┴─────────────┴──────────────────────────────────────┘
 ```
 
-Pass `--size` to read each disk's block allocation table and add the "Size on disk" column:
+Pass `--size` to read each disk's block allocation table and add the "Stream size" column:
 
 ```
 $ xo-disk-cli list file:///mnt/backups /xo-vm-backups/<vm-uuid>/vdis/<vdi-uuid>/ --size
 ┌──────────────┬──────────────────────────────────────┬─────────────┬──────────────┬─────────────┬──────────────────────────────────────┐
-│ File         │ UID                                  │ Size on disk│ Virtual size │ Differencing │ Parent UID                           │
+│ File         │ UID                                  │ Stream size │ Virtual size │ Differencing │ Parent UID                           │
 ├──────────────┼──────────────────────────────────────┼─────────────┼──────────────┼─────────────┼──────────────────────────────────────┤
 │ base.vhd     │ xxxxxxxx-...                         │ 1.20 GiB    │ 8.00 GiB     │ no          │ (none)                               │
 │ snapshot.vhd │ yyyyyyyy-...                         │ 128.00 MiB  │ 8.00 GiB     │ yes         │ ↑                                    │

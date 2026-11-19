@@ -43,7 +43,7 @@ export type ResolvedBackupCleanOptions = BackupCleanOptions & {
 export interface ArchiveCleanOptions {
   remove?: boolean
   merge?: boolean
-  mergedSizes?: Map<string, number>
+  mergedDisks?: Map<string, MergedDisk>
 }
 
 export interface CheckResult {
@@ -64,7 +64,7 @@ export type CleanResult = {
   changedFiles?: string[]
   merge?: boolean
   size?: number
-  mergedSizes?: Map<string, number>
+  mergedDisks?: Map<string, MergedDisk>
 }
 
 export interface VmBackupInterface {
@@ -78,4 +78,9 @@ export interface VmBackupInterface {
   check(): Promise<CheckResult>
   clean(opts?: ArchiveCleanOptions): Promise<CleanResult>
   getAssociatedFiles(opts: object): Array<string>
+}
+
+export type MergedDisk = {
+  sizeOnDisk: number | undefined
+  isDifferencing: boolean | undefined
 }

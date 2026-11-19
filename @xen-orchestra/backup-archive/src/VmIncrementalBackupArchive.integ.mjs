@@ -425,11 +425,19 @@ test('it merges delta of non destroyed chain', async () => {
 })
 
 // a backup of two disks: `a` has an orphan parent to merge, `b` has nothing to merge
-async function writeBackupWithOneDiskToMerge(metadata) {
-  const orphan = await generateVhd(`${basePath}/orphan.vhd`)
+//
+// with `mode: 'directory'`, the disks of `a` are aliased VHD directories written without size.json:
+// their size on disk is unknown
+async function writeBackupWithOneDiskToMerge(metadata, { mode } = {}) {
+  const useAlias = mode === 'directory'
+  const suffix = useAlias ? '.alias.vhd' : ''
+
+  const orphan = await generateVhd(`${basePath}/orphan.vhd`, { mode, useAlias })
   await generateVhd(`${basePath}/child.vhd`, {
+    mode,
+    useAlias,
     header: {
-      parentUnicodeName: 'orphan.vhd',
+      parentUnicodeName: `orphan.vhd${suffix}`,
       parentUuid: orphan.footer.uuid,
     },
     blocks: [0, 1],
@@ -441,7 +449,7 @@ async function writeBackupWithOneDiskToMerge(metadata) {
     JSON.stringify({
       mode: 'delta',
       size: 12000,
-      vhds: { a: `${relativePath}/child.vhd`, b: `${relativePath2}/disk.vhd` },
+      vhds: { a: `${relativePath}/child.vhd${suffix}`, b: `${relativePath2}/disk.vhd` },
       ...metadata,
     })
   )
@@ -485,6 +493,59 @@ test('it records the size on disk of the merged disks of a backup without any', 
 
   assert.equal(metadata.size, 12000, 'metadata.size should not change')
   assert.deepEqual(metadata.vhdsSizeOnDisk, { a: await getDiskSizeOnDisk(`${basePath}/child.vhd`) })
+})
+
+test('it forgets the size on disk of a merged disk whose size is unknown', async () => {
+  // fake values: the one of `a` would be stale after the merge, which adds the blocks of its parent
+  const metadata = await writeBackupWithOneDiskToMerge({ vhdsSizeOnDisk: { a: 1, b: 2 } }, { mode: 'directory' })
+
+  assert.deepEqual(
+    metadata.vhdsSizeOnDisk,
+    { b: 2 },
+    'the size on disk of a merged disk should be removed when unknown, the others should not change'
+  )
+})
+
+test('it keeps differencing a disk merged in the middle of a chain', async () => {
+  // ancestor -> orphan -> child: the ancestor is still used by an older backup, only the orphan is merged
+  const ancestor = await generateVhd(`${basePath}/ancestor.vhd`, { blocks: [0] })
+  const orphan = await generateVhd(`${basePath}/orphan.vhd`, {
+    header: { parentUnicodeName: 'ancestor.vhd', parentUuid: ancestor.footer.uuid },
+    blocks: [1],
+  })
+  await generateVhd(`${basePath}/child.vhd`, {
+    header: { parentUnicodeName: 'orphan.vhd', parentUuid: orphan.footer.uuid },
+    blocks: [2],
+  })
+
+  await handler.writeFile(
+    `${rootPath}/older.json`,
+    JSON.stringify({ mode: 'delta', size: 12000, vhds: { a: `${relativePath}/ancestor.vhd` } })
+  )
+  await handler.writeFile(
+    `${rootPath}/metadata.json`,
+    JSON.stringify({
+      mode: 'delta',
+      size: 12000,
+      vhds: { a: `${relativePath}/child.vhd` },
+      vdis: { a: {} },
+      isVhdDifferencing: { a: true },
+    })
+  )
+
+  await VmBackupDirectory.cleanVm(handler, rootPath, {
+    remove: true,
+    merge: true,
+    logInfo: () => {},
+    logWarn: () => {},
+  })
+
+  const remainingVhds = await handler.list(basePath)
+  assert.equal(remainingVhds.includes('orphan.vhd'), false, 'the orphan should have been merged')
+  assert.equal(remainingVhds.includes('ancestor.vhd'), true, 'the ancestor is still used and should not be merged')
+
+  const metadata = JSON.parse(await handler.readFile(`${rootPath}/metadata.json`))
+  assert.equal(metadata.isVhdDifferencing.a, true, 'the merged disk still has the ancestor as parent')
 })
 
 test('it merges a chain of multiple consecutive orphan ancestors in one pass', async () => {
@@ -830,15 +891,20 @@ describe('tests multiple combination ', { concurrency: 1 }, () => {
         await VmBackupDirectory.cleanVm(handler, rootPath, { remove: true, merge: true, logWarn: () => {} })
 
         const metadata = JSON.parse(await handler.readFile(`${rootPath}/metadata.json`))
-        // merges never change size: they record the size on disk of the disks they merged into, child and clean
+        // merges never change size: they record the size on disk of the disks they merged into, child and clean.
+        // Directory disks without `size.json` stay unknown
         assert.equal(metadata.size, undefined)
         assert.equal(
           metadata.vhdsSizeOnDisk['1'],
-          await getDiskSizeOnDisk(`${basePath}/child.vhd${useAlias ? '.alias.vhd' : ''}`)
+          vhdMode === 'directory'
+            ? undefined
+            : await getDiskSizeOnDisk(`${basePath}/child.vhd${useAlias ? '.alias.vhd' : ''}`)
         )
         assert.equal(
           metadata.vhdsSizeOnDisk['2'],
-          await getDiskSizeOnDisk(`${basePath}/clean.vhd${useAlias ? '.alias.vhd' : ''}`)
+          vhdMode === 'directory'
+            ? undefined
+            : await getDiskSizeOnDisk(`${basePath}/clean.vhd${useAlias ? '.alias.vhd' : ''}`)
         )
         assert.equal(metadata.vhdsSizeOnDisk['0'], undefined)
         // no cache.json.gz existed before this run, so a merge must not create one

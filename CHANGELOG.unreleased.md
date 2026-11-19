@@ -37,6 +37,5 @@
 - @xen-orchestra/qa-test minor
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/web minor
-- vhd-lib minor
 
 <!--packages-end-->

@@ -10,7 +10,6 @@ const { synchronized } = require('decorator-synchronized')
 const promisify = require('promise-toolbox/promisify')
 const zlib = require('zlib')
 const { removeZeroPages, restoreZeroPages } = require('./_zeroFilter')
-const { asyncEach } = require('@vates/async-each')
 
 const { debug, warn } = createLogger('vhd-lib:VhdDirectory')
 
@@ -357,7 +356,7 @@ exports.VhdDirectory = class VhdDirectory extends VhdAbstract {
         // won't detect if the block was already in parent and is broken/missing in child
 
         // the size of the block it replaced is unknown: return 0,
-        // the caller recomputes the size of a resumed merge
+        // the size of a resumed merge is unknown
         const { data } = await this.readBlock(blockId)
         assert.strictEqual(data.length, this.header.blockSize)
         setBitmap(this.#blockTable, blockId)
@@ -448,9 +447,9 @@ exports.VhdDirectory = class VhdDirectory extends VhdAbstract {
     this.#compressor = getCompressor(chunkFilters[0])
   }
 
-  async saveSize({ recompute = false } = {}) {
-    if (recompute || (await this.readSizeOnDisk()) === undefined) {
-      await this.#computeSizeOnDisk()
+  async saveSize() {
+    if ((await this.readSizeOnDisk()) === undefined) {
+      return undefined
     }
 
     await this.#writeSize()
@@ -519,42 +518,6 @@ exports.VhdDirectory = class VhdDirectory extends VhdAbstract {
     if (this.#blocksSizeOnDisk === undefined) {
       return undefined
     }
-
-    return this.#totalSizeOnDisk()
-  }
-
-  async #computeSizeOnDisk() {
-    const blockPaths = []
-    const groups = await this._handler.list(this.#getChunkPath('blocks'), { prependDir: true, ignoreMissing: true })
-    for (const group of groups) {
-      const files = await this._handler.list(group, { prependDir: true })
-      blockPaths.push(...files)
-    }
-
-    let sizeOnDisk = 0
-    await asyncEach(
-      blockPaths,
-      async path => {
-        const size = await this._handler.getSizeOnDisk(path)
-        sizeOnDisk += size
-      },
-      { concurrency: 16 }
-    )
-
-    const metadataFilesSizes = new Map()
-    const metadataFiles = await this._handler.list(this._path)
-    for (const metadataFile of metadataFiles) {
-      if (metadataFile !== 'blocks' && metadataFile !== SIZE_FILE) {
-        metadataFilesSizes.set(metadataFile, await this._handler.getSizeOnDisk(this.#getChunkPath(metadataFile)))
-      }
-    }
-
-    this.#chunkSizes = metadataFilesSizes
-    this.#blocksSizeOnDisk = sizeOnDisk
-    this.#sizeFileSize = metadataFiles.includes(SIZE_FILE)
-      ? await this._handler.getSizeOnDisk(this.#getChunkPath(SIZE_FILE))
-      : 0
-    this.#hasSize = true
 
     return this.#totalSizeOnDisk()
   }
