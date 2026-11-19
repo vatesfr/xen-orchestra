@@ -1,8 +1,8 @@
 <template>
-  <UiTableCell>
+  <UiTableCell :flexible>
     <div class="vts-link-cell">
       <UiLink size="medium" :icon :icon-tooltip :busy :busy-tooltip :to :href :target class="link">
-        <slot />
+        <span v-tooltip class="text-ellipsis"><slot /></span>
         <VtsIcon v-if="rightIcon" v-tooltip="rightIcon.tooltip ?? false" :name="rightIcon.icon" size="medium" />
       </UiLink>
       <span v-if="slots.suffix" class="interpunct" />
@@ -35,7 +35,7 @@ export type VtsLinkCellProps = LinkOptions & {
   extraCount?: number
 }
 
-defineProps<VtsLinkCellProps>()
+defineProps<VtsLinkCellProps & { flexible?: boolean }>()
 
 const slots = defineSlots<{
   default(): any
@@ -57,6 +57,7 @@ const { t } = useI18n()
 }
 
 .link {
+  min-width: 0;
   line-height: 1.5;
 }
 

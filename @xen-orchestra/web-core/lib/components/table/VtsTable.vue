@@ -97,6 +97,11 @@ const className = computed(() =>
     min-width: 100%;
     width: max-content;
     border-spacing: 0;
+
+    &:has(.ui-table-cell.flexible) {
+      width: 100%;
+      white-space: nowrap;
+    }
   }
 
   &.sticky--left,
