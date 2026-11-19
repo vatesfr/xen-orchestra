@@ -1,6 +1,6 @@
 import assert from 'node:assert'
 import { spawn } from 'node:child_process'
-import { pFromCallback } from 'promise-toolbox'
+import { pFromCallback, pTimeout } from 'promise-toolbox'
 import { createLogger } from '@xen-orchestra/log'
 import AbstractNbdClient from './AbstractNbdClient.mjs'
 
@@ -8,6 +8,9 @@ const { warn } = createLogger('vates:nbd-client:stdio')
 
 // only the tail is kept: it's the part describing why the server died
 const STDERR_MAX_LENGTH = 4096
+
+// how long a failed connection waits for the server to exit and its stderr to end
+const CLOSE_TIMEOUT = 1e3
 
 /**
  * NBD client talking to a server through its standard streams, like
@@ -28,7 +31,7 @@ export default class NbdStdioClient extends AbstractNbdClient {
   #cwd
   #env
 
-  /** @type {{ child: import('node:child_process').ChildProcess, closing: boolean, stderr: string }|undefined} */
+  /** @type {{ child: import('node:child_process').ChildProcess, closing: boolean, stderr: string, closed: Promise<unknown> }|undefined} */
   #state
 
   /**
@@ -68,6 +71,35 @@ export default class NbdStdioClient extends AbstractNbdClient {
     return this.#state?.child.pid
   }
 
+  /**
+   * A server dying before the handshake makes it fail with "stream has ended
+   * without data", and the exit handler, racing with the teardown, often
+   * reports nothing: what the server wrote on stderr is the only reason given,
+   * so it becomes the error.
+   */
+  async connect() {
+    try {
+      return await super.connect()
+    } catch (error) {
+      const state = this.#state
+      const closed =
+        state !== undefined &&
+        (await pTimeout.call(state.closed, CLOSE_TIMEOUT).then(
+          () => true,
+          () => false
+        ))
+      // exitCode is null when the process was killed, by us when it did not die by itself
+      if (closed && state.child.exitCode !== null && state.stderr !== '') {
+        const serverError = new Error(state.stderr.trim(), { cause: error })
+        serverError.code = 'NBD_SERVER_EXITED'
+        serverError.exitCode = state.child.exitCode
+        serverError.command = this.#command
+        throw serverError
+      }
+      throw error
+    }
+  }
+
   async _openTransport() {
     const child = spawn(this.#command, this.#args, {
       cwd: this.#cwd,
@@ -75,7 +107,13 @@ export default class NbdStdioClient extends AbstractNbdClient {
       // the protocol goes through stdin/stdout, stderr is only used for diagnostics
       stdio: ['pipe', 'pipe', 'pipe'],
     })
-    const state = { child, closing: false, stderr: '' }
+    const state = {
+      child,
+      closing: false,
+      stderr: '',
+      // 'close' comes after the exit and the end of the standard streams: stderr is complete
+      closed: new Promise(resolve => child.once('close', resolve)),
+    }
     this.#state = state
 
     child.stderr.setEncoding('utf8')
