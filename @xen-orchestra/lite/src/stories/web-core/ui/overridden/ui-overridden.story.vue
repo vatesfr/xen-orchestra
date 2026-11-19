@@ -1,7 +1,10 @@
 <template>
   <ComponentStory
     v-slot="{ settings }"
-    :params="[slot().help('Replaces the default “Overridden” label'), setting('defaultSlot').widget(text()).preset('')]"
+    :params="[
+      slot().help('Label displayed next to the dot, leave empty to only display the dot'),
+      setting('defaultSlot').widget(text()).preset('Overridden'),
+    ]"
   >
     <UiOverridden v-if="settings.defaultSlot">{{ settings.defaultSlot }}</UiOverridden>
     <UiOverridden v-else />

@@ -12,7 +12,7 @@
         </VtsRow>
       </tbody>
     </VtsTable>
-    <VtsFlagLegend v-if="flaggedRows.length > 0">{{ t('vdis-must-be-migrated') }}</VtsFlagLegend>
+    <UiOverridden v-if="flaggedRows.length > 0">{{ t('vdis-must-be-migrated') }}</UiOverridden>
     <VtsErrorList v-if="showErrors && flaggedRows.length > 0">
       <li v-for="row in flaggedRows" :key="row.vdi.id">
         {{ t('vdi-destination-sr-required', { name: row.vdi.name_label }) }}
@@ -28,9 +28,9 @@ import { useXoVbdCollection } from '@/modules/vbd/remote-resources/use-xo-vbd-co
 import { getVdiIcon } from '@/modules/vdi/utils/xo-vdi.util.ts'
 import type { VmMigrateVdiRow } from '@/modules/vm/form/migrate/use-vm-migrate-mapping-form.ts'
 import VtsErrorList from '@core/components/error-list/VtsErrorList.vue'
-import VtsFlagLegend from '@core/components/table/VtsFlagLegend.vue'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
+import UiOverridden from '@core/components/ui/overridden/UiOverridden.vue'
 import { usePagination } from '@core/composables/pagination.composable.ts'
 import { useTableState } from '@core/composables/table-state.composable.ts'
 import { useFormSelect } from '@core/packages/form-select'

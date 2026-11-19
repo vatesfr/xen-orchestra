@@ -2,21 +2,18 @@
 <template>
   <span class="ui-overridden">
     <VtsIcon name="fa:circle" size="current" class="icon" />
-    <span class="typo-body-regular-small">
-      <slot>{{ t('overridden') }}</slot>
+    <span v-if="slots.default" class="typo-body-regular-small">
+      <slot />
     </span>
   </span>
 </template>
 
 <script lang="ts" setup>
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
-import { useI18n } from 'vue-i18n'
 
-defineSlots<{
+const slots = defineSlots<{
   default?(): any
 }>()
-
-const { t } = useI18n()
 </script>
 
 <style lang="postcss" scoped>
