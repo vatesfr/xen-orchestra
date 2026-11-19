@@ -2,6 +2,7 @@ import type { FrontXoVbd } from '@/modules/vbd/remote-resources/use-xo-vbd-colle
 import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
 import { type IconName, objectIcon } from '@core/icons'
 import { compareStrings } from '@core/utils/compare-strings.util.ts'
+import { getUsageRatio } from '@core/utils/usage-ratio.util.ts'
 
 export function getVdiFormat(format: string | undefined): string {
   return format !== undefined ? format.toUpperCase() : 'VHD'
@@ -23,10 +24,6 @@ export function compareVdiFormats(vdi1: FrontXoVdi, vdi2: FrontXoVdi) {
   return compareStrings(getVdiFormat(vdi1.image_format), getVdiFormat(vdi2.image_format))
 }
 
-function getVdiUsageRatio(vdi: FrontXoVdi) {
-  return vdi.size === 0 ? 0 : vdi.usage / vdi.size
-}
-
 export function compareVdiUsages(vdi1: FrontXoVdi, vdi2: FrontXoVdi) {
-  return getVdiUsageRatio(vdi1) - getVdiUsageRatio(vdi2)
+  return getUsageRatio(vdi1.usage, vdi1.size) - getUsageRatio(vdi2.usage, vdi2.size)
 }
