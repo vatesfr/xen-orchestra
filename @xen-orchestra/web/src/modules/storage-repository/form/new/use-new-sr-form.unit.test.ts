@@ -1,6 +1,7 @@
 import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import { useNewSrForm } from '@/modules/storage-repository/form/new/use-new-sr-form.ts'
+import type { NewSrType } from '@/modules/storage-repository/types/xo-sr-create.type.ts'
 import { createHost } from '@/test/create-host.ts'
 import { createPool, DISKOR_POOL_NAME, OTHER_POOL_ID, UNKNOWN_POOL_ID } from '@/test/create-pool.ts'
 import { dangerMessage, requiredMessage } from '@/test/form-messages.ts'
@@ -11,7 +12,7 @@ import { mountWithSelect } from '@/test/mount-with-select.ts'
 import { openSelect, pickSelectOption } from '@/test/select.ts'
 import type { FormSelectId } from '@core/packages/form-select'
 import VtsSelect from '@core/components/select/VtsSelect.vue'
-import { SR_ACCESS_MODE, type SrType } from '@core/types/storage-repository.type.ts'
+import { SR_ACCESS_MODE } from '@core/types/storage-repository.type.ts'
 import { flushPromises } from '@vue/test-utils'
 import { h, nextTick } from 'vue'
 
@@ -56,10 +57,10 @@ function mountNewSrForm({ poolId = POOL.id, hostId }: { poolId?: FrontXoPool['id
 type NewSrForm = ReturnType<typeof mountNewSrForm>
 
 type UnwrappedNewSrForm = Pick<NewSrForm, 'nameInputBindings' | 'deviceInputBindings' | 'serverInputBindings'> & {
-  type: SrType | undefined
+  type: NewSrType | undefined
 }
 
-async function chooseType(form: Pick<UnwrappedNewSrForm, 'type'>, type: SrType) {
+async function chooseType(form: Pick<UnwrappedNewSrForm, 'type'>, type: NewSrType) {
   form.type = type
   await nextTick()
 }

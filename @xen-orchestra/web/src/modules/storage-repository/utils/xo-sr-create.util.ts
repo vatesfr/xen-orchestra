@@ -1,15 +1,19 @@
+import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import type { NewSrRestPayload } from '@/modules/storage-repository/jobs/xo-sr-create.job.ts'
-import type { NewSrAccessMode, NewSrInput, SupportedSrType } from '@/modules/storage-repository/types/xo-sr-create.type.ts'
 import {
-  SR_ACCESS_MODE,
+  type NewSrAccessMode,
+  type NewSrFormData,
+  type NewSrInput,
+  type NewSrType,
   SR_CONTENT_GROUP,
   type SrContentGroup,
-  type SrType,
-} from '@core/types/storage-repository.type.ts'
+  type SupportedSrType,
+} from '@/modules/storage-repository/types/xo-sr-create.type.ts'
+import { SR_ACCESS_MODE } from '@core/types/storage-repository.type.ts'
 
 /** Static metadata for mapping, filtering and payload building. */
 export const SR_TYPE_META: Record<
-  SrType,
+  NewSrType,
   {
     group: SrContentGroup
     shared: boolean
@@ -55,16 +59,62 @@ export const SR_TYPE_META: Record<
   },
 }
 
-export function getAvailableSrTypes(accessMode: NewSrAccessMode): SrType[] {
+export function getAvailableSrTypes(accessMode: NewSrAccessMode): NewSrType[] {
   const shared = accessMode === SR_ACCESS_MODE.SHARED
 
-  return (Object.keys(SR_TYPE_META) as SrType[]).filter(srType => SR_TYPE_META[srType].shared === shared)
+  return (Object.keys(SR_TYPE_META) as NewSrType[]).filter(srType => SR_TYPE_META[srType].shared === shared)
 }
 
-export function groupSrTypesByContent(types: SrType[]) {
+export function groupSrTypesByContent(types: NewSrType[]): Record<SrContentGroup, NewSrType[]> {
   return {
-    vdi: types.filter(type => SR_TYPE_META[type].group === SR_CONTENT_GROUP.VDI),
-    iso: types.filter(type => SR_TYPE_META[type].group === SR_CONTENT_GROUP.ISO),
+    [SR_CONTENT_GROUP.VDI]: types.filter(type => SR_TYPE_META[type].group === SR_CONTENT_GROUP.VDI),
+    [SR_CONTENT_GROUP.ISO]: types.filter(type => SR_TYPE_META[type].group === SR_CONTENT_GROUP.ISO),
+  }
+}
+
+function getAuthFields(form: NewSrFormData): { username?: string; password?: string } {
+  const auth: { username?: string; password?: string } = {}
+
+  if (!form.useAuth) {
+    return auth
+  }
+
+  if (form.username !== '') {
+    auth.username = form.username
+  }
+
+  if (form.password !== '') {
+    auth.password = form.password
+  }
+
+  return auth
+}
+
+export function buildNewSrInput(
+  form: NewSrFormData & { type: NewSrType },
+  resolvedHostId: FrontXoHost['id']
+): NewSrInput {
+  const base = {
+    hostId: resolvedHostId,
+    name: form.name,
+    description: form.description,
+  }
+
+  const preferredImageFormatsField =
+    form.preferredImageFormats !== '' ? { preferredImageFormats: form.preferredImageFormats } : {}
+
+  switch (form.type) {
+    case 'lvm':
+    case 'ext':
+      return { ...base, type: form.type, device: form.device, ...preferredImageFormatsField }
+    case 'smb':
+      return { ...base, type: form.type, server: form.server, ...getAuthFields(form), ...preferredImageFormatsField }
+    case 'smbiso':
+      return { ...base, type: form.type, server: form.server, ...getAuthFields(form) }
+    case 'local':
+      return { ...base, type: form.type, path: form.path }
+    default:
+      throw new Error(`Unsupported SR type: ${form.type}`)
   }
 }
 

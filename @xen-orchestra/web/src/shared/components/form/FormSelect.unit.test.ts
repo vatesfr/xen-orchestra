@@ -9,7 +9,7 @@ import { h } from 'vue'
 
 const WARNING = { content: 'Slow storage', accent: 'warning' } as const
 
-function mountSelect(messages: { error?: InputWrapperMessage; warning?: InputWrapperMessage } = {}) {
+function mountSelect(messages: { info?: string; error?: InputWrapperMessage; warning?: InputWrapperMessage } = {}) {
   return mountWithSelect(() => {
     const { id } = useFormSelect([{ id: 'sr-1', label: 'Local storage' }], { option: { label: 'label' } })
 
@@ -29,4 +29,18 @@ it('shows its error and its warning', () => {
   const wrapper = mountSelect({ error: dangerMessage('Storage is required.'), warning: WARNING })
 
   expect(findInfoLabels(wrapper).sort()).toEqual(['Slow storage', 'Storage is required.'])
+})
+
+it('shows its info beside its error and its warning', () => {
+  const wrapper = mountSelect({
+    info: 'Where the disks are stored.',
+    error: dangerMessage('Storage is required.'),
+    warning: WARNING,
+  })
+
+  expect(findInputMessages(wrapper).sort()).toEqual([
+    'Slow storage',
+    'Storage is required.',
+    'Where the disks are stored.',
+  ])
 })
