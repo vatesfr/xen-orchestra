@@ -114,7 +114,7 @@ export class SrService {
     // XO ISO libraries (local, NFS, SMB) are all created with type and content_type `iso`,
     // this excludes the XCP-ng tools SR and the DVD drives SR (type `udev`)
     if (xapiSr.content_type !== 'iso' || xapiSr.type !== 'iso' || xapiSr.is_tools_sr) {
-      throw invalidParameters(`SR ${id} is not an ISO library SR`)
+      throw invalidParameters(`SR ${id} is not an ISO SR`)
     }
 
     let response: Response
