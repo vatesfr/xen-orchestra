@@ -143,11 +143,11 @@ task.start({ name: 'Rolling pool update', poolId: string, poolName: string })
 │  │  │  │  └─ task.end
 │  |  |  ├─ task.start({ name: 'Waiting for host to be up', hostId: string, hostName: string })
 │  │  │  │  └─ task.end
-│  |  |  ├─ task.start({ name: 'Waiting for LINSTOR to be healthy', hostId: string, hostName: string })
-│  │  │  │  └─ task.end
 │  |  |  ├─ task.start({ name: 'Restart pinned VMs', hostId: string, hostName: string })
 │  |  |  |  ├─ task.start({ name: `Restarting VM ${vmId} on host ${hostId}`, hostId: string, hostName: string, vmId: string, vmName: string })
 │  │  │  │  │  └─ task.end
+│  │  │  │  └─ task.end
+│  |  |  ├─ task.start({ name: 'Waiting for LINSTOR to be healthy', hostId: string, hostName: string })
 │  │  │  │  └─ task.end
 │  │  │  └─ task.end
 │  │  └─ task.end

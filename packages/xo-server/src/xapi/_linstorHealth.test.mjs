@@ -1,7 +1,12 @@
 import assert from 'assert/strict'
 import test from 'node:test'
 
-import { getLinstorBlockingIssues, getLinstorIssues, waitLinstorHealthy } from './_linstorHealth.mjs'
+import {
+  getLinstorBlockingIssues,
+  getLinstorIssues,
+  truncateLinstorIssues,
+  waitLinstorHealthy,
+} from './_linstorHealth.mjs'
 
 const { describe, it } = test
 
@@ -212,6 +217,33 @@ describe('getLinstorIssues()', function () {
 
     await assert.rejects(getLinstorIssues(xapi), { message: 'XENAPI_PLUGIN_FAILURE' })
   })
+
+  it('gives up on a health check which does not answer in 5 minutes', async function (t) {
+    t.mock.timers.enable({ apis: ['setTimeout'] })
+    const xapi = fakeXapi([healthCheck()])
+    xapi.call = () => new Promise(() => {})
+
+    const issues = getLinstorIssues(xapi)
+    t.mock.timers.tick(300e3)
+
+    await assert.rejects(issues, {
+      message: 'LINSTOR health check of group linstor_group/thin_device did not answer in 300 seconds',
+    })
+  })
+})
+
+describe('truncateLinstorIssues()', function () {
+  it('keeps up to 10 issues', function () {
+    const issues = Array.from({ length: 10 }, (_, i) => `issue ${i}`)
+
+    assert.deepEqual(truncateLinstorIssues(issues), issues)
+  })
+
+  it('counts the issues past the 10th', function () {
+    const issues = Array.from({ length: 13 }, (_, i) => `issue ${i}`)
+
+    assert.deepEqual(truncateLinstorIssues(issues), [...issues.slice(0, 10), 'and 3 more'])
+  })
 })
 
 describe('waitLinstorHealthy()', function () {
@@ -274,11 +306,16 @@ describe('waitLinstorHealthy()', function () {
     })
   })
 
-  it('gives up on the timeout when the plugin does not answer', async function () {
+  it('gives up on the timeout when the plugin does not answer', async function (t) {
+    // the timeout of the call itself must not keep the test running
+    t.mock.timers.enable({ apis: ['setTimeout'] })
     const xapi = fakeXapi([healthCheck()])
     xapi.call = () => new Promise(() => {})
 
-    await assert.rejects(waitLinstorHealthy(xapi, { timeout: 20 }), error => {
+    const wait = waitLinstorHealthy(xapi, { timeout: 20 })
+    t.mock.timers.tick(20)
+
+    await assert.rejects(wait, error => {
       assert.equal(
         error.message,
         'LINSTOR is not healthy after 0 seconds: LINSTOR health check failed on host host A: operation timed out'

@@ -18,7 +18,7 @@ import { debounceWithKey, REMOVE_CACHE_ENTRY } from '../../_pDebounceWithKey.mjs
 import { listRpuPlanChange, noopRpuRecorder, noRpuResume } from '../../_rpuRecovery.mjs'
 import { forEach, mapFilter, parseXml } from '../../utils.mjs'
 
-import { getLinstorIssues, waitLinstorHealthy } from '../_linstorHealth.mjs'
+import { getLinstorIssues, truncateLinstorIssues, waitLinstorHealthy } from '../_linstorHealth.mjs'
 import { useUpdateSystem } from '../utils.mjs'
 import { incorrectState, notImplemented } from 'xo-common/api-errors.js'
 
@@ -755,7 +755,7 @@ const methods = {
     }
     if (issues.length > 0) {
       throw incorrectState({
-        actual: issues,
+        actual: truncateLinstorIssues(issues),
         expected: [],
         object: this.pool.uuid,
         property: 'linstorHealth',
@@ -781,9 +781,9 @@ const methods = {
       ['updater.py', 'update', { packages: 'linstor-satellite' }],
       ['updater.py', 'update', { packages: 'linstor-controller' }],
     ]
-    // the look for the controller, the steps above, then the restart of the
-    // satellites
-    const nOperations = (steps.length + 2) * hosts.length
+    // the two looks for the controller, the steps above, then the restart of
+    // the satellites
+    const nOperations = (steps.length + 3) * hosts.length
     let operationDone = 0
 
     const callPluginOnAllHost = async (plugin, fn, args) => {
@@ -796,13 +796,10 @@ const methods = {
       return results
     }
 
-    const task = new Task({ properties: { name: 'Updating LINSTOR packages', progress: 0 } })
-    return task.run(async () => {
-      // the controller only runs on one host, which is the only one where it
-      // has to be stopped to be started again with its new version. Looked for
-      // before anything is changed: a failure leaves the pool as it was. The
-      // plugin answers with a Python boolean, anything else is refused
-      let controllerHosts
+    // the controller only runs on one host, which is the only one where it has
+    // to be stopped to be started again with its new version. The plugin
+    // answers with a Python boolean, anything else is refused
+    const findControllerHosts = async () => {
       try {
         const hasController = await callPluginOnAllHost('linstor-manager', 'hasControllerRunning', {})
         hasController.forEach((answer, i) => {
@@ -812,7 +809,7 @@ const methods = {
             )
           }
         })
-        controllerHosts = hosts.filter((_, i) => hasController[i] === 'True')
+        const controllerHosts = hosts.filter((_, i) => hasController[i] === 'True')
         if (controllerHosts.length > 1) {
           throw incorrectState({
             actual: controllerHosts.map(host => host.uuid),
@@ -824,6 +821,7 @@ const methods = {
         if (controllerHosts.length === 0) {
           log.warn(`no running LINSTOR controller found on pool ${this.pool.uuid}`)
         }
+        return controllerHosts
       } catch (error) {
         if (error.code !== 'UNKNOWN_XENAPI_PLUGIN_FUNCTION') {
           throw error
@@ -831,12 +829,23 @@ const methods = {
         // a plugin too old to tell, which this update replaces: the controller
         // is stopped on every host, as it was before it was looked for
         log.warn(`the LINSTOR controller cannot be looked for on pool ${this.pool.uuid}`, { error })
-        controllerHosts = hosts
+        return hosts
       }
+    }
+
+    const task = new Task({ properties: { name: 'Updating LINSTOR packages', progress: 0 } })
+    return task.run(async () => {
+      // looked for before anything is changed: a failure leaves the pool as it
+      // was
+      await findControllerHosts()
 
       for (const [plugin, fn, args] of steps) {
         await callPluginOnAllHost(plugin, fn, args)
       }
+
+      // looked for again: drbd-reactor may have moved the controller to
+      // another host during the updates
+      const controllerHosts = await findControllerHosts()
       for (const host of controllerHosts) {
         await this.call('host.call_plugin', host.$ref, 'service.py', 'stop_service', { service: 'linstor-controller' })
       }

@@ -24,8 +24,21 @@ const HEALTHY_DISK_STATES = new Set(['Attached', 'Created', 'TieBreaker', 'UpToD
 
 const MAX_REPORTED_ISSUES = 10
 
+// a health check which hangs, on a controller which does not answer, must not
+// block the rolling pool update forever
+const HEALTH_CHECK_TIMEOUT = 5 * 60e3
+
 const describeVolume = ({ node, number, resource, state }) =>
   `volume ${number} of resource ${resource} on node ${node} is ${state}`
+
+// Keeps a list of issues short enough to be read in an error or a task log
+export function truncateLinstorIssues(issues) {
+  const reported = issues.slice(0, MAX_REPORTED_ISSUES)
+  if (issues.length > reported.length) {
+    reported.push(`and ${issues.length - reported.length} more`)
+  }
+  return reported
+}
 
 // What prevents the services of LINSTOR from being restarted, or a host from
 // being rebooted, in the result of a health check of the plugin
@@ -75,7 +88,7 @@ export function getLinstorBlockingIssues({ errors = [], resources = {} }) {
 }
 
 // Checks every LINSTOR storage of the pool once. A failure of the plugin itself
-// is thrown
+// is thrown, as is a check which does not answer in HEALTH_CHECK_TIMEOUT
 export async function getLinstorIssues(xapi) {
   const groupNames = new Set()
   for (const sr of Object.values(xapi.objects.indexes.type.SR)) {
@@ -87,9 +100,15 @@ export async function getLinstorIssues(xapi) {
 
   const issues = []
   for (const groupName of groupNames) {
-    const result = await xapi.call('host.call_plugin', xapi.pool.master, 'linstor-manager', 'healthCheck', {
-      groupName,
-    })
+    const result = await pTimeout.call(
+      xapi.call('host.call_plugin', xapi.pool.master, 'linstor-manager', 'healthCheck', { groupName }),
+      HEALTH_CHECK_TIMEOUT,
+      () => {
+        throw new Error(
+          `LINSTOR health check of group ${groupName} did not answer in ${HEALTH_CHECK_TIMEOUT / 1e3} seconds`
+        )
+      }
+    )
     issues.push(...getLinstorBlockingIssues(JSON.parse(result)))
   }
   return issues
@@ -125,13 +144,10 @@ export async function waitLinstorHealthy(xapi, { timeout, interval = 5e3 }) {
       return
     }
     if (Date.now() + interval > deadline) {
-      const reported = issues.slice(0, MAX_REPORTED_ISSUES)
-      if (issues.length > reported.length) {
-        reported.push(`and ${issues.length - reported.length} more`)
-      }
-      throw new Error(`LINSTOR is not healthy after ${Math.round(timeout / 1e3)} seconds: ${reported.join('; ')}`, {
-        cause,
-      })
+      throw new Error(
+        `LINSTOR is not healthy after ${Math.round(timeout / 1e3)} seconds: ${truncateLinstorIssues(issues).join('; ')}`,
+        { cause }
+      )
     }
     await setTimeout(interval)
   }

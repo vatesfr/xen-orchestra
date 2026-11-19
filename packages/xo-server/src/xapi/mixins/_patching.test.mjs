@@ -326,6 +326,21 @@ describe('rollingPoolUpdate', function () {
       assert.deepEqual(xapi.steps, [])
     })
 
+    it('reports at most 10 issues of an unhealthy LINSTOR', async function () {
+      const xapi = new FakeXapi([1, 2, 0], { linstor: true })
+      const nodes = Array.from({ length: 12 }, (_, i) => `node-${i}`)
+      xapi.linstorHealth = {
+        nodes: {},
+        resources: {},
+        errors: nodes.map(name => ({ code: 0x1020000, name, status: 'OFFLINE' })),
+      }
+
+      const error = await rollingPoolUpdate(xapi)
+
+      assert.ok(incorrectState.is(error, { property: 'linstorHealth' }), error)
+      assert.deepEqual(error.data.actual, [...nodes.slice(0, 10).map(node => `node ${node} is OFFLINE`), 'and 2 more'])
+    })
+
     it('checks LINSTOR before updating its packages, and waits for it once each host is back', async function () {
       const xapi = new FakeXapi([1, 2, 0], { linstor: true })
 
@@ -865,12 +880,23 @@ describe('rollingPoolUpdate', function () {
 })
 
 describe('_updateLinstorPackages()', function () {
+  const UNKNOWN_FUNCTION = () =>
+    Object.assign(new Error('UNKNOWN_XENAPI_PLUGIN_FUNCTION(hasControllerRunning)'), {
+      code: 'UNKNOWN_XENAPI_PLUGIN_FUNCTION',
+    })
+
   // Fake XAPI of a pool of 3 hosts, recording the plugin calls and the wait for
   // LINSTOR to be healthy in order. The plugin answers with Python's
-  // `str(bool)` unless `answer` says otherwise
+  // `str(bool)` unless `answer`, told whether the packages are updated yet,
+  // says otherwise. A plugin which throws is not recorded
   const updateLinstorPackages = async (
     controllerHosts,
-    answer = hostRef => (controllerHosts.includes(hostRef) ? 'True' : 'False')
+    answer = hostRef => {
+      if (controllerHosts === undefined) {
+        throw UNKNOWN_FUNCTION()
+      }
+      return controllerHosts.includes(hostRef) ? 'True' : 'False'
+    }
   ) => {
     const calls = []
     const xapi = Object.assign(Object.create(patchingMethods), {
@@ -891,13 +917,12 @@ describe('_updateLinstorPackages()', function () {
         assert.equal(method, 'host.call_plugin')
         if (fn === 'hasControllerRunning') {
           assert.equal(plugin, 'linstor-manager')
-          if (controllerHosts === undefined) {
-            throw Object.assign(new Error('UNKNOWN_XENAPI_PLUGIN_FUNCTION(hasControllerRunning)'), {
-              code: 'UNKNOWN_XENAPI_PLUGIN_FUNCTION',
-            })
-          }
+          const result = answer(
+            hostRef,
+            calls.some(call => call.includes(' update '))
+          )
           calls.push(`${hostRef} ${fn}`)
-          return answer(hostRef)
+          return result
         }
         calls.push(`${hostRef} ${fn} ${args.packages ?? args.service}`)
       },
@@ -917,6 +942,7 @@ describe('_updateLinstorPackages()', function () {
     assert.deepEqual(await updateLinstorPackages(['host-B']), [
       ...onEveryHost('hasControllerRunning'),
       ...UPDATES,
+      ...onEveryHost('hasControllerRunning'),
       'host-B stop_service linstor-controller',
       ...onEveryHost('restart_service linstor-satellite'),
       'wait',
@@ -927,9 +953,44 @@ describe('_updateLinstorPackages()', function () {
     assert.deepEqual(await updateLinstorPackages([]), [
       ...onEveryHost('hasControllerRunning'),
       ...UPDATES,
+      ...onEveryHost('hasControllerRunning'),
       ...onEveryHost('restart_service linstor-satellite'),
       'wait',
     ])
+  })
+
+  it('stops the controller on the host it moved to during the updates', async function () {
+    assert.deepEqual(
+      await updateLinstorPackages(undefined, (hostRef, updated) =>
+        hostRef === (updated ? 'host-C' : 'host-B') ? 'True' : 'False'
+      ),
+      [
+        ...onEveryHost('hasControllerRunning'),
+        ...UPDATES,
+        ...onEveryHost('hasControllerRunning'),
+        'host-C stop_service linstor-controller',
+        ...onEveryHost('restart_service linstor-satellite'),
+        'wait',
+      ]
+    )
+  })
+
+  it('looks for the controller with the updated plugin when the previous one could not', async function () {
+    assert.deepEqual(
+      await updateLinstorPackages(undefined, (hostRef, updated) => {
+        if (!updated) {
+          throw UNKNOWN_FUNCTION()
+        }
+        return hostRef === 'host-B' ? 'True' : 'False'
+      }),
+      [
+        ...UPDATES,
+        ...onEveryHost('hasControllerRunning'),
+        'host-B stop_service linstor-controller',
+        ...onEveryHost('restart_service linstor-satellite'),
+        'wait',
+      ]
+    )
   })
 
   it('stops the controller on every host when the plugin is too old to look for it', async function () {
