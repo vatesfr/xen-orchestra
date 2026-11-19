@@ -1,0 +1,24 @@
+import type { V2vListPair, V2vSelectedVm } from '@/modules/v2v/types/v2v-selected-vm.type.ts'
+import { DISKOR_POOL_NAME } from '@/test/create-pool.ts'
+import { createV2vConnection } from '@/test/create-v2v-connection.ts'
+import { V2V_VM_ID } from '@/test/create-v2v-inventory.ts'
+
+// The labels are the component input: a panel test reads them back as given
+export function createV2vSelectedVm(overrides: Partial<V2vSelectedVm> = {}): V2vSelectedVm {
+  const id = overrides.id ?? V2V_VM_ID
+
+  return {
+    id,
+    name: 'web-01',
+    kind: { label: 'New', accent: 'neutral' },
+    mappingParts: ['1 disk → sr-nvme-01', '1 NIC → VLAN 10'],
+    check: { label: 'Ready', accent: 'success' },
+    mappingRoute: { query: { step: 'mapping', vm: id } },
+    isSelected: false,
+    ...overrides,
+  }
+}
+
+export function createV2vListPair(overrides: Partial<V2vListPair> = {}): V2vListPair {
+  return { sourceHost: createV2vConnection().host, poolName: DISKOR_POOL_NAME, ...overrides }
+}

@@ -1,0 +1,45 @@
+<template>
+  <VtsForm class="v2v-destination-step" @submit="submit()">
+    <V2vDestinationPoolCard :pool-select-bindings="form.poolSelectBindings" />
+    <V2vExistingListInfo v-if="existingList !== undefined" v-bind="existingList" />
+    <UiAlert v-if="isListStoredByNewerVersion" accent="danger">
+      {{ t('v2v:migration-list-of-newer-version') }}
+    </UiAlert>
+    <V2vDestinationDefaultsCard
+      v-if="form.selectedPool !== undefined"
+      :pool-name="form.selectedPool.name_label"
+      :sr-select-bindings="form.srSelectBindings"
+      :network-select-bindings="form.networkSelectBindings"
+      :template-select-bindings="form.templateSelectBindings"
+    />
+    <V2vWizardStepActions @back="back()">
+      <UiButton type="submit" accent="brand" variant="primary" size="medium" :disabled="isListStoredByNewerVersion">
+        {{ existingList !== undefined ? t('action:continue-with-existing-list') : t('action:continue') }}
+      </UiButton>
+    </V2vWizardStepActions>
+  </VtsForm>
+</template>
+
+<script lang="ts" setup>
+import V2vDestinationDefaultsCard from '@/modules/v2v/components/destination/V2vDestinationDefaultsCard.vue'
+import V2vDestinationPoolCard from '@/modules/v2v/components/destination/V2vDestinationPoolCard.vue'
+import V2vExistingListInfo from '@/modules/v2v/components/destination/V2vExistingListInfo.vue'
+import V2vWizardStepActions from '@/modules/v2v/components/wizard/V2vWizardStepActions.vue'
+import { useV2vDestinationStep } from '@/modules/v2v/composables/use-v2v-destination-step.composable.ts'
+import VtsForm from '@core/components/form/VtsForm.vue'
+import UiAlert from '@core/components/ui/alert/UiAlert.vue'
+import UiButton from '@core/components/ui/button/UiButton.vue'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
+
+const { form, existingList, isListStoredByNewerVersion, submit, back } = useV2vDestinationStep()
+</script>
+
+<style lang="postcss" scoped>
+.v2v-destination-step {
+  display: flex;
+  flex-direction: column;
+  gap: 1.6rem;
+}
+</style>

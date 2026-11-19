@@ -1,13 +1,24 @@
-import { parseSchemaDescription, splitCodeSpans } from '@/modules/plugin/utils/json-schema-description.util.ts'
+import { parseSchemaDescription, splitTextSegments } from '@/modules/plugin/utils/json-schema-description.util.ts'
 
 describe('parseSchemaDescription', () => {
   it.each([undefined, '', '  \n\n  '])('returns no text for the description %j', description => {
     expect(parseSchemaDescription(description)).toEqual({ text: undefined, exampleGroups: [] })
   })
 
-  it('joins the paragraphs and keeps the code spans', () => {
+  it('puts each paragraph on its own line and keeps the code spans', () => {
     expect(parseSchemaDescription('Paths to CA.\n\nFor AD, it can also be `<user>@<domain>`.')).toEqual({
-      text: 'Paths to CA. For AD, it can also be `<user>@<domain>`.',
+      text: 'Paths to CA.\nFor AD, it can also be `<user>@<domain>`.',
+      exampleGroups: [],
+    })
+  })
+
+  it.each(['<br>', '<br/>', '<br />', '<BR>'])('puts the text after a %s on its own line', lineBreak => {
+    expect(
+      parseSchemaDescription(
+        `Specify that the IdP should always sign the assertions${lineBreak}Note: either one must be signed.`
+      )
+    ).toEqual({
+      text: 'Specify that the IdP should always sign the assertions\nNote: either one must be signed.',
       exampleGroups: [],
     })
   })
@@ -52,23 +63,42 @@ For Microsoft Active Directory:
   })
 
   it('keeps a list without code spans as text', () => {
-    expect(parseSchemaDescription('Options:\n\n- first\n- second').text).toBe('Options: - first - second')
+    expect(parseSchemaDescription('Options:\n\n- first\n- second').text).toBe('Options:\n- first - second')
   })
 })
 
-describe('splitCodeSpans', () => {
+describe('splitTextSegments', () => {
   it('splits the text around the code spans', () => {
-    expect(splitCodeSpans('Must be unique. e.g.: `dn` or `uid`')).toEqual([
-      { text: 'Must be unique. e.g.: ', isCode: false },
-      { text: 'dn', isCode: true },
-      { text: ' or ', isCode: false },
-      { text: 'uid', isCode: true },
+    expect(splitTextSegments('Must be unique. e.g.: `dn` or `uid`')).toEqual([
+      { kind: 'text', text: 'Must be unique. e.g.: ' },
+      { kind: 'code', text: 'dn' },
+      { kind: 'text', text: ' or ' },
+      { kind: 'code', text: 'uid' },
     ])
   })
 
   it('returns the whole text without code span', () => {
-    expect(splitCodeSpans('Where to look for the groups.')).toEqual([
-      { text: 'Where to look for the groups.', isCode: false },
+    expect(splitTextSegments('Where to look for the groups.')).toEqual([
+      { kind: 'text', text: 'Where to look for the groups.' },
+    ])
+  })
+
+  it('turns the HTML links into links', () => {
+    expect(
+      splitTextSegments(
+        'See the <a href="https://docs.xen-orchestra.com/backups#backups-execution" rel="noopener noreferrer" target="_blank">job\'s runId</a> or `runId`'
+      )
+    ).toEqual([
+      { kind: 'text', text: 'See the ' },
+      { kind: 'link', text: "job's runId", href: 'https://docs.xen-orchestra.com/backups#backups-execution' },
+      { kind: 'text', text: ' or ' },
+      { kind: 'code', text: 'runId' },
+    ])
+  })
+
+  it('keeps the HTML links which do not point to a web page as text', () => {
+    expect(splitTextSegments('<a href="javascript:alert(1)">click</a>')).toEqual([
+      { kind: 'text', text: '<a href="javascript:alert(1)">click</a>' },
     ])
   })
 })

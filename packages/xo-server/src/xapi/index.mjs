@@ -23,7 +23,7 @@ import tarStream from 'tar-stream'
 import uniq from 'lodash/uniq.js'
 import { asyncMap, asyncMapSettled } from '@xen-orchestra/async-map'
 import { vmdkToVhd, vhdToVMDK, writeOvaOn } from 'xo-vmdk-to-vhd'
-import { cancelable, CancelToken, fromEvents, ignoreErrors, pRetry } from 'promise-toolbox'
+import { fromEvents, ignoreErrors, pRetry } from 'promise-toolbox'
 import { createLogger } from '@xen-orchestra/log'
 import { decorateWith } from '@vates/decorate-with'
 import { defer as deferrable } from 'golike-defer'
@@ -457,15 +457,14 @@ export default class Xapi extends XapiBase {
     return console
   }
 
-  @cancelable
-  async exportVmOva($cancelToken, vmRef) {
+  async exportVmOva(vmRef, { signal } = {}) {
     const vm = this.getObject(vmRef)
     const useSnapshot = isVmRunning(vm)
     let exportedVm
     if (useSnapshot) {
       const snapshotRef = await this.VM_snapshot(vmRef, {
         name_label: vm.name_label,
-        cancelToken: $cancelToken,
+        signal,
       })
       exportedVm = this.getObject(snapshotRef)
     } else {
@@ -478,7 +477,7 @@ export default class Xapi extends XapiBase {
         const vdi = blockDevice.$VDI
         collectedDisks.push({
           getStream: () => {
-            return vdi.$exportContent({ cancelToken: $cancelToken, format: VDI_FORMAT_VHD })
+            return vdi.$exportContent({ signal, format: VDI_FORMAT_VHD })
           },
           name: vdi.name_label,
           fileName: vdi.name_label + '.vmdk',
@@ -1311,9 +1310,9 @@ export default class Xapi extends XapiBase {
     return snap
   }
 
-  async exportVdiAsVmdk(vdi, filename, { cancelToken = CancelToken.none, base, nbdConcurrency, preferNbd } = {}) {
+  async exportVdiAsVmdk(vdi, filename, { signal, base, nbdConcurrency, preferNbd } = {}) {
     vdi = this.getObject(vdi)
-    const params = { cancelToken, format: VDI_FORMAT_VHD, nbdConcurrency, preferNbd }
+    const params = { signal, format: VDI_FORMAT_VHD, nbdConcurrency, preferNbd }
     if (base !== undefined) {
       params.base = base
     }
@@ -1325,7 +1324,7 @@ export default class Xapi extends XapiBase {
     return vmdkStream
   }
 
-  async exportVdiAsQcow2(vdi, filename, { cancelToken = CancelToken.none, base, nbdConcurrency, preferNbd } = {}) {
+  async exportVdiAsQcow2(vdi, filename, { signal, base, nbdConcurrency, preferNbd } = {}) {
     vdi = this.getObject(vdi)
 
     const disk = new XapiDiskSource({

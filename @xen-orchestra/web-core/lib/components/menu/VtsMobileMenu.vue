@@ -1,9 +1,10 @@
 <template>
-  <slot :is-open :open name="trigger" />
+  <slot :bindings="triggerBindings" :is-open :open name="trigger" />
   <Teleport to="body">
     <Transition name="slide">
       <UiPanel
         v-if="isOpen"
+        :id="dialogId"
         :aria-labelledby="titleId"
         :style="{ transition: transformTransition }"
         aria-modal="true"
@@ -36,7 +37,7 @@
 
 <script lang="ts" setup>
 import VtsDropdownTitle from '@core/components/dropdown/VtsDropdownTitle.vue'
-import MenuList from '@core/components/menu/MenuList.vue'
+import MenuList, { type MenuTriggerBindings } from '@core/components/menu/MenuList.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { useOverlayStore } from '@core/packages/overlay/use-overlay-store.ts'
@@ -66,7 +67,7 @@ const emit = defineEmits<{
 
 defineSlots<{
   default(): any
-  trigger(props: { open: () => void; isOpen: boolean }): any
+  trigger(props: { open: () => void; isOpen: boolean; bindings: MenuTriggerBindings }): any
 }>()
 
 const { t } = useI18n()
@@ -75,8 +76,16 @@ const overlayStore = useOverlayStore()
 
 const titleId = useId()
 
+const dialogId = useId()
+
 const isOpen = ref(false)
 const submenus = shallowRef<MobileSubmenu[]>([])
+
+const triggerBindings = computed<MenuTriggerBindings>(() => ({
+  'aria-haspopup': 'dialog',
+  'aria-expanded': isOpen.value,
+  'aria-controls': isOpen.value ? dialogId : undefined,
+}))
 
 const currentSubmenu = computed(() => submenus.value.at(-1))
 

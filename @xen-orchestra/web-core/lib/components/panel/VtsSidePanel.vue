@@ -3,7 +3,7 @@
   <div class="vts-side-panel" :class="{ mobile: uiStore.isSmall }">
     <VtsResizeHandle v-if="showResizeHandle" position="start" :resizable="panelStore" />
     <VtsPanel
-      :closable="hasSelection"
+      :closable="isClosable"
       :close-icon="uiStore.isSmall ? 'fa:angle-left' : 'action:close-cancel-clear'"
       class="panel"
       :style="{ transform }"
@@ -33,7 +33,7 @@
         />
       </template>
 
-      <VtsStateHero v-if="!hasSelection" format="panel" type="no-selection" size="medium" />
+      <VtsStateHero v-if="!hasSelection && !persistent" format="panel" type="no-selection" size="medium" />
       <slot v-else />
     </VtsPanel>
   </div>
@@ -51,8 +51,9 @@ import { IK_INFO_SIZE, IK_MENU_ACTION_HANDLER } from '@core/utils/injection-keys
 import { computed, provide, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { hasSelection } = defineProps<{
+const { hasSelection, persistent } = defineProps<{
   hasSelection?: boolean
+  persistent?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -84,6 +85,10 @@ provide(IK_MENU_ACTION_HANDLER, () => {
     handleClose()
   }
 })
+
+// A persistent panel shows its content even with no selection, which has nothing to clear: it only closes where closing
+// collapses it
+const isClosable = computed(() => hasSelection && (!persistent || panelStore.syncsOpenStateWithSelection))
 
 watch(
   [() => hasSelection, () => panelStore.isLocked, () => uiStore.isSmall],

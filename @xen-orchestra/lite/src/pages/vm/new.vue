@@ -941,8 +941,16 @@ watch(
 
 <style lang="postcss" scoped>
 .new-vm-view {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+
   .card-container {
-    margin: 0.8rem;
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 0.8rem;
   }
 
   .form-container {

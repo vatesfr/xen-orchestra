@@ -54,6 +54,12 @@ module.exports = {
       },
     },
     {
+      files: ['@xen-orchestra/web-core/**/*.unit.{test,spec}.ts'],
+      rules: {
+        'n/no-unpublished-import': 'off',
+      },
+    },
+    {
       files: ['@xen-orchestra/{web-core,lite,web}/**/*.{vue,ts}'],
       parser: 'vue-eslint-parser',
       parserOptions: {
@@ -72,6 +78,7 @@ module.exports = {
           typescript: true,
           'eslint-import-resolver-custom-alias': {
             alias: {
+              '@core-test': '../web-core/test',
               '@core': '../web-core/lib',
               '@': './src',
             },
@@ -96,6 +103,7 @@ module.exports = {
               { pattern: '@core/packages/*', action: 'ignore' }, // barrel files
               { pattern: '@core/icons', action: 'ignore' },
               { pattern: '@core/**', action: 'enforce' },
+              { pattern: '@core-test/**', action: 'enforce' },
               { pattern: '@/**', action: 'enforce' },
             ],
           },
@@ -115,6 +123,10 @@ module.exports = {
               },
               {
                 pattern: '@core/**',
+                group: 'internal',
+              },
+              {
+                pattern: '@core-test/**',
                 group: 'internal',
               },
             ],

@@ -3,6 +3,7 @@
   <button :class="classNames" :disabled="busy || isDisabled || lockIcon" class="ui-button" type="button">
     <VtsIcon :name="leftIcon" class="icon" size="current" />
     <slot />
+    <VtsIcon :name="rightIcon" class="icon" size="current" />
     <UiLoader v-if="busy" class="icon" />
     <VtsIcon v-if="lockIcon" name="fa:lock" size="medium" class="icon" />
   </button>
@@ -28,6 +29,7 @@ export type ButtonProps = {
   disabled?: boolean
   lockIcon?: boolean
   leftIcon?: IconName
+  rightIcon?: IconName
 }
 
 const { accent, variant, size, disabled, busy, lockIcon } = defineProps<ButtonProps>()

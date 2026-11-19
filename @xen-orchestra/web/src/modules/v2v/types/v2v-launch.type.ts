@@ -1,0 +1,69 @@
+import type { V2vMigrationListVm } from '@/modules/v2v/types/v2v-migration-list.type.ts'
+import type { V2vListedVm, V2vSelectedVm, V2vSelectedVmState } from '@/modules/v2v/types/v2v-selected-vm.type.ts'
+import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
+import type { XoV2vStartOptions, XoV2vStartPayload, XoV2vVm } from '@vates/types'
+import type { RouteLocationRaw } from 'vue-router'
+
+// What the user sets for every VM, then overrides for one
+export type V2vVmLaunchOptions = Required<Pick<XoV2vStartOptions, 'stopSource' | 'docking' | 'startVm'>>
+
+export type V2vVmLaunchOption = keyof V2vVmLaunchOptions
+
+// What the user sets for the whole launch
+export type V2vLaunchSettings = V2vVmLaunchOptions & Pick<XoV2vStartPayload, 'stopOnError' | 'concurrency'>
+
+export type V2vLaunchGroupType = 'excluded' | 'migrated' | 'resumed' | 'new'
+
+export type V2vLaunchPlanItem = V2vSelectedVmState & { item: Pick<V2vSelectedVm, 'id'> }
+
+export type V2vLaunchableVm = Pick<V2vListedVm, 'listVm' | 'kind'> & { item: Pick<V2vSelectedVm, 'id' | 'name'> }
+
+export type V2vLaunchPlan<TItem extends V2vLaunchPlanItem> = Record<V2vLaunchGroupType, TItem[]> & {
+  launchable: TItem[]
+}
+
+// An absent override leaves the VM on the launch settings
+export type V2vVmLaunchOverrides = Partial<V2vVmLaunchOptions>
+
+export type V2vStartVm = Pick<V2vMigrationListVm, 'id' | 'disks' | 'nics' | 'template'> &
+  Pick<V2vSelectedVmState, 'kind'> & { overrides?: V2vVmLaunchOverrides }
+
+// A row of the per-VM launch options table: an absent override follows the launch settings
+export type V2vVmLaunchOptionsRow = Pick<XoV2vVm, 'id' | 'name'> & Pick<V2vStartVm, 'overrides'>
+
+// A problem the back end refused the launch for, of one VM or of the whole launch
+export type V2vStartProblem = {
+  vmId?: XoV2vVm['id']
+  message: string
+}
+
+// A refused launch tells every problem at once, so the user fixes them all before launching again
+export type V2vLaunchError = { title: string; messages: string[] }
+
+export type V2vLaunched = {
+  count: number
+  taskRoute: RouteLocationRaw
+}
+
+export type V2vExcludedVm = {
+  id: XoV2vVm['id']
+  name: string
+  route: RouteLocationRaw
+  reason: string
+}
+
+export type V2vMigratedVm = {
+  id: XoV2vVm['id']
+  name: string
+  importVm: { id: FrontXoVm['id']; name: string }
+  poolName: string
+  srNamesLabel: string
+  cutoverLabel?: string
+  isConfirmed: boolean
+}
+
+export type V2vResumedVm = {
+  id: XoV2vVm['id']
+  name: string
+  parts: string[]
+}

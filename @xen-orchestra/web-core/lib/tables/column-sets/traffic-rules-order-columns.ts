@@ -1,0 +1,23 @@
+import { defineColumns } from '@core/packages/table/define-columns.ts'
+import { useButtonIconListColumn } from '@core/tables/column-definitions/button-icon-list-column.ts'
+import { useDoubleLinkColumn } from '@core/tables/column-definitions/double-link-column.ts'
+import { useRankColumn } from '@core/tables/column-definitions/rank-column.ts'
+import { useTagColumn } from '@core/tables/column-definitions/tag-column.ts'
+import { useTextColumn } from '@core/tables/column-definitions/text-column.ts'
+import { useTruncatedTextColumn } from '@core/tables/column-definitions/truncated-text-column.ts'
+import { useI18n } from 'vue-i18n'
+
+export const useTrafficRulesOrderColumns = defineColumns(() => {
+  const { t } = useI18n()
+
+  return {
+    rank: useRankColumn({ headerLabel: () => t('priority') }),
+    policy: useTagColumn({ headerLabel: () => t('policy') }),
+    protocol: useTextColumn({ headerLabel: () => t('protocol:port') }),
+    directionA: useTextColumn({ headerLabel: () => t('direction') }),
+    target: useTruncatedTextColumn({ headerLabel: () => t('target') }),
+    directionB: useTextColumn({ headerLabel: () => t('direction') }),
+    object: useDoubleLinkColumn({ headerLabel: () => t('object') }),
+    moveButtons: useButtonIconListColumn(),
+  }
+})
