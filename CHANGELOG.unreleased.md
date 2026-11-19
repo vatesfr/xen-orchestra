@@ -42,6 +42,7 @@
 - [Logs] **Breaking:** logs are now sent to syslog as RFC 5424 messages, with their namespace as message ID, instead of RFC 3164 messages: set `format = 'rfc3164'` in `[logs.transport.syslog]` to keep the previous format (PR [#10619](https://github.com/vatesfr/xen-orchestra/pull/10619))
 - [Plugins/audit] Forward a copy of each new audit record, as JSON, to a remote syslog server (e.g. a SIEM) over UDP, TCP or TLS, configurable in the plugin settings (PR [#10618](https://github.com/vatesfr/xen-orchestra/pull/10618))
 - [V2V] Import from ESXi 6.5 hosts whose data port only accepts RSA key exchange (PR [#10802](https://github.com/vatesfr/xen-orchestra/pull/10802))
+- [V2V] Import from ESXi 6.5 and 6.7 hosts through a vCenter (PR [#10819](https://github.com/vatesfr/xen-orchestra/pull/10819))
 
 ### Bug fixes
 

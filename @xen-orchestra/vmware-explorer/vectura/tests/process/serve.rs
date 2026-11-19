@@ -447,6 +447,24 @@ fn a_vcenter_serves_the_disk_from_the_host_its_ticket_names() {
 }
 
 #[test]
+fn a_legacy_host_through_a_vcenter_is_asked_for_the_transport_of_vpxa() {
+    // The mock grants a vCenter's ticket on a legacy host to vpxa only.
+    let host = Host::start(Scenario {
+        data: DataPort::Greeting(GREETING_WITHOUT_SHA256),
+        vcenter: true,
+        ..Scenario::default()
+    });
+    let mut child = spawn(&host, Some(PASSWORD), &pin(&host));
+    negotiate(&mut child, true);
+    let events = session_ends_cleanly(&host, child);
+
+    assert!(
+        events.contains(&Event::Proxy("vpxa-nfcssl".to_owned())),
+        "{events:?}"
+    );
+}
+
+#[test]
 fn a_refused_login_reports_the_fault_without_the_password() {
     let fault = "Cannot complete login due to an incorrect user name or password.";
     let (host, output) = run_failing(Scenario {
