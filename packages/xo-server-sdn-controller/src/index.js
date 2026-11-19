@@ -12,6 +12,8 @@ import { invalidParameters, objectAlreadyExists } from 'xo-common/api-errors.js'
 
 import { OvsdbClient } from './protocol/ovsdb-client'
 import { PrivateNetwork } from './private-network/private-network'
+import { createPrivateNetworkRoute } from './private-network/rest-api'
+import { resolvePrivateNetworkPools } from './private-network/resolve-pools'
 import { TlsHelper } from './utils/tls-helper'
 import { instantiateController } from './openflow-controller'
 import { randomBytes } from 'crypto'
@@ -353,15 +355,10 @@ class SDNController extends EventEmitter {
   async load() {
     // ---------------- Private Network method ---------------------------------
 
-    const createPrivateNetwork = params =>
-      this._createPrivateNetwork({
-        encrypted: false,
-        mtu: 0,
-        ...params,
-        vni: ++this._prevVni,
-      })
+    const createPrivateNetwork = params => this._createPrivateNetwork(params)
 
-    createPrivateNetwork.description = 'Creates a pool-wide private network on a selected pool'
+    createPrivateNetwork.description =
+      'Creates a pool-wide private network on a selected pool. Returns the ids of the created networks, one per pool'
     createPrivateNetwork.params = {
       poolIds: {
         type: 'array',
@@ -456,7 +453,12 @@ class SDNController extends EventEmitter {
       },
     })
 
-    this._cleaners.push(this._xo.registerRestRoutes(createRestRoutes(this), '/plugins/sdn-controller'))
+    this._cleaners.push(
+      this._xo.registerRestRoutes(
+        [...createRestRoutes(this), createPrivateNetworkRoute(this)],
+        '/plugins/sdn-controller'
+      )
+    )
 
     forOwn(this._xo.getAllXapis(), xapi => {
       if (xapi.status === 'connected') {
@@ -1073,39 +1075,38 @@ class SDNController extends EventEmitter {
 
   // ---------------------------------------------------------------------------
 
+  // The parameters are all checked before the first network is created: the networks of the pools before a failure
+  // would stay
+  //
+  // The MTU is checked here for both APIs: the REST body can only declare a number, and XAPI reads an MTU of 0 or less
+  // as 1500, so a negative one would silently become the default
+  //
+  // With the XAPI plugin (useDirectChannel: false), a host without sdncontroller.py fails in
+  // _getOrCreateOfChannel: it is called on every host before the first network is created, and the
+  // loop reuses the channels it cached
   async _createPrivateNetwork({
     poolIds,
     pifIds,
     name,
     description,
     encapsulation,
-    vni,
-    encrypted,
-    mtu,
+    encrypted = false,
+    mtu = 0,
     preferredCenterId,
   }) {
-    const pools = poolIds.map(id => this._xo.getXapiObject(id, 'pool'))
-
-    let preferredCenter
-    if (preferredCenterId !== undefined) {
-      preferredCenter = this._xo.getXapiObject(this._xo.getObject(preferredCenterId, 'host'))
-
-      // Put pool of preferred center first
-      const preferredCenterPoolUuid = preferredCenter.$pool.uuid
-      const i = pools.findIndex(pool => pool.uuid === preferredCenterPoolUuid)
-      assert.notStrictEqual(i, -1)
-      poolIds[i] = poolIds[0]
-      poolIds[0] = preferredCenterPoolUuid
+    if (!Number.isInteger(mtu) || mtu < 0) {
+      throw invalidParameters(`MTU must be a non-negative integer, not ${mtu}`)
     }
+    const { poolPifs, preferredCenter } = resolvePrivateNetworkPools(this._xo, { poolIds, pifIds, preferredCenterId })
+    await asyncEach(
+      poolPifs.flatMap(([pool]) => Object.values(pool.$xapi.objects.indexes.type.host ?? {})),
+      host => this._getOrCreateOfChannel(host)
+    )
 
+    const vni = ++this._prevVni
     const privateNetwork = new PrivateNetwork(this, uuidv4(), preferredCenter)
-    for (const pool of pools) {
-      const pifId = pifIds.find(id => {
-        const pif = this._xo.getXapiObject(this._xo.getObject(id, 'PIF'))
-        return pif.$pool.$ref === pool.$ref
-      })
-      const pif = this._xo.getXapiObject(this._xo.getObject(pifId, 'PIF'))
-
+    const networkIds = []
+    for (const [pool, pif] of poolPifs) {
       // Create the private network
       const createdNetworkRef = await pool.$xapi.call('network.create', {
         name_label: name,
@@ -1146,7 +1147,9 @@ class SDNController extends EventEmitter {
       if (privateNetwork.center !== undefined) {
         this._starCenters.set(privateNetwork.center.$id, privateNetwork.center.$ref)
       }
+      networkIds.push(createdNetwork.$id)
     }
+    return networkIds
   }
 
   // ---------------------------------------------------------------------------

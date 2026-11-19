@@ -5,7 +5,7 @@ import { SDN_CONTROLLER_OF_RULES_KEY } from '@vates/types'
 
 const log = createLogger('xo:sdn-controller:rest-api')
 
-const QUERY_SYNC = { sync: { type: 'boolean', optional: true } }
+export const QUERY_SYNC = /** @type {const} */ ({ sync: { type: 'boolean', optional: true } })
 
 const PARAMS_ID = { id: { type: 'string', example: 'b97f4e69-d275-4b25-9dc9-c1ac4e9b3fa5' } }
 
