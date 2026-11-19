@@ -6,7 +6,7 @@
       <div class="new-storage-repository-form">
         <UiTitle>{{ t('general-information') }}</UiTitle>
         <div class="row">
-          <NewSrFormTextInput v-bind="nameInputBindings" />
+          <FormTextInput v-bind="nameInputBindings" />
           <FormTextarea v-bind="descriptionInputBindings" />
         </div>
         <div class="row">
@@ -15,7 +15,7 @@
 
           <div class="pool-host-dropdowns">
             <!-- POOL -->
-            <NewSrFormSelect v-bind="poolSelectBindings">
+            <FormSelect v-bind="poolSelectBindings">
               <template #option="{ option }">
                 <VtsOption :option>
                   <span class="option-content">
@@ -24,10 +24,10 @@
                   </span>
                 </VtsOption>
               </template>
-            </NewSrFormSelect>
+            </FormSelect>
 
             <!-- HOST -->
-            <NewSrFormSelect v-bind="hostSelectBindings">
+            <FormSelect v-bind="hostSelectBindings">
               <template #option="{ option }">
                 <VtsOption :option>
                   <span class="option-content">
@@ -36,7 +36,7 @@
                   </span>
                 </VtsOption>
               </template>
-            </NewSrFormSelect>
+            </FormSelect>
           </div>
         </div>
         <div class="row">
@@ -44,27 +44,27 @@
           <NewSrTypeSelect v-bind="typeSelectBindings" />
 
           <!-- LVM or EXT -->
-          <NewSrFormTextInput v-if="type === 'lvm' || type === 'ext'" v-bind="deviceInputBindings" />
+          <FormTextInput v-if="type === 'lvm' || type === 'ext'" v-bind="deviceInputBindings" />
 
           <!-- SMB or SMBISO -->
           <div v-else-if="type === 'smb' || type === 'smbiso'">
-            <NewSrFormTextInput v-bind="serverInputBindings" />
+            <FormTextInput v-bind="serverInputBindings" />
             <UiCheckbox v-model="useAuth" accent="brand">{{ t('with-auth') }}</UiCheckbox>
           </div>
 
           <!-- LOCAL -->
-          <NewSrFormTextInput v-else-if="type === 'local'" v-bind="pathInputBindings" />
+          <FormTextInput v-else-if="type === 'local'" v-bind="pathInputBindings" />
         </div>
 
         <!-- SMB or SMBISO with auth -->
         <div v-if="(type === 'smb' || type === 'smbiso') && useAuth" class="row">
-          <NewSrFormTextInput v-bind="usernameInputBindings" />
-          <NewSrFormTextInput v-bind="passwordInputBindings" />
+          <FormTextInput v-bind="usernameInputBindings" />
+          <FormPasswordInput v-bind="passwordInputBindings" />
         </div>
 
         <!-- PREFERRED IMAGE FORMATS -->
         <div v-if="supportsPreferredImageFormats" class="row">
-          <NewSrFormSelect v-bind="preferredImageFormatsSelectBindings" />
+          <FormSelect v-bind="preferredImageFormatsSelectBindings" />
         </div>
       </div>
     </template>
@@ -79,13 +79,14 @@
 <script setup lang="ts">
 import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
-import NewSrFormSelect from '@/modules/storage-repository/components/form/new/inputs/NewSrFormSelect.vue'
-import NewSrFormTextInput from '@/modules/storage-repository/components/form/new/inputs/NewSrFormTextInput.vue'
 import NewSrAccessModeSelector from '@/modules/storage-repository/components/form/new/NewSrAccessModeSelector.vue'
 import NewSrTypeSelect from '@/modules/storage-repository/components/form/new/NewSrTypeSelect.vue'
 import { useNewSrForm } from '@/modules/storage-repository/form/new/use-new-sr-form.ts'
 import type { NewSrRestPayload } from '@/modules/storage-repository/jobs/xo-sr-create.job.ts'
+import FormPasswordInput from '@/shared/components/form/FormPasswordInput.vue'
+import FormSelect from '@/shared/components/form/FormSelect.vue'
 import FormTextarea from '@/shared/components/form/FormTextarea.vue'
+import FormTextInput from '@/shared/components/form/FormTextInput.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsOverlayCancelButton from '@core/components/overlay/VtsOverlayCancelButton.vue'
 import VtsOverlayConfirmButton from '@core/components/overlay/VtsOverlayConfirmButton.vue'

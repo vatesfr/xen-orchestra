@@ -1839,7 +1839,7 @@
   "what-is-an-unreachable-pool-content": "Un pool est considéré comme injoignable lorsque Xen Orchestra ne peut plus communiquer avec lui. Cela peut se produire si le pool est hors ligne, si le réseau est mal configuré ou si les identifiants ont changé.",
   "what-is-an-unreachable-pool-tip": "Pour rétablir l'accès, vérifiez que le pool est en cours d'exécution, contrôlez votre connexion et assurez-vous que vos identifiants sont à jour.",
   "what-is-an-unreachable-pool?": "Qu'est-ce qu'un pool injoignable ?",
-  "with-auth": "Avec identification",
+  "with-auth": "Avec authentification",
   "with-memory": "Avec mémoire",
   "write": "Écriture",
   "writing-speed": "Vitesse d'écriture",

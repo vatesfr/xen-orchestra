@@ -1,18 +1,24 @@
 import { type FrontXoHost, useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import { type FrontXoPool, useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
-import { buildNewSrInput, type NewSrFormData } from '@/modules/storage-repository/form/new/sr-form.type.ts'
 import type { NewSrRestPayload } from '@/modules/storage-repository/jobs/xo-sr-create.job.ts'
 import {
+  type NewSrFormData,
+  type NewSrType,
+  SR_CONTENT_GROUP,
+  SR_PREFERRED_IMAGE_FORMATS,
+  type SrContentGroup,
+} from '@/modules/storage-repository/types/xo-sr-create.type.ts'
+import {
+  buildNewSrInput,
   buildNewSrRestPayload,
   getAvailableSrTypes,
   groupSrTypesByContent,
   SR_TYPE_META,
 } from '@/modules/storage-repository/utils/xo-sr-create.util.ts'
-import type { InputType } from '@core/components/ui/input/UiInput.vue'
 import { objectIcon, type IconName } from '@core/icons'
 import { required, requiredIf, withMessage } from '@core/packages/form-validation'
 import { useValidatedForm } from '@core/packages/validated-form'
-import { SR_ACCESS_MODE, SR_PREFERRED_IMAGE_FORMATS, type SrType } from '@core/types/storage-repository.type.ts'
+import { SR_ACCESS_MODE } from '@core/types/storage-repository.type.ts'
 import { toComputed } from '@core/utils/to-computed.util.ts'
 import { toLower } from 'lodash-es'
 import { computed, type MaybeRefOrGetter, reactive, toRef, watch } from 'vue'
@@ -65,7 +71,7 @@ export function useNewSrForm(
         smb: t('smb'),
         local: t('local'),
         smbiso: t('smbiso'),
-      }) satisfies Record<SrType, string>
+      }) satisfies Record<NewSrType, string>
   )
 
   const typeGroups = computed(() => groupSrTypesByContent(availableSrTypes.value))
@@ -74,15 +80,15 @@ export function useNewSrForm(
     const groups = typeGroups.value
 
     const result: Array<{
-      id: SrType
+      id: NewSrType
       label: string
-      value: SrType
+      value: NewSrType
       icon: IconName
-      group: 'vdi' | 'iso'
+      group: SrContentGroup
       isFirstInGroup: boolean
     }> = []
 
-    for (const group of ['vdi', 'iso'] as const) {
+    for (const group of Object.values(SR_CONTENT_GROUP)) {
       groups[group].forEach((srType, index) => {
         result.push({
           id: srType,
@@ -103,7 +109,7 @@ export function useNewSrForm(
       id: pool.id,
       label: pool.name_label,
       value: pool.id,
-      icon: 'object:pool',
+      icon: 'object:pool' as const,
     }))
   )
 
@@ -197,13 +203,17 @@ export function useNewSrForm(
   const accessModeInputBindings = useField('accessMode', () => ({
     label: t('access-mode'),
   }))
-  const poolSelectBindings = useSelect(poolSelectId, () => ({ label: t('pool') }))
-  const hostSelectBindings = useSelect(hostSelectId, () => ({ label: t('host') }))
-  const typeSelectBindings = useSelect(typeSelectId, () => ({ label: t('type') }))
+  const poolSelect = useSelect(poolSelectId, () => ({ label: t('pool') }))
+  const hostSelect = useSelect(hostSelectId, () => ({ label: t('host') }))
+  const typeSelect = useSelect(typeSelectId, () => ({ label: t('type') }))
+
+  // `useSelect` erases the select type: the option slots of these selects need their properties
+  const poolSelectBindings = computed(() => ({ ...poolSelect.value, id: poolSelectId }))
+  const hostSelectBindings = computed(() => ({ ...hostSelect.value, id: hostSelectId }))
+  const typeSelectBindings = computed(() => ({ ...typeSelect.value, id: typeSelectId }))
   const preferredImageFormatsSelectBindings = useSelect(preferredImageFormatsSelectId, () => ({
     label: t('sr-preferred-image-formats'),
     info: t('sr-preferred-image-formats-info'),
-    wrapMessage: true,
     ...(formData.preferredImageFormats.includes('qcow2') && {
       warning: { content: t('sr-preferred-image-formats-qcow2-warning'), accent: 'warning' },
     }),
@@ -212,14 +222,7 @@ export function useNewSrForm(
   const serverInputBindings = useField('server', () => ({ label: t('server'), required: true }))
   const pathInputBindings = useField('path', () => ({ label: t('path'), required: true }))
   const usernameInputBindings = useField('username', () => ({ label: t('username') }))
-  const passwordInputBindings = useField(
-    'password',
-    () =>
-      ({
-        label: t('password'),
-        type: 'password',
-      }) satisfies { label: string; type: InputType }
-  )
+  const passwordInputBindings = useField('password', () => ({ label: t('password') }))
 
   /** Set formData.hostId to the selected pool's master host */
   function selectPoolMaster() {
