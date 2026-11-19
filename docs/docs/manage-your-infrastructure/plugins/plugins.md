@@ -29,6 +29,6 @@ Other plugins are documented with the feature they serve:
 - [Backup reports](../../backups-and-dr/backup_reports.md), to get notified about your backup jobs,
 - [Netbox](../advanced.md#netbox), to synchronize your infrastructure with Netbox,
 - [Performance alerts](../advanced.md#performance-alerts), to be warned when a resource crosses a usage threshold,
-- [SDN controller](../networking/sdn-controller/how-it-works.md), for private networks and traffic rules,
+- [SDN controller](../sdn-controller/how-it-works.md), for private networks and traffic rules,
 - [Usage reports](../manage_infrastructure.md#usage-reports), to receive regular reports on the usage of your resources,
 - [Web hooks](../advanced.md#web-hooks), to call your own services when Xen Orchestra events happen.

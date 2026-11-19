@@ -15,12 +15,12 @@ A few caveats:
 
 - This is still in **beta** and should not be used in production yet.
 - It only works on XCP-ng, not on XenServer hosts.
-- It's not enabled by default: it requires a configuration change for `xo-server` (`useDirectChannel = false`). See [the configuration page](../../../getting-started/configuration.md#sdn-controller-mode).
+- It's not enabled by default: it requires a configuration change for `xo-server` (`useDirectChannel = false`). See [the configuration page](../../getting-started/configuration.md#sdn-controller-mode).
 - Switching is forward only: going back to the default mode deletes the rules. See [Migrate from the default mode](#migration-path).
 :::
 
 :::tip
-This is the mode used by the [XO 6 traffic rules interface](../../management.md#traffic-rules) (since XO 6.5): network-wide and per-VIF rules, with a consolidated view in the pool **Traffic rules** tab.
+This is the mode used by the [XO 6 traffic rules interface](../management.md#traffic-rules) (since XO 6.5): network-wide and per-VIF rules, with a consolidated view in the pool **Traffic rules** tab.
 :::
 
 Compared to [the default mode](./traffic-rules.md), it:
@@ -34,14 +34,14 @@ Compared to [the default mode](./traffic-rules.md), it:
 
 ### Manage the rules {#xapi-plugin-rules}
 
-- From the **XO 6** interface: see [Traffic rules in XO 6](../../management.md#traffic-rules).
+- From the **XO 6** interface: see [Traffic rules in XO 6](../management.md#traffic-rules).
 - From the **XO 5** interface: per-VIF rules only, exactly as in [the default mode](./traffic-rules.md#add-a-rule): only the backend changes.
-- From the [REST API](../../../automation/restapi.md), which can also update rules in place (since XO 6.7).
+- From the [REST API](../../automation/restapi.md), which can also update rules in place (since XO 6.7).
 - From `xo-cli`, described below.
 
 ### Manage the rules with xo-cli {#xo-cli}
 
-First, register xo-cli to your XOA instance as documented in [its documentation](../../../core-concepts/architecture.md#xo-cli). Then:
+First, register xo-cli to your XOA instance as documented in [its documentation](../../core-concepts/architecture.md#xo-cli). Then:
 
 - Add per-VIF rules: `xo-cli sdnController.addRule vifId=<VIF_UUID> <parameters>`
 - Delete per-VIF rules: `xo-cli sdnController.deleteRule vifId=<VIF_UUID> <parameters>`
@@ -82,7 +82,7 @@ xo-cli sdnController.deleteNetworkRule networkId=9334aa83-6960-62e5-a463-5acc052
 
 ## Migrate from the default mode {#migration-path}
 
-The default (OpenFlow) mode and the XAPI plugin mode implement traffic rules in slightly different ways, so their rules are not directly interchangeable. When you [switch to the XAPI plugin mode](../../../getting-started/configuration.md#sdn-controller-mode), you must either:
+The default (OpenFlow) mode and the XAPI plugin mode implement traffic rules in slightly different ways, so their rules are not directly interchangeable. When you [switch to the XAPI plugin mode](../../getting-started/configuration.md#sdn-controller-mode), you must either:
 
 1. Re-create the rules from scratch, or
 2. Use the provided migration script to translate an existing set of rules.
@@ -101,7 +101,7 @@ Existing rules will first be removed before restoring the saved ones.
 
 ### How to use the script
 
-The migration script is available as [sdn-migration.py (download script)](../../../../static/sh/sdn-migration.py).
+The migration script is available as [sdn-migration.py (download script)](../../../static/sh/sdn-migration.py).
 
 <Terminal shell title="migrate the rules (backup written to rules-channel.json)">{`
 # Export current rules to rules-channel.json and convert to XAPI format
@@ -144,7 +144,7 @@ We provide a script to run from a host that has access to your pool. To run the 
 - The list of the addresses of your pool masters.
 - (optional) If your infrastructure is on the bigger side, it may be better to have ssh agents configured with keys to avoid the need to pass all the passwords.
 
-[check-sdn-features.sh (download script)](../../../../static/sh/check-sdn-features.sh)
+[check-sdn-features.sh (download script)](../../../static/sh/check-sdn-features.sh)
 
 Copy the file to where you want to run the script, then run this:
 
@@ -204,7 +204,7 @@ The update present in the `latest` channel will probably be available later than
 
 We provide a helper script to run on your XOA VM:
 
-[regenerate-certs.sh (download script)](../../../../static/sh/regenerate-certs.sh)
+[regenerate-certs.sh (download script)](../../../static/sh/regenerate-certs.sh)
 
 <Terminal shell title="regenerate the certificates, on your XOA">{`
 sudo bash -e ./regenerate-certs.sh

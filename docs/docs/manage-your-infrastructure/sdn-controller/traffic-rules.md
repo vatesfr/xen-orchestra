@@ -41,7 +41,7 @@ The default mode covers per-VIF rules on the management network. If you need any
 - **network-wide** rules;
 - rules on **bonds, VLANs and private networks**;
 - **rule priorities**;
-- the [XO 6 traffic rules](../../management.md#traffic-rules) interface, with a consolidated view of all the rules of a pool.
+- the [XO 6 traffic rules](../management.md#traffic-rules) interface, with a consolidated view of all the rules of a pool.
 
 :::warning
 The XAPI plugin mode is still in **beta**, only works on XCP-ng, and switching to it can't be undone without deleting your rules. Read [its caveats](./advanced.md#xapi-plugin) before switching.

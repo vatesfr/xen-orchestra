@@ -236,7 +236,11 @@ export default {
             from: ['/xo5/rolling_snapshots', '/rolling_snapshots'],
           },
           {
-            to: '/manage-your-infrastructure/networking/sdn-controller/setup',
+            to: '/category/sdn-controller',
+            from: '/category/networking',
+          },
+          {
+            to: '/manage-your-infrastructure/sdn-controller/setup',
             from: [
               '/sdn_controller',
               '/xo5/sdn_controller',

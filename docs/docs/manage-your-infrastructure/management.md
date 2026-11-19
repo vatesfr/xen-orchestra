@@ -87,7 +87,7 @@ A rule is simple to express: allow or block, a protocol (ARP, ICMP, IP, TCP or U
 <UiShot light="/img/xo6/traffic-rule-new-light.png" dark="/img/xo6/traffic-rule-new-dark.png" alt="The new traffic rule form: policy, protocol, direction, IP range, and the network or VIF it applies to" url="https://your-xo/v6/#/traffic-rule/new" />
 
 :::warning Prerequisites
-Traffic rules are enforced by the [SDN Controller plugin](networking/sdn-controller/setup.md): it must be loaded, and switched to the **XAPI plugin** mode ([`useDirectChannel = false`](../getting-started/configuration.md#sdn-controller-mode)). XO 6 shows a notification guiding you through the switch, and a [migration script](networking/sdn-controller/advanced.md#migration-path) converts existing rules.
+Traffic rules are enforced by the [SDN Controller plugin](sdn-controller/setup.md): it must be loaded, and switched to the **XAPI plugin** mode ([`useDirectChannel = false`](../getting-started/configuration.md#sdn-controller-mode)). XO 6 shows a notification guiding you through the switch, and a [migration script](sdn-controller/advanced.md#migration-path) converts existing rules.
 :::
 
 Everything is also available through the [REST API](../automation/restapi.md), where rules can additionally be updated in place, making network policies easy to automate.

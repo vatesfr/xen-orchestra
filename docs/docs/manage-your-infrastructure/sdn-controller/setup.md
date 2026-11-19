@@ -4,7 +4,7 @@ sidebar_position: 2
 
 # Set up the SDN controller
 
-<InterfaceNote>Private networks are currently created and managed from XO 5. Traffic rules moved ahead in [XO 6](../../management.md#traffic-rules), with more capabilities than the XO 5 equivalent.</InterfaceNote>
+<InterfaceNote>Private networks are currently created and managed from XO 5. Traffic rules moved ahead in [XO 6](../management.md#traffic-rules), with more capabilities than the XO 5 equivalent.</InterfaceNote>
 
 This page takes you from the requirements to your first private network. If you haven't yet, read [How it works](./how-it-works.md) first: it explains the choices you'll make below.
 
@@ -51,7 +51,7 @@ GRE and VxLAN add a header to every packet (see [Encapsulation and MTU](./how-it
 
 ## Step 1: configure and enable the plugin {#configuration}
 
-The plugin must be configured and loaded before you can create a private network. Like all xo-server plugins, it's configured from **Settings → Plugins** in XO 5: see [the plugin documentation](../../plugins/plugins.md).
+The plugin must be configured and loaded before you can create a private network. Like all xo-server plugins, it's configured from **Settings → Plugins** in XO 5: see [the plugin documentation](../plugins/plugins.md).
 
 The plugin's configuration contains:
 
