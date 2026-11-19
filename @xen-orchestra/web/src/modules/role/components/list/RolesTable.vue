@@ -6,7 +6,7 @@
         <slot name="title-action" />
       </template>
     </UiTitle>
-    <VtsQueryBuilder :model-value="filter" :schema @search="filter = $event" />
+    <VtsQueryBuilder v-bind="searchBindings" :schema />
     <div class="container">
       <VtsTableBulkActions :actions="bulkActions" />
       <VtsTable :state :pagination-bindings :selection-bindings sticky="right">
@@ -72,7 +72,7 @@ const isReady = logicAnd(() => !busy, areGroupsReady)
 
 const hasError = logicOr(() => error, hasGroupFetchError)
 
-const { items: filteredRoles, filter, schema } = useRoleQueryBuilder('roles', () => rawRoles)
+const { items: filteredRoles, searchBindings, schema } = useRoleQueryBuilder('roles', () => rawRoles)
 
 const state = useTableState({
   busy: logicNot(isReady),

@@ -1,6 +1,6 @@
 <template>
   <div class="privilege-scope-srs-table">
-    <VtsQueryBuilder :model-value="filter" :schema @search="filter = $event" />
+    <VtsQueryBuilder v-bind="searchBindings" :schema />
     <VtsTable :state :pagination-bindings :selection-bindings="readonly ? undefined : selectionBindings">
       <thead>
         <tr>
@@ -56,7 +56,7 @@ const visibleSrs = computed(() =>
 
 const {
   items: filteredSrs,
-  filter,
+  searchBindings,
   schema,
 } = useSrQueryBuilder('privilege-scope-srs', visibleSrs, {
   ignoreRoute: true,

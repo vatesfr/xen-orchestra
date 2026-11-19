@@ -17,10 +17,11 @@ import {
   parseManualSelectionSelector,
 } from '@/modules/role/utils/privilege-scope.util.ts'
 import type { InputWrapperMessage } from '@core/components/input-wrapper/VtsInputWrapper.vue'
+import { useDebouncedSearch } from '@core/composables/debounced-search.composable.ts'
 import { queryFilter, required } from '@core/packages/form-validation'
 import { defineFormSteps, useMultiStepValidatedForm } from '@core/packages/validated-form'
 import type { XoAclBasePrivilege } from '@vates/types'
-import { computed, ref, watch } from 'vue'
+import { computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 function getErrorContent(error: InputWrapperMessage | undefined) {
@@ -133,11 +134,16 @@ export function useNewPrivilegeForm(privilegeToEdit: NewPrivilegePayload | undef
 
   const selectedIdsError = computed(() => getErrorContent(selectedIdsField.value.error))
 
-  const appliedSelector = ref(formData.scope.selector)
+  const {
+    search: typedSelector,
+    debouncedSearch: appliedSelector,
+    applySearch: applySelector,
+    searchBindings: selectorSearchBindings,
+  } = useDebouncedSearch(formData.scope.selector)
 
-  function applySelector() {
-    appliedSelector.value = formData.scope.selector
-  }
+  watch(typedSelector, selector => {
+    formData.scope.selector = selector
+  })
 
   watch(currentStep, () => applySelector())
 
@@ -166,8 +172,7 @@ export function useNewPrivilegeForm(privilegeToEdit: NewPrivilegePayload | undef
         formData.details.actions = []
       }
 
-      formData.scope.selector = ''
-      applySelector()
+      typedSelector.value = ''
 
       if (!availableScopeTypes.value.includes(formData.scope.scopeType)) {
         formData.scope.scopeType = 'all-objects'
@@ -221,7 +226,7 @@ export function useNewPrivilegeForm(privilegeToEdit: NewPrivilegePayload | undef
     availableScopeTypes,
     selectorSchema,
     selectorError,
-    applySelector,
+    selectorSearchBindings,
     selectedIdsError,
     isSelectorPreviewEnabled,
     selectorMatches,

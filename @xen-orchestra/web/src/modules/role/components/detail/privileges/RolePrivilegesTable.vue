@@ -3,7 +3,7 @@
     <UiTitle>
       {{ t('privileges') }}
     </UiTitle>
-    <VtsQueryBuilder :model-value="filter" :schema @search="filter = $event" />
+    <VtsQueryBuilder v-bind="searchBindings" :schema />
     <VtsTable :state :pagination-bindings sticky="right">
       <thead>
         <tr>
@@ -51,7 +51,11 @@ const { t } = useI18n()
 
 const selectedPrivilegeId = useRouteQuery('id')
 
-const { items: filteredPrivileges, filter, schema } = usePrivilegeQueryBuilder('role-privileges', () => privileges)
+const {
+  items: filteredPrivileges,
+  searchBindings,
+  schema,
+} = usePrivilegeQueryBuilder('role-privileges', () => privileges)
 
 const state = useTableState({
   busy: () => busy,

@@ -1,6 +1,6 @@
 <template>
   <div class="roles-selection-table">
-    <VtsQueryBuilder :model-value="filter" :schema @search="filter = $event" />
+    <VtsQueryBuilder v-bind="searchBindings" :schema />
     <VtsTable :state :pagination-bindings :selection-bindings>
       <thead>
         <tr>
@@ -50,7 +50,7 @@ const { t } = useI18n()
 
 const {
   items: filteredRoles,
-  filter,
+  searchBindings,
   schema,
 } = useRoleQueryBuilder('roles-selection', () => roles, {
   ignoreRoute: true,

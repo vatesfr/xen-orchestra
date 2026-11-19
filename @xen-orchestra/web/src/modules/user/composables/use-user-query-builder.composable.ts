@@ -30,7 +30,7 @@ export function useUserQueryBuilder<TUser extends FrontXoUser>(
     }))
   )
 
-  const { items, filter } = useQueryBuilderFilter(id, filterableUsers, options)
+  const { items, searchBindings } = useQueryBuilderFilter(id, filterableUsers, options)
 
   const schema = useQueryBuilderSchema<FilterableUser>({
     '': useStringSchema(t('any-property')),
@@ -41,5 +41,5 @@ export function useUserQueryBuilder<TUser extends FrontXoUser>(
     providers: useStringSchema(t('providers')),
   })
 
-  return { items, filter, schema }
+  return { items, searchBindings, schema }
 }

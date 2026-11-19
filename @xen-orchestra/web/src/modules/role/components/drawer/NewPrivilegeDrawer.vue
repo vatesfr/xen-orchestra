@@ -41,7 +41,7 @@
 
           <template v-else-if="formData.scope.scopeType === 'dynamic-selection'">
             <div class="selector">
-              <VtsQueryBuilder v-model="formData.scope.selector" :schema="selectorSchema" @search="applySelector()" />
+              <VtsQueryBuilder v-bind="selectorSearchBindings" :schema="selectorSchema" />
               <UiInfo :accent="selectorMessage.accent" wrap>
                 {{ selectorMessage.content }}
               </UiInfo>
@@ -186,7 +186,7 @@ const {
   availableScopeTypes,
   selectorSchema,
   selectorError,
-  applySelector,
+  selectorSearchBindings,
   selectedIdsError,
   isSelectorPreviewEnabled,
   selectorMatches,

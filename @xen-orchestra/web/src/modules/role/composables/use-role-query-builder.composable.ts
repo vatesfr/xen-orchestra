@@ -34,7 +34,7 @@ export function useRoleQueryBuilder<TRole extends FrontXoRole>(
     }))
   )
 
-  const { items, filter } = useQueryBuilderFilter(id, filterableRoles, options)
+  const { items, searchBindings } = useQueryBuilderFilter(id, filterableRoles, options)
 
   const schema = useQueryBuilderSchema<FilterableRole>({
     '': useStringSchema(t('any-property')),
@@ -45,5 +45,5 @@ export function useRoleQueryBuilder<TRole extends FrontXoRole>(
     privilegesCount: useNumberSchema(t('privileges')),
   })
 
-  return { items, filter, schema }
+  return { items, searchBindings, schema }
 }

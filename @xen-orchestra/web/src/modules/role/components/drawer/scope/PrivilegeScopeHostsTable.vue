@@ -1,6 +1,6 @@
 <template>
   <div class="privilege-scope-hosts-table">
-    <VtsQueryBuilder :model-value="filter" :schema @search="filter = $event" />
+    <VtsQueryBuilder v-bind="searchBindings" :schema />
     <VtsTable :state :pagination-bindings :selection-bindings="readonly ? undefined : selectionBindings">
       <thead>
         <tr>
@@ -55,7 +55,7 @@ const isReady = logicAnd(areHostsReady, arePifsReady)
 
 const {
   items: filteredHosts,
-  filter,
+  searchBindings,
   schema,
 } = useHostQueryBuilder('privilege-scope-hosts', visibleHosts, {
   ignoreRoute: true,
@@ -96,7 +96,7 @@ function getMasterIcon(host: FrontXoHost) {
 }
 
 const { HeadCells, BodyCells } = useHostColumns({
-  exclude: ['srStatus', 'selectItem'],
+  exclude: ['srStatus', 'selectItem', 'actions'],
   head: () => ({
     checkbox: r => (readonly ? r() : r(pageSelectionModel)),
   }),

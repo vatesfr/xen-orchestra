@@ -10,7 +10,7 @@
     @detach="detachSelectedUsers({ detached: true, onSuccess: selectionBindings.onClearSelection })"
   >
     <template #filter>
-      <VtsQueryBuilder :model-value="filter" :schema @search="filter = $event" />
+      <VtsQueryBuilder v-bind="searchBindings" :schema />
     </template>
     <VtsTable :state :pagination-bindings :selection-bindings sticky="right">
       <thead>
@@ -62,7 +62,7 @@ const selectedUserId = useRouteQuery('id')
 
 const { addUsers, canAddUsers, isAddingUsers } = useRoleUsersAdd(() => role)
 
-const { items: filteredUsers, filter, schema } = useUserQueryBuilder('role-users', () => users)
+const { items: filteredUsers, searchBindings, schema } = useUserQueryBuilder('role-users', () => users)
 
 const { pageRecords: paginatedUsers, paginationBindings } = usePagination('role-users', filteredUsers)
 
