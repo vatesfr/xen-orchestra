@@ -182,7 +182,7 @@ export class SrController extends XapiXoController<XoSr> {
    * Import an exported VDI
    *
    * Required privilege:
-   * - resource: sr, action: import:vdi
+   * - resource: sr, action: import:vdi:upload
    *
    * @example id "c4284e12-37c9-7967-b9e8-83ef229c3e03"
    * @example name_label "VDI_foo_import"
@@ -192,7 +192,7 @@ export class SrController extends XapiXoController<XoSr> {
   @Example(vdiId)
   @Extension('x-mcp-exposure', 'confirm')
   @Post('{id}/vdis')
-  @Middlewares(acl({ resource: 'sr', action: 'import:vdi', objectId: 'params.id' }))
+  @Middlewares(acl({ resource: 'sr', action: 'import:vdi:upload', objectId: 'params.id' }))
   @Tags('vdis')
   @SuccessResponse(createdResp.status, 'VDI imported')
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
@@ -445,28 +445,28 @@ export class SrController extends XapiXoController<XoSr> {
    * Import a VDI from a URL
    *
    * The XO server fetches the URL and streams its content straight to the SR, without storing it on the XO server.
-   * 
+   *
    * Requirements:
    *  - The URL must be reachable by the XO server.
    *  - The URL must use `http` or `https`.
    *  - The URL must not contain a username/password (`https://user:password@...`).
    *  - The remote server must send a `Content-Length` header.
-   * 
+   *
    * Only ISO SRs are supported for now.
-   * 
-   * Warning: The XO server sends a GET requet to the given URL, whatever its address. It can reach internal
+   *
+   * Warning: The XO server sends a GET request to the given URL, whatever its address. It can reach internal
    * services, and the response can then be read by exporting the imported VDI.
    *
    * Required privilege:
    * - resource: sr, action: import:vdi:url
-   *  
+   *
    * @example id "c4284e12-37c9-7967-b9e8-83ef229c3e03"
    * @example body { "url": "https://example.com/debian-13.iso", "name_label": "debian-13.iso", "name_description": "Debian 13 installer" }
    */
   @Example(vdiId)
   @Extension('x-mcp-exposure', 'confirm')
   @Post('{id}/actions/import_vdi_from_url')
-  @Middlewares([json(), acl({ resource: 'sr', action: 'import:vdi-from-url', objectId: 'params.id' })])
+  @Middlewares([json(), acl({ resource: 'sr', action: 'import:vdi:url', objectId: 'params.id' })])
   @Tags('vdis')
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
   @Response(createdResp.status, 'VDI imported')

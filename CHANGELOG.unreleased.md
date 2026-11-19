@@ -68,7 +68,11 @@
 >>>>>>> 4c75dbf3f7 (update changelog)
 =======
 - [REST API] `POST /rest/v0/srs/:id/actions/import_vdi_from_url` imports an ISO from an HTTP(S) URL into an ISO SR (PR [#10751](https://github.com/vatesfr/xen-orchestra/pull/10751))
+<<<<<<< HEAD
 >>>>>>> ff21cace97 (fix after mikita review)
+=======
+- [REST API] `sr: import:vdi` privilege is split into `import:vdi:upload` and `import:vdi:url`, existing `import:vdi` privileges cover both (PR [#10751](https://github.com/vatesfr/xen-orchestra/pull/10751))
+>>>>>>> d173dbda22 (acl changes for additional level permissions)
 
 ### Bug fixes
 
