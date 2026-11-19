@@ -1,9 +1,15 @@
 import { useXoTaskCollection } from '@/modules/task/remote-resources/use-xo-task-collection.ts'
-import { getTaskLastActivity, getTaskSeverity, getUnreadTaskIds } from '@/modules/task/utils/xo-tasks-unread.util.ts'
+import {
+  getBatchProgress,
+  getTaskLastActivity,
+  getTaskSeverity,
+  getUnreadTaskIds,
+  type TaskSeverity,
+} from '@/modules/task/utils/xo-tasks-unread.util.ts'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { findTask } from '@core/utils/task.util.ts'
 import { createSharedComposable, useLocalStorage } from '@vueuse/core'
-import { computed, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 
 export const useXoTasksUnread = createSharedComposable(() => {
@@ -46,7 +52,7 @@ export const useXoTasksUnread = createSharedComposable(() => {
 
   const unreadCount = computed(() => unreadTasks.value.length)
 
-  const unreadSeverity = computed(() => {
+  const unreadSeverity = computed((): TaskSeverity | undefined => {
     const severities = unreadTasks.value.map(task => getTaskSeverity(task))
 
     if (severities.includes('danger')) {
@@ -60,5 +66,26 @@ export const useXoTasksUnread = createSharedComposable(() => {
     return undefined
   })
 
-  return { openedTaskId, unreadTaskIds, unreadCount, unreadSeverity, markAllAsRead }
+  const pendingTaskIds = computed(() =>
+    lastDayTasks.value.filter(task => task.status === 'pending').map(task => task.id)
+  )
+
+  const pendingCount = computed(() => pendingTaskIds.value.length)
+
+  // Tasks running at page load plus the ones started since, kept until none of them is pending anymore
+  const batchTaskIds = ref(new Set<string>())
+
+  watch(
+    pendingTaskIds,
+    taskIds => {
+      batchTaskIds.value = taskIds.length === 0 ? new Set() : new Set([...batchTaskIds.value, ...taskIds])
+    },
+    { immediate: true }
+  )
+
+  const pendingProgress = computed(() =>
+    batchTaskIds.value.size === 0 ? undefined : getBatchProgress(lastDayTasks.value, batchTaskIds.value)
+  )
+
+  return { openedTaskId, unreadTaskIds, unreadCount, unreadSeverity, pendingCount, pendingProgress, markAllAsRead }
 })
