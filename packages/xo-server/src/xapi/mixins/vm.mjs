@@ -250,11 +250,6 @@ const methods = {
 
           // update VDI size if is bigger
           if (size != null) {
-            if (size < _vdi.virtual_size) {
-              throw new Error(
-                `Unable to update to a smaller VDI size for VDI with PBD userdevice: ${userdevice}. Current size: ${_vdi.virtual_size}, new size: ${size}`
-              )
-            }
             await this.resizeVdi(_vdi.$id, size)
           }
         })

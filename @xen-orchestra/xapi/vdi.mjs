@@ -4,6 +4,7 @@ import pRetry from 'promise-toolbox/retry'
 import { createLogger } from '@xen-orchestra/log'
 import { decorateClass } from '@vates/decorate-with'
 import { defer } from 'golike-defer'
+import { invalidParameters } from 'xo-common/api-errors.js'
 import { readChunk } from '@vates/read-chunk'
 import { strict as assert } from 'node:assert'
 
@@ -283,6 +284,11 @@ class Vdi {
    * @returns {Promise<void>}
    */
   async resize(vdiRef, size) {
+    // XAPI may return int64 fields as strings
+    const currentSize = Number(await this.getField('VDI', vdiRef, 'virtual_size'))
+    if (size < currentSize) {
+      throw invalidParameters(`cannot set new size (${size}) below the current size (${currentSize})`)
+    }
     await this.callAsync('VDI.resize', vdiRef, size)
   }
 
