@@ -289,7 +289,22 @@ class Vdi {
     if (size < currentSize) {
       throw invalidParameters(`cannot set new size (${size}) below the current size (${currentSize})`)
     }
-    await this.callAsync('VDI.resize', vdiRef, size)
+    try {
+      await this.callAsync('VDI.resize', vdiRef, size)
+    } catch (resizeError) {
+      if (resizeError.code !== 'VDI_IN_USE') {
+        throw resizeError
+      }
+      // the VDI is attached to a running VM: resize_online only exists on recent XAPI versions
+      try {
+        await this.callAsync('VDI.resize_online', vdiRef, size)
+      } catch (resizeOnlineError) {
+        if (resizeOnlineError.code === 'MESSAGE_METHOD_UNKNOWN') {
+          throw resizeError
+        }
+        throw resizeOnlineError
+      }
+    }
   }
 
   async importContent(ref, content, { signal, format }) {
