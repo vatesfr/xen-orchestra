@@ -13,7 +13,7 @@ export type CreateSrDrawerContext = {
 export function useCreateSrDrawer() {
   const restPayload = ref<NewSrRestPayload>()
 
-  const { run, isRunning, errorMessage, canRun } = useXoSrCreateJob(restPayload)
+  const { run } = useXoSrCreateJob(restPayload)
 
   const { open: openDrawer } = useOverlay({
     component: () => import('@/modules/storage-repository/components/drawer/StorageRepositoryCreateDrawer.vue'),
@@ -37,5 +37,5 @@ export function useCreateSrDrawer() {
     return openDrawer({ props: context })
   }
 
-  return { openCreateSrDrawer, canRun, isRunning, errorMessage }
+  return { openCreateSrDrawer }
 }
