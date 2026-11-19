@@ -2,6 +2,7 @@ import type {
   FrontXoBackupLog,
   useXoBackupLogCollection as realUseXoBackupLogCollection,
 } from '@/modules/backup-log/remote-resources/use-xo-backup-log-collection.ts'
+import { createMockCollection } from '@/test/find-by-id.ts'
 import { groupBy } from '@/test/group-by.ts'
 import { computed, ref } from 'vue'
 
@@ -24,8 +25,7 @@ const backupLogsByJobId = computed(() => groupBy(sortedBackupLogs.value, backupL
 
 // Use as `mockModule(import('@/modules/backup-log/remote-resources/use-xo-backup-log-collection.ts'), () => import('@/test/mock-xo-backup-log-collection.ts'))`
 export const useXoBackupLogCollection = (() => ({
-  backupLogs: sortedBackupLogs,
-  areBackupLogsReady: backupLogCollectionMock.areBackupLogsReady,
+  ...createMockCollection('BackupLog', 'BackupLogs', sortedBackupLogs, backupLogCollectionMock.areBackupLogsReady),
   backupLogsByJobId,
   getLastNBackupLogsByJobId: (jobId: FrontXoBackupLog['jobId'], limit = 3) =>
     backupLogsByJobId.value.get(jobId)?.slice(0, limit) ?? [],

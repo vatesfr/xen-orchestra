@@ -2,6 +2,7 @@ import type {
   FrontXoVmSnapshot,
   useXoVmSnapshotCollection as realUseXoVmSnapshotCollection,
 } from '@/modules/snapshot/components/remote-resources/use-xo-vm-snapshot-collection.ts'
+import { createMockCollection } from '@/test/find-by-id.ts'
 import { taskCollectionMock } from '@/test/mock-xo-task-collection.ts'
 import { vmCollectionMock } from '@/test/mock-xo-vm-collection.ts'
 import { ref } from 'vue'
@@ -29,6 +30,10 @@ export { useXoVmCollection } from '@/test/mock-xo-vm-collection.ts'
 export { useXoTaskCollection } from '@/test/mock-xo-task-collection.ts'
 
 export const useXoVmSnapshotCollection = (() => ({
-  snapshots: v2vVmRowsCollectionsMock.snapshots,
-  areSnapshotsReady: v2vVmRowsCollectionsMock.areSnapshotsReady,
+  ...createMockCollection(
+    'Snapshot',
+    'Snapshots',
+    v2vVmRowsCollectionsMock.snapshots,
+    v2vVmRowsCollectionsMock.areSnapshotsReady
+  ),
 })) as unknown as typeof realUseXoVmSnapshotCollection

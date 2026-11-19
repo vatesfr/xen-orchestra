@@ -25,7 +25,7 @@ export function filterByIds<TRecord extends { id: string }>(records: TRecord[], 
 export function createMockCollection<TRecord extends { id: string }>(
   singular: string,
   plural: string,
-  records: Ref<TRecord[]>,
+  records: Readonly<Ref<TRecord[]>>,
   isReady?: Ref<boolean>
 ) {
   return {

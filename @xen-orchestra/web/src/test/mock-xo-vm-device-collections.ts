@@ -49,9 +49,7 @@ export const useXoVdiCollection = (() => ({
 })) as unknown as typeof realUseXoVdiCollection
 
 export const useXoVdiSnapshotCollection = (() => ({
-  vdiSnapshots: vmDeviceCollectionsMock.vdiSnapshots,
-  getVdiSnapshotById: (id: FrontXoVdiSnapshot['id']) =>
-    vmDeviceCollectionsMock.vdiSnapshots.value.find(vdiSnapshot => vdiSnapshot.id === id),
+  ...createMockCollection('VdiSnapshot', 'VdiSnapshots', vmDeviceCollectionsMock.vdiSnapshots),
 })) as unknown as typeof realUseXoVdiSnapshotCollection
 
 export const useXoVifCollection = (() => ({

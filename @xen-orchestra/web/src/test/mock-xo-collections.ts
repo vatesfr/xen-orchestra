@@ -145,7 +145,6 @@ export const useXoPifCollection = (() => ({
 })) as unknown as typeof realUseXoPifCollection
 
 export const useXoVmTemplateCollection = (() => ({
-  templates: xoCollectionsMock.templates,
+  ...createMockCollection('Template', 'Templates', xoCollectionsMock.templates, xoCollectionsMock.areTemplatesReady),
   vmsTemplatesByPool: computed(() => groupBy(xoCollectionsMock.templates.value, template => template.$pool)),
-  areTemplatesReady: xoCollectionsMock.areTemplatesReady,
 })) as unknown as typeof realUseXoVmTemplateCollection
