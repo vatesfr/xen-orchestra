@@ -61,6 +61,8 @@ watch(content, () => updatePlacement(), { flush: 'post' })
   position: relative;
   display: inline-flex;
   width: max-content;
+  max-width: 48rem;
+  overflow-wrap: anywhere;
   padding: 0.4rem 0.8rem;
   pointer-events: none;
   color: var(--color-neutral-background-primary);
