@@ -1,8 +1,8 @@
 <template>
   <ComponentStory :params="[slot().help('Power state actions, shown in the submenu')]">
     <MenuList placement="bottom-start">
-      <template #trigger="{ open }">
-        <UiButtonIcon accent="brand" icon="action:more-actions" size="medium" @click="open($event)" />
+      <template #trigger="{ open, bindings }">
+        <UiButtonIcon v-bind="bindings" accent="brand" icon="action:more-actions" size="medium" @click="open($event)" />
       </template>
       <VtsChangeStateMenuItem>
         <MenuItem accent="neutral" icon="fa:play" :on-click>Start</MenuItem>

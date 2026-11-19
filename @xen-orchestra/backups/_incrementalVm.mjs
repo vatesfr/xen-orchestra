@@ -1,12 +1,11 @@
 import groupBy from 'lodash/groupBy.js'
 import ignoreErrors from 'promise-toolbox/ignoreErrors'
 import { asyncMap } from '@xen-orchestra/async-map'
-import { CancelToken } from 'promise-toolbox'
 import { compareVersions } from 'compare-versions'
 import { defer } from 'golike-defer'
 import { Task } from '@vates/task'
 
-import { cancelableMap } from './_cancelableMap.mjs'
+import { abortableMap } from './_abortableMap.mjs'
 import pick from 'lodash/pick.js'
 import { BASE_DELTA_VDI, CONTENT_KEY, COPY_OF, VM_UUID } from './_otherConfig.mjs'
 
@@ -27,17 +26,13 @@ export async function updateMemoryFields(xapi, targetVm, vmRecord) {
   await xapi.call('VM.set_memory_limits', targetVm.$ref, staticMin, staticMax, dynamicMin, dynamicMax)
 }
 
-export async function exportIncrementalVm(
-  vm,
-  baseVdis = {},
-  { cancelToken = CancelToken.none, nbdConcurrency = 1, preferNbd } = {}
-) {
+export async function exportIncrementalVm(vm, baseVdis = {}, { signal, nbdConcurrency = 1, preferNbd } = {}) {
   // refs of VM's VDIs → base's VDIs.
 
   const disks = {}
   const vdis = {}
   const vbds = {}
-  await cancelableMap(cancelToken, vm.$VBDs, async (cancelToken, vbd) => {
+  await abortableMap(signal, vm.$VBDs, async (signal, vbd) => {
     let vdi
     if (vbd.type !== 'Disk' || !(vdi = vbd.$VDI)) {
       // Ignore this VBD.
@@ -135,12 +130,7 @@ export const importIncrementalVm = defer(async function importIncrementalVm(
   $defer,
   incrementalVm,
   sr,
-  {
-    cancelToken = CancelToken.none,
-    newMacAddresses = false,
-    targetRef = undefined,
-    vmNamePrefix = '[Importing…] ',
-  } = {}
+  { signal, newMacAddresses = false, targetRef = undefined, vmNamePrefix = '[Importing…] ' } = {}
 ) {
   const { version } = incrementalVm
   if (compareVersions(version, '1.0.0') < 0) {
@@ -341,7 +331,7 @@ export const importIncrementalVm = defer(async function importIncrementalVm(
   const { disks } = incrementalVm
   await Promise.all([
     // Import VDI contents.
-    cancelableMap(cancelToken, Object.entries(newVdis), async (cancelToken, [id, vdi]) => {
+    abortableMap(signal, Object.entries(newVdis), async (signal, [id, vdi]) => {
       for (const disk of ensureArray(disks[id])) {
         if (disk === null) {
           // we restore a backup and reuse completely a local snapshot
@@ -358,7 +348,7 @@ export const importIncrementalVm = defer(async function importIncrementalVm(
           format = 'vhd'
         }
 
-        await vdi.$importContent(stream, { cancelToken, format })
+        await vdi.$importContent(stream, { signal, format })
 
         await xapi.setField('VDI', vdi.$ref, 'name_label', vdiRecords[id].name_label)
       }

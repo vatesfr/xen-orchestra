@@ -1,8 +1,9 @@
 <template>
   <VtsResponsiveMenu :title="t('account')" :section-title="t('menu')" placement="bottom-end">
-    <template #trigger="{ open, isOpen }">
+    <template #trigger="{ open, isOpen, bindings }">
       <UiAccountMenuButton
         v-tooltip="isOpen ? false : { content: t('settings'), placement: 'left' }"
+        v-bind="bindings"
         :selected="isOpen"
         size="medium"
         @click="open($event)"

@@ -63,6 +63,7 @@
 import { useXoNetworkCollection } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
 import { getPoolNetworkRoute } from '@/modules/network/utils/xo-network.util.ts'
 import { useDirectionLabels } from '@/modules/traffic-rules/composables/direction-labels.composable.ts'
+import { useTrafficRulePolicy } from '@/modules/traffic-rules/composables/traffic-rule-policy.composable.ts'
 import { useTrafficRuleTarget } from '@/modules/traffic-rules/composables/traffic-rule-target.composable.ts'
 import { getTrafficRuleProtocolLabel } from '@/modules/traffic-rules/utils/xo-traffic-rule.util.ts'
 import { useXoVifCollection } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
@@ -95,6 +96,8 @@ const getTarget = useTrafficRuleTarget()
 
 const getDirectionLabels = useDirectionLabels()
 
+const getPolicy = useTrafficRulePolicy()
+
 const policy = computed(() => (rule.allow ? RULE_STATUS.ALLOW : RULE_STATUS.DROP))
 
 const target = computed(() => getTarget(rule))
@@ -125,7 +128,7 @@ const direction = computed(() => {
 const protocolLabel = computed(() => getTrafficRuleProtocolLabel(rule))
 
 const description = computed(() => {
-  const policyLabel = rule.allow ? t('allow') : t('drop')
+  const policyLabel = getPolicy(rule).label
   const { label, suffix } = target.value
   const descriptionParts = [
     policyLabel,

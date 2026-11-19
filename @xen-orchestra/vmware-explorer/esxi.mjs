@@ -6,7 +6,7 @@ import { setTimeout as delay } from 'node:timers/promises'
 import { Agent } from 'undici'
 
 import { parseDatastorePath, resolveDiskLocation } from './_paths.mjs'
-import { buildInventory, parseDevices, reachingHostIds } from './_inventory.mjs'
+import { buildInventory, parseDevices, parseGuestNics, reachingHostIds } from './_inventory.mjs'
 import { getCertificateThumbprint } from './_thumbprint.mjs'
 import { formatVecturaArgs, VECTURA_BIN } from './_vectura.mjs'
 import { COWD_HEADER_LENGTH, grainDirectoryToDataMap, parseCowdHeader } from './parsers/cowd.mjs'
@@ -722,9 +722,10 @@ export default class Esxi extends EventEmitter {
   }
 
   async getTransferableVmMetadata(vmId, { signal } = {}) {
-    const [config, runtime] = await Promise.all([
+    const [config, runtime, guestNics] = await Promise.all([
       this.#retrieveProperty('VirtualMachine', vmId, 'config', { signal }),
       this.#retrieveProperty('VirtualMachine', vmId, 'runtime', { signal }),
+      this.#getGuestNics(vmId, { signal }),
     ])
 
     const vmPathName = config.files.vmPathName
@@ -781,12 +782,13 @@ export default class Esxi extends EventEmitter {
     // In the whole `config` they are the `device` elements themselves, not wrapped in a `VirtualDevice`
     // as the value of `config.hardware.device` is
     const networks = parseDevices({ VirtualDevice: config.hardware?.device }).nics.map(
-      ({ key, label, macAddress, addressType, network }) => ({
+      ({ key, label, macAddress, addressType, network, pciSlotNumber }) => ({
         key,
         label,
         macAddress,
         isGenerated: addressType === 'generated',
         network,
+        pciSlotNumber,
       })
     )
     const inspect = fileName => this.#inspectVmdk(dataStores, dataStore, dirname(vmxPath), fileName, { signal })
@@ -845,12 +847,36 @@ export default class Esxi extends EventEmitter {
       firmware: config.firmware === 'efi' ? 'uefi' : config.firmware, // bios or uefi
       // unlike the moref, it survives the VM being unregistered and registered again
       instanceUuid: config.instanceUuid,
+      secureBoot: isTrue(config.bootOptions?.efiSecureBootEnabled),
       powerState: runtime.powerState,
       snapshots,
       cdrom,
       disks,
       networks,
+      guestNics,
       vmId,
+    }
+  }
+
+  /**
+   * The addresses of the network cards as the guest sees them, while it runs with the VMware tools.
+   * Best effort: only used to carry a static network configuration over to XCP-ng.
+   *
+   * @param {string} vmId
+   * @param {object} [options]
+   * @param {AbortSignal} [options.signal]
+   * @returns {Promise<import('./_inventory.mjs').GuestNic[]>}
+   */
+  async #getGuestNics(vmId, { signal } = {}) {
+    try {
+      return parseGuestNics(await this.#retrieveProperty('VirtualMachine', vmId, 'guest.net', { signal }))
+    } catch (error) {
+      signal?.throwIfAborted()
+      // the property is absent when the guest does not run, or runs without the tools
+      if (error.code !== 'NO_PROPERTY') {
+        warn('failed to read the network cards of the guest', { error, vmId })
+      }
+      return []
     }
   }
 

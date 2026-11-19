@@ -16,6 +16,10 @@ defineProps<{ backupLog: FrontXoBackupLog }>()
 
 <style scoped lang="postcss">
 .backed-up-vms {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+
   .container {
     height: fit-content;
     margin: 0.8rem;

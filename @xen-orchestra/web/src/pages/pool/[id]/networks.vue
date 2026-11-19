@@ -4,8 +4,8 @@
       <NetworksTable :busy="!areNetworksReady" :error="hasNetworkFetchError" :networks>
         <template #title-actions>
           <VtsResponsiveMenu :title="t('new')" placement="bottom-end">
-            <template #trigger="{ open }">
-              <UiDropdownButton variant="primary" size="medium" @click="open($event)">
+            <template #trigger="{ open, bindings }">
+              <UiDropdownButton v-bind="bindings" variant="primary" size="medium" @click="open($event)">
                 {{ t('new') }}
               </UiDropdownButton>
             </template>

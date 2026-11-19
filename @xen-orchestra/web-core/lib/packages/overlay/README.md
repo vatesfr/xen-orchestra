@@ -243,6 +243,20 @@ Like `useOverlayTrigger()`, it works from any component rendered inside an overl
 
 An Escape whose default has been prevented is ignored: a nested component that handles Escape itself calls `event.preventDefault()` to keep the overlay open.
 
+## Focus
+
+`useOverlayFocus(target)` moves the focus to `target` (typically the `role="dialog"` element, with `tabindex="-1"`) when the overlay is mounted, unless a nested component already focused one of its own elements. When the overlay is unmounted, the focus goes back to the element that had it when `open()` was called, if it is still in the page:
+
+```ts
+useOverlayFocus(useTemplateRef('dialog'))
+```
+
+Like `useOverlayEscape()`, it does nothing when the component is not rendered in an overlay.
+
+The promise returned by `open()` resolves once the overlay is unmounted, so the focus is already back when the caller resumes (e.g. a menu item that closes its menu after its action).
+
+Keeping the keyboard focus inside the current overlay is up to the rendering: `VtsOverlayList` makes everything outside of it `inert` (the rest of the page, including teleported elements such as an open menu, and the overlays below the current one).
+
 ## Composition: building your own composable
 
 `useOverlay` is designed to be wrapped in small, domain-specific composables:

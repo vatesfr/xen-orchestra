@@ -3,16 +3,18 @@
   <VtsStateHero v-else-if="pool === undefined" format="page" type="no-data" size="medium">
     {{ t('no-data') }}
   </VtsStateHero>
-  <VtsColumns v-else extra-space-around>
-    <VtsColumn>
-      <PoolGeneralInfo :pool />
-      <PoolNetworking :pool />
-      <PoolStorageConfiguration :pool />
-    </VtsColumn>
-    <VtsColumn>
-      <PoolManagement :pool />
-    </VtsColumn>
-  </VtsColumns>
+  <div v-else class="scroll-container">
+    <VtsColumns extra-space-around>
+      <VtsColumn>
+        <PoolGeneralInfo :pool />
+        <PoolNetworking :pool />
+        <PoolStorageConfiguration :pool />
+      </VtsColumn>
+      <VtsColumn>
+        <PoolManagement :pool />
+      </VtsColumn>
+    </VtsColumns>
+  </div>
 </template>
 
 <script lang="ts" setup>
@@ -33,3 +35,11 @@ const { t } = useI18n()
 
 usePageTitleStore().setTitle(useI18n().t('system'))
 </script>
+
+<style lang="postcss" scoped>
+.scroll-container {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+</style>
