@@ -26,7 +26,7 @@ export function useCollection<
   source: MaybeRefOrGetter<TSource[]>,
   config?: {
     itemId?: TGetId | ((source: TSource) => CollectionItemId)
-    flags?: CollectionConfigFlags<TFlag>
+    flags?: CollectionConfigFlags<TFlag, $TId>
     properties?: (source: TSource, index: number) => TProperties
   }
 ): RootCollection<TSource, TFlag, TProperties, $TId>
@@ -43,7 +43,7 @@ export function useCollection<
   source: MaybeRefOrGetter<TSource[]>,
   config?: {
     itemId?: TGetId | ((source: TSource) => CollectionItemId)
-    flags?: CollectionConfigFlags<TFlag>
+    flags?: CollectionConfigFlags<TFlag, $TId>
     properties?: (source: TSource, index: number) => TProperties
   }
 ): RootCollection<TSource, TFlag, TProperties, $TId>
@@ -60,7 +60,7 @@ export function useCollection<
   source: MaybeRefOrGetter<TSource[]>,
   config: {
     itemId: TGetId | ((source: TSource) => CollectionItemId)
-    flags?: CollectionConfigFlags<TFlag>
+    flags?: CollectionConfigFlags<TFlag, $TId>
     properties?: (source: TSource, index: number) => TProperties
   }
 ): RootCollection<TSource, TFlag, TProperties, $TId>
@@ -77,7 +77,7 @@ export function useCollection<
   _sources: MaybeRefOrGetter<TSource[]>,
   config?: {
     itemId?: TGetId
-    flags?: CollectionConfigFlags<TFlag>
+    flags?: CollectionConfigFlags<TFlag, $TId>
     properties?: (source: TSource, index: number) => TProperties
   }
 ): RootCollection<TSource, TFlag, TProperties, $TId> {

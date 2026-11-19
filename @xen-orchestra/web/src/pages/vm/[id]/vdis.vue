@@ -4,8 +4,14 @@
       <VdisTable :vdis="filteredVdisByNotCdVbd" :vm :busy="!areVmVdisReady" :error="hasVmVdiFetchError">
         <template #title-actions>
           <VtsResponsiveMenu :title="t('action:add')" placement="bottom-end">
-            <template #trigger="{ open }">
-              <UiDropdownButton variant="primary" size="medium" icon="action:add" @click="open($event)">
+            <template #trigger="{ open, bindings }">
+              <UiDropdownButton
+                v-bind="bindings"
+                variant="primary"
+                size="medium"
+                icon="action:add"
+                @click="open($event)"
+              >
                 {{ t('action:add') }}
               </UiDropdownButton>
             </template>
@@ -33,7 +39,9 @@
         </template>
       </VdisTable>
     </UiCard>
-    <VdiSidePanel :vdi="selectedVdi" :vm @close="selectedVdi = undefined" />
+    <template #panel>
+      <VdiSidePanel :vdi="selectedVdi" :vm @close="selectedVdi = undefined" />
+    </template>
   </VtsContentSidePanel>
 </template>
 

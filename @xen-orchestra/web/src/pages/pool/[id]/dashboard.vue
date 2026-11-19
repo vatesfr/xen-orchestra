@@ -1,24 +1,26 @@
 <template>
-  <div class="dashboard" :class="{ mobile: uiStore.isSmall }">
-    <div class="row first-row">
-      <PoolDashboardStatus class="status" :pool-dashboard :has-error />
-      <DashboardAlarms class="alarms" :alarms :is-ready :has-error="hasAlarmFetchError" />
-      <PoolDashboardHostsPatches class="patches" :pool-dashboard :has-error />
-    </div>
+  <div class="scroll-container">
+    <div class="dashboard" :class="{ mobile: uiStore.isSmall }">
+      <div class="row first-row">
+        <PoolDashboardStatus class="status" :pool-dashboard :has-error />
+        <DashboardAlarms class="alarms" :alarms :is-ready :has-error="hasAlarmFetchError" />
+        <PoolDashboardHostsPatches class="patches" :pool-dashboard :has-error />
+      </div>
 
-    <div class="row second-row">
-      <div class="column first-column">
-        <PoolDashboardStoragesUsage class="storage-usage" :pool-dashboard :has-error />
-        <PoolDashboardNetworkChart class="network-chart" :data :loading="isFetching" :error />
-      </div>
-      <div class="column second-column">
-        <PoolDashboardRamUsage class="ram-usage" :pool-dashboard :has-error />
-        <PoolDashboardRamChart class="ram-chart" :data :loading="isFetching" :error />
-      </div>
-      <div class="column third-column">
-        <PoolDashboardCpuProvisioning class="cpu-provisioning" :pool-dashboard :has-error />
-        <PoolDashboardCpuUsage class="cpu-usage" :pool-dashboard :has-error />
-        <PoolDashboardCpuChart class="cpu-chart" :data :loading="isFetching" :error />
+      <div class="row second-row">
+        <div class="column first-column">
+          <PoolDashboardStoragesUsage class="storage-usage" :pool-dashboard :has-error />
+          <PoolDashboardNetworkChart class="network-chart" :data :loading="isFetching" :error />
+        </div>
+        <div class="column second-column">
+          <PoolDashboardRamUsage class="ram-usage" :pool-dashboard :has-error />
+          <PoolDashboardRamChart class="ram-chart" :data :loading="isFetching" :error />
+        </div>
+        <div class="column third-column">
+          <PoolDashboardCpuProvisioning class="cpu-provisioning" :pool-dashboard :has-error />
+          <PoolDashboardCpuUsage class="cpu-usage" :pool-dashboard :has-error />
+          <PoolDashboardCpuChart class="cpu-chart" :data :loading="isFetching" :error />
+        </div>
       </div>
     </div>
   </div>
@@ -67,6 +69,12 @@ const uiStore = useUiStore()
 </script>
 
 <style scoped lang="postcss">
+.scroll-container {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
 .dashboard {
   margin: 0.8rem;
 

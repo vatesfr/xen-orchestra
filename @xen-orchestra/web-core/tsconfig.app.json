@@ -1,0 +1,12 @@
+{
+  "extends": "@vue/tsconfig/tsconfig.dom.json",
+  "include": ["env.d.ts", "./lib/**/*", "./lib/**/*.vue"],
+  "exclude": ["./lib/**/*.unit.test.ts", "./lib/**/*.unit.spec.ts"],
+  "compilerOptions": {
+    "composite": true,
+    "noEmit": true,
+    "paths": {
+      "@core/*": ["./lib/*"]
+    }
+  }
+}

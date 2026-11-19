@@ -1,11 +1,17 @@
 <template>
-  <VtsResponsiveMenu :title="resolvedLabel" :section-title="t('actions')" :placement @action="handleMenuAction?.()">
-    <template #trigger="{ open, isOpen }">
+  <VtsResponsiveMenu
+    :title="resolvedLabel"
+    :section-title="noSectionTitle ? undefined : t('actions')"
+    :placement
+    @action="handleMenuAction?.()"
+  >
+    <template #trigger="{ open, isOpen, bindings }">
       <UiButtonIcon
         v-tooltip="{
           placement: 'top',
           content: resolvedLabel,
         }"
+        v-bind="bindings"
         :aria-label="resolvedLabel"
         icon="action:more-actions"
         accent="brand"
@@ -43,6 +49,7 @@ const {
   actions?: ActionItem[]
   placement?: Options['placement']
   label?: string
+  noSectionTitle?: boolean
 }>()
 
 defineSlots<{

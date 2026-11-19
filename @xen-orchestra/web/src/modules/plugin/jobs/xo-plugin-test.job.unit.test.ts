@@ -4,6 +4,7 @@ import type { useXoTaskUtils } from '@/shared/composables/xo-task-utils.composab
 import type { fetchPost } from '@/shared/utils/fetch.util.ts'
 import { createPlugin } from '@/test/create-plugin.ts'
 import { t } from '@/test/i18n.ts'
+import { expectJobRunning } from '@/test/job-running.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
 
 const { post, monitorTask } = vi.hoisted(() => ({
@@ -85,9 +86,6 @@ describe('validate', () => {
     post.mockReturnValue(new Promise(() => {}))
     const job = mountTestJob(testablePlugin)
 
-    void job.run()
-
-    expect(job.isRunning).toBe(true)
-    expect(job.errorMessage).toBe(t('job:plugin-test:in-progress'))
+    expectJobRunning(job, t('job:plugin-test:in-progress'))
   })
 })

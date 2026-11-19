@@ -21,6 +21,20 @@ function setFromSelect(object) {
   return object[0] === 'set' ? object[1] : [object]
 }
 
+// The mutation of a bridge's `protocols` that lets XO use OpenFlow 1.1: none if
+// OVS already accepts it. An empty set means OVS's defaults, which include 1.1:
+// inserting OpenFlow11 there would restrict the bridge to it, turning off
+// OpenFlow 1.0, which XAPI's setup-vif-rules uses for the VIFs' locking flows.
+export function protocolsMutations(current) {
+  return current.length === 0 || current.includes(PROTOCOLS) ? [] : [['protocols', 'insert', PROTOCOLS]]
+}
+
+// The mutation giving OpenFlow 1.0 back to a bridge an older XO restricted to OpenFlow 1.1: it
+// inserted OpenFlow11 into OVS's defaults, which left exactly that. Any other set is left as is.
+export function repairProtocolsMutations(current) {
+  return current.length === 1 && current[0] === PROTOCOLS ? [['protocols', 'insert', 'OpenFlow10']] : []
+}
+
 // =============================================================================
 
 export class OvsdbClient {
@@ -285,6 +299,16 @@ export class OvsdbClient {
       }
 
       if (await this._bridgeAlreadyControlled(bridge, socket)) {
+        const repair = repairProtocolsMutations(await this._bridgeProtocols(bridge, socket))
+        if (repair.length !== 0) {
+          log.info('giving OpenFlow 1.0 back to a bridge', { bridge: bridge.name, host: this.host.name_label })
+          params.push({
+            op: 'mutate',
+            table: 'Bridge',
+            where: [['_uuid', '==', ['uuid', bridge.uuid]]],
+            mutations: repair,
+          })
+        }
         continue
       }
 
@@ -294,7 +318,7 @@ export class OvsdbClient {
         where: [['_uuid', '==', ['uuid', bridge.uuid]]],
         mutations: [
           ['controller', 'insert', ['named-uuid', 'new_controller']],
-          ['protocols', 'insert', PROTOCOLS],
+          ...protocolsMutations(await this._bridgeProtocols(bridge, socket)),
         ],
       })
     }
@@ -341,6 +365,7 @@ export class OvsdbClient {
     }
 
     if (await this._bridgeAlreadyControlled(bridge, socket)) {
+      await this._repairBridgeProtocols(bridge, socket)
       socket.destroy()
       return
     }
@@ -351,7 +376,7 @@ export class OvsdbClient {
       where: [['_uuid', '==', ['uuid', bridge.uuid]]],
       mutations: [
         ['controller', 'insert', ['uuid', this._controllerUuid]],
-        ['protocols', 'insert', PROTOCOLS],
+        ...protocolsMutations(await this._bridgeProtocols(bridge, socket)),
       ],
     }
 
@@ -484,6 +509,33 @@ export class OvsdbClient {
   }
 
   // ---------------------------------------------------------------------------
+
+  async _bridgeProtocols(bridge, socket) {
+    const where = [['_uuid', '==', ['uuid', bridge.uuid]]]
+    const result = await this._select('Bridge', ['protocols'], where, socket)
+    return result === undefined ? [] : setFromSelect(result.protocols)
+  }
+
+  // see repairProtocolsMutations
+  async _repairBridgeProtocols(bridge, socket) {
+    const mutations = repairProtocolsMutations(await this._bridgeProtocols(bridge, socket))
+    if (mutations.length === 0) {
+      return
+    }
+    log.info('giving OpenFlow 1.0 back to a bridge', { bridge: bridge.name, host: this.host.name_label })
+    const where = [['_uuid', '==', ['uuid', bridge.uuid]]]
+    const jsonObjects = await this._sendOvsdbTransaction(
+      ['Open_vSwitch', { op: 'mutate', table: 'Bridge', where, mutations }],
+      socket
+    )
+    if (jsonObjects !== undefined && jsonObjects[0].error !== null) {
+      log.error('Error while giving OpenFlow 1.0 back to a bridge', {
+        error: jsonObjects[0].error,
+        bridge: bridge.name,
+        host: this.host.name_label,
+      })
+    }
+  }
 
   async _bridgeAlreadyControlled(bridge, socket) {
     const where = [['_uuid', '==', ['uuid', bridge.uuid]]]

@@ -1,21 +1,17 @@
 <template>
-  <UiModal :accent :icon @confirm="isConfirmed && emit('confirm')" @dismiss="emit('cancel')">
+  <UiModal :accent :icon @confirm="handleConfirm()" @dismiss="emit('cancel')">
     <template #title>
       <span>{{ modalTexts.title }}</span>
     </template>
     <template #content>
       <div class="vts-action-modal">
         <p v-if="modalTexts.message">{{ modalTexts.message }}</p>
-        <VtsTypeToConfirmInput
-          v-if="confirmationText !== undefined"
-          v-model="isTypedTextConfirmed"
-          :confirmation-text
-        />
+        <VtsTypeToConfirmInput v-if="confirmationText !== undefined" ref="typeToConfirmInput" :confirmation-text />
       </div>
     </template>
     <template #buttons>
       <VtsOverlayCancelButton @click="emit('cancel')">{{ t('action:go-back') }}</VtsOverlayCancelButton>
-      <VtsOverlayConfirmButton :disabled="!isConfirmed">
+      <VtsOverlayConfirmButton>
         {{ modalTexts.action }}
       </VtsOverlayConfirmButton>
     </template>
@@ -31,7 +27,7 @@ import UiModal from '@core/components/ui/modal/UiModal.vue'
 import type { IconName } from '@core/icons'
 import { useMapper } from '@core/packages/mapper/use-mapper.ts'
 import type { ActionsByObject, HostActions, ObjectType, VmActions } from '@core/types/object.type.ts'
-import { computed, ref } from 'vue'
+import { useTemplateRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 type ActionTexts = {
@@ -176,9 +172,15 @@ const modalTexts = useMapper(
   () => defaultActionByObject[object]
 )
 
-const isTypedTextConfirmed = ref(false)
+const typeToConfirmInput = useTemplateRef('typeToConfirmInput')
 
-const isConfirmed = computed(() => confirmationText === undefined || isTypedTextConfirmed.value)
+function handleConfirm() {
+  if (confirmationText !== undefined && !typeToConfirmInput.value?.validate()) {
+    return
+  }
+
+  emit('confirm')
+}
 </script>
 
 <style lang="postcss" scoped>

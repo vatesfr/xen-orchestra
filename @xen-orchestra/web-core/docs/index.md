@@ -7,6 +7,7 @@
 - [Stores](./stores.md)
 - [Subscribable stores](./subscribable-stores.md)
 - [Overlays (modals & drawers)](./overlays.md)
+- [Tests](./tests.md)
 
 # Composables
 
