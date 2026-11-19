@@ -124,3 +124,24 @@ const { HeadCells, BodyCells, sortItems } = useUserTableColumns({
   initialSort: { id: 'email', direction: 'asc' },
 })
 ```
+
+## Storing the sort in the URL
+
+Pass an `id` to store the sort in the `<id>.sort` route query, as `<columnId>,<asc|desc>` (e.g. `?users.sort=age,desc`), so it survives a reload and can be shared by link. Without `id`, the sort is only kept in memory.
+
+- The `id` must be unique among the tables of a page. The `id` given to `usePagination` can be reused: pagination uses `<id>.idx`.
+- The `initialSort` isn't written to the URL: selecting it again removes the query.
+- A sort on a column that isn't sortable, or with an unknown direction, is ignored.
+
+```ts
+const { HeadCells, BodyCells, sortItems } = useUserTableColumns({
+  id: 'users',
+  body: (user: User) => ({
+    // ...
+  }),
+  sort: {
+    email: (user1, user2) => user1.email.localeCompare(user2.email),
+  },
+  initialSort: { id: 'email', direction: 'asc' },
+})
+```
