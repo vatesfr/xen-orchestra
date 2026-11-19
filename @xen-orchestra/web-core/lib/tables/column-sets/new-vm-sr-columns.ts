@@ -1,6 +1,7 @@
 import { defineColumns } from '@core/packages/table/define-columns.ts'
 import { useButtonIconColumn } from '@core/tables/column-definitions/button-icon-column.ts'
 import { useInputColumn } from '@core/tables/column-definitions/input-column.ts'
+import { useRankColumn } from '@core/tables/column-definitions/rank-column.ts'
 import { useSelectColumn } from '@core/tables/column-definitions/select-column.ts'
 import { useI18n } from 'vue-i18n'
 
@@ -8,6 +9,8 @@ export const useNewVmSrColumns = defineColumns(() => {
   const { t } = useI18n()
 
   return {
+    rank: useRankColumn({ highlighted: true }),
+
     sr: useSelectColumn({
       headerLabel: () => t('storage-repositories'),
     }),
@@ -20,6 +23,7 @@ export const useNewVmSrColumns = defineColumns(() => {
     size: useInputColumn({
       type: 'number',
       headerLabel: () => `${t('size')} (GB)`,
+      width: '14rem',
     }),
 
     description: useInputColumn({
@@ -27,6 +31,6 @@ export const useNewVmSrColumns = defineColumns(() => {
       placeholder: () => t('description'),
     }),
 
-    remove: useButtonIconColumn({ buttonIcon: 'fa:trash' }),
+    remove: useButtonIconColumn({ buttonIcon: 'fa:trash', buttonAccent: 'danger' }),
   }
 })

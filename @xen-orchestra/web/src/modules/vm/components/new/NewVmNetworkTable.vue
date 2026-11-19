@@ -6,8 +6,8 @@
       </tr>
     </thead>
     <tbody>
-      <VtsRow v-for="(vif, index) in vmState.vifs" :key="vif.id ?? index">
-        <BodyCells :item="{ vif, onRemove: () => emit('remove', index) }" />
+      <VtsRow v-for="(vif, index) in vmState.vifs" :key="vif.key">
+        <BodyCells :item="{ vif, rank: index + 1, onRemove: () => emit('remove', vif.key) }" />
       </VtsRow>
       <tr>
         <UiTableCell :colspan>
@@ -39,14 +39,16 @@ const { networks } = defineProps<{
 
 const emit = defineEmits<{
   add: []
-  remove: [index: number]
+  remove: [key: Vif['key']]
 }>()
 
 const { t } = useI18n()
 
 const { HeadCells, BodyCells, colspan } = useNewVmNetworkColumns({
-  body: ({ vif, onRemove }: { vif: Vif; onRemove: () => void }) => {
-    const { id: interfaceSelectId } = useFormSelect(networks, {
+  body: (item: { vif: Vif; rank: number; onRemove: () => void }) => {
+    const { vif, onRemove } = item
+
+    const { id: interfaceSelectId } = useFormSelect(() => networks, {
       model: toRef(vif, 'network'),
       option: {
         label: 'name_label',
@@ -57,6 +59,7 @@ const { HeadCells, BodyCells, colspan } = useNewVmNetworkColumns({
     const mac = toRef(vif, 'mac')
 
     return {
+      rank: r => r(item.rank),
       interface: r => r(interfaceSelectId),
       mac: r => r(mac),
       remove: r => r(onRemove),
