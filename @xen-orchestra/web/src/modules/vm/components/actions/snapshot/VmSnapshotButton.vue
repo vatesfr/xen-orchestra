@@ -1,13 +1,13 @@
 <template>
-  <MenuItem accent="neutral" icon="action:snapshot" :busy="isRunning" @click="snapshotJob()">
+  <VtsActionButton variant="tertiary" accent="brand" icon="action:snapshot" :busy="isRunning" @click="snapshotJob()">
     {{ t('snapshot') }}
-  </MenuItem>
+  </VtsActionButton>
 </template>
 
 <script lang="ts" setup>
 import { useXoVmSnapshotJob } from '@/modules/vm/jobs/xo-vm-snapshot.job.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
-import MenuItem from '@core/components/menu/MenuItem.vue'
+import VtsActionButton from '@core/components/action-button/VtsActionButton.vue'
 import { IK_CLOSE_MENU } from '@core/utils/injection-keys.util.ts'
 import { inject } from 'vue'
 import { useI18n } from 'vue-i18n'

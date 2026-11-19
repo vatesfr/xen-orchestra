@@ -1,20 +1,22 @@
 <template>
-  <VtsColumns extra-space-around>
-    <VtsColumn>
-      <BackupRepositoryDetailGeneralInfo :br :parsed-br-url />
-      <BackupRepositoryDetailLocal v-if="parsedBrUrl?.type === 'file'" :file="parsedBrUrl" />
-      <BackupRepositoryDetailNfs v-else-if="parsedBrUrl?.type === 'nfs'" :nfs="parsedBrUrl" :options="br.options" />
-      <BackupRepositoryDetailSmb v-else-if="parsedBrUrl?.type === 'smb'" :smb="parsedBrUrl" :options="br.options" />
-      <BackupRepositoryDetailS3 v-else-if="parsedBrUrl?.type === 's3'" :s3="parsedBrUrl" />
-      <BackupRepositoryDetailAzureAzurite
-        v-else-if="parsedBrUrl?.type === 'azure' || parsedBrUrl?.type === 'azurite'"
-        :azure="parsedBrUrl"
-      />
-    </VtsColumn>
-    <VtsColumn>
-      <BackupRepositoryDetailSpeed :br />
-    </VtsColumn>
-  </VtsColumns>
+  <div class="scroll-container">
+    <VtsColumns extra-space-around>
+      <VtsColumn>
+        <BackupRepositoryDetailGeneralInfo :br :parsed-br-url />
+        <BackupRepositoryDetailLocal v-if="parsedBrUrl?.type === 'file'" :file="parsedBrUrl" />
+        <BackupRepositoryDetailNfs v-else-if="parsedBrUrl?.type === 'nfs'" :nfs="parsedBrUrl" :options="br.options" />
+        <BackupRepositoryDetailSmb v-else-if="parsedBrUrl?.type === 'smb'" :smb="parsedBrUrl" :options="br.options" />
+        <BackupRepositoryDetailS3 v-else-if="parsedBrUrl?.type === 's3'" :s3="parsedBrUrl" />
+        <BackupRepositoryDetailAzureAzurite
+          v-else-if="parsedBrUrl?.type === 'azure' || parsedBrUrl?.type === 'azurite'"
+          :azure="parsedBrUrl"
+        />
+      </VtsColumn>
+      <VtsColumn>
+        <BackupRepositoryDetailSpeed :br />
+      </VtsColumn>
+    </VtsColumns>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -36,3 +38,11 @@ const { br } = defineProps<{
 
 const parsedBrUrl = useXoBackupRepositoryParsedUrl(() => br)
 </script>
+
+<style lang="postcss" scoped>
+.scroll-container {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+</style>

@@ -1,188 +1,190 @@
 <template>
   <TitleBar icon="fa:download">{{ t('action:deploy-xoa') }}</TitleBar>
-  <div v-if="deploying" class="status">
-    <img src="@/assets/xo.svg" width="300" alt="Xen Orchestra" />
+  <div class="scroll-container">
+    <div v-if="deploying" class="status">
+      <img src="@/assets/xo.svg" width="300" alt="Xen Orchestra" />
 
-    <!-- Error -->
-    <template v-if="error !== undefined">
-      <div class="error">
-        <h2>{{ t('xoa-deploy-failed!') }}</h2>
-        <VtsIcon name="status:danger-circle" size="medium" />
-      </div>
-      <div class="error-log">
-        <UiLogEntryViewer :label="t('check-errors:')" :content="error" accent="danger" size="medium" />
-      </div>
-      <UiButton size="medium" accent="brand" variant="primary" left-icon="fa:download" @click="resetValues()">
-        {{ t('xoa-deploy-retry') }}
-      </UiButton>
-    </template>
+      <!-- Error -->
+      <template v-if="error !== undefined">
+        <div class="error">
+          <h2>{{ t('xoa-deploy-failed!') }}</h2>
+          <VtsIcon name="status:danger-circle" size="medium" />
+        </div>
+        <div class="error-log">
+          <UiLogEntryViewer :label="t('check-errors:')" :content="error" accent="danger" size="medium" />
+        </div>
+        <UiButton size="medium" accent="brand" variant="primary" left-icon="fa:download" @click="resetValues()">
+          {{ t('xoa-deploy-retry') }}
+        </UiButton>
+      </template>
 
-    <!-- Success -->
-    <template v-else-if="url !== undefined">
-      <div>
-        <h2>{{ t('xoa-deploy-successful!') }}</h2>
-        <VtsIcon name="status:success-circle" size="medium" />
-      </div>
-      <UiButton
-        size="medium"
-        accent="brand"
-        variant="primary"
-        left-icon="fa:arrow-up-right-from-square"
-        @click="openXoa"
-      >
-        {{ t('access-xoa') }}
-      </UiButton>
-    </template>
+      <!-- Success -->
+      <template v-else-if="url !== undefined">
+        <div>
+          <h2>{{ t('xoa-deploy-successful!') }}</h2>
+          <VtsIcon name="status:success-circle" size="medium" />
+        </div>
+        <UiButton
+          size="medium"
+          accent="brand"
+          variant="primary"
+          left-icon="fa:arrow-up-right-from-square"
+          @click="openXoa"
+        >
+          {{ t('access-xoa') }}
+        </UiButton>
+      </template>
 
-    <!-- Deploying -->
-    <template v-else>
-      <div>
-        <h2>{{ t('xoa-deploy') }}</h2>
-        <!-- TODO: add progress bar -->
-        <p>{{ status }}</p>
-      </div>
-      <p class="warning">
-        <VtsIcon name="status:warning-circle" size="medium" />
-        {{ t('keep-page-open') }}
-      </p>
-      <UiButton size="medium" :disabled="vmRef === undefined" accent="danger" variant="secondary" @click="cancel()">
-        {{ t('cancel') }}
-      </UiButton>
-    </template>
-  </div>
+      <!-- Deploying -->
+      <template v-else>
+        <div>
+          <h2>{{ t('xoa-deploy') }}</h2>
+          <!-- TODO: add progress bar -->
+          <p>{{ status }}</p>
+        </div>
+        <p class="warning">
+          <VtsIcon name="status:warning-circle" size="medium" />
+          {{ t('keep-page-open') }}
+        </p>
+        <UiButton size="medium" :disabled="vmRef === undefined" accent="danger" variant="secondary" @click="cancel()">
+          {{ t('cancel') }}
+        </UiButton>
+      </template>
+    </div>
 
-  <div v-else-if="uiStore.isSmall" class="not-available">
-    <p>{{ t('deploy-xoa-available-on-desktop') }}</p>
-  </div>
+    <div v-else-if="uiStore.isSmall" class="not-available">
+      <p>{{ t('deploy-xoa-available-on-desktop') }}</p>
+    </div>
 
-  <div v-else class="card-view">
-    <UiCard>
-      <form @submit.prevent="deploy">
-        <FormSection :label="t('configuration')">
-          <div class="row">
-            <VtsInputWrapper :label="t('storage')" :message="t('n-gb-required', { n: REQUIRED_GB })">
-              <VtsSelect :id="srSelectId" accent="brand" />
-            </VtsInputWrapper>
-          </div>
-          <div class="row">
-            <VtsInputWrapper :label="t('network')">
-              <VtsSelect :id="networkSelectId" accent="brand" />
-            </VtsInputWrapper>
-            <VtsInputWrapper
-              :label="t('deploy-xoa-custom-ntp-servers')"
-              learn-more-url="https://docs.xen-orchestra.com/xoa#setting-a-custom-ntp-server"
-            >
-              <FormInput v-model="ntp" placeholder="xxx.xxx.xxx.xxx" />
-            </VtsInputWrapper>
-          </div>
-          <div class="row">
-            <VtsInputWrapper>
-              <UiRadioButtonGroup accent="brand" gap="wide">
-                <UiRadioButton v-model="ipStrategy" accent="brand" value="static">
-                  {{ t('static-ip') }}
-                </UiRadioButton>
-                <UiRadioButton v-model="ipStrategy" accent="brand" value="dhcp">
-                  {{ t('dhcp') }}
-                </UiRadioButton>
-              </UiRadioButtonGroup>
-            </VtsInputWrapper>
-          </div>
-          <div class="row">
-            <VtsInputWrapper
-              :label="t('xoa-ip')"
-              learn-more-url="https://docs.xen-orchestra.com/xoa#network-configuration"
-            >
-              <FormInput v-model="ip" :disabled="!requireIpConf" placeholder="xxx.xxx.xxx.xxx" />
-            </VtsInputWrapper>
-            <VtsInputWrapper
-              :label="t('netmask')"
-              learn-more-url="https://docs.xen-orchestra.com/xoa#network-configuration"
-            >
-              <FormInput v-model="netmask" :disabled="!requireIpConf" placeholder="255.255.255.0" />
-            </VtsInputWrapper>
-          </div>
-          <div class="row">
-            <VtsInputWrapper
-              :label="t('dns')"
-              learn-more-url="https://docs.xen-orchestra.com/xoa#network-configuration"
-            >
-              <FormInput v-model="dns" :disabled="!requireIpConf" placeholder="8.8.8.8" />
-            </VtsInputWrapper>
-            <VtsInputWrapper
-              :label="t('gateway')"
-              learn-more-url="https://docs.xen-orchestra.com/xoa#network-configuration"
-            >
-              <FormInput v-model="gateway" :disabled="!requireIpConf" placeholder="xxx.xxx.xxx.xxx" />
-            </VtsInputWrapper>
-          </div>
-        </FormSection>
+    <div v-else class="card-view">
+      <UiCard>
+        <form @submit.prevent="deploy">
+          <FormSection :label="t('configuration')">
+            <div class="row">
+              <VtsInputWrapper :label="t('storage')" :message="t('n-gb-required', { n: REQUIRED_GB })">
+                <VtsSelect :id="srSelectId" accent="brand" />
+              </VtsInputWrapper>
+            </div>
+            <div class="row">
+              <VtsInputWrapper :label="t('network')">
+                <VtsSelect :id="networkSelectId" accent="brand" />
+              </VtsInputWrapper>
+              <VtsInputWrapper
+                :label="t('deploy-xoa-custom-ntp-servers')"
+                learn-more-url="https://docs.xen-orchestra.com/xoa#setting-a-custom-ntp-server"
+              >
+                <FormInput v-model="ntp" placeholder="xxx.xxx.xxx.xxx" />
+              </VtsInputWrapper>
+            </div>
+            <div class="row">
+              <VtsInputWrapper>
+                <UiRadioButtonGroup accent="brand" gap="wide">
+                  <UiRadioButton v-model="ipStrategy" accent="brand" value="static">
+                    {{ t('static-ip') }}
+                  </UiRadioButton>
+                  <UiRadioButton v-model="ipStrategy" accent="brand" value="dhcp">
+                    {{ t('dhcp') }}
+                  </UiRadioButton>
+                </UiRadioButtonGroup>
+              </VtsInputWrapper>
+            </div>
+            <div class="row">
+              <VtsInputWrapper
+                :label="t('xoa-ip')"
+                learn-more-url="https://docs.xen-orchestra.com/xoa#network-configuration"
+              >
+                <FormInput v-model="ip" :disabled="!requireIpConf" placeholder="xxx.xxx.xxx.xxx" />
+              </VtsInputWrapper>
+              <VtsInputWrapper
+                :label="t('netmask')"
+                learn-more-url="https://docs.xen-orchestra.com/xoa#network-configuration"
+              >
+                <FormInput v-model="netmask" :disabled="!requireIpConf" placeholder="255.255.255.0" />
+              </VtsInputWrapper>
+            </div>
+            <div class="row">
+              <VtsInputWrapper
+                :label="t('dns')"
+                learn-more-url="https://docs.xen-orchestra.com/xoa#network-configuration"
+              >
+                <FormInput v-model="dns" :disabled="!requireIpConf" placeholder="8.8.8.8" />
+              </VtsInputWrapper>
+              <VtsInputWrapper
+                :label="t('gateway')"
+                learn-more-url="https://docs.xen-orchestra.com/xoa#network-configuration"
+              >
+                <FormInput v-model="gateway" :disabled="!requireIpConf" placeholder="xxx.xxx.xxx.xxx" />
+              </VtsInputWrapper>
+            </div>
+          </FormSection>
 
-        <FormSection :label="t('xoa-admin-account')">
-          <div class="row">
-            <VtsInputWrapper
-              :label="t('admin-login')"
-              learn-more-url="https://docs.xen-orchestra.com/xoa#default-xo-account"
-            >
-              <FormInput v-model="xoaUser" required placeholder="email@example.com" />
-            </VtsInputWrapper>
-          </div>
-          <div class="row">
-            <VtsInputWrapper
-              :label="t('admin-password')"
-              learn-more-url="https://docs.xen-orchestra.com/xoa#default-xo-account"
-            >
-              <FormInput v-model="xoaPwd" type="password" required :placeholder="t('password')" />
-            </VtsInputWrapper>
-            <VtsInputWrapper
-              :label="t('admin-password-confirm')"
-              learn-more-url="https://docs.xen-orchestra.com/xoa#default-xo-account"
-            >
-              <FormInput v-model="xoaPwdConfirm" type="password" required :placeholder="t('password')" />
-            </VtsInputWrapper>
-          </div>
-        </FormSection>
+          <FormSection :label="t('xoa-admin-account')">
+            <div class="row">
+              <VtsInputWrapper
+                :label="t('admin-login')"
+                learn-more-url="https://docs.xen-orchestra.com/xoa#default-xo-account"
+              >
+                <FormInput v-model="xoaUser" required placeholder="email@example.com" />
+              </VtsInputWrapper>
+            </div>
+            <div class="row">
+              <VtsInputWrapper
+                :label="t('admin-password')"
+                learn-more-url="https://docs.xen-orchestra.com/xoa#default-xo-account"
+              >
+                <FormInput v-model="xoaPwd" type="password" required :placeholder="t('password')" />
+              </VtsInputWrapper>
+              <VtsInputWrapper
+                :label="t('admin-password-confirm')"
+                learn-more-url="https://docs.xen-orchestra.com/xoa#default-xo-account"
+              >
+                <FormInput v-model="xoaPwdConfirm" type="password" required :placeholder="t('password')" />
+              </VtsInputWrapper>
+            </div>
+          </FormSection>
 
-        <FormSection :label="t('xoa-ssh-account')">
-          <div class="row">
-            <UiToggle v-model="enableSshAccount">{{ t('ssh-account') }}</UiToggle>
-          </div>
-          <div class="row">
-            <VtsInputWrapper :label="t('ssh-login')">
-              <FormInput value="xoa" placeholder="xoa" disabled />
-            </VtsInputWrapper>
-          </div>
-          <div class="row">
-            <VtsInputWrapper :label="t('ssh-password')">
-              <FormInput
-                v-model="sshPwd"
-                type="password"
-                :placeholder="t('password')"
-                :disabled="!enableSshAccount"
-                :required="enableSshAccount"
-              />
-            </VtsInputWrapper>
-            <VtsInputWrapper :label="t('ssh-password-confirm')">
-              <FormInput
-                v-model="sshPwdConfirm"
-                type="password"
-                :placeholder="t('password')"
-                :disabled="!enableSshAccount"
-                :required="enableSshAccount"
-              />
-            </VtsInputWrapper>
-          </div>
-        </FormSection>
+          <FormSection :label="t('xoa-ssh-account')">
+            <div class="row">
+              <UiToggle v-model="enableSshAccount">{{ t('ssh-account') }}</UiToggle>
+            </div>
+            <div class="row">
+              <VtsInputWrapper :label="t('ssh-login')">
+                <FormInput value="xoa" placeholder="xoa" disabled />
+              </VtsInputWrapper>
+            </div>
+            <div class="row">
+              <VtsInputWrapper :label="t('ssh-password')">
+                <FormInput
+                  v-model="sshPwd"
+                  type="password"
+                  :placeholder="t('password')"
+                  :disabled="!enableSshAccount"
+                  :required="enableSshAccount"
+                />
+              </VtsInputWrapper>
+              <VtsInputWrapper :label="t('ssh-password-confirm')">
+                <FormInput
+                  v-model="sshPwdConfirm"
+                  type="password"
+                  :placeholder="t('password')"
+                  :disabled="!enableSshAccount"
+                  :required="enableSshAccount"
+                />
+              </VtsInputWrapper>
+            </div>
+          </FormSection>
 
-        <VtsButtonGroup>
-          <UiButton size="medium" accent="brand" variant="secondary" @click="router.back()">
-            {{ t('cancel') }}
-          </UiButton>
-          <UiButton size="medium" accent="brand" variant="primary" type="submit">
-            {{ t('action:deploy') }}
-          </UiButton>
-        </VtsButtonGroup>
-      </form>
-    </UiCard>
+          <VtsButtonGroup>
+            <UiButton size="medium" accent="brand" variant="secondary" @click="router.back()">
+              {{ t('cancel') }}
+            </UiButton>
+            <UiButton size="medium" accent="brand" variant="primary" type="submit">
+              {{ t('action:deploy') }}
+            </UiButton>
+          </VtsButtonGroup>
+        </form>
+      </UiCard>
+    </div>
   </div>
 </template>
 
@@ -533,6 +535,12 @@ async function cancel() {
 </script>
 
 <style lang="postcss" scoped>
+.scroll-container {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
 .card-view {
   flex-direction: column;
 }

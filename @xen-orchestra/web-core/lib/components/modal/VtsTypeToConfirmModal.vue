@@ -1,5 +1,5 @@
 <template>
-  <UiModal :accent :icon @confirm="isConfirmed && emit('confirm')" @dismiss="emit('cancel')">
+  <UiModal :accent :icon @confirm="handleConfirm()" @dismiss="emit('cancel')">
     <template #title>
       {{ title }}
     </template>
@@ -7,13 +7,13 @@
     <template #content>
       <div class="vts-type-to-confirm-modal">
         <p v-if="description">{{ description }}</p>
-        <VtsTypeToConfirmInput v-model="isConfirmed" :confirmation-text />
+        <VtsTypeToConfirmInput ref="typeToConfirmInput" :confirmation-text />
       </div>
     </template>
 
     <template #buttons>
       <VtsOverlayCancelButton @click="emit('cancel')">{{ t('action:go-back') }}</VtsOverlayCancelButton>
-      <VtsOverlayConfirmButton :disabled="!isConfirmed">
+      <VtsOverlayConfirmButton>
         {{ confirmLabel }}
       </VtsOverlayConfirmButton>
     </template>
@@ -27,7 +27,7 @@ import VtsTypeToConfirmInput from '@core/components/type-to-confirm-input/VtsTyp
 import type { ModalAccent } from '@core/components/ui/modal/UiModal.vue'
 import UiModal from '@core/components/ui/modal/UiModal.vue'
 import type { IconName } from '@core/icons'
-import { ref } from 'vue'
+import { useTemplateRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 defineProps<{
@@ -46,7 +46,15 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 
-const isConfirmed = ref(false)
+const typeToConfirmInput = useTemplateRef('typeToConfirmInput')
+
+function handleConfirm() {
+  if (!typeToConfirmInput.value?.validate()) {
+    return
+  }
+
+  emit('confirm')
+}
 </script>
 
 <style lang="postcss" scoped>

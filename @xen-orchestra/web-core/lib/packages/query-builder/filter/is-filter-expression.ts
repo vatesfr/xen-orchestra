@@ -1,4 +1,4 @@
-import { parse } from 'complex-matcher'
+import { tryParseFilter } from '@core/packages/query-builder/filter-string.ts'
 import type { Property as PropertyNode } from 'complex-matcher'
 
 /**
@@ -15,12 +15,9 @@ export function isFilterExpression(value: string): boolean {
     return false
   }
 
-  try {
-    const parsed = parse(value)
-    // Check if it parses as a PropertyNode, which indicates it's a property path
-    // PropertyNode instances have a 'name' property and potentially a 'child'
-    return parsed != null && 'name' in parsed && typeof (parsed as PropertyNode).name === 'string'
-  } catch {
-    return false
-  }
+  const parsed = tryParseFilter(value)
+
+  // Check if it parses as a PropertyNode, which indicates it's a property path
+  // PropertyNode instances have a 'name' property and potentially a 'child'
+  return parsed != null && 'name' in parsed && typeof (parsed as PropertyNode).name === 'string'
 }

@@ -1,6 +1,6 @@
 {
   "extends": "./tsconfig.app.json",
-  "exclude": [],
+  "exclude": ["../web-core/lib/**/*.unit.test.ts", "../web-core/lib/**/*.unit.spec.ts"],
   "compilerOptions": {
     "types": ["vitest/globals"]
   }

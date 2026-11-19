@@ -27,6 +27,7 @@ import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsInputWrapper from '@core/components/input-wrapper/VtsInputWrapper.vue'
 import VtsOption from '@core/components/select/VtsOption.vue'
 import VtsSelect from '@core/components/select/VtsSelect.vue'
+import { mergeInputWrapperMessages } from '@core/utils/input-wrapper-message.util.ts'
 import { computed } from 'vue'
 
 const { error, info } = defineProps<{
@@ -36,7 +37,7 @@ const { error, info } = defineProps<{
   info?: InputWrapperMessage
 }>()
 
-const messages = computed(() => [error, info].filter(message => message !== undefined).flat())
+const messages = computed(() => mergeInputWrapperMessages(error, info))
 </script>
 
 <style lang="postcss" scoped>
