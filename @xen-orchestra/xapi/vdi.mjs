@@ -282,6 +282,10 @@ class Vdi {
    * one of `SUPPORTED_VDI_FORMAT`
    * @returns {Promise<void>}
    */
+  async resize(vdiRef, size) {
+    await this.callAsync('VDI.resize', vdiRef, size)
+  }
+
   async importContent(ref, content, { signal, format }) {
     assert.notEqual(format, undefined)
     // now we'll handle the VHD and qcow2 export

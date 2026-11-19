@@ -249,7 +249,7 @@ export class VdiController extends XapiXoController<XoVdi> {
       if (size < currentSize) {
         throw invalidParameters(`cannot set new size (${size}) below the current size (${currentSize})`)
       }
-      await $xapi.callAsync('VDI.resize', $ref, size)
+      await $xapi.VDI_resize($ref, size)
     }
   }
 

@@ -462,6 +462,7 @@ export interface Xapi {
     stream: Readable | Buffer,
     opts: { signal?: AbortSignal; format: SUPPORTED_VDI_FORMAT }
   ): Promise<void>
+  VDI_resize(vdiRef: XenApiVdi['$ref'], size: number): Promise<void>
   VIF_create(
     options: {
       currently_attached?: boolean
