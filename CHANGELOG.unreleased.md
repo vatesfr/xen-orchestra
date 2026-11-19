@@ -101,7 +101,7 @@
 - @vates/types major
 - @xen-orchestra/acl minor
 - @xen-orchestra/autopilot-docking minor
-- @xen-orchestra/backup-archive minor
+- @xen-orchestra/backup-archive major
 - @xen-orchestra/backups major
 - @xen-orchestra/disk-cli minor
 - @xen-orchestra/fs minor
@@ -114,7 +114,7 @@
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
 - @xen-orchestra/xapi major
-- vhd-lib minor
+- vhd-lib major
 - xen-api major
 - xo-collection major
 - xo-server minor

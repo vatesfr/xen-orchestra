@@ -10,7 +10,7 @@ type DiskInfoLine = {
   virtualSize: number
   blockSize: number
   // Only computed with --size; requires reading the block allocation table.
-  sizeOnDisk?: number
+  streamSize?: number
 }
 
 function readDiskInfo(disk: RemoteDisk, path: string, showSize: boolean): DiskInfoLine {
@@ -21,7 +21,7 @@ function readDiskInfo(disk: RemoteDisk, path: string, showSize: boolean): DiskIn
     parentUid: isDifferencing ? disk.getParentUuid() : null,
     virtualSize: disk.getVirtualSize(),
     blockSize: disk.getBlockSize(),
-    sizeOnDisk: showSize ? disk.getStreamSize() : undefined,
+    streamSize: showSize ? disk.getStreamSize() : undefined,
   }
 }
 
@@ -31,8 +31,8 @@ function printDiskInfo(info: DiskInfoLine): void {
   console.log(`  Parent UID:   ${info.parentUid ?? '(none)'}`)
   console.log(`  Virtual size: ${formatBytes(info.virtualSize)} (${info.virtualSize} bytes)`)
   console.log(`  Block size:   ${formatBytes(info.blockSize)} (${info.blockSize} bytes)`)
-  if (info.sizeOnDisk !== undefined) {
-    console.log(`  Size on disk: ${formatBytes(info.sizeOnDisk)} (${info.sizeOnDisk} bytes)`)
+  if (info.streamSize !== undefined) {
+    console.log(`  Stream size: ${formatBytes(info.streamSize)} (${info.streamSize} bytes)`)
   }
 }
 

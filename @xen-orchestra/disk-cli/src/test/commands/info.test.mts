@@ -5,7 +5,7 @@
  *  - Handler and disk are always disposed, even when disk methods throw.
  *  - Errors from broken disks are propagated (not swallowed).
  *  - By default disks are opened with ignoreBlockIndexes: true (cheap); --size
- *    opens with ignoreBlockIndexes: false and prints the size on disk.
+ *    opens with ignoreBlockIndexes: false and prints the stream size.
  *  - --chain opens the whole lineage and prints each disk.
  *
  * Design: mock.module() is called once at the top level. The mocks read mutable
@@ -128,17 +128,17 @@ describe('info command', () => {
     await assert.rejects(() => infoCommand('file:///test', '/vdis/disk.vhd', []), /corrupt header/)
   })
 
-  test('by default opens the disk with ignoreBlockIndexes: true and hides size on disk', async () => {
+  test('by default opens the disk with ignoreBlockIndexes: true and hides stream size', async () => {
     const output = await captureLog(() => infoCommand('file:///test', '/vdis/disk.vhd', []))
     assert.strictEqual(openDiskParams.length, 1)
     assert.strictEqual(openDiskParams[0].ignoreBlockIndexes, true, 'block indexes must be skipped by default')
-    assert.ok(!output.includes('Size on disk'), 'size on disk must not be printed without --size')
+    assert.ok(!output.includes('Stream size'), 'stream size must not be printed without --size')
   })
 
-  test('--size opens the disk with ignoreBlockIndexes: false and prints size on disk', async () => {
+  test('--size opens the disk with ignoreBlockIndexes: false and prints stream size', async () => {
     const output = await captureLog(() => infoCommand('file:///test', '/vdis/disk.vhd', ['--size']))
     assert.strictEqual(openDiskParams[0].ignoreBlockIndexes, false, 'block indexes must be read with --size')
-    assert.ok(output.includes('Size on disk'), 'size on disk must be printed with --size')
+    assert.ok(output.includes('Stream size'), 'stream size must be printed with --size')
   })
 
   test('without --chain, openDiskChain is never called', async () => {
@@ -164,15 +164,15 @@ describe('info command', () => {
     )
   })
 
-  test('--chain --size reads block indexes and prints size on disk for each disk', async () => {
+  test('--chain --size reads block indexes and prints stream size for each disk', async () => {
     const output = await captureLog(() => infoCommand('file:///test', '/vdis/leaf.vhd', ['--chain', '--size']))
     assert.strictEqual(openChainParams[0].ignoreBlockIndexes, false, 'chain walk must read block indexes with --size')
     assert.ok(
       openDiskParams.every(p => p.ignoreBlockIndexes === false),
       'each chain disk must be opened with ignoreBlockIndexes: false'
     )
-    const sizeLines = output.split('\n').filter(l => l.includes('Size on disk'))
-    assert.strictEqual(sizeLines.length, chainPaths.length, 'size on disk must be printed for each disk')
+    const sizeLines = output.split('\n').filter(l => l.includes('Stream size'))
+    assert.strictEqual(sizeLines.length, chainPaths.length, 'stream size must be printed for each disk')
   })
 
   test('--chain: chain is closed even when opening a disk in it throws', async () => {

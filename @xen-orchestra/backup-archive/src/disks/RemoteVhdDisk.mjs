@@ -391,20 +391,18 @@ export class RemoteVhdDisk extends RemoteDisk {
   }
 
   /**
-   * Recompute the disk size if needed and write it to its size.json metadata file.
+   * Write the disk size to its size.json metadata file, if it is known.
    * Does nothing to a VHD file
    *
-   * @param {Object} [opts]
-   * @param {boolean} [opts.recompute]
    * @returns  {Promise<void>}
    */
-  async saveSizeOnDisk(opts = {}) {
+  async saveSizeOnDisk() {
     if (this.#vhd === undefined) {
       throw new Error(`can't call saveSizeOnDisk of a RemoteVhdDisk before init`)
     }
 
     if (this.#vhd instanceof VhdDirectory) {
-      await this.#vhd.saveSize(opts)
+      await this.#vhd.saveSize()
     }
   }
 

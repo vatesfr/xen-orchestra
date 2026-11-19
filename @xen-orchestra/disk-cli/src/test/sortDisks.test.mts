@@ -2,7 +2,7 @@ import { describe, test } from 'node:test'
 import assert from 'node:assert/strict'
 import { sortDisks, toTableRow, type DiskInfo } from '../commands/list.mjs'
 
-// These tests assert on the full-width row (with the "Size on disk" column), so
+// These tests assert on the full-width row (with the "Stream size" column), so
 // they always exercise toTableRow with showSize = true.
 const toTableRowWithSize = (disk: DiskInfo, prevDisk: DiskInfo | undefined) => toTableRow(disk, prevDisk, true)
 
@@ -15,7 +15,7 @@ function ok(uid: string, parentUid: string | null = null): DiskInfo & { ok: true
     ok: true,
     filename: `${uid}.vhd`,
     uid,
-    sizeOnDisk: '1.00 GiB',
+    streamSize: '1.00 GiB',
     virtualSize: '8.00 GiB',
     differencing: parentUid !== null,
     parentUid,

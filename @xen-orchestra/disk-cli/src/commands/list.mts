@@ -4,17 +4,17 @@ import { isDisk, openDisposableDisk, RemoteDisk } from '@xen-orchestra/backup-ar
 import { formatBytes, renderTable } from '../utils.mjs'
 import { asyncEach } from '@vates/async-each'
 
-// The "Size on disk" column is only shown with --size: computing it requires
+// The "Stream size" column is only shown with --size: computing it requires
 // reading the block allocation table of every disk, which is costly.
-function buildHeaders(showSize: boolean): string[] {
-  return ['File', 'UID', ...(showSize ? ['Size on disk'] : []), 'Virtual size', 'Differencing', 'Parent UID']
+function buildHeaders(streamSize: boolean): string[] {
+  return ['File', 'UID', ...(streamSize ? ['Stream size'] : []), 'Virtual size', 'Differencing', 'Parent UID']
 }
 
 export type OkDiskInfo = {
   ok: true
   filename: string
   uid: string
-  sizeOnDisk?: string
+  streamSize?: string
   virtualSize: string
   differencing: boolean
   parentUid: string | null
@@ -70,7 +70,7 @@ export function toTableRow(disk: DiskInfo, prevDisk: DiskInfo | undefined, showS
   return [
     disk.filename,
     disk.uid,
-    ...(showSize ? [disk.sizeOnDisk ?? '-'] : []),
+    ...(showSize ? [disk.streamSize ?? '-'] : []),
     disk.virtualSize,
     disk.differencing ? 'yes' : 'no',
     disk.differencing ? (parentIsAbove ? '↑' : (disk.parentUid ?? '')) : '(none)',
@@ -103,7 +103,7 @@ export async function listCommand(handlerUrl: string, dirPath: string, extraArgs
                 ok: true as const,
                 filename,
                 uid: disk.getUuid(),
-                sizeOnDisk: showSize ? formatBytes(disk.getStreamSize()) : undefined,
+                streamSize: showSize ? formatBytes(disk.getStreamSize()) : undefined,
                 virtualSize: formatBytes(disk.getVirtualSize()),
                 differencing,
                 parentUid: differencing ? disk.getParentUuid() : null,

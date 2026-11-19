@@ -14,8 +14,8 @@ const COMMANDS: Record<string, CommandFn> = {
 
 function showHelp(exitCode: number): never {
   const commandDescriptions: Record<string, string> = {
-    info: 'Show disk info (virtual size, uid, parent uid, block size); --chain shows the full parent chain, --size adds the size on disk',
-    list: 'List all disks at a path and display their properties in a table; --size adds the size on disk',
+    info: 'Show disk info (virtual size, uid, parent uid, block size); --chain shows the full parent chain, --size adds the stream size',
+    list: 'List all disks at a path and display their properties in a table; --size adds the stream size',
     transform: 'Convert a disk to another format and write to stdout (raw | vhd | qcow2)',
   }
 

@@ -134,7 +134,7 @@ describe('list command', () => {
       openDiskParams.every(p => p.ignoreBlockIndexes === true),
       'disks must be opened with ignoreBlockIndexes: true by default'
     )
-    assert.ok(!output.includes('Size on disk'), 'the size column must be hidden without --size')
+    assert.ok(!output.includes('Stream size'), 'the size column must be hidden without --size')
   })
 
   test('--size opens disks with ignoreBlockIndexes: false and shows the size column', async () => {
@@ -143,6 +143,6 @@ describe('list command', () => {
       openDiskParams.every(p => p.ignoreBlockIndexes === false),
       'disks must be opened with ignoreBlockIndexes: false with --size'
     )
-    assert.ok(output.includes('Size on disk'), 'the size column must appear with --size')
+    assert.ok(output.includes('Stream size'), 'the size column must appear with --size')
   })
 })

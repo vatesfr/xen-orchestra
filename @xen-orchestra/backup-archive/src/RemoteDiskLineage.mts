@@ -13,6 +13,7 @@ import {
   CleanResult,
   DEFAULT_MERGE_CONCURRENCY,
   DEFAULT_REMOVE_CONCURRENCY,
+  MergedDisk,
   ResolvedBackupCleanOptions,
 } from './VmBackup.types.mjs'
 import { asyncEach } from '@vates/async-each'
@@ -425,16 +426,16 @@ export class RemoteDiskLineage {
       this.#opts.logInfo('Disk chain needs merging', { count: toMerge.length })
     }
 
-    // mergeTargetPath: final size of the disk everything was merged into
-    const mergedSizes = new Map<string, number>()
+    // mergeTargetPath: the disk everything was merged into
+    const mergedDisks = new Map<string, MergedDisk>()
     if (merge) {
       const limitedMergeChain = defaultMergeLimiter(this.#mergeChain.bind(this))
       const doMerge = async () => {
         await asyncEach(
           toMerge,
           async ({ chain, isResuming }) => {
-            const { finalSizeOnDisk, mergeTargetPath } = await limitedMergeChain([...chain], isResuming)
-            mergedSizes.set(mergeTargetPath, finalSizeOnDisk)
+            const { finalSizeOnDisk, mergeTargetPath, isDifferencing } = await limitedMergeChain([...chain], isResuming)
+            mergedDisks.set(mergeTargetPath, { sizeOnDisk: finalSizeOnDisk, isDifferencing })
             // parentPath alias deleted by parentDisk.rename(mergeTargetPath)
             // intermediates deleted by childDisk.unlink() when removeUnused=true
             // Unregister so #cleanOrphanDataFiles does not read already-deleted aliases
@@ -453,22 +454,26 @@ export class RemoteDiskLineage {
 
     await this.#cleanOrphanDataFiles(remove)
 
+    const sizeOnDisks = [...mergedDisks.values()].map(({ sizeOnDisk }) => sizeOnDisk)
     return {
       removedFiles: Array.from(toDelete),
       merge: toMerge.length > 0,
-      size: [...mergedSizes.values()].reduce((total, subSize) => total + subSize, 0),
-      mergedSizes,
+      size: sizeOnDisks.reduce<number | undefined>(
+        (total, subSize) => (total !== undefined && subSize !== undefined ? total + subSize : undefined),
+        0
+      ),
+      mergedDisks,
     }
   }
 
   /**
    * Merges ancestors into the active child at the end of the chain.
-   * Returns the final size of the merge target and its path.
+   * Returns the final size of the merge target and its path, undefined if unknown.
    */
   async #mergeChain(
     chain: string[],
     isResuming: boolean
-  ): Promise<{ finalSizeOnDisk: number; mergeTargetPath: string }> {
+  ): Promise<{ finalSizeOnDisk: number | undefined; mergeTargetPath: string; isDifferencing: boolean | undefined }> {
     assert.ok(chain.length >= 2, `look to merge a chain shorter than 2 ${JSON.stringify(chain)}`)
     const parentPath = chain[0]
     this.#opts.logInfo('merging disk chain', { chain: [...chain] }) // need a copy here to log full chain
@@ -492,8 +497,8 @@ export class RemoteDiskLineage {
         force: isResuming,
       })
 
-      const { finalSizeOnDisk } = (await merger.merge(parentDisk, childDisk!))!
-      return { finalSizeOnDisk, mergeTargetPath }
+      const { finalSizeOnDisk, isDifferencing } = (await merger.merge(parentDisk, childDisk!))!
+      return { finalSizeOnDisk, mergeTargetPath, isDifferencing }
     } finally {
       await parentDisk?.close().catch(error => {
         this.#opts.logWarn('Error closing parent Disk', error)

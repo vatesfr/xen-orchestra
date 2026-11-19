@@ -6,6 +6,7 @@ import {
   VmBackupInterface,
   PartialBackupMetadata,
   DEFAULT_REMOVE_CONCURRENCY,
+  MergedDisk,
 } from './VmBackup.types.mjs'
 import { RemoteHandlerAbstract } from '@xen-orchestra/fs'
 import { basename, dirname, normalize, resolveFromFile } from '@xen-orchestra/fs/path'
@@ -126,10 +127,11 @@ export class VmIncrementalBackupArchive implements VmBackupInterface {
 
   /**
    * Removes the metadata file if the backup is incomplete (missing disks).
-   * If mergedSizes is provided, updates metadata with the total merged size for this archive's disks.
+   * If mergedDisks is provided, records the size on disk of this archive's merged disks
+   * in vhdsSizeOnDisk (removed when unknown) and records whether they are still differencing.
    * Actual disk merge/deletion is handled by RemoteDiskLineage.
    */
-  async clean({ remove = this.opts.remove ?? false, mergedSizes }: ArchiveCleanOptions = {}): Promise<CleanResult> {
+  async clean({ remove = this.opts.remove ?? false, mergedDisks }: ArchiveCleanOptions = {}): Promise<CleanResult> {
     if (!this.#isChecked) {
       await this.check()
     }
@@ -150,13 +152,13 @@ export class VmIncrementalBackupArchive implements VmBackupInterface {
     }
 
     const changedFiles: string[] = []
-    const updates: Record<string, number> = {}
-    if (mergedSizes !== undefined) {
+    const updates: Record<string, MergedDisk> = {}
+    if (mergedDisks !== undefined) {
       for (const [vdiRef, relPath] of Object.entries(this.metadata.vhds ?? {})) {
         const vhdPath = normalize(resolveFromFile(this.metadataPath, relPath))
-        const mergedSize = mergedSizes.get(vhdPath)
-        if (mergedSize != undefined) {
-          updates[vdiRef] = mergedSize
+        const mergedDisk = mergedDisks.get(vhdPath)
+        if (mergedDisk !== undefined) {
+          updates[vdiRef] = mergedDisk
         }
       }
 
@@ -170,14 +172,25 @@ export class VmIncrementalBackupArchive implements VmBackupInterface {
   }
 
   /**
-   * Updates metadata.vhdsSizeOnDisk after a merge and writes the updated metadata file to disk.
-   * Only merged disks are marked as full.
+   * Updates the size on disk and the differencing status of the merged disks, then writes the metadata file.
    */
-  async updateMetadata(updates: Record<string, number>): Promise<void> {
-    this.metadata.vhdsSizeOnDisk = { ...this.metadata.vhdsSizeOnDisk, ...updates }
+  async updateMetadata(updates: Record<string, MergedDisk>): Promise<void> {
+    const vhdsSizeOnDisk = { ...this.metadata.vhdsSizeOnDisk }
+    for (const [vdiRef, { sizeOnDisk }] of Object.entries(updates)) {
+      if (sizeOnDisk === undefined) {
+        delete vhdsSizeOnDisk[vdiRef]
+      } else {
+        vhdsSizeOnDisk[vdiRef] = sizeOnDisk
+      }
+    }
+    this.metadata.vhdsSizeOnDisk = vhdsSizeOnDisk
     this.metadata.isVhdDifferencing = this.metadata.isVhdDifferencing ?? {}
-    for (const id of Object.keys(updates)) {
-      this.metadata.isVhdDifferencing[id] = false
+    for (const [vdiRef, { isDifferencing }] of Object.entries(updates)) {
+      if (isDifferencing === undefined) {
+        delete this.metadata.isVhdDifferencing[vdiRef]
+      } else {
+        this.metadata.isVhdDifferencing[vdiRef] = isDifferencing
+      }
     }
     await this.handler.writeFile(this.metadataPath, JSON.stringify(this.metadata), { flags: 'w' })
   }

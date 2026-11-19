@@ -266,17 +266,15 @@ describe('VhdDirectory', async () => {
       })
     })
 
-    it('is unknown, not 0, for a disk written without size.json, until computed', async () => {
+    it('is unknown, not 0, for a disk written without size.json', async () => {
       await writeCompressedVhd(handler, 'compressed.vhd', { withSize: false })
 
       await Disposable.use(openVhd(handler, 'compressed.vhd'), async vhd => {
         assert.strictEqual(await vhd.readSizeOnDisk(), undefined)
 
         const savedSize = await vhd.saveSize()
-        // measured after the save, which writes size.json
-        const fullSize = await getFullSize(handler, 'compressed.vhd')
-        assert.equal(savedSize, fullSize)
-        assert.equal(await vhd.readSizeOnDisk(), fullSize)
+        assert.equal(savedSize, undefined)
+        await assert.rejects(handler.readFile('compressed.vhd/size.json'), { code: 'ENOENT' })
       })
     })
 
@@ -369,9 +367,9 @@ describe('VhdDirectory', async () => {
 
         assert.strictEqual(await vhd.readSizeOnDisk(), undefined)
 
-        // saving an unknown size recomputes it
+        // an unknown size is not saved
         const savedSize = await vhd.saveSize()
-        assert.equal(savedSize, await getFullSize(handler, 'compressed.vhd'))
+        assert.equal(savedSize, undefined)
       })
     })
   })

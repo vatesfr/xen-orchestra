@@ -13,6 +13,7 @@ import {
   PartialBackupMetadata,
   ResolvedBackupCleanOptions,
   DEFAULT_MERGE_CONCURRENCY,
+  MergedDisk,
 } from './VmBackup.types.mjs'
 import { cleanOrphanDiskDirs } from '@xen-orchestra/backup-archive/disks'
 import { asyncEach } from '@vates/async-each'
@@ -138,19 +139,19 @@ export class VmBackupDirectory implements VmBackupInterface {
     let someLineageMergedOrShouldBe = false
 
     // Merge/delete orphan disks in VDI directories covered by archives; collect merged sizes per disk path
-    const allMergedSizes = new Map<string, number>()
+    const allMergedDisks = new Map<string, MergedDisk>()
     await asyncEach(
       Array.from(this.#uniqueLineages!.entries()),
       async ([_vdiDir, lineage]) => {
-        const { mergedSizes, removedFiles, merge: hasPendingMerge } = await lineage.clean({ remove, merge })
+        const { mergedDisks, removedFiles, merge: hasPendingMerge } = await lineage.clean({ remove, merge })
         if (removedFiles.length > 0) {
           cacheNeedsRegen = true
         }
         if (hasPendingMerge) {
           someLineageMergedOrShouldBe = true
         }
-        for (const [diskPath, size] of mergedSizes || []) {
-          allMergedSizes.set(diskPath, (allMergedSizes.get(diskPath) ?? 0) + size)
+        for (const [diskPath, mergedDisk] of mergedDisks || []) {
+          allMergedDisks.set(diskPath, mergedDisk)
         }
       },
       { concurrency: DEFAULT_MERGE_CONCURRENCY }
@@ -174,7 +175,7 @@ export class VmBackupDirectory implements VmBackupInterface {
       async ([metadataPath, archive]: [string, VmBackupInterface]) => {
         const { removedFiles, changedFiles: archiveChangedFiles } = await archive.clean({
           remove,
-          mergedSizes: allMergedSizes,
+          mergedDisks: allMergedDisks,
         })
         if (removedFiles.length > 0) {
           cacheNeedsRegen = true
@@ -194,7 +195,7 @@ export class VmBackupDirectory implements VmBackupInterface {
       this.backupArchives.delete(metadataPath)
     }
 
-    if (this.#cacheExisted && (allMergedSizes.size > 0 || cacheNeedsRegen || this.#cacheOutOfSync)) {
+    if (this.#cacheExisted && (allMergedDisks.size > 0 || cacheNeedsRegen || this.#cacheOutOfSync)) {
       await this.#regenerateCache()
     }
 
@@ -216,7 +217,12 @@ export class VmBackupDirectory implements VmBackupInterface {
         { concurrency: 2 }
       )
     }
-    const size = [...allMergedSizes.values()].reduce((total, merged) => total + merged, 0)
+
+    const sizeOnDisks = [...allMergedDisks.values()].map(({ sizeOnDisk }) => sizeOnDisk)
+    const size = sizeOnDisks.reduce<number | undefined>(
+      (total, merged) => (total !== undefined && merged !== undefined ? total + merged : undefined),
+      0
+    )
     // `removedFiles` lists the files this run removed, or would have removed if `remove` were set:
     // root-level orphans plus the files each archive deemed removable (e.g. the metadata of an
     // incomplete backup). Callers acting on it must therefore check `remove` themselves.

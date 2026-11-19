@@ -296,13 +296,11 @@ export class RemoteDisk extends RandomAccessDisk {
   }
 
   /**
-   * Recompute the disk size if needed and write it to its size.json metadata file.
+   * Write the disk size to its size.json metadata file, if it is known.
    *
-   * @param {Object} [opts]
-   * @param {boolean} [opts.recompute]
    * @returns  {Promise<void>}
    */
-  async saveSizeOnDisk(opts = {}) {
+  async saveSizeOnDisk() {
     throw new Error(`saveSizeOnDisk must be implemented`)
   }
 

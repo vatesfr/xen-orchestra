@@ -254,13 +254,11 @@ export class RemoteVhdDiskChain extends RemoteDisk {
   }
 
   /**
-   * Recompute the disk size if needed and write it to its size.json metadata file.
+   * Write the disk size to its size.json metadata file, if it is known.
    *
-   * @param {Object} [opts]
-   * @param {boolean} [opts.recompute]
    * @returns  {Promise<void>}
    */
-  async saveSizeOnDisk(opts) {
+  async saveSizeOnDisk() {
     throw new Error(`Can't save size on disk on a disk chain`)
   }
 
