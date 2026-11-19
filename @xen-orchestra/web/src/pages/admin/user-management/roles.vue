@@ -16,7 +16,9 @@
       </UiCard>
     </div>
 
-    <RoleSidePanel :role="selectedRole" @close="selectedRole = undefined" />
+    <template #panel>
+      <RoleSidePanel :role="selectedRole" @close="selectedRole = undefined" />
+    </template>
   </VtsContentSidePanel>
 </template>
 

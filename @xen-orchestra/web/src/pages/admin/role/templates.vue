@@ -8,7 +8,9 @@
       <RoleTemplatesTable :role-templates :busy="!areRoleTemplatesReady" :error="hasRoleTemplateFetchError" />
     </UiCard>
 
-    <RoleTemplateSidePanel :role-template="selectedRoleTemplate" @close="selectedRoleTemplate = undefined" />
+    <template #panel>
+      <RoleTemplateSidePanel :role-template="selectedRoleTemplate" @close="selectedRoleTemplate = undefined" />
+    </template>
   </VtsContentSidePanel>
 </template>
 
