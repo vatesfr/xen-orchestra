@@ -442,20 +442,26 @@ export class SrController extends XapiXoController<XoSr> {
   }
 
   /**
-   * Import an ISO from a URL into an ISO SR
+   * Import a VDI from a URL
    *
-   * The URL is downloaded by XO itself, it must use `http` or `https` and the remote server must provide a `Content-Length` header.
-   *
-   * Only ISO library SRs are supported for now.
+   * The XO server fetches the URL and streams its content straight to the SR, without storing it on the XO server.
+   * 
+   * Requirements:
+   *  - The URL must be reachable by the XO server.
+   *  - The URL must use `http` or `https`.
+   *  - The URL must not contain a username/password (`https://user:password@...`).
+   *  - The remote server must send a `Content-Length` header.
+   * 
+   * Only ISO SRs are supported for now.
+   * 
+   * Warning: The XO server sends a GET requet to the given URL, whatever its address. It can reach internal
+   * services, and the response can then be read by exporting the imported VDI.
    *
    * Required privilege:
-   * - resource: sr, action: import:vdi-from-url
-   *
-   * Warning: this privilege lets the holder make XO download any URL, including internal addresses reachable from the XO server.
-   * It is covered by `sr: import` and `sr: *`, only grant these to trusted users.
-   *
+   * - resource: sr, action: import:vdi:url
+   *  
    * @example id "c4284e12-37c9-7967-b9e8-83ef229c3e03"
-   * @example body { "url": "https://my-company.net/debian-13.iso", "name_label": "debian-13.iso", "name_description": "Debian 13 installer" }
+   * @example body { "url": "https://example.com/debian-13.iso", "name_label": "debian-13.iso", "name_description": "Debian 13 installer" }
    */
   @Example(vdiId)
   @Extension('x-mcp-exposure', 'confirm')
