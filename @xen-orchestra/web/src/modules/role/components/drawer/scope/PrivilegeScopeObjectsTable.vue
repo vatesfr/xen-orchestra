@@ -17,12 +17,12 @@
 </template>
 
 <script lang="ts" setup>
-import { usePrivilegeScopeSelection } from '@/modules/role/composables/use-privilege-scope-selection.composable.ts'
 import type { PrivilegeScopeObject } from '@/modules/role/types.ts'
 import VtsQueryBuilder from '@core/components/query-builder/VtsQueryBuilder.vue'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
 import { usePagination } from '@core/composables/pagination.composable.ts'
+import { useTableSelection } from '@core/composables/table-selection.composable.ts'
 import { useTableState } from '@core/composables/table-state.composable.ts'
 import { useQueryBuilderSchema } from '@core/packages/query-builder/schema/use-query-builder-schema.ts'
 import { useQueryBuilderFilter } from '@core/packages/query-builder/use-query-builder-filter.ts'
@@ -68,12 +68,12 @@ const { pageRecords: paginatedObjects, paginationBindings } = usePagination(tabl
   ignoreRoute: true,
 })
 
-const { pageSelectionModel, isSelected, toggleSelection, selectionBindings } = usePrivilegeScopeSelection({
-  selectedIds,
+const { pageSelectionModel, isSelected, toggleSelection, selectionBindings } = useTableSelection({
   items: () => objects,
   filteredItems: filteredObjects,
   pageItems: paginatedObjects,
-  isReady: () => isReady,
+  getItemId: object => object.id,
+  selectedIds,
 })
 
 const { HeadCells, BodyCells } = usePrivilegeScopeObjectColumns({

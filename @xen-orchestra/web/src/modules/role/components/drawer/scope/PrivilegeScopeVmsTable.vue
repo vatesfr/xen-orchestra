@@ -17,7 +17,6 @@
 </template>
 
 <script lang="ts" setup>
-import { usePrivilegeScopeSelection } from '@/modules/role/composables/use-privilege-scope-selection.composable.ts'
 import type { VmDisplayData } from '@/modules/vm/composables/use-vm-enhanced-data.composable.ts'
 import { useVmQueryBuilder } from '@/modules/vm/composables/use-vm-query-builder.composable.ts'
 import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
@@ -25,6 +24,7 @@ import VtsQueryBuilder from '@core/components/query-builder/VtsQueryBuilder.vue'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
 import { usePagination } from '@core/composables/pagination.composable.ts'
+import { useTableSelection } from '@core/composables/table-selection.composable.ts'
 import { useTableState } from '@core/composables/table-state.composable.ts'
 import { useVmColumns } from '@core/tables/column-sets/vm-columns.ts'
 import { logicNot } from '@vueuse/math'
@@ -72,12 +72,12 @@ const { pageRecords: paginatedVms, paginationBindings } = usePagination('privile
   ignoreRoute: true,
 })
 
-const { pageSelectionModel, isSelected, toggleSelection, selectionBindings } = usePrivilegeScopeSelection({
-  selectedIds,
+const { pageSelectionModel, isSelected, toggleSelection, selectionBindings } = useTableSelection({
   items: visibleVms,
   filteredItems: filteredVms,
   pageItems: paginatedVms,
-  isReady: areVmsReady,
+  getItemId: (vm): string => vm.id,
+  selectedIds,
 })
 
 const { HeadCells, BodyCells } = useVmColumns({
