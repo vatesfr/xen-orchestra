@@ -6,6 +6,6 @@ export const useVmDeletionColumns = defineColumns(() => {
   const { t } = useI18n()
 
   return {
-    vm: useLinkColumn({ headerLabel: () => t('vm') }),
+    vm: useLinkColumn({ headerLabel: () => t('vm'), flexible: true }),
   }
 })

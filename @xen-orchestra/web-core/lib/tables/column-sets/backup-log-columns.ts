@@ -10,7 +10,7 @@ export const useBackupLogColumns = defineColumns(() => {
   const { t } = useI18n()
 
   return {
-    job: useLinkColumn({ headerLabel: () => t('job') }),
+    job: useLinkColumn({ headerLabel: () => t('job'), flexible: true }),
     backupDate: useDateColumn({ headerLabel: () => t('backup-date') }),
     vm: useLinkOrTextColumn({ headerLabel: () => t('vm') }),
     sr: useLinkOrTextColumn({ headerLabel: () => t('sr') }),

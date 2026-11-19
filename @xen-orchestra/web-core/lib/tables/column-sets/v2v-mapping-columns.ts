@@ -9,7 +9,7 @@ export const useV2vMappingColumns = defineColumns(() => {
   const { t } = useI18n()
 
   return {
-    vm: useTextColumn({ headerLabel: () => t('vm') }),
+    vm: useTextColumn({ headerLabel: () => t('vm'), flexible: true }),
     kind: useTagColumn({ headerLabel: () => t('type') }),
     mapping: useTextColumn({ headerLabel: () => t('mapping') }),
     check: useInfoColumn({ headerLabel: () => t('checks') }),
