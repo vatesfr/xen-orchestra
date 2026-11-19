@@ -1,5 +1,6 @@
 import VtsDetailedOption from '@core/components/select/VtsDetailedOption.vue'
 import VtsSelect from '@core/components/select/VtsSelect.vue'
+import type { InputAccent } from '@core/components/ui/input/UiInput.vue'
 import type { IconName } from '@core/icons'
 import type { FormOption, FormSelectId } from '@core/packages/form-select/types.ts'
 import { defineColumn } from '@core/packages/table/define-column.ts'
@@ -25,6 +26,8 @@ function getSelectSlots(optionIcon: SelectColumnConfig['optionIcon']) {
 
 export const useSelectColumn = defineColumn((config?: SelectColumnConfig) => ({
   renderHead: () => renderHeadCell(config?.headerLabel),
-  renderBody: (id: FormSelectId) =>
-    renderBodyCell(() => h(VtsSelect, { accent: 'brand', id }, getSelectSlots(config?.optionIcon))),
+  renderBody: (id: FormSelectId, selectProps?: { accent?: InputAccent }) =>
+    renderBodyCell(() =>
+      h(VtsSelect, { accent: selectProps?.accent ?? 'brand', id }, getSelectSlots(config?.optionIcon))
+    ),
 }))

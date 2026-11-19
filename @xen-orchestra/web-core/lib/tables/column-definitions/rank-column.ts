@@ -1,10 +1,17 @@
+import VtsHeaderCell from '@core/components/table/cells/VtsHeaderCell.vue'
 import VtsRankCell from '@core/components/table/cells/VtsRankCell.vue'
 import { defineColumn } from '@core/packages/table/define-column.ts'
-import { renderHeadCell } from '@core/tables/helpers/render-head-cell.ts'
 import type { HeaderConfig } from '@core/tables/types.ts'
-import { h } from 'vue'
+import { h, toValue } from 'vue'
 
-export const useRankColumn = defineColumn((config?: HeaderConfig) => ({
-  renderHead: () => renderHeadCell(config?.headerLabel),
-  renderBody: (rank: number, shift?: number) => h(VtsRankCell, { rank, shift }),
+const COLUMN_WIDTH = '7rem'
+
+export type RankConfig = {
+  highlighted?: boolean
+}
+
+export const useRankColumn = defineColumn((config?: HeaderConfig & RankConfig) => ({
+  renderHead: () => h(VtsHeaderCell, { style: { width: COLUMN_WIDTH } }, () => toValue(config?.headerLabel)),
+  renderBody: (rank: number, shift?: number) =>
+    h(VtsRankCell, { rank, shift, highlighted: config?.highlighted, style: { width: COLUMN_WIDTH } }),
 }))
