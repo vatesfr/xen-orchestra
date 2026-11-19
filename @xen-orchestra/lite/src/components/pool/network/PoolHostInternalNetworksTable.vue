@@ -78,6 +78,7 @@ const state = useTableState({
 })
 
 const { HeadCells, BodyCells, sortItems } = useNetworkColumns({
+  id: 'internal-networks',
   exclude: ['status', 'vlan', 'selectItem'],
   body: (network: XenApiNetwork) => ({
     network: r => r({ label: network.name_label }),

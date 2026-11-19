@@ -104,6 +104,7 @@ function getManagementIcon(pif: XenApiPif) {
 }
 
 const { HeadCells, BodyCells, sortItems } = usePifColumns({
+  id: 'pifs',
   exclude: ['selectItem'],
   body: (pif: XenApiPif) => {
     const name = computed(() => getNetworkName(pif.network))

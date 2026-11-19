@@ -94,6 +94,7 @@ const state = useTableState({
 })
 
 const { HeadCells, BodyCells, sortItems } = useBackupLogVmColumns({
+  id: 'backup-log-vms',
   body: (vm: BackupLogVmFilterableData) => {
     const xoVm = computed(() => getVmById(vm.id))
 

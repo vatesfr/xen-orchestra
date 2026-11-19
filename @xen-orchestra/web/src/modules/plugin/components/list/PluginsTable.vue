@@ -68,6 +68,7 @@ const state = useTableState({
 const { compareStatuses } = useStatusLabel()
 
 const { HeadCells, BodyCells, sortItems } = usePluginColumns({
+  id: 'plugins',
   body: (plugin: FrontXoPlugin) => {
     const { configureAction, loadAction, moreActions } = useXoPluginActions(() => plugin)
 

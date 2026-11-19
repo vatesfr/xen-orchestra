@@ -96,6 +96,7 @@ const state = useTableState({
 })
 
 const { HeadCells, BodyCells, sortItems } = useSnapshotColumns({
+  id: 'snapshots',
   body: (snapshot: FrontXoVmSnapshot) => {
     const { deleteVmSnapshots, canDeleteVmSnapshots, isDeletingVmSnapshots } = useVmSnapshotDelete(() => [snapshot])
 

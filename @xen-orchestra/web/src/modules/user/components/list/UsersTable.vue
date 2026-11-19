@@ -67,6 +67,7 @@ const getProviders = (user: FrontXoUser) => {
 }
 
 const { HeadCells, BodyCells, sortItems } = useUserColumns({
+  id: 'users',
   body: (user: FrontXoUser) => {
     return {
       username: r => r(user.name ?? '', { href: xo5UsersHref.value }),

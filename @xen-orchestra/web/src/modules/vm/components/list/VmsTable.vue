@@ -84,6 +84,7 @@ const {
 })
 
 const { HeadCells, BodyCells, sortItems } = useVmColumns({
+  id: 'vms',
   head: () => ({
     checkbox: r => r(pageSelectionModel),
   }),

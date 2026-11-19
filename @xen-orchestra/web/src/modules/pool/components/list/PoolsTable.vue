@@ -99,6 +99,7 @@ const displayServers = computed(() => filteredServers.value.map(server => getDis
 const { compareStatuses } = useStatusLabel()
 
 const { HeadCells, BodyCells, sortItems } = useServerColumns({
+  id: 'servers',
   body: (server: PoolDisplayData) => {
     const poolInfo = computed(() => ({
       label: server.poolName,

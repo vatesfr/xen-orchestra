@@ -80,6 +80,7 @@ const state = useTableState({
 })
 
 const { HeadCells, BodyCells, sortItems } = useVdiColumns({
+  id: 'vdis',
   exclude: ['selectItem'],
   body: (vdi: FrontXoVdi) => {
     const vbds = useGetVbdsByIds(vdi.$VBDs)
