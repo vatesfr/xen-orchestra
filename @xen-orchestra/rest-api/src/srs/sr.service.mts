@@ -1,5 +1,4 @@
 import { Readable } from 'node:stream'
-import type { ReadableStream as WebReadableStream } from 'node:stream/web'
 import { SUPPORTED_VDI_FORMAT } from '@vates/types'
 import type { Xapi, XenApiVdi, XenApiSr, XoHost, XoSr, XoVdi } from '@vates/types'
 import { ApiError } from '../helpers/error.helper.mjs'
@@ -91,10 +90,14 @@ export class SrService {
     }
   }
 
-  async importVdiFromUrl(id: XoSr['id'], body: ImportVdiFromUrlBody): Promise<XoVdi['id']> {
+  /**
+   * Check the parameters of `importVdiFromUrl`, without any download, so that they can be rejected before
+   * creating a task
+   */
+  validateImportVdiFromUrl(id: XoSr['id'], urlString: string): URL {
     let url: URL
     try {
-      url = new URL(body.url)
+      url = new URL(urlString)
     } catch {
       throw invalidParameters('invalid URL')
     }
@@ -105,17 +108,31 @@ export class SrService {
     if (url.username !== '' || url.password !== '') {
       throw invalidParameters('credentials in the URL are not supported')
     }
-    // never put the full URL in errors, it can contain secrets
-    const { origin } = url
 
     const xapiSr = this.#restApi.getXapiObject<XoSr>(id, 'SR')
-    const xapi = xapiSr.$xapi
 
     // XO ISO libraries (local, NFS, SMB) are all created with type and content_type `iso`,
     // this excludes the XCP-ng tools SR and the DVD drives SR (type `udev`)
     if (xapiSr.content_type !== 'iso' || xapiSr.type !== 'iso' || xapiSr.is_tools_sr) {
       throw invalidParameters(`SR ${id} is not an ISO SR`)
     }
+
+    return url
+  }
+
+  /**
+   * `url` must have been checked with `validateImportVdiFromUrl`
+   */
+  async importVdiFromUrl(
+    id: XoSr['id'],
+    url: URL,
+    { name_label, name_description }: Omit<ImportVdiFromUrlBody, 'url'>
+  ): Promise<XoVdi['id']> {
+    // never put the full URL in errors, it can contain secrets
+    const { origin } = url
+
+    const xapiSr = this.#restApi.getXapiObject<XoSr>(id, 'SR')
+    const xapi = xapiSr.$xapi
 
     let response: Response
     try {
@@ -146,8 +163,8 @@ export class SrService {
     try {
       vdiRef = await xapi.SR_importVdi(xapiSr.$ref, stream, {
         format: SUPPORTED_VDI_FORMAT.raw,
-        name_label: body.name_label ?? getFileNameFromUrl(url),
-        name_description: body.name_description,
+        name_label: name_label ?? getFileNameFromUrl(url),
+        name_description,
       })
     } catch (error) {
       // the import can fail before reading the stream (e.g. `VDI.create` fails), close the download

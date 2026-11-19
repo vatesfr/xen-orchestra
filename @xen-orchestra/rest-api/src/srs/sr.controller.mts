@@ -23,7 +23,7 @@ import type { XenApiVdi, XoMessage, XoTask, XoVdi, XoAlarm, XoSr } from '@vates/
 import { SUPPORTED_VDI_FORMAT } from '@vates/types'
 import { acl } from '../middlewares/acl.middleware.mjs'
 import { AlarmService } from '../alarms/alarm.service.mjs'
-import { BASE_URL, escapeUnsafeComplexMatcher, getUrlOrigin } from '../helpers/utils.helper.mjs'
+import { BASE_URL, escapeUnsafeComplexMatcher, getFileNameFromUrl } from '../helpers/utils.helper.mjs'
 import { genericAlarmsExample } from '../open-api/oa-examples/alarm.oa-example.mjs'
 import {
   asynchronousActionResp,
@@ -480,8 +480,11 @@ export class SrController extends XapiXoController<XoSr> {
     @Query() sync?: boolean
   ): CreateActionReturnType<{ id: Unbrand<XoVdi>['id'] }> {
     const srId = id as XoSr['id']
+    // checked before creating the task, so that invalid parameters are rejected with a 422 even when not `sync`
+    const url = this.#srService.validateImportVdiFromUrl(srId, body.url)
+
     const action = async () => {
-      const vdiId = await this.#srService.importVdiFromUrl(srId, body)
+      const vdiId = await this.#srService.importVdiFromUrl(srId, url, body)
 
       if (sync) {
         this.setHeader('Location', `${BASE_URL}/vdis/${vdiId}`)
@@ -495,8 +498,9 @@ export class SrController extends XapiXoController<XoSr> {
       taskProperties: {
         name: 'import VDI from URL',
         objectId: srId,
-        // the full URL can contain secrets (e.g. `?token=…`) and tasks are readable with `task: read`
-        params: { ...body, url: getUrlOrigin(body.url) },
+        // the full URL can contain secrets (e.g. `?token=…`) and tasks are readable with `task: read`,
+        // only keep its origin and the name of the downloaded file
+        params: { ...body, url: url.origin, fileName: getFileNameFromUrl(url) },
       },
     })
   }

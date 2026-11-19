@@ -196,17 +196,6 @@ export function ensureArray<T>(value: T | T[] | undefined): T[] {
   return value === undefined ? [] : Array.isArray(value) ? value : [value]
 }
 
-/**
- * Download URLs can contain secrets (e.g. `?token=…`), only their origin must be stored or logged
- */
-export function getUrlOrigin(url: string): string | undefined {
-  try {
-    return new URL(url).origin
-  } catch {
-    return undefined
-  }
-}
-
 export function getFileNameFromUrl(url: URL): string {
   const fileName = url.pathname.slice(url.pathname.lastIndexOf('/') + 1)
   try {
