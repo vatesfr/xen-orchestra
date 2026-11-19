@@ -1,3 +1,4 @@
+import { useSortRouteQuery } from '@core/composables/sort-route-query.composable.ts'
 import { IK_COLUMN_SORT } from '@core/packages/table/injection-keys.ts'
 import type { AreAllPropertiesOptional, Columns, ColumnSortDirection } from '@core/packages/table/types.ts'
 import { objectOmit, toReactive } from '@vueuse/shared'
@@ -24,6 +25,7 @@ export function defineColumns<TSetupArgs extends any[], TColumns extends Columns
     TExcludedId extends keyof TColumns = never,
   >(
     config: {
+      id?: string
       exclude?: TExcludedId[]
       body: (item: TBodyItem) => Omit<TBodyRenderers, TExcludedId>
       sort?: { [K in keyof TColumns]?: (item1: TBodyItem, item2: TBodyItem) => number }
@@ -51,9 +53,40 @@ export function defineColumns<TSetupArgs extends any[], TColumns extends Columns
 
     const colspan = computed(() => visibleColumnIds.value.length)
 
-    const sortState = ref(config.initialSort) as Ref<
-      { id: $TAvailableColumnId; direction: ColumnSortDirection } | undefined
-    >
+    type $TSort = { id: $TAvailableColumnId; direction: ColumnSortDirection }
+
+    function isSortableColumnId(columnId: string): columnId is $TAvailableColumnId & string {
+      return columnId in availableColumns && config.sort?.[columnId as keyof TColumns] !== undefined
+    }
+
+    function useSortState(): Ref<$TSort | undefined> {
+      if (config.id === undefined) {
+        return ref(config.initialSort) as Ref<$TSort | undefined>
+      }
+
+      const initialSort = config.initialSort && {
+        id: config.initialSort.id as string,
+        direction: config.initialSort.direction,
+      }
+
+      const sortRouteQuery = useSortRouteQuery(`${config.id}.sort`, initialSort)
+
+      return computed({
+        // Ignore a sort from the URL on a column that can't be sorted (outdated or hand-edited link)
+        get: () => {
+          const sort = sortRouteQuery.value
+
+          return sort !== undefined && isSortableColumnId(sort.id)
+            ? { id: sort.id, direction: sort.direction }
+            : undefined
+        },
+        set: sort => {
+          sortRouteQuery.value = sort && { id: sort.id as string, direction: sort.direction }
+        },
+      })
+    }
+
+    const sortState = useSortState()
 
     function toggle(columnId: $TAvailableColumnId, visible: boolean = hiddenColumnIds.value.has(columnId)) {
       if (visible) {
