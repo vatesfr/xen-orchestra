@@ -29,7 +29,6 @@ import UiCard from '@core/components/ui/card/UiCard.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { useUiStore } from '@core/stores/ui.store.ts'
 import { SR_SCOPE_TYPE, type SrScope } from '@core/types/storage-repository.type.ts'
-import { sortByNameLabel } from '@core/utils/sort-by-name-label.util.ts'
 import { logicAnd } from '@vueuse/math'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -67,7 +66,7 @@ const srs = computed((): XenApiSr[] => {
     return []
   }
 
-  return getSrsForHost(host.value.$ref).sort(sortByNameLabel)
+  return getSrsForHost(host.value.$ref)
 })
 
 const selectedSr = useRouteQuery<XenApiSr | undefined>('id', {

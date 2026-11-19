@@ -5,9 +5,7 @@ import { extractIdsFromSimplePattern } from '@xen-orchestra/backups/extractIdsFr
 import { computed, type MaybeRefOrGetter } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-export function useXoBackupJobTypeLabels(rawBackupJob: MaybeRefOrGetter<FrontAnyXoBackupJob>) {
-  const backupJob = toComputed(rawBackupJob)
-
+export function useGetXoBackupJobTypeLabels() {
   const { t } = useI18n()
 
   function hasIds(pattern: unknown) {
@@ -18,8 +16,7 @@ export function useXoBackupJobTypeLabels(rawBackupJob: MaybeRefOrGetter<FrontAny
     return extractIdsFromSimplePattern(pattern).length > 0
   }
 
-  return computed(() => {
-    const job = backupJob.value
+  return function getBackupJobTypeLabels(job: FrontAnyXoBackupJob) {
     const labels: string[] = []
 
     switch (job.type) {
@@ -51,5 +48,13 @@ export function useXoBackupJobTypeLabels(rawBackupJob: MaybeRefOrGetter<FrontAny
     }
 
     return labels
-  })
+  }
+}
+
+export function useXoBackupJobTypeLabels(rawBackupJob: MaybeRefOrGetter<FrontAnyXoBackupJob>) {
+  const backupJob = toComputed(rawBackupJob)
+
+  const getBackupJobTypeLabels = useGetXoBackupJobTypeLabels()
+
+  return computed(() => getBackupJobTypeLabels(backupJob.value))
 }
