@@ -23,6 +23,7 @@ import type {
   FrontXoSr,
   useXoSrCollection as realUseXoSrCollection,
 } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
+import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
 import type {
   FrontXoVmTemplate,
   useXoVmTemplateCollection as realUseXoVmTemplateCollection,
@@ -41,6 +42,7 @@ export const xoCollectionsMock = {
   networks: ref<FrontXoNetwork[]>([]),
   areNetworksReady: ref(true),
   pifs: ref<FrontXoPif[]>([]),
+  vdiIsosBySrName: ref<Record<string, FrontXoVdi[]>>({}),
   templates: ref<FrontXoVmTemplate[]>([]),
   areTemplatesReady: ref(true),
   reset() {
@@ -53,6 +55,7 @@ export const xoCollectionsMock = {
     this.networks.value = []
     this.areNetworksReady.value = true
     this.pifs.value = []
+    this.vdiIsosBySrName.value = {}
     this.templates.value = []
     this.areTemplatesReady.value = true
   },
@@ -82,6 +85,7 @@ export const useXoHostCollection = (() => ({
 
 export const useXoSrCollection = (() => ({
   srs: xoCollectionsMock.srs,
+  vdiIsosBySrName: xoCollectionsMock.vdiIsosBySrName,
   areSrsReady: xoCollectionsMock.areSrsReady,
   getSrById: (id: FrontXoSr['id'] | undefined) => xoCollectionsMock.srs.value.find(sr => sr.id === id),
 })) as unknown as typeof realUseXoSrCollection
@@ -103,9 +107,11 @@ export const useXoPbdCollection = (() => ({
 export const useXoPifCollection = (() => ({
   pifs: xoCollectionsMock.pifs,
   getPifsByIds: (ids: FrontXoPif['id'][]) => xoCollectionsMock.pifs.value.filter(pif => ids.includes(pif.id)),
+  getPifsByNetworkId: (id: FrontXoNetwork['id']) => xoCollectionsMock.pifs.value.filter(pif => pif.$network === id),
 })) as unknown as typeof realUseXoPifCollection
 
 export const useXoVmTemplateCollection = (() => ({
   templates: xoCollectionsMock.templates,
+  vmsTemplatesByPool: computed(() => groupBy(xoCollectionsMock.templates.value, template => template.$pool)),
   areTemplatesReady: xoCollectionsMock.areTemplatesReady,
 })) as unknown as typeof realUseXoVmTemplateCollection
