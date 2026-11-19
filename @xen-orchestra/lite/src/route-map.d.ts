@@ -492,6 +492,13 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/story/web-core/middle-ellipsis/vts-middle-ellipsis': RouteRecordInfo<
+      '/story/web-core/middle-ellipsis/vts-middle-ellipsis',
+      '/story/web-core/middle-ellipsis/vts-middle-ellipsis',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
     '/story/web-core/number-input/vts-number-input': RouteRecordInfo<
       '/story/web-core/number-input/vts-number-input',
       '/story/web-core/number-input/vts-number-input',
@@ -1665,6 +1672,12 @@ declare module 'vue-router/auto-routes' {
     'src/stories/web-core/menu/vts-responsive-menu.story.vue': {
       routes:
         | '/story/web-core/menu/vts-responsive-menu'
+      views:
+        | never
+    }
+    'src/stories/web-core/middle-ellipsis/vts-middle-ellipsis.story.vue': {
+      routes:
+        | '/story/web-core/middle-ellipsis/vts-middle-ellipsis'
       views:
         | never
     }

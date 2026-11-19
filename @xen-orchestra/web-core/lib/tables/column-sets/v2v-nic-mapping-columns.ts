@@ -6,7 +6,7 @@ export const useV2vNicMappingColumns = defineColumns(() => {
   const { t } = useI18n()
 
   return {
-    adapter: useTextColumn({ headerLabel: () => t('adapter') }),
+    adapter: useTextColumn({ headerLabel: () => t('adapter'), flexible: true }),
     portGroup: useTextColumn({ headerLabel: () => t('port-group') }),
     mac: useTextColumn({ headerLabel: () => t('mac-address') }),
     target: useTextColumn({ headerLabel: () => t('target-network') }),

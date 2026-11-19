@@ -14,7 +14,7 @@ export const useHostColumns = defineColumns(() => {
 
   return {
     checkbox: useCheckboxColumn(),
-    host: useLinkColumn({ headerLabel: () => t('host') }),
+    host: useLinkColumn({ headerLabel: () => t('host'), flexible: true }),
     description: useTruncatedTextColumn({ headerLabel: () => t('description') }),
     ipAddresses: useAddressColumn({ headerLabel: () => t('management-ip') }),
     tags: useTagColumn({ headerLabel: () => t('tags') }),

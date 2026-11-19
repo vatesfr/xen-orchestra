@@ -11,7 +11,7 @@ export const useTrafficRulesColumns = defineColumns(() => {
   const { t } = useI18n()
 
   return {
-    network: useLinkColumn({ headerLabel: () => t('network') }),
+    network: useLinkColumn({ headerLabel: () => t('network'), flexible: true }),
     priority: useTextColumn({ headerLabel: () => t('priority') }),
     policy: useTagColumn({ headerLabel: () => t('policy') }),
     protocol: useTextColumn({
