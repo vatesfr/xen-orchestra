@@ -27,7 +27,7 @@ export function usePrivilegeQueryBuilder(
     }))
   )
 
-  const { items, filter } = useQueryBuilderFilter(id, filterablePrivileges, options)
+  const { items, searchBindings } = useQueryBuilderFilter(id, filterablePrivileges, options)
 
   const schema = useQueryBuilderSchema<FilterablePrivilege>({
     '': useStringSchema(t('any-property')),
@@ -37,5 +37,5 @@ export function usePrivilegeQueryBuilder(
     effect: useStringSchema(t('privilege:effect')),
   })
 
-  return { items, filter, schema }
+  return { items, searchBindings, schema }
 }

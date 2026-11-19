@@ -1,6 +1,6 @@
 <template>
   <div class="privilege-scope-vms-table">
-    <VtsQueryBuilder :model-value="filter" :schema @search="filter = $event" />
+    <VtsQueryBuilder v-bind="searchBindings" :schema />
     <VtsTable :state :pagination-bindings :selection-bindings="readonly ? undefined : selectionBindings">
       <thead>
         <tr>
@@ -48,7 +48,7 @@ const visibleVms = computed(() =>
 
 const {
   items: filteredVms,
-  filter,
+  searchBindings,
   schema,
   getDisplayData,
 } = useVmQueryBuilder('privilege-scope-vms', visibleVms, {

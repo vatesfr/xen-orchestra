@@ -3,7 +3,7 @@
     <UiTitle>
       {{ t('groups') }}
     </UiTitle>
-    <VtsQueryBuilder :model-value="filter" :schema @search="filter = $event" />
+    <VtsQueryBuilder v-bind="searchBindings" :schema />
     <div class="container">
       <VtsTableBulkActions :actions="bulkActions" />
       <VtsTable :state :pagination-bindings :selection-bindings sticky="right">
@@ -57,7 +57,7 @@ const { t } = useI18n()
 
 const selectedGroupId = useRouteQuery('id')
 
-const { items: filteredGroups, filter, schema } = useGroupQueryBuilder('groups', () => rawGroups)
+const { items: filteredGroups, searchBindings, schema } = useGroupQueryBuilder('groups', () => rawGroups)
 
 const state = useTableState({
   busy: () => busy,

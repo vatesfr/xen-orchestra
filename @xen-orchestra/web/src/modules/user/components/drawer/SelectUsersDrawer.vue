@@ -6,7 +6,7 @@
 
     <template #content>
       <div class="content">
-        <VtsQueryBuilder :model-value="filter" :schema @search="filter = $event" />
+        <VtsQueryBuilder v-bind="searchBindings" :schema />
         <VtsTable :state :pagination-bindings :selection-bindings>
           <thead>
             <tr>
@@ -69,7 +69,7 @@ const { t } = useI18n()
 
 const {
   items: filteredUsers,
-  filter,
+  searchBindings,
   schema,
 } = useUserQueryBuilder('select-users', () => users, {
   ignoreRoute: true,

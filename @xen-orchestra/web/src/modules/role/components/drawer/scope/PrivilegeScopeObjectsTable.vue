@@ -1,6 +1,6 @@
 <template>
   <div class="privilege-scope-objects-table">
-    <VtsQueryBuilder :model-value="filter" :schema @search="filter = $event" />
+    <VtsQueryBuilder v-bind="searchBindings" :schema />
     <VtsTable :state :pagination-bindings :selection-bindings="readonly ? undefined : selectionBindings">
       <thead>
         <tr>
@@ -50,7 +50,7 @@ const selectedIds = defineModel<string[]>('selectedIds', { default: () => [] })
 
 const { t } = useI18n()
 
-const { items: filteredObjects, filter } = useQueryBuilderFilter(tableId, () => objects, { ignoreRoute: true })
+const { items: filteredObjects, searchBindings } = useQueryBuilderFilter(tableId, () => objects, { ignoreRoute: true })
 
 const schema = useQueryBuilderSchema<PrivilegeScopeObject>({
   '': useStringSchema(t('any-property')),

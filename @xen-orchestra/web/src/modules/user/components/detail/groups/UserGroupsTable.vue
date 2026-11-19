@@ -10,7 +10,7 @@
     @detach="detachSelectedGroups({ detached: true, onSuccess: selectionBindings.onClearSelection })"
   >
     <template #filter>
-      <VtsQueryBuilder :model-value="filter" :schema @search="filter = $event" />
+      <VtsQueryBuilder v-bind="searchBindings" :schema />
     </template>
     <VtsTable :state :pagination-bindings :selection-bindings sticky="right">
       <thead>
@@ -61,7 +61,7 @@ const selectedGroupId = useRouteQuery('id')
 
 const { addGroups, canAddGroups, isAddingGroups } = useUserGroupsAdd(() => user)
 
-const { items: filteredGroups, filter, schema } = useGroupQueryBuilder('user-groups', () => groups)
+const { items: filteredGroups, searchBindings, schema } = useGroupQueryBuilder('user-groups', () => groups)
 
 const { pageRecords: paginatedGroups, paginationBindings } = usePagination('user-groups', filteredGroups)
 

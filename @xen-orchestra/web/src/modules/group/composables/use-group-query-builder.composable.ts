@@ -25,7 +25,7 @@ export function useGroupQueryBuilder(
 
   const filterableGroups = computed(() => toValue(groups).map(group => toFilterableGroup(group)))
 
-  const { items, filter } = useQueryBuilderFilter(id, filterableGroups, options)
+  const { items, searchBindings } = useQueryBuilderFilter(id, filterableGroups, options)
 
   const schema = useQueryBuilderSchema<FilterableGroup>({
     '': useStringSchema(t('any-property')),
@@ -35,5 +35,5 @@ export function useGroupQueryBuilder(
     rolesCount: useNumberSchema(t('roles')),
   })
 
-  return { items, filter, schema }
+  return { items, searchBindings, schema }
 }
