@@ -1226,12 +1226,6 @@ export default class Xapi extends XapiBase {
     }
   }
 
-  _resizeVdi(vdi, size) {
-    log.debug(`Resizing VDI ${vdi.name_label} from ${vdi.virtual_size} to ${size}`)
-
-    return this.callAsync('VDI.resize', vdi.$ref, size)
-  }
-
   _getVmCdDrive(vm) {
     for (const vbd of vm.$VBDs) {
       if (vbd.type === 'CD') {
@@ -1286,7 +1280,10 @@ export default class Xapi extends XapiBase {
   }
 
   async resizeVdi(vdiId, size) {
-    await this._resizeVdi(this.getObject(vdiId), size)
+    const vdi = this.getObject(vdiId)
+    log.debug(`Resizing VDI ${vdi.name_label} from ${vdi.virtual_size} to ${size}`)
+
+    await this.VDI_resize(vdi.$ref, size)
   }
 
   async ejectCdFromVm(vmId) {

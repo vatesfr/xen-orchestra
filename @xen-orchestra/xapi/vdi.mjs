@@ -4,6 +4,7 @@ import pRetry from 'promise-toolbox/retry'
 import { createLogger } from '@xen-orchestra/log'
 import { decorateClass } from '@vates/decorate-with'
 import { defer } from 'golike-defer'
+import { invalidParameters } from 'xo-common/api-errors.js'
 import { readChunk } from '@vates/read-chunk'
 import { strict as assert } from 'node:assert'
 
@@ -282,6 +283,30 @@ class Vdi {
    * one of `SUPPORTED_VDI_FORMAT`
    * @returns {Promise<void>}
    */
+  async resize(vdiRef, size) {
+    // XAPI may return int64 fields as strings
+    const currentSize = Number(await this.getField('VDI', vdiRef, 'virtual_size'))
+    if (size < currentSize) {
+      throw invalidParameters(`cannot set new size (${size}) below the current size (${currentSize})`)
+    }
+    try {
+      await this.callAsync('VDI.resize', vdiRef, size)
+    } catch (resizeError) {
+      if (resizeError.code !== 'VDI_IN_USE') {
+        throw resizeError
+      }
+      // the VDI is attached to a running VM: resize_online only exists on recent XAPI versions
+      try {
+        await this.callAsync('VDI.resize_online', vdiRef, size)
+      } catch (resizeOnlineError) {
+        if (resizeOnlineError.code === 'MESSAGE_METHOD_UNKNOWN') {
+          throw resizeError
+        }
+        throw resizeOnlineError
+      }
+    }
+  }
+
   async importContent(ref, content, { signal, format }) {
     assert.notEqual(format, undefined)
     // now we'll handle the VHD and qcow2 export
