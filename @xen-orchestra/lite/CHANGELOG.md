@@ -2,6 +2,7 @@
 
 ## **next**
 
+- [Web-Core/UiCircleProgressBar] Add a brand accent and an option to hide the value (PR [#10849](https://github.com/vatesfr/xen-orchestra/pull/10849))
 - [Pages] The page header and tabs now stay in place on every page: dashboards, System tabs, consoles, tasks, settings and creation forms scroll under them instead of scrolling with them (PR [#10822](https://github.com/vatesfr/xen-orchestra/pull/10822))
 - [VM/Host] Main actions (shutdown, reboot, start, resume, migrate, snapshot) are shown as buttons in the VM and host headers and move one by one into "More actions" when space runs out; "More actions" groups them under "Change state" and "Actions" sections, and VMs without guest tools get force shutdown and force reboot instead (PR [#10815](https://github.com/vatesfr/xen-orchestra/pull/10815))
 - [Web-Core/UiButtonIcon] Update icon buttons design, with a counter replacing the notification dot (PR [#10799](https://github.com/vatesfr/xen-orchestra/pull/10799))
