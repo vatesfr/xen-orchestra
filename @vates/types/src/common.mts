@@ -818,3 +818,16 @@ export type RPU_RECOVERY_STEP_NAME = (typeof RPU_RECOVERY_STEP_NAMES)[number]
 export const COMMON_TAG = {
   NOBAK: 'xo:no-bak',
 } as const
+
+/**
+ * a package of the XO appliance with another version available
+ *
+ * Returned by `xoa-updater` as `upgradablePackages` at the end of an update check.
+ */
+export interface XoaPackageUpdate {
+  name: string
+  /** version which will be installed */
+  version: string
+  /** undefined: the package is not installed yet */
+  installedVersion?: string
+}
