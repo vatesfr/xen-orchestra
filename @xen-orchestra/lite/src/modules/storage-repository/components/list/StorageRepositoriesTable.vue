@@ -99,6 +99,7 @@ function getPrimaryIcon(sr: XenApiSr) {
 const getUsageRatio = (sr: XenApiSr) => (sr.physical_size === 0 ? 0 : sr.physical_utilisation / sr.physical_size)
 
 const { HeadCells, BodyCells, sortItems } = useSrColumns({
+  id: 'srs',
   exclude: ['checkbox'],
   body: (sr: XenApiSr) => {
     const rightIcon = computed(() => getPrimaryIcon(sr))

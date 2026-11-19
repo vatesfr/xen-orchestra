@@ -53,7 +53,7 @@
 - [Menus] Submenus open when hovering their option and can be reached diagonally without opening the neighbouring ones, Escape closes them one level at a time, and menu buttons are announced to screen readers (PR [#10827](https://github.com/vatesfr/xen-orchestra/pull/10827))
 - [Modals] The confirm button of the modals asking to type a text is no longer disabled: confirming with a wrong text keeps the modal open and shows an error under the field (PR [#10826](https://github.com/vatesfr/xen-orchestra/pull/10826))
 - [xen-api] **Breaking:** `callAsync()`, `getResource()` and `putResource()` take an optional `AbortSignal` as first parameter instead of a promise-toolbox `CancelToken`, which is no longer supported (PR [#10740](https://github.com/vatesfr/xen-orchestra/pull/10740))
-- [XO6] Table columns can be sorted from their header, the current order being shown on the sorted column (PR [#10560](https://github.com/vatesfr/xen-orchestra/pull/10560))
+- [XO6] Table columns can be sorted from their header, the current order being shown on the sorted column; the sort is kept in the URL, so it survives a reload and can be shared by link (PR [#10792](https://github.com/vatesfr/xen-orchestra/pull/10792))
 
 ### Bug fixes
 

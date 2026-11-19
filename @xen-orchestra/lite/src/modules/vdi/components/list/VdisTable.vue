@@ -57,6 +57,7 @@ const state = useTableState({
 const getFormat = (vdi: XenApiVdi) => getVdiFormat(vdi.sm_config['image-format'])
 const getUsageRatio = (vdi: XenApiVdi) => (vdi.virtual_size === 0 ? 0 : vdi.physical_utilisation / vdi.virtual_size)
 const { HeadCells, BodyCells, sortItems } = useVdiColumns({
+  id: 'vdis',
   exclude: ['actions'],
   body: (vdi: XenApiVdi) => {
     const vdiVbds = computed(() => vbds.filter(vbd => vbd.VDI === vdi.$ref))

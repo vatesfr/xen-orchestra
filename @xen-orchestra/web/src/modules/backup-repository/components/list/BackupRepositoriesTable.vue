@@ -115,6 +115,7 @@ const getBrTypeLabel = (br: FrontXoBackupRepository) => getTypeLabel(parseBackup
 const getProxyName = (br: FrontXoBackupRepository) => (br.proxy ? (getProxyById(br.proxy)?.name ?? '') : '')
 
 const { HeadCells, BodyCells, sortItems } = useBackupRepositoryColumns({
+  id: 'brs',
   head: () => ({
     checkbox: r => r(pageSelectionModel),
   }),

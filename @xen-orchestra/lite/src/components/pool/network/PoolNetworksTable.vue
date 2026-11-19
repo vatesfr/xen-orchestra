@@ -98,6 +98,7 @@ const state = useTableState({
 const { compareStatuses } = useStatusLabel()
 
 const { HeadCells, BodyCells, sortItems } = useNetworkColumns({
+  id: 'networks',
   exclude: ['actions'],
   body: (network: XenApiNetwork) => {
     const status = computed(() => getNetworkStatus(network))

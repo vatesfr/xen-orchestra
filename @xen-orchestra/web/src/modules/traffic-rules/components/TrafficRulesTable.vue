@@ -159,6 +159,7 @@ const state = useTableState({
 })
 
 const { HeadCells, BodyCells, sortItems } = useTrafficRulesColumns({
+  id: 'trafficRules',
   exclude: showPriority ? [] : ['priority'],
   body: (rule: EnrichedTrafficRule) => {
     const network = useGetNetworkById(() => rule.networkId)

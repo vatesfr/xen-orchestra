@@ -107,6 +107,7 @@ const { compareStatuses } = useStatusLabel()
 const getStatus = (network: FrontXoNetwork) => getNetworkStatus(getPifsByIds(network.PIFs))
 
 const { HeadCells, BodyCells, sortItems } = useNetworkColumns({
+  id: internal ? 'internal-networks' : 'networks',
   exclude: internal ? ['vlan', 'status', 'selectItem'] : ['selectItem'],
   body: (network: FrontXoNetwork) => {
     const status = computed(() => getStatus(network))

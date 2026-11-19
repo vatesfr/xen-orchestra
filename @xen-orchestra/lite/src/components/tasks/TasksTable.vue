@@ -82,6 +82,7 @@ const getEstimatedEnd = (task: XenApiTask) => {
 const getEnd = ({ task, pending }: TaskItem) => (pending ? getEstimatedEnd(task) : parseDateTime(task.finished))
 
 const { HeadCells, BodyCells, sortItems } = useTaskColumns({
+  id: 'tasks',
   body: ({ task, pending }: TaskItem) => {
     const host = computed(() => getHost(task.resident_on))
     const createdAt = computed(() => parseDateTime(task.created))

@@ -94,6 +94,7 @@ const compareDevices = (vif1: FrontXoVif, vif2: FrontXoVif) => compareStrings(vi
 const { compareStatuses } = useStatusLabel()
 
 const { HeadCells, BodyCells, sortItems } = useVifNetworkColumns({
+  id: 'vifs',
   body: (vif: FrontXoVif) => {
     const ipAddresses = computed(() => getIpAddresses(vif))
 

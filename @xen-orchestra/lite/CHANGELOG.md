@@ -12,7 +12,7 @@
 - [Web-Core/UiDropdownButton] Update dropdown buttons design (PR [#9850](https://github.com/vatesfr/xen-orchestra/pull/9850))
 - [Tables] Tables are filtered as you type, half a second after the last keystroke, or right away with Enter; the "Search" button is removed (PR [#10797](https://github.com/vatesfr/xen-orchestra/pull/10797))
 - [Side panels] Fix the double scrollbar when the side panel content is taller than the screen: the page header now stays in place, and the list and the side panel each scroll on their own. All scrollbars are now thin, like the side panel one (PR [#10807](https://github.com/vatesfr/xen-orchestra/pull/10807))
-- [Tables] Table columns can be sorted from their header, replacing the sort selector of the VMs list (PR [#10560](https://github.com/vatesfr/xen-orchestra/pull/10560))
+- [Tables] Table columns can be sorted from their header, replacing the sort selector of the VMs list; the sort is kept in the URL, so it survives a reload and can be shared by link (PR [#10792](https://github.com/vatesfr/xen-orchestra/pull/10792))
 
 ## **0.27.0** (2026-10-29)
 
