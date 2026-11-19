@@ -128,6 +128,7 @@ function getManagementIcon(pif: FrontXoPif) {
 }
 
 const { HeadCells, BodyCells, sortItems } = usePifColumns({
+  id: 'pifs',
   exclude: ['selectItem'],
   body: (pif: FrontXoPif) => {
     const status = computed(() => getPifStatus(pif))

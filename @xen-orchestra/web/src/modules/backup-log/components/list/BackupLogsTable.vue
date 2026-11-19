@@ -115,6 +115,7 @@ const getFirstSrName = (log: BackupLogFilterableData) => {
 }
 
 const { HeadCells, BodyCells, sortItems } = useBackupLogColumns({
+  id: 'backup-logs',
   body: (log: BackupLogFilterableData) => {
     const href = computed(() => buildXo5Route(`/backup/${log.jobId}/edit`))
 

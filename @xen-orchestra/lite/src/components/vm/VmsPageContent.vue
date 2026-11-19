@@ -129,6 +129,7 @@ const getDiskSpace = (vm: XenApiVm) => {
 }
 
 const { HeadCells, BodyCells, sortItems } = useVmColumns({
+  id: 'vms',
   exclude: ['actions', 'checkbox'],
   body: (vm: XenApiVm) => {
     const ips = computed(() => getIpAddresses(vm))

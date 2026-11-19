@@ -93,6 +93,7 @@ const getStatus = (vif: XenApiVif) =>
 const { compareStatuses } = useStatusLabel()
 
 const { HeadCells, BodyCells, sortItems } = useVifColumns({
+  id: 'vifs',
   body: (vif: XenApiVif) => {
     const name = computed(() => getNetworkName(vif.network))
     const ipAddresses = computed(() => getIpAddresses(vif))
