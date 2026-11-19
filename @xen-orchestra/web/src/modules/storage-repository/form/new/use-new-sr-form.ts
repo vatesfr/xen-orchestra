@@ -199,7 +199,7 @@ export function useNewSrForm(
   }))
   const poolSelectBindings = useSelect(poolSelectId, () => ({ label: t('pool') }))
   const hostSelectBindings = useSelect(hostSelectId, () => ({ label: t('host') }))
-  const typeSelectBindings = useSelect(typeSelectId, () => ({ label: t('type'), required: true }))
+  const typeSelectBindings = useSelect(typeSelectId, () => ({ label: t('type') }))
   const preferredImageFormatsSelectBindings = useSelect(preferredImageFormatsSelectId, () => ({
     label: t('sr-preferred-image-formats'),
     info: t('sr-preferred-image-formats-info'),

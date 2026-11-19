@@ -51,7 +51,7 @@ const { host } = defineProps<{
 
 const { t } = useI18n()
 
-const { srsByHost, getSrById, hasSrFetchError, areSrsReady } = useXoSrCollection()
+const { srsByHost, getSrById, areSrsReady, hasSrFetchError } = useXoSrCollection()
 const { arePbdsReady, hasPbdFetchError } = useXoPbdCollection()
 
 const isReady = logicAnd(areSrsReady, arePbdsReady)
