@@ -4,7 +4,7 @@
       <UiTitle>{{ t('general-information') }}</UiTitle>
 
       <BackupRepositoryFormRow>
-        <BackupRepositoryFormTextInput v-bind="bindings.name" />
+        <FormTextInput v-bind="bindings.name" />
       </BackupRepositoryFormRow>
 
       <BackupRepositoryFormRow>
@@ -28,7 +28,7 @@
       </BackupRepositoryFormRow>
     </div>
 
-    <div class="section">
+    <div v-if="!hideEncryption" class="section">
       <UiTitle>{{ t('options') }}</UiTitle>
 
       <UiAlert accent="info">
@@ -36,8 +36,8 @@
       </UiAlert>
 
       <BackupRepositoryFormRow>
-        <BackupRepositoryFormCheckbox v-bind="bindings.encrypted" />
-        <BackupRepositoryFormTextInput v-if="bindings.encrypted.modelValue" v-bind="bindings.encryptionKey" />
+        <FormCheckbox v-bind="bindings.encrypted" />
+        <FormTextInput v-if="bindings.encrypted.modelValue" v-bind="bindings.encryptionKey" />
       </BackupRepositoryFormRow>
     </div>
   </div>
@@ -45,10 +45,10 @@
 
 <script lang="ts" setup>
 import BackupRepositoryFormRow from '@/modules/backup-repository/components/form/BackupRepositoryFormRow.vue'
-import BackupRepositoryFormCheckbox from '@/modules/backup-repository/components/form/inputs/BackupRepositoryFormCheckbox.vue'
 import BackupRepositoryFormSelect from '@/modules/backup-repository/components/form/inputs/BackupRepositoryFormSelect.vue'
-import BackupRepositoryFormTextInput from '@/modules/backup-repository/components/form/inputs/BackupRepositoryFormTextInput.vue'
 import type { BackupRepositoryGeneralForm } from '@/modules/backup-repository/form/use-backup-repository-general-form.ts'
+import FormCheckbox from '@/shared/components/form/FormCheckbox.vue'
+import FormTextInput from '@/shared/components/form/FormTextInput.vue'
 import VtsOption from '@core/components/select/VtsOption.vue'
 import UiAlert from '@core/components/ui/alert/UiAlert.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
@@ -56,6 +56,7 @@ import { useI18n } from 'vue-i18n'
 
 defineProps<{
   bindings: BackupRepositoryGeneralForm['bindings']
+  hideEncryption?: boolean
 }>()
 
 const { t } = useI18n()

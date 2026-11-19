@@ -65,6 +65,11 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
 
     const snapshotCandidates = new Map()
 
+    // skip orphan snapshots (active VDI destroyed): they can't be validated against an active disk
+    const replicaSnapshots = sr.$VDIs.filter(
+      vdi => vdi?.managed && vdi?.is_a_snapshot && vdi.$snapshot_of !== undefined
+    )
+
     for (const [baseUuid, srcVdiuid] of baseUuidToSrcVdi) {
       let target
 
@@ -72,11 +77,9 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
 
       if (contentKey !== undefined) {
         debug('got one content key, look for a candidate')
-        target = sr.$VDIs.find(
+        target = replicaSnapshots.find(
           vdi =>
-            vdi?.managed &&
-            vdi?.is_a_snapshot &&
-            vdi.other_config[CONTENT_KEY] === contentKey && // &&
+            vdi.other_config[CONTENT_KEY] === contentKey &&
             // ensure we don't replicate on ourself or any of the vdi in the source  chain
             vdi.$snapshot_of.uuid !== srcVdiuid
         )
@@ -85,13 +88,11 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
       // fall back for older snapshots
       if (target === undefined) {
         debug('content key not here or not found , look by jobid ')
-        target = sr.$VDIs.find(
+        target = replicaSnapshots.find(
           vdi =>
-            vdi?.managed &&
-            vdi?.is_a_snapshot &&
             vdi.other_config[JOB_ID] === this._job.id &&
             vdi.other_config[VM_UUID] === this._vmUuid &&
-            vdi?.other_config[COPY_OF] === baseUuid
+            vdi.other_config[COPY_OF] === baseUuid
         )
       }
       if (target !== undefined) {
@@ -391,6 +392,7 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
         mostRecentEntry = this._oldEntries.pop()
       }
       await this._deleteOldEntries()
+      await this._deleteOrphanVdis()
       this._oldEntries = mostRecentEntry !== undefined ? [mostRecentEntry] : []
     }
   }
@@ -398,11 +400,41 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
   async cleanup() {
     if (!this._settings.skipDeleteOldEntries) {
       await this._deleteOldEntries()
+      await this._deleteOrphanVdis()
     }
   }
 
   async _deleteOldEntries() {
     return asyncMapSettled(this._oldEntries, vm => vm.$destroy({ bypassBlockedOperation: true }))
+  }
+
+  // VDIs from this job/VM/SR that ended up detached from any VM, because a previous run
+  // was interrupted or a storage backend refused to destroy a VDI at import time.
+  // Destroying a VM only reaches the VDIs still attached to it, _deleteOldEntries never cleans them.
+  async _deleteOrphanVdis() {
+    const sr = this._sr
+    const vmUuid = this._vmUuid
+    const jobId = this._job.id
+
+    const orphanVdis = sr.$VDIs.filter(
+      vdi =>
+        vdi?.managed &&
+        vdi.other_config[JOB_ID] === jobId &&
+        vdi.other_config[VM_UUID] === vmUuid &&
+        vdi.other_config[REPLICATED_TO_SR_UUID] === sr.uuid &&
+        vdi.type !== 'suspend' &&
+        // a VBD or VM missing from the cache (e.g. just destroyed) keeps the VDI, next run will handle it
+        vdi.$VBDs.every(vbd => vbd?.$VM?.is_control_domain === true)
+    )
+
+    await asyncEach(
+      orphanVdis,
+      vdi =>
+        sr.$xapi
+          .call('VDI.destroy', vdi.$ref)
+          .catch(error => Task.warning('failed to delete orphan VDI', { vdi: vdi.uuid, error })),
+      { concurrency: 5 }
+    )
   }
 
   #decorateVmMetadata(backup, timestamp) {

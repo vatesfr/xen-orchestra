@@ -1,7 +1,7 @@
 <!-- v6 -->
 <template>
   <div class="ui-info">
-    <VtsIcon class="icon" :name="icon" :size />
+    <VtsIcon class="icon" :name="icon" size="medium" />
     <p v-tooltip="!wrap" class="label" :class="[textSize, { 'text-ellipsis': !wrap }]">
       <slot />
     </p>
@@ -13,14 +13,16 @@ import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import type { IconName } from '@core/icons'
 import { useMapper } from '@core/packages/mapper'
+import { IK_INFO_SIZE } from '@core/utils/injection-keys.util.ts'
+import { inject } from 'vue'
 
 export type InfoAccent = 'info' | 'success' | 'warning' | 'danger' | 'muted'
-type Size = 'small' | 'medium'
+export type InfoSize = 'small' | 'medium'
 
-const { accent, size = 'medium' } = defineProps<{
+const { accent, size } = defineProps<{
   accent: InfoAccent
   wrap?: boolean
-  size?: Size
+  size?: InfoSize
 }>()
 
 defineSlots<{
@@ -39,8 +41,10 @@ const icon = useMapper<InfoAccent, IconName>(
   'muted'
 )
 
-const textSize = useMapper<Size, any>(
-  () => size,
+const contextSize = inject(IK_INFO_SIZE, undefined)
+
+const textSize = useMapper<InfoSize, any>(
+  () => size ?? contextSize ?? 'medium',
   {
     small: 'typo-body-regular-small',
     medium: 'typo-body-regular',
@@ -61,6 +65,10 @@ const textSize = useMapper<Size, any>(
 
   .label:empty {
     display: none;
+  }
+
+  &:has(.label:empty) .icon {
+    transform: none;
   }
 }
 </style>

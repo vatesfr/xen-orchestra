@@ -3,6 +3,8 @@ import { BaseVhd, FULL_BLOCK_BITMAP } from './BaseVhd.mjs'
 import { DEFAULT_BLOCK_SIZE } from '../_constants.js'
 import { unpackFooter, unpackHeader } from 'vhd-lib/Vhd/_utils.js'
 import { fuFooter, fuHeader, checksumStruct } from 'vhd-lib/_structs.js'
+import assert from 'node:assert'
+import { isCompressedBlock } from './compressedBlock.mjs'
 
 /**
  * @typedef {Readable & { length: number }} VhdStream
@@ -66,8 +68,10 @@ export class DiskConsumerVhdStream extends BaseVhd {
       yield header
       yield bat
       let truncatedBlock = null
-      for await (const { data, index } of blockGenerator) {
+      for await (const block of blockGenerator) {
         signal?.throwIfAborted()
+        const { data, index } = block
+        assert.ok(!isCompressedBlock(block), `can't write a compressed block ${index} in a VHD file`)
         // only the last block can be truncated
         // but the stream expect a full block
         if (truncatedBlock !== null) {

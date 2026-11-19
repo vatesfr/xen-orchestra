@@ -15,9 +15,10 @@ import { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool
 import VmStartOnHostState from '@/modules/vm/components/actions/start/VmStartOnHostState.vue'
 import { useXoVmStartOnJob } from '@/modules/vm/jobs/xo-vm-start-on.job.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
+import { isVmAllowingOperation } from '@/modules/vm/utils/xo-vm.util.ts'
 import MenuItem from '@core/components/menu/MenuItem.vue'
 
-import { VM_POWER_STATE } from '@vates/types'
+import { VM_OPERATIONS } from '@vates/types'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -45,7 +46,7 @@ const { run, isRunning } = useXoVmStartOnJob(() => [vm], selectedHost)
 
 // We can't rely on canRun from useVmStartOnJob, because it checks if a host is selected.
 const canRunVmOnHost = computed(() => {
-  return vm.power_state === VM_POWER_STATE.HALTED
+  return isVmAllowingOperation(vm, VM_OPERATIONS.START_ON)
 })
 
 function startOn(host: FrontXoHost) {

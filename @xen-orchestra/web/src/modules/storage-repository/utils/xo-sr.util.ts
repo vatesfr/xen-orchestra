@@ -1,9 +1,14 @@
+import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import { SR_SCOPE_TYPE, type SrScope } from '@core/types/storage-repository.type.ts'
 import type { RouteLocationRaw } from 'vue-router'
 
 export function isSrWritable(sr: FrontXoSr) {
   return sr.content_type !== 'iso' && sr.size > 0
+}
+
+export function isWritableSrOfPool(sr: FrontXoSr, poolId: FrontXoPool['id'] | undefined) {
+  return sr.$pool === poolId && isSrWritable(sr)
 }
 
 export function getSrPageLocation(sr: FrontXoSr, scope: SrScope): RouteLocationRaw {

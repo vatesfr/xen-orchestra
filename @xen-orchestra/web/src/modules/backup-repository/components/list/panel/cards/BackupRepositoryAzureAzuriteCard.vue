@@ -1,8 +1,8 @@
 <template>
-  <UiPanelCard class="backup-repository-azure-azurite-card">
+  <UiPanelCard>
     <UiPanelCardTitle v-if="azure.type === 'azure'" size="medium" :label="t('azure')" />
     <UiPanelCardTitle v-else size="medium" :label="t('azurite')" />
-    <div class="content">
+    <VtsCardRowList>
       <VtsCardRowKeyValue>
         <template #key>{{ t('host') }}</template>
         <template #value>{{ azure.host }}</template>
@@ -46,13 +46,17 @@
           <VtsCopyButton :value="splitPath.subPath" />
         </template>
       </VtsCardRowKeyValue>
-    </div>
+    </VtsCardRowList>
   </UiPanelCard>
 </template>
 
 <script lang="ts" setup>
-import { MASKED_SECRET, splitBackupRepositoryPath } from '@/modules/backup-repository/utils/xo-backup-repository.util.ts'
+import {
+  MASKED_SECRET,
+  splitBackupRepositoryPath,
+} from '@/modules/backup-repository/utils/xo-backup-repository.util.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
+import VtsCardRowList from '@core/components/card/VtsCardRowList.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
@@ -69,13 +73,3 @@ const { t } = useI18n()
 
 const splitPath = computed(() => splitBackupRepositoryPath(azure.path))
 </script>
-
-<style scoped lang="postcss">
-.backup-repository-azure-azurite-card {
-  .content {
-    display: flex;
-    flex-direction: column;
-    gap: 0.4rem;
-  }
-}
-</style>

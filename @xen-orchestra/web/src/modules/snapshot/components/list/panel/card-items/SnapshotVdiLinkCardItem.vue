@@ -1,5 +1,5 @@
 <template>
-  <UiLink :to="vdiRoute" :icon="vbdsSnapshotStatus" size="medium">
+  <UiLink :to="vdiRoute" :icon="vbdsSnapshotStatus" size="small">
     {{ vdi.name_label }}
   </UiLink>
 </template>

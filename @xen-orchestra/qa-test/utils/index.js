@@ -84,6 +84,15 @@ export const getDefaultSchedule = () => ({
 })
 
 /**
+ * Temporary ID shared by schedule configuration and settings when creating a backup job.
+ *
+ * xo-server replaces it with the schedule's real ID.
+ * It must not be empty ('') because '' is the key of the general settings and
+ * REST API refuses it for a schedule.
+ */
+export const TEMPORARY_SCHEDULE_ID = 'temporary-schedule-id'
+
+/**
  * Simple delay function.
  *
  * @param {number} ms - Milliseconds to delay

@@ -1,7 +1,7 @@
 import VmSystemStorageConfig from '@/modules/vm/components/system/VmSystemStorageConfig.vue'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { createVm } from '@/test/create-vm.ts'
-import { findLabelledValues } from '@/test/find-labelled-values.ts'
+import { findLabelledValues } from '@/test/find-rendered-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { mount } from '@vue/test-utils'

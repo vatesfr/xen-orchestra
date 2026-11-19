@@ -2,10 +2,7 @@ import {
   type EditBackupRepositoryPayload,
   useXoBackupRepositoryEditJob,
 } from '@/modules/backup-repository/jobs/xo-backup-repository-edit.job.ts'
-import {
-  type FrontXoBackupRepository,
-  useXoBackupRepositoryCollection,
-} from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
+import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
 import { KEEP_OVERLAY_OPEN } from '@core/packages/overlay/symbols.ts'
 import { useOverlay } from '@core/packages/overlay/use-overlay.ts'
 import { toComputed } from '@core/utils/to-computed.util.ts'
@@ -16,8 +13,6 @@ export function useEditBackupRepository(rawBr: MaybeRefOrGetter<FrontXoBackupRep
   const br = toComputed(rawBr)
 
   const payload = ref<EditBackupRepositoryPayload>()
-
-  const { $context } = useXoBackupRepositoryCollection()
 
   const {
     run,
@@ -34,9 +29,6 @@ export function useEditBackupRepository(rawBr: MaybeRefOrGetter<FrontXoBackupRep
 
         try {
           await run()
-
-          // Force reload while waiting for reactivity to be implemented for XO objects (XO-1013)
-          $context.forceReload()
         } catch (error) {
           console.error('Error when editing backup repository', error)
           return KEEP_OVERLAY_OPEN

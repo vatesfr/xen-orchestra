@@ -7,7 +7,7 @@ import { createVdi } from '@/test/create-vdi.ts'
 import { createVm } from '@/test/create-vm.ts'
 import { objectIcon } from '@core/icons'
 import { formatSizeRaw } from '@core/utils/size.util.ts'
-import { VM_POWER_STATE } from '@vates/types'
+import { VM_OPERATIONS, VM_POWER_STATE } from '@vates/types'
 import { ref } from 'vue'
 
 const { getVbdsByIds } = vi.hoisted(() => ({
@@ -119,5 +119,13 @@ describe('getDisplayData', () => {
     const displayData = mountFirstDisplayData([createVm({ power_state: VM_POWER_STATE.HALTED })])
 
     expect(displayData.vmIcon).toBe(objectIcon('vm', 'halted'))
+  })
+
+  it('maps the VM icon to the busy state while the VM power state is changing', () => {
+    const displayData = mountFirstDisplayData([
+      createVm({ power_state: VM_POWER_STATE.RUNNING, current_operations: { 'task-1': VM_OPERATIONS.CLEAN_REBOOT } }),
+    ])
+
+    expect(displayData.vmIcon).toBe(objectIcon('vm', 'busy'))
   })
 })

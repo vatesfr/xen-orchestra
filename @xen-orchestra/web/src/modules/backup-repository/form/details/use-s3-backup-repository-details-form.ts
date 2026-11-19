@@ -1,5 +1,6 @@
 import { useBackupRepositoryDetailsForm } from '@/modules/backup-repository/form/details/use-backup-repository-details-form.ts'
 import type { BackupRepositoryDetailsPayload } from '@/modules/backup-repository/types/new-backup-repository.type.ts'
+import { buildS3BackupRepositoryDetailsPayload } from '@/modules/backup-repository/utils/xo-backup-repository-details-payload.util.ts'
 import { required } from '@core/packages/form-validation'
 import { reactive, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -8,8 +9,8 @@ export type S3BackupRepositoryDetailsForm = ReturnType<typeof useS3BackupReposit
 
 const INITIAL_FORM_DATA = {
   endpoint: '',
-  useHttps: false,
-  allowUnauthorized: false,
+  useHttps: false as boolean | undefined,
+  allowUnauthorized: false as boolean | undefined,
   region: '',
   accessKeyId: '',
   secret: '',
@@ -62,18 +63,7 @@ export function useS3BackupRepositoryDetailsForm(initialData?: Partial<S3BackupR
   })
 
   function buildPayload(): BackupRepositoryDetailsPayload {
-    return {
-      urlInfo: {
-        type: 's3',
-        protocol: formData.useHttps ? 'https' : 'http',
-        host: formData.endpoint,
-        path: `${formData.bucket}/${formData.pathInBucket}`,
-        region: formData.region,
-        username: formData.accessKeyId,
-        password: formData.secret,
-        ...(formData.allowUnauthorized && { allowUnauthorized: true }),
-      },
-    }
+    return buildS3BackupRepositoryDetailsPayload(formData)
   }
 
   return { formData, bindings, validate, buildPayload, reset }

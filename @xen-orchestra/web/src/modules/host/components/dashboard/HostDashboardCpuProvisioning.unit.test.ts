@@ -3,7 +3,7 @@ import type { FrontXoHost, useXoHostCollection } from '@/modules/host/remote-res
 import type { FrontXoVm, useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { createHost } from '@/test/create-host.ts'
 import { createVm } from '@/test/create-vm.ts'
-import { findCardNumbers } from '@/test/find-labelled-values.ts'
+import { findCardNumbers, findLegends } from '@/test/find-rendered-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { VM_POWER_STATE } from '@vates/types'
@@ -137,7 +137,7 @@ it('labels the progress bar with the share of the cores in use', () => {
 
   const wrapper = mountProvisioning()
 
-  expect(wrapper.get('.ui-legend').text()).toBe(`${t('vcpus')}75%`)
+  expect(findLegends(wrapper)).toEqual([[t('vcpus'), '75%']])
 })
 
 it('overprovisions past the cores of the host', () => {

@@ -4,8 +4,8 @@
       <div class="header">
         <VtsSelect :id="groupOperatorSelectId" class="group-operator" accent="brand" />
         <MenuList v-if="!root" placement="bottom-end">
-          <template #trigger="{ open }">
-            <UiButtonIcon size="medium" accent="brand" icon="fa:ellipsis" @click="open" />
+          <template #trigger="{ open, bindings }">
+            <UiButtonIcon v-bind="bindings" size="medium" accent="brand" icon="fa:ellipsis" @click="open" />
           </template>
           <MenuItem accent="neutral" @click="emit('duplicate')">{{ t('action:duplicate') }}</MenuItem>
           <MenuItem accent="neutral" @click="emit('remove', true)">

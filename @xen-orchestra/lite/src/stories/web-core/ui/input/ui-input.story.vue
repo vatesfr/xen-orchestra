@@ -13,6 +13,7 @@
         choice({ label: 'Search', value: 'fa:magnifying-glass' }, { label: 'AngleDown', value: 'fa:angle-down' })
       ),
       prop('clearable').bool().widget(),
+      prop('busy').bool().widget(),
       prop('prefix').str().widget(),
       prop('suffix').str().widget(),
       prop('disabled').bool().widget(),

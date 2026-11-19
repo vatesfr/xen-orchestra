@@ -4,6 +4,7 @@ import BackupRepositoryGeneralStep from '@/modules/backup-repository/components/
 import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
 import type { useXoProxyCollection } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
 import { createBr } from '@/test/create-br.ts'
+import { cancelDrawer, findDrawerButtonLabels, submitDrawer } from '@/test/drawer.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { flushPromises, mount, type VueWrapper } from '@vue/test-utils'
@@ -44,11 +45,6 @@ async function fill(wrapper: VueWrapper, label: string, value: string) {
   await getField(wrapper, label).get('input').setValue(value)
 }
 
-async function submit(wrapper: VueWrapper) {
-  await wrapper.get('form').trigger('submit')
-  await flushPromises()
-}
-
 it('shows the general information and the details of the repository type together', async () => {
   const wrapper = await mountDrawer()
 
@@ -67,13 +63,13 @@ it('fills the fields from the repository', async () => {
 it('offers to cancel or to save', async () => {
   const wrapper = await mountDrawer()
 
-  expect(wrapper.findAll('.buttons button').map(button => button.text())).toEqual([t('cancel'), t('action:save')])
+  expect(findDrawerButtonLabels(wrapper)).toEqual([t('cancel'), t('action:save')])
 })
 
 it('cancels from the cancel button', async () => {
   const wrapper = await mountDrawer()
 
-  await wrapper.get('.buttons button').trigger('click')
+  await cancelDrawer(wrapper)
 
   expect(wrapper.emitted('cancel')).toHaveLength(1)
   expect(wrapper.emitted('confirm')).toBeUndefined()
@@ -84,7 +80,7 @@ it('confirms with the edited repository when it is submitted', async () => {
   await fill(wrapper, t('name'), 'Weekly backups')
   await fill(wrapper, t('host-or-ip-address'), '192.168.1.20')
 
-  await submit(wrapper)
+  await submitDrawer(wrapper)
 
   const [[payload]] = wrapper.emitted('confirm') as [[{ name: string; url: string }]]
 
@@ -96,7 +92,7 @@ it('does not confirm when it is submitted while invalid', async () => {
   const wrapper = await mountDrawer()
   await fill(wrapper, t('name'), '')
 
-  await submit(wrapper)
+  await submitDrawer(wrapper)
 
   expect(wrapper.emitted('confirm')).toBeUndefined()
 })

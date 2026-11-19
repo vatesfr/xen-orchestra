@@ -1,4 +1,4 @@
-export function safePushInMap<_Map extends Map<Key, Value[]>, Key, Value>(map: _Map, key: Key, value: Value) {
+export function safePushInMap<TMap extends Map<Key, Value[]>, Key, Value>(map: TMap, key: Key, value: Value) {
   const values = map.get(key)
 
   if (values !== undefined) {

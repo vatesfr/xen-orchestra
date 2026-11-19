@@ -1,5 +1,5 @@
 <template>
-  <div :class="{ 'no-ui': !uiStore.hasUi }" class="vm-console-view">
+  <div class="vm-console-view">
     <div v-if="hasError">{{ t('error-occurred') }}</div>
     <UiLoader v-else-if="!isReady" class="loader" />
     <VtsStateHero v-else-if="!isVmRunning" format="page" type="offline" size="large" class="state-hero">
@@ -12,11 +12,21 @@
     </VtsStateHero>
     <template v-else-if="vm && vmConsole">
       <VtsLayoutConsole>
-        <VtsRemoteConsole v-if="url" ref="console-element" :url :is-console-available="isConsoleAvailable" />
+        <VtsRemoteConsole
+          v-if="url"
+          ref="console-element"
+          :url
+          :is-console-available="isConsoleAvailable"
+          @clipboard="clipboardText = $event"
+        />
         <template #actions>
           <VtsActionsConsole :send-ctrl-alt-del="sendCtrlAltDel" />
           <VtsDivider type="stretch" />
-          <VtsClipboardConsole />
+          <VtsClipboardConsole
+            v-model="clipboardText"
+            :is-console-connected="isConsoleConnected"
+            :send-to-console="sendToConsole"
+          />
         </template>
       </VtsLayoutConsole>
     </template>
@@ -38,7 +48,7 @@ import VtsRemoteConsole from '@core/components/console/VtsRemoteConsole.vue'
 import VtsDivider from '@core/components/divider/VtsDivider.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiLoader from '@core/components/ui/loader/UiLoader.vue'
-import { useUiStore } from '@core/stores/ui.store.ts'
+import { useRemoteConsole } from '@core/composables/remote-console.composable.ts'
 import { computed, useTemplateRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
@@ -58,7 +68,6 @@ usePageTitleStore().setTitle(useI18n().t('console'))
 const { t } = useI18n()
 
 const route = useRoute<'/vm/[uuid]/console'>()
-const uiStore = useUiStore()
 const xenApiStore = useXenApiStore()
 
 const { isReady: isVmReady, getByUuid: getVmByUuid, hasError: hasVmError } = useVmStore().subscribe()
@@ -101,20 +110,17 @@ const isConsoleAvailable = computed(() =>
   vm.value !== undefined ? !isVmOperationPending(vm.value, STOP_OPERATIONS) : false
 )
 
-const consoleElement = useTemplateRef('console-element')
-
-const sendCtrlAltDel = () => consoleElement.value?.sendCtrlAltDel()
+const { clipboardText, isConsoleConnected, sendCtrlAltDel, sendToConsole } = useRemoteConsole(
+  useTemplateRef('console-element')
+)
 </script>
 
 <style lang="postcss" scoped>
 .vm-console-view {
   display: flex;
-  height: calc(100% - 14.5rem);
+  flex: 1;
+  min-height: 0;
   flex-direction: column;
-
-  &.no-ui {
-    height: 100%;
-  }
 
   .state-hero {
     padding: 0.8rem;

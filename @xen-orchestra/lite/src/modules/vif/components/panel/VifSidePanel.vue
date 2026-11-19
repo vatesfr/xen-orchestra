@@ -1,13 +1,14 @@
 <template>
   <VtsSidePanel :has-selection="!!vif" class="vm-vifs-side-panel" @close="emit('close')">
     <template v-if="vif" #actions>
+      <VifEditButton :vif />
       <VifConnectionToggleButton v-if="vm" :vif :vm />
     </template>
     <template v-if="vif" #default>
       <!-- VIF -->
       <UiPanelCard>
         <UiPanelCardTitle :id="vif.uuid" size="medium" :label="t('vif')" />
-        <div class="content">
+        <VtsCardRowList>
           <!-- NETWORK -->
           <VtsCardRowKeyValue>
             <template #key>
@@ -51,6 +52,15 @@
               <VtsCopyButton :value="String(vif.MTU)" />
             </template>
           </VtsCardRowKeyValue>
+          <!-- RATE LIMIT -->
+          <VtsCardRowKeyValue>
+            <template #key>
+              {{ t('rate-limit') }}
+            </template>
+            <template #value>
+              {{ rateLimit !== undefined ? `${rateLimit} ${t('bytes:kbs')}` : '' }}
+            </template>
+          </VtsCardRowKeyValue>
           <!-- LOCKING MODE -->
           <VtsCardRowKeyValue>
             <template #key>
@@ -60,33 +70,24 @@
               {{ vif.locking_mode }}
             </template>
           </VtsCardRowKeyValue>
-          <!-- TODO Need to add TX Checksumming -->
-        </div>
+          <!-- TX CHECK SUMMING -->
+          <VtsCardRowKeyValue>
+            <template #key>
+              {{ t('check-summing') }}
+            </template>
+            <template #value>
+              {{ isTxChecksummingEnabled(vif) }}
+            </template>
+          </VtsCardRowKeyValue>
+        </VtsCardRowList>
       </UiPanelCard>
       <!-- VIF NETWORK INFORMATION -->
       <UiPanelCard>
         <UiPanelCardTitle size="medium" :label="t('network-information')" />
-        <div class="content">
+        <VtsCardRowList>
           <!-- IP ADDRESSES -->
-          <div v-if="ipAddresses.length">
-            <VtsCardRowKeyValue v-for="(ip, index) in ipAddresses" :key="ip">
-              <template #key>
-                <div v-if="index === 0">{{ t('ip-addresses') }}</div>
-              </template>
-              <template #value>{{ ip }}</template>
-              <template #addons>
-                <VtsCopyButton :value="ip" />
-                <VtsCopyAllMenuItem v-if="index === 0 && ipAddresses.length > 1" :values="ipAddresses" />
-              </template>
-            </VtsCardRowKeyValue>
-          </div>
-          <VtsCardRowKeyValue v-else>
-            <template #key>
-              {{ t('ip-addresses') }}
-            </template>
-            <template #value>
-              <span class="value" />
-            </template>
+          <VtsCardRowKeyValue :values="ipAddresses">
+            <template #key>{{ t('ip-addresses') }}</template>
           </VtsCardRowKeyValue>
           <!-- MAC ADDRESSES -->
           <VtsCardRowKeyValue>
@@ -100,7 +101,7 @@
               <VtsCopyButton :value="vif.MAC" />
             </template>
           </VtsCardRowKeyValue>
-        </div>
+        </VtsCardRowList>
       </UiPanelCard>
     </template>
   </VtsSidePanel>
@@ -109,11 +110,13 @@
 <script setup lang="ts">
 import type { XenApiVif } from '@/libs/xen-api/xen-api.types.ts'
 import VifConnectionToggleButton from '@/modules/vif/components/actions/connection/VifConnectionToggleButton.vue'
+import VifEditButton from '@/modules/vif/components/actions/edit/VifEditButton.vue'
+import { isTxChecksummingEnabled } from '@/modules/vif/utils/vif-tx-checksumming.util.ts'
 import { useNetworkStore } from '@/stores/xen-api/network.store.ts'
 import { useVmGuestMetricsStore } from '@/stores/xen-api/vm-guest-metrics.store.ts'
 import { useVmStore } from '@/stores/xen-api/vm.store.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
-import VtsCopyAllMenuItem from '@core/components/copy-all-menu-item/VtsCopyAllMenuItem.vue'
+import VtsCardRowList from '@core/components/card/VtsCardRowList.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsSidePanel from '@core/components/panel/VtsSidePanel.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
@@ -155,16 +158,18 @@ const ipAddresses = computed(() => {
 const network = computed(() => (vif !== undefined ? getNetworkByOpaqueRef(vif.network) : undefined))
 
 const status = computed(() => (vif?.currently_attached ? 'connected' : 'disconnected'))
+
+const rateLimit = computed(() => {
+  if (vif?.qos_algorithm_type !== 'ratelimit') {
+    return undefined
+  }
+
+  return vif.qos_algorithm_params.kbps
+})
 </script>
 
 <style scoped lang="postcss">
 .vm-vifs-side-panel {
-  .content {
-    display: flex;
-    flex-direction: column;
-    gap: 0.8rem;
-  }
-
   .value:empty::before {
     content: '-';
   }

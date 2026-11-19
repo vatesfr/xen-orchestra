@@ -20,7 +20,7 @@ _Incremental Backup_ and _Incremental Replication_ usually produce delta exports
 
 Nevertheless, there are several reasons for XO to trigger a key (full) export instead:
 
-- the configured [_Full backup interval_](./backup-types/incremental_backups#key-backup-interval) advanced setting has been reached for this VM
+- the configured [_Full backup interval_](./backup-types/incremental_backups.md#key-backup-interval) advanced setting has been reached for this VM
 - the _Force full backup_ option is enabled for the current schedule
 - a new disk has been added to the VM (only this disk is completely exported)
 - the reference snapshot for this backup job is missing on the source VM
@@ -135,11 +135,16 @@ This error appears in the logs of some failed backup runs. It means the VM's fol
 
 - another backup job
 - a merge process on the Virtual Hard Disk (VHD)
+- the cleanup after a deletion of backups of this VM, which merges the remaining ones and removes leftover files
 
 To solve this issue, we recommend that you:
 
 - wait until the other backup job or the merge process is done
 - make sure your backup repository is not being overworked
+
+On S3 repositories, the lock is an object named `xo-vm-backups/<VM UUID>.lock`, which its holder rewrites every 30 seconds. If XO stops while holding it, the next job can take it over once it has gone 3 minutes without being rewritten. S3 repositories are locked only if the bucket does not have Object Lock enabled, and if the S3 user can read the bucket's Object Lock configuration (`s3:GetBucketObjectLockConfiguration`, XO logs a warning when it cannot).
+
+On Azure repositories, the lock is a blob named `xo-vm-backups/<VM UUID>.lock`, which its holder leases for 60 seconds and renews every 15 seconds. If XO stops while holding it, the lease expires, and the next job can take the lock within 60 seconds.
 
 ## Error: HTTP connection has timed out
 

@@ -85,7 +85,7 @@ type WrapperXenApi<T, Type extends string, Fn = { (): void }> = T & {
   $pool: XenApiPool
   $type: Type
   $snapshot(params: {
-    cancelToken?: unknown
+    signal?: AbortSignal
     ignoredVdisTag?: string
     name_label?: string
     unplugVusbs?: boolean
@@ -824,7 +824,10 @@ export interface XenApiSr {
   VDIs: XenApiVdi['$ref'][]
   virtual_allocation: number
 }
-export type XenApiSrWrapped = WrapperXenApi<XenApiSr, 'SR', XenApiSrCallMethods>
+export type XenApiSrWrapped = WrapperXenApi<XenApiSr, 'SR', XenApiSrCallMethods> & {
+  // resolved by xen-api from `PBDs`
+  $PBDs: XenApiPbdWrapped[]
+}
 
 export interface XenApiSrStat {
   $ref: Branded<'sr_stat'>

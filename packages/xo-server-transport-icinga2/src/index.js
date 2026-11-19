@@ -70,12 +70,17 @@ class XoServerIcinga2 {
 
   configure(configuration) {
     const serverUrl = new URL(configuration.server)
-    if (configuration.user !== '') {
-      serverUrl.username = configuration.user
-    }
-    if (configuration.password !== '') {
-      serverUrl.password = configuration.password
-    }
+
+    // `fetch` rejects URLs containing credentials, they are sent via the `auth` option instead
+    //
+    // credentials embedded in the server URL are still supported, the dedicated fields take precedence
+    const { user = '', password = '' } = configuration
+    const username = user !== '' ? user : decodeURIComponent(serverUrl.username)
+    const secret = password !== '' ? password : decodeURIComponent(serverUrl.password)
+    this._auth = username !== '' || secret !== '' ? `${username}:${secret}` : undefined
+    serverUrl.username = ''
+    serverUrl.password = ''
+
     if (serverUrl.port === '') {
       serverUrl.port = '5665' // Default icinga2 access port
     }
@@ -108,6 +113,7 @@ class XoServerIcinga2 {
     assert(icinga2Status !== undefined, `Invalid icinga2 status: ${status}`)
     return this._xo
       .httpRequest(this._url, {
+        auth: this._auth,
         method: 'POST',
         headers: {
           Accept: 'application/json',

@@ -785,7 +785,8 @@ export default class XenServers {
     const lastEventFetchedTimestamp = xapis[server.id]?.lastEventFetchedTimestamp
     if (
       lastEventFetchedTimestamp !== undefined &&
-      Date.now() > lastEventFetchedTimestamp + this._xapiMarkDisconnectedDelay
+      Date.now() > lastEventFetchedTimestamp + this._xapiMarkDisconnectedDelay &&
+      xapis[server.id].watchEventsError !== undefined
     ) {
       server.error = serializeError(xapis[server.id].watchEventsError)
     }

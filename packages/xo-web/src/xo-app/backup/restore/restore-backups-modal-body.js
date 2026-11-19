@@ -4,13 +4,18 @@ import React from 'react'
 import ChooseSrForEachVdisModal, { areVdiTargetsComplete } from 'xo/choose-sr-for-each-vdis-modal'
 import Component from 'base-component'
 import StateButton from 'state-button'
-import { createSelector } from 'selectors'
-import { keyBy } from 'lodash'
+import store from 'store'
+import { createLogger } from '@xen-orchestra/log'
+import { createSelector, getObject } from 'selectors'
+import { find, keyBy } from 'lodash'
+import { getAllProxies, getXoVmUuid, isSrWritable } from 'xo'
 import { getRenderXoItemOfType } from 'render-xo-item'
 import { Select, Toggle } from 'form'
 import { SelectSr } from 'select-objects'
 
 const BACKUP_RENDERER = getRenderXoItemOfType('backup')
+
+const log = createLogger('xo-web:restore-backups')
 
 export default class RestoreBackupsModalBody extends Component {
   state = {
@@ -23,10 +28,51 @@ export default class RestoreBackupsModalBody extends Component {
     return this.state
   }
 
+  // the cache of a live restore is a VDI plugged onto the VM serving the mount: XO's, or the one of
+  // the proxy handling the backup repository. Each is looked up on its own, so failing to find one
+  // does not disable the live restores the other one could serve
+  componentDidMount() {
+    if (!this.props.backupHealthCheck) {
+      getXoVmUuid().then(
+        xoVmUuid => this.setState({ xoVmUuid }),
+        error => {
+          log.warn('cannot get the VM running XO, live restore disabled for the repositories it reads', { error })
+          this.setState({ xoVmUuid: null })
+        }
+      )
+      getAllProxies().then(
+        proxies => this.setState({ proxies }),
+        error => {
+          log.warn('cannot list the proxies, live restore disabled for the repositories they read', { error })
+          this.setState({ proxies: [] })
+        }
+      )
+    }
+  }
+
+  _getApplianceVm = createSelector(
+    () => this.state.backup?.remote?.proxy,
+    () => this.state.proxies,
+    () => this.state.xoVmUuid,
+    (proxyId, proxies, xoVmUuid) => {
+      const vmUuid = proxyId === undefined ? xoVmUuid : find(proxies, { id: proxyId })?.vmUuid
+      return vmUuid == null ? undefined : getObject(store.getState(), vmUuid)
+    }
+  )
+
+  // a shared SR is plugged on every host of its pool, a local one on its own host only
+  _getCacheSrPredicate = createSelector(this._getApplianceVm, vm =>
+    vm === undefined
+      ? undefined
+      : sr => isSrWritable(sr) && (sr.shared ? sr.$pool === vm.$pool : sr.$container === vm.$container)
+  )
+
   // read by the modal to refuse the confirmation while a disk misses the destination its action
   // needs, which the server could not guess
   get isValid() {
-    return areVdiTargetsComplete(this.state.targetSrs, this._getDisks())
+    return areVdiTargetsComplete(this.state.targetSrs, this._getDisks(), {
+      cacheSrPredicate: this._getCacheSrPredicate(),
+    })
   }
 
   // every disk of the backup is listed, including the ones the user chose not to restore: that
@@ -61,6 +107,7 @@ export default class RestoreBackupsModalBody extends Component {
           <div>
             <div className='mb-1'>
               <ChooseSrForEachVdisModal
+                cacheSrPredicate={this._getCacheSrPredicate()}
                 onChange={this.linkState('targetSrs')}
                 placeholder={_('importBackupModalSelectSr')}
                 required

@@ -39,6 +39,17 @@ it('shows the host name label and links to its dashboard', () => {
   expect(wrapper.get('.ui-link').attributes('href')).toBe('/host/host-1/dashboard')
 })
 
+it('links to the given route in place of the dashboard', () => {
+  const host = createHost({ id: 'host-1' as FrontXoHost['id'] })
+
+  const wrapper = mount(HostLink, {
+    props: { host, size: 'small', to: { name: '/host/[id]/networks', params: { id: host.id } } },
+    global: createGlobalTestConfig(),
+  })
+
+  expect(wrapper.get('.ui-link').attributes('href')).toBe('/host/host-1/networks')
+})
+
 it('renders the slot content in place of the host name label', () => {
   const wrapper = mountHostLink(createHost({ name_label: 'Primary Host' }), { default: 'Custom label' })
 

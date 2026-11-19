@@ -8,9 +8,9 @@ export const XO_LINKS = {
   COMMUNITY: 'https://xcp-ng.org/forum/category/12/xen-orchestra',
   DOC: 'https://docs.xen-orchestra.com',
   DOC_SDN_CONTROLLER_MIGRATION:
-    'https://docs.xen-orchestra.com/manage-your-infrastructure/sdn_controller#migration-path',
+    'https://docs.xen-orchestra.com/manage-your-infrastructure/networking/sdn_controller#migration-path',
   DOC_SDN_CONTROLLER_XAPI_PLUGIN:
-    'https://docs.xen-orchestra.com/manage-your-infrastructure/sdn_controller#xapi-plugin',
+    'https://docs.xen-orchestra.com/manage-your-infrastructure/networking/sdn_controller#xapi-plugin',
   TRANSLATION: 'https://translate.vates.tech/engage/xen-orchestra/',
 }
 
@@ -28,6 +28,9 @@ export const RULE_STATUS = {
 } as const
 
 export const ONE_GB = 1024 ** 3
+
+// sent by the API in place of a secret, see `@vates/obfuscate`
+export const OBFUSCATED_VALUE = 'obfuscated-q3oi6d9X8uenGvdLnHk2'
 
 export const VDI_SOURCE = {
   EMPTY: 'empty',

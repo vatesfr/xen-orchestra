@@ -5,7 +5,7 @@
       :label="t('warnings')"
       :counter="{ value: task.warnings?.length ?? 0, accent: 'warning' }"
     />
-    <div class="content">
+    <VtsCardRowList class="content">
       <template v-for="(warning, index) in task.warnings" :key="index">
         <VtsDivider v-if="index > 0" class="divider" type="stretch" />
         <VtsCardRowKeyValue>
@@ -16,13 +16,14 @@
           </template>
         </VtsCardRowKeyValue>
       </template>
-    </div>
+    </VtsCardRowList>
   </UiPanelCard>
 </template>
 
 <script lang="ts" setup>
 import type { FrontXoTask } from '@/modules/task/remote-resources/use-xo-task-collection.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
+import VtsCardRowList from '@core/components/card/VtsCardRowList.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsDivider from '@core/components/divider/VtsDivider.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
@@ -39,10 +40,6 @@ const { t } = useI18n()
 <style scoped lang="postcss">
 .task-warnings-card {
   .content {
-    display: flex;
-    flex-direction: column;
-    gap: 0.4rem;
-
     .divider {
       margin-block: 1.6rem;
     }

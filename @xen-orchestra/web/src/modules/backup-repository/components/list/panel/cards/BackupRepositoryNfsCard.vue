@@ -1,7 +1,7 @@
 <template>
-  <UiPanelCard class="backup-repository-nfs-card">
+  <UiPanelCard>
     <UiPanelCardTitle size="medium" :label="t('nfs')" />
-    <div class="content">
+    <VtsCardRowList>
       <VtsCardRowKeyValue>
         <template #key>{{ t('host') }}</template>
         <template #value>{{ nfs.host }}</template>
@@ -33,13 +33,14 @@
           <VtsCopyButton :value="formattedOptions" />
         </template>
       </VtsCardRowKeyValue>
-    </div>
+    </VtsCardRowList>
   </UiPanelCard>
 </template>
 
 <script lang="ts" setup>
 import { formatMountOptions } from '@/modules/backup-repository/utils/xo-backup-repository.util.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
+import VtsCardRowList from '@core/components/card/VtsCardRowList.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
 import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
@@ -56,13 +57,3 @@ const { t } = useI18n()
 
 const formattedOptions = computed(() => formatMountOptions(options))
 </script>
-
-<style scoped lang="postcss">
-.backup-repository-nfs-card {
-  .content {
-    display: flex;
-    flex-direction: column;
-    gap: 0.4rem;
-  }
-}
-</style>

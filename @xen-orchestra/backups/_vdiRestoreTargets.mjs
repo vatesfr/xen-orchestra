@@ -12,11 +12,14 @@ const { warn } = createLogger('xo:backups:vdiRestoreTargets')
  */
 
 /**
- * Attach the backup disk itself to the restored VM, through a live mount: no copy, read only.
+ * Attach the backup disk itself to the restored VM, through a live mount: no copy, read only —
+ * unless it is cached, which makes it read/write.
  *
  * @typedef {object} LiveMountVdiTarget
  * @property {'live-mount'} type
  * @property {string} host - uuid of the host the disk is attached to
+ * @property {string} [cacheSr] - uuid of the SR of the local VDI the disk is materialized into, which
+ * also holds the writes, lost on unmount
  */
 
 /**
@@ -134,6 +137,20 @@ export function hasLiveMountTarget(mapVdisSrs) {
 }
 
 /**
+ * Whether a raw `mapVdisSrs` setting asks for at least one cached, hence read/write, live mount.
+ *
+ * Such a mount needs the VM of the appliance serving it, which the caller has to look up. A `null`
+ * cache SR does not ask for one: it is invalid, and left to {@link normalizeVdiRestoreTargets} to
+ * reject, rather than failing on the lookup of a VM which was never needed.
+ *
+ * @param {object} [mapVdisSrs]
+ * @returns {boolean}
+ */
+export function hasCachedLiveMountTarget(mapVdisSrs) {
+  return Object.values(mapVdisSrs ?? {}).some(value => value?.type === 'live-mount' && value.cacheSr != null)
+}
+
+/**
  * Normalize the `mapVdisSrs` restore setting into per-VDI targets.
  *
  * Accepts both the current shape, `{ [vdiUuid]: VdiRestoreTarget }`, and the legacy one, where a
@@ -186,10 +203,17 @@ function normalizeTarget(vdiUuid, value, useDifferentialRestore) {
   }
 
   if (type === 'live-mount') {
-    if (!isNonEmptyString(value.host)) {
+    const { cacheSr, host } = value
+    if (!isNonEmptyString(host)) {
       throw invalidTarget(vdiUuid, 'a live mount requires the id of the host the disk is attached to')
     }
-    return { type: 'live-mount', host: value.host }
+    if (cacheSr === undefined) {
+      return { type: 'live-mount', host }
+    }
+    if (!isNonEmptyString(cacheSr)) {
+      throw invalidTarget(vdiUuid, `expected the uuid of the cache SR, got ${typeof cacheSr}`)
+    }
+    return { type: 'live-mount', host, cacheSr }
   }
 
   if (type === 'restore') {

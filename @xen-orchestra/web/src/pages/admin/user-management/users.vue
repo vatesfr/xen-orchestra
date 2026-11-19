@@ -9,7 +9,9 @@
       </UiCard>
     </div>
 
-    <UserSidePanel :user="selectedUser" @close="selectedUser = undefined" />
+    <template #panel>
+      <UserSidePanel :user="selectedUser" @close="selectedUser = undefined" />
+    </template>
   </VtsContentSidePanel>
 </template>
 

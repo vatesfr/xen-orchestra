@@ -6,6 +6,7 @@ const { strict: assert } = require('assert')
 const { rimraf } = require('rimraf')
 const tmp = require('tmp')
 const fs = require('fs-extra')
+const zlib = require('zlib')
 const { getSyncedHandler } = require('@xen-orchestra/fs')
 const { Disposable, pFromCallback } = require('promise-toolbox')
 
@@ -80,50 +81,53 @@ describe('VhdDirectory', async () => {
     })
   })
 
-  it('compresses blocks and metadata works', async () => {
-    const initalSize = 4
-    const rawFileName = `${tempDir}/randomfile`
-    const vhdName = `${tempDir}/parent.vhd`
+  // zstd is only available since Node 22.15
+  for (const compression of ['gzip', ...(zlib.zstdCompress === undefined ? [] : ['zstd']), 'zeros']) {
+    it(`compresses blocks and metadata works (compression: ${compression})`, async () => {
+      const initalSize = 4
+      const rawFileName = `${tempDir}/randomfile`
+      const vhdName = `${tempDir}/parent.vhd`
 
-    await createRandomFile(rawFileName, initalSize)
-    await convertFromRawToVhd(rawFileName, vhdName)
-    await Disposable.use(async function* () {
-      const vhd = yield openVhd(handler, 'parent.vhd')
-      await vhd.readBlockAllocationTable()
-      const compressedVhd = yield VhdDirectory.create(handler, 'compressed.vhd', { compression: 'gzip' })
-      compressedVhd.header = vhd.header
-      compressedVhd.footer = vhd.footer
-      for await (const block of vhd.blocks()) {
-        await compressedVhd.writeEntireBlock(block)
-      }
-      await Promise.all[
-        (await compressedVhd.writeHeader(),
-        await compressedVhd.writeFooter(),
-        await compressedVhd.writeBlockAllocationTable())
-      ]
+      await createRandomFile(rawFileName, initalSize)
+      await convertFromRawToVhd(rawFileName, vhdName)
+      await Disposable.use(async function* () {
+        const vhd = yield openVhd(handler, 'parent.vhd')
+        await vhd.readBlockAllocationTable()
+        const compressedVhd = yield VhdDirectory.create(handler, 'compressed.vhd', { compression })
+        compressedVhd.header = vhd.header
+        compressedVhd.footer = vhd.footer
+        for await (const block of vhd.blocks()) {
+          await compressedVhd.writeEntireBlock(block)
+        }
+        await Promise.all[
+          (await compressedVhd.writeHeader(),
+          await compressedVhd.writeFooter(),
+          await compressedVhd.writeBlockAllocationTable())
+        ]
 
-      // compressed vhd have a metadata file
-      assert.equal(await fs.exists(`${tempDir}/compressed.vhd/chunk-filters.json`), true)
-      const metadata = JSON.parse(await handler.readFile('compressed.vhd/chunk-filters.json'))
-      assert.equal(metadata[0], 'gzip')
+        // compressed vhd have a metadata file
+        assert.equal(await fs.exists(`${tempDir}/compressed.vhd/chunk-filters.json`), true)
+        const metadata = JSON.parse(await handler.readFile('compressed.vhd/chunk-filters.json'))
+        assert.equal(metadata[0], compression)
 
-      // compressed vhd should not be broken
-      await compressedVhd.readHeaderAndFooter()
-      await compressedVhd.readBlockAllocationTable()
+        // compressed vhd should not be broken
+        await compressedVhd.readHeaderAndFooter()
+        await compressedVhd.readBlockAllocationTable()
 
-      // check that footer and header are not modified
-      assert.deepEqual(compressedVhd.footer, vhd.footer)
-      assert.deepEqual(compressedVhd.header, vhd.header)
+        // check that footer and header are not modified
+        assert.deepEqual(compressedVhd.footer, vhd.footer)
+        assert.deepEqual(compressedVhd.header, vhd.header)
 
-      // their block content should not have changed
-      let counter = 0
-      for await (const block of compressedVhd.blocks()) {
-        const source = await vhd.readBlock(block.id)
-        assert.equal(source.data.equals(block.data), true)
-        counter++
-      }
-      // neither the number of blocks
-      assert.equal(counter, 2)
+        // their block content should not have changed
+        let counter = 0
+        for await (const block of compressedVhd.blocks()) {
+          const source = await vhd.readBlock(block.id)
+          assert.equal(source.data.equals(block.data), true)
+          counter++
+        }
+        // neither the number of blocks
+        assert.equal(counter, 2)
+      })
     })
-  })
+  }
 })

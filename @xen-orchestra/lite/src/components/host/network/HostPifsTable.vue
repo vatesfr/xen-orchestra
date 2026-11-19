@@ -7,7 +7,7 @@
       </template>
     </UiTitle>
     <div class="container">
-      <UiQuerySearchBar @search="(value: string) => (searchQuery = value)" />
+      <UiQuerySearchBar v-bind="searchBindings" />
       <VtsTable :state :pagination-bindings sticky="right">
         <thead>
           <tr>
@@ -26,6 +26,7 @@
 
 <script lang="ts" setup>
 import type { XenApiNetwork, XenApiPif } from '@/libs/xen-api/xen-api.types.ts'
+import { usePifForget } from '@/modules/pif/composables/use-pif-forget.composable.ts'
 import { useNetworkStore } from '@/stores/xen-api/network.store.ts'
 import { usePifStore } from '@/stores/xen-api/pif.store.ts'
 import VtsRow from '@core/components/table/VtsRow.vue'
@@ -34,11 +35,12 @@ import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearch
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { usePagination } from '@core/composables/pagination.composable.ts'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
+import { useSearchFilter } from '@core/composables/search-filter.composable.ts'
 import { useTableState } from '@core/composables/table-state.composable.ts'
 import { icon } from '@core/icons'
 import { usePifColumns } from '@core/tables/column-sets/pif-columns.ts'
 import { logicNot } from '@vueuse/math'
-import { computed, ref } from 'vue'
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { pifs } = defineProps<{
@@ -74,21 +76,10 @@ const getIpConfigurationMode = (ipMode: string) => {
   }
 }
 
-const searchQuery = ref('')
-
-const filteredPifs = computed(() => {
-  const searchTerm = searchQuery.value.trim().toLocaleLowerCase()
-
-  if (!searchTerm) {
-    return pifs
-  }
-
-  return pifs.filter(pif =>
-    [...Object.values(pif), getNetworkName(pif.network)].some(value =>
-      String(value).toLocaleLowerCase().includes(searchTerm)
-    )
-  )
-})
+const { items: filteredPifs, searchBindings } = useSearchFilter(
+  () => pifs,
+  pif => [...Object.values(pif), getNetworkName(pif.network)]
+)
 
 const state = useTableState({
   busy: logicNot(isReady),
@@ -111,7 +102,7 @@ function getManagementIcon(pif: XenApiPif) {
 }
 
 const { HeadCells, BodyCells } = usePifColumns({
-  exclude: ['actions'],
+  exclude: ['selectItem'],
   body: (pif: XenApiPif) => {
     const name = computed(() => getNetworkName(pif.network))
     const status = computed(() => getPifStatus(pif))
@@ -119,6 +110,8 @@ const { HeadCells, BodyCells } = usePifColumns({
     const ipAddresses = computed(() => getIpAddresses(pif))
     const ipMode = computed(() => getIpConfigurationMode(pif.ip_configuration_mode))
     const rightIcon = computed(() => getManagementIcon(pif))
+
+    const { forgetPifs, canForgetPifs, isForgettingPifs, forgetPifsErrorMessage } = usePifForget(() => [pif])
 
     return {
       network: r => r({ label: name.value }),
@@ -128,7 +121,21 @@ const { HeadCells, BodyCells } = usePifColumns({
       ip: r => r(ipAddresses.value),
       mac: r => r(pif.MAC),
       mode: r => r(ipMode.value),
-      selectItem: r => r(() => (selectedPifId.value = pif.uuid)),
+      actions: r =>
+        r({
+          onClick: () => (selectedPifId.value = pif.uuid),
+          actions: [
+            {
+              label: t('action:forget'),
+              icon: 'action:forget',
+              onClick: () => forgetPifs(),
+              busy: isForgettingPifs.value,
+              disabled: !canForgetPifs.value,
+              hint: forgetPifsErrorMessage.value,
+              accent: 'danger',
+            },
+          ],
+        }),
     }
   },
 })

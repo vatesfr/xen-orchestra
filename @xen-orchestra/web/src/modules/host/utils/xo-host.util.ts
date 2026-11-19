@@ -92,5 +92,19 @@ export function getHostRamProvisioning(host: FrontXoHost): { total: SizeInfo; us
 }
 
 export function getHostIcon(host: FrontXoHost | undefined) {
+  if (host === undefined) {
+    return objectIcon('host', 'unknown')
+  }
+
+  if (getHostPendingStateOperation(host) !== undefined) {
+    return objectIcon('host', 'busy')
+  }
+
   return objectIcon('host', getHostState(host))
+}
+
+export type HostQuickAction = 'new-vm' | 'start' | 'shutdown' | 'reboot'
+
+export function getHostQuickActions(host: FrontXoHost): HostQuickAction[] {
+  return host.power_state === HOST_POWER_STATE.RUNNING ? ['new-vm', 'shutdown', 'reboot'] : ['new-vm', 'start']
 }

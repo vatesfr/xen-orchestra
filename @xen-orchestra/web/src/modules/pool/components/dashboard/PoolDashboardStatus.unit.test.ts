@@ -1,6 +1,6 @@
 import PoolDashboardStatus from '@/modules/pool/components/dashboard/PoolDashboardStatus.vue'
 import type { XoPoolDashboard } from '@/modules/pool/types/xo-pool-dashboard.type.ts'
-import { findCardNumbers } from '@/test/find-labelled-values.ts'
+import { findCardNumbers, findLegends } from '@/test/find-rendered-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { mount } from '@vue/test-utils'
@@ -17,7 +17,7 @@ function createVmsStatus(overrides: Partial<VmsStatus> = {}): VmsStatus {
   return { running: 5, paused: 2, suspended: 1, halted: 2, total: 10, ...overrides }
 }
 
-function createPoolDashboard(overrides: Partial<XoPoolDashboard> = {}): XoPoolDashboard {
+function createPoolDashboardStatus(overrides: Partial<XoPoolDashboard> = {}): XoPoolDashboard {
   return {
     hosts: { status: createHostsStatus() },
     vms: { status: createVmsStatus() },
@@ -27,7 +27,7 @@ function createPoolDashboard(overrides: Partial<XoPoolDashboard> = {}): XoPoolDa
 
 function mountStatus(props: { poolDashboard?: XoPoolDashboard; hasError?: boolean } = {}) {
   return mount(PoolDashboardStatus, {
-    props: { poolDashboard: createPoolDashboard(), ...props },
+    props: { poolDashboard: createPoolDashboardStatus(), ...props },
     global: createGlobalTestConfig(),
   })
 }
@@ -35,10 +35,7 @@ function mountStatus(props: { poolDashboard?: XoPoolDashboard; hasError?: boolea
 function findLegendSections(wrapper: ReturnType<typeof mountStatus>) {
   return wrapper
     .findAll('.vts-donut-chart-with-legend')
-    .map(section => [
-      section.get('.ui-legend-title').text(),
-      section.findAll('.ui-legend').map(legend => [legend.get('.label').text(), legend.get('.value-and-unit').text()]),
-    ])
+    .map(section => [section.get('.ui-legend-title').text(), findLegends(section)])
 }
 
 it('renders the card title', () => {
@@ -107,7 +104,7 @@ it('totals the hosts and the VMs of the pool', () => {
 
 it('reports that no VM was detected for a pool without VM, and still breaks down the hosts', () => {
   const wrapper = mountStatus({
-    poolDashboard: createPoolDashboard({
+    poolDashboard: createPoolDashboardStatus({
       vms: { status: createVmsStatus({ running: 0, paused: 0, suspended: 0, halted: 0, total: 0 }) },
     }),
   })

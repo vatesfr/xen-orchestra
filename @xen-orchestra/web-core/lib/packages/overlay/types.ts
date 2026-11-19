@@ -62,6 +62,7 @@ export interface Overlay {
   props: Record<string, unknown>
   status: OverlayStatus
   lastTrigger: symbol | undefined
+  returnFocusTarget: Element | null
   abort: () => void
 }
 

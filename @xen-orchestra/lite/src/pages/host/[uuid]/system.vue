@@ -2,19 +2,21 @@
   <VtsStateHero v-if="host === undefined" format="page" type="not-found" size="large">
     {{ t('object-not-found', { id }) }}
   </VtsStateHero>
-  <VtsColumns v-else extra-space-around>
-    <VtsColumn>
-      <HostSystemGeneralInformation :host />
-      <HostSystemNetworking :host />
-      <HostSystemResourceManagement :host />
-    </VtsColumn>
-    <VtsColumn>
-      <!--    Todo: wait for the licenses availability -->
-      <!--    <HostSystemLicensing /> -->
-      <HostSystemSoftwareTooling :host />
-      <HostSystemHardwareSpecifications :host />
-    </VtsColumn>
-  </VtsColumns>
+  <div v-else class="scroll-container">
+    <VtsColumns extra-space-around>
+      <VtsColumn>
+        <HostSystemGeneralInformation :host />
+        <HostSystemNetworking :host />
+        <HostSystemResourceManagement :host />
+      </VtsColumn>
+      <VtsColumn>
+        <!--    Todo: wait for the licenses availability -->
+        <!--    <HostSystemLicensing /> -->
+        <HostSystemSoftwareTooling :host />
+        <HostSystemHardwareSpecifications :host />
+      </VtsColumn>
+    </VtsColumns>
+  </div>
 </template>
 
 <script lang="ts" setup>
@@ -43,3 +45,11 @@ const { getByUuid } = useHostStore().subscribe()
 
 const host = computed(() => getByUuid(id.value))
 </script>
+
+<style lang="postcss" scoped>
+.scroll-container {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+</style>

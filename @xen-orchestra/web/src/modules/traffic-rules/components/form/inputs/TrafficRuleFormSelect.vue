@@ -1,5 +1,5 @@
 <template>
-  <VtsInputWrapper :label :message="messages">
+  <VtsInputWrapper :label :message="messages" wrap-message>
     <VtsSelect :id accent="brand">
       <template v-if="slots.option" #default="slotProps">
         <slot name="option" v-bind="slotProps" />
@@ -15,10 +15,12 @@ import type { IconName } from '@core/icons'
 import type { FormOption, FormSelectId } from '@core/packages/form-select'
 import VtsInputWrapper from '@core/components/input-wrapper/VtsInputWrapper.vue'
 import VtsSelect from '@core/components/select/VtsSelect.vue'
+import { mergeInputWrapperMessages } from '@core/utils/input-wrapper-message.util.ts'
 import { computed } from 'vue'
 
 export type TrafficRuleFormSelectOption = FormOption<{
   icon?: IconName
+  iconTooltip?: string
   status?: Status
 }>
 
@@ -34,7 +36,5 @@ const slots = defineSlots<{
   option?(props: { option: TrafficRuleFormSelectOption }): any
 }>()
 
-const messages = computed<InputWrapperMessage>(
-  () => [info, warning, error].filter(message => message !== undefined) as InputWrapperMessage
-)
+const messages = computed(() => mergeInputWrapperMessages(info, warning, error))
 </script>

@@ -1,11 +1,10 @@
 <template>
-  <UiButton
-    v-tooltip="!canConnectSrs && connectSrsErrorMessage"
-    size="medium"
+  <VtsActionButton
+    :hint="connectSrsErrorMessage"
     variant="tertiary"
     accent="brand"
     :disabled="!canConnectSrs"
-    left-icon="action:connect"
+    icon="action:connect"
     :busy="isConnectingSrs"
     @click="connectSrs()"
   >
@@ -17,7 +16,7 @@
       variant="secondary"
       size="small"
     />
-  </UiButton>
+  </VtsActionButton>
 </template>
 
 <script lang="ts" setup>
@@ -25,9 +24,8 @@ import { useSrConnection } from '@/modules/storage-repository/composables/use-sr
 import { useXoSrUtils } from '@/modules/storage-repository/composables/xo-sr-utils.composable.ts'
 import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import type { SrScope } from '@core/types/storage-repository.type.ts'
-import UiButton from '@core/components/ui/button/UiButton.vue'
+import VtsActionButton from '@core/components/action-button/VtsActionButton.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
-import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { useI18n } from 'vue-i18n'
 
 const { sr, scope } = defineProps<{
