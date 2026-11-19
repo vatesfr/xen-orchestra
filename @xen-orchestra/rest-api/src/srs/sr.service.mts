@@ -139,7 +139,7 @@ export class SrService {
       throw invalidParameters(`the remote server did not provide a Content-Length for ${origin}`)
     }
 
-    const stream: Readable & { length?: number } = Readable.fromWeb(response.body as WebReadableStream)
+    const stream: Readable & { length?: number } = Readable.fromWeb(response.body)
     stream.length = +contentLength
 
     let vdiRef: XenApiVdi['$ref']
