@@ -139,8 +139,7 @@ fn export<R: Read + Send + 'static, W: Write>(
         &ticket.secret,
         &ticket.thumbprint,
         target.transport,
-        // Only a vCenter names the data host.
-        ticket.host.is_some(),
+        session.vcenter(),
         target.transcript,
     )?;
     let disk = match connection.open(&target.disk) {

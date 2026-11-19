@@ -61,42 +61,22 @@ pub enum Transport {
     Nfcssl,
     /// `PROXY nfc`: the same connection in clear, with no second TLS session.
     Nfc,
-    /// `PROXY vpxa-nfcssl`: [`Transport::Nfcssl`] served by the host's vpxa agent.
-    VpxaNfcssl,
-    /// `PROXY vpxa-nfc`: [`Transport::Nfc`] served by the host's vpxa agent.
-    VpxaNfc,
 }
 
 impl Transport {
-    /// The same transport asked of the host's vpxa agent, for a ticket a vCenter issued.
+    /// The dialogue line asking for this transport, without its line end,
+    /// and the whole reply granting it.
     ///
-    /// The hostd of an ESXi 6.5 or 6.7 host drops such a ticket as not
-    /// found: the vCenter registered it with vpxa, its agent on the host.
-    /// The hostd of a 7.x or 8.x host knows it.
-    const fn through_vpxa(self) -> Transport {
-        match self {
-            Transport::Nfcssl | Transport::VpxaNfcssl => Transport::VpxaNfcssl,
-            Transport::Nfc | Transport::VpxaNfc => Transport::VpxaNfc,
-        }
-    }
-
-    /// The dialogue line asking for this transport, without its line end.
-    const fn proxy(self) -> &'static str {
-        match self {
-            Transport::Nfcssl => "PROXY nfcssl",
-            Transport::Nfc => "PROXY nfc",
-            Transport::VpxaNfcssl => "PROXY vpxa-nfcssl",
-            Transport::VpxaNfc => "PROXY vpxa-nfc",
-        }
-    }
-
-    /// The whole reply granting this transport; nothing else is written before it.
-    const fn granted(self) -> &'static str {
-        match self {
-            Transport::Nfcssl => "200 Connect ha-nfcssl",
-            Transport::Nfc => "200 Connect ha-nfc",
-            Transport::VpxaNfcssl => "200 Connect vpxa-nfcssl",
-            Transport::VpxaNfc => "200 Connect vpxa-nfc",
+    /// With `vpxa`, it is asked of vpxa, the vCenter's agent on the host,
+    /// instead of hostd: the hostd of an ESXi 6.5 or 6.7 host drops a
+    /// ticket its vCenter issued as not found, since the vCenter
+    /// registered it with vpxa.
+    const fn proxy(self, vpxa: bool) -> (&'static str, &'static str) {
+        match (self, vpxa) {
+            (Transport::Nfcssl, false) => ("PROXY nfcssl", "200 Connect ha-nfcssl"),
+            (Transport::Nfc, false) => ("PROXY nfc", "200 Connect ha-nfc"),
+            (Transport::Nfcssl, true) => ("PROXY vpxa-nfcssl", "200 Connect vpxa-nfcssl"),
+            (Transport::Nfc, true) => ("PROXY vpxa-nfc", "200 Connect vpxa-nfc"),
         }
     }
 }
@@ -119,8 +99,6 @@ impl fmt::Display for Transport {
         f.write_str(match self {
             Transport::Nfcssl => "nfcssl",
             Transport::Nfc => "nfc",
-            Transport::VpxaNfcssl => "vpxa-nfcssl",
-            Transport::VpxaNfc => "vpxa-nfc",
         })
     }
 }
@@ -433,9 +411,11 @@ impl Connection {
     /// connection goes on in clear. A host that refuses the ECDHE suites is
     /// connected to again and both sessions use RSA key exchange, under the
     /// same pin. `vcenter` says a vCenter issued the ticket: a legacy host
-    /// is then asked for the transport of its vpxa agent. The handshake,
-    /// hello, version and capabilities exchanges follow, each waiting for
-    /// its reply; a legacy host gets the start of the handshake alone.
+    /// is then asked for the transport of vpxa, the vCenter's agent on the
+    /// host; since vCenter 7.0 U1, hostd serves a vCenter's tickets, as it
+    /// does a host's own. The handshake, hello, version and capabilities
+    /// exchanges follow, each waiting for its reply; a legacy host gets the
+    /// start of the handshake alone.
     ///
     /// # Errors
     /// When any phase fails, naming that phase.
@@ -455,12 +435,7 @@ impl Connection {
         if dialect == Dialect::Legacy {
             transcript.legacy();
         }
-        let transport = if vcenter && dialect == Dialect::Legacy {
-            transport.through_vpxa()
-        } else {
-            transport
-        };
-        if matches!(transport, Transport::Nfcssl | Transport::VpxaNfcssl) {
+        if transport == Transport::Nfcssl {
             greeted.require(greeting::NFCSSL_SUPPORTED)?;
         }
         let client = tls::Client::new(&tls::Trust::Pin(pin.clone()))?;
@@ -488,7 +463,7 @@ impl Connection {
             secret,
             &tag,
             &certificate,
-            transport,
+            transport.proxy(vcenter && dialect == Dialect::Legacy),
             dialect,
             transcript,
         )?;
@@ -498,7 +473,7 @@ impl Connection {
         let fallback = matches!(first, tls::Session::RsaKx(_));
         drop(first);
         let plane = match transport {
-            Transport::Nfcssl | Transport::VpxaNfcssl => {
+            Transport::Nfcssl => {
                 // The host that refused ECDHE once is not offered it again.
                 let session = if fallback {
                     tls::rsa_kx(&stream, pin)?
@@ -512,7 +487,7 @@ impl Connection {
                 }
                 Plane::Tls(session)
             }
-            Transport::Nfc | Transport::VpxaNfc => Plane::Clear,
+            Transport::Nfc => Plane::Clear,
         };
         let mut connection = Connection {
             stream,
@@ -746,14 +721,14 @@ fn draw_tag() -> Result<[u8; handshake::TAG_LEN], Error> {
 /// `200 <hash>`, where the hash must be the SHA-256 thumbprint of the
 /// certificate this session verified; a legacy host is asked `THUMBPRINT
 /// <tag>` instead, and its reply, a SHA-1 hash, must only start with `200 `.
-/// The `PROXY` line asking for `transport` must be answered with exactly
-/// the line granting it; nothing else is written before that.
+/// The `PROXY` line, from [`Transport::proxy`], must be answered with
+/// exactly the line granting it; nothing else is written before that.
 fn dialogue<S: Read + Write>(
     stream: &mut S,
     secret: &str,
     tag: &[u8; handshake::TAG_LEN],
     certificate: &CertificateDer<'_>,
-    transport: Transport,
+    (proxy, granted): (&'static str, &'static str),
     dialect: Dialect,
     transcript: Transcript,
 ) -> Result<(), Error> {
@@ -794,17 +769,13 @@ fn dialogue<S: Read + Write>(
             });
         }
     }
-    send(
-        stream,
-        format!("{}\r\n", transport.proxy()).as_bytes(),
-        "dialogue",
-    )?;
-    transcript.sent(transport.proxy());
+    send(stream, format!("{proxy}\r\n").as_bytes(), "dialogue")?;
+    transcript.sent(proxy);
     let answer = reply(stream)?;
     transcript.received(&answer);
-    if answer != transport.granted() {
+    if answer != granted {
         return Err(Error::Dialogue {
-            command: transport.proxy(),
+            command: proxy,
             reply: answer,
         });
     }
@@ -1440,7 +1411,7 @@ mod tests {
             "ticket-0",
             TAG,
             &certificate(),
-            Transport::Nfcssl,
+            Transport::Nfcssl.proxy(false),
             Dialect::Modern,
             QUIET,
         )
@@ -1465,7 +1436,7 @@ mod tests {
             "ticket-0",
             TAG,
             &certificate(),
-            Transport::Nfc,
+            Transport::Nfc.proxy(false),
             Dialect::Modern,
             QUIET,
         )
@@ -1487,7 +1458,7 @@ mod tests {
             "ticket-0",
             TAG,
             &certificate(),
-            Transport::Nfc,
+            Transport::Nfc.proxy(false),
             Dialect::Modern,
             QUIET,
         )
@@ -1508,7 +1479,7 @@ mod tests {
             "ticket-0",
             TAG,
             &certificate(),
-            Transport::Nfcssl,
+            Transport::Nfcssl.proxy(false),
             Dialect::Modern,
             QUIET,
         )
@@ -1530,7 +1501,7 @@ mod tests {
             "ticket-0",
             TAG,
             &certificate(),
-            Transport::Nfcssl,
+            Transport::Nfcssl.proxy(false),
             Dialect::Modern,
             QUIET,
         )
@@ -1553,7 +1524,7 @@ mod tests {
             "ticket-0",
             TAG,
             &certificate(),
-            Transport::Nfcssl,
+            Transport::Nfcssl.proxy(false),
             Dialect::Modern,
             QUIET,
         )
@@ -1582,7 +1553,7 @@ mod tests {
             "ticket-0",
             TAG,
             &certificate(),
-            Transport::Nfcssl,
+            Transport::Nfcssl.proxy(false),
             Dialect::Modern,
             QUIET,
         )
@@ -1603,7 +1574,7 @@ mod tests {
             "ticket-0",
             TAG,
             &certificate(),
-            Transport::Nfcssl,
+            Transport::Nfcssl.proxy(false),
             Dialect::Modern,
             QUIET,
         )
@@ -2143,7 +2114,7 @@ mod tests {
             "ticket-0",
             TAG,
             &certificate(),
-            Transport::Nfcssl,
+            Transport::Nfcssl.proxy(false),
             Dialect::Legacy,
             QUIET,
         )
@@ -2164,7 +2135,7 @@ mod tests {
             "ticket-0",
             TAG,
             &certificate(),
-            Transport::Nfcssl,
+            Transport::Nfcssl.proxy(false),
             Dialect::Legacy,
             QUIET,
         )
