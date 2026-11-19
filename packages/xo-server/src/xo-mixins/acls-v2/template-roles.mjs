@@ -134,3 +134,19 @@ export const STORAGE_ADMINISTRATOR = {
     { action: 'read', resource: 'sm', effect: 'allow' },
   ],
 }
+
+// === Backup
+export const BACKUP_ADMINISTRATOR = {
+  roleTemplateId: 9,
+  name: 'Backup administrator',
+  description: 'Full control over backup repositories, backup archives, backup logs and restore logs',
+  privileges: [
+    // Core backup resources: full control (wildcard is future-proof for new actions)
+    { action: '*', resource: 'backup-repository', effect: 'allow' },
+    { action: '*', resource: 'backup-archive', effect: 'allow' },
+    { action: '*', resource: 'backup-log', effect: 'allow' },
+    { action: '*', resource: 'restore-log', effect: 'allow' },
+    // Visibility only: needed to tell which VM a backup archive or backup log belongs to
+    { action: 'read', resource: 'vm', effect: 'allow' },
+  ],
+}
