@@ -579,6 +579,9 @@ export type XoBrowserMediaSession = {
 
 export type XoProxy = {
   id: Branded<'proxy'>
+  /**
+   * @deprecated no replacement for this field
+   */
   url: string
   version?: string
   name: string

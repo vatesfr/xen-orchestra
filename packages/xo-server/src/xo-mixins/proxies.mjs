@@ -41,7 +41,7 @@ const log = createLogger('xo:proxy')
 const PROXY_URL_REMOVED_MESSAGE =
   'proxy.url is no longer exposed by Xen Orchestra because it contained the proxy authentication token, see the Xen Orchestra changelog'
 
-function addProxyUrl(proxy) {
+function deprecatedAddProxyUrl(proxy) {
   delete proxy.authenticationToken
   proxy.url = PROXY_URL_REMOVED_MESSAGE
 }
@@ -65,7 +65,7 @@ async function addProxyLicense(proxy) {
 }
 
 async function populateProxy(proxy) {
-  addProxyUrl(proxy)
+  deprecatedAddProxyUrl(proxy)
   await addProxyVersion.call(this, proxy)
   await addProxyLicense.call(this, proxy)
   return proxy
