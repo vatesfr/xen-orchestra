@@ -10,6 +10,7 @@
 - [Backup/Live mount] The iSCSI target of a mount only accepts connections from the host it is mounted on. **If the hosts reach XO or the proxy through a NAT**, set `iscsi.restrictToHost = false`, or live mounts fail (PR [#10426](https://github.com/vatesfr/xen-orchestra/pull/10426))
 - [Plugins/audit] Redact more sensitive values from new audit records (created API tokens, credentials and encryption keys in URLs, one-time download/upload links) (PR [#10618](https://github.com/vatesfr/xen-orchestra/pull/10618))
 - [Settings/Forwarded headers] When `http.useForwardedHeaders` lists an IPv4 subnet written in IPv6 notation with a short prefix (e.g. `::ffff:10.0.0.0/8`), only the proxies in that subnet are trusted: any client could send its own `X-Forwarded-For` and choose the IP address XO sees (PR [#XXXX](https://github.com/vatesfr/xen-orchestra/pull/XXXX))
+- [Proxy] The proxy authentication token is no longer exposed by the API. **The `url` property of a proxy no longer contains a URL** but a message explaining its removal: scripts relying on it must be updated (PR [#10810](https://github.com/vatesfr/xen-orchestra/pull/10810))
 
 ### Enhancements
 
