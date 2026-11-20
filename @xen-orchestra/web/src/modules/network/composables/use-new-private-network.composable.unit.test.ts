@@ -1,6 +1,6 @@
 import { useNewPrivateNetwork } from '@/modules/network/composables/use-new-private-network.composable.ts'
-import type {
-  NewPrivateNetworkPayload,
+import {
+  type NewPrivateNetworkPayload,
   useXoPrivateNetworkCreateJob,
 } from '@/modules/network/jobs/xo-private-network-create.job.ts'
 import type { FrontXoPif } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
@@ -8,13 +8,16 @@ import type {
   FrontXoPlugin,
   useXoPluginCollection,
 } from '@/modules/plugin/remote-resources/use-xo-plugin-collection.ts'
+import { createJobStub } from '@/test/create-job-result.ts'
 import { createPlugin } from '@/test/create-plugin.ts'
 import { createPool } from '@/test/create-pool.ts'
-import { overlayMock } from '@/test/mock-overlay.ts'
+import { createMockCollection } from '@/test/find-by-id.ts'
+import { overlayMock, mockOverlay } from '@/test/mock-overlay.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
 import { silenceConsoleError } from '@/test/silence-console-error.ts'
+import { mockModule } from '@/test/spy-on-module.ts'
 import { TUNNEL_PROTOCOL } from '@vates/types'
-import { computed, type MaybeRefOrGetter, type Ref, ref, toValue } from 'vue'
+import { type Ref, ref } from 'vue'
 
 type OverlayOptions = {
   events: {
@@ -23,25 +26,21 @@ type OverlayOptions = {
   }
 }
 
-const { useCreateJob, run, pluginsMock } = vi.hoisted(() => ({
-  useCreateJob: vi.fn(),
-  run: vi.fn(),
-  pluginsMock: { plugins: [] as FrontXoPlugin[], arePluginsReady: true },
-}))
+const createJob = createJobStub(useXoPrivateNetworkCreateJob)
+const { run } = createJob
+const pluginsMock = { plugins: ref<FrontXoPlugin[]>([]), arePluginsReady: ref(true) }
 
-vi.mock(import('@/modules/network/jobs/xo-private-network-create.job.ts'), () => ({
-  useXoPrivateNetworkCreateJob: useCreateJob as unknown as typeof useXoPrivateNetworkCreateJob,
-}))
-
-vi.mock(import('@core/packages/overlay/use-overlay.ts'), () => import('@/test/mock-overlay.ts'))
+mockOverlay()
 
 // The plugin collection would open an SSE subscription
-vi.mock(import('@/modules/plugin/remote-resources/use-xo-plugin-collection.ts'), () => ({
-  useXoPluginCollection: (() => ({
-    arePluginsReady: computed(() => pluginsMock.arePluginsReady),
-    useGetPluginById: (id: MaybeRefOrGetter<FrontXoPlugin['id']>) =>
-      computed(() => pluginsMock.plugins.find(plugin => plugin.id === toValue(id))),
-  })) as unknown as typeof useXoPluginCollection,
+mockModule(import('@/modules/plugin/remote-resources/use-xo-plugin-collection.ts'), () => ({
+  useXoPluginCollection: (() =>
+    createMockCollection(
+      'Plugin',
+      'Plugins',
+      pluginsMock.plugins,
+      pluginsMock.arePluginsReady
+    )) as unknown as typeof useXoPluginCollection,
 }))
 
 const POOL = createPool()
@@ -60,15 +59,12 @@ function createSdnControllerPlugin(loaded: boolean) {
 }
 
 beforeEach(() => {
-  useCreateJob.mockReset()
-  run.mockReset()
+  createJob.reset()
   overlayMock.reset()
-  pluginsMock.plugins = [createSdnControllerPlugin(true)]
-  pluginsMock.arePluginsReady = true
+  pluginsMock.plugins.value = [createSdnControllerPlugin(true)]
+  pluginsMock.arePluginsReady.value = true
 
   silenceConsoleError()
-
-  useCreateJob.mockReturnValue({ run, isRunning: ref(false) })
 })
 
 function mountNewPrivateNetwork() {
@@ -76,7 +72,7 @@ function mountNewPrivateNetwork() {
 }
 
 function getJobPayload() {
-  return (useCreateJob.mock.calls[0] as [Ref<NewPrivateNetworkPayload | undefined>])[0]
+  return (createJob.use.mock.calls[0] as [Ref<NewPrivateNetworkPayload | undefined>])[0]
 }
 
 function getOverlay() {
@@ -94,13 +90,13 @@ describe('canCreatePrivateNetwork', () => {
   })
 
   it('is false while the SDN controller plugin is not loaded', () => {
-    pluginsMock.plugins = [createSdnControllerPlugin(false)]
+    pluginsMock.plugins.value = [createSdnControllerPlugin(false)]
 
     expect(mountNewPrivateNetwork().canCreatePrivateNetwork).toBe(false)
   })
 
   it('is false without the SDN controller plugin', () => {
-    pluginsMock.plugins = []
+    pluginsMock.plugins.value = []
 
     expect(mountNewPrivateNetwork().canCreatePrivateNetwork).toBe(false)
   })
@@ -108,14 +104,14 @@ describe('canCreatePrivateNetwork', () => {
 
 describe('isSdnControllerMissing', () => {
   it('is true once the plugins are loaded without the SDN controller loaded', () => {
-    pluginsMock.plugins = [createSdnControllerPlugin(false)]
+    pluginsMock.plugins.value = [createSdnControllerPlugin(false)]
 
     expect(mountNewPrivateNetwork().isSdnControllerMissing).toBe(true)
   })
 
   it('is false while the plugins are loading', () => {
-    pluginsMock.plugins = []
-    pluginsMock.arePluginsReady = false
+    pluginsMock.plugins.value = []
+    pluginsMock.arePluginsReady.value = false
 
     expect(mountNewPrivateNetwork().isSdnControllerMissing).toBe(false)
   })

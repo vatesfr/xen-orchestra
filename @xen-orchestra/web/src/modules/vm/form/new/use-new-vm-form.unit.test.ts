@@ -12,6 +12,7 @@ import { vmDeviceCollectionsMock } from '@/test/mock-xo-vm-device-collections.ts
 import { mountComposable } from '@/test/mount-composable.ts'
 import {
   chooseNewVmTemplate,
+  mockNewVmCollections,
   NEW_VM_AUTOMATIC_NETWORK,
   NEW_VM_DISK_TEMPLATE,
   NEW_VM_DISKLESS_TEMPLATE,
@@ -28,55 +29,7 @@ import {
 } from '@/test/new-vm-fixtures.ts'
 import { nextTick } from 'vue'
 
-vi.mock(
-  import('@/modules/pool/remote-resources/use-xo-pool-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
-
-vi.mock(
-  import('@/modules/host/remote-resources/use-xo-host-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
-
-vi.mock(
-  import('@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
-
-vi.mock(
-  import('@/modules/network/remote-resources/use-xo-network-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
-
-vi.mock(
-  import('@/modules/pif/remote-resources/use-xo-pif-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
-
-vi.mock(
-  import('@/modules/vm/remote-resources/use-xo-vm-template-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
-
-vi.mock(
-  import('@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'),
-  () => import('@/test/mock-xo-vm-device-collections.ts')
-)
-
-vi.mock(
-  import('@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'),
-  () => import('@/test/mock-xo-vm-device-collections.ts')
-)
-
-vi.mock(
-  import('@/modules/vdi/remote-resources/use-xo-vdi-snapshot-collection.ts'),
-  () => import('@/test/mock-xo-vm-device-collections.ts')
-)
-
-vi.mock(
-  import('@/modules/vif/remote-resources/use-xo-vif-collection.ts'),
-  () => import('@/test/mock-xo-vm-device-collections.ts')
-)
+mockNewVmCollections()
 
 beforeEach(() => {
   resetNewVmCollections()

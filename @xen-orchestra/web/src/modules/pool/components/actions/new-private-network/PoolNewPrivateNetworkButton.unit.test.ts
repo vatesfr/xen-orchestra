@@ -1,79 +1,44 @@
-import type { useNewPrivateNetwork } from '@/modules/network/composables/use-new-private-network.composable.ts'
+import { useNewPrivateNetwork } from '@/modules/network/composables/use-new-private-network.composable.ts'
 import PoolNewPrivateNetworkButton from '@/modules/pool/components/actions/new-private-network/PoolNewPrivateNetworkButton.vue'
+import { createJobStub } from '@/test/create-job-result.ts'
 import { createPool } from '@/test/create-pool.ts'
 import { findTooltipContent } from '@/test/find-tooltip-content.ts'
-import { getUiButton } from '@/test/get-button.ts'
-import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
-import { mount } from '@vue/test-utils'
-import { ref, toValue } from 'vue'
+import { itRunsJobFromButton } from '@/test/job-button.ts'
+import UiButton from '@core/components/ui/button/UiButton.vue'
+import type { VueWrapper } from '@vue/test-utils'
+import { ref } from 'vue'
 
-const { useNewNetwork, openDrawer } = vi.hoisted(() => ({
-  useNewNetwork: vi.fn(),
-  openDrawer: vi.fn(),
-}))
+const isSdnControllerMissing = ref(false)
 
 // The composable runs the creation job, which calls the REST API
-vi.mock(import('@/modules/network/composables/use-new-private-network.composable.ts'), () => ({
-  useNewPrivateNetwork: useNewNetwork as unknown as typeof useNewPrivateNetwork,
+const newPrivateNetwork = createJobStub(useNewPrivateNetwork, result => ({
+  openNewPrivateNetworkDrawer: result.run,
+  canCreatePrivateNetwork: result.canRun,
+  isCreatingPrivateNetwork: result.isRunning,
+  isSdnControllerMissing,
 }))
 
 beforeEach(() => {
-  useNewNetwork.mockReset()
-  openDrawer.mockReset()
-
-  mockNewPrivateNetwork()
+  isSdnControllerMissing.value = false
 })
 
-function mockNewPrivateNetwork({
-  canCreate = true,
-  isCreating = false,
-  isSdnControllerMissing = false,
-}: { canCreate?: boolean; isCreating?: boolean; isSdnControllerMissing?: boolean } = {}) {
-  useNewNetwork.mockReturnValue({
-    openNewPrivateNetworkDrawer: openDrawer,
-    isCreatingPrivateNetwork: ref(isCreating),
-    canCreatePrivateNetwork: ref(canCreate),
-    isSdnControllerMissing: ref(isSdnControllerMissing),
-  })
+function getNewButton(wrapper: VueWrapper) {
+  return wrapper.getComponent(UiButton)
 }
 
-function mountButton(pool = createPool()) {
-  return mount(PoolNewPrivateNetworkButton, { props: { pool }, global: createGlobalTestConfig() })
-}
-
-function getNewButton(wrapper: ReturnType<typeof mountButton>) {
-  return getUiButton(wrapper, t('new'))
-}
-
-it('creates the private network from the pool', () => {
-  const pool = createPool()
-  mountButton(pool)
-
+const mountButton = itRunsJobFromButton(PoolNewPrivateNetworkButton, {
+  targetProp: 'pool',
+  createTarget: createPool,
+  getButton: getNewButton,
+  job: newPrivateNetwork,
   // The composable receives the pool as a getter
-  expect(toValue(useNewNetwork.mock.lastCall?.[0])).toEqual(pool)
-})
-
-it('opens the drawer when clicking the button', async () => {
-  await getNewButton(mountButton()).trigger('click')
-
-  expect(openDrawer).toHaveBeenCalledOnce()
-})
-
-it('disables the button when a private network cannot be created', () => {
-  mockNewPrivateNetwork({ canCreate: false })
-
-  expect(getNewButton(mountButton()).props('disabled')).toBe(true)
-})
-
-it('shows the button as busy while the private network is being created', () => {
-  mockNewPrivateNetwork({ isCreating: true })
-
-  expect(getNewButton(mountButton()).props('busy')).toBe(true)
+  toJobTarget: pool => pool,
 })
 
 it('explains that the SDN controller plugin is required when it is missing', async () => {
-  mockNewPrivateNetwork({ canCreate: false, isSdnControllerMissing: true })
+  newPrivateNetwork.setState({ canRun: false })
+  isSdnControllerMissing.value = true
 
   expect(await findTooltipContent(getNewButton(mountButton()).element)).toBe(t('sdn-controller-plugin-required'))
 })

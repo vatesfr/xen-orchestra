@@ -6,7 +6,7 @@ import type {
   FrontXoNetwork,
   useXoNetworkCollection as realUseXoNetworkCollection,
 } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
-import { getEncryptedEncapsulationsByPool } from '@/modules/network/utils/xo-network.util.ts'
+import { getEncryptedEncapsulationsByPool, isPrivateNetwork } from '@/modules/network/utils/xo-network.util.ts'
 import type {
   FrontXoPbd,
   useXoPbdCollection as realUseXoPbdCollection,
@@ -32,6 +32,7 @@ import { createPool } from '@/test/create-pool.ts'
 import { createMockCollection, findById } from '@/test/find-by-id.ts'
 import { groupBy } from '@/test/group-by.ts'
 import { defineModuleMocks } from '@/test/spy-on-module.ts'
+import { SDN_CONTROLLER_PRIVATE_NETWORK_UUID_KEY } from '@vates/types'
 import { computed, type MaybeRefOrGetter, ref } from 'vue'
 
 // Shared state of the mocked collections: a test sets the objects it needs, reset it in `beforeEach`
@@ -130,6 +131,12 @@ export const useXoSrCollection = recordingIsEnabled('sr', () => ({
 export const useXoNetworkCollection = (() => ({
   ...createMockCollection('Network', 'Networks', xoCollectionsMock.networks, xoCollectionsMock.areNetworksReady),
   encryptedEncapsulationsByPool: computed(() => getEncryptedEncapsulationsByPool(xoCollectionsMock.networks.value)),
+  privateNetworksByUuid: computed(() =>
+    groupBy(
+      xoCollectionsMock.networks.value.filter(isPrivateNetwork),
+      network => network.other_config[SDN_CONTROLLER_PRIVATE_NETWORK_UUID_KEY]
+    )
+  ),
 })) as unknown as typeof realUseXoNetworkCollection
 
 export const useXoPbdCollection = (() => ({

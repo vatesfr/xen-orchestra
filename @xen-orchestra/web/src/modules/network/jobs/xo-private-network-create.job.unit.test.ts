@@ -3,29 +3,24 @@ import {
   useXoPrivateNetworkCreateJob,
 } from '@/modules/network/jobs/xo-private-network-create.job.ts'
 import type { FrontXoPif } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
-import type { useXoTaskUtils } from '@/shared/composables/xo-task-utils.composable.ts'
 import { createPool, OTHER_POOL_ID } from '@/test/create-pool.ts'
 import { hasRequested } from '@/test/fetch-requests.ts'
 import { expectJobRunning } from '@/test/job-running.ts'
+import { mockXoTaskUtils, taskUtilsMock } from '@/test/mock-xo-task-utils.ts'
 import { mountComposableWithI18n } from '@/test/mount-composable.ts'
 import { stubFetchResponse } from '@/test/stub-fetch-response.ts'
 import { TUNNEL_PROTOCOL, type XoNetwork } from '@vates/types'
 
-const { monitorTask } = vi.hoisted(() => ({
-  monitorTask: vi.fn(),
-}))
+const { monitorTask } = taskUtilsMock
 
-// The task collection would open an SSE subscription
-vi.mock(import('@/shared/composables/xo-task-utils.composable.ts'), () => ({
-  useXoTaskUtils: (() => ({ monitorTask })) as unknown as typeof useXoTaskUtils,
-}))
+mockXoTaskUtils()
 
 const TASK_ID = 'task-1'
 
 const NETWORK_IDS = ['network-1', 'network-2'] as XoNetwork['id'][]
 
 beforeEach(() => {
-  monitorTask.mockReset()
+  taskUtilsMock.reset()
 })
 
 function createPayload(overrides: Partial<NewPrivateNetworkPayload> = {}): NewPrivateNetworkPayload {
