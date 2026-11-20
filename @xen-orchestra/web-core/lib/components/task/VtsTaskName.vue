@@ -13,6 +13,7 @@
 <script lang="ts" setup>
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import type { Task } from '@core/components/ui/task-item/UiTaskItem.vue'
+import { getTaskLabel } from '@core/utils/task.util.ts'
 import { computed } from 'vue'
 
 const { task, size } = defineProps<{
@@ -20,7 +21,7 @@ const { task, size } = defineProps<{
   size: 'small' | 'medium'
 }>()
 
-const fullName = computed(() => task.nameParts?.map(part => part.text).join('') ?? task.name)
+const fullName = computed(() => getTaskLabel(task))
 </script>
 
 <style lang="postcss" scoped>

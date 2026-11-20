@@ -16,6 +16,7 @@ import {
   faBars,
   faBolt,
   faCamera,
+  faCheckDouble,
   faCircle,
   faClone,
   faClose,
@@ -211,4 +212,5 @@ export const actionIcons = defineIconPack({
       size: 10,
     },
   ],
+  read: constructIcon(faCheckDouble),
 })

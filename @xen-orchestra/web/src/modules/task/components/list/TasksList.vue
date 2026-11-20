@@ -20,11 +20,14 @@
       <VtsStateHero v-else-if="tasks.length === 0" format="table" type="no-data" size="small">
         {{ t('no-task-detected') }}
       </VtsStateHero>
-      <UiTaskList
+      <VtsTaskList
         v-else
+        class="tasks"
         :tasks="tasksRecords"
         :selected-task-id="selectedTaskId"
+        show-eye-icon
         :auto-collapse-completed
+        :expand-all="hasSearch"
         @select="id => (selectedTaskId = id)"
       />
       <VtsStateHero v-if="hasNoSearchResult" format="table" type="no-result" size="small">
@@ -38,15 +41,16 @@
 <script setup lang="ts">
 import type { Task } from '@core/components/ui/task-item/UiTaskItem.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
+import VtsTaskList from '@core/components/task/VtsTaskList.vue'
 import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
 import UiTableControlsBar from '@core/components/ui/table-controls-bar/UiTableControlsBar.vue'
-import UiTaskList from '@core/components/ui/task-list/UiTaskList.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import UiToggle from '@core/components/ui/toggle/UiToggle.vue'
+import { useDebouncedSearch } from '@core/composables/debounced-search.composable.ts'
 import { usePagination } from '@core/composables/pagination.composable.ts'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
-import { useSearchFilter } from '@core/composables/search-filter.composable.ts'
-import { computed, ref } from 'vue'
+import { filterTasksByName, hasSubtask } from '@core/utils/task.util.ts'
+import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { tasks, title } = defineProps<{
@@ -63,11 +67,31 @@ const selectedTaskId = useRouteQuery('id')
 
 const autoCollapseCompleted = ref(false)
 
-const { items: filteredTasks, hasSearch, searchBindings } = useSearchFilter(() => tasks)
+const { debouncedSearch, searchBindings } = useDebouncedSearch()
+
+const hasSearch = computed(() => debouncedSearch.value.trim() !== '')
+
+const filteredTasks = computed(() => filterTasksByName(tasks, debouncedSearch.value))
 
 const hasNoSearchResult = computed(() => hasSearch.value && filteredTasks.value.length === 0)
 
-const { pageRecords: tasksRecords, paginationBindings } = usePagination('tasks', filteredTasks)
+const { pageRecords: tasksRecords, paginationBindings, seek } = usePagination('tasks', filteredTasks)
+
+const selectedRootTaskId = computed(() => {
+  const taskId = selectedTaskId.value
+
+  return taskId ? filteredTasks.value.find(task => task.id === taskId || hasSubtask(task, taskId))?.id : undefined
+})
+
+watch(
+  [selectedTaskId, selectedRootTaskId],
+  ([, rootTaskId]) => {
+    if (rootTaskId !== undefined) {
+      seek(task => task.id === rootTaskId)
+    }
+  },
+  { immediate: true }
+)
 </script>
 
 <style scoped lang="postcss">
@@ -88,6 +112,12 @@ const { pageRecords: tasksRecords, paginationBindings } = usePagination('tasks',
 
   .auto-collapse-toggle {
     text-transform: none;
+  }
+
+  .tasks {
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding-inline: 0.4rem 0.8rem;
   }
 }
 </style>
