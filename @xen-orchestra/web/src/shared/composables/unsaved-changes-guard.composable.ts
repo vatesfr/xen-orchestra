@@ -30,7 +30,6 @@ export function useUnsavedChangesGuard(hasUnsavedChanges: MaybeRefOrGetter<boole
 
   onScopeDispose(removeGuard)
 
-  // A tab closed or reloaded cannot show the modal: the browser asks with its own dialog
   useEventListener(window, 'beforeunload', event => {
     if (toValue(hasUnsavedChanges)) {
       event.preventDefault()
