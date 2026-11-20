@@ -30,7 +30,7 @@ export const useXoVmEditTagsJob = defineJob('vm.edit-tags', [xoVmArg, xoVmTagCha
       }
 
       if (vm === undefined) {
-        throw new JobError(t('job:vm-tag:missing-vm'))
+        throw new JobError(t('job:vm-edit-tags:missing-vm'))
       }
 
       if (changes === undefined) {
@@ -38,7 +38,7 @@ export const useXoVmEditTagsJob = defineJob('vm.edit-tags', [xoVmArg, xoVmTagCha
       }
 
       if ([...changes.added, ...changes.removed].includes('')) {
-        throw new JobError(t('job:vm-tag:missing-tag'))
+        throw new JobError(t('job:vm-edit-tags:missing-tag'))
       }
     },
   }

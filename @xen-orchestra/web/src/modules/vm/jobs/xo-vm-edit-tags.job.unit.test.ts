@@ -87,7 +87,7 @@ describe('validate', () => {
     const job = mountEditTagsJob(vm, { added: ['db', ''], removed: [] })
 
     expect(job.canRun).toBe(false)
-    expect(job.errorMessage).toBe(t('job:vm-tag:missing-tag'))
+    expect(job.errorMessage).toBe(t('job:vm-edit-tags:missing-tag'))
   })
 
   it('can remove a whitespace-only tag set from elsewhere', () => {
