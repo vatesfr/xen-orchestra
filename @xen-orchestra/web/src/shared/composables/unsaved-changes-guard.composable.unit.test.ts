@@ -1,14 +1,11 @@
 import { useUnsavedChangesGuard } from '@/shared/composables/unsaved-changes-guard.composable.ts'
 import { createTestRouter } from '@/test/create-test-router.ts'
-import { discardChangesModalMock } from '@/test/mock-discard-changes-modal.ts'
+import { discardChangesModalMock, mockDiscardChangesModal } from '@/test/mock-discard-changes-modal.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
 import { flushPromises } from '@vue/test-utils'
 import { ref } from 'vue'
 
-vi.mock(
-  import('@core/composables/modals/use-discard-changes-modal.ts'),
-  () => import('@/test/mock-discard-changes-modal.ts')
-)
+mockDiscardChangesModal()
 
 beforeEach(() => {
   discardChangesModalMock.reset()

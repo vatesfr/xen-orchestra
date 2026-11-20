@@ -14,6 +14,7 @@ import { t } from '@/test/i18n.ts'
 import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
 import {
   chooseNewVmTemplate,
+  mockNewVmCollections,
   mountUnderNewVmForm,
   NEW_VM_DISKLESS_TEMPLATE,
   NEW_VM_HOST,
@@ -32,60 +33,7 @@ import { objectIcon } from '@core/icons'
 import { CONNECTION_STATUS } from '@core/types/connection.ts'
 import { nextTick } from 'vue'
 
-vi.mock(
-  import('@/modules/pool/remote-resources/use-xo-pool-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
-
-vi.mock(
-  import('@/modules/host/remote-resources/use-xo-host-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
-
-vi.mock(
-  import('@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
-
-vi.mock(
-  import('@/modules/network/remote-resources/use-xo-network-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
-
-vi.mock(
-  import('@/modules/pif/remote-resources/use-xo-pif-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
-
-vi.mock(
-  import('@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
-
-vi.mock(
-  import('@/modules/vm/remote-resources/use-xo-vm-template-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
-
-vi.mock(
-  import('@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'),
-  () => import('@/test/mock-xo-vm-device-collections.ts')
-)
-
-vi.mock(
-  import('@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'),
-  () => import('@/test/mock-xo-vm-device-collections.ts')
-)
-
-vi.mock(
-  import('@/modules/vdi/remote-resources/use-xo-vdi-snapshot-collection.ts'),
-  () => import('@/test/mock-xo-vm-device-collections.ts')
-)
-
-vi.mock(
-  import('@/modules/vif/remote-resources/use-xo-vif-collection.ts'),
-  () => import('@/test/mock-xo-vm-device-collections.ts')
-)
+mockNewVmCollections()
 
 beforeEach(() => {
   resetNewVmCollections()
@@ -482,7 +430,6 @@ it('checks the network interfaces no more once another template is chosen', asyn
   await form.validateStep('configuration')
 
   await chooseNewVmTemplate(form, NEW_VM_DISKLESS_TEMPLATE)
-  form.addVif()
   form.vmState.vifs[0].mac = 'not-a-mac'
   await nextTick()
 

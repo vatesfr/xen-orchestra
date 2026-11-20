@@ -2,20 +2,18 @@ import NewBackupRepositoryDrawer from '@/modules/backup-repository/components/dr
 import BackupRepositoryDetailsStep from '@/modules/backup-repository/components/form/steps/BackupRepositoryDetailsStep.vue'
 import BackupRepositoryGeneralStep from '@/modules/backup-repository/components/form/steps/BackupRepositoryGeneralStep.vue'
 import NewBackupRepositoryReviewStep from '@/modules/backup-repository/components/form/steps/NewBackupRepositoryReviewStep.vue'
-import type { useXoProxyCollection } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
 import { findDrawerButtonLabels, submitDrawer } from '@/test/drawer.ts'
 import { getButton } from '@/test/get-button.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
+import { proxyCollectionMock, mockXoProxyCollection } from '@/test/mock-xo-proxy-collection.ts'
 import { flushPromises, mount, type VueWrapper } from '@vue/test-utils'
-import { computed, ref } from 'vue'
 
-vi.mock(import('@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'), () => ({
-  useXoProxyCollection: (() => ({
-    proxies: ref([]),
-    useGetProxyById: () => computed(() => undefined),
-  })) as unknown as typeof useXoProxyCollection,
-}))
+mockXoProxyCollection()
+
+beforeEach(() => {
+  proxyCollectionMock.reset()
+})
 
 const STEPS = {
   general: BackupRepositoryGeneralStep,

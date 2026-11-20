@@ -2,6 +2,8 @@
 
 Keep the mock boundary tight: **mock only what reaches outside the code under test** (a remote resource, a store fed by the network, an overlay a unit test cannot answer), and let pure utilities and icon helpers run for real.
 
+XO 6 test files never call `vi.mock` or `vi.hoisted`: they replace exports with `mockModule` over the global module mocks, see [XO 6 mocking](../../../web/docs/tests/mocking.md). The typed form, the partial-mock cast and the shared mock modules below apply to both packages.
+
 Use the **typed** mock form — `vi.mock(import('<module>'), …)` — so a rename breaks type-check instead of silently leaving a stale mock. Create the stub functions with `vi.hoisted` (a plain `const fn = vi.fn()` referenced in the factory throws, because the mock is hoisted above imports), and reset them in `beforeEach`:
 
 ```typescript
@@ -30,6 +32,6 @@ beforeEach(() => {
 })
 ```
 
-`vi.mock` is hoisted: it cannot be wrapped in a helper, so one `vi.mock(path, () => import(...))` line per file is the convention, not a duplication.
+`vi.mock` is hoisted: it cannot be wrapped in a helper, so one `vi.mock(path, () => import(...))` line per file is the convention, not a duplication. XO 6's `mockModule` is not hoisted: each shared mock module exports the helper calling it, see [XO 6 mocking](../../../web/docs/tests/mocking.md).
 
 The XO 6 shared mocks (remote-resource collections, modals, overlays) and the network stub are listed in [XO 6 mocking](../../../web/docs/tests/mocking.md).

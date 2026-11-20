@@ -7,21 +7,14 @@ import { createPif } from '@/test/create-pif.ts'
 import { createPool, OTHER_POOL_ID } from '@/test/create-pool.ts'
 import { findAllGenericComponents } from '@/test/find-generic-components.ts'
 import { t } from '@/test/i18n.ts'
-import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
+import { xoCollectionsMock, mockXoCollections } from '@/test/mock-xo-collections.ts'
 import { mountWithSelect } from '@/test/mount-with-select.ts'
 import { findSelectOptionLabels, openSelect } from '@/test/select.ts'
 import VtsSelect from '@core/components/select/VtsSelect.vue'
 import { IP_CONFIGURATION_MODE } from '@vates/types'
 import { nextTick, type Ref, ref, h } from 'vue'
 
-vi.mock(
-  import('@/modules/pif/remote-resources/use-xo-pif-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
-vi.mock(
-  import('@/modules/network/remote-resources/use-xo-network-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
+mockXoCollections('pif', 'network')
 
 const POOL = createPool()
 

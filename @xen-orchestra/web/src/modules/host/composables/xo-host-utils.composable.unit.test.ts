@@ -1,29 +1,24 @@
 import { useXoHostUtils } from '@/modules/host/composables/xo-host-utils.composable.ts'
 import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import type { XoHostState } from '@/modules/host/utils/xo-host.util.ts'
-import type { FrontXoVm, useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
+import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { createHost } from '@/test/create-host.ts'
 import { createVm } from '@/test/create-vm.ts'
+import { vmCollectionMock, mockXoVmCollection } from '@/test/mock-xo-vm-collection.ts'
 import { mountComposable, mountComposableWithI18n } from '@/test/mount-composable.ts'
 import { getRelativeTime } from '@core/composables/relative-time.composable.ts'
 import { HOST_ALLOWED_OPERATIONS, HOST_POWER_STATE, VM_OPERATIONS } from '@vates/types'
 import { type MaybeRefOrGetter, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { vmsByHost } = vi.hoisted(() => ({
-  vmsByHost: { value: new Map<string, unknown[]>() },
-}))
-
-vi.mock(import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'), () => ({
-  useXoVmCollection: (() => ({ vmsByHost })) as unknown as typeof useXoVmCollection,
-}))
+mockXoVmCollection()
 
 beforeEach(() => {
-  vmsByHost.value = new Map()
+  vmCollectionMock.reset()
 })
 
 function setResidentVms(hostId: FrontXoHost['id'], vms: FrontXoVm[]) {
-  vmsByHost.value = new Map([[hostId, vms]])
+  vmCollectionMock.vms.value = vms.map(vm => ({ ...vm, $container: hostId }))
 }
 
 function mountHostUtilsFromSource(host: MaybeRefOrGetter<FrontXoHost>) {

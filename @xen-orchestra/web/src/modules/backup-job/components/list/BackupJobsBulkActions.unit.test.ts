@@ -1,75 +1,35 @@
 import BackupJobsBulkActions from '@/modules/backup-job/components/list/BackupJobsBulkActions.vue'
-import type { useBackupJobDelete } from '@/modules/backup-job/composables/use-backup-job-delete.composable.ts'
+import { useBackupJobDelete } from '@/modules/backup-job/composables/use-backup-job-delete.composable.ts'
 import type { useXoBackupJobChangeStateJob } from '@/modules/backup-job/jobs/xo-backup-job-change-state.job.ts'
-import type { useXoBackupJobDuplicateJob } from '@/modules/backup-job/jobs/xo-backup-job-duplicate.job.ts'
-import type { useXoBackupJobRunJob } from '@/modules/backup-job/jobs/xo-backup-job-run.job.ts'
+import { useXoBackupJobDuplicateJob } from '@/modules/backup-job/jobs/xo-backup-job-duplicate.job.ts'
+import { useXoBackupJobRunJob } from '@/modules/backup-job/jobs/xo-backup-job-run.job.ts'
 import type { FrontAnyXoBackupJob } from '@/modules/backup-job/remote-resources/use-xo-backup-job-collection.ts'
+import { createChangeStateJobStubs, findBulkActions, itExplainsNoSelection } from '@/test/bulk-actions.ts'
 import { createVmBackupJob } from '@/test/create-backup-job.ts'
+import { createJobStub, toJobComposableResult } from '@/test/create-job-result.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
-import type { ActionItem, GroupActionItem } from '@core/components/menu/VtsActionsMenu.vue'
-import VtsTableBulkActions from '@core/components/table/VtsTableBulkActions.vue'
+import { mockModule } from '@/test/spy-on-module.ts'
 import { mount } from '@vue/test-utils'
-import { ref, toValue } from 'vue'
 
-type MockedJobState = { canRun?: boolean; isRunning?: boolean; errorMessage?: string }
+const changeStateJobs = createChangeStateJobStubs()
 
-type ActionName = 'enable' | 'disable' | 'run' | 'duplicate' | 'delete'
-
-const { actions, jobStates } = vi.hoisted(() => ({
-  actions: {
-    enable: vi.fn(),
-    disable: vi.fn(),
-    run: vi.fn(),
-    duplicate: vi.fn(),
-    delete: vi.fn(),
-  },
-  jobStates: {} as Record<ActionName, MockedJobState>,
-}))
-
-function toJobState({ canRun = true, isRunning = false, errorMessage }: MockedJobState = {}) {
-  return { canRun: ref(canRun), isRunning: ref(isRunning), errorMessage: ref(errorMessage) }
+const jobs = {
+  enable: changeStateJobs.enable,
+  disable: changeStateJobs.disable,
+  run: createJobStub(useXoBackupJobRunJob),
+  duplicate: createJobStub(useXoBackupJobDuplicateJob),
+  delete: createJobStub(useBackupJobDelete, result =>
+    toJobComposableResult(result, 'deleteBackupJobs', 'isDeletingBackupJobs')
+  ),
 }
 
-vi.mock(import('@/modules/backup-job/jobs/xo-backup-job-change-state.job.ts'), () => ({
-  useXoBackupJobChangeStateJob: ((_backupJobs: unknown, enabled: unknown) =>
-    toValue(enabled)
-      ? { run: actions.enable, ...toJobState(jobStates.enable) }
-      : { run: actions.disable, ...toJobState(jobStates.disable) }) as unknown as typeof useXoBackupJobChangeStateJob,
-}))
-
-vi.mock(import('@/modules/backup-job/jobs/xo-backup-job-run.job.ts'), () => ({
-  useXoBackupJobRunJob: (() => ({
-    run: actions.run,
-    ...toJobState(jobStates.run),
-  })) as unknown as typeof useXoBackupJobRunJob,
-}))
-
-vi.mock(import('@/modules/backup-job/jobs/xo-backup-job-duplicate.job.ts'), () => ({
-  useXoBackupJobDuplicateJob: (() => ({
-    run: actions.duplicate,
-    ...toJobState(jobStates.duplicate),
-  })) as unknown as typeof useXoBackupJobDuplicateJob,
-}))
-
-vi.mock(import('@/modules/backup-job/composables/use-backup-job-delete.composable.ts'), () => ({
-  useBackupJobDelete: (() => {
-    const { canRun, isRunning, errorMessage } = toJobState(jobStates.delete)
-
-    return {
-      deleteBackupJobs: actions.delete,
-      canDeleteBackupJobs: canRun,
-      isDeletingBackupJobs: isRunning,
-      deleteBackupJobsErrorMessage: errorMessage,
-    }
-  }) as unknown as typeof useBackupJobDelete,
+mockModule(import('@/modules/backup-job/jobs/xo-backup-job-change-state.job.ts'), () => ({
+  useXoBackupJobChangeStateJob: changeStateJobs.use as unknown as typeof useXoBackupJobChangeStateJob,
 }))
 
 beforeEach(() => {
-  for (const name of Object.keys(actions) as ActionName[]) {
-    actions[name].mockReset()
-    jobStates[name] = {}
-  }
+  Object.values(jobs).forEach(job => job.reset())
 })
 
 function mountBulkActions(backupJobs: FrontAnyXoBackupJob[] = [createVmBackupJob()]) {
@@ -80,11 +40,11 @@ function mountBulkActions(backupJobs: FrontAnyXoBackupJob[] = [createVmBackupJob
 }
 
 function findActions(wrapper: ReturnType<typeof mountBulkActions>) {
-  const [changeState, manualRun, duplicate, deleteAction] = wrapper
-    .getComponent(VtsTableBulkActions)
-    .props('actions') as [GroupActionItem, ActionItem, ActionItem, ActionItem]
-
-  const [enable, disable] = changeState.children
+  const {
+    changeState,
+    changeStateChildren: [enable, disable],
+    actions: [manualRun, duplicate, deleteAction],
+  } = findBulkActions(wrapper)
 
   return { changeState, enable, disable, manualRun, duplicate, deleteAction }
 }
@@ -103,29 +63,21 @@ it('offers to change the state, run, duplicate and delete the selected backup jo
 })
 
 describe('without selection', () => {
-  it('disables the change state menu and explains why', () => {
-    expect(findActions(mountBulkActions([])).changeState).toMatchObject({
-      disabled: true,
-      hint: t('no-backup-job-selected'),
-    })
-  })
-
-  it('explains that no backup job is selected rather than the job error', () => {
-    jobStates.run = { canRun: false, errorMessage: 'No backup job to run' }
-    jobStates.duplicate = { canRun: false, errorMessage: 'No backup job to duplicate' }
-    jobStates.delete = { canRun: false, errorMessage: 'No backup job to delete' }
-
-    const { manualRun, duplicate, deleteAction } = findActions(mountBulkActions([]))
-
-    expect(manualRun).toMatchObject({ disabled: true, hint: t('no-backup-job-selected') })
-    expect(duplicate).toMatchObject({ disabled: true, hint: t('no-backup-job-selected') })
-    expect(deleteAction).toMatchObject({ disabled: true, hint: t('no-backup-job-selected') })
+  itExplainsNoSelection({
+    mountEmpty: () => mountBulkActions([]),
+    hint: t('no-backup-job-selected'),
+    jobErrors: [
+      [jobs.run, 'No backup job to run'],
+      [jobs.duplicate, 'No backup job to duplicate'],
+      [jobs.delete, 'No backup job to delete'],
+    ],
+    actionsTestName: 'explains that no backup job is selected rather than the job error',
   })
 })
 
 describe('with a selection', () => {
   it('explains why an action cannot run', () => {
-    jobStates.run = { canRun: false, errorMessage: t('job:backup-job-run:multiple-schedules', { n: 2 }) }
+    jobs.run.setState({ canRun: false, errorMessage: t('job:backup-job-run:multiple-schedules', { n: 2 }) })
 
     expect(findActions(mountBulkActions()).manualRun).toMatchObject({
       disabled: true,
@@ -140,13 +92,13 @@ describe('with a selection', () => {
       action.onClick?.()
     }
 
-    for (const name of Object.keys(actions) as ActionName[]) {
-      expect(actions[name]).toHaveBeenCalledOnce()
+    for (const job of Object.values(jobs)) {
+      expect(job.run).toHaveBeenCalledOnce()
     }
   })
 
   it('shows an action as busy while it runs', () => {
-    jobStates.duplicate = { isRunning: true }
+    jobs.duplicate.setState({ isRunning: true })
 
     expect(findActions(mountBulkActions()).duplicate.busy).toBe(true)
   })

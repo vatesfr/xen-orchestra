@@ -7,31 +7,27 @@ import { createPool } from '@/test/create-pool.ts'
 import { getButton, getUiButton } from '@/test/get-button.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
+import { mockModule } from '@/test/spy-on-module.ts'
 import { V2V_EXISTING_LIST } from '@/test/v2v-wizard-fixtures.ts'
 import UiAlert from '@core/components/ui/alert/UiAlert.vue'
 import { mount } from '@vue/test-utils'
+import { reactive, ref } from 'vue'
 
-const { destinationStepMock } = await vi.hoisted(async () => {
-  const vue = await import('vue')
+const destinationStepMock = {
+  form: reactive({
+    selectedPool: undefined as ReturnType<typeof createPool> | undefined,
+    poolSelectBindings: { label: 'pool' },
+    srSelectBindings: { label: 'sr' },
+    networkSelectBindings: { label: 'network' },
+    templateSelectBindings: { label: 'template' },
+  }),
+  existingList: ref<ReturnType<typeof useV2vDestinationStep>['existingList']['value']>(),
+  isListStoredByNewerVersion: ref(false),
+  submit: vi.fn(),
+  back: vi.fn(),
+}
 
-  return {
-    destinationStepMock: {
-      form: vue.reactive({
-        selectedPool: undefined as ReturnType<typeof createPool> | undefined,
-        poolSelectBindings: { label: 'pool' },
-        srSelectBindings: { label: 'sr' },
-        networkSelectBindings: { label: 'network' },
-        templateSelectBindings: { label: 'template' },
-      }),
-      existingList: vue.ref<ReturnType<typeof useV2vDestinationStep>['existingList']['value']>(),
-      isListStoredByNewerVersion: vue.ref(false),
-      submit: vi.fn(),
-      back: vi.fn(),
-    },
-  }
-})
-
-vi.mock(import('@/modules/v2v/composables/use-v2v-destination-step.composable.ts'), () => ({
+mockModule(import('@/modules/v2v/composables/use-v2v-destination-step.composable.ts'), () => ({
   useV2vDestinationStep: (() => destinationStepMock) as unknown as typeof useV2vDestinationStep,
 }))
 

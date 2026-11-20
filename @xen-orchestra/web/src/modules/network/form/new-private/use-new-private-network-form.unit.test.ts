@@ -1,13 +1,12 @@
 import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import { useNewPrivateNetworkForm } from '@/modules/network/form/new-private/use-new-private-network-form.ts'
-import type { FrontXoNetwork } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
 import type { FrontXoPif } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
 import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import { createHost } from '@/test/create-host.ts'
-import { createNetwork } from '@/test/create-network.ts'
+import { createEncryptedNetwork } from '@/test/create-network.ts'
 import { createPool, OTHER_POOL_ID, UNKNOWN_POOL_ID } from '@/test/create-pool.ts'
 import { dangerMessage } from '@/test/form-messages.ts'
-import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
+import { xoCollectionsMock, mockXoCollections } from '@/test/mock-xo-collections.ts'
 import { mountWithSelect } from '@/test/mount-with-select.ts'
 import { findSelectOptionLabels, openSelect, pickSelectOption } from '@/test/select.ts'
 import VtsSelect from '@core/components/select/VtsSelect.vue'
@@ -16,18 +15,7 @@ import { flushPromises, type VueWrapper } from '@vue/test-utils'
 import { h, nextTick, reactive } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-vi.mock(
-  import('@/modules/pool/remote-resources/use-xo-pool-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
-vi.mock(
-  import('@/modules/host/remote-resources/use-xo-host-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
-vi.mock(
-  import('@/modules/network/remote-resources/use-xo-network-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
+mockXoCollections('pool', 'host', 'network')
 
 const POOL = createPool()
 
@@ -56,17 +44,6 @@ beforeEach(() => {
   xoCollectionsMock.pools.value = [POOL, OTHER_POOL]
   xoCollectionsMock.hosts.value = [HOST, OTHER_HOST]
 })
-
-function createEncryptedNetwork(poolId: FrontXoPool['id'], encapsulation: TUNNEL_PROTOCOL): FrontXoNetwork {
-  return createNetwork({
-    $pool: poolId,
-    other_config: {
-      'xo:sdn-controller:private-network-uuid': `private-network-${encapsulation}`,
-      'xo:sdn-controller:encrypted': 'true',
-      'xo:sdn-controller:encapsulation': encapsulation,
-    },
-  })
-}
 
 // The encapsulation and the preferred center are only chosen through their select, rendered here
 function mountForm(poolId: FrontXoPool['id'] = POOL.id) {
@@ -267,8 +244,8 @@ describe('encryptedCheckboxBindings', () => {
 
   it('cannot encrypt when a selected pool has an encrypted network of each encapsulation', () => {
     xoCollectionsMock.networks.value = [
-      createEncryptedNetwork(POOL.id, TUNNEL_PROTOCOL.GRE),
-      createEncryptedNetwork(POOL.id, TUNNEL_PROTOCOL.VXLAN),
+      createEncryptedNetwork(TUNNEL_PROTOCOL.GRE, { $pool: POOL.id }),
+      createEncryptedNetwork(TUNNEL_PROTOCOL.VXLAN, { $pool: POOL.id }),
     ]
     const { form } = mountForm()
 
@@ -277,7 +254,7 @@ describe('encryptedCheckboxBindings', () => {
   })
 
   it('cannot encrypt when a selected pool already has an encrypted network of the chosen encapsulation', async () => {
-    xoCollectionsMock.networks.value = [createEncryptedNetwork(OTHER_POOL_ID, TUNNEL_PROTOCOL.VXLAN)]
+    xoCollectionsMock.networks.value = [createEncryptedNetwork(TUNNEL_PROTOCOL.VXLAN, { $pool: OTHER_POOL_ID })]
     const { form } = await mountCompleteForm()
 
     expect(form.encryptedCheckboxBindings.disabled).toBe(true)
@@ -287,7 +264,7 @@ describe('encryptedCheckboxBindings', () => {
   })
 
   it('can encrypt with the other encapsulation', async () => {
-    xoCollectionsMock.networks.value = [createEncryptedNetwork(OTHER_POOL_ID, TUNNEL_PROTOCOL.GRE)]
+    xoCollectionsMock.networks.value = [createEncryptedNetwork(TUNNEL_PROTOCOL.GRE, { $pool: OTHER_POOL_ID })]
     const { form } = await mountCompleteForm()
 
     expect(form.encryptedCheckboxBindings.disabled).toBe(false)
@@ -296,8 +273,8 @@ describe('encryptedCheckboxBindings', () => {
 
   it('ignores the encrypted networks of the pools that are not selected', async () => {
     xoCollectionsMock.networks.value = [
-      createEncryptedNetwork(OTHER_POOL_ID, TUNNEL_PROTOCOL.GRE),
-      createEncryptedNetwork(OTHER_POOL_ID, TUNNEL_PROTOCOL.VXLAN),
+      createEncryptedNetwork(TUNNEL_PROTOCOL.GRE, { $pool: OTHER_POOL_ID }),
+      createEncryptedNetwork(TUNNEL_PROTOCOL.VXLAN, { $pool: OTHER_POOL_ID }),
     ]
     const { form } = mountForm()
 
@@ -305,7 +282,7 @@ describe('encryptedCheckboxBindings', () => {
   })
 
   it('unchecks the encryption once it becomes unavailable', async () => {
-    xoCollectionsMock.networks.value = [createEncryptedNetwork(OTHER_POOL_ID, TUNNEL_PROTOCOL.VXLAN)]
+    xoCollectionsMock.networks.value = [createEncryptedNetwork(TUNNEL_PROTOCOL.VXLAN, { $pool: OTHER_POOL_ID })]
     const { wrapper, form } = await mountCompleteForm()
     await chooseEncapsulation(wrapper, TUNNEL_PROTOCOL.GRE)
     form.encryptedCheckboxBindings['onUpdate:modelValue'](true)

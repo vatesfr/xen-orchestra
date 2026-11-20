@@ -3,21 +3,20 @@ import type { useVmMigrate } from '@/modules/vm/composables/use-vm-migrate.compo
 import { createVm } from '@/test/create-vm.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
+import { mockModule } from '@/test/spy-on-module.ts'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import { IK_HIDE_ACTION_BUTTON_BUSY, IK_IN_MENU } from '@core/utils/injection-keys.util.ts'
 import { mount } from '@vue/test-utils'
 import { ref } from 'vue'
 
-const { migrateVm } = vi.hoisted(() => ({
-  migrateVm: vi.fn(),
-}))
+const migrateVm = vi.fn()
 
 const canMigrateVm = ref(true)
 const isMigratingVm = ref(false)
 const isMigrationBlocked = ref(false)
 const migrateVmErrorMessage = ref<string | undefined>(undefined)
 
-vi.mock(import('@/modules/vm/composables/use-vm-migrate.composable.ts'), () => ({
+mockModule(import('@/modules/vm/composables/use-vm-migrate.composable.ts'), () => ({
   useVmMigrate: (() => ({
     migrateVm,
     canMigrateVm,

@@ -1,51 +1,41 @@
 import { useXoBackupJobLastRuns } from '@/modules/backup-job/composables/use-xo-backup-job-last-runs.composable.ts'
 import type { FrontAnyXoBackupJob } from '@/modules/backup-job/remote-resources/use-xo-backup-job-collection.ts'
-import type { useXoBackupLogCollection } from '@/modules/backup-log/remote-resources/use-xo-backup-log-collection.ts'
+import type { FrontXoBackupLog } from '@/modules/backup-log/remote-resources/use-xo-backup-log-collection.ts'
 import { createVmBackupJob } from '@/test/create-backup-job.ts'
 import { createBackupLog } from '@/test/create-backup-log.ts'
-import { mountComposable } from '@/test/mount-composable.ts'
+import { backupLogCollectionMock, mockXoBackupLogCollection } from '@/test/mock-xo-backup-log-collection.ts'
+import { mountComposableWithI18n } from '@/test/mount-composable.ts'
 import { formatDateTime } from '@core/utils/time.util.ts'
-import { useI18n } from 'vue-i18n'
 
-const { getLastNBackupLogsByJobId } = vi.hoisted(() => ({
-  getLastNBackupLogsByJobId: vi.fn(),
-}))
+mockXoBackupLogCollection()
 
-vi.mock(import('@/modules/backup-log/remote-resources/use-xo-backup-log-collection.ts'), () => ({
-  useXoBackupLogCollection: (() => ({ getLastNBackupLogsByJobId })) as unknown as typeof useXoBackupLogCollection,
-}))
+const backupJob = createVmBackupJob()
 
 beforeEach(() => {
-  getLastNBackupLogsByJobId.mockReset()
-  getLastNBackupLogsByJobId.mockReturnValue([])
+  backupLogCollectionMock.reset()
 })
 
 function mountLastRuns(backupJob: FrontAnyXoBackupJob) {
-  return mountComposable(() => {
-    const { t } = useI18n()
-
-    return { lastRuns: useXoBackupJobLastRuns(backupJob), t }
-  }).wrapper.vm
+  return mountComposableWithI18n(() => ({ lastRuns: useXoBackupJobLastRuns(backupJob) }))
 }
 
 describe('useXoBackupJobLastRuns', () => {
   it('only gives the runs of the backup job', () => {
-    const backupJob = createVmBackupJob()
-
-    getLastNBackupLogsByJobId.mockImplementation((jobId: FrontAnyXoBackupJob['id']) =>
-      jobId === backupJob.id ? [createBackupLog({ status: 'success' })] : [createBackupLog({ status: 'failure' })]
-    )
+    backupLogCollectionMock.backupLogs.value = [
+      createBackupLog({ jobId: backupJob.id, status: 'success' }),
+      createBackupLog({ jobId: 'other-backup-job' as FrontXoBackupLog['jobId'], status: 'failure' }),
+    ]
 
     expect(mountLastRuns(backupJob).lastRuns.map(run => run.status)).toEqual(['success'])
   })
 
   it('gives the status of each run, with its number, date and status in the tooltip', () => {
-    getLastNBackupLogsByJobId.mockReturnValue([
-      createBackupLog({ status: 'failure', start: 1_700_000_200_000, end: 1_700_000_300_000 }),
-      createBackupLog({ status: 'success', start: 1_700_000_000_000, end: 1_700_000_100_000 }),
-    ])
+    backupLogCollectionMock.backupLogs.value = [
+      createBackupLog({ jobId: backupJob.id, status: 'failure', start: 1_700_000_200_000, end: 1_700_000_300_000 }),
+      createBackupLog({ jobId: backupJob.id, status: 'success', start: 1_700_000_000_000, end: 1_700_000_100_000 }),
+    ]
 
-    const result = mountLastRuns(createVmBackupJob())
+    const result = mountLastRuns(backupJob)
 
     expect(result.lastRuns).toEqual([
       {
@@ -60,11 +50,11 @@ describe('useXoBackupJobLastRuns', () => {
   })
 
   it('dates a run still in progress by its start', () => {
-    getLastNBackupLogsByJobId.mockReturnValue([
-      createBackupLog({ status: 'pending', start: 1_700_000_000_000, end: undefined }),
-    ])
+    backupLogCollectionMock.backupLogs.value = [
+      createBackupLog({ jobId: backupJob.id, status: 'pending', start: 1_700_000_000_000, end: undefined }),
+    ]
 
-    const result = mountLastRuns(createVmBackupJob())
+    const result = mountLastRuns(backupJob)
 
     expect(result.lastRuns).toEqual([
       {

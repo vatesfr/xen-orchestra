@@ -1,7 +1,9 @@
 import type { FrontXoPbd } from '@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'
 import { type NewVmForm, provideNewVmForm } from '@/modules/vm/form/new/use-new-vm-form.ts'
+import { useXoVmCreateJob } from '@/modules/vm/jobs/xo-vm-create.job.ts'
 import type { VmState } from '@/modules/vm/types/new-xo-vm.type.ts'
 import { createHost } from '@/test/create-host.ts'
+import { createJobStub, type JobResultState } from '@/test/create-job-result.ts'
 import { createNetwork } from '@/test/create-network.ts'
 import { createPbd } from '@/test/create-pbd.ts'
 import { createPool, OTHER_POOL_ID } from '@/test/create-pool.ts'
@@ -11,8 +13,9 @@ import { createVdi } from '@/test/create-vdi.ts'
 import { createVif } from '@/test/create-vif.ts'
 import { createVmTemplate } from '@/test/create-vm-template.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
-import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
-import { vmDeviceCollectionsMock } from '@/test/mock-xo-vm-device-collections.ts'
+import { discardChangesModalMock, mockDiscardChangesModal } from '@/test/mock-discard-changes-modal.ts'
+import { mockXoCollections, xoCollectionsMock } from '@/test/mock-xo-collections.ts'
+import { mockXoVmDeviceCollections, vmDeviceCollectionsMock } from '@/test/mock-xo-vm-device-collections.ts'
 import type { MountComposableOptions } from '@/test/mount-composable.ts'
 import { mount } from '@vue/test-utils'
 import { type Component, defineComponent, h, nextTick, type ShallowUnwrapRef } from 'vue'
@@ -79,6 +82,17 @@ export const NEW_VM_OTHER_POOL_TEMPLATE = createVmTemplate({
   $pool: OTHER_POOL_ID,
 })
 
+// Replaces the collections a new VM is built from in every test of the file: call it at the top level of the test file
+export function mockNewVmCollections() {
+  mockXoCollections('pool', 'host', 'sr', 'network', 'pif', 'pbd', 'vmTemplate')
+  mockXoVmDeviceCollections('vbd', 'vdi', 'vdiSnapshot', 'vif')
+}
+
+export function resetNewVmCollections() {
+  xoCollectionsMock.reset()
+  vmDeviceCollectionsMock.reset()
+}
+
 export function seedNewVmCollections() {
   xoCollectionsMock.pools.value = [NEW_VM_POOL, createPool({ id: OTHER_POOL_ID, name_label: 'Other pool' })]
   xoCollectionsMock.hosts.value = [NEW_VM_HOST]
@@ -94,9 +108,28 @@ export function seedNewVmCollections() {
   vmDeviceCollectionsMock.vifs.value = [NEW_VM_TEMPLATE_VIF]
 }
 
-export function resetNewVmCollections() {
-  xoCollectionsMock.reset()
-  vmDeviceCollectionsMock.reset()
+/**
+ * Mocks what the new VM wizard runs on, in every test of the file: the collections a new VM is built from, the discard
+ * changes modal and the VM creation job, all reset before each test. Call it at the top level of the test file.
+ * Returns `seedNewVmWizard(run, state?)`: seeds the collections, then sets the creation job, running `run`, in `state`.
+ */
+export function mockNewVmWizard() {
+  const createJob = createJobStub(useXoVmCreateJob)
+
+  mockDiscardChangesModal()
+  mockNewVmCollections()
+
+  beforeEach(() => {
+    resetNewVmCollections()
+    createJob.reset()
+    discardChangesModalMock.reset()
+  })
+
+  return function seedNewVmWizard(run: () => Promise<unknown>, state?: JobResultState) {
+    seedNewVmCollections()
+    createJob.run.mockImplementation(run)
+    createJob.setState(state)
+  }
 }
 
 export async function chooseNewVmTemplate(form: Pick<NewVmForm, 'vmState'>, template = NEW_VM_DISK_TEMPLATE) {

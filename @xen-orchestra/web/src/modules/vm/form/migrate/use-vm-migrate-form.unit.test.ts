@@ -1,10 +1,7 @@
-import type { FrontXoHost, useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
-import type {
-  FrontXoNetwork,
-  useXoNetworkCollection,
-} from '@/modules/network/remote-resources/use-xo-network-collection.ts'
-import type { FrontXoPif, useXoPifCollection } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
-import type { FrontXoPool, useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
+import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
+import type { FrontXoNetwork } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
+import type { FrontXoPif } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
+import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import { useVmMigrateForm } from '@/modules/vm/form/migrate/use-vm-migrate-form.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { createHost } from '@/test/create-host.ts'
@@ -13,34 +10,12 @@ import { createPif } from '@/test/create-pif.ts'
 import { createPool } from '@/test/create-pool.ts'
 import { createVm } from '@/test/create-vm.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
-import { groupBy } from '@/test/group-by.ts'
+import { xoCollectionsMock, mockXoCollections } from '@/test/mock-xo-collections.ts'
 import type { FormSelect, FormSelectId } from '@core/packages/form-select'
 import { mount } from '@vue/test-utils'
-import { computed, defineComponent, h, inject, nextTick, ref, toValue, type MaybeRefOrGetter } from 'vue'
+import { defineComponent, h, inject, nextTick } from 'vue'
 
-const { useXoPoolCollectionMock, useXoHostCollectionMock, useXoNetworkCollectionMock, useXoPifCollectionMock } =
-  vi.hoisted(() => ({
-    useXoPoolCollectionMock: vi.fn(),
-    useXoHostCollectionMock: vi.fn(),
-    useXoNetworkCollectionMock: vi.fn(),
-    useXoPifCollectionMock: vi.fn(),
-  }))
-
-vi.mock(import('@/modules/pool/remote-resources/use-xo-pool-collection.ts'), () => ({
-  useXoPoolCollection: useXoPoolCollectionMock as unknown as typeof useXoPoolCollection,
-}))
-
-vi.mock(import('@/modules/host/remote-resources/use-xo-host-collection.ts'), () => ({
-  useXoHostCollection: useXoHostCollectionMock as unknown as typeof useXoHostCollection,
-}))
-
-vi.mock(import('@/modules/network/remote-resources/use-xo-network-collection.ts'), () => ({
-  useXoNetworkCollection: useXoNetworkCollectionMock as unknown as typeof useXoNetworkCollection,
-}))
-
-vi.mock(import('@/modules/pif/remote-resources/use-xo-pif-collection.ts'), () => ({
-  useXoPifCollection: useXoPifCollectionMock as unknown as typeof useXoPifCollection,
-}))
+mockXoCollections('host', 'network', 'pif', 'pool')
 
 const POOL_ID = 'pool-1' as FrontXoPool['id']
 const OTHER_POOL_ID = 'pool-2' as FrontXoPool['id']
@@ -122,35 +97,13 @@ const pifs = [
   }),
 ]
 
-const loadedNetworks = ref<FrontXoNetwork[]>([])
-
 beforeEach(() => {
-  useXoPoolCollectionMock.mockReset()
-  useXoHostCollectionMock.mockReset()
-  useXoNetworkCollectionMock.mockReset()
-  useXoPifCollectionMock.mockReset()
+  xoCollectionsMock.reset()
 
-  useXoPoolCollectionMock.mockReturnValue({
-    pools: computed(() => pools),
-    useGetPoolById: (id: MaybeRefOrGetter<FrontXoPool['id'] | undefined>) =>
-      computed(() => pools.find(pool => pool.id === toValue(id))),
-  })
-
-  useXoHostCollectionMock.mockReturnValue({
-    hostsByPool: computed(() => groupBy(hosts, host => host.$pool)),
-  })
-
-  loadedNetworks.value = networks
-
-  useXoNetworkCollectionMock.mockReturnValue({
-    networks: computed(() => loadedNetworks.value),
-    getNetworkById: (id: FrontXoNetwork['id'] | undefined) => loadedNetworks.value.find(network => network.id === id),
-  })
-
-  useXoPifCollectionMock.mockReturnValue({
-    pifsByHost: computed(() => groupBy(pifs, pif => pif.$host)),
-    getPifsByIds: (ids: FrontXoPif['id'][]) => pifs.filter(pif => ids.includes(pif.id)),
-  })
+  xoCollectionsMock.pools.value = pools
+  xoCollectionsMock.hosts.value = hosts
+  xoCollectionsMock.networks.value = networks
+  xoCollectionsMock.pifs.value = pifs
 })
 
 type SelectProbe = { select: FormSelect }
@@ -279,7 +232,7 @@ describe('migration network select', () => {
     await nextTick()
     form.formData.migrationNetwork = MANAGEMENT_NETWORK_ID
 
-    loadedNetworks.value = networks.map(network =>
+    xoCollectionsMock.networks.value = networks.map(network =>
       network.id === MIGRATION_NETWORK_ID ? { ...network, name_label: 'BackupNet renamed' } : network
     )
     await nextTick()

@@ -5,6 +5,7 @@ import { vmDeviceCollectionsMock } from '@/test/mock-xo-vm-device-collections.ts
 import { mountComposable } from '@/test/mount-composable.ts'
 import {
   chooseNewVmTemplate,
+  mockNewVmCollections,
   NEW_VM_AUTOMATIC_NETWORK,
   NEW_VM_DISK_TEMPLATE,
   NEW_VM_DISKLESS_TEMPLATE,
@@ -19,61 +20,13 @@ import {
 } from '@/test/new-vm-fixtures.ts'
 import { nextTick } from 'vue'
 
-vi.mock(
-  import('@/modules/pool/remote-resources/use-xo-pool-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
-
-vi.mock(
-  import('@/modules/host/remote-resources/use-xo-host-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
-
-vi.mock(
-  import('@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
-
-vi.mock(
-  import('@/modules/network/remote-resources/use-xo-network-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
-
-vi.mock(
-  import('@/modules/pif/remote-resources/use-xo-pif-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
-
-vi.mock(
-  import('@/modules/vm/remote-resources/use-xo-vm-template-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
-
-vi.mock(
-  import('@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'),
-  () => import('@/test/mock-xo-vm-device-collections.ts')
-)
-
-vi.mock(
-  import('@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'),
-  () => import('@/test/mock-xo-vm-device-collections.ts')
-)
-
-vi.mock(
-  import('@/modules/vdi/remote-resources/use-xo-vdi-snapshot-collection.ts'),
-  () => import('@/test/mock-xo-vm-device-collections.ts')
-)
-
-vi.mock(
-  import('@/modules/vif/remote-resources/use-xo-vif-collection.ts'),
-  () => import('@/test/mock-xo-vm-device-collections.ts')
-)
-
-const GIB = 1024 ** 3
+mockNewVmCollections()
 
 beforeEach(() => {
   resetNewVmCollections()
 })
+
+const GIB = 1024 ** 3
 
 function mountPayloadWithoutTemplate() {
   seedNewVmCollections()
@@ -216,6 +169,20 @@ describe('vifs', () => {
     result.addVif()
 
     expect(result.payload).toMatchObject({ vifs: [{ network: NEW_VM_AUTOMATIC_NETWORK.id, mac: '' }] })
+  })
+
+  it('creates the default interface of a template without one', async () => {
+    const { payload } = await mountPayload(NEW_VM_DISKLESS_TEMPLATE)
+
+    expect(payload).toMatchObject({ vifs: [{ network: NEW_VM_AUTOMATIC_NETWORK.id, mac: '' }] })
+  })
+
+  it('creates no interface once the default one is removed', async () => {
+    const result = await mountPayload(NEW_VM_DISKLESS_TEMPLATE)
+
+    result.removeVif(result.vmState.vifs[0].key)
+
+    expect(result.payload).not.toHaveProperty('vifs')
   })
 })
 

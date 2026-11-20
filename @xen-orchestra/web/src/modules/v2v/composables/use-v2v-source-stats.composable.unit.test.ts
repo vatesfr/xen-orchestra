@@ -2,14 +2,11 @@ import { useV2vSourceStats } from '@/modules/v2v/composables/use-v2v-source-stat
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { createV2vColdAndWarmImportVms, createV2vImportVm } from '@/test/create-v2v-import-vm.ts'
 import { V2V_TEST_SOURCE } from '@/test/create-v2v-inventory.ts'
-import { vmCollectionMock } from '@/test/mock-xo-vm-collection.ts'
+import { vmCollectionMock, mockXoVmCollection } from '@/test/mock-xo-vm-collection.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
 import { type MaybeRefOrGetter, nextTick, ref } from 'vue'
 
-vi.mock(
-  import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'),
-  () => import('@/test/mock-xo-vm-collection.ts')
-)
+mockXoVmCollection()
 
 beforeEach(() => {
   vmCollectionMock.reset()

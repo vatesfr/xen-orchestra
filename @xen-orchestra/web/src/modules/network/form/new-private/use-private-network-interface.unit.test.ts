@@ -7,24 +7,13 @@ import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-co
 import { createPif } from '@/test/create-pif.ts'
 import { createPool, OTHER_POOL_ID } from '@/test/create-pool.ts'
 import { findAllGenericComponents } from '@/test/find-generic-components.ts'
-import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
+import { xoCollectionsMock, mockXoCollections } from '@/test/mock-xo-collections.ts'
 import { mountWithSelect } from '@/test/mount-with-select.ts'
 import { findSelectOptionLabels, openSelect, pickSelectOption } from '@/test/select.ts'
 import VtsSelect from '@core/components/select/VtsSelect.vue'
 import { h, nextTick, reactive, ref } from 'vue'
 
-vi.mock(
-  import('@/modules/pool/remote-resources/use-xo-pool-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
-vi.mock(
-  import('@/modules/pif/remote-resources/use-xo-pif-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
-vi.mock(
-  import('@/modules/network/remote-resources/use-xo-network-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
+mockXoCollections('pool', 'pif', 'network')
 
 const POOL = createPool()
 

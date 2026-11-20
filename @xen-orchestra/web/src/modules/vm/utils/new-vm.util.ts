@@ -1,5 +1,6 @@
 import type { FrontXoVmTemplate } from '@/modules/vm/remote-resources/use-xo-vm-template-collection.ts'
 import type { Vdi, Vif, VmState } from '@/modules/vm/types/new-xo-vm.type.ts'
+import { uniqueId } from 'lodash-es'
 
 export function isDiskVmTemplate(template: FrontXoVmTemplate | undefined) {
   return template !== undefined && template.$VBDs.length !== 0 && template.name_label !== 'Other install media'
@@ -94,6 +95,14 @@ export function getExistingVdisChanges(defaultVdis: Vdi[], currentVdis: Vdi[], i
       },
     ]
   })
+}
+
+export function createNewVif(network: Vif['network']): Vif {
+  return {
+    key: uniqueId('new-vif-'),
+    network,
+    mac: '',
+  }
 }
 
 export function getExistingVifsDiff(defaultVif: Vif, currentVif: Vif) {

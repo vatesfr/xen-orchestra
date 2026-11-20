@@ -1,0 +1,271 @@
+import { createTestRouter } from '@/test/create-test-router.ts'
+import { confirmOpenedModal, overlayMock } from '@/test/mock-overlay.ts'
+import { routeQueryMock } from '@/test/mock-route-query.ts'
+import { mountComposable } from '@/test/mount-composable.ts'
+import type { VueWrapper } from '@vue/test-utils'
+import { type MaybeRefOrGetter, ref, type ShallowUnwrapRef } from 'vue'
+import type { RouteLocationRaw, Router } from 'vue-router'
+
+type SettledResults = PromiseSettledResult<unknown>[]
+
+type ConfirmOptions = { router?: Router }
+
+/**
+ * The `run` spy of a job a composable runs detached, the modal closing right away: `mockSuccess` makes it hand the
+ * results to `onSuccess`, like a successful job, after `beforeSuccess`; `settled()` is what that handling returned,
+ * to wait for. Reset before each test.
+ */
+export function createDetachedJobRun(run: ReturnType<typeof vi.fn>) {
+  let successHandled: unknown
+
+  beforeEach(() => {
+    successHandled = undefined
+  })
+
+  return {
+    run,
+    mockSuccess(results: SettledResults, beforeSuccess?: () => void) {
+      run.mockImplementation(({ onSuccess }: { onSuccess: (results: SettledResults) => unknown }) => {
+        beforeSuccess?.()
+        successHandled = onSuccess(results)
+      })
+    },
+    settled: () => successHandled,
+  }
+}
+
+type DetachedJobRun = ReturnType<typeof createDetachedJobRun>
+
+type ConfirmModal = { open: ReturnType<typeof vi.fn>; events?: { onConfirm?: () => void } }
+
+type ConfirmModals = { singleModal: ConfirmModal; typeToConfirmModal: ConfirmModal }
+
+type ConfirmedActionCase<TItem, TResult extends Record<string, unknown>> = {
+  // The composable under test, on the items
+  use: (items: MaybeRefOrGetter<TItem[]>) => TResult
+  // Starts its action, which opens its modal for a single item or its type to confirm modal for several
+  start: (result: VueWrapper<ShallowUnwrapRef<TResult>>['vm']) => void
+  detachedRun: DetachedJobRun
+  // Its two modals once mounted; by default the overlays of `mock-overlay.ts`, the single item one declared first
+  getModals?: () => ConfirmModals
+}
+
+function getOverlayModals(): ConfirmModals {
+  const [singleModal, typeToConfirmModal] = overlayMock.getOverlays<{ events?: { onConfirm?: () => void } }>()
+
+  return { singleModal, typeToConfirmModal }
+}
+
+/**
+ * The action of a composable confirmed in a modal. `mount` mounts it on the items (with a test router by default),
+ * returning what the composable returns; `open` also starts the action: what the composable returns, and both modals. `confirm` also confirms the modal opened, then
+ * waits for the success handling of the detached job: the `confirm` of a {@link SelectionJobCase}.
+ */
+export function createConfirmedAction<TItem, TResult extends Record<string, unknown>>({
+  use,
+  start,
+  detachedRun,
+  getModals = getOverlayModals,
+}: ConfirmedActionCase<TItem, TResult>) {
+  function mount(items: MaybeRefOrGetter<TItem[]>, { router = createTestRouter() }: ConfirmOptions = {}) {
+    return mountComposable(() => use(items), { router }).wrapper.vm
+  }
+
+  function open(items: MaybeRefOrGetter<TItem[]>, options?: ConfirmOptions) {
+    const result = mount(items, options)
+
+    start(result)
+
+    return { result, ...getModals() }
+  }
+
+  async function confirm(items: MaybeRefOrGetter<TItem[]>, options?: ConfirmOptions) {
+    const { singleModal, typeToConfirmModal } = open(items, options)
+
+    confirmOpenedModal([singleModal, typeToConfirmModal])
+
+    await detachedRun.settled()
+  }
+
+  return { mount, open, confirm }
+}
+
+type ConfirmedAction<TItem> = { open: (items: TItem[]) => ConfirmModals }
+
+// What a composable opens a confirmation modal with: its props, and the `onConfirm` running its action
+export function confirmModalOpening(props: Record<string, unknown>) {
+  return { props, events: { onConfirm: expect.any(Function) } }
+}
+
+type TypeToConfirmTexts = { title: string; description: string; confirmationText: string; confirmLabel: string }
+
+/**
+ * Registers the test of a composable opening its modal for a single item, not its type to confirm modal:
+ * `openedWith` is what it opens it with, none for an overlay declaring its own props and events.
+ */
+export function itOpensSingleModal<TItem>(
+  name: string,
+  action: ConfirmedAction<TItem>,
+  item: TItem,
+  openedWith: unknown[]
+) {
+  it(name, () => {
+    const { singleModal, typeToConfirmModal } = action.open([item])
+
+    expect(singleModal.open.mock.calls).toEqual([openedWith])
+    expect(typeToConfirmModal.open).not.toHaveBeenCalled()
+  })
+}
+
+/**
+ * Registers the test of a composable asking to type to confirm its action on several items, rather than opening its
+ * modal for a single item.
+ */
+export function itAsksToTypeToConfirm<TItem>(
+  name: string,
+  action: ConfirmedAction<TItem>,
+  items: TItem[],
+  texts: TypeToConfirmTexts
+) {
+  it(name, () => {
+    const { singleModal, typeToConfirmModal } = action.open(items)
+
+    expect(singleModal.open).not.toHaveBeenCalled()
+    expect(typeToConfirmModal.open).toHaveBeenCalledWith(
+      confirmModalOpening({ accent: 'danger', icon: 'status:danger-picto', ...texts })
+    )
+  })
+}
+
+export async function createRouterOnPage(name: string, id: string) {
+  const router = createTestRouter()
+
+  await router.push({ name, params: { id } } as RouteLocationRaw)
+
+  return router
+}
+
+export type SelectionJobCase<TItem extends { id: string }> = {
+  // How the test names call an item, the items, the action done and being done
+  wording: { item: string; items: string; done: string; doing: string }
+  items: [TItem, TItem]
+  detachedRun: DetachedJobRun
+  // Mounts the composable on the items, starts the action, confirms it, then waits for the success handling
+  confirm: (items: MaybeRefOrGetter<TItem[]>, options?: ConfirmOptions) => Promise<void>
+  // The error of an item the job failed on
+  errorMessage: string
+}
+
+/**
+ * Registers the tests every composable running a detached job on the selected items shares, once its modal is
+ * confirmed: it unselects the item the side panel shows (the mocked route query) once the job succeeded on it, keeps
+ * it otherwise, also when the items change during the job unless `itemsChange` is false.
+ */
+export function itUnselectsOnSuccess<TItem extends { id: string }>(
+  { wording, items: [firstItem, secondItem], detachedRun, confirm, errorMessage }: SelectionJobCase<TItem>,
+  { itemsChange = true }: { itemsChange?: boolean } = {}
+) {
+  it('runs the job detached so the modal closes right away', async () => {
+    await confirm([firstItem])
+
+    expect(detachedRun.run).toHaveBeenCalledWith({ detached: true, onSuccess: expect.any(Function) })
+  })
+
+  it(`unselects the ${wording.item} shown in the side panel once ${wording.done}`, async () => {
+    detachedRun.mockSuccess([
+      { status: 'fulfilled', value: undefined },
+      { status: 'fulfilled', value: undefined },
+    ])
+    routeQueryMock.query.value = secondItem.id
+
+    await confirm([firstItem, secondItem])
+
+    expect(routeQueryMock.query.value).toBe('')
+  })
+
+  it(`keeps the ${wording.item} shown in the side panel selected when ${wording.doing} it failed`, async () => {
+    detachedRun.mockSuccess([
+      { status: 'fulfilled', value: undefined },
+      { status: 'rejected', reason: new Error(errorMessage) },
+    ])
+    routeQueryMock.query.value = secondItem.id
+
+    await confirm([firstItem, secondItem])
+
+    expect(routeQueryMock.query.value).toBe(secondItem.id)
+  })
+
+  it(`keeps another ${wording.item} shown in the side panel selected`, async () => {
+    detachedRun.mockSuccess([{ status: 'fulfilled', value: undefined }])
+    routeQueryMock.query.value = secondItem.id
+
+    await confirm([firstItem])
+
+    expect(routeQueryMock.query.value).toBe(secondItem.id)
+  })
+
+  if (itemsChange) {
+    it(`unselects the ${wording.done} ${wording.item} even when the ${wording.items} change during the job`, async () => {
+      const items = ref([firstItem, secondItem])
+      routeQueryMock.query.value = secondItem.id
+
+      // The items the job ran on leave the collection before the job is over
+      detachedRun.mockSuccess(
+        [
+          { status: 'fulfilled', value: undefined },
+          { status: 'fulfilled', value: undefined },
+        ],
+        () => {
+          items.value = []
+        }
+      )
+
+      await confirm(items as MaybeRefOrGetter<TItem[]>)
+
+      expect(routeQueryMock.query.value).toBe('')
+    })
+  }
+}
+
+type RedirectionCase<TItem> = {
+  // The route of the page of an item
+  itemPage: string
+  // Where the page of an item redirects once the job succeeded on it, and how the test name says it
+  redirection: { to: (item: TItem) => object; wording: string }
+}
+
+/**
+ * Registers the tests every composable running a detached job on the selected items shares when the current page
+ * is the page of one of them: it leaves that page once the job succeeded on its item, and stays otherwise.
+ */
+export function itRedirectsOnSuccess<TItem extends { id: string }>(
+  { wording, items: [firstItem, secondItem], detachedRun, confirm, errorMessage }: SelectionJobCase<TItem>,
+  { itemPage, redirection }: RedirectionCase<TItem>
+) {
+  it(`redirects ${redirection.wording} once the ${wording.item} of the current page is ${wording.done}`, async () => {
+    detachedRun.mockSuccess([{ status: 'fulfilled', value: undefined }])
+    const router = await createRouterOnPage(itemPage, firstItem.id)
+
+    await confirm([firstItem], { router })
+
+    expect(router.currentRoute.value).toMatchObject(redirection.to(firstItem))
+  })
+
+  it(`stays on the ${wording.item} page when ${wording.doing} it failed`, async () => {
+    detachedRun.mockSuccess([{ status: 'rejected', reason: new Error(errorMessage) }])
+    const router = await createRouterOnPage(itemPage, firstItem.id)
+
+    await confirm([firstItem], { router })
+
+    expect(router.currentRoute.value.name).toBe(itemPage)
+  })
+
+  it(`stays on the page of another ${wording.item}`, async () => {
+    detachedRun.mockSuccess([{ status: 'fulfilled', value: undefined }])
+    const router = await createRouterOnPage(itemPage, secondItem.id)
+
+    await confirm([firstItem], { router })
+
+    expect(router.currentRoute.value.name).toBe(itemPage)
+  })
+}

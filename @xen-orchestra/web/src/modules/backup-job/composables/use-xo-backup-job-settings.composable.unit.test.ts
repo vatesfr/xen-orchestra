@@ -1,27 +1,18 @@
 import { useXoBackupJobSettings } from '@/modules/backup-job/composables/use-xo-backup-job-settings.composable.ts'
 import type { FrontAnyXoBackupJob } from '@/modules/backup-job/remote-resources/use-xo-backup-job-collection.ts'
-import type { FrontXoProxy, useXoProxyCollection } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
 import { createMetadataBackupJob, createVmBackupJob } from '@/test/create-backup-job.ts'
+import { createProxy } from '@/test/create-proxy.ts'
+import { proxyCollectionMock, mockXoProxyCollection } from '@/test/mock-xo-proxy-collection.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
 import { formatSpeed } from '@core/utils/speed.util.ts'
 import { formatTimeout } from '@core/utils/time.util.ts'
 import type { XoProxy } from '@vates/types'
-import { computed, toValue, type MaybeRefOrGetter } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { proxies } = vi.hoisted(() => ({
-  proxies: [] as FrontXoProxy[],
-}))
-
-vi.mock(import('@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'), () => ({
-  useXoProxyCollection: (() => ({
-    useGetProxyById: (id: MaybeRefOrGetter<FrontXoProxy['id'] | undefined>) =>
-      computed(() => proxies.find(proxy => proxy.id === toValue(id))),
-  })) as unknown as typeof useXoProxyCollection,
-}))
+mockXoProxyCollection()
 
 beforeEach(() => {
-  proxies.length = 0
+  proxyCollectionMock.reset()
 })
 
 function mountSettings(backupJob: FrontAnyXoBackupJob) {
@@ -91,7 +82,7 @@ describe('useXoBackupJobSettings', () => {
   })
 
   it('finds the proxy of the backup job', () => {
-    proxies.push({ id: 'proxy-123' as XoProxy['id'], name: 'Main proxy' })
+    proxyCollectionMock.proxies.value = [createProxy({ id: 'proxy-123' as XoProxy['id'], name: 'Main proxy' })]
 
     expect(mountSettings(createMetadataBackupJob({ proxy: 'proxy-123' as XoProxy['id'] })).proxy?.name).toBe(
       'Main proxy'

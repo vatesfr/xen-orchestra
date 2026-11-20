@@ -3,7 +3,12 @@ import { useNewVmPoolResources } from '@/modules/vm/composables/use-new-vm-pool-
 import { useNewVmTemplateDevices } from '@/modules/vm/composables/use-new-vm-template-devices.composable.ts'
 import { useNewVmFormValidation } from '@/modules/vm/form/new/use-new-vm-form-validation.ts'
 import type { InstallMode, Vdi, Vif, VmState } from '@/modules/vm/types/new-xo-vm.type.ts'
-import { generateRandomString, getTemplateVmDefaults, isDiskVmTemplate } from '@/modules/vm/utils/new-vm.util.ts'
+import {
+  createNewVif,
+  generateRandomString,
+  getTemplateVmDefaults,
+  isDiskVmTemplate,
+} from '@/modules/vm/utils/new-vm.util.ts'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { uniqueId } from 'lodash-es'
 import { computed, inject, type InjectionKey, provide, reactive, ref, watch } from 'vue'
@@ -53,7 +58,8 @@ function createNewVmForm() {
 
   const poolResources = useNewVmPoolResources(() => vmState.pool)
 
-  const { getTemplateNewVdis, getTemplateExistingVdis, getTemplateExistingVifs } = useNewVmTemplateDevices()
+  const { getTemplateNewVdis, getTemplateExistingVdis, getTemplateExistingVifs, getTemplateNewVifs } =
+    useNewVmTemplateDevices()
 
   const isDiskTemplate = computed(() => isDiskVmTemplate(vmState.new_vm_template))
 
@@ -76,6 +82,8 @@ function createNewVmForm() {
   const defaultExistingVifs = ref<Vif[]>([])
 
   const defaultNewVdis = ref<Vdi[]>([])
+
+  const defaultNewVifs = ref<Vif[]>([])
 
   const canResizeExistingDisks = computed(() => RESIZABLE_DISKS_INSTALL_MODES.includes(vmState.installMode))
 
@@ -120,11 +128,7 @@ function createNewVmForm() {
       return
     }
 
-    vmState.vifs.push({
-      key: uniqueId('new-vif-'),
-      network: defaultNetwork.id,
-      mac: '',
-    })
+    vmState.vifs.push(createNewVif(defaultNetwork.id))
   }
 
   function removeVif(key: Vif['key']) {
@@ -143,17 +147,19 @@ function createNewVmForm() {
       const newVdis = getTemplateNewVdis(template, vmState.pool?.default_SR)
       const existingVdis = getTemplateExistingVdis(template)
       const existingVifs = getTemplateExistingVifs(template)
+      const newVifs = getTemplateNewVifs(template, poolResources.defaultNetworks.value)
 
       defaultNewVdis.value = newVdis.map(vdi => ({ ...vdi }))
       defaultExistingVdis.value = existingVdis.map(vdi => ({ ...vdi }))
       defaultExistingVifs.value = existingVifs.map(vif => ({ ...vif }))
+      defaultNewVifs.value = newVifs.map(vif => ({ ...vif }))
 
       Object.assign(vmState, {
         ...getTemplateVmDefaults(template),
         isDiskTemplateSelected: isDiskTemplate.value,
         vdis: newVdis,
         existingVdis,
-        vifs: existingVifs,
+        vifs: [...existingVifs, ...newVifs],
         selectedVdi: undefined,
         installMode: 'no-config',
         networkConfig: '',
@@ -224,6 +230,7 @@ function createNewVmForm() {
     defaultExistingVdis,
     defaultExistingVifs,
     defaultNewVdis,
+    defaultNewVifs,
     canResizeExistingDisks,
     undersizedExistingVdis,
     addVdi,

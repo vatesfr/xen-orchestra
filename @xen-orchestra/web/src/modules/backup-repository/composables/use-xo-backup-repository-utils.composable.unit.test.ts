@@ -1,24 +1,16 @@
 import { useXoBackupRepositoryUtils } from '@/modules/backup-repository/composables/use-xo-backup-repository-utils.composable.ts'
 import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
-import type { useXoProxyCollection } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
 import { createBr } from '@/test/create-br.ts'
+import { createProxy } from '@/test/create-proxy.ts'
+import { proxyCollectionMock, mockXoProxyCollection } from '@/test/mock-xo-proxy-collection.ts'
 import { mountComposableWithI18n } from '@/test/mount-composable.ts'
-import type { XoProxy } from '@vates/types'
-import { computed, ref, toValue } from 'vue'
+import { ref } from 'vue'
 import { parse as parseBackupRepositoryUrl } from 'xo-remote-parser'
 
-const { useGetProxyById } = vi.hoisted(() => ({
-  useGetProxyById: vi.fn(),
-}))
-
-vi.mock(import('@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'), () => ({
-  useXoProxyCollection: (() => ({ useGetProxyById })) as unknown as typeof useXoProxyCollection,
-}))
+mockXoProxyCollection()
 
 beforeEach(() => {
-  useGetProxyById.mockReset()
-
-  useGetProxyById.mockReturnValue(computed(() => undefined))
+  proxyCollectionMock.reset()
 })
 
 function mountUtils(br: FrontXoBackupRepository = createBr()) {
@@ -66,8 +58,8 @@ describe('useXoBackupRepositoryUtils', () => {
   })
 
   it('looks up the proxy of the repository', () => {
-    const proxy = { id: 'proxy-1' as XoProxy['id'], name: 'Remote site proxy' }
-    useGetProxyById.mockImplementation(id => computed(() => (toValue(id) === proxy.id ? proxy : undefined)))
+    const proxy = createProxy({ name: 'Remote site proxy' })
+    proxyCollectionMock.proxies.value = [proxy]
 
     expect(mountUtils(createBr({ proxy: proxy.id })).brProxy).toEqual(proxy)
   })

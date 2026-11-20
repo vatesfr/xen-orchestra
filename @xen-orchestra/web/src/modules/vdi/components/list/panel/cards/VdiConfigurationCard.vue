@@ -9,7 +9,7 @@
         </template>
         <template #value>
           <div v-if="vdiSr" class="storage">
-            <UiLink size="small" :href="srHref" icon="object:sr">
+            <UiLink size="small" :to="{ name: '/sr/[id]/general', params: { id: vdiSr.id } }" :icon="srStatusIcon">
               {{ vdiSr.name_label }}
             </UiLink>
           </div>
@@ -47,12 +47,12 @@
 </template>
 
 <script setup lang="ts">
+import { useXoSrUtils } from '@/modules/storage-repository/composables/xo-sr-utils.composable.ts'
 import { useXoSrCollection } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import { useXoVbdCollection } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
 import VdiFormatCardItem from '@/modules/vdi/components/list/panel/card-items/VdiFormatCardItem.vue'
 import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
-import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCardRowList from '@core/components/card/VtsCardRowList.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
@@ -70,14 +70,12 @@ const { vdi, vm } = defineProps<{
 
 const { t } = useI18n()
 
-const { buildXo5Route } = useXoRoutes()
-
 const { useGetSrById } = useXoSrCollection()
 const { useGetVbdsByIds } = useXoVbdCollection()
 
 const vdiSr = useGetSrById(() => vdi.$SR)
 
-const srHref = computed(() => (vdiSr.value ? buildXo5Route(`/srs/${vdiSr.value.id}/general`) : undefined))
+const { srStatusIcon } = useXoSrUtils(vdiSr)
 
 const vbds = useGetVbdsByIds(() => vdi.$VBDs)
 

@@ -1,5 +1,6 @@
 import PoolDashboardCpuChart from '@/modules/pool/components/dashboard/chart-usage/PoolDashboardCpuChart.vue'
 import { createPoolStats } from '@/test/create-pool-stats.ts'
+import { findCardTitle } from '@/test/find-card-title.ts'
 import { n, t } from '@/test/i18n.ts'
 import { findLinearChart, formatChartValue } from '@/test/linear-chart-stub.ts'
 import { mountChartCard, type ChartCardProps } from '@/test/mount-chart-card.ts'
@@ -16,8 +17,8 @@ const statsWithSamples = createPoolStats({
 it('renders the card title and the period it covers', () => {
   const wrapper = mountChart({ data: statsWithSamples })
 
-  expect(wrapper.get('.ui-card-title').text()).toContain(t('pool-cpu-usage'))
-  expect(wrapper.get('.ui-card-title').text()).toContain(t('last-week'))
+  expect(findCardTitle(wrapper)).toContain(t('pool-cpu-usage'))
+  expect(findCardTitle(wrapper)).toContain(t('last-week'))
 })
 
 it('shows a loader while the stats are loading', () => {

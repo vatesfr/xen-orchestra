@@ -2,6 +2,7 @@ import type { Vdi, Vif } from '@/modules/vm/types/new-xo-vm.type.ts'
 import {
   buildSshCloudConfig,
   bytesToGiB,
+  createNewVif,
   formatHostname,
   getAllVdis,
   getExistingVdisChanges,
@@ -148,6 +149,22 @@ describe('getExistingVdisChanges', () => {
 
   it('skips a disk the template does not plug on a device', () => {
     expect(getExistingVdisChanges([{ ...templateVdi, userdevice: undefined }], [], true)).toEqual([])
+  })
+})
+
+describe('createNewVif', () => {
+  it('creates an interface on the network, with an automatically generated MAC address', () => {
+    expect(createNewVif('network-123' as Vif['network'])).toEqual({
+      key: expect.any(String),
+      network: 'network-123',
+      mac: '',
+    })
+  })
+
+  it('gives each interface its own key', () => {
+    const network = 'network-123' as Vif['network']
+
+    expect(createNewVif(network).key).not.toBe(createNewVif(network).key)
   })
 })
 

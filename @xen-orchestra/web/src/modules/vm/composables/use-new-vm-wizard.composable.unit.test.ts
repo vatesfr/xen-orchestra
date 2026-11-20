@@ -1,93 +1,18 @@
 import { useNewVmWizard } from '@/modules/vm/composables/use-new-vm-wizard.composable.ts'
 import { provideNewVmForm } from '@/modules/vm/form/new/use-new-vm-form.ts'
-import type { useXoVmCreateJob } from '@/modules/vm/jobs/xo-vm-create.job.ts'
-import { createJobResult } from '@/test/create-job-result.ts'
 import { createTestRouter } from '@/test/create-test-router.ts'
 import { discardChangesModalMock } from '@/test/mock-discard-changes-modal.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
-import {
-  chooseNewVmTemplate,
-  NEW_VM_DISK_TEMPLATE,
-  NEW_VM_POOL,
-  resetNewVmCollections,
-  seedNewVmCollections,
-} from '@/test/new-vm-fixtures.ts'
+import { chooseNewVmTemplate, mockNewVmWizard, NEW_VM_DISK_TEMPLATE, NEW_VM_POOL } from '@/test/new-vm-fixtures.ts'
 import { flushPromises } from '@vue/test-utils'
 import { useI18n } from 'vue-i18n'
 import type { Router } from 'vue-router'
 
-const { useXoVmCreateJobMock } = vi.hoisted(() => ({
-  useXoVmCreateJobMock: vi.fn(),
-}))
-
-vi.mock(import('@/modules/vm/jobs/xo-vm-create.job.ts'), () => ({
-  useXoVmCreateJob: useXoVmCreateJobMock as unknown as typeof useXoVmCreateJob,
-}))
-
-vi.mock(
-  import('@core/composables/modals/use-discard-changes-modal.ts'),
-  () => import('@/test/mock-discard-changes-modal.ts')
-)
-
-vi.mock(
-  import('@/modules/pool/remote-resources/use-xo-pool-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
-
-vi.mock(
-  import('@/modules/host/remote-resources/use-xo-host-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
-
-vi.mock(
-  import('@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
-
-vi.mock(
-  import('@/modules/network/remote-resources/use-xo-network-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
-
-vi.mock(
-  import('@/modules/pif/remote-resources/use-xo-pif-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
-
-vi.mock(
-  import('@/modules/vm/remote-resources/use-xo-vm-template-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
-
-vi.mock(
-  import('@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'),
-  () => import('@/test/mock-xo-vm-device-collections.ts')
-)
-
-vi.mock(
-  import('@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'),
-  () => import('@/test/mock-xo-vm-device-collections.ts')
-)
-
-vi.mock(
-  import('@/modules/vdi/remote-resources/use-xo-vdi-snapshot-collection.ts'),
-  () => import('@/test/mock-xo-vm-device-collections.ts')
-)
-
-vi.mock(
-  import('@/modules/vif/remote-resources/use-xo-vif-collection.ts'),
-  () => import('@/test/mock-xo-vm-device-collections.ts')
-)
+const seedNewVmWizard = mockNewVmWizard()
 
 type CreationResult = PromiseSettledResult<string>
 
 const CREATED_VM: CreationResult = { status: 'fulfilled', value: 'vm-new' }
-
-beforeEach(() => {
-  resetNewVmCollections()
-  useXoVmCreateJobMock.mockReset()
-  discardChangesModalMock.reset()
-})
 
 function createPendingRun() {
   let finish: (results: CreationResult[]) => void = () => {}
@@ -104,8 +29,7 @@ function mountWizard({
   isRunning = false,
   router = createTestRouter(),
 }: { run?: () => Promise<CreationResult[]>; canRun?: boolean; isRunning?: boolean; router?: Router } = {}) {
-  seedNewVmCollections()
-  useXoVmCreateJobMock.mockReturnValue(createJobResult(run, { canRun, isRunning }))
+  seedNewVmWizard(run, { canRun, isRunning })
 
   const { wrapper } = mountComposable(
     () => {

@@ -1,7 +1,7 @@
 import V2vNextRunCard from '@/modules/v2v/components/mapping/V2vNextRunCard.vue'
 import V2vSourceSnapshotChangedInfo from '@/modules/v2v/components/mapping/V2vSourceSnapshotChangedInfo.vue'
 import { findAccentedInfos } from '@/test/find-accented-labels.ts'
-import { findPanelCardTitle } from '@/test/find-card-title.ts'
+import { findPanelCardTitleLabel } from '@/test/find-card-title.ts'
 import { findCardLabelledValues } from '@/test/find-rendered-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
@@ -19,7 +19,7 @@ function mountCard(props: { lastSyncAt?: number } = {}) {
 }
 
 it('shows its title', () => {
-  expect(findPanelCardTitle(mountCard())).toBe(t('next-run'))
+  expect(findPanelCardTitleLabel(mountCard())).toBe(t('next-run'))
 })
 
 it('tells when the VM was last synced', () => {

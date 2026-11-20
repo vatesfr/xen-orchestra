@@ -1,4 +1,3 @@
-import type { FrontXoNetwork } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
 import {
   getEncryptedEncapsulationsByPool,
   getNetworkEncapsulation,
@@ -6,26 +5,14 @@ import {
   isEncryptedNetwork,
   isPrivateNetwork,
 } from '@/modules/network/utils/xo-network.util.ts'
-import { createNetwork } from '@/test/create-network.ts'
+import {
+  createEncryptedNetwork,
+  createNetwork,
+  createPrivateNetwork,
+  NON_PRIVATE_ENCRYPTED_NETWORK,
+} from '@/test/create-network.ts'
 import { OTHER_POOL_ID } from '@/test/create-pool.ts'
-import { TUNNEL_PROTOCOL } from '@vates/types'
-
-function createPrivateNetwork(otherConfig: Record<string, string> = {}, overrides: Partial<FrontXoNetwork> = {}) {
-  return createNetwork({
-    other_config: { 'xo:sdn-controller:private-network-uuid': 'private-network-1', ...otherConfig },
-    ...overrides,
-  })
-}
-
-function createEncryptedNetwork(encapsulation?: TUNNEL_PROTOCOL, overrides: Partial<FrontXoNetwork> = {}) {
-  const otherConfig: Record<string, string> = { 'xo:sdn-controller:encrypted': 'true' }
-
-  if (encapsulation !== undefined) {
-    otherConfig['xo:sdn-controller:encapsulation'] = encapsulation
-  }
-
-  return createPrivateNetwork(otherConfig, overrides)
-}
+import { SDN_CONTROLLER_ENCAPSULATION_KEY, TUNNEL_PROTOCOL } from '@vates/types'
 
 describe('getNetworkRoute', () => {
   it('is the page of the network', () => {
@@ -36,31 +23,46 @@ describe('getNetworkRoute', () => {
   })
 })
 
-describe('isPrivateNetwork', () => {
-  it('is true for a network of a private network of the SDN controller', () => {
-    expect(isPrivateNetwork(createPrivateNetwork())).toBe(true)
-  })
-
-  it('is false for a network outside the SDN controller', () => {
-    expect(isPrivateNetwork(createNetwork())).toBe(false)
-  })
-})
-
-describe('isEncryptedNetwork', () => {
-  it('is true for an encrypted private network', () => {
-    expect(isEncryptedNetwork(createEncryptedNetwork())).toBe(true)
-  })
-
-  it('is false for a private network that is not encrypted', () => {
-    expect(isEncryptedNetwork(createPrivateNetwork())).toBe(false)
-  })
+it.each([
+  {
+    name: 'isPrivateNetwork',
+    state: 'true for a network of a private network of the SDN controller',
+    check: isPrivateNetwork,
+    network: createPrivateNetwork(),
+    expected: true,
+  },
+  {
+    name: 'isPrivateNetwork',
+    state: 'false for a network outside the SDN controller',
+    check: isPrivateNetwork,
+    network: createNetwork(),
+    expected: false,
+  },
+  {
+    name: 'isEncryptedNetwork',
+    state: 'true for an encrypted private network',
+    check: isEncryptedNetwork,
+    network: createEncryptedNetwork(),
+    expected: true,
+  },
+  {
+    name: 'isEncryptedNetwork',
+    state: 'false for a private network that is not encrypted',
+    check: isEncryptedNetwork,
+    network: createPrivateNetwork(),
+    expected: false,
+  },
+])('$name is $state', ({ check, network, expected }) => {
+  expect(check(network)).toBe(expected)
 })
 
 describe('getNetworkEncapsulation', () => {
   it('is the encapsulation of the private network', () => {
-    expect(getNetworkEncapsulation(createPrivateNetwork({ 'xo:sdn-controller:encapsulation': 'vxlan' }))).toBe(
-      TUNNEL_PROTOCOL.VXLAN
-    )
+    expect(
+      getNetworkEncapsulation(
+        createPrivateNetwork({ other_config: { [SDN_CONTROLLER_ENCAPSULATION_KEY]: TUNNEL_PROTOCOL.VXLAN } })
+      )
+    ).toBe(TUNNEL_PROTOCOL.VXLAN)
   })
 
   it('is GRE when the private network does not set its encapsulation', () => {
@@ -91,13 +93,15 @@ describe('getEncryptedEncapsulationsByPool', () => {
   })
 
   it('leaves out the private networks that are not encrypted', () => {
-    const networks = [createPrivateNetwork({ 'xo:sdn-controller:encapsulation': TUNNEL_PROTOCOL.GRE })]
+    const networks = [
+      createPrivateNetwork({ other_config: { [SDN_CONTROLLER_ENCAPSULATION_KEY]: TUNNEL_PROTOCOL.GRE } }),
+    ]
 
     expect(getEncryptedEncapsulationsByPool(networks)).toEqual(new Map())
   })
 
   it('leaves out the networks outside the SDN controller', () => {
-    const networks = [createNetwork({ other_config: { 'xo:sdn-controller:encrypted': 'true' } })]
+    const networks = [NON_PRIVATE_ENCRYPTED_NETWORK]
 
     expect(getEncryptedEncapsulationsByPool(networks)).toEqual(new Map())
   })

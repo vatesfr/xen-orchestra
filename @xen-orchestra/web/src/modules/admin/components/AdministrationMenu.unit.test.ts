@@ -1,6 +1,7 @@
 import AdministrationMenu from '@/modules/admin/components/AdministrationMenu.vue'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
+import { findLinks } from '@core-test/find-links.ts'
 import { type DOMWrapper, mount } from '@vue/test-utils'
 
 function mountMenu() {
@@ -31,7 +32,7 @@ it('lists the V2V migration between backups and user management', () => {
 it('links the V2V section to the migration wizard', () => {
   const section = findSection(mountMenu(), t('v2v'))
 
-  expect(section?.findAll('a').map(link => [link.text(), link.attributes('href')])).toEqual([
+  expect(section === undefined ? undefined : findLinks(section, 'a')).toEqual([
     [t('migrate-vms'), '/admin/v2v/migrate'],
   ])
 })

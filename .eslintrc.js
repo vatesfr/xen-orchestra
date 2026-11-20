@@ -59,6 +59,33 @@ module.exports = {
         'n/no-unpublished-import': 'off',
       },
     },
+    // The XO 6 test files share their modules (no isolation): mocking or resetting a module from one file would leak
+    // into the others. See @xen-orchestra/web/docs/tests/mocking.md
+    {
+      files: ['@xen-orchestra/web/src/**/*.unit.test.ts'],
+      rules: {
+        'no-restricted-syntax': [
+          'error',
+          {
+            selector: "CallExpression[callee.object.name='vi'][callee.property.name=/^(mock|doMock|unmock|doUnmock)$/]",
+            message: 'Mock a module with `mockModule` from `@/test/spy-on-module.ts`, never `vi.mock`.',
+          },
+          {
+            selector: "CallExpression[callee.object.name='vi'][callee.property.name='resetModules']",
+            message: 'The test files share their modules: never reset them.',
+          },
+          {
+            selector: "CallExpression[callee.object.name='vi'][callee.property.name='hoisted']",
+            message: '`mockModule` is not hoisted: declare the stubs as plain constants.',
+          },
+          {
+            selector: "CallExpression[callee.object.name='vi'][callee.property.name='resetAllMocks']",
+            message:
+              'Reset the stubs with `resetStubs` from `@/test/reset-stubs.ts`: `vi.resetAllMocks()` also resets the module mocks.',
+          },
+        ],
+      },
+    },
     {
       files: ['@xen-orchestra/{web-core,lite,web}/**/*.{vue,ts}'],
       parser: 'vue-eslint-parser',

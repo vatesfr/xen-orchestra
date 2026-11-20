@@ -1,27 +1,19 @@
 import AppHeaderMenu from '@/modules/navigation/components/AppHeaderMenu.vue'
-import type { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
-import type { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
+import { mockXoRoutes } from '@/test/mock-xo-routes.ts'
+import { vmCollectionMock, mockXoVmCollection } from '@/test/mock-xo-vm-collection.ts'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
+import { findLinks } from '@core-test/find-links.ts'
 import { mount, type VueWrapper } from '@vue/test-utils'
-import { computed, nextTick } from 'vue'
+import { nextTick } from 'vue'
 
-const { buildXo5Route } = vi.hoisted(() => ({
-  buildXo5Route: vi.fn(),
-}))
+mockXoRoutes()
 
-vi.mock(import('@/shared/remote-resources/use-xo-routes.ts'), () => ({
-  useXoRoutes: (() => ({ buildXo5Route })) as unknown as typeof useXoRoutes,
-}))
-
-vi.mock(import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'), () => ({
-  useXoVmCollection: (() => ({ vms: computed(() => []) })) as unknown as typeof useXoVmCollection,
-}))
+mockXoVmCollection()
 
 beforeEach(() => {
-  buildXo5Route.mockReset()
-  buildXo5Route.mockImplementation((path: string) => `https://xo5.example.com/#${path}`)
+  vmCollectionMock.reset()
 })
 
 async function mountOpenedMenu() {
@@ -41,10 +33,8 @@ function findTitle(wrapper: VueWrapper) {
   return findPanel(wrapper).get('.header .typo-h6').text()
 }
 
-function findLinks(wrapper: VueWrapper) {
-  return findPanel(wrapper)
-    .findAll('.menu-item a')
-    .map(link => [link.text(), link.attributes('href')])
+function findMenuLinks(wrapper: VueWrapper) {
+  return findLinks(findPanel(wrapper), '.menu-item a')
 }
 
 function findBackButton(wrapper: VueWrapper) {
@@ -80,7 +70,7 @@ it('lists the link to XO 5 and the third party apps', async () => {
   const wrapper = await mountOpenedMenu()
 
   expect(findTitle(wrapper)).toBe(t('more-actions'))
-  expect(findLinks(wrapper)).toEqual([[t('action:open-app', { name: t('xo-5') }), 'https://xo5.example.com/#/']])
+  expect(findMenuLinks(wrapper)).toEqual([[t('action:open-app', { name: t('xo-5') }), 'https://xo5.example.com/#/']])
   expect(findPanel(wrapper).text()).toContain(t('third-parties'))
 })
 
@@ -90,7 +80,7 @@ it('opens the third party apps in place', async () => {
   await openThirdParties(wrapper)
 
   expect(findTitle(wrapper)).toBe(t('third-parties'))
-  expect(findLinks(wrapper)).toEqual([
+  expect(findMenuLinks(wrapper)).toEqual([
     [t('action:install-app', { name: 'DC Scope' }), 'https://xo5.example.com/#/hub/recipes'],
     [t('action:install-app', { name: 'DC Netscope' }), 'https://xo5.example.com/#/hub/recipes'],
   ])

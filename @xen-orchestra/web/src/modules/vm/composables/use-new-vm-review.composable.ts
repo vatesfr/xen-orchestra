@@ -49,6 +49,7 @@ export function useNewVmReview() {
     defaultExistingVdis,
     defaultExistingVifs,
     defaultNewVdis,
+    defaultNewVifs,
     canResizeExistingDisks,
   } = useNewVmForm()
 
@@ -104,9 +105,11 @@ export function useNewVmReview() {
     }
   })
 
+  const defaultVifs = computed(() => [...defaultExistingVifs.value, ...defaultNewVifs.value])
+
   const vifs = computed<NewVmReviewVif[]>(() =>
     vmState.vifs.map((vif, index) => {
-      const defaultVif = defaultExistingVifs.value.find(existingVif => existingVif.id === vif.id)
+      const defaultVif = defaultVifs.value.find(({ key }) => key === vif.key)
       const isOverridden = defaultVif !== undefined && getExistingVifsDiff(defaultVif, vif) !== undefined
 
       return {
@@ -120,7 +123,7 @@ export function useNewVmReview() {
   )
 
   const deletedVifsCount = computed(
-    () => defaultExistingVifs.value.filter(defaultVif => !vmState.vifs.some(vif => vif.id === defaultVif.id)).length
+    () => defaultVifs.value.filter(defaultVif => !vmState.vifs.some(vif => vif.key === defaultVif.key)).length
   )
 
   function getSrLabel(srId: Vdi['sr']) {

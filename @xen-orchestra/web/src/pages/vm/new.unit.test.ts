@@ -1,13 +1,11 @@
 import { useNewVmForm } from '@/modules/vm/form/new/use-new-vm-form.ts'
-import type { useXoVmCreateJob } from '@/modules/vm/jobs/xo-vm-create.job.ts'
 import NewVmPage from '@/pages/vm/new.vue'
-import { createJobResult } from '@/test/create-job-result.ts'
+import type { JobResultState } from '@/test/create-job-result.ts'
 import { findShownComponents } from '@/test/find-shown-components.ts'
 import { getButton } from '@/test/get-button.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
-import { discardChangesModalMock } from '@/test/mock-discard-changes-modal.ts'
-import { chooseNewVmTemplate, resetNewVmCollections, seedNewVmCollections } from '@/test/new-vm-fixtures.ts'
+import { chooseNewVmTemplate, mockNewVmWizard } from '@/test/new-vm-fixtures.ts'
 import VtsOperationErrorCard from '@core/components/operation-error-card/VtsOperationErrorCard.vue'
 import VtsOperationPendingCard from '@core/components/operation-pending-card/VtsOperationPendingCard.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
@@ -15,68 +13,7 @@ import UiStepper from '@core/components/ui/stepper/UiStepper.vue'
 import { flushPromises, mount } from '@vue/test-utils'
 import { defineComponent } from 'vue'
 
-const { useXoVmCreateJobMock } = vi.hoisted(() => ({
-  useXoVmCreateJobMock: vi.fn(),
-}))
-
-vi.mock(import('@/modules/vm/jobs/xo-vm-create.job.ts'), () => ({
-  useXoVmCreateJob: useXoVmCreateJobMock as unknown as typeof useXoVmCreateJob,
-}))
-
-vi.mock(
-  import('@core/composables/modals/use-discard-changes-modal.ts'),
-  () => import('@/test/mock-discard-changes-modal.ts')
-)
-
-vi.mock(
-  import('@/modules/pool/remote-resources/use-xo-pool-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
-
-vi.mock(
-  import('@/modules/host/remote-resources/use-xo-host-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
-
-vi.mock(
-  import('@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
-
-vi.mock(
-  import('@/modules/network/remote-resources/use-xo-network-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
-
-vi.mock(
-  import('@/modules/pif/remote-resources/use-xo-pif-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
-
-vi.mock(
-  import('@/modules/vm/remote-resources/use-xo-vm-template-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
-
-vi.mock(
-  import('@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'),
-  () => import('@/test/mock-xo-vm-device-collections.ts')
-)
-
-vi.mock(
-  import('@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'),
-  () => import('@/test/mock-xo-vm-device-collections.ts')
-)
-
-vi.mock(
-  import('@/modules/vdi/remote-resources/use-xo-vdi-snapshot-collection.ts'),
-  () => import('@/test/mock-xo-vm-device-collections.ts')
-)
-
-vi.mock(
-  import('@/modules/vif/remote-resources/use-xo-vif-collection.ts'),
-  () => import('@/test/mock-xo-vm-device-collections.ts')
-)
+const seedNewVmWizard = mockNewVmWizard()
 
 const createStepStub = () => defineComponent({ setup: () => ({ form: useNewVmForm() }), render: () => null })
 
@@ -86,15 +23,11 @@ const ReviewStep = createStepStub()
 
 const STEPS = [EnvironmentStep, ConfigurationStep, ReviewStep]
 
-beforeEach(() => {
-  resetNewVmCollections()
-  useXoVmCreateJobMock.mockReset()
-  discardChangesModalMock.reset()
-})
-
-function mountPage(job: Parameters<typeof createJobResult>[1] & { run?: () => Promise<unknown> } = {}) {
-  seedNewVmCollections()
-  useXoVmCreateJobMock.mockReturnValue(createJobResult(job.run ?? (() => new Promise(() => {})), job))
+function mountPage({
+  run = () => new Promise(() => {}),
+  ...state
+}: JobResultState & { run?: () => Promise<unknown> } = {}) {
+  seedNewVmWizard(run, state)
 
   return mount(NewVmPage, {
     attachTo: document.body,

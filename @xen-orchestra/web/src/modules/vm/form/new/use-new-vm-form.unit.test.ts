@@ -12,6 +12,7 @@ import { vmDeviceCollectionsMock } from '@/test/mock-xo-vm-device-collections.ts
 import { mountComposable } from '@/test/mount-composable.ts'
 import {
   chooseNewVmTemplate,
+  mockNewVmCollections,
   NEW_VM_AUTOMATIC_NETWORK,
   NEW_VM_DISK_TEMPLATE,
   NEW_VM_DISKLESS_TEMPLATE,
@@ -28,55 +29,7 @@ import {
 } from '@/test/new-vm-fixtures.ts'
 import { nextTick } from 'vue'
 
-vi.mock(
-  import('@/modules/pool/remote-resources/use-xo-pool-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
-
-vi.mock(
-  import('@/modules/host/remote-resources/use-xo-host-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
-
-vi.mock(
-  import('@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
-
-vi.mock(
-  import('@/modules/network/remote-resources/use-xo-network-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
-
-vi.mock(
-  import('@/modules/pif/remote-resources/use-xo-pif-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
-
-vi.mock(
-  import('@/modules/vm/remote-resources/use-xo-vm-template-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
-
-vi.mock(
-  import('@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'),
-  () => import('@/test/mock-xo-vm-device-collections.ts')
-)
-
-vi.mock(
-  import('@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'),
-  () => import('@/test/mock-xo-vm-device-collections.ts')
-)
-
-vi.mock(
-  import('@/modules/vdi/remote-resources/use-xo-vdi-snapshot-collection.ts'),
-  () => import('@/test/mock-xo-vm-device-collections.ts')
-)
-
-vi.mock(
-  import('@/modules/vif/remote-resources/use-xo-vif-collection.ts'),
-  () => import('@/test/mock-xo-vm-device-collections.ts')
-)
+mockNewVmCollections()
 
 beforeEach(() => {
   resetNewVmCollections()
@@ -139,6 +92,45 @@ describe('vmState', () => {
     expect(form.vmState.vifs).toEqual([
       { key: NEW_VM_TEMPLATE_VIF.id, id: NEW_VM_TEMPLATE_VIF.id, network: NEW_VM_NETWORK.id, mac: '', device: '0' },
     ])
+  })
+
+  it('gives a template without network interface one on each automatic network of the pool', async () => {
+    const form = mountForm()
+    const otherAutomaticNetwork = createNetwork({
+      id: 'network-other-automatic' as typeof NEW_VM_NETWORK.id,
+      other_config: { automatic: 'true' },
+    })
+    xoCollectionsMock.networks.value = [NEW_VM_NETWORK, NEW_VM_AUTOMATIC_NETWORK, otherAutomaticNetwork]
+
+    await chooseNewVmTemplate(form, NEW_VM_DISKLESS_TEMPLATE)
+
+    expect(form.vmState.vifs).toEqual([
+      { key: expect.any(String), network: NEW_VM_AUTOMATIC_NETWORK.id, mac: '' },
+      { key: expect.any(String), network: otherAutomaticNetwork.id, mac: '' },
+    ])
+  })
+
+  it('gives a template without network interface one on the management network when none is automatic', async () => {
+    const form = mountForm()
+    const managementNetwork = createNetwork({ id: 'network-management' as typeof NEW_VM_NETWORK.id })
+    xoCollectionsMock.networks.value = [NEW_VM_NETWORK, managementNetwork]
+    xoCollectionsMock.pifs.value = [
+      createPif({ $network: NEW_VM_NETWORK.id }),
+      createManagementPif(NEW_VM_POOL, managementNetwork.id),
+    ]
+
+    await chooseNewVmTemplate(form, NEW_VM_DISKLESS_TEMPLATE)
+
+    expect(form.vmState.vifs).toEqual([{ key: expect.any(String), network: managementNetwork.id, mac: '' }])
+  })
+
+  it('leaves a template without network interface as is when the pool has no default network', async () => {
+    const form = mountForm()
+    xoCollectionsMock.networks.value = [NEW_VM_NETWORK]
+
+    await chooseNewVmTemplate(form, NEW_VM_DISKLESS_TEMPLATE)
+
+    expect(form.vmState.vifs).toEqual([])
   })
 
   it('lists a template disk that is a VDI snapshot', async () => {
@@ -221,7 +213,7 @@ describe('vmState', () => {
       networkConfig: '',
       vdis: [],
       existingVdis: [],
-      vifs: [],
+      vifs: [{ network: NEW_VM_AUTOMATIC_NETWORK.id, mac: '' }],
     })
   })
 

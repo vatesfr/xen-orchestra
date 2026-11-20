@@ -32,4 +32,4 @@ An XO 6 test covers what the app decides, never what `@xen-orchestra/web-core` d
 - [Utilities](./tests/testing-utilities.md) — where XO 6 keeps shared utils
 - [Composables](./tests/testing-composables.md) — `mountComposable`, `mountComposableWithI18n`
 - [Components](./tests/testing-components.md) — the `src/test/` readers, tables, charts, legends, routing, selects, pages
-- [Mocking](./tests/mocking.md) — the shared remote-resource mocks, and the network stub
+- [Mocking](./tests/mocking.md) — `mockModule` over the global module mocks, and the network stub
