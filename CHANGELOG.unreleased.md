@@ -57,6 +57,9 @@
 - [REST API/SDN Controller] Global Private Networks can be created with `POST /rest/v0/plugins/sdn-controller/pools/actions/create_private_network`, which answers the ids of their networks (PR [#10708](https://github.com/vatesfr/xen-orchestra/pull/10708))
 - [Tables] Cells fit on one line: long names are cut in the middle, extra tags go under "+N" and long texts end with "…" (PR [#10850](https://github.com/vatesfr/xen-orchestra/pull/10850))
 - [Pool/Network] Add the possibility to create private networks (PR [#10820](https://github.com/vatesfr/xen-orchestra/pull/10820))
+- [REST API] `POST /rest/v0/srs/:id/actions/import_vdi_from_url` imports an ISO from an HTTP(S) URL into an ISO SR (PR [#10751](https://github.com/vatesfr/xen-orchestra/pull/10751))
+- [REST API] `sr: import:vdi` privilege is split into `import:vdi:upload` and `import:vdi:url`, existing `import:vdi` privileges cover both (PR [#10751](https://github.com/vatesfr/xen-orchestra/pull/10751))
+- [REST API] `POST /rest/v0/vdis` (create an empty VDI) now only requires the `vdi: create` privilege, `sr: import:vdi` is no longer needed (PR [#10751](https://github.com/vatesfr/xen-orchestra/pull/10751))
 
 ### Bug fixes
 

@@ -38,33 +38,10 @@ export class Privilege<T extends SupportedResource> {
   }
 
   #matchAction<Resource extends SupportedResource = T>(action: SupportedActions<Resource>) {
-    // read:name_label - read:name_label
-    if (this.#action === action) {
-      return true
-    }
-
-    const [namespaceToMatch, actionToMatch] = action.split(':')
-    const [thisNamespace, thisAction] = this.#action.split(':')
-
-    if (thisNamespace === '*') {
-      return true
-    }
-
-    // update:vm - read:name_label
-    if (thisNamespace !== namespaceToMatch) {
-      return false
-    }
-
-    // read - read:name_label
-    if (thisAction === undefined) {
-      return true
-    }
-    // read:name_decription - read:name_label
-    if (thisAction !== actionToMatch) {
-      return false
-    }
-
-    throw new Error(`Unable to verify if ${this.#action} match ${action} `)
+    // A privilege allows its own action and every action below it in the tree:
+    // e.g. `*`, `import`, `import:vdi` and `import:vdi:url` all allow `import:vdi:url`,
+    // but `import:vdi:upload` does not (it is a sibling, not a parent)
+    return this.#action === '*' || this.#action === action || action.startsWith(`${this.#action}:`)
   }
 
   #matchSelector(object: object) {
