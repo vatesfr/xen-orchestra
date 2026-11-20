@@ -15,7 +15,7 @@
       :counter
       icon="fa:bars-progress"
       size="medium"
-      @click="toggleSidebar()"
+      @click="toggleSidebar"
     />
   </div>
 </template>
@@ -33,17 +33,13 @@ const { t } = useI18n()
 
 const rightSidebar = useRightSidebarStore()
 
-const { unreadCount, unreadSeverity, pendingCount, pendingProgress, markAllAsRead } = useXoTasksUnread()
+const { unreadCount, unreadSeverity, pendingCount, pendingProgress } = useXoTasksUnread()
 
 function toggleSidebar() {
-  if (rightSidebar.isExpanded) {
-    markAllAsRead()
-  }
-
   rightSidebar.toggleExpand()
 }
 
-// Pending tasks are counted until they are all done (even with the sidebar open), then unread tasks are counted
+// Pending tasks are counted until they are all done, then unread tasks are counted
 const badge = computed(() => {
   if (pendingCount.value > 0) {
     return {
@@ -57,7 +53,7 @@ const badge = computed(() => {
     } as const
   }
 
-  if (!rightSidebar.isExpanded && unreadCount.value > 0) {
+  if (unreadCount.value > 0) {
     return {
       count: unreadCount.value,
       defaultAccent: 'success',
@@ -94,7 +90,6 @@ const ariaLabel = computed(() => {
   position: relative;
   display: inline-flex;
 
-  /* Centered behind the button (and its counter), without taking space nor catching clicks */
   .progress {
     position: absolute;
     top: 50%;

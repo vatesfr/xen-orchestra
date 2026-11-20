@@ -1490,6 +1490,7 @@
   "task:unread": "Non lue",
   "tasks": "Tâches",
   "tasks-page": "page des Tâches",
+  "tasks:mark-all-as-read": "Tout marquer comme lu",
   "tasks:my-tasks": "Mes tâches",
   "tasks:my-tasks-n-in-progress": "@:{'tasks:my-tasks'}, 1 en cours | @:{'tasks:my-tasks'}, {n} en cours",
   "tasks:my-tasks-n-in-progress-with-failures": "@:{'tasks:my-tasks'}, 1 en cours et un ou plusieurs échecs | @:{'tasks:my-tasks'}, {n} en cours et un ou plusieurs échecs",

@@ -3,8 +3,15 @@ import {
   getTaskLastActivity,
   getTaskSeverity,
   getUnreadTaskIds,
+  pruneReadActivity,
 } from '@/modules/task/utils/xo-tasks-unread.util.ts'
 import { createTaskItem } from '@/test/create-task-item.ts'
+
+describe('pruneReadActivity', () => {
+  it('keeps the read times from `since` onwards only', () => {
+    expect(pruneReadActivity({ before: 99, at: 100, after: 150 }, 100)).toEqual({ at: 100, after: 150 })
+  })
+})
 
 describe('getTaskLastActivity', () => {
   it('is the start of a task without end nor subtasks', () => {

@@ -4,6 +4,7 @@ import {
   getTaskLastActivity,
   getTaskSeverity,
   getUnreadTaskIds,
+  pruneReadActivity,
   type TaskSeverity,
 } from '@/modules/task/utils/xo-tasks-unread.util.ts'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
@@ -11,6 +12,9 @@ import { findTask } from '@core/utils/task.util.ts'
 import { createSharedComposable, useLocalStorage } from '@vueuse/core'
 import { computed, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
+
+// Longer than the last day window of the tasks, as a margin
+const READ_ACTIVITY_RETENTION = 32 * 60 * 60 * 1000
 
 export const useXoTasksUnread = createSharedComposable(() => {
   const route = useRoute()
@@ -20,7 +24,7 @@ export const useXoTasksUnread = createSharedComposable(() => {
   // Only the first visit uses the client clock; afterwards it is always a task (server) timestamp
   const lastSeenAt = useLocalStorage('my-tasks.last-seen-at', Date.now())
 
-  // Tasks opened since the sidebar was last closed, with their last activity at that time
+  // Tasks opened since everything was last marked as read, with their last activity at that time
   const readActivityById = useLocalStorage<Record<string, number>>('my-tasks.read-activity-by-id', {})
 
   function markAllAsRead() {
@@ -40,7 +44,11 @@ export const useXoTasksUnread = createSharedComposable(() => {
     [openedTaskId, openedTaskLastActivity],
     ([taskId, lastActivity]) => {
       if (taskId !== undefined && lastActivity !== undefined) {
-        readActivityById.value = { ...readActivityById.value, [taskId]: lastActivity }
+        // Delete the oldest tasks that are no longer relevant, and add the opened task with its last activity
+        readActivityById.value = {
+          ...pruneReadActivity(readActivityById.value, lastActivity - READ_ACTIVITY_RETENTION),
+          [taskId]: lastActivity,
+        }
       }
     },
     { immediate: true }

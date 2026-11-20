@@ -135,14 +135,14 @@ describe('once all tasks are done', () => {
     expect(button.attributes('aria-label')).toBe(t('tasks:my-tasks-n-unread-with-warnings', 4))
   })
 
-  it('hides the counter while the sidebar is open', async () => {
+  it('keeps the counter while the sidebar is open', async () => {
     const { button, rightSidebar } = mountButton()
 
     rightSidebar.toggleExpand(true)
     await setTasks({ unread: 4, severity: 'danger' })
 
-    expect(button.props('counter')).toBeUndefined()
-    expect(button.attributes('aria-label')).toBe(t('tasks:my-tasks'))
+    expect(button.props('counter')).toEqual({ value: 4, accent: 'danger' })
+    expect(button.attributes('aria-label')).toBe(t('tasks:my-tasks-n-unread-with-failures', 4))
   })
 })
 
@@ -176,12 +176,12 @@ it('opens the sidebar without marking tasks as read', async () => {
   expect(markAllAsRead).not.toHaveBeenCalled()
 })
 
-it('marks every task as read when it closes the sidebar', async () => {
+it('closes the sidebar without marking tasks as read', async () => {
   const { button, rightSidebar } = mountButton()
 
   rightSidebar.toggleExpand(true)
   await button.trigger('click')
 
   expect(rightSidebar.isExpanded).toBe(false)
-  expect(markAllAsRead).toHaveBeenCalledOnce()
+  expect(markAllAsRead).not.toHaveBeenCalled()
 })

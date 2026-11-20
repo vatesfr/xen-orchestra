@@ -113,7 +113,7 @@ const progress = computed(() => {
   container: ui-task-item / inline-size;
   flex: 1;
   min-width: 0;
-  padding-block: 0.8rem;
+  padding-block: 0.4rem;
   padding-inline: 0.4rem;
 
   .layout {
@@ -178,6 +178,7 @@ const progress = computed(() => {
         'meta progress actions';
       grid-template-columns: minmax(0, 1fr) auto auto;
       gap: 0.4rem 0.8rem;
+      min-height: 5rem;
     }
 
     .meta {
