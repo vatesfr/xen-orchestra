@@ -21,7 +21,8 @@ const REBOOT_REQUIRED_PATH = '/var/run/reboot-required'
 const UPDATE_TIMEOUT = 5 * 60e3
 
 // Debian policy: lowercase alphanumerics, `+`, `-` and `.`, starting with an alphanumeric
-const PACKAGE_NAME_RE = /^[a-z0-9][a-z0-9+.-]+$/
+// apt names the packages of a foreign architecture `name:arch`
+const PACKAGE_NAME_RE = /^[a-z0-9][a-z0-9+.-]+(:[a-z0-9-]+)?$/
 
 const APT_ENV = { ...process.env, DEBIAN_FRONTEND: 'noninteractive', LC_ALL: 'C' }
 
@@ -32,6 +33,7 @@ async function exec(cmd: string, args: string[], { timeout = 0 } = {}): Promise<
   } catch (err) {
     const error = new Error(`${cmd} ${args.join(' ')} failed`)
     error.cause = err
+    Object.assign(error, { stderr: (err as { stderr?: string }).stderr })
     throw error
   }
 }
