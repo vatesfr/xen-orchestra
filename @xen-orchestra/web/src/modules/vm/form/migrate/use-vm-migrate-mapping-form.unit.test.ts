@@ -184,6 +184,7 @@ beforeEach(() => {
   useXoSrCollectionMock.mockReturnValue({
     srs: computed(() => srs),
     getSrById: (id: FrontXoSr['id'] | undefined) => srs.find(sr => sr.id === id),
+    useGetSrsByIds: () => computed(() => []),
   })
 
   useXoPbdCollectionMock.mockReturnValue({
