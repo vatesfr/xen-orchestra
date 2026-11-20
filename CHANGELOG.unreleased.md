@@ -15,9 +15,6 @@
 
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 - [Header] On mobile, the XO 5 link and third party apps are grouped in a "More actions" menu (PR [#10744](https://github.com/vatesfr/xen-orchestra/pull/10744))
 - [Mobile/Side panels] Full-page menus on mobile with "Change state" and "Manage in XO-5" in "More actions", side panel actions shown as buttons when there is room, and fixes for long names in headers and menu placement (PR [#10745](https://github.com/vatesfr/xen-orchestra/pull/10745))
 - [Side panels] Side panels can be resized like the treeview, whose default width now adapts to the screen size (PR [#10725](https://github.com/vatesfr/xen-orchestra/pull/10725))
@@ -60,23 +57,9 @@
 - [REST API/SDN Controller] Global Private Networks can be created with `POST /rest/v0/plugins/sdn-controller/pools/actions/create_private_network`, which answers the ids of their networks (PR [#10708](https://github.com/vatesfr/xen-orchestra/pull/10708))
 - [Tables] Cells fit on one line: long names are cut in the middle, extra tags go under "+N" and long texts end with "…" (PR [#10850](https://github.com/vatesfr/xen-orchestra/pull/10850))
 - [Pool/Network] Add the possibility to create private networks (PR [#10820](https://github.com/vatesfr/xen-orchestra/pull/10820))
-=======
-- [REST API] `POST /rest/v0/srs/:id/vdis/from-url` imports an ISO from an HTTP(S) URL into an ISO SR, requires the new `import:vdi-from-url` privilege on the SR
->>>>>>> 195aff0b53 (feat(rest-api): import VDI from URL)
-=======
-- [REST API] `POST /rest/v0/srs/:id/vdis/from-url` imports an ISO from an HTTP(S) URL into an ISO SR(PR [#10751](https://github.com/vatesfr/xen-orchestra/pull/10751))
->>>>>>> 4c75dbf3f7 (update changelog)
-=======
 - [REST API] `POST /rest/v0/srs/:id/actions/import_vdi_from_url` imports an ISO from an HTTP(S) URL into an ISO SR (PR [#10751](https://github.com/vatesfr/xen-orchestra/pull/10751))
-<<<<<<< HEAD
->>>>>>> ff21cace97 (fix after mikita review)
-=======
 - [REST API] `sr: import:vdi` privilege is split into `import:vdi:upload` and `import:vdi:url`, existing `import:vdi` privileges cover both (PR [#10751](https://github.com/vatesfr/xen-orchestra/pull/10751))
-<<<<<<< HEAD
->>>>>>> d173dbda22 (acl changes for additional level permissions)
-=======
-- - [REST API] `POST /rest/v0/vdis` (create an empty VDI) now only requires the `vdi: create` privilege, `sr: import:vdi` is no longer needed (PR [#10751](https://github.com/vatesfr/xen-orchestra/pull/10751))
->>>>>>> 68e5a3cb6d (update changelog)
+- [REST API] `POST /rest/v0/vdis` (create an empty VDI) now only requires the `vdi: create` privilege, `sr: import:vdi` is no longer needed (PR [#10751](https://github.com/vatesfr/xen-orchestra/pull/10751))
 
 ### Bug fixes
 
@@ -119,7 +102,6 @@
 
 <!--packages-start-->
 
-<<<<<<< HEAD
 - @vates/obfuscate minor
 - @vates/syslog minor
 - @vates/types major
@@ -134,14 +116,6 @@
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/vmware-explorer minor
 - @xen-orchestra/web minor
-=======
-- @vates/types minor
-- @xen-orchestra/acl minor
-- @xen-orchestra/backups minor
-- @xen-orchestra/qa-test patch
-- @xen-orchestra/rest-api minor
-- @xen-orchestra/web patch
->>>>>>> 195aff0b53 (feat(rest-api): import VDI from URL)
 - @xen-orchestra/web-core minor
 - @xen-orchestra/xapi major
 - xen-api major
