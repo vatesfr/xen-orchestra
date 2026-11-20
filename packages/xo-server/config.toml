@@ -330,3 +330,10 @@ xvaImportFromUrlTimeout = '6s'
 # When a snapshot is taken before an upgrade, the oldest ones are rotated out so
 # that at most this many remain. Must be >= 1.
 numberOfUpgradeSnapshots = 4
+
+[xo-pg]
+# leave falsish or undefined to unplug entire pg subsystem
+# will force the transport to be json-rpc
+# pgUrl = 'postgres://user:pass@pg/data'
+# tell the system to clear the tables it might have found for the pool before starting (ONLY the tables relevant to the pool)
+pgDropSchemaTables = false

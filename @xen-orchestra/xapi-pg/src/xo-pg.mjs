@@ -24,10 +24,16 @@ function getNonSessionMethods(classDict) {
  * @param poolRef XAPI host pool reference
  * @param dbPool DB connection pool
  * @param classDict
+ * @param options
  */
-async function prepareForPool(poolUuid, poolRef, dbPool, classDict) {
+async function prepareForPool(poolUuid, poolRef, dbPool, classDict, options = {}) {
   return await withClient(dbPool, async dbClient => {
-    const schemas = await ensureSchemasExistsWithoutConflict(dbClient, poolUuid, getSchemaPrefixes())
+    const schemas = await ensureSchemasExistsWithoutConflict(
+      dbClient,
+      poolUuid,
+      getSchemaPrefixes(),
+      options.pgDropSchemaTables
+    )
     const dbObjects = await getDbObjectsForSchemas(schemas, classDict)
     for (const statement of dbObjects.getAllTheDDL()) {
       await dbClient.query(statement)
@@ -42,10 +48,14 @@ async function prepareForPool(poolUuid, poolRef, dbPool, classDict) {
  * Wraps a xen API transport and save the entities in a Postgres DB on the fly.
  * @param pgUrl Postgres connection string, this function will create its own schemas and tables in it.
  * @param createRealTransport
+ * @param options
  * @return {function(*): function(*, *): Promise<*>}
  */
-export async function createPgTransport(pgUrl, createRealTransport) {
+export async function createPgTransport(pgUrl, createRealTransport, options = {}) {
   const dbPool = new Pool({ connectionString: pgUrl })
+  await withClient(dbPool, async dbClient => {
+    await dbClient.query("SELECT 'checking connection'")
+  })
   info('created interceptor transport and connected to DB')
   // classes loaded from the JSON file, will be different from what we find with system.listMethods
   const fromJsonClassDict = await loadXapiDefinition(ALL_LIFE_CYCLE_STATES, _cls => true)
@@ -132,7 +142,8 @@ export async function createPgTransport(pgUrl, createRealTransport) {
             firstPoolRecord.uuid,
             firstPoolRef,
             dbPool,
-            observedClassesDict
+            observedClassesDict,
+            options
           ))
           info(`observedClassNames ${observedClassNames}`)
           await refillDBEvents(dbPool, params[0], observedClassNames)

@@ -1,8 +1,9 @@
+import { createLogger } from '@xen-orchestra/log'
 import assert from 'node:assert'
 import { Client, escapeIdentifier, escapeLiteral, Pool } from 'pg'
 import { rows2Columns } from './db.mjs'
 import { UUID_TYPE } from './types.mjs'
-
+const { info } = createLogger('xo-pg')
 /**
  * @param xapiDbClass
  * @param updatableFieldNames those field names will get an 'UPDATE SET' conflict action
@@ -253,9 +254,10 @@ export class MapFieldDbSaver extends GroupRefDbSaver {
  * @param dbClient
  * @param poolUuid
  * @param {Object} prefixes
+ * @param forceDrop if true, will drop and recreate the schemas before starting to ingest the events
  * @return {Promise<{}>}
  */
-export async function ensureSchemasExistsWithoutConflict(dbClient, poolUuid, prefixes) {
+export async function ensureSchemasExistsWithoutConflict(dbClient, poolUuid, prefixes, forceDrop = false) {
   // https://stackoverflow.com/a/52171480
   const generateHash = string => {
     let hash = 9
@@ -267,8 +269,12 @@ export async function ensureSchemasExistsWithoutConflict(dbClient, poolUuid, pre
   const shortId = generateHash(poolUuid)
   let result = {}
   dbClient.query(`BEGIN TRANSACTION;`)
+  function createPrefixedSchemas(suffix) {
+    return Object.fromEntries(Object.entries(prefixes).map(([type, p]) => [type, p + '_' + suffix]))
+  }
+
   try {
-    const schemas = (
+    let schemas = (
       await dbClient.query(`SELECT oid, nspname, obj_description(oid) AS comment FROM pg_namespace order by nspname;`)
     ).rows
     const checkSchemaNamesAreAvailable = id =>
@@ -281,23 +287,33 @@ export async function ensureSchemasExistsWithoutConflict(dbClient, poolUuid, pre
           result[type] = found.nspname
         }
       }
-      if (Object.keys(result).length === Object.keys(prefixes).length) {
-        await dbClient.query(`ROLLBACK TRANSACTION;`)
-        return result
+      if (!forceDrop) {
+        if (Object.keys(result).length === Object.keys(prefixes).length) {
+          await dbClient.query(`ROLLBACK TRANSACTION;`)
+          return result
+        }
+      } else {
+        const deleteList = new Set(Object.values(result))
+        info(`Dropping existing schemas for pool ${poolUuid}: ${[...deleteList]}`)
+        for (const schema of deleteList) {
+          info('deleting schema: ' + schema + ' CASCADE;')
+          await dbClient.query(`DROP SCHEMA IF EXISTS ${schema} CASCADE;`)
+        }
+        schemas = schemas.filter(s => !deleteList.has(s.nspname))
+        // fall into the schema creation branch
       }
     }
-    if (checkSchemaNamesAreAvailable(shortId)) {
-      result = Object.fromEntries(Object.entries(prefixes).map(([type, p]) => [type, p + '_' + shortId]))
-    } else {
-      for (let i = 2; i < 100; i++) {
-        const currentId = shortId + '_' + i
-        if (checkSchemaNamesAreAvailable(currentId)) {
-          result = Object.fromEntries(Object.entries(prefixes).map(([type, p]) => [type, p + '_' + currentId]))
-          break
-        }
+    for (let i = 1; i < 100; i++) {
+      let currentId = shortId
+      // the starting at the second try, the suffix gets a second underscore: _1234abc_3
+      if (i > 1) currentId += '_' + i
+      if (checkSchemaNamesAreAvailable(currentId)) {
+        result = createPrefixedSchemas(currentId)
+        break
       }
     }
     if (Object.keys(result).length === 0) {
+      // noinspection ExceptionCaughtLocallyJS
       throw new Error('Could not find a unique schema name for the pool ' + poolUuid)
     }
     for (const schemaName of Object.values(result)) {

@@ -18,3 +18,9 @@ The generated views resemble the XAPI as much as possible.
 During the storage, all the references are replaced by more durable UUIDs, sadly some rare references coming from XAPI might
 be stale and impossible to convert to UUID, in that case, the field value is nulled; or the element is not added to the
 Set; or the entry not added to the Map.
+
+## Testing
+
+```sh
+node packages/xen-api/cli.mjs  http://10.1.0.11 --pg-saver-url='postgresql://localhost:5432/postgres' root
+```
