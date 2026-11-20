@@ -8,7 +8,7 @@
       <VtsSelect :id="keyboardLayoutSelectId" accent="neutral" />
     </VtsInputWrapper>
     <UiCardTitle>{{ t('console-clipboard') }}</UiCardTitle>
-    <UiTextarea v-model="clipboardText" accent="brand" />
+    <UiTextarea v-model="clipboardText" accent="neutral" />
     <div class="buttons-container">
       <UiButton
         accent="brand"

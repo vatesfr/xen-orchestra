@@ -1,7 +1,7 @@
 <!-- v6 -->
 <template>
   <div class="ui-textarea" :class="toVariants({ accent: isExceedingMaxCharacters ? 'danger' : accent })">
-    <UiLabel v-if="slots.default" :accent="labelAccent" :required :href :for="id">
+    <UiLabel v-if="slots.default" :accent :required :href :for="id">
       <slot />
     </UiLabel>
     <textarea v-bind="attrs" :id ref="textarea" v-model="model" :disabled class="textarea typo-body-regular" />
@@ -12,7 +12,7 @@
     <UiInfo v-if="isExceedingMaxCharacters" accent="danger">
       {{ t('field:exceeds-max-characters', { max: maxCharacters }) }}
     </UiInfo>
-    <UiInfo v-if="slots.message && labelAccent !== 'neutral'" :accent="labelAccent">
+    <UiInfo v-if="slots.message && accent !== 'neutral'" :accent>
       <slot name="message" />
     </UiInfo>
   </div>
@@ -36,7 +36,7 @@ const {
   maxCharacters,
   id = useId(),
 } = defineProps<{
-  accent: 'brand' | 'warning' | 'danger'
+  accent: 'neutral' | 'warning' | 'danger'
   id?: string
   maxCharacters?: number
   disabled?: boolean
@@ -64,10 +64,6 @@ const { focused } = useFocus(textAreaElement)
 const isExceedingMaxCharacters = computed(() =>
   maxCharacters !== undefined ? !focused.value && model.value.trim().length > maxCharacters : false
 )
-
-const labelAccent = computed(() => {
-  return accent === 'brand' ? 'neutral' : accent
-})
 </script>
 
 <style lang="postcss" scoped>
@@ -78,7 +74,7 @@ const labelAccent = computed(() => {
 
   /* VARIANT */
 
-  &.accent--brand {
+  &.accent--neutral {
     --idle-color: var(--color-neutral-txt-secondary);
     --hover-color: var(--color-brand-txt-hover);
     --active-color: var(--color-brand-txt-active);
