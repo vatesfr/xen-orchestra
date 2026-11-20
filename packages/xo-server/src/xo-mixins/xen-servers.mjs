@@ -3,6 +3,7 @@ import pick from 'lodash/pick.js'
 import { asyncEach } from '@vates/async-each'
 import { BaseError } from 'make-error'
 import { createLogger } from '@xen-orchestra/log'
+import { createPgTransport } from '@xen-orchestra/xapi-pg/src/xo-pg.mjs'
 import { createPredicate } from 'value-matcher'
 import { decorateClass } from '@vates/decorate-with'
 import { deduped } from '@vates/disposable/deduped.js'
@@ -11,6 +12,7 @@ import { defer } from 'golike-defer'
 import { extractIdsFromSimplePattern } from '@xen-orchestra/backups/extractIdsFromSimplePattern.mjs'
 import { fibonacci } from 'iterable-backoff'
 import { networkInterfaces } from 'os'
+import transports from 'xen-api/transports/index.mjs'
 import { noSuchObject, incorrectState, operationFailed } from 'xo-common/api-errors.js'
 import { parseDuration } from '@vates/parse-duration'
 import { pDelay, ignoreErrors, timeout, TimeoutError } from 'promise-toolbox'
@@ -465,7 +467,10 @@ export default class XenServers {
     let { poolMarkingInterval, poolMarkingMaxAge, poolMarkingPrefix, ...xapiOptions } = config.get('xapiOptions')
     poolMarkingInterval = parseDuration(poolMarkingInterval)
     poolMarkingMaxAge = parseDuration(poolMarkingMaxAge)
-
+    const pgUrl = config.getOptional(['xo-pg', 'pgUrl'])
+    if (pgUrl) {
+      xapiOptions.transport = await createPgTransport(pgUrl, transports['json-rpc'], config.getOptional('xo-pg'))
+    }
     const xapi = (this._xapis[server.id] = new Xapi({
       allowUnauthorized: server.allowUnauthorized,
       readOnly: server.readOnly,
