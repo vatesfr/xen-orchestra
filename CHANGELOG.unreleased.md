@@ -10,7 +10,7 @@
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
 - [i18n] Update Czech, Danish, Dutch, German, Korean, Portuguese, Portuguese (Brasil), Slovak, Spanish, Swedish and Turkish translations (PR [#10680](https://github.com/vatesfr/xen-orchestra/pull/10680))
-- [xapi] VDI can be resized online if the xapi is supporting it (PR [#10740](https://github.com/vatesfr/xen-orchestra/pull/10740))
+- [VDI] VDI can be resized online if the xapi is supporting it (PR [#10845](https://github.com/vatesfr/xen-orchestra/pull/10845))
 
 ### Bug fixes
 
