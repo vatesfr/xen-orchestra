@@ -293,7 +293,7 @@ export class VdiController extends XapiXoController<XoVdi> {
    * Create an empty VDI.
    *
    * Required privileges:
-   * - resource: sr, action: import:vdi (on the target SR)
+   * - resource: sr, action: import:vdi:upload (on the target SR)
    * - resource: vdi, action: create
    *
    * @example body { "srId": "c4284e12-37c9-7967-b9e8-83ef229c3e03", "virtual_size": 10737418240, "name_label": "test VDI" }
@@ -304,7 +304,7 @@ export class VdiController extends XapiXoController<XoVdi> {
   @Middlewares([
     json(),
     acl([
-      { resource: 'sr', action: 'import:vdi', objectId: 'body.srId' },
+      { resource: 'sr', action: 'import:vdi:upload', objectId: 'body.srId' },
       { resource: 'vdi', action: 'create', object: ({ req }) => req.body },
     ]),
   ])
