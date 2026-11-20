@@ -565,3 +565,103 @@ describe('XenServers.resumeRollingPoolUpdate', function () {
     )
   })
 })
+
+describe('XenServers.restoreRpuLeftovers', function () {
+  const items = [
+    { type: 'wlb', id: 'pool-1' },
+    { type: 'loadBalancer', id: 'load-balancer' },
+    { type: 'schedule', id: 'schedule-1', name: 'nightly' },
+  ]
+  const makeRecord = autoload => ({
+    changedByRun: { wlb: true, loadBalancer: { autoload }, schedules: ['schedule-1'] },
+  })
+
+  function setup(opts) {
+    const { calls, xenServers } = createXenServers({
+      schedules: [{ id: 'schedule-1', jobId: 'job-1', enabled: false }],
+      ...opts,
+    })
+    const xapi = xenServers.getXapi()
+    xenServers.getXapi = () => ({
+      ...xapi,
+      async restoreRpuLeftovers({ items }) {
+        calls.push(['xapi.restoreRpuLeftovers', items])
+      },
+    })
+    xenServers._app.loadPlugin = async id => {
+      calls.push(['loadPlugin', id])
+    }
+    const recorder = {
+      settingRestored(name, id) {
+        calls.push(['recorder.settingRestored', name, id])
+      },
+    }
+    return { calls, recorder, xenServers }
+  }
+
+  it('restores the pool first, then WLB, the load balancer and the backup schedules', async function () {
+    const { calls, recorder, xenServers } = setup()
+    await xenServers.restoreRpuLeftovers(pool, { record: makeRecord(false), items, recorder })
+    assert.deepEqual(calls, [
+      ['xapi.restoreRpuLeftovers', items],
+      ['xapi.call', 'pool.set_wlb_enabled', true],
+      ['recorder.settingRestored', 'wlb', undefined],
+      ['loadPlugin', 'load-balancer'],
+      ['recorder.settingRestored', 'loadBalancer', undefined],
+      ['updateSchedule', 'schedule-1', true],
+      ['recorder.settingRestored', 'schedules', 'schedule-1'],
+    ])
+  })
+
+  it('goes on after a failed restoration, which stays in the record', async function () {
+    const { calls, recorder, xenServers } = setup({ wlbRestoreRefused: true })
+    // the autoload of the plugin was disabled since the run unloaded it
+    await xenServers.restoreRpuLeftovers(pool, { record: makeRecord(true), items, recorder })
+    assert.deepEqual(calls, [
+      ['xapi.restoreRpuLeftovers', items],
+      ['xapi.call', 'pool.set_wlb_enabled', true],
+      ['updateSchedule', 'schedule-1', true],
+      ['recorder.settingRestored', 'schedules', 'schedule-1'],
+    ])
+  })
+
+  it('restores WLB through the connection the pool has once it is restored', async function () {
+    const { calls, recorder, xenServers } = setup()
+    const getXapi = xenServers.getXapi
+    xenServers.getXapi = () => ({
+      ...getXapi(),
+      // the master reconnects while the pool is restored
+      async restoreRpuLeftovers() {
+        xenServers.getXapi = () => ({
+          ...getXapi(),
+          async call(method) {
+            calls.push(['reconnected xapi.call', method])
+          },
+        })
+      },
+    })
+    await xenServers.restoreRpuLeftovers(pool, { record: makeRecord(false), items: [items[0]], recorder })
+    assert.deepEqual(calls, [
+      ['reconnected xapi.call', 'pool.set_wlb_enabled'],
+      ['recorder.settingRestored', 'wlb', undefined],
+    ])
+  })
+
+  it('goes on when the pool is no longer connected', async function () {
+    const { calls, recorder, xenServers } = setup()
+    xenServers.getXapi = () => undefined
+    await xenServers.restoreRpuLeftovers(pool, { record: makeRecord(false), items, recorder })
+    assert.deepEqual(calls, [
+      ['loadPlugin', 'load-balancer'],
+      ['recorder.settingRestored', 'loadBalancer', undefined],
+      ['updateSchedule', 'schedule-1', true],
+      ['recorder.settingRestored', 'schedules', 'schedule-1'],
+    ])
+  })
+
+  it('only restores what is listed', async function () {
+    const { calls, recorder, xenServers } = setup()
+    await xenServers.restoreRpuLeftovers(pool, { record: makeRecord(false), items: [], recorder })
+    assert.deepEqual(calls, [['xapi.restoreRpuLeftovers', []]])
+  })
+})

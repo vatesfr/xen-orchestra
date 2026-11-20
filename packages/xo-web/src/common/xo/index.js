@@ -1703,8 +1703,10 @@ export const finalizeRollingPoolUpdate = async poolId => {
       icon: 'pool-rolling-update',
     })
     await _call('pool.finalizeRollingUpdate', { pool: poolId, force: true })
+  } finally {
+    // a refused finalization may have restored a part of the items
+    rollingUpdateRecoveryByPool[poolId]?.forceRefresh()
   }
-  rollingUpdateRecoveryByPool[poolId]?.forceRefresh()
 }
 
 export const resumeRollingPoolUpdate = async poolId => {

@@ -311,8 +311,8 @@ export async function finalizeRollingUpdate({ force, pool }) {
 }
 
 finalizeRollingUpdate.params = {
-  // close even though the update left items unrestored (or its record cannot
-  // be read): they are abandoned and listed in the task, nothing is restored
+  // close without restoring what the update left unrestored (or when its
+  // record cannot be read): the items are abandoned and listed in the task
   force: {
     optional: true,
     type: 'boolean',
@@ -325,7 +325,7 @@ finalizeRollingUpdate.resolve = {
 }
 
 finalizeRollingUpdate.description =
-  'Close the record of an incomplete rolling pool update once the pool has been reviewed'
+  'Close the record of an incomplete rolling pool update, after restoring what it left unrestored'
 
 // -------------------------------------------------------------------
 
