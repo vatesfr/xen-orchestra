@@ -16,6 +16,7 @@ import { findTooltipContent } from '@/test/find-tooltip-content.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
+import VtsTagSelect from '@core/components/tag-select/VtsTagSelect.vue'
 import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
 import { objectIcon } from '@core/icons'
 import type { XoUser } from '@vates/types'
@@ -38,7 +39,7 @@ vi.mock(import('@/modules/pool/remote-resources/use-xo-pool-collection.ts'), () 
 }))
 
 vi.mock(import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'), () => ({
-  useXoVmCollection: (() => ({ getVmHost })) as unknown as typeof useXoVmCollection,
+  useXoVmCollection: (() => ({ getVmHost, vms: computed(() => []) })) as unknown as typeof useXoVmCollection,
 }))
 
 vi.mock(import('@/modules/host/remote-resources/use-xo-host-collection.ts'), () => ({
@@ -119,7 +120,6 @@ it('lists every row of the card, in order', () => {
   expect(wrapper.findAll('.vts-card-row-key-value').map(row => row.get('.key').text())).toEqual([
     t('state'),
     t('description'),
-    t('tags'),
     t('pool'),
     t('host'),
     t('os-name'),
@@ -147,10 +147,35 @@ it('shows the power state, description and OS name of the VM', () => {
   })
 })
 
-it('renders one tag per VM tag', () => {
+it('renders the tags between the description and the pool', () => {
+  const wrapper = mountInfoCard()
+
+  const rowLabels = wrapper
+    .findAll('.content > .vts-card-row-key-value .key, .content > .vm-tags-editor .label')
+    .map(label => label.text())
+
+  expect(rowLabels.slice(0, 4)).toEqual([t('state'), t('description'), t('tags'), t('pool')])
+})
+
+it('renders one tag per VM tag, in alphabetical order', () => {
   const wrapper = mountInfoCard(createVm({ tags: ['production', 'billing'] }))
 
-  expect(findTags(wrapper)).toEqual(['production', 'billing'])
+  expect(findTags(wrapper)).toEqual(['billing', 'production'])
+})
+
+it('shows an icon-only "Add" button next to the tags label when the VM has none', () => {
+  const wrapper = mountInfoCard(createVm({ tags: [] }))
+
+  const button = wrapper.findComponent(VtsTagSelect).get('.ui-button-icon')
+
+  expect(button.attributes('aria-label')).toBe(t('action:add'))
+  expect(button.text()).toBe('')
+})
+
+it('shows an icon-only "Edit" button next to the tags label when the VM has some', () => {
+  const wrapper = mountInfoCard(createVm({ tags: ['production'] }))
+
+  expect(wrapper.findComponent(VtsTagSelect).get('.ui-button-icon').attributes('aria-label')).toBe(t('action:edit'))
 })
 
 it('shows the name of the pool hosting the VM', () => {

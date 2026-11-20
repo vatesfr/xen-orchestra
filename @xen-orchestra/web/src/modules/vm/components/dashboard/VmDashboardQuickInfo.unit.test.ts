@@ -53,7 +53,7 @@ beforeEach(() => {
   buildXo5Route.mockReset()
   useXoUserResourceMock.mockReset()
 
-  useXoVmCollectionMock.mockReturnValue({ areVmsReady: ref(true), getVmHost })
+  useXoVmCollectionMock.mockReturnValue({ areVmsReady: ref(true), getVmHost, vms: ref([]) })
   useGetPoolById.mockReturnValue(computed(() => undefined))
   getVmHost.mockReturnValue(undefined)
   isMasterHost.mockReturnValue(false)
@@ -69,7 +69,7 @@ function mountQuickInfo(vm: FrontXoVm = createVm()) {
 }
 
 it('shows a busy state instead of the rows while the VMs are still loading', () => {
-  useXoVmCollectionMock.mockReturnValue({ areVmsReady: ref(false), getVmHost })
+  useXoVmCollectionMock.mockReturnValue({ areVmsReady: ref(false), getVmHost, vms: ref([]) })
 
   const wrapper = mountQuickInfo()
 
@@ -94,7 +94,6 @@ it('lists every row of the card, in order', () => {
     t('guest-tools'),
     t('vcpus'),
     t('ram'),
-    t('tags'),
   ])
 })
 
@@ -172,8 +171,15 @@ it('falls back to "Unknown" when the creator of the VM is not known', () => {
   expect(findLabelledValues(mountQuickInfo())).toMatchObject({ [t('created-by')]: t('unknown') })
 })
 
-it('renders one tag per VM tag', () => {
+it('renders the tags below their label', () => {
+  const wrapper = mountQuickInfo(createVm({ tags: ['production'] }))
+
+  expect(wrapper.get('.vm-tags-editor > .header .label').text()).toBe(t('tags'))
+  expect(wrapper.find('.vm-tags-editor > .ui-tags-list').exists()).toBe(true)
+})
+
+it('renders one tag per VM tag, in alphabetical order', () => {
   const wrapper = mountQuickInfo(createVm({ tags: ['production', 'billing'] }))
 
-  expect(findTags(wrapper)).toEqual(['production', 'billing'])
+  expect(findTags(wrapper)).toEqual(['billing', 'production'])
 })
