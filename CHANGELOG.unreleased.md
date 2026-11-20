@@ -7,6 +7,8 @@
 
 > Security fixes and new features should go in this section
 
+- XOA updater access now requires administrator credentials
+
 ### Enhancements
 
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
@@ -32,5 +34,7 @@
 <!--packages-start-->
 
 - @xen-orchestra/web-core minor
+- xo-server patch
+- xo-web patch
 
 <!--packages-end-->

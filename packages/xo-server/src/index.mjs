@@ -17,6 +17,7 @@ import once from 'lodash/once.js'
 import proxyAddr from 'proxy-addr'
 import proxyConsole from './proxy-console.mjs'
 import { getProxyTargetUrl } from './_getProxyTargetUrl.mjs'
+import { createProxyUpgradeHandler } from './_updaterProxy.mjs'
 import pw from 'pw'
 import serveStatic from 'serve-static'
 import stoppable from 'stoppable'
@@ -655,7 +656,7 @@ async function createWebServer({ listen, listenOptions }) {
 
 // ===================================================================
 
-const setUpProxies = (express, opts, xo) => {
+const setUpProxies = (express, opts, xo, useForwardedHeaders) => {
   if (!opts) {
     return
   }
@@ -744,22 +745,7 @@ const setUpProxies = (express, opts, xo) => {
   })
   xo.hooks.on('stop', () => fromCallback.call(webSocketServer, 'close'))
 
-  express.on('upgrade', (req, socket, head) => {
-    const { url } = req
-
-    for (const prefix in opts) {
-      if (url.startsWith(prefix)) {
-        const { targetUrl, isLocal } = getProxyTargetUrl(opts[prefix], 'ws:', userHttpConfig)
-
-        proxy.ws(req, socket, head, {
-          agent: isLocal ? undefined : xo.httpAgent,
-          target: targetUrl.href + url.slice(prefix.length),
-        })
-
-        return
-      }
-    }
-  })
+  express.on('upgrade', createProxyUpgradeHandler({ log, opts, proxy, useForwardedHeaders, userHttpConfig, xo }))
 }
 
 // ===================================================================
@@ -1087,7 +1073,7 @@ export default async function main(args) {
   // Must be set up before the static files.
   setUpApi(webServer, xo, config, useForwardedHeaders)
 
-  setUpProxies(express, config.http.proxies, xo)
+  setUpProxies(express, config.http.proxies, xo, useForwardedHeaders)
 
   if (!safeMode) {
     await registerPlugins(xo)
