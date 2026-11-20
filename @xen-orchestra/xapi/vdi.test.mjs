@@ -51,7 +51,7 @@ test('falls back to VDI.resize_online when the VDI is in use', async () => {
   assert.deepEqual(calledMethods, ['VDI.resize', 'VDI.resize_online'])
 })
 
-for (const code of ['MESSAGE_METHOD_UNKNOWN', 'MESSAGE_REMOVED']) {
+for (const code of ['MESSAGE_METHOD_UNKNOWN', 'MESSAGE_REMOVED', 'SR_OPERATION_NOT_SUPPORTED']) {
   test(`throws VDI_IN_USE when VDI.resize_online fails with ${code}`, async () => {
     const vdiInUse = xapiError('VDI_IN_USE')
     await assert.rejects(

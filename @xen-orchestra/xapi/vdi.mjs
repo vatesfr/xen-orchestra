@@ -269,14 +269,14 @@ class Vdi {
    * Grow a VDI to a new virtual size.
    *
    * If the VDI is attached to a running VM, the resize is done online when the
-   * XAPI supports it.
+   * XAPI and the SR support it.
    *
    * @param {string} vdiRef - reference of the VDI to resize
    * @param {number} size - new virtual size in bytes, cannot be below the current one
    * @returns {Promise<void>}
    * @throws invalid parameters error if `size` is below the current virtual size
    * @throws `VDI_IN_USE` if the VDI is attached to a running VM and the XAPI
-   * does not support online resize
+   * or the SR does not support online resize
    */
   async resize(vdiRef, size) {
     // XAPI may return int64 fields as strings
@@ -294,8 +294,13 @@ class Vdi {
       try {
         await this.callAsync('VDI.resize_online', vdiRef, size)
       } catch (resizeOnlineError) {
-        // XCP-ng 8.3 still declares the method but marks it as removed
-        if (resizeOnlineError.code === 'MESSAGE_METHOD_UNKNOWN' || resizeOnlineError.code === 'MESSAGE_REMOVED') {
+        const knownFailureOnlineResize = [
+          'MESSAGE_METHOD_UNKNOWN', // older version , no suppport
+          'MESSAGE_REMOVED', // XCP-ng 8.3 still declares the method but marks it as removed
+          'SR_OPERATION_NOT_SUPPORTED', // xapi support it , but not this SR
+        ]
+        if (knownFailureOnlineResize.includes(resizeOnlineError.code)) {
+          // in this case the base error is more useful
           throw resizeError
         }
         throw resizeOnlineError
