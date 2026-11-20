@@ -94,7 +94,6 @@ import VtsOption from '@core/components/select/VtsOption.vue'
 import UiCheckbox from '@core/components/ui/checkbox/UiCheckbox.vue'
 import UiDrawer from '@core/components/ui/drawer/UiDrawer.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
-import { useOverlay } from '@core/packages/overlay/use-overlay.ts'
 import { useI18n } from 'vue-i18n'
 
 const { poolId, hostId } = defineProps<{
@@ -125,34 +124,18 @@ const {
   useAuth,
   supportsPreferredImageFormats,
   preferredImageFormatsSelectBindings,
-  requiresEraseConfirm,
-  validateAndBuildPayload,
+  submit,
 } = useNewSrForm(
   () => poolId,
   () => hostId
 )
 
-const { open: openEraseConfirmModal } = useOverlay({
-  component: () => import('@/modules/storage-repository/components/modal/SrCreateEraseConfirmModal.vue'),
-  events: { onConfirm: true, onCancel: true },
-})
-
 async function handleConfirm() {
-  const restPayload = await validateAndBuildPayload()
+  const restPayload = await submit()
 
-  if (!restPayload) {
-    return
+  if (restPayload !== undefined) {
+    emit('confirm', restPayload)
   }
-
-  if (requiresEraseConfirm.value) {
-    const response = await openEraseConfirmModal({ props: { device: restPayload.device_config.device ?? '' } })
-
-    if (response.event !== 'onConfirm') {
-      return
-    }
-  }
-
-  emit('confirm', restPayload)
 }
 </script>
 
