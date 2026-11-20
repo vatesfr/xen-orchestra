@@ -774,6 +774,73 @@ describe('rollingPoolReboot', function () {
       )
     })
 
+    // XAPI refuses the evacuation while a VM of the host has an operation
+    // running, e.g. a migration started by the interrupted attempt
+    const operationInProgress = () =>
+      Object.assign(new Error('CANNOT_EVACUATE_HOST'), {
+        code: 'CANNOT_EVACUATE_HOST',
+        params: ['OTHER_OPERATION_IN_PROGRESS', 'VM', 'OpaqueRef:vm-b1', 'pool_migrate'],
+      })
+
+    it('waits for the operations an interrupted attempt left running on the VMs of the host to evacuate', async function (t) {
+      t.mock.timers.enable({ apis: ['setTimeout'] })
+      const xapi = new FakeXapi([[10], [10]])
+      const [, hostB] = xapi.hosts
+      let nRefusals = 3
+      const $call = hostB.$call
+      hostB.$call = async method => {
+        if (method === 'assert_can_evacuate' && nRefusals > 0) {
+          nRefusals--
+          throw operationInProgress()
+        }
+        return $call(method)
+      }
+
+      const ticker = setInterval(() => t.mock.timers.tick(10e3), 1)
+      const { error } = await rollingPoolReboot(xapi, {
+        resume: {
+          doneHostIds: new Set(['host-A']),
+          hostsStarted: true,
+          hostOrder: ['host-A', 'host-B'],
+          vmHomeById: {},
+          haltedPinnedVms: {},
+        },
+      }).finally(() => clearInterval(ticker))
+
+      assert.equal(error, undefined)
+      assert.equal(nRefusals, 0)
+    })
+
+    it('gives up on an evacuation the host keeps refusing for another reason', async function () {
+      const xapi = new FakeXapi([[10], [10]])
+      const [, hostB] = xapi.hosts
+      let nChecks = 0
+      const $call = hostB.$call
+      hostB.$call = async method => {
+        if (method === 'assert_can_evacuate') {
+          nChecks++
+          throw Object.assign(new Error('CANNOT_EVACUATE_HOST'), {
+            code: 'CANNOT_EVACUATE_HOST',
+            params: ['HOST_NOT_ENOUGH_FREE_MEMORY'],
+          })
+        }
+        return $call(method)
+      }
+
+      const { error } = await rollingPoolReboot(xapi, {
+        resume: {
+          doneHostIds: new Set(['host-A']),
+          hostsStarted: true,
+          hostOrder: ['host-A', 'host-B'],
+          vmHomeById: {},
+          haltedPinnedVms: {},
+        },
+      })
+
+      assert.equal(error?.code, 'CANNOT_EVACUATE_HOST')
+      assert.equal(nChecks, 1)
+    })
+
     it('keeps the settings a previous attempt left changed as they are during the run, then restores them', async function () {
       const { events, recorder, xapi } = settingsSpy(new FakeXapi([[10], [10]]))
       // auto power on was already disabled before the run: not in the record

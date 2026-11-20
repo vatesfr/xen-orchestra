@@ -1,5 +1,5 @@
 import { asyncEach } from '@vates/async-each'
-import { timeout } from 'promise-toolbox'
+import { pRetry, timeout } from 'promise-toolbox'
 import { createLogger } from '@xen-orchestra/log'
 import { decorateObject } from '@vates/decorate-with'
 import { defer as deferrable } from 'golike-defer'
@@ -25,6 +25,11 @@ const PINNED_VM_ERROR_CODES = new Set(['VM_HAS_PCI_ATTACHED', 'VM_HAS_VGPU', 'VM
 // just rebooted
 const PINNED_VM_SHUTDOWN_CONCURRENCY = 8
 const PINNED_VM_START_CONCURRENCY = 2
+
+// how long to wait for the VM operations which prevent a host evacuation to
+// finish, up to 10 minutes
+const EVACUATION_PRECONDITION_RETRY_DELAY = 10e3
+const EVACUATION_PRECONDITION_TRIES = 60
 
 const setProgress = (task, progress) => task.set('progress', Math.round(progress))
 
@@ -312,8 +317,16 @@ const methods = {
             }
 
             // the pool state may have changed since the initial check, e.g. while evacuating the previous hosts
+            //
+            // a VM operation still running on the host, e.g. a migration left by
+            // an interrupted attempt, only delays the evacuation: wait for it
             await Task.run({ properties: { name: `Check evacuation precondition`, hostId, hostName } }, async () => {
-              await host.$call('assert_can_evacuate')
+              await pRetry(() => host.$call('assert_can_evacuate'), {
+                delay: EVACUATION_PRECONDITION_RETRY_DELAY,
+                tries: EVACUATION_PRECONDITION_TRIES,
+                when: error =>
+                  error.code === 'CANNOT_EVACUATE_HOST' && error.params?.[0] === 'OTHER_OPERATION_IN_PROGRESS',
+              })
             })
 
             await Task.run({ properties: { name: `Evacuate`, hostId, hostName } }, async () => {
