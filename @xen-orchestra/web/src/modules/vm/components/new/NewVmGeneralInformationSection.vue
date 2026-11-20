@@ -29,7 +29,7 @@
         </UiCheckboxGroup>
       </div>
       <div class="column">
-        <UiTextarea v-model="vmState.description" accent="brand">
+        <UiTextarea v-model="vmState.description" accent="neutral">
           {{ t('new-vm:description') }}
         </UiTextarea>
         <VtsInputWrapper :label="t('affinity-host')">

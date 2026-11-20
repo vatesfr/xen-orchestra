@@ -1,9 +1,11 @@
 import FormCheckbox from '@/shared/components/form/FormCheckbox.vue'
-import { findInputMessages } from '@/test/find-input-messages.ts'
 import { dangerMessage } from '@/test/form-messages.ts'
 import { getCheckbox } from '@/test/get-checkbox.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import UiCheckbox from '@core/components/ui/checkbox/UiCheckbox.vue'
+import { setFieldValue } from '@core-test/field-events.ts'
+import { findInfoLabels } from '@core-test/find-accented-labels.ts'
+import { readForwardedFlag } from '@core-test/read-forwarded-flag.ts'
 import { mount } from '@vue/test-utils'
 
 type CheckboxProps = InstanceType<typeof FormCheckbox>['$props']
@@ -40,55 +42,51 @@ it('leaves its checkbox indeterminate when its model is undefined, as for a valu
 })
 
 it('emits the new value when toggled', async () => {
-  const wrapper = mountCheckbox()
-
-  await wrapper.get('input').setValue(true)
-
-  expect(wrapper.emitted('update:modelValue')).toEqual([[true]])
+  expect(await setFieldValue(mountCheckbox(), 'input', true)).toEqual([[true]])
 })
 
 it('ignores the validation bindings it receives with its field bindings', () => {
   const wrapper = mountCheckbox({}, { attrs: { error: dangerMessage('Required'), onBlur: () => {} } })
 
-  expect(findInputMessages(wrapper)).toEqual([])
+  expect(findInfoLabels(wrapper)).toEqual([])
   expect(wrapper.attributes()).not.toHaveProperty('error')
 })
 
 it('shows no warning when none is given', () => {
-  expect(findInputMessages(mountCheckbox())).toEqual([])
+  expect(findInfoLabels(mountCheckbox())).toEqual([])
 })
 
 it.each<[string, CheckboxProps['warning']]>([
   ['a text', 'The data cannot be recovered'],
   ['a message', { content: 'The data cannot be recovered', accent: 'warning' }],
 ])('shows the warning given as %s', (_case, warning) => {
-  expect(findInputMessages(mountCheckbox({ warning }))).toEqual(['The data cannot be recovered'])
+  expect(findInfoLabels(mountCheckbox({ warning }))).toEqual(['The data cannot be recovered'])
 })
 
 it('shows every warning when several are given', () => {
   const warning = ['The data cannot be recovered', 'Another warning']
 
-  expect(findInputMessages(mountCheckbox({ warning }))).toEqual(warning)
+  expect(findInfoLabels(mountCheckbox({ warning }))).toEqual(warning)
 })
 
 it('shows its info when given', () => {
-  expect(findInputMessages(mountCheckbox({ info: 'For PV VMs only' }))).toEqual(['For PV VMs only'])
+  expect(findInfoLabels(mountCheckbox({ info: 'For PV VMs only' }))).toEqual(['For PV VMs only'])
 })
 
 it.each<[string, Partial<CheckboxProps>]>([
   ['alone', {}],
   ['in place of its info', { info: 'For PV VMs only' }],
 ])('shows its info slot %s', (_case, props) => {
-  expect(findInputMessages(mountCheckbox(props, { slots: { info: 'For HVM VMs too' } }))).toEqual(['For HVM VMs too'])
+  expect(findInfoLabels(mountCheckbox(props, { slots: { info: 'For HVM VMs too' } }))).toEqual(['For HVM VMs too'])
 })
 
 it('shows its info before its warnings', () => {
-  expect(
-    findInputMessages(mountCheckbox({ info: 'For PV VMs only', warning: 'The data cannot be recovered' }))
-  ).toEqual(['For PV VMs only', 'The data cannot be recovered'])
+  expect(findInfoLabels(mountCheckbox({ info: 'For PV VMs only', warning: 'The data cannot be recovered' }))).toEqual([
+    'For PV VMs only',
+    'The data cannot be recovered',
+  ])
 })
 
 it('disables its checkbox when it is disabled', () => {
-  expect(mountCheckbox({ disabled: true }).getComponent(UiCheckbox).props('disabled')).toBe(true)
-  expect(mountCheckbox().getComponent(UiCheckbox).props('disabled')).toBe(false)
+  expect(readForwardedFlag(mountCheckbox, UiCheckbox, 'disabled')).toEqual([true, false])
 })

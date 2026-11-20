@@ -1,7 +1,7 @@
-<!-- v5 -->
+<!-- v6 -->
 <template>
   <div class="ui-textarea" :class="toVariants({ accent: isExceedingMaxCharacters ? 'danger' : accent })">
-    <UiLabel v-if="slots.default" :accent="labelAccent" :required :href :for="id">
+    <UiLabel v-if="slots.default" :accent :required :href :for="id">
       <slot />
     </UiLabel>
     <textarea v-bind="attrs" :id ref="textarea" v-model="model" :disabled class="textarea typo-body-regular" />
@@ -12,7 +12,7 @@
     <UiInfo v-if="isExceedingMaxCharacters" accent="danger">
       {{ t('field:exceeds-max-characters', { max: maxCharacters }) }}
     </UiInfo>
-    <UiInfo v-if="slots.message && labelAccent !== 'neutral'" :accent="labelAccent">
+    <UiInfo v-if="slots.message && accent !== 'neutral'" :accent>
       <slot name="message" />
     </UiInfo>
   </div>
@@ -36,7 +36,7 @@ const {
   maxCharacters,
   id = useId(),
 } = defineProps<{
-  accent: 'brand' | 'warning' | 'danger'
+  accent: 'neutral' | 'warning' | 'danger'
   id?: string
   maxCharacters?: number
   disabled?: boolean
@@ -62,12 +62,8 @@ const { focused } = useFocus(textAreaElement)
 
 // WIP: To update when using VeeValidate and custom validation rules
 const isExceedingMaxCharacters = computed(() =>
-  maxCharacters !== undefined ? !focused.value && model.value.trim().length > maxCharacters : false
+  maxCharacters ? !focused.value && model.value.trim().length > maxCharacters : false
 )
-
-const labelAccent = computed(() => {
-  return accent === 'brand' ? 'neutral' : accent
-})
 </script>
 
 <style lang="postcss" scoped>
@@ -76,86 +72,56 @@ const labelAccent = computed(() => {
   flex-direction: column;
   gap: 0.4rem;
 
+  /* VARIANT */
+
+  &.accent--neutral {
+    --idle-color: var(--color-neutral-txt-secondary);
+    --hover-color: var(--color-brand-txt-hover);
+    --active-color: var(--color-brand-txt-active);
+    --selected-color: var(--color-brand-txt-base);
+  }
+
+  &.accent--warning {
+    --idle-color: var(--color-warning-txt-base);
+    --hover-color: var(--color-warning-txt-hover);
+    --active-color: var(--color-warning-txt-active);
+    --selected-color: var(--color-warning-txt-base);
+  }
+
+  &.accent--danger {
+    --idle-color: var(--color-danger-txt-base);
+    --hover-color: var(--color-danger-txt-hover);
+    --active-color: var(--color-danger-txt-active);
+    --selected-color: var(--color-danger-txt-base);
+  }
+
   .textarea {
     border-radius: 0.4rem;
     border-width: 0.1rem;
     border-style: solid;
+    border-color: var(--idle-color);
     background-color: var(--color-neutral-background-primary);
     height: 8rem;
     outline: none;
     padding: 0.8rem 1.6rem;
     width: 100%;
-  }
 
-  &.accent--brand {
-    .textarea {
-      border-color: var(--color-neutral-border);
-
-      &:hover {
-        border-color: var(--color-brand-item-hover);
-      }
-
-      &:active {
-        border-color: var(--color-brand-item-active);
-      }
-
-      &:focus:not(:active) {
-        border-color: var(--color-brand-item-base);
-        box-shadow: inset 0 0 0 0.1rem var(--color-brand-item-base);
-      }
-
-      &:disabled {
-        background-color: var(--color-neutral-background-disabled);
-        border-color: var(--color-neutral-border);
-      }
+    &:hover {
+      border-color: var(--hover-color);
     }
-  }
 
-  &.accent--warning {
-    .textarea {
-      border-color: var(--color-warning-item-base);
-
-      &:hover {
-        border-color: var(--color-warning-item-hover);
-      }
-
-      &:active {
-        border-color: var(--color-warning-item-active);
-      }
-
-      &:focus:not(:active) {
-        border-color: var(--color-warning-item-base);
-        box-shadow: inset 0 0 0 0.1rem var(--color-warning-item-base);
-      }
-
-      &:disabled {
-        background-color: var(--color-neutral-background-disabled);
-        border-color: var(--color-neutral-border);
-      }
+    &:active {
+      border-color: var(--active-color);
     }
-  }
 
-  &.accent--danger {
-    .textarea {
-      border-color: var(--color-danger-item-base);
+    &:disabled {
+      border-color: var(--color-neutral-txt-secondary);
+      background-color: var(--color-neutral-background-disabled);
+    }
 
-      &:hover {
-        border-color: var(--color-danger-item-hover);
-      }
-
-      &:active {
-        border-color: var(--color-danger-item-active);
-      }
-
-      &:focus:not(:active) {
-        border-color: var(--color-danger-item-base);
-        box-shadow: inset 0 0 0 0.1rem var(--color-danger-item-base);
-      }
-
-      &:disabled {
-        background-color: var(--color-neutral-background-disabled);
-        border-color: var(--color-neutral-border);
-      }
+    &:focus {
+      border-color: var(--selected-color);
+      border-width: 0.2rem;
     }
   }
 }
