@@ -2,6 +2,7 @@ import { useXoTasksUnread } from '@/modules/task/composables/xo-tasks-unread.com
 import type { useXoTaskCollection } from '@/modules/task/remote-resources/use-xo-task-collection.ts'
 import { createTaskItem } from '@/test/create-task-item.ts'
 import { createTestRouter } from '@/test/create-test-router.ts'
+import { readLocalStorageJson } from '@/test/local-storage.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
 import type { Task } from '@core/components/ui/task-item/UiTaskItem.vue'
 import { nextTick } from 'vue'
@@ -93,6 +94,20 @@ describe('markAllAsRead', () => {
     lastDayTasks.value = [createTree(), createTaskItem({ id: 'new', start: 600 })]
 
     expect([...wrapper.vm.unreadTaskIds]).toEqual(['new'])
+  })
+})
+
+describe('read activity', () => {
+  it('forgets the tasks read more than 32h before the activity of the one being opened', async () => {
+    const hour = 60 * 60 * 1000
+
+    localStorage.setItem('my-tasks.read-activity-by-id', JSON.stringify({ stale: 68 * hour - 1, kept: 68 * hour }))
+    lastDayTasks.value = [createTaskItem({ id: 'opened', status: 'success', start: 90 * hour, end: 100 * hour })]
+
+    await mountUnreadTasks('opened')
+    await nextTick()
+
+    expect(readLocalStorageJson('my-tasks.read-activity-by-id')).toEqual({ kept: 68 * hour, opened: 100 * hour })
   })
 })
 

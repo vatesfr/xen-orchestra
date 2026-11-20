@@ -37,6 +37,10 @@ export function getUnreadTaskIds(
   return unreadTaskIds
 }
 
+export function pruneReadActivity(readActivityById: Record<string, number>, since: number): Record<string, number> {
+  return Object.fromEntries(Object.entries(readActivityById).filter(([, activity]) => activity >= since))
+}
+
 export type TaskSeverity = 'danger' | 'warning'
 
 export function getTaskSeverity(task: Task): TaskSeverity | undefined {

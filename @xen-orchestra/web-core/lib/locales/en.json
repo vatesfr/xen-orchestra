@@ -1561,6 +1561,7 @@
   "task:unread": "Unread",
   "tasks": "Tasks",
   "tasks-page": "Tasks page",
+  "tasks:mark-all-as-read": "Mark all as read",
   "tasks:my-tasks": "My tasks",
   "tasks:my-tasks-n-in-progress": "@:{'tasks:my-tasks'}, 1 pending | @:{'tasks:my-tasks'}, {n} pending",
   "tasks:my-tasks-n-in-progress-with-failures": "@:{'tasks:my-tasks'}, 1 pending and some failures | @:{'tasks:my-tasks'}, {n} pending, and some failures",
