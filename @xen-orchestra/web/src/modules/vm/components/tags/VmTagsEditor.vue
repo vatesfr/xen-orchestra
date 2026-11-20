@@ -2,7 +2,13 @@
   <div class="vm-tags-editor">
     <div class="header">
       <span class="label">{{ t('tags') }}</span>
-      <VmTagSelect :vm :icon-only />
+      <VtsTagSelect
+        :tags="vm.tags"
+        :suggestions="tagSuggestions"
+        :icon-only
+        :busy="isSaving"
+        @save="changes => saveTags(changes)"
+      />
       <div v-if="slots.addons" class="addons">
         <slot name="addons" />
       </div>
@@ -14,9 +20,11 @@
 </template>
 
 <script lang="ts" setup>
-import VmTagSelect from '@/modules/vm/components/tags/VmTagSelect.vue'
+import { useVmTagSuggestions } from '@/modules/vm/composables/use-vm-tag-suggestions.composable.ts'
+import { useVmTagsEdition } from '@/modules/vm/composables/use-vm-tags-edition.composable.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import VtsTag from '@core/components/tag/VtsTag.vue'
+import VtsTagSelect from '@core/components/tag-select/VtsTagSelect.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import { sortTags } from '@core/utils/sort-tags.util.ts'
 import { computed } from 'vue'
@@ -33,6 +41,10 @@ const slots = defineSlots<{
 }>()
 
 const { t } = useI18n()
+
+const { saveTags, isSaving } = useVmTagsEdition(() => vm)
+
+const { tagSuggestions } = useVmTagSuggestions()
 
 const sortedTags = computed(() => sortTags(vm.tags))
 </script>
