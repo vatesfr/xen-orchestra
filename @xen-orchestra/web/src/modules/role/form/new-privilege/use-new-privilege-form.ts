@@ -21,7 +21,8 @@ import { useDebouncedSearch } from '@core/composables/debounced-search.composabl
 import { queryFilter, required } from '@core/packages/form-validation'
 import { defineFormSteps, useMultiStepValidatedForm } from '@core/packages/validated-form'
 import type { XoAclBasePrivilege } from '@vates/types'
-import { computed, watch } from 'vue'
+import { syncRefs } from '@vueuse/core'
+import { computed, toRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 function getErrorContent(error: InputWrapperMessage | undefined) {
@@ -58,7 +59,7 @@ export function useNewPrivilegeForm(privilegeToEdit: NewPrivilegePayload | undef
     review: {},
   })
 
-  const { useField, useFormSelect, useSelect, currentStep, next, back, backTo, validateAllSteps } =
+  const { useField, useFormSelect, useSelect, currentStep, next, back, backTo, validateAllSteps, markStepUntouched } =
     useMultiStepValidatedForm(formData, {
       details: {
         errors: {
@@ -141,9 +142,7 @@ export function useNewPrivilegeForm(privilegeToEdit: NewPrivilegePayload | undef
     searchBindings: selectorSearchBindings,
   } = useDebouncedSearch(formData.scope.selector)
 
-  watch(typedSelector, selector => {
-    formData.scope.selector = selector
-  })
+  syncRefs(typedSelector, toRef(formData.scope, 'selector'))
 
   watch(currentStep, () => applySelector())
 
@@ -181,6 +180,8 @@ export function useNewPrivilegeForm(privilegeToEdit: NewPrivilegePayload | undef
       if (formData.scope.selectedIds.length > 0) {
         formData.scope.selectedIds = []
       }
+
+      markStepUntouched('scope')
     }
   )
 
