@@ -54,6 +54,14 @@ function formatDatetime(date) {
   })} (Paris)`
 }
 
+function formatDuration(ms) {
+  const hours = Math.floor(ms / 3600000)
+  const minutes = Math.floor((ms / 60000) % 60)
+    .toString()
+    .padStart(2, '0')
+  return `${hours}h${minutes}`
+}
+
 function getCount(output, label) {
   const match = output.match(new RegExp(`ℹ ${label} (\\d+)`))
   if (match === null) {
@@ -147,6 +155,7 @@ const startedAt = new Date()
 process.stderr.write(`[run-and-report] branch=${branch}\n`)
 
 const { success, output, logFilePath } = await runTests()
+const runtimeInMs = Date.now() - startedAt.getTime()
 
 const emoji = success ? '✅' : '❌'
 const status = success ? 'success' : 'failure'
@@ -159,7 +168,8 @@ const skippedTests = getCount(output, 'skipped')
 const subject = `${emoji} ${status} ${successTests}/${totalTests} passed ${formatDatetime(startedAt)} on ${branch}@${commitHash}`
 const summary = `Result: ${emoji} ${status}
 Commit: ${branch}@${commitHash}
-Tests: ${successTests}/${totalTests} passed, ${failedTests} failed, ${cancelledTests} cancelled, ${skippedTests} skipped`
+Tests: ${successTests}/${totalTests} passed, ${failedTests} failed, ${cancelledTests} cancelled, ${skippedTests} skipped
+Duration: ${formatDuration(runtimeInMs)}`
 
 // Attach the full structured debug log if we found its path
 const attachments = []
