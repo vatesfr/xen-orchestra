@@ -14,6 +14,7 @@ import {
 } from '@/test/new-vm-fixtures.ts'
 import { flushPromises } from '@vue/test-utils'
 import { useI18n } from 'vue-i18n'
+import type { Router } from 'vue-router'
 
 const { useXoVmCreateJobMock } = vi.hoisted(() => ({
   useXoVmCreateJobMock: vi.fn(),
@@ -88,7 +89,6 @@ beforeEach(() => {
   discardChangesModalMock.reset()
 })
 
-// A creation that lasts until the test ends it
 function createPendingRun() {
   let finish: (results: CreationResult[]) => void = () => {}
 
@@ -102,11 +102,10 @@ function mountWizard({
   run = () => Promise.resolve([CREATED_VM]),
   canRun = true,
   isRunning = false,
-}: { run?: () => Promise<CreationResult[]>; canRun?: boolean; isRunning?: boolean } = {}) {
+  router = createTestRouter(),
+}: { run?: () => Promise<CreationResult[]>; canRun?: boolean; isRunning?: boolean; router?: Router } = {}) {
   seedNewVmCollections()
   useXoVmCreateJobMock.mockReturnValue(createJobResult(run, { canRun, isRunning }))
-
-  const router = createTestRouter()
 
   const { wrapper } = mountComposable(
     () => {
@@ -129,6 +128,7 @@ function mountWizard({
 async function mountWizardOnConfiguration(options: Parameters<typeof mountWizard>[0] = {}) {
   const mounted = mountWizard(options)
 
+  await mounted.router.isReady()
   await chooseNewVmTemplate(mounted.wizard)
   await mounted.wizard.next()
 
@@ -211,6 +211,24 @@ describe('next', () => {
 
     expect(wizard.currentStep).toBe('review')
   })
+
+  it('moves one step only when continued twice at once', async () => {
+    const { wizard } = mountWizard()
+    await chooseNewVmTemplate(wizard)
+
+    await Promise.all([wizard.next(), wizard.next()])
+
+    expect(wizard.currentStep).toBe('configuration')
+  })
+
+  it('writes the step reached in the route, keeping the rest of its query', async () => {
+    const router = createTestRouter()
+    await router.push({ query: { poolid: NEW_VM_POOL.id } })
+
+    await mountWizardOnReview({ router })
+
+    expect(router.currentRoute.value.query).toEqual({ poolid: NEW_VM_POOL.id, step: 'review' })
+  })
 })
 
 describe('back', () => {
@@ -218,16 +236,76 @@ describe('back', () => {
     const { wizard } = await mountWizardOnReview()
 
     wizard.back()
+    await flushPromises()
 
     expect(wizard.currentStep).toBe('configuration')
   })
 
-  it('stays on the first step', () => {
-    const { wizard } = mountWizard()
+  it('stays on the first step', async () => {
+    const { wizard, router } = mountWizard()
+    await flushPromises()
+    const startRoute = router.currentRoute.value.fullPath
 
     wizard.back()
+    await flushPromises()
 
     expect(wizard.currentStep).toBe('environment')
+    expect(router.currentRoute.value.fullPath).toBe(startRoute)
+  })
+})
+
+describe('browser history', () => {
+  it('returns to the previous steps as the browser goes back', async () => {
+    const { wizard, router } = await mountWizardOnReview()
+
+    router.back()
+    await flushPromises()
+
+    expect(wizard.currentStep).toBe('configuration')
+
+    router.back()
+    await flushPromises()
+
+    expect(wizard.currentStep).toBe('environment')
+    expect(router.currentRoute.value.query.step).toBeUndefined()
+  })
+
+  it('moves forward again as the browser goes forward over valid steps', async () => {
+    const { wizard, router } = await mountWizardOnReview()
+    router.go(-2)
+    await flushPromises()
+
+    expect(wizard.currentStep).toBe('environment')
+
+    router.go(2)
+    await flushPromises()
+
+    expect(wizard.currentStep).toBe('review')
+  })
+
+  it('stays on a step that is no longer valid when the browser goes forward, telling what is wrong', async () => {
+    const { wizard, router } = await mountWizardOnReview()
+    router.back()
+    await flushPromises()
+    wizard.vmState.name = ''
+
+    router.forward()
+    await flushPromises()
+
+    expect(wizard.currentStep).toBe('configuration')
+    expect(router.currentRoute.value.query.step).toBe('configuration')
+    expect(wizard.errors.name).toBe(wizard.t('form:error:required'))
+  })
+
+  it('starts on the environment step when opened on a later one, the form being empty', async () => {
+    const router = createTestRouter()
+    await router.push({ query: { poolid: NEW_VM_POOL.id, step: 'review' } })
+
+    const { wizard } = mountWizard({ router })
+    await flushPromises()
+
+    expect(wizard.currentStep).toBe('environment')
+    expect(router.currentRoute.value.query).toEqual({ poolid: NEW_VM_POOL.id })
   })
 })
 

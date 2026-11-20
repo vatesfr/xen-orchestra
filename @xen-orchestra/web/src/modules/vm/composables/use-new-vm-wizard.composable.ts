@@ -3,18 +3,24 @@ import type { NewVmForm } from '@/modules/vm/form/new/use-new-vm-form.ts'
 import { useXoVmCreateJob } from '@/modules/vm/jobs/xo-vm-create.job.ts'
 import { useUnsavedChangesGuard } from '@/shared/composables/unsaved-changes-guard.composable.ts'
 import type { StepDefinition } from '@core/components/ui/stepper/UiStepper.vue'
-import { computed, onScopeDispose, ref } from 'vue'
+import { computed, onScopeDispose, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 
 const STEPS = ['environment', 'configuration', 'review'] as const
 
 export type NewVmStep = (typeof STEPS)[number]
 
+const getStep = (stepIndex: number): NewVmStep => STEPS[stepIndex] ?? 'environment'
+
+const getStepIndex = (step: unknown) => Math.max((STEPS as readonly unknown[]).indexOf(step), 0)
+
 export function useNewVmWizard(form: NewVmForm) {
   const { t } = useI18n()
 
   const router = useRouter()
+
+  const route = useRoute()
 
   const payload = useNewVmPayload(form)
 
@@ -24,7 +30,9 @@ export function useNewVmWizard(form: NewVmForm) {
 
   const currentStepIndex = ref(0)
 
-  const currentStep = computed<NewVmStep>(() => STEPS[currentStepIndex.value] ?? 'environment')
+  const currentStep = computed(() => getStep(currentStepIndex.value))
+
+  const requestedStepIndex = computed(() => getStepIndex(route.query.step))
 
   const steps = computed<StepDefinition[]>(() => [
     { label: t('new-vm:environment-setup') },
@@ -52,26 +60,63 @@ export function useNewVmWizard(form: NewVmForm) {
     isPageActive = false
   })
 
+  function getStepLocation(stepIndex: number) {
+    return { query: { ...route.query, step: stepIndex === 0 ? undefined : getStep(stepIndex) } }
+  }
+
+  async function isStepValid(step: NewVmStep) {
+    if (step === 'review' || (await form.validateStep(step))) {
+      return true
+    }
+
+    await form.focusFirstError()
+
+    return false
+  }
+
+  async function moveForwardTo(stepIndex: number) {
+    for (let index = currentStepIndex.value; index < stepIndex; index++) {
+      if (!(await isStepValid(getStep(index)))) {
+        return false
+      }
+
+      currentStepIndex.value = index + 1
+    }
+
+    return true
+  }
+
+  if (route.query.step !== undefined) {
+    void router.replace(getStepLocation(0))
+  }
+
+  watch(requestedStepIndex, async stepIndex => {
+    if (stepIndex <= currentStepIndex.value) {
+      currentStepIndex.value = stepIndex
+
+      return
+    }
+
+    if (!(await moveForwardTo(stepIndex))) {
+      router.go(currentStepIndex.value - stepIndex)
+    }
+  })
+
   async function next() {
-    const stepIndex = currentStepIndex.value
-    const step = currentStep.value
-
-    if (step === 'review') {
+    if (currentStep.value === 'review') {
       return
     }
 
-    if (!(await form.validateStep(step))) {
-      await form.focusFirstError()
+    const nextStepIndex = currentStepIndex.value + 1
 
-      return
+    if (await moveForwardTo(nextStepIndex)) {
+      await router.push(getStepLocation(nextStepIndex))
     }
-
-    currentStepIndex.value = stepIndex + 1
   }
 
   function back() {
     if (currentStepIndex.value > 0) {
-      currentStepIndex.value--
+      router.back()
     }
   }
 

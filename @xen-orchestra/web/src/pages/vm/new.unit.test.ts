@@ -78,7 +78,6 @@ vi.mock(
   () => import('@/test/mock-xo-vm-device-collections.ts')
 )
 
-// Stands for a step, and reads the form the page provides to its steps
 const createStepStub = () => defineComponent({ setup: () => ({ form: useNewVmForm() }), render: () => null })
 
 const EnvironmentStep = createStepStub()
@@ -114,7 +113,6 @@ async function submit(wrapper: ReturnType<typeof mountPage>) {
   await flushPromises()
 }
 
-// The form stays mounted, hidden by `v-show`, so that it is found as it was left
 function isFormHidden(wrapper: ReturnType<typeof mountPage>) {
   const formCard = wrapper.findAllComponents(UiCard).find(card => card.find('form').exists())
 
@@ -180,6 +178,7 @@ it('returns to the previous step when going back', async () => {
   const wrapper = await mountPageOnReview()
 
   await getButton(wrapper, t('action:back')).trigger('click')
+  await flushPromises()
 
   expect(findShownComponents(wrapper, STEPS)).toEqual([ConfigurationStep])
 })
