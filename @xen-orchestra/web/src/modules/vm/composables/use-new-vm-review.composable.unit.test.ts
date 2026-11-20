@@ -43,6 +43,11 @@ vi.mock(
 )
 
 vi.mock(
+  import('@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'),
+  () => import('@/test/mock-xo-collections.ts')
+)
+
+vi.mock(
   import('@/modules/vm/remote-resources/use-xo-vm-template-collection.ts'),
   () => import('@/test/mock-xo-collections.ts')
 )
@@ -69,7 +74,6 @@ vi.mock(
 
 const GIB = 1024 ** 3
 
-// A template describing a disk to create, without any disk of its own
 const TEMPLATE_WITH_DISK_TO_CREATE = createVmTemplate({
   template_info: { disks: [{ bootable: true, size: 8 * GIB, SR: '', type: 'system' }], install_methods: [] },
 })
@@ -289,7 +293,7 @@ describe('vdis', () => {
       {
         key: NEW_VM_TEMPLATE_VDI.id,
         rank: 1,
-        sr: 'Pool SR',
+        sr: 'Pool SR (Host of the pool)',
         name: 'Template disk',
         size: 10,
         description: 'Disk of the template',

@@ -13,6 +13,7 @@ export const useNewVmNetworkColumns = defineColumns(() => {
 
     interface: useSelectColumn({
       headerLabel: () => t('interfaces'),
+      optionIcon: option => option.properties.icon,
     }),
 
     mac: useInputColumn({

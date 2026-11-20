@@ -1,5 +1,6 @@
 import { useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import { useXoNetworkCollection } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
+import { useXoSrUtils } from '@/modules/storage-repository/composables/xo-sr-utils.composable.ts'
 import { useXoSrCollection } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import { useNewVmHighAvailability } from '@/modules/vm/composables/use-new-vm-high-availability.composable.ts'
 import { useNewVmInstallModes } from '@/modules/vm/composables/use-new-vm-install-modes.composable.ts'
@@ -54,6 +55,8 @@ export function useNewVmReview() {
   const { getHostById } = useXoHostCollection()
   const { getNetworkById } = useXoNetworkCollection()
   const { getSrById } = useXoSrCollection()
+
+  const { getSrLocation } = useXoSrUtils()
 
   const { getInstallModeLabel } = useNewVmInstallModes(isDiskTemplate)
 
@@ -120,10 +123,16 @@ export function useNewVmReview() {
     () => defaultExistingVifs.value.filter(defaultVif => !vmState.vifs.some(vif => vif.id === defaultVif.id)).length
   )
 
+  function getSrLabel(srId: Vdi['sr']) {
+    const sr = getSrById(srId)
+
+    return sr === undefined ? '' : `${sr.name_label} (${getSrLocation(sr)})`
+  }
+
   function toReviewVdi(vdi: Vdi, isCopiedFromTemplate: boolean, marker: NewVmReviewMarker) {
     return {
       key: vdi.key,
-      sr: vdi.sr === undefined ? '' : (getSrById(vdi.sr)?.name_label ?? ''),
+      sr: getSrLabel(vdi.sr),
       name: vdi.name_label,
       size: vdi.size,
       description: vdi.name_description,

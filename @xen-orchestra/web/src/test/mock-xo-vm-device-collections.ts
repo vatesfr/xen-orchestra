@@ -65,7 +65,6 @@ export const useXoVdiSnapshotCollection = (() => ({
 export const useXoVifCollection = (() => ({
   vifs: vmDeviceCollectionsMock.vifs,
   areVifsReady: vmDeviceCollectionsMock.areVifsReady,
-  getVifById: (id: FrontXoVif['id']) => vmDeviceCollectionsMock.vifs.value.find(vif => vif.id === id),
   getVifsByIds: (ids: FrontXoVif['id'][]) => filterByIds(vmDeviceCollectionsMock.vifs.value, ids),
   getVifById: (id: FrontXoVif['id'] | undefined) => vmDeviceCollectionsMock.vifs.value.find(vif => vif.id === id),
   useGetVifById: (id: MaybeRefOrGetter<FrontXoVif['id'] | undefined>) =>

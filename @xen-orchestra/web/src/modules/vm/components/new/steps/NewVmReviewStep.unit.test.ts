@@ -18,6 +18,7 @@ import {
   resetNewVmCollections,
   seedNewVmCollections,
 } from '@/test/new-vm-fixtures.ts'
+import VtsTable from '@core/components/table/VtsTable.vue'
 import UiLogEntryViewer from '@core/components/ui/log-entry-viewer/UiLogEntryViewer.vue'
 import { nextTick } from 'vue'
 
@@ -43,6 +44,11 @@ vi.mock(
 
 vi.mock(
   import('@/modules/pif/remote-resources/use-xo-pif-collection.ts'),
+  () => import('@/test/mock-xo-collections.ts')
+)
+
+vi.mock(
+  import('@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'),
   () => import('@/test/mock-xo-collections.ts')
 )
 
@@ -239,7 +245,10 @@ it('lists the disks with how each one is created', async () => {
 
   expect(findTableColumn(table, '')).toEqual(['#1', '#2'])
   expect(findTableColumn(table, t('disk-name'))).toEqual(['Template disk', form.vmState.vdis[0].name_label])
-  expect(findTableColumn(table, t('storage-repositories'))).toEqual(['Pool SR', 'Pool SR'])
+  expect(findTableColumn(table, t('storage-repositories'))).toEqual([
+    'Pool SR (Host of the pool)',
+    'Pool SR (Host of the pool)',
+  ])
   expect(findTableColumn(table, t('size'))).toEqual([t('n-gb', { n: 10 }), t('n-gb', { n: 0 })])
   expect(findTableColumn(table, t('new-vm:vdi-creation'))).toEqual([
     t('new-vm:copy-from-template-vdi'),
@@ -258,4 +267,20 @@ it('counts the removed disks under their table', async () => {
 
   expect(findTableRows(table)).toEqual([])
   expect(findOverriddenLabels(table)).toEqual([t('new-vm:n-vdis-deleted', 1)])
+})
+
+it.each([
+  ['network interface', '.new-vm-review-vifs-table', 'new-vm:no-vif-configured'],
+  ['disk', '.new-vm-review-vdis-table', 'new-vm:no-vdi-configured'],
+])('tells that no %s is configured in place of an empty table', async (_, section, message) => {
+  const { wrapper, form } = await mountStep()
+
+  form.removeVif(NEW_VM_TEMPLATE_VIF.id)
+  form.removeVdi(NEW_VM_TEMPLATE_VDI.id)
+  await nextTick()
+
+  const content = wrapper.findComponent(section)
+
+  expect(content.findComponent(VtsTable).exists()).toBe(false)
+  expect(content.get('p').text()).toBe(t(message))
 })

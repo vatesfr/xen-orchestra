@@ -3,6 +3,7 @@ import {
   buildSshCloudConfig,
   bytesToGiB,
   formatHostname,
+  getAllVdis,
   getExistingVdisChanges,
   getExistingVdisDiff,
   getExistingVifsDiff,
@@ -81,6 +82,19 @@ describe('buildSshCloudConfig', () => {
     expect(buildSshCloudConfig('web server', ['ssh-rsa AAA', 'ssh-ed25519 BBB'])).toBe(
       '#cloud-config\nhostname: web-server\nssh_authorized_keys:\n  - ssh-rsa AAA\n  - ssh-ed25519 BBB\n'
     )
+  })
+})
+
+describe('getAllVdis', () => {
+  it('lists the template disks kept, then the new disks', () => {
+    const templateVdi = createFormVdi()
+    const newVdi = createFormVdi({ key: 'new-vdi', id: undefined, name_label: 'New disk' })
+
+    expect(getAllVdis({ existingVdis: [templateVdi], vdis: [newVdi] })).toEqual([templateVdi, newVdi])
+  })
+
+  it('lists nothing without any disk', () => {
+    expect(getAllVdis({ existingVdis: [], vdis: [] })).toEqual([])
   })
 })
 

@@ -1,14 +1,21 @@
 import { type NewVmUndersizedVdi, useNewVmFormValidation } from '@/modules/vm/form/new/use-new-vm-form-validation.ts'
-import type { Vdi, VmState } from '@/modules/vm/types/new-xo-vm.type.ts'
+import type { Vdi, Vif, VmState } from '@/modules/vm/types/new-xo-vm.type.ts'
 import { mountComposableWithI18n } from '@/test/mount-composable.ts'
-import { createNewVmState, NEW_VM_ISO, NEW_VM_SR } from '@/test/new-vm-fixtures.ts'
-import { nextTick, reactive } from 'vue'
+import { createNewVmState, NEW_VM_ISO, NEW_VM_NETWORK, NEW_VM_SR } from '@/test/new-vm-fixtures.ts'
+import { type MaybeRefOrGetter, nextTick, reactive, ref } from 'vue'
 
 const NEW_VDI: Vdi = { key: 'new-vdi', name_label: 'New disk', name_description: '', size: 1, sr: NEW_VM_SR.id }
 
-const UNDERSIZED_VDI: NewVmUndersizedVdi = { key: 'vdi-template', name: 'Template disk', minSize: 10 }
+const VIF: Vif = { key: 'vif', network: NEW_VM_NETWORK.id, mac: '' }
 
-function mountValidation(overrides: Partial<VmState> = {}, undersizedVdis: NewVmUndersizedVdi[] = []) {
+const UNDERSIZED_VDI: NewVmUndersizedVdi = { key: 'vdi-template', minSize: 10 }
+
+const UNDERSIZED_TEMPLATE_VDI: Vdi = { ...NEW_VDI, key: UNDERSIZED_VDI.key, size: 5 }
+
+function mountValidation(
+  overrides: Partial<VmState> = {},
+  undersizedVdis: MaybeRefOrGetter<NewVmUndersizedVdi[]> = []
+) {
   return mountComposableWithI18n(() => {
     const vmState = reactive(createNewVmState(overrides))
 
@@ -58,50 +65,6 @@ describe('errors', () => {
     expect(validation.errors.iso).toBeUndefined()
   })
 
-  it('requires an SR on every new disk', async () => {
-    const validation = mountValidation({ vdis: [{ ...NEW_VDI, sr: undefined }] })
-
-    await validation.validateStep('configuration')
-
-    expect(validation.errors.vdis).toBe(validation.t('job:arg:sr-vdi-required'))
-  })
-
-  it('requires every new disk to be at least 1 GB', async () => {
-    const validation = mountValidation({ vdis: [{ ...NEW_VDI, size: 0 }] })
-
-    await validation.validateStep('configuration')
-
-    expect(validation.errors.vdis).toBe(
-      validation.t('form:error:field-minimum', { field: validation.t('size'), min: 1 })
-    )
-  })
-
-  it('forgets the error of a disk as soon as it is fixed', async () => {
-    const validation = mountValidation({ vdis: [{ ...NEW_VDI, size: 0 }] })
-    await validation.validateStep('configuration')
-
-    validation.vmState.vdis[0].size = 5
-    await nextTick()
-
-    expect(validation.errors.vdis).toBeUndefined()
-    expect(validation.invalidVdiFields).toEqual([])
-  })
-
-  it('leaves a disk added since the last validation alone until the next one', async () => {
-    const validation = mountValidation({ vdis: [NEW_VDI] })
-    await validation.validateStep('configuration')
-
-    validation.vmState.vdis.push({ ...NEW_VDI, key: 'new-vdi-added', size: 0 })
-    await nextTick()
-
-    expect(validation.errors.vdis).toBeUndefined()
-    expect(validation.invalidVdiFields).toEqual([])
-
-    await validation.validateStep('configuration')
-
-    expect(validation.invalidVdiFields).toEqual([{ key: 'new-vdi-added', field: 'size' }])
-  })
-
   it('hides the errors of a step again once it is reset', async () => {
     const validation = mountValidation({ name: '' })
 
@@ -130,34 +93,112 @@ describe('errorMessages', () => {
   })
 })
 
-describe('vdiSizeErrors', () => {
-  it('tells each disk smaller than its template disk, before the step is validated', () => {
-    const validation = mountValidation({}, [UNDERSIZED_VDI])
-
-    expect(validation.vdiSizeErrors).toEqual([
-      {
-        key: UNDERSIZED_VDI.key,
-        message: validation.t('new-vm:disk-size-below-template', { name: 'Template disk', size: 10 }),
-      },
-    ])
+describe('vifsValidation.issues', () => {
+  it('lists nothing before the configuration step is validated', () => {
+    expect(mountValidation({ vifs: [{ ...VIF, mac: 'not-a-mac' }] }).vifsValidation.issues.size).toBe(0)
   })
 
-  it('is empty while every disk is large enough', () => {
-    expect(mountValidation().vdiSizeErrors).toEqual([])
+  it('lists the missing network and the invalid MAC address of each network interface', async () => {
+    const validation = mountValidation({
+      vifs: [VIF, { ...VIF, key: 'vif-invalid', network: '' as Vif['network'], mac: 'not-a-mac' }],
+    })
+
+    await validation.validateStep('configuration')
+
+    expect(validation.vifsValidation.issues).toEqual(
+      new Map([
+        [
+          'vif-invalid',
+          [
+            { field: 'network', message: validation.t('new-vm:network-mandatory') },
+            { field: 'mac', message: validation.t('new-vm:mac-address-invalid') },
+          ],
+        ],
+      ])
+    )
+  })
+
+  it.each(['', '00:16:3e:12:34:56', '00-16-3E-12-34-56'])('accepts the MAC address "%s"', async mac => {
+    const validation = mountValidation({ vifs: [{ ...VIF, mac }] })
+
+    await validation.validateStep('configuration')
+
+    expect(validation.vifsValidation.issues.size).toBe(0)
+  })
+
+  it('checks a network interface added since the configuration step was validated', async () => {
+    const validation = mountValidation({ vifs: [VIF] })
+    await validation.validateStep('configuration')
+
+    validation.vmState.vifs.push({ ...VIF, key: 'vif-added', mac: 'not-a-mac' })
+    await nextTick()
+
+    expect([...validation.vifsValidation.issues.keys()]).toEqual(['vif-added'])
+  })
+
+  it('lists nothing again once the configuration step is reset', async () => {
+    const validation = mountValidation({ vifs: [{ ...VIF, mac: 'not-a-mac' }] })
+    await validation.validateStep('configuration')
+
+    validation.resetStep('configuration')
+
+    expect(validation.vifsValidation.issues.size).toBe(0)
+  })
+
+  it('forgets the issue of a network interface as soon as it is fixed', async () => {
+    const validation = mountValidation({ vifs: [{ ...VIF, mac: 'not-a-mac' }] })
+    await validation.validateStep('configuration')
+
+    validation.vmState.vifs[0].mac = '00:16:3e:12:34:56'
+    await nextTick()
+
+    expect(validation.vifsValidation.issues.size).toBe(0)
+  })
+
+  it('forgets a network interface once it is removed', async () => {
+    const validation = mountValidation({ vifs: [VIF, { ...VIF, key: 'vif-invalid', mac: 'not-a-mac' }] })
+    await validation.validateStep('configuration')
+
+    validation.vmState.vifs = validation.vmState.vifs.filter(vif => vif.key !== 'vif-invalid')
+    await nextTick()
+
+    expect(validation.vifsValidation.issues.size).toBe(0)
+  })
+
+  it('lists nothing when only the environment step is validated', async () => {
+    const validation = mountValidation({ vifs: [{ ...VIF, mac: 'not-a-mac' }] })
+
+    await validation.validateStep('environment')
+
+    expect(validation.vifsValidation.issues.size).toBe(0)
+  })
+
+  it('keeps listing the network interfaces once the environment step is reset', async () => {
+    const validation = mountValidation({ vifs: [{ ...VIF, mac: 'not-a-mac' }] })
+    await validation.validateStep('configuration')
+
+    validation.resetStep('environment')
+
+    expect([...validation.vifsValidation.issues.keys()]).toEqual([VIF.key])
   })
 })
 
-describe('invalidVdiFields', () => {
-  it('lists the size of a template disk made too small, before the step is validated', () => {
-    const validation = mountValidation({}, [UNDERSIZED_VDI])
+describe('vdisValidation.issues', () => {
+  it('tells a template disk made too small at once', () => {
+    const validation = mountValidation({ existingVdis: [UNDERSIZED_TEMPLATE_VDI] }, [UNDERSIZED_VDI])
 
-    expect(validation.invalidVdiFields).toEqual([{ key: UNDERSIZED_VDI.key, field: 'size' }])
+    expect(validation.vdisValidation.issues).toEqual(
+      new Map([
+        [
+          UNDERSIZED_VDI.key,
+          [{ field: 'size', message: validation.t('new-vm:size-below-template', { size: UNDERSIZED_VDI.minSize }) }],
+        ],
+      ])
+    )
   })
 
-  it('leaves the fields of a new disk alone until the step is validated', () => {
-    const validation = mountValidation({ vdis: [{ ...NEW_VDI, sr: undefined, size: 0 }] })
-
-    expect(validation.invalidVdiFields).toEqual([])
+  it('leaves the fields of a new disk alone until the configuration step is validated', () => {
+    expect(mountValidation({ vdis: [{ ...NEW_VDI, sr: undefined, size: 0 }] }).vdisValidation.issues.size).toBe(0)
   })
 
   it('lists the missing SR and the size below 1 GB of each new disk once the step is validated', async () => {
@@ -171,10 +212,147 @@ describe('invalidVdiFields', () => {
 
     await validation.validateStep('configuration')
 
-    expect(validation.invalidVdiFields).toEqual([
-      { key: 'new-vdi-without-sr', field: 'sr' },
-      { key: 'new-vdi-empty', field: 'size' },
-    ])
+    expect(validation.vdisValidation.issues).toEqual(
+      new Map([
+        ['new-vdi-without-sr', [{ field: 'sr', message: validation.t('new-vm:sr-mandatory') }]],
+        ['new-vdi-empty', [{ field: 'size', message: validation.t('new-vm:size-minimum', { min: 1 }) }]],
+      ])
+    )
+  })
+
+  it('leaves a disk added since the last validation alone until the next one', async () => {
+    const validation = mountValidation({ vdis: [NEW_VDI] })
+    await validation.validateStep('configuration')
+
+    validation.vmState.vdis.push({ ...NEW_VDI, key: 'new-vdi-added', size: 0 })
+    await nextTick()
+
+    expect(validation.vdisValidation.issues.size).toBe(0)
+
+    await validation.validateStep('configuration')
+
+    expect([...validation.vdisValidation.issues.keys()]).toEqual(['new-vdi-added'])
+  })
+
+  it('leaves the new disks alone again once the configuration step is reset', async () => {
+    const validation = mountValidation({ vdis: [{ ...NEW_VDI, size: 0 }] })
+    await validation.validateStep('configuration')
+
+    validation.resetStep('configuration')
+
+    expect(validation.vdisValidation.issues.size).toBe(0)
+  })
+
+  it('forgets the issue of a disk as soon as it is fixed', async () => {
+    const validation = mountValidation({ vdis: [{ ...NEW_VDI, size: 0 }] })
+    await validation.validateStep('configuration')
+
+    validation.vmState.vdis[0].size = 5
+    await nextTick()
+
+    expect(validation.vdisValidation.issues.size).toBe(0)
+  })
+
+  it('leaves the new disks alone when only the environment step is validated', async () => {
+    const validation = mountValidation({ vdis: [{ ...NEW_VDI, sr: undefined }] })
+
+    await validation.validateStep('environment')
+
+    expect(validation.vdisValidation.issues.size).toBe(0)
+  })
+
+  it('tells a disk validated with an SR as soon as its SR is cleared', async () => {
+    const validation = mountValidation({ vdis: [{ ...NEW_VDI }] })
+    await validation.validateStep('configuration')
+
+    validation.vmState.vdis[0].sr = undefined
+    await nextTick()
+
+    expect(validation.vdisValidation.issues).toEqual(
+      new Map([[NEW_VDI.key, [{ field: 'sr', message: validation.t('new-vm:sr-mandatory') }]]])
+    )
+  })
+
+  it('tells a template disk emptied only that it is smaller than in its template', async () => {
+    const validation = mountValidation({ existingVdis: [{ ...UNDERSIZED_TEMPLATE_VDI, size: 0 }] }, [UNDERSIZED_VDI])
+
+    await validation.validateStep('configuration')
+
+    expect(validation.vdisValidation.issues).toEqual(
+      new Map([
+        [
+          UNDERSIZED_VDI.key,
+          [{ field: 'size', message: validation.t('new-vm:size-below-template', { size: UNDERSIZED_VDI.minSize }) }],
+        ],
+      ])
+    )
+  })
+
+  it('keeps telling a template disk made too small once the configuration step is reset', async () => {
+    const validation = mountValidation({ existingVdis: [UNDERSIZED_TEMPLATE_VDI] }, [UNDERSIZED_VDI])
+    await validation.validateStep('configuration')
+
+    validation.resetStep('configuration')
+
+    expect([...validation.vdisValidation.issues.keys()]).toEqual([UNDERSIZED_VDI.key])
+  })
+
+  it('forgets a template disk once it is no longer too small', async () => {
+    const undersizedVdis = ref([UNDERSIZED_VDI])
+    const validation = mountValidation({ existingVdis: [UNDERSIZED_TEMPLATE_VDI] }, undersizedVdis)
+
+    undersizedVdis.value = []
+    await nextTick()
+
+    expect(validation.vdisValidation.issues.size).toBe(0)
+  })
+})
+
+describe('warned rows', () => {
+  const vifs = (count: number) => Array.from({ length: count }, (_, index) => ({ ...VIF, key: `vif-${index}` }))
+  const vdis = (count: number) => Array.from({ length: count }, (_, index) => ({ ...NEW_VDI, key: `vdi-${index}` }))
+
+  it('warns about nothing up to 8 network interfaces and 8 disks', () => {
+    const validation = mountValidation({ vifs: vifs(8), vdis: vdis(8) })
+
+    expect(validation.vifsValidation.warnedKeys.size).toBe(0)
+    expect(validation.vifsValidation.warning).toBeUndefined()
+    expect(validation.vdisValidation.warnedKeys.size).toBe(0)
+    expect(validation.vdisValidation.warning).toBeUndefined()
+  })
+
+  it('warns about the network interfaces past the 8th', () => {
+    const validation = mountValidation({ vifs: vifs(10) })
+
+    expect([...validation.vifsValidation.warnedKeys]).toEqual(['vif-8', 'vif-9'])
+    expect(validation.vifsValidation.warning).toBe(validation.t('new-vm:too-many-vifs', { n: 8 }))
+  })
+
+  it('warns about the disks past the 8th, the template disks counted first', () => {
+    const validation = mountValidation({
+      existingVdis: vdis(2).map(vdi => ({ ...vdi, key: `template-${vdi.key}` })),
+      vdis: vdis(7),
+    })
+
+    expect([...validation.vdisValidation.warnedKeys]).toEqual(['vdi-6'])
+    expect(validation.vdisValidation.warning).toBe(validation.t('new-vm:too-many-vdis', { n: 8 }))
+  })
+
+  it('stops warning once the network interfaces and the disks are back to 8', async () => {
+    const validation = mountValidation({ vifs: vifs(9), vdis: vdis(9) })
+
+    validation.vmState.vifs.pop()
+    validation.vmState.vdis.shift()
+    await nextTick()
+
+    expect(validation.vifsValidation.warnedKeys.size).toBe(0)
+    expect(validation.vifsValidation.warning).toBeUndefined()
+    expect(validation.vdisValidation.warnedKeys.size).toBe(0)
+    expect(validation.vdisValidation.warning).toBeUndefined()
+  })
+
+  it('leaves the configuration step valid past 8 network interfaces and disks', async () => {
+    expect(await mountValidation({ vifs: vifs(9), vdis: vdis(9) }).validateStep('configuration')).toBe(true)
   })
 })
 
@@ -197,12 +375,43 @@ describe('validateStep', () => {
     expect(await mountValidation({ name: '' }).validateStep('configuration')).toBe(false)
   })
 
+  it('refuses the configuration step while a network interface has an invalid MAC address', async () => {
+    expect(await mountValidation({ vifs: [{ ...VIF, mac: 'not-a-mac' }] }).validateStep('configuration')).toBe(false)
+  })
+
+  it('refuses the configuration step while a new disk has no SR', async () => {
+    expect(await mountValidation({ vdis: [{ ...NEW_VDI, sr: undefined }] }).validateStep('configuration')).toBe(false)
+  })
+
+  it('refuses the configuration step with a network interface made invalid once the step was reset', async () => {
+    const validation = mountValidation({ vifs: [{ ...VIF }] })
+    validation.resetStep('configuration')
+
+    validation.vmState.vifs[0].mac = 'not-a-mac'
+    await nextTick()
+
+    expect(await validation.validateStep('configuration')).toBe(false)
+  })
+
+  it('refuses the configuration step with an empty new disk once the disks were replaced', async () => {
+    const validation = mountValidation()
+
+    validation.vmState.vdis = [{ ...NEW_VDI, size: 0 }]
+    await nextTick()
+
+    expect(await validation.validateStep('configuration')).toBe(false)
+  })
+
   it('refuses the configuration step while a disk is smaller than its template disk', async () => {
-    expect(await mountValidation({}, [UNDERSIZED_VDI]).validateStep('configuration')).toBe(false)
+    expect(
+      await mountValidation({ existingVdis: [UNDERSIZED_TEMPLATE_VDI] }, [UNDERSIZED_VDI]).validateStep('configuration')
+    ).toBe(false)
   })
 
   it('leaves the environment step valid while a disk is smaller than its template disk', async () => {
-    expect(await mountValidation({}, [UNDERSIZED_VDI]).validateStep('environment')).toBe(true)
+    expect(
+      await mountValidation({ existingVdis: [UNDERSIZED_TEMPLATE_VDI] }, [UNDERSIZED_VDI]).validateStep('environment')
+    ).toBe(true)
   })
 })
 
@@ -226,6 +435,17 @@ describe('focusFirstError', () => {
     await validation.focusFirstError()
 
     expect(document.activeElement).toBe(document.getElementById(validation.fieldIds.vdis))
+  })
+
+  it('focuses the network interfaces before the disks', async () => {
+    const validation = mountValidation({ vifs: [{ ...VIF, mac: 'not-a-mac' }], vdis: [{ ...NEW_VDI, size: 0 }] })
+    const { vifs, vdis } = validation.fieldIds
+    document.body.innerHTML = `<input id="${vdis}" /><input id="${vifs}" />`
+
+    await validation.validateStep('configuration')
+    await validation.focusFirstError()
+
+    expect(document.activeElement).toBe(document.getElementById(vifs))
   })
 
   it('focuses nothing while no error is shown', async () => {

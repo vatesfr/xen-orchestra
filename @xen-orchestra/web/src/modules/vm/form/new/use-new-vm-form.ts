@@ -83,7 +83,7 @@ function createNewVmForm() {
     vmState.existingVdis.flatMap(vdi => {
       const minSize = defaultExistingVdis.value.find(existingVdi => existingVdi.id === vdi.id)?.size
 
-      return minSize !== undefined && vdi.size < minSize ? [{ key: vdi.key, name: vdi.name_label, minSize }] : []
+      return minSize !== undefined && vdi.size < minSize ? [{ key: vdi.key, minSize }] : []
     })
   )
 

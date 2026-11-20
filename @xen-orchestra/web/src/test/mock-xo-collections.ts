@@ -102,6 +102,7 @@ export const useXoNetworkCollection = (() => ({
 
 export const useXoPbdCollection = (() => ({
   pbdsBySr: computed(() => groupBy(xoCollectionsMock.pbds.value, pbd => pbd.SR)),
+  getPbdsByIds: (ids: FrontXoPbd['id'][]) => xoCollectionsMock.pbds.value.filter(pbd => ids.includes(pbd.id)),
 })) as unknown as typeof realUseXoPbdCollection
 
 export const useXoPifCollection = (() => ({

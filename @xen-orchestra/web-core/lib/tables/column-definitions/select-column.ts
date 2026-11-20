@@ -1,6 +1,5 @@
 import VtsDetailedOption from '@core/components/select/VtsDetailedOption.vue'
 import VtsSelect from '@core/components/select/VtsSelect.vue'
-import type { InputAccent } from '@core/components/ui/input/UiInput.vue'
 import type { IconName } from '@core/icons'
 import type { FormOption, FormSelectId } from '@core/packages/form-select/types.ts'
 import { defineColumn } from '@core/packages/table/define-column.ts'
@@ -9,8 +8,10 @@ import { renderHeadCell } from '@core/tables/helpers/render-head-cell.ts'
 import type { HeaderConfig } from '@core/tables/types.ts'
 import { h } from 'vue'
 
+type DetailedOption = FormOption<{ icon?: IconName; details?: string }>
+
 export type SelectColumnConfig = HeaderConfig & {
-  optionIcon?: IconName
+  optionIcon?: IconName | ((option: DetailedOption) => IconName | undefined)
 }
 
 function getSelectSlots(optionIcon: SelectColumnConfig['optionIcon']) {
@@ -19,15 +20,17 @@ function getSelectSlots(optionIcon: SelectColumnConfig['optionIcon']) {
   }
 
   return {
-    default: ({ option }: { option: FormOption<{ details?: string }> }) =>
-      h(VtsDetailedOption, { option, icon: optionIcon, details: option.properties.details }),
+    default: ({ option }: { option: DetailedOption }) =>
+      h(VtsDetailedOption, {
+        option,
+        icon: typeof optionIcon === 'function' ? optionIcon(option) : optionIcon,
+        details: option.properties.details,
+      }),
   }
 }
 
 export const useSelectColumn = defineColumn((config?: SelectColumnConfig) => ({
   renderHead: () => renderHeadCell(config?.headerLabel),
-  renderBody: (id: FormSelectId, selectProps?: { accent?: InputAccent }) =>
-    renderBodyCell(() =>
-      h(VtsSelect, { accent: selectProps?.accent ?? 'brand', id }, getSelectSlots(config?.optionIcon))
-    ),
+  renderBody: (id: FormSelectId) =>
+    renderBodyCell(() => h(VtsSelect, { accent: 'brand', id }, getSelectSlots(config?.optionIcon))),
 }))

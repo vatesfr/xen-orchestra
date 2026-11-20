@@ -1,7 +1,9 @@
+import type { FrontXoPbd } from '@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'
 import { type NewVmForm, provideNewVmForm } from '@/modules/vm/form/new/use-new-vm-form.ts'
 import type { VmState } from '@/modules/vm/types/new-xo-vm.type.ts'
 import { createHost } from '@/test/create-host.ts'
 import { createNetwork } from '@/test/create-network.ts'
+import { createPbd } from '@/test/create-pbd.ts'
 import { createPool, OTHER_POOL_ID } from '@/test/create-pool.ts'
 import { createSr } from '@/test/create-sr.ts'
 import { createVbd } from '@/test/create-vbd.ts'
@@ -21,9 +23,13 @@ export const NEW_VM_POOL = createPool()
 
 export const NEW_VM_HOST = createHost({ $pool: NEW_VM_POOL.id, name_label: 'Host of the pool' })
 
-export const NEW_VM_SR = createSr({ name_label: 'Pool SR' })
+export const NEW_VM_SR = createSr({ name_label: 'Pool SR', $PBDs: ['pbd-sr-123' as FrontXoPbd['id']] })
 
-export const NEW_VM_OTHER_SR = createSr({ id: 'sr-other' as typeof NEW_VM_SR.id, name_label: 'Other SR' })
+export const NEW_VM_OTHER_SR = createSr({
+  id: 'sr-other' as typeof NEW_VM_SR.id,
+  name_label: 'Other SR',
+  $PBDs: ['pbd-sr-other' as FrontXoPbd['id']],
+})
 
 export const NEW_VM_NETWORK = createNetwork({ name_label: 'Template network' })
 
@@ -48,7 +54,6 @@ export const NEW_VM_ISO = createVdi({ id: 'vdi-iso' as typeof NEW_VM_TEMPLATE_VD
 
 export const NEW_VM_ISO_SR_NAME = 'ISO library'
 
-// A template with a disk and a network interface of its own, on UEFI
 export const NEW_VM_DISK_TEMPLATE = createVmTemplate({
   id: 'template-disk' as ReturnType<typeof createVmTemplate>['id'],
   uuid: 'template-disk',
@@ -62,7 +67,6 @@ export const NEW_VM_DISK_TEMPLATE = createVmTemplate({
   memory: { dynamic: [2 * GIB, 4 * GIB], size: 4 * GIB, static: [GIB, 4 * GIB] },
 })
 
-// A template without disk, to install from an ISO or the network, on BIOS
 export const NEW_VM_DISKLESS_TEMPLATE = createVmTemplate({
   id: 'template-diskless' as ReturnType<typeof createVmTemplate>['id'],
   uuid: 'template-diskless',
@@ -75,11 +79,13 @@ export const NEW_VM_OTHER_POOL_TEMPLATE = createVmTemplate({
   $pool: OTHER_POOL_ID,
 })
 
-// The pool of the new VM and what it offers, in the mocked collections
 export function seedNewVmCollections() {
   xoCollectionsMock.pools.value = [NEW_VM_POOL, createPool({ id: OTHER_POOL_ID, name_label: 'Other pool' })]
   xoCollectionsMock.hosts.value = [NEW_VM_HOST]
   xoCollectionsMock.srs.value = [NEW_VM_SR, NEW_VM_OTHER_SR]
+  xoCollectionsMock.pbds.value = [NEW_VM_SR, NEW_VM_OTHER_SR].map(sr =>
+    createPbd({ id: sr.$PBDs[0], SR: sr.id, host: NEW_VM_HOST.id })
+  )
   xoCollectionsMock.networks.value = [NEW_VM_NETWORK, NEW_VM_AUTOMATIC_NETWORK]
   xoCollectionsMock.templates.value = [NEW_VM_DISK_TEMPLATE, NEW_VM_DISKLESS_TEMPLATE, NEW_VM_OTHER_POOL_TEMPLATE]
   xoCollectionsMock.vdiIsosBySrName.value = { [NEW_VM_ISO_SR_NAME]: [NEW_VM_ISO] }
@@ -93,7 +99,6 @@ export function resetNewVmCollections() {
   vmDeviceCollectionsMock.reset()
 }
 
-// As a user does on the first step: the pool, then one of its templates
 export async function chooseNewVmTemplate(form: Pick<NewVmForm, 'vmState'>, template = NEW_VM_DISK_TEMPLATE) {
   form.vmState.pool = NEW_VM_POOL
   await nextTick()
@@ -101,9 +106,6 @@ export async function chooseNewVmTemplate(form: Pick<NewVmForm, 'vmState'>, temp
   await nextTick()
 }
 
-/**
- * Mounts a component under the form the new VM page provides, and hands that form back to drive it.
- */
 export function mountUnderNewVmForm(child: Component, options: MountComposableOptions = {}) {
   let form: NewVmForm | undefined
 
@@ -125,9 +127,6 @@ export function mountUnderNewVmForm(child: Component, options: MountComposableOp
   return { wrapper, form }
 }
 
-/**
- * Runs a composable reading the new VM form its page provides: `vm` is its result, refs unwrapped.
- */
 export function mountComposableUnderNewVmForm<TResult extends Record<string, unknown>>(
   composable: () => TResult,
   options: MountComposableOptions = {}
@@ -136,11 +135,9 @@ export function mountComposableUnderNewVmForm<TResult extends Record<string, unk
 
   const { wrapper, form } = mountUnderNewVmForm(Child, options)
 
-  // `defineComponent` cannot infer the bindings of a generic setup
   return { form, vm: wrapper.findComponent(Child).vm as unknown as ShallowUnwrapRef<TResult> }
 }
 
-// The state of a form whose two first steps are filled in and valid
 export function createNewVmState(overrides: Partial<VmState> = {}): VmState {
   return {
     name: 'New VM',

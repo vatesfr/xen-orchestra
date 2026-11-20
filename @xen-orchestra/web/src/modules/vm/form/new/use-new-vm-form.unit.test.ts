@@ -412,7 +412,7 @@ describe('undersizedExistingVdis', () => {
 
     form.vmState.existingVdis[0].size = 5
 
-    expect(form.undersizedExistingVdis).toEqual([{ key: NEW_VM_TEMPLATE_VDI.id, name: 'Template disk', minSize: 10 }])
+    expect(form.undersizedExistingVdis).toEqual([{ key: NEW_VM_TEMPLATE_VDI.id, minSize: 10 }])
   })
 
   it('is empty while every disk keeps at least its template size', async () => {

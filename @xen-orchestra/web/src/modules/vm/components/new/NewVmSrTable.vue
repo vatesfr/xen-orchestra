@@ -1,29 +1,42 @@
 <template>
-  <VtsTable class="new-vm-sr-table" fixed>
-    <thead>
-      <tr>
-        <HeadCells />
-      </tr>
-    </thead>
-    <tbody>
-      <VtsRow v-for="(vdi, index) in vdis" :id="getErrorFieldId(vdi, 'sr')" :key="vdi.key">
-        <BodyCells :item="{ vdi, rank: index + 1, onRemove: () => emit('remove', vdi.key) }" />
-      </VtsRow>
-      <VtsRow>
-        <UiTableCell :colspan>
-          <UiButton left-icon="fa:plus" variant="tertiary" accent="brand" size="medium" @click="emit('add')">
-            {{ t('new') }}
-          </UiButton>
-        </UiTableCell>
-      </VtsRow>
-    </tbody>
-  </VtsTable>
+  <div class="new-vm-sr-table">
+    <VtsTable fixed>
+      <thead>
+        <tr>
+          <HeadCells />
+        </tr>
+      </thead>
+      <tbody>
+        <VtsRow
+          v-for="row of rows"
+          :id="row.fieldId"
+          :key="row.item.key"
+          :error="row.isInError"
+          :warning="row.isWarned"
+        >
+          <BodyCells :item="{ vdi: row.item, rank: row.rank, onRemove: () => emit('remove', row.item.key) }" />
+        </VtsRow>
+        <VtsRow>
+          <UiTableCell :colspan>
+            <UiButton left-icon="fa:plus" variant="tertiary" accent="brand" size="medium" @click="emit('add')">
+              {{ t('new') }}
+            </UiButton>
+          </UiTableCell>
+        </VtsRow>
+      </tbody>
+    </VtsTable>
+    <NewVmTableMessages :rows :validation :get-label="(rank, issue) => t('new-vm:vdi-issue', { n: rank, issue })" />
+  </div>
 </template>
 
 <script setup lang="ts">
+import { useXoSrUtils } from '@/modules/storage-repository/composables/xo-sr-utils.composable.ts'
 import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
-import type { NewVmInvalidVdiField } from '@/modules/vm/form/new/use-new-vm-form-validation.ts'
+import NewVmTableMessages from '@/modules/vm/components/new/NewVmTableMessages.vue'
+import { useNewVmTableRows } from '@/modules/vm/composables/use-new-vm-table-rows.composable.ts'
+import type { NewVmTableValidation, NewVmVdiField } from '@/modules/vm/form/new/use-new-vm-form-validation.ts'
 import type { Vdi, VmState } from '@/modules/vm/types/new-xo-vm.type.ts'
+import { getAllVdis } from '@/modules/vm/utils/new-vm.util.ts'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
@@ -33,13 +46,12 @@ import { useNewVmSrColumns } from '@core/tables/column-sets/new-vm-sr-columns.ts
 import { computed, toRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { vmState, srs, canResizeExistingDisks, defaultExistingVdis, invalidFields, errorFieldId } = defineProps<{
+const { vmState, srs, canResizeExistingDisks, defaultExistingVdis, validation } = defineProps<{
   vmState: VmState
   srs: FrontXoSr[]
   canResizeExistingDisks: boolean
   defaultExistingVdis: Vdi[]
-  invalidFields: NewVmInvalidVdiField[]
-  errorFieldId: string
+  validation: NewVmTableValidation<NewVmVdiField>
 }>()
 
 const emit = defineEmits<{
@@ -49,20 +61,13 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 
-const vdis = computed(() => [...vmState.existingVdis, ...vmState.vdis])
+const { getSrSelectLabel, getSrStatusIcon } = useXoSrUtils()
 
-function getAccent(vdi: Vdi, field: NewVmInvalidVdiField['field']) {
-  return invalidFields.some(invalidField => invalidField.key === vdi.key && invalidField.field === field)
-    ? 'danger'
-    : 'brand'
-}
-
-// The first field in error carries the id the form focuses. On the row for an SR: its select is the first field of the row
-function getErrorFieldId(vdi: Vdi, field: NewVmInvalidVdiField['field']) {
-  const firstInvalidField = invalidFields[0]
-
-  return firstInvalidField?.key === vdi.key && firstInvalidField.field === field ? errorFieldId : undefined
-}
+const { rows, getErrorFieldId } = useNewVmTableRows(
+  () => getAllVdis(vmState),
+  () => validation,
+  'sr'
+)
 
 const { HeadCells, BodyCells, colspan } = useNewVmSrColumns({
   body: (item: { vdi: Vdi; rank: number; onRemove: () => void }) => {
@@ -70,12 +75,11 @@ const { HeadCells, BodyCells, colspan } = useNewVmSrColumns({
 
     const { id: srSelectId } = useFormSelect(() => srs, {
       model: toRef(vdi, 'sr'),
+      searchable: true,
       option: {
-        label: sr => {
-          const gbLeft = Math.floor((sr.size - sr.physical_usage) / 1024 ** 3)
-          return `${sr.name_label} - ${t('n-gb-left', { n: gbLeft })}`
-        },
+        label: sr => getSrSelectLabel(sr),
         value: 'id',
+        properties: sr => ({ icon: getSrStatusIcon(sr) }),
       },
     })
 
@@ -92,12 +96,11 @@ const { HeadCells, BodyCells, colspan } = useNewVmSrColumns({
 
     return {
       rank: r => r(item.rank),
-      sr: r => r(srSelectId, { accent: getAccent(vdi, 'sr') }),
+      sr: r => r(srSelectId),
       diskName: r => r(diskName),
       size: r =>
         r(size, {
-          id: getErrorFieldId(vdi, 'size'),
-          accent: getAccent(vdi, 'size'),
+          id: getErrorFieldId(vdi.key, 'size'),
           disabled: vdi.id !== undefined && !canResizeExistingDisks,
           min: defaultVdi?.size ?? 1,
         }),
@@ -111,5 +114,9 @@ const { HeadCells, BodyCells, colspan } = useNewVmSrColumns({
 <style lang="postcss" scoped>
 .new-vm-sr-table {
   --vts-table-min-width: 80rem;
+
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
 }
 </style>

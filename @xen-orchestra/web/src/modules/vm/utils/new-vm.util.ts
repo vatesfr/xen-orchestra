@@ -57,6 +57,10 @@ ssh_authorized_keys:
 ${stringifiedKeys}`
 }
 
+export function getAllVdis(vmState: Pick<VmState, 'existingVdis' | 'vdis'>): Vdi[] {
+  return [...vmState.existingVdis, ...vmState.vdis]
+}
+
 export function getExistingVdisDiff(defaultVdi: Vdi, currentVdi: Vdi, includeSize: boolean) {
   const changes: Record<string, unknown> = {}
 

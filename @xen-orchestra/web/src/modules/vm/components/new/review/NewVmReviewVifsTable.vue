@@ -1,6 +1,6 @@
 <template>
   <div class="new-vm-review-vifs-table">
-    <VtsTable>
+    <VtsTable v-if="vifs.length > 0">
       <thead>
         <tr>
           <HeadCells />
@@ -12,6 +12,7 @@
         </VtsRow>
       </tbody>
     </VtsTable>
+    <p v-else class="typo-body-regular">{{ t('new-vm:no-vif-configured') }}</p>
     <UiOverridden v-if="deletedCount > 0">{{ t('new-vm:n-vifs-deleted', deletedCount) }}</UiOverridden>
   </div>
 </template>
