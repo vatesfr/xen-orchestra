@@ -7,7 +7,7 @@
 
 > Security fixes and new features should go in this section
 
-- XOA updater access now requires administrator credentials ([PR#3](https://git.vates.tech/vates/xen-orchestra-vsa-test/pulls/3))
+- XOA updater access now requires administrator credentials
 
 ### Enhancements
 
@@ -34,5 +34,7 @@
 <!--packages-start-->
 
 - @xen-orchestra/web-core minor
+- xo-server patch
+- xo-web patch
 
 <!--packages-end-->
