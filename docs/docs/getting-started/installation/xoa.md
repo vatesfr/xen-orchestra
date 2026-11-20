@@ -97,13 +97,28 @@ And to replace the default DNS server:
 
 ## First console connection
 
-If you deployed with the [web form](https://vates.tech/deploy/), you already chose the `xoa` user password. Otherwise, **there is no default password, for security reasons**: set one from your host, using the XOA VM UUID (found with `xe vm-list`):
+If you deployed with the [web form](https://vates.tech/deploy/), you already chose the `xoa` user password. Otherwise, **there is no default password, for security reasons**: give the `xoa` user an SSH public key (recommended) or a password (deprecated) from your host, using the XOA VM UUID (found with `xe vm-list`).
+
+With an SSH public key, given whole and quoted, as found in your `~/.ssh/id_ed25519.pub` for instance:
+
+<Terminal shell title="host — add an SSH key to the xoa user">{`xe vm-param-set uuid=<UUID> xenstore-data:vm-data/system-account-xoa-ssh-key='ssh-ed25519 AAAA…'`}</Terminal>
+
+The `xoa` user can then run `sudo` without a password. If the key is not accepted, your XOA may be too old to support it: update it, or use a password.
+
+<details>
+<summary>With a password (deprecated)</summary>
 
 <Terminal shell title="host — set the xoa user password">{`xe vm-param-set uuid=<UUID> xenstore-data:vm-data/system-account-xoa-password='MyPassW0rd!'`}</Terminal>
 
+:::warning
+Setting the password through XenStore is deprecated and will be removed in a future version: use an SSH key instead. Unlike a password, a public key does no harm if someone reads it.
+:::
+
+</details>
+
 Reboot the VM to apply, then connect with `ssh xoa@<XOA IP>`.
 
-Once connected, `sudo -s` gives you a root shell, so you do not have to prefix every administration command:
+Once connected, `sudo -s` gives you a root shell, so you do not have to prefix every administration command (it asks for the password only if you logged in with one):
 
 <Terminal title="xoa — a root shell">{`sudo -s
 [sudo] password for xoa:`}</Terminal>

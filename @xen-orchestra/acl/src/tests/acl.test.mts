@@ -27,6 +27,12 @@ suite('Privilege.checkActionIsValid behavior', () => {
   test('should work', () => {
     assert.doesNotThrow(() => Privilege.checkActionIsValid('vm', 'read'))
   })
+
+  test('should work with 3-level actions', () => {
+    assert.doesNotThrow(() => Privilege.checkActionIsValid('sr', 'import:vdi:url'))
+    // @ts-expect-error test invalid action
+    assert.throws(() => Privilege.checkActionIsValid('sr', 'import:vdi:foo'))
+  })
 })
 
 suite('Privilege.match behavior', () => {
@@ -58,6 +64,22 @@ suite('Privilege.match behavior', () => {
   test('Should not match due to insufficient privilege', () => {
     const cleanShutdownPrivilege = new Privilege({ action: 'shutdown:clean', resource: 'vm', effect: 'allow' })
     assert.strictEqual(cleanShutdownPrivilege.match({ resource: 'vm', action: 'shutdown', object }), false)
+  })
+
+  test('Should match 3-level actions with any parent action', () => {
+    for (const action of ['*', 'import', 'import:vdi', 'import:vdi:url'] as const) {
+      const srPrivilege = new Privilege({ action, resource: 'sr', effect: 'allow' })
+      assert.strictEqual(srPrivilege.match({ resource: 'sr', action: 'import:vdi:url', object }), true, action)
+    }
+  })
+
+  test('Should not match 3-level actions with a sibling or a child action', () => {
+    const uploadPrivilege = new Privilege({ action: 'import:vdi:upload', resource: 'sr', effect: 'allow' })
+    assert.strictEqual(uploadPrivilege.match({ resource: 'sr', action: 'import:vdi:url', object }), false)
+    assert.strictEqual(uploadPrivilege.match({ resource: 'sr', action: 'import:vdi', object }), false)
+
+    const vmImportPrivilege = new Privilege({ action: 'import:vm', resource: 'sr', effect: 'allow' })
+    assert.strictEqual(vmImportPrivilege.match({ resource: 'sr', action: 'import:vdi:url', object }), false)
   })
 })
 
@@ -258,6 +280,23 @@ suite('ACL V2 behavior', async () => {
         false
       )
     })
+
+    test('Should allow VDI upload but not URL import with import:vdi allowed and import:vdi:url denied', () => {
+      const sr = { id: 'sr-id' }
+      const userPrivileges = [
+        { id: privilegeId, action: 'import:vdi', resource: 'sr', effect: 'allow', roleId },
+        { id: privilegeId, action: 'import:vdi:url', resource: 'sr', effect: 'deny', roleId },
+      ] satisfies TPrivilege<'sr'>[]
+
+      assert.strictEqual(
+        hasPrivilegeOn({ user, action: 'import:vdi:upload', resource: 'sr', objects: sr, userPrivileges }),
+        true
+      )
+      assert.strictEqual(
+        hasPrivilegeOn({ user, action: 'import:vdi:url', resource: 'sr', objects: sr, userPrivileges }),
+        false
+      )
+    })
   })
 
   suite('getMissingPrivileges behavior', () => {
@@ -374,5 +413,13 @@ suite('getActionStrings', () => {
     assert.ok(actions.includes('shutdown'))
     assert.ok(actions.includes('shutdown:clean'))
     assert.ok(actions.includes('shutdown:hard'))
+  })
+
+  test('3-level actions are included alongside their parents', () => {
+    const actions = getActionStrings('sr')
+    assert.ok(actions.includes('import'))
+    assert.ok(actions.includes('import:vdi'))
+    assert.ok(actions.includes('import:vdi:upload'))
+    assert.ok(actions.includes('import:vdi:url'))
   })
 })

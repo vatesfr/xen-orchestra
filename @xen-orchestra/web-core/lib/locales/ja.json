@@ -818,7 +818,6 @@
   "new-vm": "新しい VM",
   "new-vm:add": "新しい VM を追加",
   "new-vm:description": "VM の説明",
-  "new-vm:disk-size-below-template": "{name}: サイズはテンプレートのディスクサイズ ({size} GB) より小さくできません",
   "new-vm:ha-best-effort": "ベストエフォート",
   "new-vm:ha-best-effort-description": "ホストに障害が発生した場合、HA は別のホストで VM の再起動を試みますが、すべての「再起動」VM の後になります。保証はされません。",
   "new-vm:ha-disabled": "無効",

@@ -818,7 +818,6 @@
   "new-vm": "Nowa VM",
   "new-vm:add": "Dodaj nowe VM",
   "new-vm:description": "Opis VM",
-  "new-vm:disk-size-below-template": "{name}: rozmiar nie może być mniejszy niż rozmiar dysku szablonu ({size} GB)",
   "new-vm:ha-best-effort": "Best-effort",
   "new-vm:ha-best-effort-description": "Jeśli host ulegnie awarii, HA próbuje uruchomić VM ponownie na innym hoście, ale dopiero po wszystkich VM „Uruchom ponownie”. Bez gwarancji.",
   "new-vm:ha-disabled": "Wyłączone",

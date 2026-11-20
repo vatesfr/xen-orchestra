@@ -90,6 +90,11 @@ export function useMultiStepValidatedForm<
     }
   }
 
+  function markStepUntouched(stepName: keyof TSteps & string): void {
+    stepForms[stepName].reset()
+    stepValidStates.delete(stepName)
+  }
+
   async function next(): Promise<boolean> {
     const isValid = await validateStep(stepKeys[currentStepIndex.value])
 
@@ -204,6 +209,7 @@ export function useMultiStepValidatedForm<
     isValidating,
     validateStep,
     validateAllSteps,
+    markStepUntouched,
   }
 }
 

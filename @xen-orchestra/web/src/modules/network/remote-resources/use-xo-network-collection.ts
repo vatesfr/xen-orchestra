@@ -1,9 +1,11 @@
+import { getEncryptedEncapsulationsByPool, isPrivateNetwork } from '@/modules/network/utils/xo-network.util.ts'
 import { useWatchCollection } from '@/shared/composables/watch-collection.composable.ts'
 import { useXoCollectionState } from '@/shared/composables/xo-collection-state/use-xo-collection-state.ts'
 import { BASE_URL } from '@/shared/utils/fetch.util.ts'
+import { safePushInMap } from '@/shared/utils/map.util.ts'
 import { defineRemoteResource } from '@core/packages/remote-resource/define-remote-resource.ts'
 import { sortByNameLabel } from '@core/utils/sort-by-name-label.util.ts'
-import type { XoNetwork } from '@vates/types'
+import { SDN_CONTROLLER_PRIVATE_NETWORK_UUID_KEY, type TUNNEL_PROTOCOL, type XoNetwork } from '@vates/types'
 import { useSorted } from '@vueuse/core'
 import { ref, watch } from 'vue'
 
@@ -32,23 +34,38 @@ export const useXoNetworkCollection = defineRemoteResource({
   state: (rawNetworks, context) => {
     const sortedNetworks = useSorted(rawNetworks, sortByNameLabel)
 
-    const networksWithPifs = ref<FrontXoNetwork[]>([])
-    const networksWithoutPifs = ref<FrontXoNetwork[]>([])
+    const physicalNetworks = ref<FrontXoNetwork[]>([])
+    const internalNetworks = ref<FrontXoNetwork[]>([])
+    const privateNetworks = ref<FrontXoNetwork[]>([])
+    const privateNetworksByUuid = ref(new Map<string, FrontXoNetwork[]>())
+    const encryptedEncapsulationsByPool = ref(new Map<FrontXoNetwork['$pool'], Set<TUNNEL_PROTOCOL>>())
 
     watch(sortedNetworks, networks => {
-      const tmpNetworksWithPifs: FrontXoNetwork[] = []
-      const tmpNetworksWithoutPifs: FrontXoNetwork[] = []
+      const tmpPhysicalNetworks: FrontXoNetwork[] = []
+      const tmpInternalNetworks: FrontXoNetwork[] = []
+      const tmpPrivateNetworks: FrontXoNetwork[] = []
+      const tmpPrivateNetworksByUuid = new Map<string, FrontXoNetwork[]>()
 
       networks.forEach(network => {
-        if (network.PIFs.length === 0) {
-          tmpNetworksWithoutPifs.push(network)
+        if (isPrivateNetwork(network)) {
+          tmpPrivateNetworks.push(network)
+          safePushInMap(
+            tmpPrivateNetworksByUuid,
+            network.other_config[SDN_CONTROLLER_PRIVATE_NETWORK_UUID_KEY],
+            network
+          )
+        } else if (network.PIFs.length === 0) {
+          tmpInternalNetworks.push(network)
         } else {
-          tmpNetworksWithPifs.push(network)
+          tmpPhysicalNetworks.push(network)
         }
       })
 
-      networksWithPifs.value = tmpNetworksWithPifs
-      networksWithoutPifs.value = tmpNetworksWithoutPifs
+      physicalNetworks.value = tmpPhysicalNetworks
+      internalNetworks.value = tmpInternalNetworks
+      privateNetworks.value = tmpPrivateNetworks
+      privateNetworksByUuid.value = tmpPrivateNetworksByUuid
+      encryptedEncapsulationsByPool.value = getEncryptedEncapsulationsByPool(tmpPrivateNetworks)
     })
 
     return {
@@ -56,8 +73,11 @@ export const useXoNetworkCollection = defineRemoteResource({
         context,
         baseName: 'network',
       }),
-      networksWithPifs,
-      networksWithoutPifs,
+      physicalNetworks,
+      internalNetworks,
+      privateNetworks,
+      privateNetworksByUuid,
+      encryptedEncapsulationsByPool,
     }
   },
 })

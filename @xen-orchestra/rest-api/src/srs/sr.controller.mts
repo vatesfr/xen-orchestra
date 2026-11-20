@@ -23,7 +23,7 @@ import type { XenApiVdi, XoMessage, XoTask, XoVdi, XoAlarm, XoSr } from '@vates/
 import { SUPPORTED_VDI_FORMAT } from '@vates/types'
 import { acl } from '../middlewares/acl.middleware.mjs'
 import { AlarmService } from '../alarms/alarm.service.mjs'
-import { BASE_URL, escapeUnsafeComplexMatcher } from '../helpers/utils.helper.mjs'
+import { BASE_URL, escapeUnsafeComplexMatcher, getFileNameFromUrl } from '../helpers/utils.helper.mjs'
 import { genericAlarmsExample } from '../open-api/oa-examples/alarm.oa-example.mjs'
 import {
   asynchronousActionResp,
@@ -46,7 +46,7 @@ import { XapiXoController } from '../abstract-classes/xapi-xo-controller.mjs'
 import { messageIds, partialMessages } from '../open-api/oa-examples/message.oa-example.mjs'
 import { taskIds, partialTasks, taskLocation } from '../open-api/oa-examples/task.oa-example.mjs'
 import type { CreateActionReturnType } from '../abstract-classes/base-controller.mjs'
-import { SrService, type CreateSrBody } from './sr.service.mjs'
+import { SrService, type CreateSrBody, type ImportVdiFromUrlBody } from './sr.service.mjs'
 
 @Route('srs')
 @Security('*')
@@ -182,7 +182,7 @@ export class SrController extends XapiXoController<XoSr> {
    * Import an exported VDI
    *
    * Required privilege:
-   * - resource: sr, action: import:vdi
+   * - resource: sr, action: import:vdi:upload
    *
    * @example id "c4284e12-37c9-7967-b9e8-83ef229c3e03"
    * @example name_label "VDI_foo_import"
@@ -192,7 +192,7 @@ export class SrController extends XapiXoController<XoSr> {
   @Example(vdiId)
   @Extension('x-mcp-exposure', 'confirm')
   @Post('{id}/vdis')
-  @Middlewares(acl({ resource: 'sr', action: 'import:vdi', objectId: 'params.id' }))
+  @Middlewares(acl({ resource: 'sr', action: 'import:vdi:upload', objectId: 'params.id' }))
   @Tags('vdis')
   @SuccessResponse(createdResp.status, 'VDI imported')
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
@@ -439,5 +439,70 @@ export class SrController extends XapiXoController<XoSr> {
   @Response(notFoundResp.status, notFoundResp.description)
   async deleteSr(@Path() id: string): Promise<void> {
     await this.#srService.delete(id as XoSr['id'])
+  }
+
+  /**
+   * Import a VDI from a URL
+   *
+   * The XO server fetches the URL and streams its content straight to the SR, without storing it on the XO server.
+   *
+   * Requirements:
+   *  - The URL must be reachable by the XO server.
+   *  - The URL must use `http` or `https`.
+   *  - The URL must not contain a username/password (`https://user:password@...`).
+   *  - The remote server must send a `Content-Length` header.
+   *
+   * Only ISO SRs are supported for now.
+   *
+   * Warning: The XO server sends a GET request to the given URL, whatever its address. It can reach internal
+   * services, and the response can then be read by exporting the imported VDI.
+   *
+   * Required privilege:
+   * - resource: sr, action: import:vdi:url
+   *
+   * @example id "c4284e12-37c9-7967-b9e8-83ef229c3e03"
+   * @example body { "url": "https://example.com/debian-13.iso", "name_label": "debian-13.iso", "name_description": "Debian 13 installer" }
+   */
+  @Example(vdiId)
+  @Extension('x-mcp-exposure', 'confirm')
+  @Post('{id}/actions/import_vdi_from_url')
+  @Middlewares([json(), acl({ resource: 'sr', action: 'import:vdi:url', objectId: 'params.id' })])
+  @Tags('vdis')
+  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
+  @Response(createdResp.status, 'VDI imported')
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(invalidParametersResp.status, invalidParametersResp.description)
+  @Response(internalServerErrorResp.status, internalServerErrorResp.description)
+  @Response(502, 'The remote server is unreachable or failed to provide the file')
+  async srImportVdiFromUrl(
+    @Path() id: string,
+    @Body() body: ImportVdiFromUrlBody,
+    @Query() sync?: boolean
+  ): CreateActionReturnType<{ id: Unbrand<XoVdi>['id'] }> {
+    const srId = id as XoSr['id']
+    // checked before creating the task, so that invalid parameters are rejected with a 422 even when not `sync`
+    const url = this.#srService.validateImportVdiFromUrl(srId, body.url)
+
+    const action = async () => {
+      const vdiId = await this.#srService.importVdiFromUrl(srId, url, body)
+
+      if (sync) {
+        this.setHeader('Location', `${BASE_URL}/vdis/${vdiId}`)
+      }
+      return { id: vdiId }
+    }
+
+    return this.createAction<{ id: XoVdi['id'] }>(action, {
+      sync,
+      statusCode: createdResp.status,
+      taskProperties: {
+        name: 'import VDI from URL',
+        objectId: srId,
+        // the full URL can contain secrets (e.g. `?token=…`) and tasks are readable with `task: read`,
+        // only keep its origin and the name of the downloaded file
+        params: { ...body, url: url.origin, fileName: getFileNameFromUrl(url) },
+      },
+    })
   }
 }
