@@ -13,6 +13,7 @@ import { SynchronizedDisk, ThrottledDisk } from '@xen-orchestra/disk-transform'
 import { AggregatedIncrementalRemoteWriter } from '../_writers/AggregatedIncrementalRemoteWriter.mjs'
 import { Task } from '@vates/task'
 import { TaskProgressHandler } from './_TaskProgressHandler.mjs'
+import { meterDisk } from '../../_SourceReadTask.mjs'
 
 const { warn } = createLogger('xo:backups:Incrementalremote')
 class IncrementalRemoteVmBackupRunner extends AbstractRemote {
@@ -99,6 +100,8 @@ class IncrementalRemoteVmBackupRunner extends AbstractRemote {
         let disk = incrementalExport.disks[key]
         isVhdDifferencing[key] = disk.isDifferencing()
         disk.addProgressHandler(new TaskProgressHandler())
+        // each disk is read once, whatever the number of writers
+        disk = meterDisk(disk, incrementalExport.vdis[key])
         disk = new ThrottledDisk(disk, this._throttleGenerator)
         incrementalExport.disks[key] = new SynchronizedDisk(disk)
       }

@@ -53,6 +53,11 @@
         <template #key>{{ t('size') }}</template>
         <template #value>{{ formattedSize }}</template>
       </VtsCardRowKeyValue>
+      <VtsCardRowKeyValue v-if="formattedSpeed !== undefined">
+        <template #key>{{ t('reading-speed') }}</template>
+        <template #value>{{ formattedSpeed }}</template>
+      </VtsCardRowKeyValue>
+
       <VtsCardRowKeyValue>
         <template #key>{{ t('status') }}</template>
         <template #value>
@@ -73,7 +78,7 @@
 <script lang="ts" setup>
 import { useXoTaskNameResolver } from '@/modules/task/composables/xo-task-name-resolver.composable.ts'
 import type { FrontXoTask } from '@/modules/task/remote-resources/use-xo-task-collection.ts'
-import { getTaskAccents } from '@/modules/task/utils/xo-task.util.ts'
+import { getTaskAccents, getTaskSpeed } from '@/modules/task/utils/xo-task.util.ts'
 import { useXoUserResource } from '@/modules/user/remote-resources/use-xo-user.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCardRowList from '@core/components/card/VtsCardRowList.vue'
@@ -87,6 +92,7 @@ import UiTag from '@core/components/ui/tag/UiTag.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import UiUserLogo from '@core/components/ui/user-logo/UiUserLogo.vue'
 import { formatSize } from '@core/utils/size.util.ts'
+import { formatSpeed } from '@core/utils/speed.util.ts'
 import { formatDateTime } from '@core/utils/time.util.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -141,6 +147,14 @@ const formattedEndDate = computed(() => {
   const endTimestamp = task.start + estimatedTotal
 
   return formatDateTime(endTimestamp)
+})
+
+// reading speed of the sources (disks, XVA) still read by this task and its subtasks, each source counted once whatever
+// the number of targets: this is not the writing speed
+const formattedSpeed = computed(() => {
+  const bytesPerSecond = getTaskSpeed(task)
+
+  return bytesPerSecond ? formatSpeed(bytesPerSecond) : undefined
 })
 </script>
 
