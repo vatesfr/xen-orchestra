@@ -17,6 +17,7 @@ import {
 } from '@/modules/storage-repository/utils/xo-sr-create.util.ts'
 import { objectIcon, type IconName } from '@core/icons'
 import { required, requiredIf, withMessage } from '@core/packages/form-validation'
+import { useOverlay } from '@core/packages/overlay/use-overlay.ts'
 import { useValidatedForm } from '@core/packages/validated-form'
 import { SR_ACCESS_MODE } from '@core/types/storage-repository.type.ts'
 import { toComputed } from '@core/utils/to-computed.util.ts'
@@ -340,6 +341,24 @@ export function useNewSrForm(
     return buildNewSrRestPayload(input)
   }
 
+  const { open: openEraseConfirmModal } = useOverlay({
+    component: () => import('@/modules/storage-repository/components/modal/SrCreateEraseConfirmModal.vue'),
+    events: { onConfirm: true, onCancel: true },
+  })
+
+  /** Validate the form and build its payload, once the user agreed to erase the device of an SR type that formats it */
+  async function submit(): Promise<NewSrRestPayload | undefined> {
+    const restPayload = await validateAndBuildPayload()
+
+    if (restPayload === undefined || !requiresEraseConfirm.value) {
+      return restPayload
+    }
+
+    const response = await openEraseConfirmModal({ props: { device: formData.device } })
+
+    return response.event === 'onConfirm' ? restPayload : undefined
+  }
+
   return {
     nameInputBindings,
     descriptionInputBindings,
@@ -356,7 +375,6 @@ export function useNewSrForm(
     useAuth: toRef(formData, 'useAuth'),
     supportsPreferredImageFormats,
     preferredImageFormatsSelectBindings,
-    requiresEraseConfirm,
-    validateAndBuildPayload,
+    submit,
   }
 }

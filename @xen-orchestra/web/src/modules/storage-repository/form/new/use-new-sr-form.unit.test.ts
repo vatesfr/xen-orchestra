@@ -6,12 +6,14 @@ import { createHost } from '@/test/create-host.ts'
 import { createPool, DISKOR_POOL_NAME, OTHER_POOL_ID, UNKNOWN_POOL_ID } from '@/test/create-pool.ts'
 import { dangerMessage, requiredMessage } from '@/test/form-messages.ts'
 import { t } from '@/test/i18n.ts'
+import { overlayMock } from '@/test/mock-overlay.ts'
 import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
 import { mountComposableWithI18n } from '@/test/mount-composable.ts'
 import { mountWithSelect } from '@/test/mount-with-select.ts'
 import { openSelect, pickSelectOption } from '@/test/select.ts'
 import type { FormSelectId } from '@core/packages/form-select'
 import VtsSelect from '@core/components/select/VtsSelect.vue'
+import { OVERLAY_ABORT_EVENT } from '@core/packages/overlay/symbols.ts'
 import { SR_ACCESS_MODE } from '@core/types/storage-repository.type.ts'
 import { flushPromises } from '@vue/test-utils'
 import { h, nextTick } from 'vue'
@@ -24,6 +26,7 @@ vi.mock(
   import('@/modules/host/remote-resources/use-xo-host-collection.ts'),
   () => import('@/test/mock-xo-collections.ts')
 )
+vi.mock(import('@core/packages/overlay/use-overlay.ts'), () => import('@/test/mock-overlay.ts'))
 
 const POOL = createPool()
 
@@ -46,17 +49,29 @@ function seedPools() {
 
 beforeEach(() => {
   xoCollectionsMock.reset()
+  overlayMock.reset()
   seedPools()
 })
 
+// The modal asking to erase the device of an ext or LVM SR: the form opens it on submit, closed with `event`
+function answerEraseConfirm(event: 'onConfirm' | 'onCancel' | typeof OVERLAY_ABORT_EVENT) {
+  overlayMock.getOverlay().open.mockResolvedValue({ event, payload: undefined })
+}
+
 // The Storage tab of a pool opens the drawer without host, the one of a host with that host
 function mountNewSrForm({ poolId = POOL.id, hostId }: { poolId?: FrontXoPool['id']; hostId?: FrontXoHost['id'] } = {}) {
-  return mountComposableWithI18n(() => useNewSrForm(poolId, hostId))
+  const form = mountComposableWithI18n(() => useNewSrForm(poolId, hostId))
+  answerEraseConfirm('onConfirm')
+
+  return form
 }
 
 type NewSrForm = ReturnType<typeof mountNewSrForm>
 
-type UnwrappedNewSrForm = Pick<NewSrForm, 'nameInputBindings' | 'deviceInputBindings' | 'serverInputBindings'> & {
+type UnwrappedNewSrForm = Pick<
+  NewSrForm,
+  'nameInputBindings' | 'deviceInputBindings' | 'serverInputBindings' | 'pathInputBindings'
+> & {
   type: NewSrType | undefined
 }
 
@@ -65,17 +80,30 @@ async function chooseType(form: Pick<UnwrappedNewSrForm, 'type'>, type: NewSrTyp
   await nextTick()
 }
 
-// The minimal valid form of a local SR (ext) or a shared one (SMB)
-async function fillLocalSr(form: UnwrappedNewSrForm) {
+const LOCATIONS = {
+  ext: { field: 'deviceInputBindings', value: '/dev/sdb' },
+  lvm: { field: 'deviceInputBindings', value: '/dev/sdb' },
+  smb: { field: 'serverInputBindings', value: 'nas' },
+  smbiso: { field: 'serverInputBindings', value: 'nas' },
+  local: { field: 'pathInputBindings', value: '/test/iso' },
+} as const satisfies Record<NewSrType, { field: keyof UnwrappedNewSrForm; value: string }>
+
+// The minimal valid form of an SR of `type`: its name and the location field of its type
+async function fillSr(form: UnwrappedNewSrForm, type: NewSrType) {
+  const { field, value } = LOCATIONS[type]
+
   form.nameInputBindings['onUpdate:modelValue']('My SR')
-  await chooseType(form, 'ext')
-  form.deviceInputBindings['onUpdate:modelValue']('/dev/sdb')
+  await chooseType(form, type)
+  form[field]['onUpdate:modelValue'](value)
 }
 
-async function fillSharedSr(form: UnwrappedNewSrForm) {
-  form.nameInputBindings['onUpdate:modelValue']('My SR')
-  await chooseType(form, 'smb')
-  form.serverInputBindings['onUpdate:modelValue']('nas')
+// A local SR (ext) or a shared one (SMB)
+function fillLocalSr(form: UnwrappedNewSrForm) {
+  return fillSr(form, 'ext')
+}
+
+function fillSharedSr(form: UnwrappedNewSrForm) {
+  return fillSr(form, 'smb')
 }
 
 // A select only reacts once rendered: renders the one of `getSelectId`, the form being read back from `formHolder`
@@ -96,10 +124,12 @@ function mountWithFormSelect(
     throw new Error('The form was not set up')
   }
 
+  answerEraseConfirm('onConfirm')
+
   // The tests read and write the form as a mounted component exposes it: refs unwrapped
   const { form } = formHolder
 
-  const unwrappedForm: UnwrappedNewSrForm & Pick<ReturnType<typeof useNewSrForm>, 'validateAndBuildPayload'> = {
+  const unwrappedForm: UnwrappedNewSrForm & Pick<ReturnType<typeof useNewSrForm>, 'submit'> = {
     get nameInputBindings() {
       return form.nameInputBindings.value
     },
@@ -109,13 +139,16 @@ function mountWithFormSelect(
     get serverInputBindings() {
       return form.serverInputBindings.value
     },
+    get pathInputBindings() {
+      return form.pathInputBindings.value
+    },
     get type() {
       return form.type.value
     },
     set type(type) {
       form.type.value = type
     },
-    validateAndBuildPayload: form.validateAndBuildPayload,
+    submit: form.submit,
   }
 
   return { wrapper, form: unwrappedForm, rawForm: form }
@@ -147,12 +180,12 @@ describe('accessModeInputBindings', () => {
   })
 })
 
-describe('validateAndBuildPayload', () => {
+describe('submit', () => {
   it('creates a shared SR on the master of the pool', async () => {
     const form = mountNewSrForm()
     await fillSharedSr(form)
 
-    expect(await form.validateAndBuildPayload()).toMatchObject({
+    expect(await form.submit()).toMatchObject({
       hostId: MASTER.id,
       name_label: 'My SR',
       SR_type: 'smb',
@@ -163,7 +196,7 @@ describe('validateAndBuildPayload', () => {
     const form = mountNewSrForm({ hostId: SLAVE.id })
     await fillLocalSr(form)
 
-    expect(await form.validateAndBuildPayload()).toMatchObject({ hostId: SLAVE.id, SR_type: 'ext' })
+    expect(await form.submit()).toMatchObject({ hostId: SLAVE.id, SR_type: 'ext' })
   })
 
   it('creates a shared SR on the master of the pool once switched from a host', async () => {
@@ -173,7 +206,7 @@ describe('validateAndBuildPayload', () => {
     await nextTick()
     await fillSharedSr(form)
 
-    expect(await form.validateAndBuildPayload()).toMatchObject({ hostId: MASTER.id })
+    expect(await form.submit()).toMatchObject({ hostId: MASTER.id })
   })
 
   it('selects the pool and its master once the pools are loaded', async () => {
@@ -184,13 +217,13 @@ describe('validateAndBuildPayload', () => {
     await nextTick()
     await fillSharedSr(form)
 
-    expect(await form.validateAndBuildPayload()).toMatchObject({ hostId: MASTER.id })
+    expect(await form.submit()).toMatchObject({ hostId: MASTER.id })
   })
 
   it('requires the name and the type', async () => {
     const form = mountNewSrForm()
 
-    expect(await form.validateAndBuildPayload()).toBeUndefined()
+    expect(await form.submit()).toBeUndefined()
     expect(form.nameInputBindings.error).toEqual(requiredMessage())
     expect(form.typeSelectBindings.error).toEqual(requiredMessage())
   })
@@ -199,7 +232,7 @@ describe('validateAndBuildPayload', () => {
     const form = mountNewSrForm({ poolId: UNKNOWN_POOL_ID })
     await fillSharedSr(form)
 
-    expect(await form.validateAndBuildPayload()).toBeUndefined()
+    expect(await form.submit()).toBeUndefined()
     expect(form.poolSelectBindings.error).toEqual(dangerMessage(form.t('pool-required')))
   })
 
@@ -212,7 +245,7 @@ describe('validateAndBuildPayload', () => {
     form.nameInputBindings['onUpdate:modelValue']('My SR')
     await chooseType(form, type)
 
-    expect(await form.validateAndBuildPayload()).toBeUndefined()
+    expect(await form.submit()).toBeUndefined()
     expect(form[required].error).toEqual(requiredMessage())
     expect(form[notRequired].error).toBeUndefined()
   })
@@ -227,7 +260,7 @@ describe('validateAndBuildPayload', () => {
     await pickOption(wrapper, DISKOR_POOL_NAME)
     await fill(form)
 
-    expect(await form.validateAndBuildPayload()).toMatchObject({ hostId: OTHER_MASTER.id })
+    expect(await form.submit()).toMatchObject({ hostId: OTHER_MASTER.id })
   })
 
   it('drops the preferred image formats of a type that does not take them', async () => {
@@ -238,7 +271,7 @@ describe('validateAndBuildPayload', () => {
     await chooseType(form, 'local')
     await chooseType(form, 'ext')
 
-    expect((await form.validateAndBuildPayload())?.device_config).not.toHaveProperty('preferred-image-formats')
+    expect((await form.submit())?.device_config).not.toHaveProperty('preferred-image-formats')
   })
 })
 
@@ -269,16 +302,54 @@ describe('preferredImageFormatsSelectBindings', () => {
   })
 })
 
-describe('requiresEraseConfirm', () => {
-  it.each([
-    { type: 'lvm', expected: true },
-    { type: 'ext', expected: true },
-    { type: 'local', expected: false },
-  ] as const)('is $expected for a $type SR', async ({ type, expected }) => {
+describe('submit with an erase confirmation', () => {
+  it('does not ask to erase a device when the form is invalid', async () => {
     const form = mountNewSrForm({ hostId: SLAVE.id })
-    await chooseType(form, type)
+    await chooseType(form, 'ext')
 
-    expect(form.requiresEraseConfirm).toBe(expected)
+    expect(await form.submit()).toBeUndefined()
+    expect(overlayMock.getOverlay().open).not.toHaveBeenCalled()
+  })
+
+  it.each([
+    { type: 'local', hostId: SLAVE.id, srType: 'iso' },
+    { type: 'smb', hostId: undefined, srType: 'smb' },
+    { type: 'smbiso', hostId: undefined, srType: 'iso' },
+  ] as const)('creates a $type SR without asking to erase a device', async ({ type, hostId, srType }) => {
+    const form = mountNewSrForm({ hostId })
+    await fillSr(form, type)
+
+    expect(await form.submit()).toMatchObject({ SR_type: srType })
+    expect(overlayMock.getOverlay().open).not.toHaveBeenCalled()
+  })
+
+  it.each(['ext', 'lvm'] as const)('asks to erase the device of a %s SR', async type => {
+    const form = mountNewSrForm({ hostId: SLAVE.id })
+    await fillSr(form, type)
+
+    await form.submit()
+
+    expect(overlayMock.getOverlay().open).toHaveBeenCalledWith({ props: { device: '/dev/sdb' } })
+  })
+
+  it.each(['ext', 'lvm'] as const)('creates the %s SR once the erase is confirmed', async type => {
+    const form = mountNewSrForm({ hostId: SLAVE.id })
+    await fillSr(form, type)
+
+    expect(await form.submit()).toMatchObject({ SR_type: type, device_config: { device: '/dev/sdb' } })
+  })
+
+  it.each([
+    { type: 'ext', event: 'onCancel', answer: 'go back' },
+    { type: 'lvm', event: 'onCancel', answer: 'go back' },
+    { type: 'ext', event: OVERLAY_ABORT_EVENT, answer: 'closed' },
+    { type: 'lvm', event: OVERLAY_ABORT_EVENT, answer: 'closed' },
+  ] as const)('does not create the $type SR when the erase modal is $answer', async ({ type, event }) => {
+    const form = mountNewSrForm({ hostId: SLAVE.id })
+    await fillSr(form, type)
+    answerEraseConfirm(event)
+
+    expect(await form.submit()).toBeUndefined()
   })
 })
 
