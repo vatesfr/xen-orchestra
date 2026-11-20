@@ -18,6 +18,7 @@ const LEVEL_TO_SEVERITY = {
 // `config` is either the target or an object with:
 // - `target`: `udp://host[:port]`, `tcp://host[:port]` or `tls://host[:port]`, UDP if there is no protocol
 // - `certificateAuthorities`: paths to PEM files of certificate authorities to trust (TLS only)
+// - `certificate` and `key`: paths to the PEM files of the client certificate and its private key (TLS only)
 // - the other options of `@vates/syslog`'s `createClient()`
 function createTransport(config) {
   if (typeof config !== 'object' || config === null) {
@@ -25,7 +26,7 @@ function createTransport(config) {
   }
 
   // eslint-disable-next-line no-unused-vars
-  const { certificateAuthorities, target = 'localhost', type, ...opts } = config
+  const { certificate, certificateAuthorities, key, target = 'localhost', type, ...opts } = config
 
   // a single path instead of a list is an easy mistake in a TOML configuration
   if (
@@ -37,11 +38,22 @@ function createTransport(config) {
     )
   }
 
+  for (const [name, path] of Object.entries({ certificate, key })) {
+    if (path !== undefined && typeof path !== 'string') {
+      throw new TypeError(
+        `syslog transport: ${name} must be the path of a PEM file, e.g. ${name} = '/etc/xo-server/syslog-client.${name === 'key' ? 'key' : 'pem'}', got ${JSON.stringify(path)}`
+      )
+    }
+  }
+
   const client = createClient(/^[a-z]+:\/\//.test(target) ? target : `udp://${target}`, {
     // like the previous implementation
     appName: basename(process.title),
     ca:
       certificateAuthorities === undefined ? undefined : certificateAuthorities.map(path => readFileSync(path, 'utf8')),
+    // an empty path is not set
+    cert: certificate ? readFileSync(certificate, 'utf8') : undefined,
+    key: key ? readFileSync(key, 'utf8') : undefined,
     ...opts,
   })
 
