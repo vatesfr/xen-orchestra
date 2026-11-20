@@ -259,6 +259,10 @@ export class Collection extends EventEmitter {
   // Events buffering
   // -----------------------------------------------------------------
 
+  // A listener which throws must not leave the buffer behind, nor skip the other batches and `finish`: the
+  // flush emits everything, then throws the failure (an `AggregateError` if several), so that the caller
+  // still sees it. The listeners registered after the failing one for the same batch still miss it, that is
+  // how `emit` works.
   bufferEvents() {
     ++this._buffering
 
@@ -290,9 +294,18 @@ export class Collection extends EventEmitter {
         data[buffer[key]][key] = this._items[key]
       }
 
+      const errors = []
+      const emit = (event, items) => {
+        try {
+          this.emit(event, items)
+        } catch (error) {
+          errors.push(error)
+        }
+      }
+
       forOwn(data, (items, action) => {
         if (!isEmpty(items)) {
-          this.emit(action, items)
+          emit(action, items)
         }
       })
 
@@ -300,9 +313,16 @@ export class Collection extends EventEmitter {
       //
       // This name has been chosen because it is used in Node writable
       // streams when the data has been successfully committed.
-      this.emit('finish')
+      emit('finish')
 
       this._buffer = createObject(null)
+
+      if (errors.length === 1) {
+        throw errors[0]
+      }
+      if (errors.length > 1) {
+        throw new AggregateError(errors, 'several listeners failed while flushing the buffered events')
+      }
     }
   }
 

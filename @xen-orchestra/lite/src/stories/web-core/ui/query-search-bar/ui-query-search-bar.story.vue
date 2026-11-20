@@ -1,6 +1,9 @@
 <template>
-  <ComponentStory v-slot="{ properties }" :params="[event('search').args({ value: 'string' })]">
-    <UiQuerySearchBar id="search-bar" v-bind="properties" @search="(value: string) => (filter = value)" />
+  <ComponentStory
+    v-slot="{ properties }"
+    :params="[model().type('string').required(), prop('busy').bool().widget(), event('search')]"
+  >
+    <UiQuerySearchBar id="search-bar" v-bind="properties" v-model="filter" :busy="properties.busy || isSearching" />
 
     <p class="text">Example data:</p>
     <ul class="data-list">
@@ -11,7 +14,7 @@
 
 <script lang="ts" setup>
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
-import { event } from '@/libs/story/story-param.ts'
+import { event, model, prop } from '@/libs/story/story-param.ts'
 import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
 import { useTreeFilter } from '@core/composables/tree-filter.composable.ts'
 import { defineTree } from '@core/packages/tree/define-tree.ts'
@@ -120,7 +123,7 @@ const data = [
   },
 ]
 
-const { filter, predicate } = useTreeFilter()
+const { filter, predicate, isSearching } = useTreeFilter()
 
 const definitions = defineTree('vms', data, {
   getLabel: 'name_label',

@@ -2,13 +2,15 @@
   <UiTableActions :title="t('table-actions')">
     <template v-for="(action, index) of resolvedActions" :key="index">
       <VtsResponsiveMenu v-if="action.children" :title="action.label" placement="bottom-start">
-        <template #trigger="{ open }">
+        <template #trigger="{ open, bindings }">
           <UiButton
             v-tooltip="action.hint"
+            v-bind="bindings"
             variant="tertiary"
             :accent="action.buttonAccent"
             size="medium"
             :left-icon="action.icon"
+            right-icon="fa:angle-down"
             :disabled="action.disabled"
             :busy="action.busy"
             @click="open($event)"

@@ -1,17 +1,19 @@
 <template>
-  <div class="site-dashboard" :class="{ mobile: uiStore.isSmall }">
-    <SiteDashboardPoolsStatus class="pools-status" />
-    <SiteDashboardHostsStatus class="hosts-status" />
-    <SiteDashboardVmsStatus class="vms-status" />
-    <SiteDashboardResourcesOverview class="resources-overview" />
-    <DashboardAlarms class="alarms" :alarms :is-ready :has-error="hasAlarmFetchError" />
-    <SiteDashboardPatches class="patches" />
-    <SiteDashboardBackupJobsStatus class="backup-jobs-status" />
-    <SiteDashboardBackupIssues class="backup-issues" />
-    <SiteDashboardVmsProtection class="vms-protection" />
-    <SiteDashboardBackupRepository class="backup-repository" />
-    <SiteDashboardStorageRepository class="storage-repository" />
-    <SiteDashboardS3BackupRepository class="s3-backup-repository" />
+  <div class="scroll-container">
+    <div class="site-dashboard" :class="{ mobile: uiStore.isSmall }">
+      <SiteDashboardPoolsStatus class="pools-status" />
+      <SiteDashboardHostsStatus class="hosts-status" />
+      <SiteDashboardVmsStatus class="vms-status" />
+      <SiteDashboardResourcesOverview class="resources-overview" />
+      <DashboardAlarms class="alarms" :alarms :is-ready :has-error="hasAlarmFetchError" />
+      <SiteDashboardPatches class="patches" />
+      <SiteDashboardBackupJobsStatus class="backup-jobs-status" />
+      <SiteDashboardBackupIssues class="backup-issues" />
+      <SiteDashboardVmsProtection class="vms-protection" />
+      <SiteDashboardBackupRepository class="backup-repository" />
+      <SiteDashboardStorageRepository class="storage-repository" />
+      <SiteDashboardS3BackupRepository class="s3-backup-repository" />
+    </div>
   </div>
 </template>
 
@@ -48,6 +50,12 @@ const isReady = logicAnd(areAlarmsReady, areHostsReady, areVmsReady, areVmContro
 </script>
 
 <style lang="postcss" scoped>
+.scroll-container {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
 .site-dashboard {
   margin: 0.8rem;
   display: grid;

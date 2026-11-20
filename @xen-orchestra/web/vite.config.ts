@@ -45,6 +45,7 @@ export default defineConfig(({ mode }) => {
       globals: true,
       setupFiles: ['./src/test/setup.ts'],
       alias: {
+        '@core-test': fileURLToPath(new URL('../web-core/test', import.meta.url)),
         // `placement.js` only declares a `module` entry, which the Node-style resolution used by Vitest ignores
         'placement.js': fileURLToPath(new URL('../../node_modules/placement.js/dist/index.es.js', import.meta.url)),
       },

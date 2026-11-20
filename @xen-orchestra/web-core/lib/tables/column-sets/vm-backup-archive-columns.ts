@@ -9,7 +9,7 @@ export const useBackupArchiveColumns = defineColumns(() => {
 
   return {
     date: useDateColumn({ headerLabel: () => t('date') }),
-    backupRepository: useLinkColumn({ headerLabel: () => t('backup-repository') }),
+    backupRepository: useLinkColumn({ headerLabel: () => t('backup-repository'), flexible: true }),
     sizeOnDisk: useNumberColumn({ headerLabel: () => t('size-on-disk') }),
   }
 })

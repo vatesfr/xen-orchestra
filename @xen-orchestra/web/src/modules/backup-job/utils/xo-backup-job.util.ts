@@ -2,11 +2,15 @@ import type {
   FrontAnyXoBackupJob,
   FrontXoVmBackupJob,
 } from '@/modules/backup-job/remote-resources/use-xo-backup-job-collection.ts'
+import type { FrontXoBackupLog } from '@/modules/backup-log/remote-resources/use-xo-backup-log-collection.ts'
+import type { FrontXoSchedule } from '@/modules/schedule/remote-resources/use-xo-schedule-collection.ts'
 import type { Status } from '@core/components/status/VtsStatus.vue'
 import type { VM_POWER_STATE, XoSr } from '@vates/types'
 import { extractIdsFromSimplePattern } from '@xen-orchestra/backups/extractIdsFromSimplePattern.mjs'
 
 export const BACKUP_JOB_LAST_RUNS_COUNT = 3
+
+export const BACKUP_JOB_LAST_DAYS_COUNT = 7
 
 export type VmsSmartModeEnabled = {
   $pool?: Record<string, unknown>
@@ -31,6 +35,28 @@ export function getBackupJobHealthCheckStatus(backupJob: FrontAnyXoBackupJob): S
   }
 
   return enabledCount === schedulesSettings.length ? 'enabled' : 'at-least-one-enabled'
+}
+
+export type BackupLogsStatus = 'success' | 'skipped' | 'failure' | 'no-run'
+
+export function getBackupLogsStatus(backupLogs: FrontXoBackupLog[]): BackupLogsStatus {
+  if (backupLogs.length === 0) {
+    return 'no-run'
+  }
+
+  if (backupLogs.some(backupLog => backupLog.status === 'failure' || backupLog.status === 'interrupted')) {
+    return 'failure'
+  }
+
+  if (backupLogs.some(backupLog => backupLog.status === 'skipped')) {
+    return 'skipped'
+  }
+
+  return 'success'
+}
+
+export function isBackupJobEnabled(schedules: FrontXoSchedule[]): boolean {
+  return schedules.some(schedule => schedule.enabled)
 }
 
 export function getBackupJobHealthCheckSrIds(backupJob: FrontAnyXoBackupJob): XoSr['id'][] {

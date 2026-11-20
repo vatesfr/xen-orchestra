@@ -12,7 +12,7 @@ export const useBackupRepositoryColumns = defineColumns(() => {
 
   return {
     checkbox: useCheckboxColumn(),
-    backupRepository: useLinkColumn({ headerLabel: () => t('backup-repository') }),
+    backupRepository: useLinkColumn({ headerLabel: () => t('backup-repository'), flexible: true }),
     status: useStatusColumn({ headerLabel: () => t('status') }),
     type: useLiteralColumn({ headerLabel: () => t('type') }),
     proxy: useTextColumn({ headerLabel: () => t('proxy') }),

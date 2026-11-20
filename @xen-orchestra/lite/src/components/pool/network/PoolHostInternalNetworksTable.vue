@@ -7,7 +7,7 @@
       </template>
     </UiTitle>
     <div class="container">
-      <UiQuerySearchBar @search="value => (searchQuery = value)" />
+      <UiQuerySearchBar v-bind="searchBindings" />
       <VtsTable :state :pagination-bindings sticky="right">
         <thead>
           <tr>
@@ -38,10 +38,10 @@ import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearch
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { usePagination } from '@core/composables/pagination.composable.ts'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
+import { useSearchFilter } from '@core/composables/search-filter.composable.ts'
 import { useTableState } from '@core/composables/table-state.composable.ts'
 import { useNetworkColumns } from '@core/tables/column-sets/network-columns.ts'
 import { logicNot } from '@vueuse/math'
-import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { networks } = defineProps<{
@@ -60,19 +60,7 @@ const selectedNetworkId = useRouteQuery('id')
 
 const getLockingMode = (lockingMode: string) => (lockingMode === 'disabled' ? t('disabled') : t('unlocked'))
 
-const searchQuery = ref('')
-
-const filteredNetworks = computed(() => {
-  const searchTerm = searchQuery.value.trim().toLocaleLowerCase()
-
-  if (!searchTerm) {
-    return networks
-  }
-
-  return networks.filter(network =>
-    Object.values(network).some(value => String(value).toLocaleLowerCase().includes(searchTerm))
-  )
-})
+const { items: filteredNetworks, searchBindings } = useSearchFilter(() => networks)
 
 const { pageRecords: paginatedNetworks, paginationBindings } = usePagination('internal-networks', filteredNetworks)
 

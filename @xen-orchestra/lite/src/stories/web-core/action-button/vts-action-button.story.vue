@@ -11,7 +11,7 @@
       prop('accent').type('ButtonAccent').enum('brand', 'warning', 'danger').preset('brand').required().widget(),
       iconProp().preset('action:connect'),
       prop('disabled').bool().widget(),
-      prop('busy').bool().widget(),
+      prop('busy').bool().widget().help('In a VtsHeadBarActions, the button is disabled without showing a loader'),
       prop('hint').str().preset('Already connected').widget().help('Shown when disabled'),
       event('click'),
       slot(),
@@ -20,8 +20,8 @@
     ]"
   >
     <MenuList v-if="settings.inMenu" placement="bottom-start">
-      <template #trigger="{ open }">
-        <UiButtonIcon accent="brand" icon="action:more-actions" size="medium" @click="open($event)" />
+      <template #trigger="{ open, bindings }">
+        <UiButtonIcon v-bind="bindings" accent="brand" icon="action:more-actions" size="medium" @click="open($event)" />
       </template>
       <VtsActionButton v-bind="properties">{{ settings.label }}</VtsActionButton>
     </MenuList>

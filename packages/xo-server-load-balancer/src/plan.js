@@ -261,7 +261,8 @@ export default class Plan {
         includes(this._poolIds, object.$poolId) &&
         object.power_state === powerState &&
         !includes(this._excludedHosts, object.id) &&
-        object.enabled === true
+        // don't get disabled hosts, except when getting halted hosts (which are always disabled)
+        (object.enabled === true || powerState === 'Halted')
     )
   }
 

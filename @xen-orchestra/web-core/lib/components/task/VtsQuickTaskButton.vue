@@ -3,7 +3,7 @@
     ref="buttonRef"
     v-tooltip="{ content: t('tasks:overview'), placement: 'bottom-end' }"
     accent="brand"
-    :dot="hasNewTask"
+    :counter="newTasksCount || undefined"
     icon="fa:bars-progress"
     size="medium"
     @click="isPanelOpen = true"
@@ -36,11 +36,11 @@ const { t } = useI18n()
 const ids = computed(() => props.tasks.map(task => task.id))
 
 const isPanelOpen = ref(false)
-const hasNewTask = ref(false)
+const newTasksCount = ref(0)
 
 watchArray(ids, (_newList, _oldList, addedIds) => {
-  if (addedIds.length > 0 && !isPanelOpen.value) {
-    hasNewTask.value = true
+  if (!isPanelOpen.value) {
+    newTasksCount.value += addedIds.length
   }
 })
 
@@ -61,6 +61,6 @@ whenever(isPanelOpen, async () => {
     placement: 'bottom-end',
   })
 
-  hasNewTask.value = false
+  newTasksCount.value = 0
 })
 </script>

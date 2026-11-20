@@ -13,7 +13,9 @@
         <SnapshotsTable :snapshots :vm />
       </UiCard>
     </div>
-    <SnapshotSidePanel :snapshot="selectedSnapshot" @close="selectedSnapshot = undefined" />
+    <template #panel>
+      <SnapshotSidePanel :snapshot="selectedSnapshot" @close="selectedSnapshot = undefined" />
+    </template>
   </VtsContentSidePanel>
 </template>
 

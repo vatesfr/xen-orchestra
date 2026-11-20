@@ -1,22 +1,22 @@
 <template>
-  <MenuItem
-    v-tooltip="!canRebootHost && rebootHostErrorMessage"
-    accent="neutral"
+  <VtsActionButton
+    variant="tertiary"
+    accent="brand"
     :disabled="!canRebootHost"
     icon="action:reboot"
     :busy="isRebootingHost"
+    :hint="rebootHostErrorMessage"
     @click="rebootHost()"
   >
     {{ t('action:reboot') }}
-  </MenuItem>
+  </VtsActionButton>
 </template>
 
 <script lang="ts" setup>
 import { useXoHostRebootJob } from '@/modules/host/jobs/xo-host-reboot.job.ts'
 import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
-import MenuItem from '@core/components/menu/MenuItem.vue'
+import VtsActionButton from '@core/components/action-button/VtsActionButton.vue'
 import { useActionModal } from '@core/composables/modals/use-action-modal.ts'
-import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { useI18n } from 'vue-i18n'
 
 const { host } = defineProps<{

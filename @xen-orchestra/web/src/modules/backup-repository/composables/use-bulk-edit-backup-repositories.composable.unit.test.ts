@@ -6,8 +6,9 @@ import type {
 import type { EditBackupRepositoryPayload } from '@/modules/backup-repository/jobs/xo-backup-repository-edit.job.ts'
 import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
 import { createBr } from '@/test/create-br.ts'
+import { overlayMock } from '@/test/mock-overlay.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
-import type { useOverlay } from '@core/packages/overlay/use-overlay.ts'
+import { silenceConsoleError } from '@/test/silence-console-error.ts'
 import { KEEP_OVERLAY_OPEN } from '@core/packages/overlay/symbols.ts'
 import { ref, toValue } from 'vue'
 
@@ -16,8 +17,7 @@ type MockedOverlay = {
   events: { onConfirm: (payload: never) => Promise<unknown> }
 }
 
-const { overlays, useBulkEditJob, run } = vi.hoisted(() => ({
-  overlays: [] as MockedOverlay[],
+const { useBulkEditJob, run } = vi.hoisted(() => ({
   useBulkEditJob: vi.fn(),
   run: vi.fn(),
 }))
@@ -27,19 +27,11 @@ vi.mock(import('@/modules/backup-repository/jobs/xo-backup-repository-bulk-edit.
   useXoBackupRepositoryBulkEditJob: useBulkEditJob as unknown as typeof useXoBackupRepositoryBulkEditJob,
 }))
 
-vi.mock(import('@core/packages/overlay/use-overlay.ts'), () => ({
-  useOverlay: (({ events }: Pick<MockedOverlay, 'events'>) => {
-    const overlay = { open: vi.fn(), events }
-
-    overlays.push(overlay)
-
-    return { open: overlay.open }
-  }) as unknown as typeof useOverlay,
-}))
+vi.mock(import('@core/packages/overlay/use-overlay.ts'), () => import('@/test/mock-overlay.ts'))
 
 beforeEach(() => {
   vi.restoreAllMocks()
-  overlays.length = 0
+  overlayMock.reset()
   useBulkEditJob.mockReset()
   run.mockReset()
 
@@ -70,7 +62,7 @@ function mountBulkEdit(brs: FrontXoBackupRepository[]) {
   const result = mountComposable(() => useBulkEditBackupRepositories(() => brs)).wrapper.vm
 
   // The composable declares the edit drawer of a single repository first, then the bulk edit one
-  const [editDrawer, bulkEditDrawer] = overlays
+  const [editDrawer, bulkEditDrawer] = overlayMock.getOverlays<MockedOverlay>()
 
   return { result, editDrawer, bulkEditDrawer }
 }
@@ -140,7 +132,7 @@ describe('on confirm', () => {
   })
 
   it('keeps the drawer open when the job fails', async () => {
-    vi.spyOn(console, 'error').mockImplementation(() => {})
+    silenceConsoleError()
     run.mockRejectedValue(new Error('Missing changes for a backup repository'))
     const { editDrawer } = mountBulkEdit([firstBr])
 

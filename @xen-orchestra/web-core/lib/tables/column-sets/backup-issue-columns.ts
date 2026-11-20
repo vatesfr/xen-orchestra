@@ -7,7 +7,7 @@ export const useBackupIssueColumns = defineColumns(() => {
   const { t } = useI18n()
 
   return {
-    job: useLinkColumn({ headerLabel: t('backup-job') }),
+    job: useLinkColumn({ headerLabel: t('backup-job'), flexible: true }),
     lastRuns: useStatusColumn({
       headerLabel: t('last-n-runs', { n: 3 }),
       iconOnly: true,

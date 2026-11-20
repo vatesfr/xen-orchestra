@@ -14,8 +14,8 @@ The two replication job types now have clearer names, but the XO 5 screens below
 
 | Current name                                                       | Former name, still shown in XO 5 |
 | ------------------------------------------------------------------ | -------------------------------- |
-| [Full replication](./backup-types/full_replication.md)                          | Disaster Recovery (DR)           |
-| [Incremental replication](./backup-types/incremental_replication.md)               | Continuous Replication (CR)      |
+| [Full replication](../replication/full_replication.md)                          | Disaster Recovery (DR)           |
+| [Incremental replication](../replication/incremental_replication.md)               | Continuous Replication (CR)      |
 
 Nothing changed in behavior: only the labels differ. XO 6 uses the current names, and the tags XO puts on replicas (`Disaster Recovery`, `Continuous Replication`) kept the former ones.
 :::
@@ -507,6 +507,13 @@ With a slow or distant BR, typically an S3 or Azure BR outside your network, rea
   #bindAddress = '0.0.0.0'
   ```
 
+- **Only the host connects.** The iSCSI target of a mount only accepts connections from the addresses of the host it is mounted on: its management address and the addresses of its PIFs, storage networks included. Any other connection is closed at once, so nothing else can keep the host from connecting. If the hosts reach Xen Orchestra through a NAT, which hides their own addresses, turn it off in the same `[iscsi]` section:
+
+  ```toml
+  [iscsi]
+  restrictToHost = false
+  ```
+
 - **Temporary.** A live mount only lasts as long as the Xen Orchestra process serving it: restarting or updating XOA ends it, and the disk becomes unavailable to the VM. Stop using the disk before restarting or updating XOA. If Xen Orchestra stopped unexpectedly, the `[XO live mount] <VM name> (<backup date>)` SR stays behind with nothing serving it: detach the disk from the VM and forget the SR.
 
 ### Firewall of Xen Orchestra {#live-mount-firewall}
@@ -520,7 +527,7 @@ To turn it off, and manage the firewall yourself, add to the [configuration file
 manageFirewall = false
 ```
 
-If a firewall still blocks the hosts, the restore fails with `the host cannot reach the iSCSI target at <address>:<port>, check iscsi.advertisedAddress and the firewalls between them`.
+If a firewall still blocks the hosts, the restore fails with `the host cannot reach the iSCSI target at <address>:<port>, check iscsi.advertisedAddress and the firewalls between them, …`. If they connect through a NAT, it fails with `the host connected to the iSCSI target from <address>, which is not one of its addresses, e.g. through a NAT: set iscsi.restrictToHost = false`.
 
 How it works:
 

@@ -87,7 +87,8 @@ const XAPI_ERROR_TO_XO_ERROR = {
 
 const hasPermission = (actual, expected) => PERMISSIONS[actual] >= PERMISSIONS[expected]
 
-function checkParams(method, params) {
+// exported for testing
+export function checkParams(method, params) {
   // Parameters suffixed by `?` are marked as ignorable by the client and
   // ignored if unsupported by this version of the API
   //
@@ -95,6 +96,13 @@ function checkParams(method, params) {
   // of the parameter is preferable but not necessary
   const ignorableParams = new Set()
   for (const key of Object.keys(params)) {
+    // `params.__proto__ = value` would replace the prototype of params instead
+    // of creating a property, and an own `__proto__` property would do the
+    // same in any downstream `Object.assign`-like copy
+    if (key === '__proto__' || key === '__proto__?') {
+      throw errors.invalidParameters(`forbidden key: ${key}`)
+    }
+
     if (key.endsWith('?')) {
       const rawKey = key.slice(0, -1)
       if (Object.hasOwn(params, rawKey)) {

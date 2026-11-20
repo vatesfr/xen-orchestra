@@ -191,3 +191,24 @@ describe('disconnectXenServer', function () {
     assert.deepEqual({ ...xenServers._serverIdsByPool }, { 'pool-2': 'server-2' })
   })
 })
+
+describe('_onXenAdd', function () {
+  it('ignores the metrics of an owner which is gone', function () {
+    const { xenServers } = createXenServers()
+    // the owner was removed, but `_onXenRemove` left the metrics registered
+    const dependents = { __proto__: null, 'OpaqueRef:metrics': 'vm-1' }
+    const metrics = { $id: 'metrics-1', $ref: 'OpaqueRef:metrics', $type: 'VM_metrics' }
+
+    assert.doesNotThrow(() =>
+      xenServers._onXenAdd(
+        { 'metrics-1': metrics },
+        { __proto__: null },
+        { __proto__: null },
+        'server-1',
+        dependents,
+        {}
+      )
+    )
+    assert.deepEqual({ ...dependents }, {})
+  })
+})
