@@ -123,6 +123,34 @@ suite('simple tests', function () {
     )
   })
 
+  test('convertRefFieldsToDBModel adds converted reference fields', function () {
+    const clazz = new XapiDBClass(
+      { name: 'clz', fields: { field: { name: 'field', type: 'cls ref', description: 'desc' } } },
+      'schema'
+    )
+    const target = new XapiDBClass({ name: 'cls', fields: {} }, 'schema')
+
+    clazz.convertRefFieldsToDBModel({ cls: target })
+
+    assert.strictEqual(clazz.fields.length, 1)
+    assert.strictEqual(clazz.refFields.length, 1)
+    assert.strictEqual(clazz.fields[0], clazz.refFields[0])
+    assert.strictEqual(clazz.refFields[0].name, 'field')
+  })
+
+  test('convertRefFieldsToDBModel rejects a reference to an unknown class', function () {
+    const clazz = new XapiDBClass(
+      { name: 'clz', fields: { field: { name: 'field', type: 'missing ref', description: 'desc' } } },
+      'schema'
+    )
+
+    assert.throws(() => clazz.convertRefFieldsToDBModel({}), {
+      message: 'ref field clz.field (missing ref) points to unknown class missing',
+    })
+    assert.deepStrictEqual(clazz.fields, [])
+    assert.deepStrictEqual(clazz.refFields, [])
+  })
+
   test('xapi2DbRefField can transform a direct ref field', function () {
     const clazz = { name: 'clz', fields: { uuid: { name: 'uuid', type: 'string' } } }
     const xdClazz = new XapiDBClass(clazz, 'schema')
@@ -178,6 +206,38 @@ suite('simple tests', function () {
       isSeparateTable: true, //   tableName: 'clz_field',
       sequelizeDef: null,
     })
+  })
+
+  test('xapi2DbRefField rejects Map key and value ref field', function () {
+    const clazz = new XapiDBClass({ name: 'clz', fields: {} }, 'schema')
+    assert.throws(() => xapi2DbRefField(clazz, 'field', '(keyCls ref -> valueCls ref) map', 'desc', {}), {
+      message: 'isStorableRef was true but no supported set or map type found for (keyCls ref -> valueCls ref) map',
+    })
+  })
+
+  test('reference map db2Xapi handles nullish values and filters unresolved keys', function () {
+    const clazz = new XapiDBClass({ name: 'clz', fields: {} }, 'schema')
+    const field = xapi2DbRefField(clazz, 'field', '(cls ref -> string) map', 'desc', {})
+    const refConverter = ref => (ref === 'missing' ? null : `converted:${ref}`)
+
+    assert.deepStrictEqual(field.db2Xapi(null, refConverter), {})
+    assert.deepStrictEqual(field.db2Xapi(undefined, refConverter), {})
+    assert.deepStrictEqual(field.db2Xapi({}, refConverter), {})
+    assert.deepStrictEqual(field.db2Xapi({ valid: 'value', missing: 'ignored' }, refConverter), {
+      'converted:valid': 'value',
+    })
+  })
+
+  test('reference map db2Xapi converts reference values', function () {
+    const clazz = new XapiDBClass({ name: 'clz', fields: {} }, 'schema')
+    const field = xapi2DbRefField(clazz, 'field', '(string -> cls ref) map', 'desc', {})
+
+    assert.deepStrictEqual(
+      field.db2Xapi({ key: 'ref', '': 'ignored' }, ref => `converted:${ref}`),
+      {
+        key: 'converted:ref',
+      }
+    )
   })
 
   test('xapi2DbRefField can transform Map value ref field', function () {

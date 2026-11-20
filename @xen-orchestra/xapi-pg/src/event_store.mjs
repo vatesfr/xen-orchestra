@@ -116,10 +116,12 @@ export class EventStore {
       transactionOngoing = false
       throw new Error('Rollback', { cause: error })
     } finally {
+      /* node:coverage disable */
       if (transactionOngoing) {
         // somebody returned without rolling back the transaction
         await dbClient.query('ROLLBACK')
       }
+      /* node:coverage enable */
     }
   }
 

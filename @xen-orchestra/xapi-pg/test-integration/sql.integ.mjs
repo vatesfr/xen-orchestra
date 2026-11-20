@@ -64,6 +64,23 @@ suite('sql.mjs integration tests', async function () {
       assert.deepStrictEqual(schemas, schemas2)
     })
 
+    test('force drops and recreates existing schemas', async function () {
+      const prefixes = { tableSchema: 't', viewSchema: 'v' }
+      const schemas = await ensureSchemasExistsWithoutConflict(dbClient, 'pool1', prefixes)
+      await dbClient.query(`CREATE TABLE ${escapeIdentifier(schemas.tableSchema)}.existing_table (id integer)`)
+
+      const recreated = await ensureSchemasExistsWithoutConflict(dbClient, 'pool1', prefixes, true)
+      assert.deepStrictEqual(recreated, schemas)
+      for (const schema of Object.values(recreated)) {
+        await assertSchemaExists(schema)
+      }
+      const result = await dbClient.query(
+        'SELECT 1 FROM information_schema.tables WHERE table_schema = $1 AND table_name = $2',
+        [recreated.tableSchema, 'existing_table']
+      )
+      assert.strictEqual(result.rows.length, 0)
+    })
+
     test('does not fail when schema of the same name conflicts', async function () {
       const prefixes = {
         tableSchema: 't',

@@ -22,5 +22,6 @@ Set; or the entry not added to the Map.
 ## Testing
 
 ```sh
+yarn workspace @xen-orchestra/xapi-pg run test-all
 node packages/xen-api/cli.mjs  http://10.1.0.11 --pg-saver-url='postgresql://localhost:5432/postgres' root
 ```

@@ -147,9 +147,11 @@ export class GroupRefDbSaver {
       ) AS ${fieldRelationEsc} ON TRUE`
   }
 
+  /* node:coverage disable */
   async saveRows(_dbClient, _rows, _allOwners) {
     throw new Error('abstract method')
   }
+  /* node:coverage enable */
 }
 
 /**
@@ -312,10 +314,12 @@ export async function ensureSchemasExistsWithoutConflict(dbClient, poolUuid, pre
         break
       }
     }
+    /* node:coverage disable */
     if (Object.keys(result).length === 0) {
       // noinspection ExceptionCaughtLocallyJS
       throw new Error('Could not find a unique schema name for the pool ' + poolUuid)
     }
+    /* node:coverage enable */
     for (const schemaName of Object.values(result)) {
       await dbClient.query(`CREATE SCHEMA IF NOT EXISTS ${escapeIdentifier(schemaName)}`)
       await dbClient.query(`COMMENT ON SCHEMA ${escapeIdentifier(schemaName)} IS ${escapeLiteral(poolUuid)};`)

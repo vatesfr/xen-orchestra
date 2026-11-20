@@ -228,6 +228,62 @@ suite('EventStore tests', function () {
     assert.strictEqual(history[0].last_operation, 'del')
   })
 
+  test('ingestEvents ignores deletion events for unknown references', async function () {
+    await eventStore.ingestEvents(
+      dbClient,
+      {
+        token: 'token1',
+        events: [
+          {
+            id: '1',
+            class: 'VM',
+            ref: 'OpaqueRef:vm1',
+            operation: 'add',
+            snapshot: { uuid: 'uuid-vm1', name_label: 'VM1' },
+          },
+        ],
+        valid_ref_counts: { VM: 1 },
+      },
+      'session1'
+    )
+
+    await eventStore.ingestEvents(
+      dbClient,
+      {
+        token: 'token2',
+        events: [
+          { id: '2', class: 'VM', ref: 'OpaqueRef:missing', operation: 'del' },
+          { id: '3', class: 'VM', ref: 'OpaqueRef:vm1', operation: 'del' },
+          {
+            id: '4',
+            class: 'VM',
+            ref: 'OpaqueRef:vm2',
+            operation: 'add',
+            snapshot: { uuid: 'uuid-vm2', name_label: 'VM2' },
+          },
+        ],
+        valid_ref_counts: { VM: 1 },
+      },
+      'session1'
+    )
+
+    const records = (await dbClient.query(`SELECT uuid FROM ${xapiDbClasses.VM.getTableNameEsc()}`)).rows
+    assert.deepStrictEqual(
+      records.map(record => record.uuid),
+      ['uuid-vm2']
+    )
+
+    const history = (await dbClient.query(`SELECT uuid, last_operation FROM ${historyTableName} WHERE class = 'VM'`))
+      .rows
+    assert.deepStrictEqual(
+      history.sort((a, b) => a.uuid.localeCompare(b.uuid)),
+      [
+        { uuid: 'uuid-vm1', last_operation: 'del' },
+        { uuid: 'uuid-vm2', last_operation: 'add' },
+      ]
+    )
+  })
+
   test('eventsFrom can retrieve events', async function () {
     await eventStore.ingestEvents(
       dbClient,

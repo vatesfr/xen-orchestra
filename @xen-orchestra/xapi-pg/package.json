@@ -20,10 +20,10 @@
     "@electric-sql/pglite": "^0.4.4",
     "@electric-sql/pglite-socket": "^0.1.4"
   },
+  "//": "--experimental-test-isolation=none is necessary because of the bug https://github.com/nodejs/node/issues/66860 , it causes the coverage to overestimate",
   "scripts": {
-    "test": "node --test --experimental-test-coverage  test/*.test.mjs",
+    "test": "node --experimental-test-isolation=none --test --experimental-test-coverage  test/*.test.mjs",
     "test-integration": "node --test test-integration/*.integ.mjs",
-    "test-all": "node --test --experimental-test-coverage test/*.test.mjs test-integration/*.integ.mjs",
-    "lcov": "node ./run_coverage.mjs"
+    "test-all": "node --experimental-test-isolation=none --test --experimental-test-coverage --test-coverage-include=src/*.mjs test/*.test.mjs test-integration/*.integ.mjs"
   }
 }

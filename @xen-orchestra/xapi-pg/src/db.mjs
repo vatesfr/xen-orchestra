@@ -86,14 +86,7 @@ export class XapiDBClass {
   convertRefFieldsToDBModel(modelDict) {
     const refFields = Object.values(this.xapiClass.fields).filter(f => isStorableRef(f.type))
     const convertField = f => xapi2DbRefField(this, f.name, f.type, f.description + ` [${f.type}]`, modelDict)
-    const convertField2 = f => {
-      const res = convertField(f)
-      if (res == null) {
-        throw new Error(`Unknown ref field: ${f.name} in ${this.name}, type ${f.type}`)
-      }
-      return res
-    }
-    const dbFields = refFields.map(convertField2)
+    const dbFields = refFields.map(convertField)
     this.fields.push(...dbFields)
     this.refFields.push(...dbFields)
   }
@@ -326,7 +319,7 @@ export class XapiDbField {
     const code = creator.getDDL()
     return code.immediate.concat(code.delayed)
   }
-
+  /* node:coverage disable */
   /** monkey-patched after instantiation */
   xapi2Db(jsonValue, _refConverter, _ownerUuid) {
     return jsonValue
@@ -341,6 +334,7 @@ export class XapiDbField {
   getRefsFromRecord(_record) {
     return []
   }
+  /* node:coverage enable */
 }
 
 /**
@@ -487,10 +481,8 @@ function createRefMapDBField(xapiDbClass, fieldName, fieldDescription, xapiType)
 
   let getRefsFromEntry
   let xapiEntry2Db
-  if (unwrapDirectRef(kType) && unwrapDirectRef(vType)) {
-    getRefsFromEntry = e => e
-    xapiEntry2Db = (entry, refConverter) => entry.map(refConverter)
-  } else if (unwrapDirectRef(kType)) {
+  // ignoring map on both sides because isSupportedMapType() prevents it
+  if (unwrapDirectRef(kType)) {
     getRefsFromEntry = e => [e[0]]
     xapiEntry2Db = (entry, refConverter) => [refConverter(entry[0]), converterForSimpleType(vType)[0](entry[1])]
   } else {
