@@ -1,10 +1,10 @@
 import FormSelect from '@/shared/components/form/FormSelect.vue'
 import { findInputLabels } from '@/test/find-input-labels.ts'
-import { findInputMessages } from '@/test/find-input-messages.ts'
 import { dangerMessage } from '@/test/form-messages.ts'
 import { mountWithSelect } from '@/test/mount-with-select.ts'
 import type { InputWrapperMessage } from '@core/components/input-wrapper/VtsInputWrapper.vue'
 import { useFormSelect } from '@core/packages/form-select'
+import { findInfoLabels } from '@core-test/find-accented-labels.ts'
 import { h } from 'vue'
 
 const WARNING = { content: 'Slow storage', accent: 'warning' } as const
@@ -22,11 +22,11 @@ it('renders its label', () => {
 })
 
 it('shows no message without error nor warning', () => {
-  expect(findInputMessages(mountSelect())).toEqual([])
+  expect(findInfoLabels(mountSelect())).toEqual([])
 })
 
 it('shows its error and its warning', () => {
   const wrapper = mountSelect({ error: dangerMessage('Storage is required.'), warning: WARNING })
 
-  expect(findInputMessages(wrapper).sort()).toEqual(['Slow storage', 'Storage is required.'])
+  expect(findInfoLabels(wrapper).sort()).toEqual(['Slow storage', 'Storage is required.'])
 })

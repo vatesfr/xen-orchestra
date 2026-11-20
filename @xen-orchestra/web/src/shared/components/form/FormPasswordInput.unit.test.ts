@@ -1,10 +1,10 @@
 import FormPasswordInput from '@/shared/components/form/FormPasswordInput.vue'
 import { findInputLabels } from '@/test/find-input-labels.ts'
-import { findInputMessages } from '@/test/find-input-messages.ts'
 import { invalidCredentialsMessage } from '@/test/form-messages.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import UiInput from '@core/components/ui/input/UiInput.vue'
 import { blurField, setFieldValue } from '@core-test/field-events.ts'
+import { findInfoLabels } from '@core-test/find-accented-labels.ts'
 import { readForwardedFlag } from '@core-test/read-forwarded-flag.ts'
 import { mount } from '@vue/test-utils'
 
@@ -34,11 +34,11 @@ it('keeps the password untrimmed', async () => {
 })
 
 it('shows no message without error', () => {
-  expect(findInputMessages(mountPasswordInput())).toEqual([])
+  expect(findInfoLabels(mountPasswordInput())).toEqual([])
 })
 
 it('shows its error', () => {
-  expect(findInputMessages(mountPasswordInput({ error: invalidCredentialsMessage() }))).toEqual([
+  expect(findInfoLabels(mountPasswordInput({ error: invalidCredentialsMessage() }))).toEqual([
     invalidCredentialsMessage().content,
   ])
 })
