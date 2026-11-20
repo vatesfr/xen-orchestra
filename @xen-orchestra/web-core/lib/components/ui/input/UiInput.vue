@@ -108,9 +108,9 @@ const inputRef = ref<HTMLInputElement>()
 
 const { wrapperController, accent } = useInputWrapperController({
   accent: () => rawAccent,
+  accents: ['neutral', 'success', 'warning', 'danger'],
   required: () => required,
   detached,
-  successAccent: 'success',
 })
 
 const isClearButtonVisible = computed(() => clearable && !disabled && !readonly && Boolean(modelValue.value))

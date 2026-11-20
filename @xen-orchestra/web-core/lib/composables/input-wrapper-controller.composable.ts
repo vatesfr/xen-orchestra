@@ -1,31 +1,25 @@
-import type { InputWrapperAccent } from '@core/components/input-wrapper/VtsInputWrapper.vue'
-import { useMapper } from '@core/packages/mapper/use-mapper.ts'
 import { IK_INPUT_WRAPPER_CONTROLLER } from '@core/utils/injection-keys.util.ts'
-import { inject, type MaybeRefOrGetter, toValue, watchEffect } from 'vue'
+import { computed, inject, type MaybeRefOrGetter, toValue, watchEffect } from 'vue'
 
 export function useInputWrapperController<TAccent extends string>({
   accent,
+  accents,
   required,
   detached,
-  successAccent,
 }: {
   accent: MaybeRefOrGetter<TAccent>
+  accents: readonly NoInfer<TAccent>[]
   required: MaybeRefOrGetter<boolean>
   detached?: boolean
-  successAccent?: TAccent
 }) {
   const wrapperController = detached ? undefined : inject(IK_INPUT_WRAPPER_CONTROLLER, undefined)
 
-  const wrapperAccent = useMapper<InputWrapperAccent, TAccent | 'warning' | 'danger'>(
-    () => wrapperController?.accent,
-    () => ({
-      neutral: toValue(accent),
-      success: successAccent ?? toValue(accent),
-      warning: 'warning',
-      danger: 'danger',
-    }),
-    'neutral'
-  )
+  // A neutral wrapper has no message to show: the input keeps its own accent
+  const resolvedAccent = computed(() => {
+    const wrapperAccent = wrapperController?.accent === 'neutral' ? undefined : wrapperController?.accent
+
+    return accents.find(supportedAccent => supportedAccent === wrapperAccent) ?? toValue(accent)
+  })
 
   if (wrapperController) {
     watchEffect(() => {
@@ -33,5 +27,5 @@ export function useInputWrapperController<TAccent extends string>({
     })
   }
 
-  return { wrapperController, accent: wrapperAccent }
+  return { wrapperController, accent: resolvedAccent }
 }
