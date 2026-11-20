@@ -59,7 +59,8 @@ export function useFormSelectController(select: FormSelect) {
       shift(),
       flip(),
       size({
-        apply: ({ availableHeight, elements }) => {
+        apply: ({ availableHeight, availableWidth, elements }) => {
+          elements.floating.style.maxWidth = `${availableWidth}px`
           elements.floating.style.maxHeight = `${Math.min(500, availableHeight)}px`
         },
       }),
