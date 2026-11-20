@@ -4,6 +4,8 @@ import { dangerMessage } from '@/test/form-messages.ts'
 import { getCheckbox } from '@/test/get-checkbox.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import UiCheckbox from '@core/components/ui/checkbox/UiCheckbox.vue'
+import { setFieldValue } from '@core-test/field-events.ts'
+import { readForwardedFlag } from '@core-test/read-forwarded-flag.ts'
 import { mount } from '@vue/test-utils'
 
 type CheckboxProps = InstanceType<typeof FormCheckbox>['$props']
@@ -40,11 +42,7 @@ it('leaves its checkbox indeterminate when its model is undefined, as for a valu
 })
 
 it('emits the new value when toggled', async () => {
-  const wrapper = mountCheckbox()
-
-  await wrapper.get('input').setValue(true)
-
-  expect(wrapper.emitted('update:modelValue')).toEqual([[true]])
+  expect(await setFieldValue(mountCheckbox(), 'input', true)).toEqual([[true]])
 })
 
 it('ignores the validation bindings it receives with its field bindings', () => {
@@ -89,6 +87,5 @@ it('shows its info before its warnings', () => {
 })
 
 it('disables its checkbox when it is disabled', () => {
-  expect(mountCheckbox({ disabled: true }).getComponent(UiCheckbox).props('disabled')).toBe(true)
-  expect(mountCheckbox().getComponent(UiCheckbox).props('disabled')).toBe(false)
+  expect(readForwardedFlag(mountCheckbox, UiCheckbox, 'disabled')).toEqual([true, false])
 })

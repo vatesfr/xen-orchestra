@@ -4,6 +4,8 @@ import { findInputMessages } from '@/test/find-input-messages.ts'
 import { invalidCredentialsMessage } from '@/test/form-messages.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import UiInput from '@core/components/ui/input/UiInput.vue'
+import { blurField, setFieldValue } from '@core-test/field-events.ts'
+import { readForwardedFlag } from '@core-test/read-forwarded-flag.ts'
 import { mount } from '@vue/test-utils'
 
 type PasswordInputProps = InstanceType<typeof FormPasswordInput>['$props']
@@ -24,16 +26,11 @@ it('hides the typed password', () => {
 })
 
 it('marks the input as required when asked to', () => {
-  expect(mountPasswordInput({ required: true }).getComponent(UiInput).props('required')).toBe(true)
-  expect(mountPasswordInput().getComponent(UiInput).props('required')).toBe(false)
+  expect(readForwardedFlag(mountPasswordInput, UiInput, 'required')).toEqual([true, false])
 })
 
 it('keeps the password untrimmed', async () => {
-  const wrapper = mountPasswordInput()
-
-  await wrapper.get('input').setValue(' secret ')
-
-  expect(wrapper.emitted('update:modelValue')).toEqual([[' secret ']])
+  expect(await setFieldValue(mountPasswordInput(), 'input', ' secret ')).toEqual([[' secret ']])
 })
 
 it('shows no message without error', () => {
@@ -47,9 +44,5 @@ it('shows its error', () => {
 })
 
 it('emits blur when the input loses focus', async () => {
-  const wrapper = mountPasswordInput()
-
-  await wrapper.get('input').trigger('blur')
-
-  expect(wrapper.emitted('blur')).toHaveLength(1)
+  expect(await blurField(mountPasswordInput(), 'input')).toHaveLength(1)
 })

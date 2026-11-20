@@ -4,6 +4,8 @@ import { findInputMessages } from '@/test/find-input-messages.ts'
 import { dangerMessage } from '@/test/form-messages.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import UiInput from '@core/components/ui/input/UiInput.vue'
+import { blurField, setFieldValue } from '@core-test/field-events.ts'
+import { readForwardedFlag } from '@core-test/read-forwarded-flag.ts'
 import { mount } from '@vue/test-utils'
 
 type TextInputProps = InstanceType<typeof FormTextInput>['$props']
@@ -19,9 +21,8 @@ it('renders its label', () => {
   expect(findInputLabels(mountTextInput())).toEqual(['Host'])
 })
 
-it('marks the input as required when asked to', () => {
-  expect(mountTextInput({ required: true }).getComponent(UiInput).props('required')).toBe(true)
-  expect(mountTextInput().getComponent(UiInput).props('required')).toBe(false)
+it.each(['required', 'disabled'] as const)('forwards %s to the input when asked to', flag => {
+  expect(readForwardedFlag(mountTextInput, UiInput, flag)).toEqual([true, false])
 })
 
 it('shows its placeholder', () => {
@@ -49,28 +50,15 @@ it('shows both its information and its error', () => {
 })
 
 it('trims the typed value', async () => {
-  const wrapper = mountTextInput()
-
-  await wrapper.get('input').setValue('  vcenter.lab  ')
-
-  expect(wrapper.emitted('update:modelValue')).toEqual([['vcenter.lab']])
+  expect(await setFieldValue(mountTextInput(), 'input', '  vcenter.lab  ')).toEqual([['vcenter.lab']])
 })
 
 it('emits blur when the input loses focus', async () => {
-  const wrapper = mountTextInput()
-
-  await wrapper.get('input').trigger('blur')
-
-  expect(wrapper.emitted('blur')).toHaveLength(1)
+  expect(await blurField(mountTextInput(), 'input')).toHaveLength(1)
 })
 
 it('shows the prefix ahead of the value', () => {
   expect(mountTextInput({ prefix: '\\\\' }).get('.prefix').text()).toBe('\\\\')
-})
-
-it('disables the input when it is disabled', () => {
-  expect(mountTextInput({ disabled: true }).getComponent(UiInput).props('disabled')).toBe(true)
-  expect(mountTextInput().getComponent(UiInput).props('disabled')).toBe(false)
 })
 
 it('uses the input type it is given', () => {
