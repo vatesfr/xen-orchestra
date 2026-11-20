@@ -8,7 +8,7 @@ export const PANEL_TRANSITION_DURATION = 250
 
 export const usePanelStore = defineStore('panel', () => {
   const uiStore = useUiStore()
-  const isExpanded = useLocalStorage('panel.expanded', true)
+  const isExpanded = useLocalStorage('panel.expanded', true, { listenToStorageChanges: false })
   const isLocked = useLocalStorage('panel.locked', true)
 
   const resizableWidth = useResizableWidth('right', 'panel.custom-width')
@@ -39,18 +39,14 @@ export const usePanelStore = defineStore('panel', () => {
   }
 
   function toggleLock() {
-    const next = !isLocked.value
-    isLocked.value = next
-    if (next && !uiStore.isSmall && !isExpanded.value) {
-      expand()
-    }
+    isLocked.value = !isLocked.value
   }
 
   watch(
-    () => uiStore.isSmall,
-    isSmall => {
-      /* Expand when coming back from small to large UI, if locked and not expanded */
-      if (!isSmall && isLocked.value && !isExpanded.value) {
+    [() => uiStore.isSmall, isLocked],
+    ([isSmall, isLocked]) => {
+      /* Expand when locked on large UI (also when locked from another tab), if not expanded */
+      if (!isSmall && isLocked && !isExpanded.value) {
         expand()
       }
     },
