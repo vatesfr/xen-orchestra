@@ -54,6 +54,15 @@ function formatDatetime(date) {
   })} (Paris)`
 }
 
+function getCount(output, label) {
+  const match = output.match(new RegExp(`ℹ ${label} (\\d+)`))
+  if (match === null) {
+    return '?'
+  } else {
+    return match[1]
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Test runner — streams output to the terminal AND buffers it for the mail body
 // ---------------------------------------------------------------------------
@@ -141,7 +150,9 @@ const { success, output, logFilePath } = await runTests()
 
 const emoji = success ? '✅' : '❌'
 const status = success ? 'success' : 'failure'
-const subject = `${emoji} ${status} test run ${formatDatetime(startedAt)} on ${branch}@${commitHash}`
+const successTests = getCount(output, 'pass')
+const totalTests = getCount(output, 'tests')
+const subject = `${emoji} ${status} ${successTests}/${totalTests} passed ${formatDatetime(startedAt)} on ${branch}@${commitHash}`
 
 // Attach the full structured debug log if we found its path
 const attachments = []
