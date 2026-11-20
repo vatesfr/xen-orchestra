@@ -6,9 +6,11 @@ import {
   mountComposableUnderNewVmForm,
   NEW_VM_AUTOMATIC_NETWORK,
   NEW_VM_DISK_TEMPLATE,
+  NEW_VM_DISKLESS_TEMPLATE,
   NEW_VM_HOST,
   NEW_VM_ISO,
   NEW_VM_ISO_SR_NAME,
+  NEW_VM_NETWORK,
   NEW_VM_TEMPLATE_VDI,
   NEW_VM_TEMPLATE_VIF,
   resetNewVmCollections,
@@ -269,6 +271,28 @@ describe('vifs', () => {
       marker: 'added',
     })
   })
+
+  it('lists the default interface of a template without one, without marker', async () => {
+    const { form, review } = await mountReview(NEW_VM_DISKLESS_TEMPLATE)
+
+    expect(review.vifs).toEqual([
+      {
+        key: form.vmState.vifs[0].key,
+        rank: 1,
+        network: 'Automatic network',
+        mac: review.t('auto-generated'),
+        marker: undefined,
+      },
+    ])
+  })
+
+  it('marks a default interface moved to another network as overridden', async () => {
+    const { form, review } = await mountReview(NEW_VM_DISKLESS_TEMPLATE)
+
+    form.vmState.vifs[0].network = NEW_VM_NETWORK.id
+
+    expect(review.vifs[0]).toMatchObject({ network: 'Template network', marker: 'overridden' })
+  })
 })
 
 describe('deletedVifsCount', () => {
@@ -276,6 +300,14 @@ describe('deletedVifsCount', () => {
     const { form, review } = await mountReview()
 
     form.removeVif(NEW_VM_TEMPLATE_VIF.id)
+
+    expect(review.deletedVifsCount).toBe(1)
+  })
+
+  it('counts the default interfaces the user removed', async () => {
+    const { form, review } = await mountReview(NEW_VM_DISKLESS_TEMPLATE)
+
+    form.removeVif(form.vmState.vifs[0].key)
 
     expect(review.deletedVifsCount).toBe(1)
   })

@@ -482,7 +482,6 @@ it('checks the network interfaces no more once another template is chosen', asyn
   await form.validateStep('configuration')
 
   await chooseNewVmTemplate(form, NEW_VM_DISKLESS_TEMPLATE)
-  form.addVif()
   form.vmState.vifs[0].mac = 'not-a-mac'
   await nextTick()
 

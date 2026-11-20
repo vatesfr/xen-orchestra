@@ -1,4 +1,7 @@
-import { useXoNetworkCollection } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
+import {
+  type FrontXoNetwork,
+  useXoNetworkCollection,
+} from '@/modules/network/remote-resources/use-xo-network-collection.ts'
 import { useXoVbdCollection } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
 import { type FrontXoVdi, useXoVdiCollection } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
 import {
@@ -8,7 +11,7 @@ import {
 import { useXoVifCollection } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
 import type { FrontXoVmTemplate } from '@/modules/vm/remote-resources/use-xo-vm-template-collection.ts'
 import type { Vdi, Vif } from '@/modules/vm/types/new-xo-vm.type.ts'
-import { bytesToGiB, generateRandomString } from '@/modules/vm/utils/new-vm.util.ts'
+import { bytesToGiB, createNewVif, generateRandomString } from '@/modules/vm/utils/new-vm.util.ts'
 import type { XoSr } from '@vates/types'
 import { uniqueId } from 'lodash-es'
 
@@ -92,9 +95,18 @@ export function useNewVmTemplateDevices() {
     })
   }
 
+  function getTemplateNewVifs(template: FrontXoVmTemplate, defaultNetworks: FrontXoNetwork[]): Vif[] {
+    if (template.VIFs.length > 0) {
+      return []
+    }
+
+    return defaultNetworks.map(network => createNewVif(network.id))
+  }
+
   return {
     getTemplateNewVdis,
     getTemplateExistingVdis,
     getTemplateExistingVifs,
+    getTemplateNewVifs,
   }
 }
