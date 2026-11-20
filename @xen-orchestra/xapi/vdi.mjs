@@ -294,7 +294,8 @@ class Vdi {
       try {
         await this.callAsync('VDI.resize_online', vdiRef, size)
       } catch (resizeOnlineError) {
-        if (resizeOnlineError.code === 'MESSAGE_METHOD_UNKNOWN') {
+        // XCP-ng 8.3 still declares the method but marks it as removed
+        if (resizeOnlineError.code === 'MESSAGE_METHOD_UNKNOWN' || resizeOnlineError.code === 'MESSAGE_REMOVED') {
           throw resizeError
         }
         throw resizeOnlineError
