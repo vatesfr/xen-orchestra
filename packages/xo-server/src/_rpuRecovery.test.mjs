@@ -1004,6 +1004,30 @@ describe('isRpuHostAwaitingReboot()', () => {
     )
     assert.equal(isRpuHostAwaitingReboot({}, 'h1'), false)
   })
+
+  describe('with the live boot time of the host', () => {
+    const finishedAt = '2026-11-20T10:00:00.000Z'
+    const updateEndedAt = Date.parse(finishedAt) / 1e3
+    const awaitingAt = (update, bootTime) =>
+      isRpuHostAwaitingReboot(
+        { hosts: { h1: { steps: { update, reboot: { status: 'running' } } } } },
+        'h1',
+        bootTime === undefined ? undefined : String(bootTime)
+      )
+    it('is false for a host which booted after its update ended', () => {
+      assert.equal(awaitingAt({ status: 'observed-succeeded', finishedAt }, updateEndedAt + 60), false)
+    })
+    it('is true for a host which did not boot since its update ended', () => {
+      assert.equal(awaitingAt({ status: 'observed-succeeded', finishedAt }, updateEndedAt - 3600), true)
+    })
+    it('is true for a host which booted during an update which did not end: it may have part of the patches', () => {
+      assert.equal(awaitingAt({ status: 'failed', finishedAt }, updateEndedAt + 60), true)
+      assert.equal(awaitingAt({ status: 'running' }, updateEndedAt + 60), true)
+    })
+    it('is true when the boot time is unknown', () => {
+      assert.equal(awaitingAt({ status: 'observed-succeeded', finishedAt }, undefined), true)
+    })
+  })
 })
 
 describe('planRpuResume()', () => {

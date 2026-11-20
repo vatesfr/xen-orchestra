@@ -493,7 +493,8 @@ const methods = {
    * as it was and does not prevent the next restorations. Never throws.
    *
    * A host the run updated without seeing it reboot is left disabled, without
-   * its VMs: it stays listed, only a resume finishes it.
+   * its VMs: it stays listed, only a resume finishes it. A host which could not
+   * be enabled is left without its VMs too.
    *
    * @param {object} params
    * @param {object} params.record - Recovery record of the run
@@ -506,8 +507,10 @@ const methods = {
     const attempt = async (restoration, fn) => {
       try {
         await fn()
+        return true
       } catch (error) {
         log.warn('failed to restore what a rolling pool update left changed', { error, restoration })
+        return false
       }
     }
 
@@ -515,7 +518,9 @@ const methods = {
     // service, nothing would tell it still has to reboot. A resume finishes it.
     // Every host of the run: one an operator disabled before it is not listed
     const hostIdsAwaitingReboot = new Set(
-      Object.keys(record.hosts ?? {}).filter(hostId => isRpuHostAwaitingReboot(record, hostId))
+      Object.keys(record.hosts ?? {}).filter(hostId =>
+        isRpuHostAwaitingReboot(record, hostId, this.getObject(hostId, undefined)?.other_config?.boot_time)
+      )
     )
     if (hostIdsAwaitingReboot.size > 0) {
       log.warn('hosts updated but not rebooted by the rolling pool update are left disabled', {
@@ -525,24 +530,29 @@ const methods = {
 
     // first: a VM only comes back to an enabled host. At once: a host still
     // booting is waited for
+    // a host which could not be enabled keeps its VMs away, as one awaiting a reboot
+    const hostIdsLeftOut = new Set(hostIdsAwaitingReboot)
     await Promise.all(
       idsOf('host')
         .filter(hostId => !hostIdsAwaitingReboot.has(hostId))
-        .map(hostId =>
-          attempt(`enable host ${hostId}`, () =>
+        .map(async hostId => {
+          const enabled = await attempt(`enable host ${hostId}`, () =>
             Task.run(
               { properties: { name: 'Enabling host', hostId, hostName: this.getObject(hostId).name_label } },
               () => this._enableHostOnceBooted(hostId)
             )
           )
-        )
+          if (!enabled) {
+            hostIdsLeftOut.add(hostId)
+          }
+        })
     )
 
     const haltedPinnedVms = new Map() // VM ref -> host ref
     for (const vmId of idsOf('haltedPinnedVm')) {
       const vm = this.getObject(vmId, undefined)
       const hostId = record.haltedPinnedVms[vmId]
-      const host = hostIdsAwaitingReboot.has(hostId) ? undefined : this.getObject(hostId, undefined)
+      const host = hostIdsLeftOut.has(hostId) ? undefined : this.getObject(hostId, undefined)
       if (vm !== undefined && host !== undefined) {
         haltedPinnedVms.set(vm.$ref, host.$ref)
       }
@@ -555,7 +565,7 @@ const methods = {
       const vmIdsByHost = {}
       for (const [vmId, hostId] of Object.entries(record.vmHomeById)) {
         // a pinned VM which did not start is not a VM an operator stopped
-        if (!hostIdsAwaitingReboot.has(hostId) && !haltedPinnedVms.has(this.getObject(vmId, undefined)?.$ref)) {
+        if (!hostIdsLeftOut.has(hostId) && !haltedPinnedVms.has(this.getObject(vmId, undefined)?.$ref)) {
           ;(vmIdsByHost[hostId] ??= []).push(vmId)
         }
       }

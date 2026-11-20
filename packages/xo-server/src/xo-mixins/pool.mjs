@@ -192,8 +192,10 @@ export default class Pools {
    * What the run left unrestored is first restored, best effort (see
    * `restoreRpuLeftovers`): hosts enabled, pinned VMs started, VMs migrated
    * back to their home host, settings enabled again. The record is deleted
-   * once nothing is left. Otherwise it is kept, without what was restored, and
-   * the finalization is refused with what is left.
+   * once nothing is left but VMs away from their home host: they do not block,
+   * they may have been moved on purpose and the next run takes the current
+   * placement as their home. Otherwise it is kept, without what was restored,
+   * and the finalization is refused with what is left.
    *
    * With `force`, nothing is restored nor changed in the pool: the items are
    * abandoned, listed in the task and the trace, and the record is deleted.
@@ -205,11 +207,11 @@ export default class Pools {
    * @returns {Promise<void>}
    * @throws {Error} `noSuchObject` if the pool has no record
    * @throws {Error} `forbiddenOperation` if a rolling pool update or reboot is running on the pool, or if a backup
-   *   runs or may run on it while something is left to restore and `force` is not set
+   *   runs or may run on it while VMs are left to migrate back and `force` is not set
    * @throws {Error} `incorrectState` (property `status`) if the record belongs to a live run
    * @throws {Error} `incorrectState` (property `unrestoredItems`, `actual` the items, `null` when the record cannot
-   *   be read, the ones the cleanup started with when the pool disconnected during it) if something could not be
-   *   restored and `force` is not set
+   *   be read, the ones the cleanup started with when the pool disconnected during it) if something other than a VM
+   *   away from its home host could not be restored and `force` is not set
    */
   async finalizeRollingUpdate(pool, { force = false, parentTask } = {}) {
     const { _app } = this
@@ -236,8 +238,8 @@ export default class Pools {
       if (unrestoredItems === null && !force) {
         refuse(unrestoredItems)
       }
-      // the cleanup migrates VMs
-      if (!force && unrestoredItems.length > 0) {
+      // only the migration of the VMs back can conflict with a backup
+      if (!force && unrestoredItems.some(item => item.type === 'vm')) {
         await _app.backupGuard(poolId, { operation: 'finalizeRollingUpdate' })
       }
 
@@ -282,8 +284,19 @@ export default class Pools {
               // what is left is read from the cache of the XAPI objects
               await xapi.barrier()
               const itemsLeft = await this._listUnrestoredRpuItems(pool, record)
+              // a VM away from its home host does not block: it may have been
+              // moved on purpose, and the next run takes the current placement
+              // as its home
+              const blockingItems = itemsLeft.filter(item => item.type !== 'vm')
+              if (blockingItems.length > 0) {
+                refuse(blockingItems)
+              }
               if (itemsLeft.length > 0) {
-                refuse(itemsLeft)
+                log.warn(`rolling pool update of pool ${poolId} finalized with VMs away from their home host`, {
+                  poolId,
+                  runId,
+                  vms: itemsLeft,
+                })
               }
             }
           }

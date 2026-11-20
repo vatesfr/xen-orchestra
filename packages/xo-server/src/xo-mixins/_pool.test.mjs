@@ -135,6 +135,17 @@ const dirtyItems = [
   { type: 'ha', id: 'pool-1' },
   { type: 'host', id: 'h1', name: 'host 1' },
 ]
+// with vm1 away from its home host h1
+const makeDirtyRecordWithVm = () => ({ ...makeDirtyRecord(), vmHomeById: { vm1: 'h1' } })
+const withVmOnH2 = getXapi => () => {
+  const xapi = getXapi()
+  const { getObjectByUuid } = xapi
+  return {
+    ...xapi,
+    getObjectByUuid: id =>
+      id === 'vm1' ? { name_label: 'vm 1', power_state: 'Running', $resident_on: { $id: 'h2' } } : getObjectByUuid(id),
+  }
+}
 
 describe('Pools.finalizeRollingUpdate', function () {
   it('is refused while a rolling pool update or reboot runs on the pool', async function () {
@@ -178,19 +189,27 @@ describe('Pools.finalizeRollingUpdate', function () {
     assert.equal(store.values.has('pool-1'), false)
     assert.deepEqual(
       app.calls.map(([name]) => name),
-      ['backupGuard', 'tasks.create', 'restoreRpuLeftovers']
+      ['tasks.create', 'restoreRpuLeftovers']
     )
-    assert.deepEqual(app.calls[0], ['backupGuard', 'pool-1', { operation: 'finalizeRollingUpdate' }])
-    assert.deepEqual(app.calls[2], ['restoreRpuLeftovers', 'pool-1', dirtyItems])
+    assert.deepEqual(app.calls[1], ['restoreRpuLeftovers', 'pool-1', dirtyItems])
+  })
+
+  it('goes through the backup guard only when VMs are left to migrate back', async function () {
+    const { app, pools, store } = createPools({ backupRunning: true, record: makeDirtyRecord() })
+    // nothing to migrate: a running backup does not matter
+    await assert.rejects(pools.finalizeRollingUpdate(pool), error => incorrectState.is(error))
+    assert.equal(
+      app.calls.some(([name]) => name === 'backupGuard'),
+      false
+    )
+    assert.equal(store.values.has('pool-1'), true)
   })
 
   it('is refused by the backup guard before anything is restored, not with force', async function () {
-    const { app, pools, store } = createPools({ backupRunning: true, record: makeDirtyRecord() })
+    const { app, pools, store } = createPools({ backupRunning: true, record: makeDirtyRecordWithVm() })
+    app.getXapi = withVmOnH2(app.getXapi)
     await assert.rejects(pools.finalizeRollingUpdate(pool), forbiddenOperation.is)
-    assert.deepEqual(
-      app.calls.map(([name]) => name),
-      ['backupGuard']
-    )
+    assert.deepEqual(app.calls, [['backupGuard', 'pool-1', { operation: 'finalizeRollingUpdate' }]])
     assert.equal(store.values.has('pool-1'), true)
 
     await pools.finalizeRollingUpdate(pool, { force: true })
@@ -307,29 +326,34 @@ describe('Pools.finalizeRollingUpdate', function () {
     assert.equal(store.values.has('pool-1'), false)
   })
 
-  it('is refused for a VM the cleanup could not bring back to its home host, closed once it is back', async function () {
+  it('tries to bring a VM back to its home host, and is not refused when it cannot', async function () {
     const { app, pools, store } = createPools({ record: makeRecord({ vmHomeById: { vm1: 'h1' } }) })
-    let residentOn = 'h2'
     app.getXapi = () => ({
       pool: { other_config: {} },
       getObjectByUuid: id =>
         id === 'vm1'
-          ? { name_label: 'vm 1', power_state: 'Running', $resident_on: { $id: residentOn } }
+          ? { name_label: 'vm 1', power_state: 'Running', $resident_on: { $id: 'h2' } }
           : id === 'h1'
             ? { name_label: 'host 1', enabled: true }
             : undefined,
       async barrier() {},
     })
+    await pools.finalizeRollingUpdate(pool)
+    assert.deepEqual(
+      app.calls.map(([name]) => name),
+      ['backupGuard', 'tasks.create', 'restoreRpuLeftovers']
+    )
+    assert.deepEqual(app.calls[2], ['restoreRpuLeftovers', 'pool-1', [{ type: 'vm', id: 'vm1', name: 'vm 1' }]])
+    assert.equal(store.values.has('pool-1'), false)
+  })
+
+  it('is refused with what blocks, not with the VMs away from their home host', async function () {
+    const { app, pools, store } = createPools({ record: makeDirtyRecordWithVm() })
+    app.getXapi = withVmOnH2(app.getXapi)
     await assert.rejects(pools.finalizeRollingUpdate(pool), error =>
-      incorrectState.is(error, { actual: [{ type: 'vm', id: 'vm1', name: 'vm 1' }], property: 'unrestoredItems' })
+      incorrectState.is(error, { actual: dirtyItems, property: 'unrestoredItems' })
     )
     assert.equal(store.values.has('pool-1'), true)
-
-    app.restoreRpuLeftovers = async () => {
-      residentOn = 'h1'
-    }
-    await pools.finalizeRollingUpdate(pool)
-    assert.equal(store.values.has('pool-1'), false)
   })
 
   it('with force, deletes the record and writes the abandoned items to the task', async function () {

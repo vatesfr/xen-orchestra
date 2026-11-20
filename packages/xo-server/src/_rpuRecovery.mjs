@@ -795,16 +795,26 @@ const isStepStarted = status => status !== 'pending' && status !== 'not-needed'
  * Whether the run started to update a host and did not see it reboot: its
  * patches are not all effective yet, only a resume finishes it.
  *
+ * A host which booted after the run saw its update end rebooted out of the
+ * sight of the run, e.g. while xo-server restarted: its patches are effective.
+ * Not when the update did not end, the host may only have part of them.
+ *
  * @param {object} record - Readable record
  * @param {string} hostId
+ * @param {string} [bootTime] - Live `other_config.boot_time` of the host, in seconds
  * @returns {boolean}
  */
-export function isRpuHostAwaitingReboot(record, hostId) {
+export function isRpuHostAwaitingReboot(record, hostId, bootTime) {
   const { steps = {}, updateStarted } = record.hosts?.[hostId] ?? {}
-  return (
-    (updateStarted === true || isStepStarted(steps.update?.status ?? 'pending')) &&
-    !isStepOver(steps.reboot?.status ?? 'pending')
-  )
+  if (!(updateStarted === true || isStepStarted(steps.update?.status ?? 'pending'))) {
+    return false
+  }
+  if (isStepOver(steps.reboot?.status ?? 'pending')) {
+    return false
+  }
+  const { status, finishedAt } = steps.update ?? {}
+  // the end of the update of this attempt: agentStartedAtBeforeUpdate is the one of the first attempt
+  return !(status === 'observed-succeeded' && finishedAt !== undefined && +bootTime > Date.parse(finishedAt) / 1e3)
 }
 
 /**

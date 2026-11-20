@@ -842,13 +842,39 @@ describe('restoreRpuLeftovers', function () {
     assert.equal(xapi.vms[0].$resident_on.uuid, 'host-A')
   })
 
-  it('goes on after a failed restoration', async function () {
+  it('leaves the pinned VMs and the VMs of a host which could not be enabled where they are, and goes on', async function () {
     const { events, items, restore, xapi } = setup()
     xapi._enableHostOnceBooted = async () => {
       throw new Error('HOST_STILL_BOOTING')
     }
     await restore(items)
-    assert.deepEqual(events, restorationsAfterTheHost)
+    assert.deepEqual(events, restorationsAfterTheHost.slice(3))
+    assert.equal(xapi.vms[0].$resident_on.uuid, 'host-B')
+  })
+
+  it('goes on after a failed restoration', async function () {
+    const { events, items, restore, xapi } = setup()
+    xapi.migrateVm = async () => {
+      throw new Error('HOST_NOT_ENOUGH_FREE_MEMORY')
+    }
+    await restore(items)
+    assert.deepEqual(events, [
+      ['enableHost', 'host-A'],
+      ...restorationsAfterTheHost.filter(([name]) => name !== 'migrateVm'),
+    ])
+  })
+
+  it('enables, with its VMs, a host the run updated which booted after its update ended', async function () {
+    const { events, items, restore, xapi } = setup()
+    const finishedAt = '2026-11-20T10:00:00.000Z'
+    xapi.hosts[0].other_config.boot_time = String(Date.parse(finishedAt) / 1e3 + 60)
+    await restore(items, {
+      hosts: {
+        'host-A': { steps: { update: { status: 'observed-succeeded', finishedAt }, reboot: { status: 'running' } } },
+      },
+    })
+    assert.deepEqual(events, [['enableHost', 'host-A'], ...restorationsAfterTheHost])
+    assert.equal(xapi.vms[0].$resident_on.uuid, 'host-A')
   })
 
   it('keeps the steps of the run, and does not report a pinned VM which did not start as stopped', async function () {
