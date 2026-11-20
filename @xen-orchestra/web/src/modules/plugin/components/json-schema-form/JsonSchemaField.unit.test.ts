@@ -12,6 +12,7 @@ import { xoCollectionsMock, mockXoCollections } from '@/test/mock-xo-collections
 import { vmCollectionMock, mockXoVmCollection } from '@/test/mock-xo-vm-collection.ts'
 import { mountJsonSchemaForm } from '@/test/mount-json-schema-form.ts'
 import { findSelectOptionLabels, openSelect, pickSelectOption } from '@/test/select.ts'
+import { setFieldValue } from '@core-test/field-events.ts'
 import { mount, type VueWrapper } from '@vue/test-utils'
 import { h, nextTick } from 'vue'
 
@@ -79,22 +80,6 @@ describe('string field', () => {
     expect(wrapper.get('input').element.value).toBe('foo')
   })
 
-  it('emits the typed value', async () => {
-    const wrapper = mountField({ schema: { type: 'string' } })
-
-    await wrapper.get('input').setValue('bar')
-
-    expect(lastEmittedValue(wrapper)).toBe('bar')
-  })
-
-  it('emits undefined when the input is cleared', async () => {
-    const wrapper = mountField({ schema: { type: 'string' }, modelValue: 'foo' })
-
-    await wrapper.get('input').setValue('')
-
-    expect(wrapper.emitted('update:modelValue')).toEqual([[undefined]])
-  })
-
   it('hides passwords', () => {
     const wrapper = mountField({ schema: { type: 'string' }, path: ['password'] })
 
@@ -122,13 +107,15 @@ describe('string field', () => {
     expect(wrapper.get('textarea').element.value).toBe('foo')
   })
 
-  it('emits undefined when a multiline string is cleared', async () => {
-    const wrapper = mountField({ schema: { type: 'string', $multiline: true }, modelValue: 'foo' })
-
-    await wrapper.get('textarea').setValue('')
-
-    expect(wrapper.emitted('update:modelValue')).toEqual([[undefined]])
-  })
+  it.each([
+    { field: 'input', schema: { type: 'string' } },
+    { field: 'textarea', schema: { type: 'string', $multiline: true } },
+  ] satisfies { field: string; schema: JsonSchema }[])(
+    'emits undefined when the $field is cleared',
+    async ({ field, schema }) => {
+      expect(await setFieldValue(mountField({ schema, modelValue: 'foo' }), field, '')).toEqual([[undefined]])
+    }
+  )
 
   it('displays the help text of the description', () => {
     const wrapper = mountField({ schema: { type: 'string', description: 'ID attribute. e.g.: `dn`' } })
@@ -282,23 +269,18 @@ describe('validation', () => {
   })
 })
 
+it.each([
+  { schema: { type: 'string' }, typed: 'bar', emitted: 'bar' },
+  { schema: { type: 'integer' }, typed: '25', emitted: 25 },
+  { schema: { type: 'number' }, typed: '2.5', emitted: 2.5 },
+] satisfies { schema: JsonSchema; typed: string; emitted: unknown }[])(
+  'emits the value typed in a $schema.type field as that type',
+  async ({ schema, typed, emitted }) => {
+    expect(await setFieldValue(mountField({ schema }), 'input', typed)).toEqual([[emitted]])
+  }
+)
+
 describe('number field', () => {
-  it('emits integers', async () => {
-    const wrapper = mountField({ schema: { type: 'integer' } })
-
-    await wrapper.get('input').setValue('25')
-
-    expect(lastEmittedValue(wrapper)).toBe(25)
-  })
-
-  it('emits decimal numbers', async () => {
-    const wrapper = mountField({ schema: { type: 'number' } })
-
-    await wrapper.get('input').setValue('2.5')
-
-    expect(lastEmittedValue(wrapper)).toBe(2.5)
-  })
-
   it('uses a number input, with the bounds of the schema', () => {
     const wrapper = mountField({ schema: { type: 'integer', minimum: 1, maximum: 65535 } })
 

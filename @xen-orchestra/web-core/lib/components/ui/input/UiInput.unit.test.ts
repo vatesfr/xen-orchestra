@@ -4,6 +4,7 @@ import UiInput from '@core/components/ui/input/UiInput.vue'
 import UiLoader from '@core/components/ui/loader/UiLoader.vue'
 import type { IconName } from '@core/icons'
 import { createGlobalTestConfig } from '@core-test/create-global-test-config.ts'
+import { setFieldValue } from '@core-test/field-events.ts'
 import { mount, type VueWrapper } from '@vue/test-utils'
 
 type InputProps = InstanceType<typeof UiInput>['$props']
@@ -52,11 +53,7 @@ describe('UiInput', () => {
   })
 
   it('updates the model while typing', async () => {
-    const wrapper = mountInput()
-
-    await wrapper.get('input').setValue('New value')
-
-    expect(wrapper.emitted('update:modelValue')).toEqual([['New value']])
+    expect(await setFieldValue(mountInput(), 'input', 'New value')).toEqual([['New value']])
   })
 
   it.each([
