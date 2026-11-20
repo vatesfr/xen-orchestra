@@ -140,7 +140,7 @@ export class SrService {
       response = await fetch(url, { headers: { 'accept-encoding': 'identity' } })
     } catch (error) {
       // the remote server is unreachable (DNS, connection refused, TLS…)
-      throw new ApiError(`failed to download ${origin}`, 502, { cause: error })
+      throw new ApiError(`failed to download ${origin}`, 502)
     }
     // the failures below come from the remote server, not from XO nor from the caller: 502 Bad Gateway
     if (!response.ok) {

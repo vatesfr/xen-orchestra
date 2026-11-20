@@ -277,7 +277,7 @@ describe('SrService.validateImportVdiFromUrl and SrService.importVdiFromUrl', ()
     assert.equal(calls.SR_importVdi.length, 0)
   })
 
-  it('rejects with 502 when the download cannot start, keeping the URL origin and the original error as cause', async t => {
+  it('rejects with 502 when the download cannot start, keeping the URL origin', async t => {
     const networkError = new TypeError('fetch failed', { cause: new Error('getaddrinfo ENOTFOUND example.net') })
     t.mock.method(globalThis, 'fetch', async () => {
       throw networkError
@@ -287,7 +287,6 @@ describe('SrService.validateImportVdiFromUrl and SrService.importVdiFromUrl', ()
     await assert.rejects(service.importVdiFromUrl(SR_ID, new URL('https://example.net/debian.iso'), {}), error => {
       assert.ok(isBadGateway(error))
       assert.match(error.message, /https:\/\/example\.net/)
-      assert.equal(error.cause, networkError)
       return true
     })
     assert.equal(calls.SR_importVdi.length, 0)
