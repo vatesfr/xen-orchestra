@@ -48,6 +48,12 @@ const uiStore = useUiStore()
     }
   }
 
+  @media (--medium-or-large) {
+    &:deep(.modal) {
+      max-width: min(95vw, 120rem);
+    }
+  }
+
   &:deep(.modal) {
     padding: 0;
     gap: 0;

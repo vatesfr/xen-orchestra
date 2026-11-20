@@ -54,8 +54,11 @@ describe('syslog transport', () => {
       try {
         logTwice(dedupe({ transport: createTransport(`udp://localhost:${server.address().port}`) }))
         await new Promise(resolve => setTimeout(resolve, 300))
+
+        // UDP doesn't guarantee message order
         assert.equal(messages.length, 2)
-        assert.match(messages[1], /duplicates of the previous log were hidden$/)
+        assert.ok(messages.some(message => message.endsWith(' ns - foo')))
+        assert.ok(messages.some(message => message.endsWith(' ns - duplicates of the previous log were hidden')))
       } finally {
         server.close()
       }

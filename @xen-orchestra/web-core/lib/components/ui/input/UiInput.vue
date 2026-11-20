@@ -19,6 +19,8 @@
       :required
       :type
       :aria-busy="busy || undefined"
+      :aria-describedby="wrapperController?.describedBy"
+      :aria-invalid="wrapperController?.invalid || undefined"
       class="typo-body-regular input text-ellipsis"
       v-bind="attrs"
       @input="event => handleInput(event)"
@@ -121,6 +123,8 @@ defineExpose({ focus })
 
 <style lang="postcss" scoped>
 .ui-input {
+  --padding-inline: 1.6rem;
+
   display: flex;
   align-items: center;
   gap: 1.6rem;
@@ -132,7 +136,7 @@ defineExpose({ focus })
   height: 4rem;
   width: 100%;
   text-align: left;
-  padding-inline: 1.6rem;
+  padding-inline: var(--padding-inline);
 
   .right-icon,
   .loader {
@@ -159,14 +163,14 @@ defineExpose({ focus })
     border-end-start-radius: 0.4rem;
     border-start-start-radius: 0.4rem;
     border-inline-end: 0.1rem solid var(--color-neutral-border);
-    margin-inline-start: -1.6rem;
+    margin-inline-start: calc(-1 * var(--padding-inline));
   }
 
   .suffix {
     border-end-end-radius: 0.4rem;
     border-start-end-radius: 0.4rem;
     border-inline-start: 0.1rem solid var(--color-neutral-border);
-    margin-inline-end: -1.6rem;
+    margin-inline-end: calc(-1 * var(--padding-inline));
   }
 
   &.disabled .right-icon {
@@ -253,6 +257,8 @@ defineExpose({ focus })
 
   &:focus-within,
   &.selected {
+    --padding-inline: 1.5rem;
+
     border-color: var(--selected-color);
     border-width: 0.2rem;
   }

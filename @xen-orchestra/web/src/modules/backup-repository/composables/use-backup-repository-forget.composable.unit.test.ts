@@ -4,9 +4,9 @@ import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote
 import { createBr } from '@/test/create-br.ts'
 import { createTestRouter } from '@/test/create-test-router.ts'
 import { t } from '@/test/i18n.ts'
+import { overlayMock } from '@/test/mock-overlay.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
 import type { useRouteQuery } from '@core/composables/route-query.composable.ts'
-import type { useOverlay } from '@core/packages/overlay/use-overlay.ts'
 import { type MaybeRefOrGetter, ref } from 'vue'
 import type { Router } from 'vue-router'
 
@@ -16,8 +16,7 @@ type ForgetResults = PromiseSettledResult<void>[]
 
 type MockedOverlay = { open: ReturnType<typeof vi.fn>; events: OverlayEvents }
 
-const { overlays, run, selectedBrId } = vi.hoisted(() => ({
-  overlays: [] as MockedOverlay[],
+const { run, selectedBrId } = vi.hoisted(() => ({
   run: vi.fn(),
   selectedBrId: { value: '' },
 }))
@@ -36,21 +35,13 @@ vi.mock(import('@core/composables/route-query.composable.ts'), () => ({
   useRouteQuery: (() => selectedBrId) as unknown as typeof useRouteQuery,
 }))
 
-vi.mock(import('@core/packages/overlay/use-overlay.ts'), () => ({
-  useOverlay: (({ events }: Pick<MockedOverlay, 'events'>) => {
-    const overlay = { open: vi.fn(), events }
-
-    overlays.push(overlay)
-
-    return { open: overlay.open }
-  }) as unknown as typeof useOverlay,
-}))
+vi.mock(import('@core/packages/overlay/use-overlay.ts'), () => import('@/test/mock-overlay.ts'))
 
 let successHandled: Promise<void> | undefined
 
 beforeEach(() => {
   vi.restoreAllMocks()
-  overlays.length = 0
+  overlayMock.reset()
   run.mockReset()
   selectedBrId.value = ''
   successHandled = undefined
@@ -71,7 +62,7 @@ function mountForget(brs: MaybeRefOrGetter<FrontXoBackupRepository[]>, { router 
   const result = mountComposable(() => useBackupRepositoryForget(brs), { router }).wrapper.vm
 
   // The composable declares the single repository modal first, then the type to confirm one
-  const [forgetModal, typeToConfirmModal] = overlays
+  const [forgetModal, typeToConfirmModal] = overlayMock.getOverlays<MockedOverlay>()
 
   return { result, forgetModal, typeToConfirmModal }
 }
@@ -82,7 +73,7 @@ async function forgetAndConfirm(brs: MaybeRefOrGetter<FrontXoBackupRepository[]>
 
   result.forgetBackupRepositories()
 
-  const openedModal = overlays.find(overlay => overlay.open.mock.calls.length > 0)
+  const openedModal = overlayMock.getOverlays<MockedOverlay>().find(overlay => overlay.open.mock.calls.length > 0)
 
   // The events can be declared with the modal, or given when opening it
   const openEvents: OverlayEvents | undefined = openedModal?.open.mock.lastCall?.[0]?.events

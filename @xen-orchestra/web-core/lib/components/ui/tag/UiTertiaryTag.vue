@@ -1,6 +1,6 @@
 <!-- v1 -->
 <template>
-  <span class="ui-tertiary-tag">
+  <span :class="{ truncate }" class="ui-tertiary-tag">
     <UiTag :accent variant="primary" class="radius-left">
       <slot name="term" />
     </UiTag>
@@ -15,6 +15,7 @@ import UiTag, { type TagAccent } from '@core/components/ui/tag/UiTag.vue'
 
 defineProps<{
   accent: TagAccent
+  truncate?: boolean
 }>()
 
 defineSlots<{
@@ -25,8 +26,8 @@ defineSlots<{
 
 <style lang="postcss" scoped>
 .ui-tertiary-tag {
-  display: inline-flex;
-  flex-direction: row;
+  display: inline-grid;
+  grid-template-columns: auto auto;
 
   :deep(.radius-left) {
     border-radius: 0.4rem 0 0 0.4rem;
@@ -34,6 +35,13 @@ defineSlots<{
 
   :deep(.radius-right) {
     border-radius: 0 0.4rem 0.4rem 0;
+  }
+
+  &.truncate :deep(.ui-tag) {
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 }
 </style>

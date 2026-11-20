@@ -3,7 +3,9 @@
     <UiCard class="container">
       <StorageRepositoriesTable :srs :busy="!isReady" :error="hasFetchError" :scope />
     </UiCard>
-    <StorageRepositorySidePanel :sr="selectedSr" :scope @close="selectedSr = undefined" />
+    <template #panel>
+      <StorageRepositorySidePanel :sr="selectedSr" :scope @close="selectedSr = undefined" />
+    </template>
   </VtsContentSidePanel>
 </template>
 

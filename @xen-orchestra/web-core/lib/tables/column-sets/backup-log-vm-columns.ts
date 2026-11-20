@@ -7,7 +7,7 @@ export const useBackupLogVmColumns = defineColumns(() => {
   const { t } = useI18n()
 
   return {
-    vm: useLinkColumn({ headerLabel: () => t('vm') }),
+    vm: useLinkColumn({ headerLabel: () => t('vm'), flexible: true }),
     virtualSize: useNumberColumn({ headerLabel: () => t('virtual-size') }),
   }
 })

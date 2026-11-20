@@ -117,6 +117,10 @@ defineExpose({
   .search-container {
     background-color: var(--color-neutral-background-primary);
     padding: 0.4rem;
+
+    .ui-input:deep(input) {
+      width: 0;
+    }
   }
 }
 </style>

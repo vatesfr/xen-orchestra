@@ -1,7 +1,7 @@
 {
   "extends": "@vue/tsconfig/tsconfig.dom.json",
   "include": ["env.d.ts", "./src/**/*", "./src/**/*.vue", "../web-core/lib/**/*", "../web-core/lib/**/*.vue"],
-  "exclude": ["./src/**/__tests__/*"],
+  "exclude": ["./src/**/__tests__/*", "../web-core/lib/**/*.unit.test.ts", "../web-core/lib/**/*.unit.spec.ts"],
   "compilerOptions": {
     "composite": true,
     "noEmit": true,

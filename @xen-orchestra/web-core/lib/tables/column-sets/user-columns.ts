@@ -8,7 +8,7 @@ export const useUserColumns = defineColumns(() => {
   const { t } = useI18n()
 
   return {
-    username: useUserNameColumn({ headerLabel: () => t('username') }),
+    username: useUserNameColumn({ headerLabel: () => t('username'), flexible: true }),
     email: useTruncatedTextColumn({ headerLabel: () => t('email') }),
     providers: useTruncatedTextColumn({ headerLabel: () => t('providers') }),
     selectItem: useSelectItemColumn(),

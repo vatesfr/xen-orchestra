@@ -1,5 +1,5 @@
 import { type MaybeElementRef, unrefElement, useResizeObserver } from '@vueuse/core'
-import { type MaybeRefOrGetter, ref, toValue, watch } from 'vue'
+import { type MaybeRefOrGetter, nextTick, ref, toValue, watch } from 'vue'
 
 export function useCollapseOnOverflow(
   container: MaybeElementRef,
@@ -34,9 +34,12 @@ export function useCollapseOnOverflow(
   function reset() {
     requiredWidths.length = 0
     collapsedCount.value = 0
+    nextTick(() => update())
   }
 
   useResizeObserver([container, content], () => update())
+
+  watch(collapsedCount, () => update(), { flush: 'post' })
 
   watch(
     () => toValue(maxCollapsedCount),

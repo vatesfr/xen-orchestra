@@ -7,7 +7,7 @@ export const usePatchColumns = defineColumns(() => {
   const { t } = useI18n()
 
   return {
-    name: useTextColumn({ headerLabel: () => t('patch-name') }),
+    name: useTextColumn({ headerLabel: () => t('patch-name'), flexible: true }),
     version: useNumberColumn({ headerLabel: () => t('version') }),
   }
 })

@@ -12,7 +12,7 @@ export const usePifColumns = defineColumns(() => {
   const { t } = useI18n()
 
   return {
-    network: useLinkColumn({ headerLabel: () => t('network') }),
+    network: useLinkColumn({ headerLabel: () => t('network'), flexible: true }),
     device: useTextColumn({ headerLabel: () => t('device') }),
     status: useStatusColumn({ headerLabel: () => t('status') }),
     vlan: useNumberColumn({ headerLabel: () => t('vlan') }),

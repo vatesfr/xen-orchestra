@@ -11,7 +11,7 @@ export const useBackupJobColumns = defineColumns(() => {
 
   return {
     checkbox: useCheckboxColumn(),
-    backupJob: useLinkColumn({ headerLabel: () => t('backup-job') }),
+    backupJob: useLinkColumn({ headerLabel: () => t('backup-job'), flexible: true }),
     type: useTextColumn({ headerLabel: () => t('type') }),
     mode: useTextColumn({ headerLabel: () => t('mode') }),
     lastRuns: useStatusColumn({

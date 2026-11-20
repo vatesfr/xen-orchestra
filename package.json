@@ -79,5 +79,8 @@
     "@*/*",
     "packages/*"
   ],
-  "packageManager": "yarn@1.22.22"
+  "packageManager": "yarn@1.22.22",
+  "resolutions": {
+    "tar": "^7.5.19"
+  }
 }

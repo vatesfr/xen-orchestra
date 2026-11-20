@@ -34,7 +34,7 @@ export default class metadataBackup {
     })
   }
 
-  async _executor({ cancelToken, job: job_, jobData, jobUpdateFct, logger: jobsLogger, runJobId, schedule }) {
+  async _executor({ signal, job: job_, jobData, jobUpdateFct, logger: jobsLogger, runJobId, schedule }) {
     const job = cloneDeep(job_)
     const scheduleSettings = job.settings[schedule.id]
 
@@ -123,7 +123,7 @@ export default class metadataBackup {
         }
         return result
       } else {
-        cancelToken.throwIfRequested()
+        signal.throwIfAborted()
 
         const onLogFct = app.tasks.createExternalProgressHandler({
           onRootTaskStart: log => {

@@ -3,8 +3,9 @@ import type { useXoPluginConfigureJob } from '@/modules/plugin/jobs/xo-plugin-co
 import type { FrontXoPlugin } from '@/modules/plugin/remote-resources/use-xo-plugin-collection.ts'
 import { createJobResult } from '@/test/create-job-result.ts'
 import { createPlugin } from '@/test/create-plugin.ts'
+import { overlayMock } from '@/test/mock-overlay.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
-import type { useOverlay } from '@core/packages/overlay/use-overlay.ts'
+import { silenceConsoleError } from '@/test/silence-console-error.ts'
 import { KEEP_OVERLAY_OPEN } from '@core/packages/overlay/symbols.ts'
 import type { Ref } from 'vue'
 
@@ -16,40 +17,30 @@ type OverlayOptions = {
   }
 }
 
-const { useJob, run, useOverlayMock, open, drawer } = vi.hoisted(() => ({
+const { useJob, run, drawer } = vi.hoisted(() => ({
   useJob: vi.fn(),
   run: vi.fn(),
-  useOverlayMock: vi.fn(),
-  open: vi.fn(),
   drawer: vi.fn(),
 }))
 
-vi.mock(import('@core/packages/overlay/use-overlay.ts'), () => ({
-  useOverlay: useOverlayMock as unknown as typeof useOverlay,
-}))
+vi.mock(import('@core/packages/overlay/use-overlay.ts'), () => import('@/test/mock-overlay.ts'))
 
 const PAYLOAD = { to: 'admin@example.org' }
 
 beforeEach(() => {
   useJob.mockReset()
   run.mockReset()
-  useOverlayMock.mockReset()
-  open.mockReset()
+  overlayMock.reset()
 
-  vi.spyOn(console, 'error').mockImplementation(() => {})
+  silenceConsoleError()
 
   useJob.mockReturnValue(createJobResult(run))
-  useOverlayMock.mockReturnValue({ open, abort: vi.fn() })
 })
 
 function mountDrawerJob(plugin: FrontXoPlugin = createPlugin()) {
   return mountComposable(() =>
     useXoPluginDrawerJob(plugin, { useJob: useJob as unknown as typeof useXoPluginConfigureJob, drawer })
   ).wrapper.vm
-}
-
-function getOverlayOptions(): OverlayOptions {
-  return useOverlayMock.mock.calls[0][0]
 }
 
 function getJobArgs() {
@@ -85,14 +76,14 @@ describe('openDrawer', () => {
 
     mountDrawerJob(plugin).openDrawer()
 
-    expect(getOverlayOptions().component).toBe(drawer)
-    expect(open).toHaveBeenCalledWith({ props: expect.objectContaining({ plugin }) })
+    expect(overlayMock.getOverlay<OverlayOptions>().component).toBe(drawer)
+    expect(overlayMock.getOverlay().open).toHaveBeenCalledWith({ props: expect.objectContaining({ plugin }) })
   })
 
   it('closes the drawer when it is cancelled', () => {
     mountDrawerJob()
 
-    expect(getOverlayOptions().events.onCancel).toBe(true)
+    expect(overlayMock.getOverlay<OverlayOptions>().events.onCancel).toBe(true)
   })
 })
 
@@ -101,7 +92,7 @@ describe('onConfirm', () => {
     run.mockImplementation(async () => expect(getJobArgs().payload.value).toEqual(PAYLOAD))
     mountDrawerJob()
 
-    const response = await getOverlayOptions().events.onConfirm(PAYLOAD)
+    const response = await overlayMock.getOverlay<OverlayOptions>().events.onConfirm(PAYLOAD)
 
     expect(run).toHaveBeenCalledOnce()
     expect(response).toBeUndefined()
@@ -111,7 +102,7 @@ describe('onConfirm', () => {
     run.mockRejectedValue(new Error('SMTP connection refused'))
     mountDrawerJob()
 
-    const response = await getOverlayOptions().events.onConfirm(PAYLOAD)
+    const response = await overlayMock.getOverlay<OverlayOptions>().events.onConfirm(PAYLOAD)
 
     expect(response).toBe(KEEP_OVERLAY_OPEN)
   })

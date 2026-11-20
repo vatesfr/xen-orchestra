@@ -818,7 +818,6 @@
   "new-vm": "Nova VM",
   "new-vm:add": "Adicionar uma nova VM",
   "new-vm:description": "Descrição da VM",
-  "new-vm:disk-size-below-template": "{name}: o tamanho não pode ser menor que o tamanho do disco do modelo ({size} GB)",
   "new-vm:ha-best-effort": "Melhor esforço",
   "new-vm:ha-best-effort-description": "Se o servidor falhar, o HA tenta reiniciar a VM em outro servidor, mas somente após todas as VMs \"Reiniciar\". Não garantido.",
   "new-vm:ha-disabled": "Desativado",

@@ -1,6 +1,7 @@
 import {
   getHostCoreSocketInfo,
   getHostIcon,
+  getHostQuickActions,
   getHostManufacturerInfo,
   getHostRamProvisioning,
   getHostState,
@@ -171,5 +172,15 @@ describe('getHostIcon', () => {
     })
 
     expect(getHostIcon(host)).toBe(objectIcon('host', 'running'))
+  })
+})
+
+describe('getHostQuickActions', () => {
+  it.each([
+    [HOST_POWER_STATE.RUNNING, ['new-vm', 'shutdown', 'reboot']],
+    [HOST_POWER_STATE.HALTED, ['new-vm', 'start']],
+    [HOST_POWER_STATE.UNKNOWN, ['new-vm', 'start']],
+  ])('lists the quick actions of a %s host, in order', (powerState, expected) => {
+    expect(getHostQuickActions(createHost({ power_state: powerState }))).toEqual(expected)
   })
 })

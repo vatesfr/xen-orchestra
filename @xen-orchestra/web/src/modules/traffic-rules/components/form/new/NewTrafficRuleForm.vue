@@ -12,7 +12,7 @@
         </template>
       </TrafficRuleFormSelect>
       <TrafficRuleFormSelect v-bind="protocolSelectBindings" />
-      <TrafficRuleFormNumberInput v-if="hasPort" v-bind="portInputBindings" />
+      <VtsNumberInput v-if="hasPort" v-bind="portInputBindings" />
     </div>
 
     <div class="row">
@@ -26,42 +26,25 @@
       </span>
       <TrafficRuleFormSelect v-bind="targetTypeSelectBindings">
         <template #option="{ option }">
-          <VtsOption :option>
-            <span class="option-content">
-              {{ option.properties.label }}
-              <span v-if="option.properties.disabled" class="em-dash-prefix typo-body-regular-small">
-                {{ t('traffic-rules:xapi-plugin-required') }}
-              </span>
-            </span>
-          </VtsOption>
+          <VtsDetailedOption
+            :option
+            :details="option.properties.disabled ? t('traffic-rules:xapi-plugin-required') : undefined"
+          />
         </template>
       </TrafficRuleFormSelect>
       <TrafficRuleFormSelect v-if="isVifTarget" v-bind="vmSelectBindings">
         <template #option="{ option }">
-          <VtsOption :option>
-            <span class="option-content">
-              <VtsIcon
-                v-if="option.properties.icon"
-                :name="option.properties.icon"
-                :tooltip="option.properties.iconTooltip"
-                size="medium"
-              />
-              {{ option.properties.label }}
-              <span v-if="option.properties.disabled" class="em-dash-prefix typo-body-regular-small">
-                {{ t('no-vif-detected') }}
-              </span>
-            </span>
-          </VtsOption>
+          <VtsDetailedOption
+            :option
+            :icon="option.properties.icon"
+            :icon-tooltip="option.properties.iconTooltip"
+            :details="option.properties.disabled ? t('no-vif-detected') : undefined"
+          />
         </template>
       </TrafficRuleFormSelect>
       <TrafficRuleFormSelect v-bind="targetSelectBindings">
         <template #option="{ option }">
-          <VtsOption :option>
-            <span class="option-content">
-              <VtsIcon v-if="option.properties.icon" :name="option.properties.icon" size="medium" />
-              {{ option.properties.label }}
-            </span>
-          </VtsOption>
+          <VtsDetailedOption :option :icon="option.properties.icon" />
         </template>
       </TrafficRuleFormSelect>
     </div>
@@ -71,7 +54,6 @@
 
 <script setup lang="ts">
 import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
-import TrafficRuleFormNumberInput from '@/modules/traffic-rules/components/form/inputs/TrafficRuleFormNumberInput.vue'
 import TrafficRuleFormSelect from '@/modules/traffic-rules/components/form/inputs/TrafficRuleFormSelect.vue'
 import TrafficRuleFormTextInput from '@/modules/traffic-rules/components/form/inputs/TrafficRuleFormTextInput.vue'
 import NewTrafficRuleButtonsSection from '@/modules/traffic-rules/components/form/new/NewTrafficRuleButtonsSection.vue'
@@ -79,7 +61,8 @@ import { useNewTrafficRuleForm } from '@/modules/traffic-rules/form/new/use-new-
 import type { TrafficRulePayload } from '@/modules/traffic-rules/jobs/xo-traffic-rule-create.job.ts'
 import type { FrontXoVif } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
 import VtsForm from '@core/components/form/VtsForm.vue'
-import VtsIcon from '@core/components/icon/VtsIcon.vue'
+import VtsNumberInput from '@core/components/number-input/VtsNumberInput.vue'
+import VtsDetailedOption from '@core/components/select/VtsDetailedOption.vue'
 import VtsOption from '@core/components/select/VtsOption.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
 import { useI18n } from 'vue-i18n'

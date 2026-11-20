@@ -237,15 +237,18 @@ Each step config is a `FormValidationConfig` scoped to its own sub-object: writi
 
 #### Validation state
 
-| Property           | Type                                           | Description                                                                               |
-| ------------------ | ---------------------------------------------- | ----------------------------------------------------------------------------------------- |
-| `areAllStepsValid` | `ComputedRef<boolean>`                         | `true` only when every step has been validated and all pass                               |
-| `isStepValid`      | `(step: keyof TSteps) => boolean \| undefined` | Last known validation result for a step; `undefined` if the step has never been validated |
-| `isValidating`     | `Ref<boolean>`                                 | `true` while `validateAllSteps()` is in flight; guards against concurrent calls           |
-| `validateStep`     | `(step: keyof TSteps) => Promise<boolean>`     | Validates a single step by name and stores the result                                     |
-| `validateAllSteps` | `() => Promise<boolean>`                       | Validates all steps concurrently. Returns `true` only if every step passes                |
+| Property            | Type                                           | Description                                                                                                                          |
+| ------------------- | ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| `areAllStepsValid`  | `ComputedRef<boolean>`                         | `true` only when every step has been validated and all pass                                                                          |
+| `isStepValid`       | `(step: keyof TSteps) => boolean \| undefined` | Last known validation result for a step; `undefined` if the step has never been validated                                            |
+| `isValidating`      | `Ref<boolean>`                                 | `true` while `validateAllSteps()` is in flight; guards against concurrent calls                                                      |
+| `validateStep`      | `(step: keyof TSteps) => Promise<boolean>`     | Validates a single step by name and stores the result                                                                                |
+| `validateAllSteps`  | `() => Promise<boolean>`                       | Validates all steps concurrently. Returns `true` only if every step passes                                                           |
+| `markStepUntouched` | `(step: keyof TSteps & string) => void`        | Marks a step as untouched: its errors and warnings are hidden until the user edits or validates it again. Its values are not changed |
 
 `validateAllSteps` is a no-op (returns `false`) when `isValidating` is already `true`.
+
+A field displays its error only once the user has edited it. `markStepUntouched` marks the current values of a step as untouched.
 
 ### Example: wizard form with navigation and per-step validation
 
