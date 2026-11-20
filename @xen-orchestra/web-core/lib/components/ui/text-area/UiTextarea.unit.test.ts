@@ -72,11 +72,15 @@ describe('UiTextarea', () => {
     expect(await setFieldValue(mountTextarea(), 'textarea', 'New value')).toEqual([['New value']])
   })
 
-  it('shows no character count and no limit error without maxCharacters', () => {
-    const wrapper = mountTextarea({ modelValue: 'A long value' })
+  it.each([
+    ['without maxCharacters', undefined],
+    ['when maxCharacters is 0', 0],
+  ])('shows no character count and no limit error %s', (_case, maxCharacters) => {
+    const wrapper = mountTextarea({ modelValue: 'A long value', maxCharacters })
 
     expect(wrapper.findComponent(UiCharacterLimit).exists()).toBe(false)
     expect(findAccentedInfos(wrapper)).toEqual([])
+    expect(wrapper.classes()).toContain('accent--neutral')
   })
 
   it('counts the trimmed characters against maxCharacters', () => {

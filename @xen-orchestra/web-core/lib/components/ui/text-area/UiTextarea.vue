@@ -62,7 +62,7 @@ const { focused } = useFocus(textAreaElement)
 
 // WIP: To update when using VeeValidate and custom validation rules
 const isExceedingMaxCharacters = computed(() =>
-  maxCharacters !== undefined ? !focused.value && model.value.trim().length > maxCharacters : false
+  maxCharacters ? !focused.value && model.value.trim().length > maxCharacters : false
 )
 </script>
 
