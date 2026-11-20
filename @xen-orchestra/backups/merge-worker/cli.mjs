@@ -17,6 +17,9 @@ import { CLEAN_VM_QUEUE } from './index.mjs'
 
 const APP_NAME = 'xo-merge-worker'
 const APP_DIR = new URL('.', import.meta.url).pathname
+
+// delay before retrying tasks whose VM backup dir was locked by another process
+const ELOCKED_RETRY_DELAY = 5 * 60e3
 // -------------------------------------------------------------------
 
 catchGlobalErrors(createLogger('xo:backups:mergeWorker'))
@@ -50,6 +53,7 @@ const main = Disposable.wrap(async function* main(args) {
       appDir: APP_DIR,
       ignoreUnknownFormats: true,
     })
+    let hasLockedTask = false
     await asyncEach(
       taskFiles,
       async taskFileBasename => {
@@ -64,6 +68,10 @@ const main = Disposable.wrap(async function* main(args) {
           // there is nothing more that can be done
           if (error.code === 'ENAMETOOLONG') {
             await handler.unlink(previousTaskFile)
+            warn('dropping task after too many failures', { taskFile: previousTaskFile })
+
+            // don't crash the whole worker for a single task
+            return
           }
 
           throw error
@@ -82,11 +90,26 @@ const main = Disposable.wrap(async function* main(args) {
 
           handler.unlink(taskFile).catch(error => warn('deleting task failure', { error }))
         } catch (error) {
+          if (error.code === 'ELOCKED') {
+            // another process (backup, synchronous merge…) is handling this VM,
+            // this is not a failure: restore the task name to not count this attempt
+            hasLockedTask = true
+            info('VM backup dir is locked, the task will be retried later', { taskFile: previousTaskFile })
+            await handler
+              .rename(taskFile, previousTaskFile)
+              .catch(error => warn('restoring task name failure', { error, taskFile }))
+            return
+          }
+
           warn('failure handling task', { error })
         }
       },
       { concurrency }
     )
+
+    if (hasLockedTask) {
+      await new Promise(resolve => setTimeout(resolve, ELOCKED_RETRY_DELAY))
+    }
   }
 })
 
