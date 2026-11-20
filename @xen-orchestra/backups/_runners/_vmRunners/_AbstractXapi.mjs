@@ -381,7 +381,9 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
     const xapi = this._xapi
 
     const vdiCandidates = {}
-    const vdiUuids = this._vm.$VBDs.map(({ VDI }) => VDI)
+    // only disks: an empty CD drive has an empty VDI ref, which would match the
+    // snapshot_of of every VDI that is not a snapshot
+    const vdiUuids = this._vm.$VBDs.filter(({ type }) => type === 'Disk').map(({ VDI }) => VDI)
     Object.values(xapi.objects.indexes.type.VDI)
       .filter(_ => !!_) // filter nullish
       .filter(({ other_config, snapshot_of }) => {
@@ -401,6 +403,8 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
     this._jobSnapshotVdis = Object.values(vdiCandidates)
 
     // also harvest each of the snapshot chain without any disk
+    // a VBD missing from the cache may be a disk: such a snapshot is skipped
+    // here, since it could also be reachable (and destroyed) through its VDIs
     const hasNoDisk = ({ $VBDs }) => $VBDs.every(vbd => vbd !== undefined && vbd.type !== 'Disk')
     this._disklessJobSnapshotVms = this._vm.$snapshots
       .filter(Boolean)
