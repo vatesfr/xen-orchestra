@@ -4,7 +4,7 @@
 
     <template #content>
       <UiTitle>{{ t('general-information') }}</UiTitle>
-      <span class="required-hint typo-body-regular-small">{{ t('field:required') }}</span>
+      <VtsRequiredHint class="required-hint" />
       <div class="row">
         <div class="column">
           <NetworkFormTextInput v-bind="nameInputBindings" />
@@ -56,6 +56,7 @@ import FormCheckbox from '@/shared/components/form/FormCheckbox.vue'
 import VtsNumberInput from '@core/components/number-input/VtsNumberInput.vue'
 import VtsOverlayCancelButton from '@core/components/overlay/VtsOverlayCancelButton.vue'
 import VtsOverlayConfirmButton from '@core/components/overlay/VtsOverlayConfirmButton.vue'
+import VtsRequiredHint from '@core/components/required-hint/VtsRequiredHint.vue'
 import UiDrawer from '@core/components/ui/drawer/UiDrawer.vue'
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
@@ -102,13 +103,7 @@ async function handleConfirm() {
 <style lang="postcss" scoped>
 .new-private-network-drawer {
   .required-hint {
-    display: block;
     margin-block: 2.4rem;
-
-    &::before {
-      content: '* ';
-      color: var(--color-brand-txt-base);
-    }
   }
 
   .section-title {

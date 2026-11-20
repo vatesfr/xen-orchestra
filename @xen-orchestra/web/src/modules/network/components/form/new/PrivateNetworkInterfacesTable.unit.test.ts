@@ -1,6 +1,8 @@
 import PrivateNetworkInterfacesTable from '@/modules/network/components/form/new/PrivateNetworkInterfacesTable.vue'
 import type { PrivateNetworkInterfaceError } from '@/modules/network/form/new-private/use-new-private-network-form.ts'
 import type { PrivateNetworkInterface } from '@/modules/network/form/new-private/use-private-network-interface.ts'
+import type { FrontXoPif } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
+import { createPif } from '@/test/create-pif.ts'
 import { createPool, OTHER_POOL_ID } from '@/test/create-pool.ts'
 import { findAccentedInfos } from '@/test/find-accented-labels.ts'
 import { findTableColumnCells } from '@/test/find-table-cells.ts'
@@ -8,6 +10,8 @@ import { getUiButton } from '@/test/get-button.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
+import { openSelect } from '@/test/select.ts'
+import VtsDetailedOption from '@core/components/select/VtsDetailedOption.vue'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import { mount } from '@vue/test-utils'
 import { reactive } from 'vue'
@@ -71,6 +75,28 @@ function findErrors(wrapper: Table) {
 function findErroredRows(wrapper: Table) {
   return wrapper.findAllComponents(VtsRow).map(row => row.props('error'))
 }
+
+describe('pif', () => {
+  it('offers the PIFs of the selected pool with the network icon and their device', async () => {
+    xoCollectionsMock.pifs.value = [
+      createPif({ id: 'eth0' as FrontXoPif['id'], $host: POOL.master, device: 'eth0' }),
+      createPif({ id: 'eth0.10' as FrontXoPif['id'], $host: POOL.master, device: 'eth0', vlan: 10, physical: false }),
+    ]
+    const wrapper = mountTable()
+
+    await openSelect(findTableColumnCells(wrapper, t('pif'))[0])
+
+    expect(
+      wrapper.findAllComponents(VtsDetailedOption).map(option => ({
+        icon: option.props('icon'),
+        details: option.props('details'),
+      }))
+    ).toEqual([
+      { icon: 'object:network', details: 'eth0' },
+      { icon: 'object:network', details: t('pif-device-vlan', { device: 'eth0', vlan: 10 }) },
+    ])
+  })
+})
 
 describe('remove', () => {
   it('lets every interface but the first be removed', () => {

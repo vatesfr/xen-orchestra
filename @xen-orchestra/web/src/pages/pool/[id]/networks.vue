@@ -84,17 +84,17 @@ const { t } = useI18n()
 const {
   areNetworksReady,
   hasNetworkFetchError,
-  networksWithPifs,
-  networksWithoutPifs,
+  physicalNetworks,
   privateNetworks: allPrivateNetworks,
+  internalNetworks: allInternalNetworks,
   getNetworkById,
 } = useXoNetworkCollection()
 
-const networks = computed(() => networksWithPifs.value.filter(network => network.$pool === pool.id))
+const networks = computed(() => physicalNetworks.value.filter(network => network.$pool === pool.id))
 
 const privateNetworks = computed(() => allPrivateNetworks.value.filter(network => network.$pool === pool.id))
 
-const internalNetworks = computed(() => networksWithoutPifs.value.filter(network => network.$pool === pool.id))
+const internalNetworks = computed(() => allInternalNetworks.value.filter(network => network.$pool === pool.id))
 
 const selectedNetwork = useRouteQuery<FrontXoNetwork | undefined>('id', {
   toData: id => getNetworkById(id as FrontXoNetwork['id']),

@@ -73,14 +73,14 @@ const selectedNetworkId = useRouteQuery('id')
 
 function getTableConfig() {
   if (type === 'internal') {
-    return { getTitle: () => t('host-internal-networks'), filterId: 'inw' }
+    return { getTitle: () => t('host-internal-networks'), filterId: 'inw', paginationId: 'internal-networks' }
   }
 
   if (type === 'private') {
-    return { getTitle: () => t('private-network', 2), filterId: 'pnw' }
+    return { getTitle: () => t('private-network', 2), filterId: 'pnw', paginationId: 'private-networks' }
   }
 
-  return { getTitle: () => t('networks'), filterId: 'nw' }
+  return { getTitle: () => t('networks'), filterId: 'nw', paginationId: 'networks' }
 }
 
 const tableConfig = getTableConfig()
@@ -111,7 +111,7 @@ const state = useTableState({
         : false,
 })
 
-const { pageRecords: paginatedNetworks, paginationBindings } = usePagination('networks', filteredNetworks)
+const { pageRecords: paginatedNetworks, paginationBindings } = usePagination(tableConfig.paginationId, filteredNetworks)
 
 const { HeadCells, BodyCells } = useNetworkColumns({
   exclude: type === 'internal' ? ['vlan', 'status', 'selectItem'] : ['selectItem'],

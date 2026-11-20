@@ -1,11 +1,9 @@
 <template>
   <VtsOption :option>
     <span class="vts-detailed-option">
-      <VtsIcon v-if="icon" :name="icon" size="medium" />
+      <VtsIcon v-if="icon" :name="icon" :tooltip="iconTooltip" size="medium" />
       {{ option.properties.label }}
-      <span v-if="option.properties.details" class="em-dash-prefix typo-body-regular-small">
-        {{ option.properties.details }}
-      </span>
+      <span v-if="details" class="em-dash-prefix typo-body-regular-small">{{ details }}</span>
     </span>
   </VtsOption>
 </template>
@@ -18,8 +16,10 @@ import type { IconName } from '@core/icons'
 import type { FormOption } from '@core/packages/form-select/types.ts'
 
 defineProps<{
-  option: FormOption<{ details?: string; accent?: DropdownAccent }>
+  option: FormOption<{ accent?: DropdownAccent }>
   icon?: IconName
+  iconTooltip?: string
+  details?: string
 }>()
 </script>
 

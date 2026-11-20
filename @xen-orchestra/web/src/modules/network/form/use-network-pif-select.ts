@@ -1,4 +1,5 @@
 import { useXoNetworkCollection } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
+import { NETWORK_TYPE, type NetworkType } from '@/modules/network/utils/xo-network.util.ts'
 import { type FrontXoPif, useXoPifCollection } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
 import { type FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import { useFormSelect } from '@core/packages/form-select'
@@ -12,8 +13,7 @@ export function useNetworkPifSelect(
   model: Ref<unknown>,
   options: {
     multiple?: boolean
-    bonded?: boolean
-    privateNetwork?: boolean
+    networkType: Exclude<NetworkType, typeof NETWORK_TYPE.INTERNAL>
     value: keyof FrontXoPif | ((pif: FrontXoPif) => unknown)
   }
 ) {
@@ -34,13 +34,21 @@ export function useNetworkPifSelect(
       return false
     }
 
-    if (options.privateNetwork) {
+    if (options.networkType === NETWORK_TYPE.PRIVATE) {
       const canCarryTunnels = pif.isBondMaster || pif.physical || pif.vlan !== -1
 
       return canCarryTunnels && pif.mode !== IP_CONFIGURATION_MODE.NONE
     }
 
-    return (!options.bonded || !pif.isBondMaster) && pif.vlan === -1
+    if (pif.vlan !== -1) {
+      return false
+    }
+
+    if (options.networkType === NETWORK_TYPE.BONDED) {
+      return !pif.isBondMaster
+    }
+
+    return true
   })
 
   const { id: interfacesSelectId } = useFormSelect(usablePifs, {

@@ -1,4 +1,5 @@
 import { useNetworkPifSelect } from '@/modules/network/form/use-network-pif-select.ts'
+import { NETWORK_TYPE } from '@/modules/network/utils/xo-network.util.ts'
 import { type FrontXoPif } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
 import { type FrontXoPool, useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import { useFormSelect } from '@core/packages/form-select'
@@ -14,9 +15,9 @@ export type PrivateNetworkInterface = {
 
 export function usePrivateNetworkInterface(
   networkInterface: PrivateNetworkInterface,
-  _excludedPoolIds: MaybeRefOrGetter<FrontXoPool['id'][]>
+  rawExcludedPoolIds: MaybeRefOrGetter<FrontXoPool['id'][]>
 ) {
-  const excludedPoolIds = toComputed(_excludedPoolIds)
+  const excludedPoolIds = toComputed(rawExcludedPoolIds)
 
   const { pools, useGetPoolById } = useXoPoolCollection()
 
@@ -43,7 +44,7 @@ export function usePrivateNetworkInterface(
   const selectedPool = useGetPoolById(() => pool.value)
 
   const { interfacesSelectId: pifSelectId } = useNetworkPifSelect(selectedPool, toRef(networkInterface, 'pif'), {
-    privateNetwork: true,
+    networkType: NETWORK_TYPE.PRIVATE,
     value: 'id',
   })
 

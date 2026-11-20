@@ -34,15 +34,15 @@ export const useXoNetworkCollection = defineRemoteResource({
   state: (rawNetworks, context) => {
     const sortedNetworks = useSorted(rawNetworks, sortByNameLabel)
 
-    const networksWithPifs = ref<FrontXoNetwork[]>([])
-    const networksWithoutPifs = ref<FrontXoNetwork[]>([])
+    const physicalNetworks = ref<FrontXoNetwork[]>([])
+    const internalNetworks = ref<FrontXoNetwork[]>([])
     const privateNetworks = ref<FrontXoNetwork[]>([])
     const privateNetworksByUuid = ref(new Map<string, FrontXoNetwork[]>())
     const encryptedEncapsulationsByPool = ref(new Map<FrontXoNetwork['$pool'], Set<TUNNEL_PROTOCOL>>())
 
     watch(sortedNetworks, networks => {
-      const tmpNetworksWithPifs: FrontXoNetwork[] = []
-      const tmpNetworksWithoutPifs: FrontXoNetwork[] = []
+      const tmpPhysicalNetworks: FrontXoNetwork[] = []
+      const tmpInternalNetworks: FrontXoNetwork[] = []
       const tmpPrivateNetworks: FrontXoNetwork[] = []
       const tmpPrivateNetworksByUuid = new Map<string, FrontXoNetwork[]>()
 
@@ -55,14 +55,14 @@ export const useXoNetworkCollection = defineRemoteResource({
             network
           )
         } else if (network.PIFs.length === 0) {
-          tmpNetworksWithoutPifs.push(network)
+          tmpInternalNetworks.push(network)
         } else {
-          tmpNetworksWithPifs.push(network)
+          tmpPhysicalNetworks.push(network)
         }
       })
 
-      networksWithPifs.value = tmpNetworksWithPifs
-      networksWithoutPifs.value = tmpNetworksWithoutPifs
+      physicalNetworks.value = tmpPhysicalNetworks
+      internalNetworks.value = tmpInternalNetworks
       privateNetworks.value = tmpPrivateNetworks
       privateNetworksByUuid.value = tmpPrivateNetworksByUuid
       encryptedEncapsulationsByPool.value = getEncryptedEncapsulationsByPool(tmpPrivateNetworks)
@@ -73,8 +73,8 @@ export const useXoNetworkCollection = defineRemoteResource({
         context,
         baseName: 'network',
       }),
-      networksWithPifs,
-      networksWithoutPifs,
+      physicalNetworks,
+      internalNetworks,
       privateNetworks,
       privateNetworksByUuid,
       encryptedEncapsulationsByPool,

@@ -1,4 +1,5 @@
 import { useNetworkPifSelect } from '@/modules/network/form/use-network-pif-select.ts'
+import { NETWORK_TYPE } from '@/modules/network/utils/xo-network.util.ts'
 import type { FrontXoPif } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
 import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import { createNetwork } from '@/test/create-network.ts'
@@ -43,7 +44,11 @@ function mountPifSelect(
   const model = ref(modelValue)
 
   const wrapper = mountWithSelect(() => {
-    const { interfacesSelectId } = useNetworkPifSelect(pool, model, { value: 'id', ...options })
+    const { interfacesSelectId } = useNetworkPifSelect(pool, model, {
+      networkType: NETWORK_TYPE.PHYSICAL,
+      value: 'id',
+      ...options,
+    })
 
     return () => h(VtsSelect, { id: interfacesSelectId, accent: 'brand' })
   })
@@ -74,7 +79,7 @@ describe('options', () => {
   it('leaves out the bond masters of a bonded network', async () => {
     xoCollectionsMock.pifs.value = [createMasterPif('eth0'), createMasterPif('bond0', { isBondMaster: true })]
 
-    expect(await findOfferedPifIds({ bonded: true })).toEqual(['eth0'])
+    expect(await findOfferedPifIds({ networkType: NETWORK_TYPE.BONDED })).toEqual(['eth0'])
   })
 
   it('offers, for a private network, the PIFs of the master that can carry its tunnels', async () => {
@@ -88,7 +93,7 @@ describe('options', () => {
       createPif({ id: 'eth0-of-another-host' as FrontXoPif['id'], $host: OTHER_POOL.master }),
     ]
 
-    expect(await findOfferedPifIds({ privateNetwork: true })).toEqual(['eth0', 'bond0', 'eth0.10'])
+    expect(await findOfferedPifIds({ networkType: NETWORK_TYPE.PRIVATE })).toEqual(['eth0', 'bond0', 'eth0.10'])
   })
 
   it('labels each PIF with the name of its network, or its device without one', async () => {
@@ -106,7 +111,7 @@ describe('options', () => {
 
   it('details each PIF with its device, and its VLAN for a VLAN', async () => {
     xoCollectionsMock.pifs.value = [createMasterPif('eth0'), createMasterPif('eth0.10', { device: 'eth0', vlan: 10 })]
-    const { wrapper } = mountPifSelect({ privateNetwork: true })
+    const { wrapper } = mountPifSelect({ networkType: NETWORK_TYPE.PRIVATE })
 
     await openSelect(wrapper)
 

@@ -91,6 +91,8 @@ export const useXoNetworkCollection = (() => ({
   areNetworksReady: xoCollectionsMock.areNetworksReady,
   getNetworkById: (id: FrontXoNetwork['id'] | undefined) =>
     xoCollectionsMock.networks.value.find(network => network.id === id),
+  useGetNetworkById: (id: MaybeRefOrGetter<FrontXoNetwork['id'] | undefined>) =>
+    computed(() => xoCollectionsMock.networks.value.find(network => network.id === toValue(id))),
   encryptedEncapsulationsByPool: computed(() => getEncryptedEncapsulationsByPool(xoCollectionsMock.networks.value)),
 })) as unknown as typeof realUseXoNetworkCollection
 
@@ -100,6 +102,7 @@ export const useXoPbdCollection = (() => ({
 
 export const useXoPifCollection = (() => ({
   pifs: xoCollectionsMock.pifs,
+  getPifsByIds: (ids: FrontXoPif['id'][]) => xoCollectionsMock.pifs.value.filter(pif => ids.includes(pif.id)),
 })) as unknown as typeof realUseXoPifCollection
 
 export const useXoVmTemplateCollection = (() => ({

@@ -18,7 +18,8 @@ function getSelectSlots(optionIcon: SelectColumnConfig['optionIcon']) {
   }
 
   return {
-    default: ({ option }: { option: FormOption }) => h(VtsDetailedOption, { option, icon: optionIcon }),
+    default: ({ option }: { option: FormOption<{ details?: string }> }) =>
+      h(VtsDetailedOption, { option, icon: optionIcon, details: option.properties.details }),
   }
 }
 

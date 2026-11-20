@@ -35,7 +35,7 @@ function createInterface(): PrivateNetworkInterface {
   return { key: uniqueId('interface-'), pool: undefined, pif: undefined }
 }
 
-export function useNewPrivateNetworkForm(_poolId: MaybeRefOrGetter<FrontXoPool['id'] | undefined>) {
+export function useNewPrivateNetworkForm(poolId: MaybeRefOrGetter<FrontXoPool['id'] | undefined>) {
   const formData = reactive<NewPrivateNetworkFormData>({
     name: '',
     description: '',
@@ -52,7 +52,7 @@ export function useNewPrivateNetworkForm(_poolId: MaybeRefOrGetter<FrontXoPool['
   const { hostsByPool } = useXoHostCollection()
   const { encryptedEncapsulationsByPool } = useXoNetworkCollection()
 
-  useNetworkPoolPrefill(_poolId, toRef(formData.interfaces[0], 'pool'))
+  useNetworkPoolPrefill(poolId, toRef(formData.interfaces[0], 'pool'))
 
   const { useField, useFormSelect, useSelect, validate } = useValidatedForm(formData, {
     errors: {
@@ -93,15 +93,15 @@ export function useNewPrivateNetworkForm(_poolId: MaybeRefOrGetter<FrontXoPool['
   }
 
   function getExcludedPoolIds(key: PrivateNetworkInterface['key']) {
-    const excludedPoolIds: FrontXoPool['id'][] = []
+    const ownInterface = formData.interfaces.find(networkInterface => networkInterface.key === key)
 
-    formData.interfaces.forEach(networkInterface => {
-      if (networkInterface.key !== key && networkInterface.pool !== undefined) {
-        excludedPoolIds.push(networkInterface.pool)
-      }
-    })
+    if (ownInterface === undefined || ownInterface.pool === undefined) {
+      return selectedPoolIds.value
+    }
 
-    return excludedPoolIds
+    const ownPoolId = ownInterface.pool
+
+    return selectedPoolIds.value.filter(poolId => poolId !== ownPoolId)
   }
 
   const showInterfaceErrors = ref(false)
@@ -153,16 +153,24 @@ export function useNewPrivateNetworkForm(_poolId: MaybeRefOrGetter<FrontXoPool['
     }
   })
 
-  const isAnyPoolFullyEncrypted = computed(() =>
-    selectedPoolIds.value.some(poolId => {
+  const selectedPoolsEncryptedEncapsulations = computed(() => {
+    const poolsEncapsulations: Set<TUNNEL_PROTOCOL>[] = []
+
+    selectedPoolIds.value.forEach(poolId => {
       const poolEncapsulations = encryptedEncapsulationsByPool.value.get(poolId)
 
-      if (poolEncapsulations === undefined) {
-        return false
+      if (poolEncapsulations !== undefined) {
+        poolsEncapsulations.push(poolEncapsulations)
       }
-
-      return ENCAPSULATIONS.every(encapsulation => poolEncapsulations.has(encapsulation))
     })
+
+    return poolsEncapsulations
+  })
+
+  const isAnyPoolFullyEncrypted = computed(() =>
+    selectedPoolsEncryptedEncapsulations.value.some(poolEncapsulations =>
+      ENCAPSULATIONS.every(encapsulation => poolEncapsulations.has(encapsulation))
+    )
   )
 
   const isSelectedEncapsulationEncrypted = computed(() => {
@@ -172,15 +180,9 @@ export function useNewPrivateNetworkForm(_poolId: MaybeRefOrGetter<FrontXoPool['
       return false
     }
 
-    return selectedPoolIds.value.some(poolId => {
-      const poolEncapsulations = encryptedEncapsulationsByPool.value.get(poolId)
-
-      if (poolEncapsulations === undefined) {
-        return false
-      }
-
-      return poolEncapsulations.has(selectedEncapsulation)
-    })
+    return selectedPoolsEncryptedEncapsulations.value.some(poolEncapsulations =>
+      poolEncapsulations.has(selectedEncapsulation)
+    )
   })
 
   const isEncryptionUnavailable = computed(
