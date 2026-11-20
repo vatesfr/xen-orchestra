@@ -36,8 +36,8 @@ const log = createLogger('xo:proxy')
 
 // the url embedded the authentication token, it is no longer exposed
 //
-// the field is kept with an explicit message, so that an external script still reading it fails with an error leading
-// to the cause
+// the field is kept as a message that doesn't parse as a URL: a script still using it as one fails, and the message
+// points to the cause
 const PROXY_URL_REMOVED_MESSAGE =
   'proxy.url is no longer exposed by Xen Orchestra because it contained the proxy authentication token, see the Xen Orchestra changelog'
 
