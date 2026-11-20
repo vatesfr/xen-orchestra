@@ -928,10 +928,10 @@ To enable GFS retention, configure the settings in the backup job's "Long-term r
 
 ## Backup health check
 
-Backup health check ensures the backups are ready to be restored: after a run, XO restores the backup for real, boots it, and only marks it healthy if the guest comes up.
+Backup health check ensures the backups are ready to be restored: after a run, XO restores the backup for real, boots it, and only marks it healthy if XAPI detects PV drivers in the guest. To prove that the operating system itself boots, add a [health check script](#execute-a-script).
 
 <Schema label="Health check: every step a real restore would take, run automatically" legend={[["#e0a94a", "backup"], ["#6aabf0", "test VM"], ["#56c288", "verified"]]} maxWidth="640px">
-<svg viewBox="0 0 640 140" role="img" aria-label="A backup stored on the backup repository is restored as a test VM, booted until the guest tools respond, then the test VM is deleted and the backup run is marked healthy">
+<svg viewBox="0 0 640 140" role="img" aria-label="A backup stored on the backup repository is restored as a test VM, booted until XAPI detects PV drivers in the guest and, if the VM is tagged for it, a script reports success, then the test VM is deleted and the backup run is marked healthy">
   <rect x="14" y="38" width="132" height="58" rx="8" fill="rgba(224,169,74,0.12)" stroke="#e0a94a"/>
   <text x="80" y="63" fontSize="12.5" fill="#c6d2e1" textAnchor="middle">backup on BR</text>
   <text x="80" y="81" fontSize="10" fill="#7a8699" textAnchor="middle">or replica on SR</text>
@@ -949,9 +949,9 @@ Backup health check ensures the backups are ready to be restored: after a run, X
   <polygon points="338,67 330,63 330,71" fill="#6aabf0"/>
   <text x="319" y="54" fontSize="9.5" fill="#6aabf0" textAnchor="middle">boot</text>
   <rect x="340" y="38" width="158" height="58" rx="8" fill="rgba(106,171,240,0.12)" stroke="#6aabf0"/>
-  <text x="419" y="58" fontSize="12.5" fill="#c6d2e1" textAnchor="middle">guest tools up</text>
+  <text x="419" y="58" fontSize="12.5" fill="#c6d2e1" textAnchor="middle">PV drivers detected</text>
   <text x="419" y="74" fontSize="10" fill="#7a8699" textAnchor="middle">within 10 minutes</text>
-  <text x="419" y="89" fontSize="10" fill="#7a8699" textAnchor="middle">or your script's verdict</text>
+  <text x="419" y="89" fontSize="10" fill="#7a8699" textAnchor="middle">+ your script's verdict</text>
   <g className="schema-flow" stroke="#56c288" strokeWidth="1.5" strokeDasharray="5 4">
     <line x1="498" y1="67" x2="524" y2="67"/>
   </g>
@@ -959,7 +959,7 @@ Backup health check ensures the backups are ready to be restored: after a run, X
   <rect x="532" y="38" width="94" height="58" rx="8" fill="rgba(86,194,136,0.14)" stroke="#56c288"/>
   <text x="579" y="63" fontSize="12.5" fill="#56c288" textAnchor="middle">healthy ✓</text>
   <text x="579" y="81" fontSize="10" fill="#7a8699" textAnchor="middle">test VM deleted</text>
-  <text x="320" y="122" fontSize="10.5" fill="#7a8699" textAnchor="middle">a VM without guest tools fails the check · failures show up in the job report</text>
+  <text x="320" y="122" fontSize="10.5" fill="#7a8699" textAnchor="middle">PV drivers detected ≠ OS booted: use a script to prove it · failures show up in the job report</text>
 </svg>
 </Schema>
 
@@ -967,15 +967,20 @@ Backup health check ensures the backups are ready to be restored: after a run, X
 
 #### Check for boot
 
-XO will restore the VM, either by downloading it for a delta/full backup or by cloning it for a full or incremental replication, start it, and then wait for the guest tools to be loaded before the end of a timeout of 10 minutes (boot + guest tools).
+XO will restore the VM, either by downloading it for a delta/full backup or by cloning it for a full or incremental replication, start it, and then wait for XAPI to report that PV drivers are detected in the guest (the `PV_drivers_detected` field of the VM guest metrics) before the end of a timeout of 10 minutes (boot + PV drivers).
 
-A VM without guest tools will fail its health check.
+This check confirms that Xen PV drivers are running in the guest, not that the operating system has finished booting:
+
+- a VM whose PV drivers never load, for example a BIOS VM without guest tools, fails its health check;
+- a VM can pass it without a working operating system: UEFI firmware and kernels with built-in PV drivers can be enough for XAPI to report the drivers as detected. For example, a UEFI VM with only an empty disk passes the check.
+
+When the health check must prove that the operating system boots, [execute a script](#execute-a-script) in the VM.
 
 The restored VM is then deleted.
 
 #### Execute a script
 
-If a VM has the tag **xo-backup-health-check-xenstore** during a backup health check, then XO will wait for a script to change the value of the xenstore `vm-data/xo-backup-health-check` key to be either `success` or `failure`.
+If a VM has the tag **xo-backup-health-check-xenstore** during a backup health check, then, once PV drivers are detected, XO will wait for a script to change the value of the xenstore `vm-data/xo-backup-health-check` key to be either `success` or `failure`.
 
 In case of `failure`, it will mark the health check as failed, and will show the (optional) message contained in `vm-data/xo-backup-health-check-error`.
 
