@@ -72,6 +72,7 @@
 - [RPU] Resuming a rolling pool update stops when HA, auto power on, WLB or a backup schedule was enabled again since the failed or interrupted attempt, or when a host, a VM, a backup schedule or an HA heartbeat SR of the update is gone. The changes are listed on the pool's Patches tab, and the update resumes only once they are accepted as they are (PR [#10670](https://github.com/vatesfr/xen-orchestra/pull/10670))
 - [RPU] Finalizing an incomplete rolling pool update first restores what it left: disabled hosts are enabled, VMs are migrated back to their original host or started again, and HA, auto power on, WLB, the load balancer and backup schedules are enabled again. VMs that could not be moved back do not prevent it. It is refused if something else could not be restored, if a host was updated but not rebooted, or while a backup is running and VMs have to be moved back (PR [#10770](https://github.com/vatesfr/xen-orchestra/pull/10770))
 - [RPU] On a pool with XOSTOR, a rolling pool update is refused when the storage is not healthy or when its controller runs on several hosts, and waits for the storage to be healthy again after restarting its services and after each host reboot, before moving the VMs of the next host. The controller is now stopped only on the host running it (PR [#10775](https://github.com/vatesfr/xen-orchestra/pull/10775))
+- [Forms] Multi-line text fields have more contrasted borders (PR [#XXXX](https://github.com/vatesfr/xen-orchestra/pull/XXXX))
 
 ### Bug fixes
 
