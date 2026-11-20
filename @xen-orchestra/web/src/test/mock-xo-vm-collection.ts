@@ -2,7 +2,8 @@ import type {
   FrontXoVm,
   useXoVmCollection as realUseXoVmCollection,
 } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
-import { ref } from 'vue'
+import { groupBy } from '@/test/group-by.ts'
+import { computed, ref } from 'vue'
 
 // Shared state of the mocked VM collection: a test sets the VMs it needs, reset it in `beforeEach`
 export const vmCollectionMock = {
@@ -18,4 +19,5 @@ export const vmCollectionMock = {
 export const useXoVmCollection = (() => ({
   vms: vmCollectionMock.vms,
   areVmsReady: vmCollectionMock.areVmsReady,
+  vmsByPool: computed(() => groupBy(vmCollectionMock.vms.value, vm => vm.$pool)),
 })) as unknown as typeof realUseXoVmCollection

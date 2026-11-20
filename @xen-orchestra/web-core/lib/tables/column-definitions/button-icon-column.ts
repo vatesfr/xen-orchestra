@@ -15,10 +15,16 @@ export type ButtonIconConfig = {
   buttonAccent?: MaybeRefOrGetter<ButtonIconAccent>
 }
 
+const COLUMN_WIDTH = '6rem'
+
 export const useButtonIconColumn = defineColumn((config: HeaderConfig & ButtonIconConfig) => ({
   renderHead: () => renderHeadCell(config.headerLabel),
-  renderBody: (onClick: () => void) =>
-    h(UiTableCell, { align: 'center', style: 'width: 6rem' }, () =>
+  renderBody: (onClick: (() => void) | undefined) => {
+    if (onClick === undefined) {
+      return h(UiTableCell, { style: { width: COLUMN_WIDTH } })
+    }
+
+    return h(UiTableCell, { align: 'center', style: { width: COLUMN_WIDTH } }, () =>
       h(UiButtonIcon, {
         icon: toValue(config.buttonIcon),
         accent: toValue(config.buttonAccent) ?? 'brand',
@@ -26,5 +32,6 @@ export const useButtonIconColumn = defineColumn((config: HeaderConfig & ButtonIc
         targetScale: 1.5,
         onClick,
       })
-    ),
+    )
+  },
 }))

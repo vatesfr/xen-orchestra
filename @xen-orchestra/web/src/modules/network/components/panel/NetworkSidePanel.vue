@@ -56,6 +56,28 @@
             <template #key>{{ t('locking-mode-default') }}</template>
             <template #value>{{ networkDefaultLockingMode }}</template>
           </VtsCardRowKeyValue>
+          <template v-if="isPrivateNetwork">
+            <!-- PREFERRED CENTER -->
+            <VtsCardRowKeyValue>
+              <template #key>{{ t('preferred-center') }}</template>
+              <template #value>
+                <HostLink v-if="networkPreferredCenter" :host="networkPreferredCenter" size="small" />
+                <template v-else>{{ t('none') }}</template>
+              </template>
+            </VtsCardRowKeyValue>
+            <!-- ENCAPSULATION -->
+            <VtsCardRowKeyValue>
+              <template #key>{{ t('encapsulation') }}</template>
+              <template #value>{{ networkEncapsulationLabel }}</template>
+            </VtsCardRowKeyValue>
+            <!-- ENCRYPTION -->
+            <VtsCardRowKeyValue>
+              <template #key>{{ t('encryption') }}</template>
+              <template #value>
+                <VtsStatus :status="isNetworkEncrypted" />
+              </template>
+            </VtsCardRowKeyValue>
+          </template>
         </VtsCardRowList>
       </UiPanelCard>
       <NetworkPifsInfoCard :network />
@@ -64,6 +86,7 @@
 </template>
 
 <script setup lang="ts">
+import HostLink from '@/modules/host/components/HostLink.vue'
 import NetworkPifsInfoCard from '@/modules/network/components/panel/cards/NetworkPifsInfoCard.vue'
 import { useNetworkDelete } from '@/modules/network/composables/use-network-delete.composable.ts'
 import { useXoNetworkUtils } from '@/modules/network/composables/xo-network-utils.composable.ts'
@@ -74,6 +97,7 @@ import VtsCardRowList from '@core/components/card/VtsCardRowList.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsDeleteButton from '@core/components/delete-button/VtsDeleteButton.vue'
 import VtsSidePanel from '@core/components/panel/VtsSidePanel.vue'
+import VtsStatus from '@core/components/status/VtsStatus.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
 import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
 import { computed } from 'vue'
@@ -93,7 +117,15 @@ const networkTo = computed(() => (network !== undefined ? getNetworkRoute(networ
 
 const { t } = useI18n()
 
-const { networkVlan, networkNbd, networkDefaultLockingMode } = useXoNetworkUtils(() => network)
+const {
+  networkVlan,
+  networkNbd,
+  networkDefaultLockingMode,
+  isPrivateNetwork,
+  networkPreferredCenter,
+  networkEncapsulationLabel,
+  isNetworkEncrypted,
+} = useXoNetworkUtils(() => network)
 </script>
 
 <style scoped lang="postcss">

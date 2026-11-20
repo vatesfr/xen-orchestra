@@ -10,7 +10,7 @@ import type {
   FrontXoVif,
   useXoVifCollection as realUseXoVifCollection,
 } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
-import { ref } from 'vue'
+import { computed, type MaybeRefOrGetter, ref, toValue } from 'vue'
 
 function filterByIds<TRecord extends { id: string }>(records: TRecord[], ids: string[]) {
   return records.filter(record => ids.includes(record.id))
@@ -52,4 +52,7 @@ export const useXoVifCollection = (() => ({
   vifs: vmDeviceCollectionsMock.vifs,
   areVifsReady: vmDeviceCollectionsMock.areVifsReady,
   getVifsByIds: (ids: FrontXoVif['id'][]) => filterByIds(vmDeviceCollectionsMock.vifs.value, ids),
+  getVifById: (id: FrontXoVif['id'] | undefined) => vmDeviceCollectionsMock.vifs.value.find(vif => vif.id === id),
+  useGetVifById: (id: MaybeRefOrGetter<FrontXoVif['id'] | undefined>) =>
+    computed(() => vmDeviceCollectionsMock.vifs.value.find(vif => vif.id === toValue(id))),
 })) as unknown as typeof realUseXoVifCollection

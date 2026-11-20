@@ -2,9 +2,9 @@
 
 The typed `vi.mock` form, `vi.hoisted` and shared mock modules are in [Mocking dependencies](../../../web-core/docs/tests/mocking.md). In XO 6, **mock only the remote-resource collections / stores** a composable depends on.
 
-The shared mock modules of XO 6 live in `src/test/`. `mock-xo-vm-collection.ts` stands for `useXoVmCollection`: `vmCollectionMock.areVmsReady` is true after a reset; set it to false to hold the collection as still loading.
+The shared mock modules of XO 6 live in `src/test/`. `mock-xo-vm-collection.ts` stands for `useXoVmCollection`: it answers `vmsByPool` from `vmCollectionMock.vms`, and `vmCollectionMock.areVmsReady` is true after a reset; set it to false to hold the collection as still loading.
 
-Collections always read together share one mock module exporting each of their composables: `mock-xo-collections.ts` stands for the pool, host, SR, network, PBD, PIF and VM template collections. Each `vi.mock` of these modules points to it, and `xoCollectionsMock.reset()` resets them all. Its pool collection also answers `getPoolById`, `hasPoolById` and `useGetPoolById` from `pools`, its host collection `getHostById` from `hosts`, its SR and network collections `getSrById` and `getNetworkById`, its PBD collection `pbdsBySr` from `pbds`, and `arePoolsReady`, `areSrsReady`, `areNetworksReady` and `areTemplatesReady` (true after a reset) let a test hold that collection as still loading. `seedV2vListPool` (`seed-v2v-list-pool.ts`) seeds the pool of a V2V list and what it offers; `xoCollectionsMock.startLoadingPools()` empties the pools and clears `arePoolsReady`.
+Collections always read together share one mock module exporting each of their composables: `mock-xo-collections.ts` stands for the pool, host, SR, network, PBD, PIF and VM template collections. Each `vi.mock` of these modules points to it, and `xoCollectionsMock.reset()` resets them all. Its pool collection also answers `getPoolById`, `hasPoolById` and `useGetPoolById` from `pools`, its host collection `getHostById` and `hostsByPool` from `hosts`, its SR and network collections `getSrById` and `getNetworkById`, its network collection `useGetNetworkById` and `encryptedEncapsulationsByPool` from `networks` (through the real `getEncryptedEncapsulationsByPool`), its PBD collection `pbdsBySr` from `pbds`, its PIF collection `getPifsByIds` from `pifs`, and `arePoolsReady`, `areSrsReady`, `areNetworksReady` and `areTemplatesReady` (true after a reset) let a test hold that collection as still loading. `seedV2vListPool` (`seed-v2v-list-pool.ts`) seeds the pool of a V2V list and what it offers; `xoCollectionsMock.startLoadingPools()` empties the pools and clears `arePoolsReady`.
 
 The same goes for `mock-xo-v2v-vm-rows-collections.ts`, the VM, task and VM snapshot collections the V2V VM rows are built from: `v2vVmRowsCollectionsMock` holds `vms`, `tasks`, `snapshots` and their `are…Ready` flags (true after a reset; set one to false to hold that collection as still loading). Its VMs are those of `mock-xo-vm-collection.ts`, which it re-exports and resets.
 
@@ -14,7 +14,7 @@ The same goes for `mock-xo-v2v-vm-rows-collections.ts`, the VM, task and VM snap
 
 `mock-v2v-vm-actions.ts` stands for `use-v2v-vm-actions.composable.ts`, whose composables open the settings drawer or delete an import VM: each `v2vVmActionsMock.useV2v*VmActions` spy returns fresh fake actions of its kind (read them back from `mock.results`), and `v2vVmActionsMock.reset()` goes in `beforeEach`.
 
-`mock-xo-vm-device-collections.ts` stands for the VBD, VDI and VIF collections: `vmDeviceCollectionsMock` holds `vbds`, `vdis`, `vifs` and their `are…Ready` flags (true after a reset), and its collections answer `getVbdsByIds` and `getVifsByIds`.
+`mock-xo-vm-device-collections.ts` stands for the VBD, VDI and VIF collections: `vmDeviceCollectionsMock` holds `vbds`, `vdis`, `vifs` and their `are…Ready` flags (true after a reset), and its collections answer `getVbdsByIds`, and `getVifsByIds`, `getVifById` and `useGetVifById`.
 
 `mock-xo-routes.ts` stands for `useXoRoutes`, the XO 5 routes the app fetches: an XO 5 link reads `https://xo5.example.com/#<path>`.
 
