@@ -97,6 +97,19 @@ redactUrls('s3://KEY:secret@s3.lan/bucket?encryptionKey=foo', '*')
 // → 's3://*@s3.lan/bucket?encryptionKey=*'
 ```
 
+### `findLeaks(value, secrets)`
+
+> Return the paths of the keys and string values containing one of the secrets.
+>
+> Useful to check that no known secret remains in data after `redact()`, even copied in an error message. Empty secrets are ignored.
+
+```js
+import { findLeaks } from '@vates/obfuscate'
+
+findLeaks({ error: { message: 'mount failed: smb://admin:bar@nas/share' } }, ['bar'])
+// → ['error.message']
+```
+
 ## Contributions
 
 Contributions are _very_ welcomed, either on the documentation or on
