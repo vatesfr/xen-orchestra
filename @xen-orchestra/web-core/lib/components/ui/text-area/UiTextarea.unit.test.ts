@@ -16,7 +16,7 @@ function mountTextarea(
 ) {
   return mount(UiTextarea, {
     global: createGlobalTestConfig(),
-    props: { accent: 'brand', modelValue: 'Value', ...props },
+    props: { accent: 'neutral', modelValue: 'Value', ...props },
     slots,
     attrs,
     attachTo: document.body,
@@ -24,18 +24,12 @@ function mountTextarea(
 }
 
 describe('UiTextarea', () => {
-  it.each(['brand', 'warning', 'danger'] as const)('applies the %s accent', accent => {
-    expect(mountTextarea({ accent }).classes()).toContain(`accent--${accent}`)
-  })
+  it.each(['neutral', 'warning', 'danger'] as const)('applies the %s accent to the field and its label', accent => {
+    const wrapper = mountTextarea({ accent }, { slots: { default: 'Label' } })
+    const label = wrapper.getComponent(UiLabel)
 
-  it.each([
-    { accent: 'brand', labelAccent: 'neutral' },
-    { accent: 'warning', labelAccent: 'warning' },
-    { accent: 'danger', labelAccent: 'danger' },
-  ] as const)('gives the label the $labelAccent accent with the $accent accent', ({ accent, labelAccent }) => {
-    const label = mountTextarea({ accent }, { slots: { default: 'Label' } }).getComponent(UiLabel)
-
-    expect(label.props('accent')).toBe(labelAccent)
+    expect(wrapper.classes()).toContain(`accent--${accent}`)
+    expect(label.props('accent')).toBe(accent)
     expect(label.text()).toBe('Label')
   })
 
@@ -119,7 +113,7 @@ describe('UiTextarea', () => {
     await nextTick()
     await textarea.trigger('focus')
 
-    expect(wrapper.classes()).toContain('accent--brand')
+    expect(wrapper.classes()).toContain('accent--neutral')
     expect(findAccentedInfos(wrapper)).toEqual([])
 
     await blurField(wrapper, 'textarea')
@@ -128,7 +122,7 @@ describe('UiTextarea', () => {
   })
 
   it.each([
-    { accent: 'brand', infos: [] },
+    { accent: 'neutral', infos: [] },
     { accent: 'warning', infos: [{ label: 'Message', accent: 'warning' }] },
     { accent: 'danger', infos: [{ label: 'Message', accent: 'danger' }] },
   ] as const)('shows the message slot only with a warning or danger accent ($accent)', ({ accent, infos }) => {

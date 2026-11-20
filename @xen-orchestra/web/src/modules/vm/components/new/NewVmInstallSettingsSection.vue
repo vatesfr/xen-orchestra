@@ -21,7 +21,7 @@
       <UiInfo v-if="errors.iso !== undefined" accent="danger">{{ errors.iso }}</UiInfo>
     </div>
     <div v-if="vmState.installMode === 'cloud-init-config'" class="custom-config" :class="{ mobile: uiStore.isSmall }">
-      <UiTextarea v-model="vmState.cloudConfig" accent="brand" :placeholder="DEFAULT_CLOUD_CONFIG_PLACEHOLDER">
+      <UiTextarea v-model="vmState.cloudConfig" accent="neutral" :placeholder="DEFAULT_CLOUD_CONFIG_PLACEHOLDER">
         {{ t('user-config') }}
         <template #info>
           {{ t('new-vm:user-config-variables') }}
@@ -32,7 +32,7 @@
           {{ t('new-vm:user-config-variables-escape') }}
         </template>
       </UiTextarea>
-      <UiTextarea v-model="vmState.networkConfig" accent="brand" :placeholder="DEFAULT_NETWORK_CONFIG_PLACEHOLDER">
+      <UiTextarea v-model="vmState.networkConfig" accent="neutral" :placeholder="DEFAULT_NETWORK_CONFIG_PLACEHOLDER">
         {{ t('network-config') }}
         <template #info>
           <I18nT keypath="new-vm:network-config" scope="global">
@@ -58,7 +58,7 @@
     </div>
     <div v-if="vmState.installMode === 'ssh-key'" class="ssh-key">
       <div class="public-key">
-        <UiTextarea v-model="vmState.ssh_key" required :accent="isSshKeyError ? 'danger' : 'brand'">
+        <UiTextarea v-model="vmState.ssh_key" required :accent="isSshKeyError ? 'danger' : 'neutral'">
           {{ t('public-key') }}
           <template v-if="isSshKeyError" #message>
             {{ sshKeyErrorMessage }}
