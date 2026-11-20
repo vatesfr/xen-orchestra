@@ -9,7 +9,6 @@ import {
   createV2vNewMappingStepVm,
   createV2vResumedMappingStepVm,
 } from '@/test/create-v2v-mapping-step-vm.ts'
-import { findAccentedInfos, findAccentedTags } from '@/test/find-accented-labels.ts'
 import { findInlineParts } from '@/test/find-parts.ts'
 import { findTableColumn, findTableColumnCells, findTableHeaders } from '@/test/find-table-cells.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
@@ -22,6 +21,7 @@ import VtsActionCell from '@core/components/table/cells/VtsActionCell.vue'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
+import { findAccentedInfos, findAccentedTags } from '@core-test/find-accented-labels.ts'
 import type { XoV2vVm } from '@vates/types'
 import { mount, type VueWrapper } from '@vue/test-utils'
 

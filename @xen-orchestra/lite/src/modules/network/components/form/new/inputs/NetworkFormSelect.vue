@@ -1,6 +1,6 @@
 <template>
   <VtsInputWrapper :label :message="error">
-    <VtsSelect :id accent="brand" />
+    <VtsSelect :id accent="neutral" />
   </VtsInputWrapper>
 </template>
 

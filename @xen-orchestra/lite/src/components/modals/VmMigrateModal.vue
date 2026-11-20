@@ -7,7 +7,7 @@
     <template #content>
       <div>
         <VtsInputWrapper :label="t('select-destination-host')">
-          <VtsSelect :id="hostSelectId" accent="brand" />
+          <VtsSelect :id="hostSelectId" accent="neutral" />
         </VtsInputWrapper>
       </div>
     </template>

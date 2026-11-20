@@ -10,7 +10,7 @@
           <UiTitle>{{ t('template') }}</UiTitle>
           <div class="template-container">
             <VtsInputWrapper :label="t('action:pick-template')">
-              <VtsSelect :id="templateSelectId" accent="brand" />
+              <VtsSelect :id="templateSelectId" accent="neutral" />
             </VtsInputWrapper>
           </div>
           <div v-if="vmState.new_vm_template" class="form-container">
@@ -30,7 +30,7 @@
                     {{ t('iso-dvd') }}
                   </UiRadioButton>
                 </UiRadioButtonGroup>
-                <VtsSelect v-if="vmState.installMode === 'ISO'" :id="vdiIsoSelectId" accent="brand" />
+                <VtsSelect v-if="vmState.installMode === 'ISO'" :id="vdiIsoSelectId" accent="neutral" />
               </div>
               <div v-else class="install-settings-container">
                 <UiRadioButtonGroup
@@ -45,7 +45,7 @@
                     {{ t('pxe') }}
                   </UiRadioButton>
                 </UiRadioButtonGroup>
-                <VtsSelect v-if="vmState.installMode === 'ISO'" :id="vdiIsoSelectId" accent="brand" />
+                <VtsSelect v-if="vmState.installMode === 'ISO'" :id="vdiIsoSelectId" accent="neutral" />
               </div>
             </div>
             <!-- SYSTEM SECTION -->
@@ -54,11 +54,11 @@
             <div class="system-container">
               <div class="column">
                 <VtsInputWrapper :label="t('new-vm:name')">
-                  <UiInput v-model.trim="vmState.name" accent="brand" />
+                  <UiInput v-model.trim="vmState.name" accent="neutral" />
                 </VtsInputWrapper>
                 <VtsInputWrapper :label="t('tags')">
                   <!-- TODO Change input text into select when Thierry's component is available -->
-                  <UiInput v-model.trim="vmState.tag" accent="brand" @keydown.enter.prevent="addTag" />
+                  <UiInput v-model.trim="vmState.tag" accent="neutral" @keydown.enter.prevent="addTag" />
                 </VtsInputWrapper>
                 <div v-if="vmState.tags.length > 0" class="chips">
                   <UiChip v-for="(tag, index) in vmState.tags" :key="index" accent="info" @remove="removeTag(index)">
@@ -66,7 +66,7 @@
                   </UiChip>
                 </div>
                 <VtsInputWrapper :label="t('boot-firmware')">
-                  <VtsSelect :id="bootFirmwareSelectId" accent="brand" />
+                  <VtsSelect :id="bootFirmwareSelectId" accent="neutral" />
                 </VtsInputWrapper>
                 <div
                   v-if="vmState.boot_firmware !== 'uefi'"
@@ -97,7 +97,7 @@
                   {{ t('new-vm:description') }}
                 </UiTextarea>
                 <VtsInputWrapper :label="t('affinity-host')">
-                  <VtsSelect :id="affinityHostSelectId" accent="brand" />
+                  <VtsSelect :id="affinityHostSelectId" accent="neutral" />
                 </VtsInputWrapper>
               </div>
             </div>
@@ -105,15 +105,15 @@
             <UiTitle>{{ t('resource-management') }}</UiTitle>
             <div class="resource-management-container">
               <VtsInputWrapper :label="t('vcpus')">
-                <UiInput v-model.number="vmState.vCPU" type="number" accent="brand" />
+                <UiInput v-model.number="vmState.vCPU" type="number" accent="neutral" />
               </VtsInputWrapper>
               <!-- TODO remove (GB) when we can use new selector -->
               <VtsInputWrapper :label="`${t('ram')} (GB)`">
-                <UiInput v-model.number="ramFormatted" type="number" accent="brand" />
+                <UiInput v-model.number="ramFormatted" type="number" accent="neutral" />
               </VtsInputWrapper>
               <VtsInputWrapper :label="t('topology')">
                 <div class="topology">
-                  <VtsSelect :id="topologySelectId" accent="brand" />
+                  <VtsSelect :id="topologySelectId" accent="neutral" />
                 </div>
               </VtsInputWrapper>
             </div>

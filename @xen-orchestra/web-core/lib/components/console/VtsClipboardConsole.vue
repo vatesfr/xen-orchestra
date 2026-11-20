@@ -5,7 +5,7 @@
       :message="isKeyboardLayoutDisabled ? t('console-keyboard-layout-not-applicable') : undefined"
       wrap-message
     >
-      <VtsSelect :id="keyboardLayoutSelectId" accent="brand" />
+      <VtsSelect :id="keyboardLayoutSelectId" accent="neutral" />
     </VtsInputWrapper>
     <UiCardTitle>{{ t('console-clipboard') }}</UiCardTitle>
     <UiTextarea v-model="clipboardText" accent="brand" />

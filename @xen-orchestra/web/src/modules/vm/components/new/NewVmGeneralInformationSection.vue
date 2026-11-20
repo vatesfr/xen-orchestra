@@ -3,10 +3,10 @@
     <div class="columns" :class="{ mobile: uiStore.isSmall }">
       <div class="column">
         <VtsInputWrapper :id="fieldIds.name" :label="t('new-vm:name')" :message="errorMessages.name">
-          <UiInput v-model.trim="vmState.name" :accent="errors.name === undefined ? 'brand' : 'danger'" required />
+          <UiInput v-model.trim="vmState.name" :accent="errors.name === undefined ? 'neutral' : 'danger'" required />
         </VtsInputWrapper>
         <VtsInputWrapper :label="t('boot-firmware')">
-          <VtsSelect :id="bootFirmwareSelectId" accent="brand" />
+          <VtsSelect :id="bootFirmwareSelectId" accent="neutral" />
         </VtsInputWrapper>
         <div
           v-if="canCopyBiosStrings"
@@ -33,10 +33,10 @@
           {{ t('new-vm:description') }}
         </UiTextarea>
         <VtsInputWrapper :label="t('affinity-host')">
-          <VtsSelect :id="affinityHostSelectId" accent="brand" />
+          <VtsSelect :id="affinityHostSelectId" accent="neutral" />
         </VtsInputWrapper>
         <VtsInputWrapper :label="t('high-availability')" :message="haMessages" wrap-message>
-          <VtsSelect :id="haSelectId" accent="brand" />
+          <VtsSelect :id="haSelectId" accent="neutral" />
         </VtsInputWrapper>
       </div>
     </div>

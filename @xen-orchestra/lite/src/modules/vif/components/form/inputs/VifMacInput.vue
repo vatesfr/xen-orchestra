@@ -1,6 +1,11 @@
 <template>
   <VtsInputWrapper :label="t('mac-address')" :message="messages" wrap-message>
-    <UiInput v-model.trim="model" accent="brand" :required :placeholder="required ? undefined : t('auto-generated')" />
+    <UiInput
+      v-model.trim="model"
+      accent="neutral"
+      :required
+      :placeholder="required ? undefined : t('auto-generated')"
+    />
   </VtsInputWrapper>
 </template>
 
