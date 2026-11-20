@@ -54,7 +54,7 @@ import type { IconName } from '@core/icons'
 import { toVariants } from '@core/utils/to-variants.util.ts'
 import { computed, ref, useAttrs } from 'vue'
 
-export type InputAccent = 'brand' | 'success' | 'warning' | 'danger'
+export type InputAccent = 'neutral' | 'success' | 'warning' | 'danger'
 
 export type InputType = 'text' | 'number' | 'password' | 'search'
 
@@ -210,7 +210,7 @@ defineExpose({ focus })
 
   /* VARIANT */
 
-  &.accent--brand {
+  &.accent--neutral {
     --idle-color: var(--color-neutral-txt-secondary);
     --hover-color: var(--color-brand-txt-hover);
     --active-color: var(--color-brand-txt-active);

@@ -26,7 +26,7 @@ function mountInputWrapper({
   return mount(VtsInputWrapper, {
     global: createGlobalTestConfig(),
     props: { label: 'Name', ...props },
-    slots: { default: field ?? (() => h(UiInput, { modelValue: '', accent: 'brand', ...input })), ...slots },
+    slots: { default: field ?? (() => h(UiInput, { modelValue: '', accent: 'neutral', ...input })), ...slots },
   })
 }
 
@@ -110,9 +110,9 @@ describe('VtsInputWrapper', () => {
   })
 
   it.each([
-    { messageAccent: undefined, labelAccent: 'neutral', inputAccent: 'brand' },
-    { messageAccent: 'info', labelAccent: 'neutral', inputAccent: 'brand' },
-    { messageAccent: 'muted', labelAccent: 'neutral', inputAccent: 'brand' },
+    { messageAccent: undefined, labelAccent: 'neutral', inputAccent: 'neutral' },
+    { messageAccent: 'info', labelAccent: 'neutral', inputAccent: 'neutral' },
+    { messageAccent: 'muted', labelAccent: 'neutral', inputAccent: 'neutral' },
     { messageAccent: 'success', labelAccent: 'neutral', inputAccent: 'success' },
     { messageAccent: 'warning', labelAccent: 'warning', inputAccent: 'warning' },
     { messageAccent: 'danger', labelAccent: 'danger', inputAccent: 'danger' },
@@ -165,7 +165,7 @@ describe('VtsInputWrapper', () => {
 
     await nextTick()
 
-    expect(wrapper.getComponent(UiInput).classes()).toContain('accent--brand')
+    expect(wrapper.getComponent(UiInput).classes()).toContain('accent--neutral')
     expect(input.attributes('id')).toBeUndefined()
     expect(input.attributes('aria-describedby')).toBeUndefined()
     expect(input.attributes('aria-invalid')).toBeUndefined()

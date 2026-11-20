@@ -1,7 +1,7 @@
 <template>
   <VtsInputGroup>
-    <UiInput v-model.number="sizeInput" accent="brand" type="number" :max-decimals="3" />
-    <VtsSelect :id="prefixSelectId" accent="brand" />
+    <UiInput v-model.number="sizeInput" accent="neutral" type="number" :max-decimals="3" />
+    <VtsSelect :id="prefixSelectId" accent="neutral" />
   </VtsInputGroup>
 </template>
 

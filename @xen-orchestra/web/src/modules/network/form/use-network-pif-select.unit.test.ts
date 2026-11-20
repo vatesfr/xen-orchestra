@@ -43,7 +43,7 @@ function mountPifSelect(
       ...options,
     })
 
-    return () => h(VtsSelect, { id: interfacesSelectId, accent: 'brand' })
+    return () => h(VtsSelect, { id: interfacesSelectId, accent: 'neutral' })
   })
 
   return { wrapper, model }

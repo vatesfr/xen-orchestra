@@ -1,6 +1,15 @@
 <template>
   <VtsInputWrapper :label :message="messages" wrap-message>
-    <UiInput v-model.trim="model" accent="brand" :type :required :disabled :placeholder :prefix @blur="emit('blur')" />
+    <UiInput
+      v-model.trim="model"
+      accent="neutral"
+      :type
+      :required
+      :disabled
+      :placeholder
+      :prefix
+      @blur="emit('blur')"
+    />
   </VtsInputWrapper>
 </template>
 

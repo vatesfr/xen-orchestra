@@ -61,10 +61,10 @@ function mountForm(poolId: FrontXoPool['id'] = POOL.id) {
     return () =>
       h('div', [
         h('div', { class: 'encapsulation' }, [
-          h(VtsSelect, { id: form!.encapsulationSelectBindings.id, accent: 'brand' }),
+          h(VtsSelect, { id: form!.encapsulationSelectBindings.id, accent: 'neutral' }),
         ]),
         h('div', { class: 'preferred-center' }, [
-          h(VtsSelect, { id: form!.preferredCenterSelectBindings.id, accent: 'brand' }),
+          h(VtsSelect, { id: form!.preferredCenterSelectBindings.id, accent: 'neutral' }),
         ]),
       ])
   })

@@ -1,9 +1,9 @@
 <template>
   <div class="vts-query-builder-filter">
-    <VtsSelect :id="propertySelectId" ref="propertySelector" accent="brand" />
-    <VtsSelect :id="operatorSelectId" accent="brand" />
-    <UiInput v-if="valueType === 'input'" v-model="value" class="value" accent="brand" />
-    <VtsSelect v-else-if="valueType === 'select'" :id="valueSelectId" class="value" accent="brand" />
+    <VtsSelect :id="propertySelectId" ref="propertySelector" accent="neutral" />
+    <VtsSelect :id="operatorSelectId" accent="neutral" />
+    <UiInput v-if="valueType === 'input'" v-model="value" class="value" accent="neutral" />
+    <VtsSelect v-else-if="valueType === 'select'" :id="valueSelectId" class="value" accent="neutral" />
     <div>
       <MenuList :placement="uiStore.isSmall ? 'bottom' : 'bottom-end'">
         <template #trigger="{ open, bindings }">

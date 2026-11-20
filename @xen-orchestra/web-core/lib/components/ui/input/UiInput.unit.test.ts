@@ -14,7 +14,7 @@ function mountInput(
 ) {
   return mount(UiInput, {
     global: createGlobalTestConfig(),
-    props: { accent: 'brand', modelValue: 'Value', ...props },
+    props: { accent: 'neutral', modelValue: 'Value', ...props },
     slots,
     attrs,
     attachTo: document.body,
@@ -28,7 +28,7 @@ function findIcon(wrapper: VueWrapper, name: IconName) {
 const SUCCESS_ICON: IconName = 'status:success-circle'
 
 describe('UiInput', () => {
-  it.each(['brand', 'warning', 'danger', 'success'] as const)('applies the %s accent', accent => {
+  it.each(['neutral', 'warning', 'danger', 'success'] as const)('applies the %s accent', accent => {
     expect(mountInput({ accent }).classes()).toContain(`accent--${accent}`)
   })
 

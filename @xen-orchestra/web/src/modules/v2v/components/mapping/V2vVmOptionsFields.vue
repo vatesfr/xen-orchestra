@@ -19,7 +19,7 @@
       </div>
     </VtsInputWrapper>
     <VtsInputWrapper :label="t('tags')" :message="{ content: t('v2v:tags-backup-info'), accent: 'info' }" wrap-message>
-      <VtsTagsInput :model-value="tags" accent="brand" @update:model-value="value => emit('changeTags', value)" />
+      <VtsTagsInput :model-value="tags" accent="neutral" @update:model-value="value => emit('changeTags', value)" />
     </VtsInputWrapper>
   </div>
 </template>

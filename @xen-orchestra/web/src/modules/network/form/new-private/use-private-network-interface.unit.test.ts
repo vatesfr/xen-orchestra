@@ -48,8 +48,8 @@ function mountInterface(networkInterface: PrivateNetworkInterface, excludedPoolI
 
     return () =>
       h('div', [
-        h('div', { class: 'pool' }, [h(VtsSelect, { id: poolSelectId, accent: 'brand' })]),
-        h('div', { class: 'pif' }, [h(VtsSelect, { id: pifSelectId, accent: 'brand' })]),
+        h('div', { class: 'pool' }, [h(VtsSelect, { id: poolSelectId, accent: 'neutral' })]),
+        h('div', { class: 'pif' }, [h(VtsSelect, { id: pifSelectId, accent: 'neutral' })]),
       ])
   })
 }
