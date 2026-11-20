@@ -5,7 +5,7 @@ import { decorateObject } from '@vates/decorate-with'
 import { defer as deferrable } from 'golike-defer'
 import { incorrectState } from 'xo-common/api-errors.js'
 import { isHostRunning } from '../utils.mjs'
-import { noopRpuRecorder } from '../../_rpuRecovery.mjs'
+import { isRpuHostAwaitingReboot, noopRpuRecorder, noRpuResume, restoreRpuSetting } from '../../_rpuRecovery.mjs'
 import { parseDateTime } from '@xen-orchestra/xapi'
 import { Task } from '@xen-orchestra/mixins/Tasks.mjs'
 import filter from 'lodash/filter.js'
@@ -47,31 +47,66 @@ const methods = {
     })
   },
 
+  // `resume` continues a previous attempt of the same run, see `planRpuResume`
   async rollingPoolReboot(
     $defer,
     parentTask,
-    { beforeEvacuateVms, beforeRebootHost, ignoreHost, shutdownPinnedVms = false, recorder = noopRpuRecorder } = {}
+    {
+      // called with each host once it is back from its reboot, before the next
+      // one is evacuated
+      afterHostIsBack,
+      beforeEvacuateVms,
+      beforeRebootHost,
+      ignoreHost,
+      rebootFirst,
+      shutdownPinnedVms = false,
+      recorder = noopRpuRecorder,
+      resume = noRpuResume,
+    } = {}
   ) {
     // migrating the VMs back to their host doubles the migrations of the run: a
     // pool can opt out of that phase by setting this key to `false`
     const migrateVmsBack = this.pool.other_config['xo:rpuMigrateVmsBack'] !== 'false'
 
-    if (this.pool.ha_enabled) {
-      const haSrs = this.pool.$ha_statefiles.map(vdi => vdi.SR)
-      const haConfig = this.pool.ha_configuration
-      await recorder.settingChangedByRun('ha')
+    // a host done by a previous attempt is neither evacuated nor rebooted
+    // again, but its VMs still have to come back to it
+    const isDone = host => resume.doneHostIds.has(host.uuid)
+    const skipHost = host => isDone(host) || (ignoreHost?.(host) ?? false)
+    const skipMigrateBack = host => !isDone(host) && (ignoreHost?.(host) ?? false)
+
+    // a setting a previous attempt disabled stays disabled until the end of
+    // this one, a setting disabled before the run is not in the record
+    const { changedByRun = {} } = resume
+
+    const haEnabled = this.pool.ha_enabled
+    const ha = haEnabled
+      ? { srs: this.pool.$ha_statefiles.map(vdi => vdi.$SR.uuid), configuration: this.pool.ha_configuration }
+      : changedByRun.ha
+    // registered before disabling it, which may fail after the change. HA
+    // recorded without its heartbeat SRs is left to the operator
+    if (ha?.srs !== undefined) {
+      $defer(() => this._restoreRpuHa(recorder, ha))
+    }
+    if (haEnabled) {
+      await recorder.settingChangedByRun('ha', ha)
       await this.call('pool.disable_ha')
-      $defer(() => this.call('pool.enable_ha', haSrs, haConfig))
     }
 
-    if (this.pool.other_config.auto_poweron === 'true') {
+    const autoPowerOn = this.pool.other_config.auto_poweron === 'true'
+    // registered before disabling it, which may fail after the change
+    if (autoPowerOn || changedByRun.autoPowerOn) {
+      $defer(() => this._restoreRpuAutoPowerOn(recorder))
+    }
+    if (autoPowerOn) {
       log.info(`temporarily disabling auto power on during the rolling reboot of pool ${this.pool.uuid}`)
       await recorder.settingChangedByRun('autoPowerOn')
       await this.pool.update_other_config('auto_poweron', 'false')
-      $defer(() => this.pool.update_other_config('auto_poweron', 'true'))
     }
 
     const hosts = filter(this.objects.all, { $type: 'host' })
+    // same order as the previous attempt, the hosts it did not know last
+    const rank = new Map(resume.hostOrder.map((hostId, i) => [hostId, i]))
+    hosts.sort((a, b) => (rank.get(a.uuid) ?? hosts.length) - (rank.get(b.uuid) ?? hosts.length))
 
     {
       const deadHost = hosts.find(_ => !isHostRunning(_))
@@ -93,10 +128,14 @@ const methods = {
     //
     // this check requires HA to be already disabled: with HA enabled, XAPI
     // reports every non-protected VM as an evacuation blocker
+    //
+    // once a previous attempt started handling the hosts, one it disabled
+    // makes the pool look short of memory: only the pinned VMs are collected
+    // here, the full precondition is checked right before each evacuation
     const unhandledPinnedVmUuids = []
     await Promise.all(
       hosts
-        .filter(host => !ignoreHost || !ignoreHost(host))
+        .filter(host => !skipHost(host))
         .map(async host => {
           const blockedVms = await host.$call('get_vms_which_prevent_evacuation')
           const vmRefs = Object.keys(blockedVms)
@@ -107,13 +146,17 @@ const methods = {
           const canHandleAllBlockers = Object.values(blockedVms).every(([errorCode]) =>
             PINNED_VM_ERROR_CODES.has(errorCode)
           )
-          if (!canHandleAllBlockers) {
+          if (!canHandleAllBlockers && !resume.hostsStarted) {
             // let XAPI raise its canonical CANNOT_EVACUATE_HOST error
             return host.$call('assert_can_evacuate')
           }
 
           if (!shutdownPinnedVms) {
-            unhandledPinnedVmUuids.push(...vmRefs.map(vmRef => this.getObject(vmRef).uuid))
+            unhandledPinnedVmUuids.push(
+              ...vmRefs
+                .filter(vmRef => PINNED_VM_ERROR_CODES.has(blockedVms[vmRef][0]))
+                .map(vmRef => this.getObject(vmRef).uuid)
+            )
           }
         })
     )
@@ -131,24 +174,23 @@ const methods = {
     // VMs shut down for their host's reboot and not started again yet: if the
     // run aborts, leave them running rather than halted
     const haltedPinnedVms = new Map() // VM ref -> host ref
-    $defer(async () => {
-      for (const [vmRef, hostRef] of haltedPinnedVms) {
-        try {
-          await this.callAsync('VM.start_on', vmRef, hostRef, false, false)
-          try {
-            recorder.forgetHaltedPinnedVm(this.getObject(vmRef).uuid)
-          } catch (error) {
-            log.warn('could not resolve a restarted pinned VM, leaving it in the recovery record', { vmRef, error })
-          }
-        } catch (error) {
-          log.warn('failed to restart pinned VM after an aborted rolling pool reboot', { vmRef, error })
-        }
+    // including the ones the previous attempt did not start again
+    for (const [vmId, hostId] of Object.entries(resume.haltedPinnedVms)) {
+      const vm = this.getObject(vmId, undefined)
+      const host = this.getObject(hostId, undefined)
+      if (vm?.power_state === 'Halted' && host !== undefined) {
+        haltedPinnedVms.set(vm.$ref, host.$ref)
       }
-    })
+    }
+    $defer(() => this._startRpuHaltedPinnedVms(haltedPinnedVms, recorder))
 
-    // Steps in the RPR : Evacuate hosts, reboot hosts, and potentially migrate VMs back and updateHosts (beforeEvacuateVms and beforeRebootHost)
+    // Steps in the RPR : Evacuate hosts, reboot hosts, and potentially migrate VMs back, updateHosts (beforeEvacuateVms and beforeRebootHost) and afterHostIsBack
     const nSteps =
-      2 + Number(migrateVmsBack) + Number(beforeEvacuateVms !== undefined) + Number(beforeRebootHost !== undefined)
+      2 +
+      Number(migrateVmsBack) +
+      Number(beforeEvacuateVms !== undefined) +
+      Number(beforeRebootHost !== undefined) +
+      Number(afterHostIsBack !== undefined)
 
     const progressStep = 100 / nSteps
     const progressStepPerHost = progressStep / hosts.length
@@ -162,7 +204,6 @@ const methods = {
     // Remember on which hosts the running VMs are: to migrate them back after
     // the reboots, and for the recovery record (not reconstructible once the
     // evacuations have started)
-    const vmRefsByHost = {}
     const vmHomeById = {}
     for (const vm of filter(this.objects.all, { $type: 'VM', power_state: 'Running', is_control_domain: false })) {
       const hostId = vm.$resident_on?.$id
@@ -171,16 +212,28 @@ const methods = {
         throw new Error('Could not find host of all running VMs')
       }
 
-      ;(vmRefsByHost[hostId] ??= []).push(vm.$ref)
       vmHomeById[vm.uuid] = hostId
     }
+    // on resume, the VMs go back where they were before the first attempt, the
+    // current placement only covers the VMs unknown to the record
+    Object.assign(vmHomeById, resume.vmHomeById)
+    const vmIdsByHost = {}
+    for (const [vmId, hostId] of Object.entries(vmHomeById)) {
+      // the pinned VMs a previous attempt left halted are started on their
+      // host once the run is over
+      if (!haltedPinnedVms.has(this.getObject(vmId, undefined)?.$ref)) {
+        ;(vmIdsByHost[hostId] ??= []).push(vmId)
+      }
+    }
 
-    // Put master in first position to restart it first
-    const indexOfMaster = hosts.findIndex(host => host.$ref === this.pool.master)
-    if (indexOfMaster === -1) {
+    if (!hosts.some(host => host.$ref === this.pool.master)) {
       throw new Error('Could not find pool master')
     }
-    ;[hosts[0], hosts[indexOfMaster]] = [hosts[indexOfMaster], hosts[0]]
+    // the hosts to reboot first, then the master to restart it first, then the
+    // others. A stable sort, unlike swapping the master with the first host,
+    // keeps within each group the order above, so a resume does not change it
+    const priority = host => (rebootFirst?.(host) ? 0 : 2) + (host.$ref === this.pool.master ? 0 : 1)
+    hosts.sort((a, b) => priority(a) - priority(b))
 
     // last write before the first host is handled: the host order and the VM
     // placement are the biggest part of the record, written once
@@ -189,7 +242,7 @@ const methods = {
     // Restart all the hosts one by one
     const restartSubtask = new Task({ properties: { name: `Restarting hosts`, progress: 0 } })
     await restartSubtask.run(async () => {
-      const nStepsSubtask = 2 + Number(beforeRebootHost !== undefined)
+      const nStepsSubtask = 2 + Number(beforeRebootHost !== undefined) + Number(afterHostIsBack !== undefined)
       const subtaskProgressStep = 100 / (nStepsSubtask * hosts.length)
       let subtaskProgress = 0
 
@@ -197,7 +250,7 @@ const methods = {
         const hostId = host.uuid
         const hostName = host.name_label
 
-        if (!ignoreHost || !ignoreHost(host)) {
+        if (!skipHost(host)) {
           // live values right before the run touches the host, `hosts` is a
           // snapshot from the start of the run: after a crash, comparing
           // agent_start_time to the current value tells whether this host
@@ -349,6 +402,16 @@ const methods = {
                 )
               })
             }
+
+            // after the pinned VMs: they do not stay halted for the time of
+            // the hook
+            if (afterHostIsBack) {
+              await afterHostIsBack(host)
+              rprProgress += progressStepPerHost
+              setProgress(parentTask, rprProgress)
+              subtaskProgress += subtaskProgressStep
+              setProgress(restartSubtask, subtaskProgress)
+            }
             rprProgress += progressStepPerHost
             setProgress(parentTask, rprProgress)
             subtaskProgress += subtaskProgressStep
@@ -360,7 +423,10 @@ const methods = {
             throw error
           })
         } else {
-          recorder.hostSkipped(hostId)
+          // a done host keeps the steps of the attempt that handled it
+          if (!isDone(host)) {
+            recorder.hostSkipped(hostId)
+          }
           rprProgress += progressStepPerHost * nStepsSubtask
           setProgress(parentTask, rprProgress)
           subtaskProgress += subtaskProgressStep * nStepsSubtask
@@ -376,8 +442,8 @@ const methods = {
 
       await this._migrateVmsBack(
         hosts,
-        vmRefsByHost,
-        ignoreHost,
+        vmIdsByHost,
+        skipMigrateBack,
         () => {
           rprProgress += progressStepPerHost
           setProgress(parentTask, rprProgress)
@@ -390,6 +456,8 @@ const methods = {
         for (const host of hosts) {
           recorder.stepNotNeeded(host.uuid, 'restoreVms')
         }
+        // no VM is expected home anymore, whatever a previous attempt left
+        recorder.setVmConflicts([])
       })
     }
 
@@ -397,33 +465,189 @@ const methods = {
     setProgress(parentTask, 100)
   },
 
+  // HA as the run found it: `ha` holds the uuids of its heartbeat SRs and its
+  // configuration. Never throws
+  _restoreRpuHa(recorder, ha) {
+    return restoreRpuSetting(recorder, 'ha', () =>
+      this.call(
+        'pool.enable_ha',
+        ha.srs.map(uuid => this.getObject(uuid).$ref),
+        ha.configuration
+      )
+    )
+  },
+
+  // never throws
+  _restoreRpuAutoPowerOn(recorder) {
+    return restoreRpuSetting(recorder, 'autoPowerOn', () => this.pool.update_other_config('auto_poweron', 'true'))
+  },
+
+  // Starts the pinned VMs a run shut down and did not start again, each on its
+  // host (VM ref -> host ref). Never throws, a VM which does not start stays in
+  // the record
+  async _startRpuHaltedPinnedVms(haltedPinnedVms, recorder) {
+    for (const [vmRef, hostRef] of haltedPinnedVms) {
+      try {
+        await this.callAsync('VM.start_on', vmRef, hostRef, false, false)
+        try {
+          recorder.forgetHaltedPinnedVm(this.getObject(vmRef).uuid)
+        } catch (error) {
+          log.warn('could not resolve a restarted pinned VM, leaving it in the recovery record', { vmRef, error })
+        }
+      } catch (error) {
+        log.warn('failed to restart a pinned VM shut down by a rolling pool reboot', { vmRef, error })
+      }
+    }
+  },
+
+  /**
+   * Best-effort restoration of what an incomplete rolling pool update left
+   * changed in the pool, through the restorations of the run itself: hosts left
+   * disabled, pinned VMs left halted, VMs away from their host, auto power-on
+   * and HA.
+   *
+   * Only restores, in the order of a run: a failure is logged, leaves its item
+   * as it was and does not prevent the next restorations. Never throws.
+   *
+   * A host the run updated without seeing it reboot is left disabled, without
+   * its VMs: it stays listed, only a resume finishes it. A host which could not
+   * be enabled is left without its VMs too.
+   *
+   * @param {object} params
+   * @param {object} params.record - Recovery record of the run
+   * @param {Array<{ type: string, id: string }>} params.items - What is left unrestored, see `listUnrestoredItems`
+   * @param {object} params.recorder - Recorder of `record`
+   * @returns {Promise<void>}
+   */
+  async restoreRpuLeftovers({ record, items, recorder }) {
+    const idsOf = type => items.filter(item => item.type === type).map(item => item.id)
+    const attempt = async (restoration, fn) => {
+      try {
+        await fn()
+        return true
+      } catch (error) {
+        log.warn('failed to restore what a rolling pool update left changed', { error, restoration })
+        return false
+      }
+    }
+
+    // A host updated but not rebooted stays disabled, without its VMs: back in
+    // service, nothing would tell it still has to reboot. A resume finishes it.
+    // Every host of the run: one an operator disabled before it is not listed
+    const hostIdsAwaitingReboot = new Set(
+      Object.keys(record.hosts ?? {}).filter(hostId =>
+        isRpuHostAwaitingReboot(record, hostId, this.getObject(hostId, undefined)?.other_config?.boot_time)
+      )
+    )
+    if (hostIdsAwaitingReboot.size > 0) {
+      log.warn('hosts updated but not rebooted by the rolling pool update are left disabled', {
+        hostIds: Array.from(hostIdsAwaitingReboot),
+      })
+    }
+
+    // first: a VM only comes back to an enabled host. At once: a host still
+    // booting is waited for
+    // a host which could not be enabled keeps its VMs away, as one awaiting a reboot
+    const hostIdsLeftOut = new Set(hostIdsAwaitingReboot)
+    await Promise.all(
+      idsOf('host')
+        .filter(hostId => !hostIdsAwaitingReboot.has(hostId))
+        .map(async hostId => {
+          const enabled = await attempt(`enable host ${hostId}`, () =>
+            Task.run(
+              { properties: { name: 'Enabling host', hostId, hostName: this.getObject(hostId).name_label } },
+              () => this._enableHostOnceBooted(hostId)
+            )
+          )
+          if (!enabled) {
+            hostIdsLeftOut.add(hostId)
+          }
+        })
+    )
+
+    const haltedPinnedVms = new Map() // VM ref -> host ref
+    for (const vmId of idsOf('haltedPinnedVm')) {
+      const vm = this.getObject(vmId, undefined)
+      const hostId = record.haltedPinnedVms[vmId]
+      const host = hostIdsLeftOut.has(hostId) ? undefined : this.getObject(hostId, undefined)
+      if (vm !== undefined && host !== undefined) {
+        haltedPinnedVms.set(vm.$ref, host.$ref)
+      }
+    }
+    await this._startRpuHaltedPinnedVms(haltedPinnedVms, recorder)
+
+    if (idsOf('vm').length > 0) {
+      // all the VMs of the run, as a resume does: the ones already home are
+      // skipped, and their VM conflicts in the record are replaced
+      const vmIdsByHost = {}
+      for (const [vmId, hostId] of Object.entries(record.vmHomeById)) {
+        // a pinned VM which did not start is not a VM an operator stopped
+        if (!hostIdsLeftOut.has(hostId) && !haltedPinnedVms.has(this.getObject(vmId, undefined)?.$ref)) {
+          ;(vmIdsByHost[hostId] ??= []).push(vmId)
+        }
+      }
+      const hosts = Object.keys(vmIdsByHost)
+        .map(hostId => this.getObject(hostId, undefined))
+        .filter(host => host !== undefined)
+      // the steps and the last error of the record stay the ones of the run,
+      // and so do the conflicts of the VMs left out of this migration
+      const migratedVmIds = new Set(hosts.flatMap(host => vmIdsByHost[host.uuid]))
+      const conflictsRecorder = {
+        ...noopRpuRecorder,
+        setVmConflicts: vmConflicts =>
+          recorder.setVmConflicts([
+            ...recorder.getVmConflicts().filter(({ vmId }) => !migratedVmIds.has(vmId)),
+            ...vmConflicts,
+          ]),
+      }
+      if (hosts.length > 0) {
+        await attempt('migrate VMs back', () =>
+          this._migrateVmsBack(hosts, vmIdsByHost, undefined, () => {}, conflictsRecorder)
+        )
+      }
+    }
+
+    if (idsOf('autoPowerOn').length > 0) {
+      await this._restoreRpuAutoPowerOn(recorder)
+    }
+    // HA recorded without its heartbeat SRs is left to the operator
+    const { ha } = record.changedByRun ?? {}
+    if (idsOf('ha').length > 0 && ha?.srs !== undefined) {
+      await this._restoreRpuHa(recorder, ha)
+    }
+  },
+
   // Bring every VM back to the host it was running on before the reboot.
   //
   // onHostDone is called once per host, whether its VMs moved or not, so that
   // the caller can advance the progress of the whole rolling operation.
-  async _migrateVmsBack(hosts, vmRefsByHost, ignoreHost, onHostDone, recorder = noopRpuRecorder) {
+  async _migrateVmsBack(hosts, vmIdsByHost, ignoreHost, onHostDone, recorder = noopRpuRecorder) {
+    // VMs destroyed or no longer running since the run started
+    const vmsLeftAlone = []
+
     // returns a report entry instead of throwing: a rejected migration is
     // queued for the retry passes below, it aborts nothing
-    const migrateVmBack = async (vmRef, host) => {
+    const migrateVmBack = async (vmId, host) => {
       const hostId = host.uuid
       const hostName = host.name_label
 
-      // the VM may have been destroyed since its host was evacuated: there is
-      // nothing left to migrate back, and it must not abort the whole phase
-      const vm = this.getObject(vmRef, undefined)
-      if (vm === undefined) {
-        log.warn('a VM to migrate back no longer exists', { pool: this.pool.uuid, vmRef })
+      // an operator may have stopped or destroyed the VM during the run: it is
+      // theirs now, there is nothing to migrate back and it must not abort the
+      // whole phase
+      const vm = this.getObject(vmId, undefined)
+      if (vm?.power_state !== 'Running') {
+        vmsLeftAlone.push({ hostId, vmId, vmName: vm?.name_label, powerState: vm?.power_state })
         return
       }
 
-      const { uuid: vmId, name_label: vmName } = vm
+      const { name_label: vmName } = vm
       try {
         await Task.run(
           { properties: { name: `Migrating VM ${vmId} back to host ${hostId}`, hostId, hostName, vmId, vmName } },
           () => this.migrateVm(vmId, this, hostId)
         )
       } catch (error) {
-        return { code: error.code, host, hostId, hostName, message: error.message, vmId, vmName, vmRef }
+        return { code: error.code, host, hostId, hostName, message: error.message, vmId, vmName }
       }
     }
 
@@ -446,9 +670,9 @@ const methods = {
           continue
         }
 
-        const vmRefs = vmRefsByHost[hostId]
+        const vmIds = vmIdsByHost[hostId]
 
-        if (vmRefs === undefined) {
+        if (vmIds === undefined) {
           recorder.stepNotNeeded(hostId, 'restoreVms')
           hostDone()
           continue
@@ -463,19 +687,19 @@ const methods = {
           const residentVmRefs = await this.getField('host', host.$ref, 'resident_VMs')
           let done = 0
 
-          for (const vmRef of vmRefs) {
-            if (residentVmRefs.includes(vmRef)) {
+          for (const vmId of vmIds) {
+            if (residentVmRefs.includes(this.getObject(vmId, undefined)?.$ref)) {
               done++
-              setProgress(oneHostMigrationsTask, (100 * done) / vmRefs.length)
+              setProgress(oneHostMigrationsTask, (100 * done) / vmIds.length)
               continue
             }
 
-            const pendingVm = await migrateVmBack(vmRef, host)
+            const pendingVm = await migrateVmBack(vmId, host)
             if (pendingVm !== undefined) {
               pendingVms.push(pendingVm)
             }
             done++
-            setProgress(oneHostMigrationsTask, (100 * done) / vmRefs.length)
+            setProgress(oneHostMigrationsTask, (100 * done) / vmIds.length)
           }
         })
         // optimistic: a VM still pending is only a failure once the retry
@@ -491,8 +715,8 @@ const methods = {
           { properties: { name: `Retry migrating VMs back`, total: pendingVms.length } },
           async () => {
             const failedVms = []
-            for (const { host, vmRef } of pendingVms) {
-              const failedVm = await migrateVmBack(vmRef, host)
+            for (const { host, vmId } of pendingVms) {
+              const failedVm = await migrateVmBack(vmId, host)
               if (failedVm !== undefined) {
                 failedVms.push(failedVm)
               }
@@ -508,17 +732,49 @@ const methods = {
       }
       setProgress(migrationsSubtask, 100)
 
+      if (vmsLeftAlone.length > 0) {
+        migrationsSubtask.set('vmsLeftAlone', vmsLeftAlone)
+        log.warn('VMs stopped or destroyed during the run were not migrated back', {
+          pool: this.pool.uuid,
+          vmsLeftAlone,
+        })
+      }
+
       // a VM left on another host is not worth failing the whole run: it is
       // running, only not where it started, and an operator has to move it back
       if (pendingVms.length > 0) {
-        // host and vmRef have no place in a task property
-        const strandedVms = pendingVms.map(({ host, vmRef, ...strandedVm }) => strandedVm)
+        // host has no place in a task property
+        const strandedVms = pendingVms.map(({ host, ...strandedVm }) => strandedVm)
         migrationsSubtask.set('strandedVms', strandedVms)
+        // one failure per host, naming all its VMs: the last error of a host
+        // keeps only the last one recorded
+        const messagesByHost = {}
         for (const { hostId, message, vmId } of strandedVms) {
-          recorder.stepFailed(hostId, 'restoreVms', new Error(`could not migrate VM ${vmId} back: ${message}`))
+          ;(messagesByHost[hostId] ??= []).push(`${vmId}: ${message}`)
+        }
+        for (const [hostId, messages] of Object.entries(messagesByHost)) {
+          recorder.stepFailed(hostId, 'restoreVms', new Error(`could not migrate VMs back: ${messages.join('; ')}`))
         }
         log.warn('could not migrate all the VMs back to their host', { pool: this.pool.uuid, strandedVms })
       }
+
+      // what the run could not bring home stays in the record, for the
+      // operator to see
+      recorder.setVmConflicts([
+        ...vmsLeftAlone.map(({ hostId, vmId, vmName, powerState }) => ({
+          vmId,
+          vmName,
+          hostId,
+          reason: powerState === undefined ? 'deleted' : 'stopped',
+        })),
+        ...pendingVms.map(({ hostId, message, vmId, vmName }) => ({
+          vmId,
+          vmName,
+          hostId,
+          reason: 'migration-failed',
+          message,
+        })),
+      ])
     })
   },
 }

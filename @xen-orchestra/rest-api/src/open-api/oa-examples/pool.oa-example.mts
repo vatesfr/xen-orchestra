@@ -533,10 +533,12 @@ export const poolRollingUpdateRecovery = {
   interruptedAt: '2026-08-31T14:18:47.000Z',
   taskId: '0mf2gtitq',
   variant: 'xcp',
+  attempt: 2,
+  resumable: true,
   hostOrder: ['b61a5c92-700e-4966-a13b-00633f03eea8', '46522969-d891-4c48-a839-316b767b7b7b'],
   hosts: {
     'b61a5c92-700e-4966-a13b-00633f03eea8': {
-      status: 'running',
+      status: 'interrupted',
       steps: {
         evacuate: {
           status: 'observed-succeeded',
@@ -559,7 +561,7 @@ export const poolRollingUpdateRecovery = {
       lastError: null,
     },
     '46522969-d891-4c48-a839-316b767b7b7b': {
-      status: 'running',
+      status: 'interrupted',
       steps: {
         evacuate: { status: 'running', startedAt: '2026-08-31T14:12:50.000Z' },
         update: { status: 'pending' },
@@ -573,5 +575,18 @@ export const poolRollingUpdateRecovery = {
   lastError: null,
   haltedPinnedVms: {
     '883b6265-6d54-c48b-6a24-4b0e6d88801f': 'b61a5c92-700e-4966-a13b-00633f03eea8',
+  },
+  vmConflicts: [
+    {
+      vmId: '613f541c-4bed-fc77-7ca8-2db6b68f079c',
+      vmName: 'Debian 12',
+      hostId: '46522969-d891-4c48-a839-316b767b7b7b',
+      reason: 'stopped',
+    },
+  ],
+  operatorChanges: [],
+  planChange: {
+    attempt: 2,
+    addedHostIds: ['b61a5c92-700e-4966-a13b-00633f03eea8'],
   },
 }
