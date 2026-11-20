@@ -169,11 +169,11 @@ const selectedTags = ref<string[]>([])
 
 const sortedSelectedTags = computed(() => sortTags(selectedTags.value))
 
-const leadingTags = ref<string[]>([])
+const initialTags = ref<string[]>([])
 
 const changes = computed<TagSelectChanges>(() => ({
-  added: selectedTags.value.filter(tag => !leadingTags.value.includes(tag)),
-  removed: leadingTags.value.filter(tag => !selectedTags.value.includes(tag)),
+  added: selectedTags.value.filter(tag => !initialTags.value.includes(tag)),
+  removed: initialTags.value.filter(tag => !selectedTags.value.includes(tag)),
 }))
 
 const hasChanges = computed(() => changes.value.added.length > 0 || changes.value.removed.length > 0)
@@ -183,7 +183,7 @@ const createdTags = ref<string[]>([])
 const existingTags = computed(
   () =>
     new Set([
-      ...leadingTags.value,
+      ...initialTags.value,
       ...suggestions.map(({ tag }) => tag).filter(tag => tag !== ''),
       ...editableTags.value,
     ])
@@ -290,7 +290,7 @@ watch(isOpen, open => {
     return
   }
 
-  leadingTags.value = [...editableTags.value]
+  initialTags.value = [...editableTags.value]
   createdTags.value = []
   selectedTags.value = [...editableTags.value]
 })
