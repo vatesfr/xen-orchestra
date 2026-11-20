@@ -52,6 +52,9 @@ const methods = {
     $defer,
     parentTask,
     {
+      // called with each host once it is back from its reboot, before the next
+      // one is evacuated
+      afterHostIsBack,
       beforeEvacuateVms,
       beforeRebootHost,
       ignoreHost,
@@ -181,9 +184,13 @@ const methods = {
     }
     $defer(() => this._startRpuHaltedPinnedVms(haltedPinnedVms, recorder))
 
-    // Steps in the RPR : Evacuate hosts, reboot hosts, and potentially migrate VMs back and updateHosts (beforeEvacuateVms and beforeRebootHost)
+    // Steps in the RPR : Evacuate hosts, reboot hosts, and potentially migrate VMs back, updateHosts (beforeEvacuateVms and beforeRebootHost) and afterHostIsBack
     const nSteps =
-      2 + Number(migrateVmsBack) + Number(beforeEvacuateVms !== undefined) + Number(beforeRebootHost !== undefined)
+      2 +
+      Number(migrateVmsBack) +
+      Number(beforeEvacuateVms !== undefined) +
+      Number(beforeRebootHost !== undefined) +
+      Number(afterHostIsBack !== undefined)
 
     const progressStep = 100 / nSteps
     const progressStepPerHost = progressStep / hosts.length
@@ -235,7 +242,7 @@ const methods = {
     // Restart all the hosts one by one
     const restartSubtask = new Task({ properties: { name: `Restarting hosts`, progress: 0 } })
     await restartSubtask.run(async () => {
-      const nStepsSubtask = 2 + Number(beforeRebootHost !== undefined)
+      const nStepsSubtask = 2 + Number(beforeRebootHost !== undefined) + Number(afterHostIsBack !== undefined)
       const subtaskProgressStep = 100 / (nStepsSubtask * hosts.length)
       let subtaskProgress = 0
 
@@ -394,6 +401,16 @@ const methods = {
                   { concurrency: PINNED_VM_START_CONCURRENCY, stopOnError: false }
                 )
               })
+            }
+
+            // after the pinned VMs: they do not stay halted for the time of
+            // the hook
+            if (afterHostIsBack) {
+              await afterHostIsBack(host)
+              rprProgress += progressStepPerHost
+              setProgress(parentTask, rprProgress)
+              subtaskProgress += subtaskProgressStep
+              setProgress(restartSubtask, subtaskProgress)
             }
             rprProgress += progressStepPerHost
             setProgress(parentTask, rprProgress)

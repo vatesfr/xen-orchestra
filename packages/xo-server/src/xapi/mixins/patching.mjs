@@ -18,6 +18,7 @@ import { debounceWithKey, REMOVE_CACHE_ENTRY } from '../../_pDebounceWithKey.mjs
 import { listRpuPlanChange, noopRpuRecorder, noRpuResume } from '../../_rpuRecovery.mjs'
 import { forEach, mapFilter, parseXml } from '../../utils.mjs'
 
+import { getLinstorIssues, truncateLinstorIssues, waitLinstorHealthy } from '../_linstorHealth.mjs'
 import { useUpdateSystem } from '../utils.mjs'
 import { incorrectState, notImplemented } from 'xo-common/api-errors.js'
 
@@ -735,6 +736,43 @@ const methods = {
     throw notImplemented()
   },
 
+  // A plugin too old to check the health of LINSTOR does not block the run: it
+  // goes on without that check, as it did before the check existed
+  _ignoreMissingLinstorHealthCheck(error) {
+    if (error.code !== 'UNKNOWN_XENAPI_PLUGIN_FUNCTION') {
+      throw error
+    }
+    log.warn(`the health of LINSTOR cannot be checked on pool ${this.pool.uuid}`, { error })
+  },
+
+  // Refuses a pool whose LINSTOR is not healthy
+  async _assertLinstorHealthy() {
+    let issues
+    try {
+      issues = await getLinstorIssues(this)
+    } catch (error) {
+      return this._ignoreMissingLinstorHealthCheck(error)
+    }
+    if (issues.length > 0) {
+      throw incorrectState({
+        actual: truncateLinstorIssues(issues),
+        expected: [],
+        object: this.pool.uuid,
+        property: 'linstorHealth',
+      })
+    }
+  },
+
+  // Unlike `_assertLinstorHealthy`, for a LINSTOR the run itself disturbed: it
+  // recovers on its own
+  async _waitLinstorHealthy(properties) {
+    await Task.run({ properties: { name: 'Waiting for LINSTOR to be healthy', ...properties } }, () =>
+      waitLinstorHealthy(this, { timeout: this._restartHostTimeout }).catch(error =>
+        this._ignoreMissingLinstorHealthCheck(error)
+      )
+    )
+  },
+
   async _updateLinstorPackages() {
     const hosts = Object.values(this.objects.indexes.type.host)
     const steps = [
@@ -742,25 +780,81 @@ const methods = {
       ['updater.py', 'update', { packages: 'xcp-ng-linstor' }],
       ['updater.py', 'update', { packages: 'linstor-satellite' }],
       ['updater.py', 'update', { packages: 'linstor-controller' }],
-      ['service.py', 'stop_service', { service: 'linstor-controller' }],
-      ['service.py', 'restart_service', { service: 'linstor-satellite' }],
     ]
-    const nOperations = steps.length * hosts.length
+    // the two looks for the controller, the steps above, then the restart of
+    // the satellites
+    const nOperations = (steps.length + 3) * hosts.length
     let operationDone = 0
 
     const callPluginOnAllHost = async (plugin, fn, args) => {
+      const results = []
       for (const host of hosts) {
-        await this.call('host.call_plugin', host.$ref, plugin, fn, args)
+        results.push(await this.call('host.call_plugin', host.$ref, plugin, fn, args))
         operationDone++
         task.set('progress', Math.round((operationDone / nOperations) * 100))
+      }
+      return results
+    }
+
+    // the controller only runs on one host, which is the only one where it has
+    // to be stopped to be started again with its new version. The plugin
+    // answers with a Python boolean, anything else is refused
+    const findControllerHosts = async () => {
+      try {
+        const hasController = await callPluginOnAllHost('linstor-manager', 'hasControllerRunning', {})
+        hasController.forEach((answer, i) => {
+          if (answer !== 'True' && answer !== 'False') {
+            throw new Error(
+              `unexpected answer of linstor-manager hasControllerRunning on host ${hosts[i].uuid}: ${answer}`
+            )
+          }
+        })
+        const controllerHosts = hosts.filter((_, i) => hasController[i] === 'True')
+        if (controllerHosts.length > 1) {
+          throw incorrectState({
+            actual: controllerHosts.map(host => host.uuid),
+            expected: 'at most one host',
+            object: this.pool.uuid,
+            property: 'linstorControllerHosts',
+          })
+        }
+        if (controllerHosts.length === 0) {
+          log.warn(`no running LINSTOR controller found on pool ${this.pool.uuid}`)
+        }
+        return controllerHosts
+      } catch (error) {
+        if (error.code !== 'UNKNOWN_XENAPI_PLUGIN_FUNCTION') {
+          throw error
+        }
+        // a plugin too old to tell, which this update replaces: the controller
+        // is stopped on every host, as it was before it was looked for
+        log.warn(`the LINSTOR controller cannot be looked for on pool ${this.pool.uuid}`, { error })
+        return hosts
       }
     }
 
     const task = new Task({ properties: { name: 'Updating LINSTOR packages', progress: 0 } })
     return task.run(async () => {
+      // looked for before anything is changed: a failure leaves the pool as it
+      // was
+      await findControllerHosts()
+
       for (const [plugin, fn, args] of steps) {
         await callPluginOnAllHost(plugin, fn, args)
       }
+
+      // looked for again: drbd-reactor may have moved the controller to
+      // another host during the updates
+      const controllerHosts = await findControllerHosts()
+      for (const host of controllerHosts) {
+        await this.call('host.call_plugin', host.$ref, 'service.py', 'stop_service', { service: 'linstor-controller' })
+      }
+      await callPluginOnAllHost('service.py', 'restart_service', { service: 'linstor-satellite' })
+
+      // the first host must not be evacuated while the volumes are not all
+      // back
+      await this._waitLinstorHealthy()
+
       // not redundant: ends the task at 100 even when there is no host to iterate on
       task.set('progress', 100)
     })
@@ -930,7 +1024,38 @@ const methods = {
     // run refused by one of the guards above, nor when no host needs an update,
     // nor again once a host started with them
     const needsUpdate = some(hasMissingPatchesByHost)
-    if (needsUpdate && !resume.hostsStarted && some(this.objects.indexes.type.SR, { type: 'linstor' })) {
+    const hasLinstor = some(this.objects.indexes.type.SR, { type: 'linstor' })
+
+    // an unfinished host the run patched and which did not reboot since: only
+    // its reboot is left. boot_time, unlike agent_start_time, is not changed by
+    // a toolstack restart
+    const needsRebootOnly = hostId => {
+      // may have been forgotten while its patches were listed
+      const host = this.getObject(hostId, undefined)
+      return (
+        host !== undefined &&
+        !hasMissingPatchesByHost[hostId] &&
+        resume.patchedHostIds.has(hostId) &&
+        +host.other_config.boot_time <= +unfinishedHosts[hostId].agentStartedAtBeforeUpdate
+      )
+    }
+
+    // with no host left to update or reboot, the state of LINSTOR changes
+    // nothing to the run
+    if (hasLinstor && (needsUpdate || Object.keys(unfinishedHosts).some(needsRebootOnly))) {
+      // the previous attempt may have stopped while LINSTOR was recovering from
+      // what it did, a restart of its services or the reboot of a host: it is
+      // waited for. On a first attempt, an unhealthy LINSTOR is not the doing
+      // of the run: it is refused before any host or LINSTOR service is
+      // touched. The backup schedules, the load balancer and WLB are already
+      // disabled by then: the caller restores them when the run fails
+      if (resume !== noRpuResume) {
+        await this._waitLinstorHealthy()
+      } else {
+        await this._assertLinstorHealthy()
+      }
+    }
+    if (needsUpdate && !resume.hostsStarted && hasLinstor) {
       await this._updateLinstorPackages()
     }
 
@@ -946,7 +1071,7 @@ const methods = {
       }
     }
     const rebootOnlyHostIds = new Set()
-    for (const [hostId, { agentStartedAtBeforeUpdate, enabledBeforeUpdate }] of Object.entries(unfinishedHosts)) {
+    for (const [hostId, { enabledBeforeUpdate }] of Object.entries(unfinishedHosts)) {
       const host = this.getObject(hostId, undefined)
       // forgotten while its patches were listed: nothing left to do
       if (host === undefined) {
@@ -964,8 +1089,7 @@ const methods = {
       if (hasMissingPatchesByHost[hostId]) {
         continue
       }
-      // boot_time, unlike agent_start_time, is not changed by a toolstack restart
-      if (resume.patchedHostIds.has(hostId) && +host.other_config.boot_time <= +agentStartedAtBeforeUpdate) {
+      if (needsRebootOnly(hostId)) {
         rebootOnlyHostIds.add(hostId)
         continue
       }
@@ -981,6 +1105,11 @@ const methods = {
         shutdownPinnedVms,
         recorder,
         resume: { ...resume, doneHostIds },
+        // the next host must not be evacuated while the volumes of this one are
+        // resynchronizing
+        afterHostIsBack: hasLinstor
+          ? host => this._waitLinstorHealthy({ hostId: host.uuid, hostName: host.name_label })
+          : undefined,
         beforeEvacuateVms: () => {
           // On XS < 8.4 and CH, start by installing patches on all hosts
           if (!isXcp && !isXsWithCdnUpdates) {

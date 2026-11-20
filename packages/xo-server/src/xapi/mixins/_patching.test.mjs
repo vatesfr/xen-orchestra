@@ -48,16 +48,33 @@ class FakeXapi {
       indexes: {
         type: {
           host: Object.fromEntries(this.hosts.map(host => [host.$ref, host])),
-          SR: linstor ? { 'OpaqueRef:sr-linstor': { $type: 'SR', type: 'linstor' } } : {},
+          SR: linstor
+            ? {
+                'OpaqueRef:sr-linstor': {
+                  $type: 'SR',
+                  type: 'linstor',
+                  $PBDs: [{ device_config: { 'group-name': 'linstor_group/thin_device' } }],
+                },
+              }
+            : {},
           VM: {},
         },
       },
     }
-    this.pool = { uuid: 'pool-1', $master: this.hosts[0] }
+    this.pool = { uuid: 'pool-1', master: this.hosts[0].$ref, $master: this.hosts[0] }
 
     // pool-wide steps in order: 'linstor' for a LINSTOR packages update, the
     // hosts handled (ie not ignored) for a rolling pool reboot
     this.steps = []
+
+    // what `linstor-manager` answers to a health check: a result, or an error
+    // to throw
+    this.linstorHealth = { nodes: {}, resources: {}, errors: [] }
+
+    // what happens to LINSTOR in order: 'check' for a single health check,
+    // 'wait' for a wait for it to be healthy, 'update' for a packages update,
+    // and the reboot of each host
+    this.linstorEvents = []
 
     // patch installations in order: the hosts of each call, 'pool' for a
     // pool-wide one
@@ -124,11 +141,31 @@ class FakeXapi {
     return Array.from({ length: cachedNMissingPatches }, (_, i) => ({ name: `patch-${i}` }))
   }
 
-  async _updateLinstorPackages() {
-    this.steps.push('linstor')
+  async call(method, hostRef, plugin, fn) {
+    assert.deepEqual(
+      [method, hostRef, plugin, fn],
+      ['host.call_plugin', this.pool.master, 'linstor-manager', 'healthCheck']
+    )
+    this.linstorEvents.push('check')
+    if (this.linstorHealth instanceof Error) {
+      throw this.linstorHealth
+    }
+    return JSON.stringify(this.linstorHealth)
   }
 
-  async rollingPoolReboot(parentTask, { beforeEvacuateVms, beforeRebootHost, ignoreHost, rebootFirst, resume }) {
+  async _updateLinstorPackages() {
+    this.steps.push('linstor')
+    this.linstorEvents.push('update')
+  }
+
+  async _waitLinstorHealthy() {
+    this.linstorEvents.push('wait')
+  }
+
+  async rollingPoolReboot(
+    parentTask,
+    { afterHostIsBack, beforeEvacuateVms, beforeRebootHost, ignoreHost, rebootFirst, resume }
+  ) {
     this.resume = resume
     this.rebootFirstHostIds = this.hosts.filter(host => rebootFirst?.(host) ?? false).map(host => host.uuid)
     const handledHosts = this.hosts.filter(host => !resume.doneHostIds.has(host.uuid) && !ignoreHost(host))
@@ -136,6 +173,8 @@ class FakeXapi {
     await beforeEvacuateVms()
     for (const host of handledHosts) {
       await beforeRebootHost(host)
+      this.linstorEvents.push(`reboot ${host.uuid}`)
+      await afterHostIsBack?.(host)
     }
   }
 
@@ -265,6 +304,92 @@ describe('rollingPoolUpdate', function () {
 
     assert.equal(error, undefined)
     assert.deepEqual(xapi.steps, ['linstor', ['host-A', 'host-B']])
+  })
+
+  describe('LINSTOR health', function () {
+    const UNHEALTHY = {
+      nodes: { 'host-B': 'OFFLINE' },
+      resources: {},
+      errors: [{ code: 0x1020000, name: 'host-B', status: 'OFFLINE' }],
+    }
+
+    it('refuses a pool whose LINSTOR is not healthy, before touching it', async function () {
+      const xapi = new FakeXapi([1, 2, 0], { linstor: true })
+      xapi.linstorHealth = UNHEALTHY
+
+      const error = await rollingPoolUpdate(xapi)
+
+      assert.ok(incorrectState.is(error, { property: 'linstorHealth' }), error)
+      assert.deepEqual(error.data.actual, ['node host-B is OFFLINE'])
+      assert.equal(error.data.object, 'pool-1')
+      assert.deepEqual(xapi.linstorEvents, ['check'])
+      assert.deepEqual(xapi.steps, [])
+    })
+
+    it('reports at most 10 issues of an unhealthy LINSTOR', async function () {
+      const xapi = new FakeXapi([1, 2, 0], { linstor: true })
+      const nodes = Array.from({ length: 12 }, (_, i) => `node-${i}`)
+      xapi.linstorHealth = {
+        nodes: {},
+        resources: {},
+        errors: nodes.map(name => ({ code: 0x1020000, name, status: 'OFFLINE' })),
+      }
+
+      const error = await rollingPoolUpdate(xapi)
+
+      assert.ok(incorrectState.is(error, { property: 'linstorHealth' }), error)
+      assert.deepEqual(error.data.actual, [...nodes.slice(0, 10).map(node => `node ${node} is OFFLINE`), 'and 2 more'])
+    })
+
+    it('checks LINSTOR before updating its packages, and waits for it once each host is back', async function () {
+      const xapi = new FakeXapi([1, 2, 0], { linstor: true })
+
+      const error = await rollingPoolUpdate(xapi)
+
+      assert.equal(error, undefined)
+      assert.deepEqual(xapi.linstorEvents, ['check', 'update', 'reboot host-A', 'wait', 'reboot host-B', 'wait'])
+    })
+
+    it('does not refuse a pool whose plugin is too old to check LINSTOR', async function () {
+      const xapi = new FakeXapi([1, 2, 0], { linstor: true })
+      xapi.linstorHealth = Object.assign(new Error('UNKNOWN_XENAPI_PLUGIN_FUNCTION(healthCheck)'), {
+        code: 'UNKNOWN_XENAPI_PLUGIN_FUNCTION',
+      })
+
+      const error = await rollingPoolUpdate(xapi)
+
+      assert.equal(error, undefined)
+      assert.deepEqual(xapi.steps, ['linstor', ['host-A', 'host-B']])
+    })
+
+    it('refuses a pool whose LINSTOR cannot be checked', async function () {
+      const xapi = new FakeXapi([1, 2, 0], { linstor: true })
+      xapi.linstorHealth = new Error('XENAPI_PLUGIN_FAILURE')
+
+      const error = await rollingPoolUpdate(xapi)
+
+      assert.equal(error?.message, 'XENAPI_PLUGIN_FAILURE')
+      assert.deepEqual(xapi.steps, [])
+    })
+
+    it('leaves LINSTOR alone when no host needs an update', async function () {
+      const xapi = new FakeXapi([0, 0, 0], { linstor: true })
+      xapi.linstorHealth = UNHEALTHY
+
+      const error = await rollingPoolUpdate(xapi)
+
+      assert.equal(error, undefined)
+      assert.deepEqual(xapi.linstorEvents, [])
+    })
+
+    it('never asks LINSTOR on a pool without it', async function () {
+      const xapi = new FakeXapi([1, 2, 0])
+
+      const error = await rollingPoolUpdate(xapi)
+
+      assert.equal(error, undefined)
+      assert.deepEqual(xapi.linstorEvents, ['reboot host-A', 'reboot host-B'])
+    })
   })
 
   describe('resume', function () {
@@ -721,6 +846,200 @@ describe('rollingPoolUpdate', function () {
       assert.equal(error, undefined)
       assert.deepEqual(xapi.steps, ['linstor', ['host-A', 'host-B']])
     })
+
+    // the previous attempt may have stopped while LINSTOR was recovering from
+    // what it did: a restart of its services, the reboot of a host
+    it('waits for LINSTOR to be healthy instead of refusing the pool', async function () {
+      const xapi = new FakeXapi([0, 2], { linstor: true })
+      xapi.linstorHealth = new Error('must not be checked')
+
+      const error = await rollingPoolUpdate(xapi, { acceptCurrentStateAsBaseline: true, resume: resumeOf(true) })
+
+      assert.equal(error, undefined)
+      assert.deepEqual(xapi.linstorEvents, ['wait', 'reboot host-B', 'wait'])
+    })
+
+    it('waits for LINSTOR to be healthy before a host which only has to reboot', async function () {
+      const xapi = new FakeXapi([0, 0], { linstor: true })
+
+      const { error } = await resumeUpdate(xapi, unfinishedB())
+
+      assert.equal(error, undefined)
+      assert.deepEqual(xapi.linstorEvents, ['wait', 'reboot host-B', 'wait'])
+    })
+
+    it('does not wait for LINSTOR when no host is left to update or reboot', async function () {
+      const xapi = new FakeXapi([0, 0], { linstor: true })
+
+      const error = await rollingPoolUpdate(xapi, { resume: resumeOf(true) })
+
+      assert.equal(error, undefined)
+      assert.deepEqual(xapi.linstorEvents, [])
+    })
+  })
+})
+
+describe('_updateLinstorPackages()', function () {
+  const UNKNOWN_FUNCTION = () =>
+    Object.assign(new Error('UNKNOWN_XENAPI_PLUGIN_FUNCTION(hasControllerRunning)'), {
+      code: 'UNKNOWN_XENAPI_PLUGIN_FUNCTION',
+    })
+
+  // Fake XAPI of a pool of 3 hosts, recording the plugin calls and the wait for
+  // LINSTOR to be healthy in order. The plugin answers with Python's
+  // `str(bool)` unless `answer`, told whether the packages are updated yet,
+  // says otherwise. A plugin which throws is not recorded
+  const updateLinstorPackages = async (
+    controllerHosts,
+    answer = hostRef => {
+      if (controllerHosts === undefined) {
+        throw UNKNOWN_FUNCTION()
+      }
+      return controllerHosts.includes(hostRef) ? 'True' : 'False'
+    }
+  ) => {
+    const calls = []
+    const xapi = Object.assign(Object.create(patchingMethods), {
+      pool: { uuid: 'pool-1' },
+      objects: {
+        indexes: {
+          type: {
+            host: Object.fromEntries(
+              ['A', 'B', 'C'].map(letter => [
+                `OpaqueRef:host-${letter}`,
+                { $ref: `host-${letter}`, uuid: `host-${letter}` },
+              ])
+            ),
+          },
+        },
+      },
+      async call(method, hostRef, plugin, fn, args) {
+        assert.equal(method, 'host.call_plugin')
+        if (fn === 'hasControllerRunning') {
+          assert.equal(plugin, 'linstor-manager')
+          const result = answer(
+            hostRef,
+            calls.some(call => call.includes(' update '))
+          )
+          calls.push(`${hostRef} ${fn}`)
+          return result
+        }
+        calls.push(`${hostRef} ${fn} ${args.packages ?? args.service}`)
+      },
+      async _waitLinstorHealthy() {
+        calls.push('wait')
+      },
+    })
+    await new Task({ properties: { name: 'test' } }).run(() => xapi._updateLinstorPackages())
+    return calls
+  }
+  const onEveryHost = call => ['host-A', 'host-B', 'host-C'].map(host => `${host} ${call}`)
+  const UPDATES = ['xcp-ng-xapi-plugins', 'xcp-ng-linstor', 'linstor-satellite', 'linstor-controller'].flatMap(
+    packages => onEveryHost(`update ${packages}`)
+  )
+
+  it('stops the controller only on the host running it, then waits for LINSTOR once the satellites restarted', async function () {
+    assert.deepEqual(await updateLinstorPackages(['host-B']), [
+      ...onEveryHost('hasControllerRunning'),
+      ...UPDATES,
+      ...onEveryHost('hasControllerRunning'),
+      'host-B stop_service linstor-controller',
+      ...onEveryHost('restart_service linstor-satellite'),
+      'wait',
+    ])
+  })
+
+  it('stops no controller when none is running', async function () {
+    assert.deepEqual(await updateLinstorPackages([]), [
+      ...onEveryHost('hasControllerRunning'),
+      ...UPDATES,
+      ...onEveryHost('hasControllerRunning'),
+      ...onEveryHost('restart_service linstor-satellite'),
+      'wait',
+    ])
+  })
+
+  it('stops the controller on the host it moved to during the updates', async function () {
+    assert.deepEqual(
+      await updateLinstorPackages(undefined, (hostRef, updated) =>
+        hostRef === (updated ? 'host-C' : 'host-B') ? 'True' : 'False'
+      ),
+      [
+        ...onEveryHost('hasControllerRunning'),
+        ...UPDATES,
+        ...onEveryHost('hasControllerRunning'),
+        'host-C stop_service linstor-controller',
+        ...onEveryHost('restart_service linstor-satellite'),
+        'wait',
+      ]
+    )
+  })
+
+  it('looks for the controller with the updated plugin when the previous one could not', async function () {
+    assert.deepEqual(
+      await updateLinstorPackages(undefined, (hostRef, updated) => {
+        if (!updated) {
+          throw UNKNOWN_FUNCTION()
+        }
+        return hostRef === 'host-B' ? 'True' : 'False'
+      }),
+      [
+        ...UPDATES,
+        ...onEveryHost('hasControllerRunning'),
+        'host-B stop_service linstor-controller',
+        ...onEveryHost('restart_service linstor-satellite'),
+        'wait',
+      ]
+    )
+  })
+
+  it('stops the controller on every host when the plugin is too old to look for it', async function () {
+    assert.deepEqual(await updateLinstorPackages(undefined), [
+      ...UPDATES,
+      ...onEveryHost('stop_service linstor-controller'),
+      ...onEveryHost('restart_service linstor-satellite'),
+      'wait',
+    ])
+  })
+
+  it('changes nothing when several controllers are running', async function () {
+    await assert.rejects(updateLinstorPackages(['host-A', 'host-C']), error => {
+      assert.ok(
+        incorrectState.is(error, {
+          actual: ['host-A', 'host-C'],
+          object: 'pool-1',
+          property: 'linstorControllerHosts',
+        }),
+        error
+      )
+      return true
+    })
+  })
+
+  it('changes nothing when the plugin does not tell whether the controller is running', async function () {
+    await assert.rejects(
+      updateLinstorPackages([], hostRef => (hostRef === 'host-B' ? 'error: unit not found' : 'False')),
+      { message: 'unexpected answer of linstor-manager hasControllerRunning on host host-B: error: unit not found' }
+    )
+  })
+})
+
+describe('_waitLinstorHealthy()', function () {
+  it('does not wait on a pool whose plugin is too old to check LINSTOR', async function () {
+    const xapi = Object.assign(Object.create(patchingMethods), {
+      _restartHostTimeout: 60e3,
+      pool: { uuid: 'pool-1', master: 'host-A' },
+      objects: {
+        indexes: { type: { SR: { sr: { type: 'linstor', $PBDs: [{ device_config: { 'group-name': 'group' } }] } } } },
+      },
+      async call() {
+        throw Object.assign(new Error('UNKNOWN_XENAPI_PLUGIN_FUNCTION(healthCheck)'), {
+          code: 'UNKNOWN_XENAPI_PLUGIN_FUNCTION',
+        })
+      },
+    })
+
+    await new Task({ properties: { name: 'test' } }).run(() => xapi._waitLinstorHealthy())
   })
 })
 
