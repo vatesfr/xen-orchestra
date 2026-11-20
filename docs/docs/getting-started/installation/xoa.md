@@ -105,13 +105,16 @@ With an SSH public key, given whole and quoted, as found in your `~/.ssh/id_ed25
 
 The `xoa` user can then run `sudo` without a password. If the key is not accepted, your XOA may be too old to support it: update it, or use a password.
 
-With a password (deprecated):
+<details>
+<summary>With a password (deprecated)</summary>
 
 <Terminal shell title="host — set the xoa user password">{`xe vm-param-set uuid=<UUID> xenstore-data:vm-data/system-account-xoa-password='MyPassW0rd!'`}</Terminal>
 
 :::warning
 Setting the password through XenStore is deprecated and will be removed in a future version: use an SSH key instead. Unlike a password, a public key does no harm if someone reads it.
 :::
+
+</details>
 
 Reboot the VM to apply, then connect with `ssh xoa@<XOA IP>`.
 

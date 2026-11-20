@@ -134,7 +134,8 @@ With an SSH public key, given whole and quoted, as found in your `~/.ssh/id_ed25
 xe vm-param-set uuid=<UUID> xenstore-data:vm-data/system-account-xoa-ssh-key='ssh-ed25519 AAAA…'
 `}</Terminal>
 
-With a password (deprecated):
+<details>
+<summary>With a password (deprecated)</summary>
 
 <Terminal shell title="XCP-ng host: set a password for the xoa user">{`
 xe vm-param-set uuid=<UUID> xenstore-data:vm-data/system-account-xoa-password=<password>
@@ -143,6 +144,8 @@ xe vm-param-set uuid=<UUID> xenstore-data:vm-data/system-account-xoa-password=<p
 :::warning
 Setting the password through XenStore is deprecated and will be removed in a future version: use an SSH key instead. Unlike a password, a public key does no harm if someone reads it.
 :::
+
+</details>
 
 Then restart the proxy VM.
 You can now login through SSH with the `xoa` username and the matching private key, or the password you defined. With a key, the `xoa` user can run `sudo` without a password. If the key is not accepted, your proxy may be too old to support it: update it, or use a password.

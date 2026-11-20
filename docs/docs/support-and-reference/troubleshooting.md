@@ -61,7 +61,8 @@ xe vm-param-set uuid=<UUID> xenstore-data:vm-data/system-account-xoa-ssh-key='ss
 
 Restart the VM, then log in over SSH with the `xoa` user and the matching private key. The `xoa` user can then run `sudo` without a password. If the key is not accepted, your XOA may be too old to support it: update it, or use a password.
 
-With a password (deprecated):
+<details>
+<summary>With a password (deprecated)</summary>
 
 <Terminal shell title="host — set the xoa user password">{`
 xe vm-param-set uuid=<UUID> xenstore-data:vm-data/system-account-xoa-password=<password>
@@ -72,6 +73,8 @@ Restart the VM, then log in over SSH with the `xoa` user and that password.
 :::warning
 Setting the password through XenStore is deprecated and will be removed in a future version: use an SSH key instead. Unlike a password, a public key does no harm if someone reads it.
 :::
+
+</details>
 
 ### Recover the web login password
 
