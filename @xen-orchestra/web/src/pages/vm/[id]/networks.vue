@@ -3,9 +3,7 @@
     <UiCard class="container">
       <VifsTable :vifs :vm>
         <template #title-actions>
-          <UiLink size="medium" :to="{ name: '/vif/new', query: { vmId: vm.id } }" icon="fa:plus">
-            {{ t('new-vif') }}
-          </UiLink>
+          <VmNewVifButton :vm />
         </template>
       </VifsTable>
     </UiCard>
@@ -19,21 +17,18 @@
 import VifSidePanel from '@/modules/vif/components/panel/VifSidePanel.vue'
 import VifsTable from '@/modules/vif/components/VifsTable.vue'
 import { type FrontXoVif, useXoVifCollection } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
+import VmNewVifButton from '@/modules/vm/components/actions/new-vif/VmNewVifButton.vue'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import VtsContentSidePanel from '@core/components/layout/VtsContentSidePanel.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
-import UiLink from '@core/components/ui/link/UiLink.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { useArrayFilter } from '@vueuse/shared'
-import { useI18n } from 'vue-i18n'
 
 const { vm } = defineProps<{
   vm: FrontXoVm
 }>()
 
 const { vifs: rawVifs, getVifById } = useXoVifCollection()
-
-const { t } = useI18n()
 
 const vifs = useArrayFilter(rawVifs, vif => vif.$VM === vm.id)
 

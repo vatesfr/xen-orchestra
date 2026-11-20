@@ -35,8 +35,8 @@ function mountForm(pool: FrontXoPool) {
   xoCollectionsMock.pools.value = [pool]
 
   return mount(NewTrafficRuleForm, {
-    props: { poolId: pool.id, cancelTo: '/' },
-    global: createGlobalTestConfig({ stubs: { NewTrafficRuleButtonsSection: true } }),
+    props: { poolId: pool.id },
+    global: createGlobalTestConfig(),
   })
 }
 

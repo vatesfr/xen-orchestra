@@ -1,5 +1,5 @@
 <template>
-  <VtsForm class="vdi-attach-form" @submit="onSubmit()">
+  <div class="vdi-attach-form">
     <div class="attach-form">
       <UiTitle>{{ t('general-information') }}</UiTitle>
       <div class="row">
@@ -39,39 +39,21 @@
         <FormCheckbox v-model="bootable" :label="t('bootable')" :info="t('pv-vms-only')" :disabled="!isPv" />
       </div>
     </div>
-    <div class="buttons-container">
-      <UiLink :to="cancelTo" size="medium">
-        {{ t('cancel') }}
-      </UiLink>
-      <UiButton type="submit" size="medium" accent="brand" variant="primary">
-        {{ t('action:attach') }}
-      </UiButton>
-    </div>
-  </VtsForm>
+  </div>
 </template>
 
 <script lang="ts" setup>
-import type { NewVbdPayload } from '@/modules/vbd/jobs/xo-vbd-create.job.ts'
 import VdiFormSelect from '@/modules/vdi/components/form/shared/VdiFormSelect.vue'
 import { useVdiAttachForm } from '@/modules/vdi/form/attach/use-vdi-attach-form.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import FormCheckbox from '@/shared/components/form/FormCheckbox.vue'
-import VtsForm from '@core/components/form/VtsForm.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsOption from '@core/components/select/VtsOption.vue'
-import UiButton from '@core/components/ui/button/UiButton.vue'
-import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { useI18n } from 'vue-i18n'
-import type { RouteLocationRaw } from 'vue-router'
 
 const { vm } = defineProps<{
   vm: FrontXoVm
-  cancelTo: RouteLocationRaw
-}>()
-
-const emit = defineEmits<{
-  attach: [data: NewVbdPayload]
 }>()
 
 const { t } = useI18n()
@@ -79,13 +61,9 @@ const { t } = useI18n()
 const { srSelectBindings, vdiSelectBindings, readOnly, forceReadOnly, bootable, isPv, validateAndBuildPayload } =
   useVdiAttachForm(() => vm)
 
-async function onSubmit() {
-  const payload = await validateAndBuildPayload()
-
-  if (payload !== undefined) {
-    emit('attach', payload)
-  }
-}
+defineExpose({
+  validate: validateAndBuildPayload,
+})
 </script>
 
 <style lang="postcss" scoped>
@@ -113,16 +91,7 @@ async function onSubmit() {
 
     @media (--medium-or-large) {
       flex-direction: row;
-      gap: 8rem;
-      max-width: 88rem;
     }
-  }
-
-  .buttons-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 2.4rem;
   }
 }
 

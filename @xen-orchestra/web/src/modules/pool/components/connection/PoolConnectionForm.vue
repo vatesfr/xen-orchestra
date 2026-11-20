@@ -1,5 +1,5 @@
 <template>
-  <VtsForm class="connection-form" :class="{ mobile: uiStore.isSmall }" @submit="onSubmit()">
+  <div class="connection-form" :class="{ mobile: uiStore.isSmall }">
     <div class="primary-host-section">
       <UiTitle>{{ t('master') }}</UiTitle>
       <div class="inputs-container">
@@ -14,50 +14,24 @@
       <FormCheckbox v-bind="readOnlyCheckboxBindings" />
       <FormCheckbox v-bind="allowUnauthorizedCheckboxBindings" />
     </div>
-    <div class="buttons-container">
-      <UiLink :to="{ name: '/(site)/dashboard' }" size="medium">
-        {{ t('cancel') }}
-      </UiLink>
-      <UiButton type="submit" accent="brand" size="medium" variant="primary" :busy="isServerJobRunning">
-        {{ t('connect') }}
-      </UiButton>
-    </div>
-  </VtsForm>
+  </div>
 </template>
 
 <script setup lang="ts">
 import { usePoolConnectionForm } from '@/modules/pool/form/use-pool-connection-form.ts'
-import { isAuthenticationFailedError } from '@/modules/pool/utils/xo-pool.util.ts'
-import { useXoServerConnectJob } from '@/modules/server/jobs/xo-server-connect.job.ts'
-import { useXoServerCreateJob } from '@/modules/server/jobs/xo-server-create.job.ts'
-import { useXoServerForgetJob } from '@/modules/server/jobs/xo-server-forget.job.ts'
 import FormCheckbox from '@/shared/components/form/FormCheckbox.vue'
 import FormPasswordInput from '@/shared/components/form/FormPasswordInput.vue'
 import FormTextInput from '@/shared/components/form/FormTextInput.vue'
-import VtsForm from '@core/components/form/VtsForm.vue'
-import UiButton from '@core/components/ui/button/UiButton.vue'
-import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { useUiStore } from '@core/stores/ui.store.ts'
-import type { XoServer } from '@vates/types'
-import { logicOr } from '@vueuse/math'
-import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-
-const emit = defineEmits<{
-  success: [serverId: XoServer['id'], ip?: string]
-  error: [error: Error, ip?: string]
-}>()
 
 const { t } = useI18n()
 const uiStore = useUiStore()
-const serverId = ref<XoServer['id']>('' as XoServer['id'])
 
 const {
-  formData,
   validate,
   payload,
-  showCredentialsError,
   hostInputBindings,
   httpProxyInputBindings,
   usernameInputBindings,
@@ -66,55 +40,17 @@ const {
   allowUnauthorizedCheckboxBindings,
 } = usePoolConnectionForm()
 
-// TODO: multiple server creation not possible in the UI for now
-// so only handle a single payload
-const { isRunning: createIsRunning, run: create } = useXoServerCreateJob([payload])
-const { isRunning: connectIsRunning, run: connect } = useXoServerConnectJob([serverId])
-const { isRunning: removeIsRunning, run: remove } = useXoServerForgetJob([serverId])
-
-const isServerJobRunning = logicOr(connectIsRunning, createIsRunning, removeIsRunning)
-
-async function onSubmit() {
-  serverId.value = '' as XoServer['id']
-
-  const valid = await validate()
-
-  if (!valid) {
-    return
+async function validateAndBuildPayload() {
+  if (!(await validate())) {
+    return undefined
   }
 
-  try {
-    // TODO: multiple server creation not possible in the UI for now
-    // so only handle single server creation
-    const [promiseCreateResult] = await create()
-    if (promiseCreateResult.status === 'rejected') {
-      throw promiseCreateResult.reason
-    }
-    serverId.value = promiseCreateResult.value
-    const [promiseConnectResult] = await connect()
-    if (promiseConnectResult.status === 'rejected') {
-      throw promiseConnectResult.reason
-    }
-
-    emit('success', serverId.value, formData.host)
-  } catch (error) {
-    if (serverId.value !== '') {
-      await remove()
-    }
-
-    if (!(error instanceof Error)) {
-      console.error('Unknown error:', error)
-      return
-    }
-
-    if (isAuthenticationFailedError(error)) {
-      showCredentialsError()
-      return
-    }
-
-    emit('error', error, formData.host)
-  }
+  return payload.value
 }
+
+defineExpose({
+  validate: validateAndBuildPayload,
+})
 </script>
 
 <style lang="postcss" scoped>
@@ -139,14 +75,6 @@ async function onSubmit() {
     display: flex;
     flex-direction: row;
     gap: 8rem;
-  }
-
-  .buttons-container {
-    display: flex;
-    width: 100%;
-    justify-content: center;
-    align-items: center;
-    gap: 2.4rem;
   }
 
   &.mobile {
