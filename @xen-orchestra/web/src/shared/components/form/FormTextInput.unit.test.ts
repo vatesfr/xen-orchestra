@@ -1,10 +1,10 @@
 import FormTextInput from '@/shared/components/form/FormTextInput.vue'
 import { findInputLabels } from '@/test/find-input-labels.ts'
-import { findInputMessages } from '@/test/find-input-messages.ts'
 import { dangerMessage } from '@/test/form-messages.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import UiInput from '@core/components/ui/input/UiInput.vue'
 import { blurField, setFieldValue } from '@core-test/field-events.ts'
+import { findInfoLabels } from '@core-test/find-accented-labels.ts'
 import { readForwardedFlag } from '@core-test/read-forwarded-flag.ts'
 import { mount } from '@vue/test-utils'
 
@@ -30,23 +30,21 @@ it('shows its placeholder', () => {
 })
 
 it('shows no message without information nor error', () => {
-  expect(findInputMessages(mountTextInput())).toEqual([])
+  expect(findInfoLabels(mountTextInput())).toEqual([])
 })
 
 it('shows its information', () => {
-  expect(findInputMessages(mountTextInput({ info: 'Root by default' }))).toEqual(['Root by default'])
+  expect(findInfoLabels(mountTextInput({ info: 'Root by default' }))).toEqual(['Root by default'])
 })
 
 it('shows its error', () => {
-  expect(findInputMessages(mountTextInput({ error: dangerMessage('Host is required.') }))).toEqual([
-    'Host is required.',
-  ])
+  expect(findInfoLabels(mountTextInput({ error: dangerMessage('Host is required.') }))).toEqual(['Host is required.'])
 })
 
 it('shows both its information and its error', () => {
   const wrapper = mountTextInput({ info: 'Root by default', error: dangerMessage('Host is required.') })
 
-  expect(findInputMessages(wrapper).sort()).toEqual(['Host is required.', 'Root by default'])
+  expect(findInfoLabels(wrapper).sort()).toEqual(['Host is required.', 'Root by default'])
 })
 
 it('trims the typed value', async () => {

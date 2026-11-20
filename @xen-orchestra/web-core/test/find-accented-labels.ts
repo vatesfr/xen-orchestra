@@ -16,3 +16,8 @@ export function findAccentedTags(wrapper: AccentedComponents) {
 export function findAccentedInfos(wrapper: AccentedComponents) {
   return findAccentedLabels(wrapper, UiInfo)
 }
+
+// The messages of the `UiInfo`s alone, when their accent is not what the test checks
+export function findInfoLabels(wrapper: AccentedComponents) {
+  return findAccentedInfos(wrapper).map(({ label }) => label)
+}

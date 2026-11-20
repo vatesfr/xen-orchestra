@@ -13,6 +13,7 @@ import { vmCollectionMock, mockXoVmCollection } from '@/test/mock-xo-vm-collecti
 import { mountJsonSchemaForm } from '@/test/mount-json-schema-form.ts'
 import { findSelectOptionLabels, openSelect, pickSelectOption } from '@/test/select.ts'
 import { setFieldValue } from '@core-test/field-events.ts'
+import { findInfoLabels } from '@core-test/find-accented-labels.ts'
 import { mount, type VueWrapper } from '@vue/test-utils'
 import { h, nextTick } from 'vue'
 
@@ -120,7 +121,7 @@ describe('string field', () => {
   it('displays the help text of the description', () => {
     const wrapper = mountField({ schema: { type: 'string', description: 'ID attribute. e.g.: `dn`' } })
 
-    expect(wrapper.get('.ui-info').text()).toBe('ID attribute. e.g.: dn')
+    expect(findInfoLabels(wrapper)).toEqual(['ID attribute. e.g.: dn'])
   })
 
   it('highlights the code spans of the description', () => {
@@ -245,7 +246,7 @@ describe('validation', () => {
     wrapper.vm.submit()
     await nextTick()
 
-    expect(findSectionHeaders(wrapper)[0].get('.ui-info').text()).toBe(t('form:error:min-items', { n: 2 }, 2))
+    expect(findInfoLabels(findSectionHeaders(wrapper)[0])).toEqual([t('form:error:min-items', { n: 2 }, 2)])
   })
 
   it('displays the error of a field under its description', async () => {
@@ -521,7 +522,7 @@ describe('boolean field', () => {
     const wrapper = mountField({ schema: { type: 'boolean', description: 'Check the certificate' }, label: 'TLS' })
 
     expect(wrapper.get('.ui-checkbox').text()).toBe('TLS')
-    expect(wrapper.get('.ui-info').text()).toBe('Check the certificate')
+    expect(findInfoLabels(wrapper)).toEqual(['Check the certificate'])
   })
 })
 
