@@ -4,7 +4,6 @@ import type { PrivateNetworkInterface } from '@/modules/network/form/new-private
 import type { FrontXoPif } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
 import { createPif } from '@/test/create-pif.ts'
 import { createPool, OTHER_POOL_ID } from '@/test/create-pool.ts'
-import { findAccentedInfos } from '@/test/find-accented-labels.ts'
 import { findTableColumnCells } from '@/test/find-table-cells.ts'
 import { getUiButton } from '@/test/get-button.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
@@ -13,6 +12,7 @@ import { xoCollectionsMock, mockXoCollections } from '@/test/mock-xo-collections
 import { openSelect } from '@/test/select.ts'
 import VtsDetailedOption from '@core/components/select/VtsDetailedOption.vue'
 import VtsRow from '@core/components/table/VtsRow.vue'
+import { findAccentedInfos } from '@core-test/find-accented-labels.ts'
 import { mount } from '@vue/test-utils'
 import { reactive } from 'vue'
 

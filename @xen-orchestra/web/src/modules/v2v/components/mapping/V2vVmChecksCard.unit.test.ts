@@ -1,8 +1,8 @@
 import V2vVmChecksCard from '@/modules/v2v/components/mapping/V2vVmChecksCard.vue'
-import { findAccentedInfos } from '@/test/find-accented-labels.ts'
 import { findPanelCardTitleLabel } from '@/test/find-card-title.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
+import { findAccentedInfos } from '@core-test/find-accented-labels.ts'
 import { mount } from '@vue/test-utils'
 
 const CHECKS = [

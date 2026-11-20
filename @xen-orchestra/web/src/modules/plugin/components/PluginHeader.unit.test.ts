@@ -2,10 +2,10 @@ import PluginActions from '@/modules/plugin/components/actions/PluginActions.vue
 import PluginHeader from '@/modules/plugin/components/PluginHeader.vue'
 import type { FrontXoPlugin } from '@/modules/plugin/remote-resources/use-xo-plugin-collection.ts'
 import { createPlugin, PLUGIN_CONFIGURATION_SCHEMA } from '@/test/create-plugin.ts'
-import { findAccentedTags } from '@/test/find-accented-labels.ts'
 import { findBreadcrumbItems, findBreadcrumbLink, findHeadBarLabel } from '@/test/find-header.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
+import { findAccentedTags } from '@core-test/find-accented-labels.ts'
 import { mount } from '@vue/test-utils'
 
 function mountHeader(plugin: FrontXoPlugin = createPlugin()) {

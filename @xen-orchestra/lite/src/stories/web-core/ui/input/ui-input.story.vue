@@ -3,7 +3,7 @@
     v-slot="{ properties }"
     :params="[
       model().type('string | number').preset(''),
-      prop('accent').enum('brand', 'warning', 'danger').required().preset('brand').widget(),
+      prop('accent').enum('brand', 'success', 'warning', 'danger').required().preset('brand').widget(),
       prop('id').str().widget(),
       prop('required').bool().widget(),
       prop('selected').bool().widget(),
