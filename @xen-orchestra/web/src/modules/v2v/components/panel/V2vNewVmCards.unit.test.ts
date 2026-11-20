@@ -6,7 +6,7 @@ import V2vVmOptionsCard from '@/modules/v2v/components/panel/V2vVmOptionsCard.vu
 import { createV2vHost } from '@/test/create-v2v-inventory.ts'
 import { createV2vNewMappingStepVm } from '@/test/create-v2v-mapping-step-vm.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
-import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
+import { xoCollectionsMock, mockXoCollections } from '@/test/mock-xo-collections.ts'
 import { mountV2vVmMappingComponent } from '@/test/mount-v2v-vm-mapping.ts'
 import {
   V2V_DEFAULT_TEMPLATE,
@@ -20,30 +20,7 @@ import {
 import { V2V_LIST_POOL } from '@/test/v2v-wizard-fixtures.ts'
 import { mount } from '@vue/test-utils'
 
-vi.mock(
-  import('@/modules/pool/remote-resources/use-xo-pool-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
-vi.mock(
-  import('@/modules/host/remote-resources/use-xo-host-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
-vi.mock(
-  import('@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
-vi.mock(
-  import('@/modules/network/remote-resources/use-xo-network-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
-vi.mock(
-  import('@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
-vi.mock(
-  import('@/modules/vm/remote-resources/use-xo-vm-template-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
+mockXoCollections('host', 'network', 'pbd', 'pool', 'sr', 'vmTemplate')
 
 const LIST_ISSUE = { label: 'Import in progress', accent: 'danger' } as const
 

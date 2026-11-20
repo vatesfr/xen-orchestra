@@ -1,63 +1,25 @@
 import { useXoNetworkPoolGroups } from '@/modules/network/composables/xo-network-pool-groups.composable.ts'
-import type {
-  FrontXoNetwork,
-  useXoNetworkCollection,
-} from '@/modules/network/remote-resources/use-xo-network-collection.ts'
-import type { FrontXoPif, useXoPifCollection } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
-import type { FrontXoPool, useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
-import { safePushInMap } from '@/shared/utils/map.util.ts'
-import { createNetwork } from '@/test/create-network.ts'
+import type { FrontXoNetwork } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
+import type { FrontXoPif } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
+import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
+import { createNetwork, createPrivateNetwork } from '@/test/create-network.ts'
 import { createPif } from '@/test/create-pif.ts'
 import { createPool } from '@/test/create-pool.ts'
 import { t } from '@/test/i18n.ts'
+import { mockXoCollections, xoCollectionsMock } from '@/test/mock-xo-collections.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
-import { SDN_CONTROLLER_PRIVATE_NETWORK_UUID_KEY } from '@vates/types'
-import { computed, type MaybeRefOrGetter, nextTick, ref } from 'vue'
+import { type MaybeRefOrGetter, nextTick, ref } from 'vue'
 
-const { networks, pools, pifs } = vi.hoisted(() => ({
-  networks: { value: [] as FrontXoNetwork[] },
-  pools: { value: [] as FrontXoPool[] },
-  pifs: { value: [] as FrontXoPif[] },
-}))
+const { networks, pools, pifs } = xoCollectionsMock
 
-vi.mock(import('@/modules/network/remote-resources/use-xo-network-collection.ts'), () => ({
-  useXoNetworkCollection: (() => ({
-    privateNetworksByUuid: computed(() => {
-      const networksByUuid = new Map<string, FrontXoNetwork[]>()
-
-      networks.value.forEach(network => {
-        safePushInMap(networksByUuid, network.other_config[SDN_CONTROLLER_PRIVATE_NETWORK_UUID_KEY], network)
-      })
-
-      return networksByUuid
-    }),
-  })) as unknown as typeof useXoNetworkCollection,
-}))
-
-vi.mock(import('@/modules/pool/remote-resources/use-xo-pool-collection.ts'), () => ({
-  useXoPoolCollection: (() => ({
-    getPoolById: (id: FrontXoPool['id']) => pools.value.find(pool => pool.id === id),
-  })) as unknown as typeof useXoPoolCollection,
-}))
-
-vi.mock(import('@/modules/pif/remote-resources/use-xo-pif-collection.ts'), () => ({
-  useXoPifCollection: (() => ({
-    getPifsByNetworkId: (networkId: FrontXoNetwork['id']) => pifs.value.filter(pif => pif.$network === networkId),
-  })) as unknown as typeof useXoPifCollection,
-}))
-
-const PRIVATE_NETWORK_UUID = 'private-network-uuid'
+mockXoCollections('network', 'pool', 'pif')
 
 function createPoolNamed(name: string) {
   return createPool({ id: `pool-${name}` as FrontXoPool['id'], name_label: name })
 }
 
 function createPrivateNetworkOn(pool: FrontXoPool) {
-  return createNetwork({
-    id: `network-${pool.name_label}` as FrontXoNetwork['id'],
-    $pool: pool.id,
-    other_config: { [SDN_CONTROLLER_PRIVATE_NETWORK_UUID_KEY]: PRIVATE_NETWORK_UUID },
-  })
+  return createPrivateNetwork({ id: `network-${pool.name_label}` as FrontXoNetwork['id'], $pool: pool.id })
 }
 
 function createPifOn(network: FrontXoNetwork, attached = true) {
@@ -97,9 +59,7 @@ function getVisiblePoolNames(result: ReturnType<typeof mountPoolGroups>) {
 }
 
 beforeEach(() => {
-  networks.value = []
-  pools.value = []
-  pifs.value = []
+  xoCollectionsMock.reset()
 })
 
 describe('poolGroups', () => {
@@ -158,10 +118,7 @@ describe('poolGroups', () => {
   it('leaves out the private networks of another uuid', () => {
     seedPrivateNetworkPools(['paris', 'lyon'])
 
-    const otherNetwork = createNetwork({
-      id: 'network-other' as FrontXoNetwork['id'],
-      other_config: { [SDN_CONTROLLER_PRIVATE_NETWORK_UUID_KEY]: 'other-uuid' },
-    })
+    const otherNetwork = createPrivateNetwork({ id: 'network-other' as FrontXoNetwork['id'] }, 'other-uuid')
 
     networks.value = [...networks.value, otherNetwork]
 

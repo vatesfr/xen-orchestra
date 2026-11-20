@@ -1,49 +1,41 @@
-import type { FrontXoHost, useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
+import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
 import type { VmMigratePayload } from '@/modules/vm/form/migrate/use-vm-migrate-form.ts'
 import { useXoVmMigrateJob } from '@/modules/vm/jobs/xo-vm-migrate.job.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
-import type { useXoTaskUtils } from '@/shared/composables/xo-task-utils.composable.ts'
-import type { fetchPost } from '@/shared/utils/fetch.util.ts'
+import { fetchPost } from '@/shared/utils/fetch.util.ts'
 import { createHost } from '@/test/create-host.ts'
 import { createVm } from '@/test/create-vm.ts'
 import { t } from '@/test/i18n.ts'
+import { itCanRun, itCannotRun, itRejectsWithRequestError } from '@/test/job-cases.ts'
+import { xoCollectionsMock, mockXoCollections } from '@/test/mock-xo-collections.ts'
+import { answerPostsWithTask, taskUtilsMock, mockXoTaskUtils } from '@/test/mock-xo-task-utils.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
+import { mockedExport } from '@/test/spy-on-module.ts'
 import { VM_OPERATIONS, VM_POWER_STATE } from '@vates/types'
 import { flushPromises } from '@vue/test-utils'
 import { ref } from 'vue'
 
-const { fetchPostMock, monitorTaskMock } = vi.hoisted(() => ({
-  fetchPostMock: vi.fn(),
-  monitorTaskMock: vi.fn(),
-}))
+const fetchPostMock = mockedExport(fetchPost)
 
-vi.mock(import('@/shared/utils/fetch.util.ts'), () => ({
-  fetchPost: fetchPostMock as unknown as typeof fetchPost,
-}))
+const { monitorTask: monitorTaskMock } = taskUtilsMock
 
-vi.mock(import('@/shared/composables/xo-task-utils.composable.ts'), () => ({
-  useXoTaskUtils: (() => ({ monitorTask: monitorTaskMock })) as unknown as typeof useXoTaskUtils,
-}))
+// The task collection would open an SSE subscription
+mockXoTaskUtils()
 
 const POOL_ID = 'pool-source' as FrontXoPool['id']
 const OTHER_POOL_ID = 'pool-other' as FrontXoPool['id']
 const HOST_ID = 'host-target' as FrontXoHost['id']
 const OTHER_POOL_HOST_ID = 'host-other-pool' as FrontXoHost['id']
-const TASK_ID = 'task-1'
 
 const hosts = [
   createHost({ id: HOST_ID, $pool: POOL_ID }),
   createHost({ id: OTHER_POOL_HOST_ID, $pool: OTHER_POOL_ID }),
 ]
 
-vi.mock(import('@/modules/host/remote-resources/use-xo-host-collection.ts'), () => ({
-  useXoHostCollection: (() => ({
-    getHostById: (id: FrontXoHost['id']) => hosts.find(host => host.id === id),
-  })) as unknown as typeof useXoHostCollection,
-}))
+mockXoCollections('host')
 
 const payload: VmMigratePayload = { hostId: HOST_ID }
 
@@ -68,91 +60,96 @@ function mountMigrateJob(
 }
 
 beforeEach(() => {
-  fetchPostMock.mockReset()
-  monitorTaskMock.mockReset()
+  taskUtilsMock.reset()
+  xoCollectionsMock.reset()
+  xoCollectionsMock.hosts.value = hosts
 
-  fetchPostMock.mockResolvedValue({ taskId: TASK_ID })
-  monitorTaskMock.mockResolvedValue(undefined)
+  answerPostsWithTask(fetchPostMock)
 })
 
 describe('validate', () => {
-  it('can run for a running VM', () => {
-    const job = mountMigrateJob(createVm({ power_state: VM_POWER_STATE.RUNNING }))
+  itCanRun([
+    {
+      name: 'can run for a running VM',
+      mountJob: () => mountMigrateJob(createVm({ power_state: VM_POWER_STATE.RUNNING })),
+    },
+    {
+      name: 'can run for a halted VM before the drawer has produced a payload',
+      mountJob: () => mountMigrateJob(createVm({ power_state: VM_POWER_STATE.HALTED }), { payload: undefined }),
+    },
+    {
+      name: 'can run for a halted VM migrated to another pool',
+      mountJob: () =>
+        mountMigrateJob(createVm({ power_state: VM_POWER_STATE.HALTED, $pool: POOL_ID }), {
+          payload: crossPoolPayload,
+        }),
+    },
+    {
+      name: 'can run for a halted VM migrated within its pool when a disk changes SR',
+      mountJob: () =>
+        mountMigrateJob(createVm({ power_state: VM_POWER_STATE.HALTED, $pool: POOL_ID }), {
+          payload: payloadWithMovedDisk,
+        }),
+    },
+    {
+      name: 'can run for a halted VM migrated within its pool without any disk changing SR',
+      mountJob: () => mountMigrateJob(createVm({ power_state: VM_POWER_STATE.HALTED, $pool: POOL_ID })),
+    },
+    {
+      name: 'can run for a suspended VM migrated to another pool',
+      mountJob: () =>
+        mountMigrateJob(createVm({ power_state: VM_POWER_STATE.SUSPENDED, $pool: POOL_ID }), {
+          payload: crossPoolPayload,
+        }),
+    },
+    {
+      name: 'can run for a suspended VM migrated within its pool when a disk changes SR',
+      mountJob: () =>
+        mountMigrateJob(createVm({ power_state: VM_POWER_STATE.SUSPENDED, $pool: POOL_ID }), {
+          payload: payloadWithMovedDisk,
+        }),
+    },
+    {
+      name: 'can run for a suspended VM migrated within its pool without any disk changing SR',
+      mountJob: () => mountMigrateJob(createVm({ power_state: VM_POWER_STATE.SUSPENDED, $pool: POOL_ID })),
+    },
+    {
+      name: 'can run for a running VM migrated within its pool without any disk changing SR',
+      mountJob: () => mountMigrateJob(createVm({ power_state: VM_POWER_STATE.RUNNING, $pool: POOL_ID })),
+    },
+    {
+      name: 'can run before the drawer has produced a payload',
+      mountJob: () => mountMigrateJob(createVm(), { payload: undefined }),
+    },
+  ])
 
-    expect(job.canRun).toBe(true)
-    expect(job.errorMessage).toBeUndefined()
-  })
-
-  it('can run for a halted VM before the drawer has produced a payload', () => {
-    const job = mountMigrateJob(createVm({ power_state: VM_POWER_STATE.HALTED }), { payload: undefined })
-
-    expect(job.canRun).toBe(true)
-    expect(job.errorMessage).toBeUndefined()
-  })
-
-  it('can run for a halted VM migrated to another pool', () => {
-    const job = mountMigrateJob(createVm({ power_state: VM_POWER_STATE.HALTED, $pool: POOL_ID }), {
-      payload: crossPoolPayload,
-    })
-
-    expect(job.canRun).toBe(true)
-    expect(job.errorMessage).toBeUndefined()
-  })
-
-  it('can run for a halted VM migrated within its pool when a disk changes SR', () => {
-    const job = mountMigrateJob(createVm({ power_state: VM_POWER_STATE.HALTED, $pool: POOL_ID }), {
-      payload: payloadWithMovedDisk,
-    })
-
-    expect(job.canRun).toBe(true)
-    expect(job.errorMessage).toBeUndefined()
-  })
-
-  it('can run for a halted VM migrated within its pool without any disk changing SR', () => {
-    const job = mountMigrateJob(createVm({ power_state: VM_POWER_STATE.HALTED, $pool: POOL_ID }))
-
-    expect(job.canRun).toBe(true)
-    expect(job.errorMessage).toBeUndefined()
-  })
-
-  it('can run for a suspended VM migrated to another pool', () => {
-    const job = mountMigrateJob(createVm({ power_state: VM_POWER_STATE.SUSPENDED, $pool: POOL_ID }), {
-      payload: crossPoolPayload,
-    })
-
-    expect(job.canRun).toBe(true)
-    expect(job.errorMessage).toBeUndefined()
-  })
-
-  it('can run for a suspended VM migrated within its pool when a disk changes SR', () => {
-    const job = mountMigrateJob(createVm({ power_state: VM_POWER_STATE.SUSPENDED, $pool: POOL_ID }), {
-      payload: payloadWithMovedDisk,
-    })
-
-    expect(job.canRun).toBe(true)
-    expect(job.errorMessage).toBeUndefined()
-  })
-
-  it('can run for a suspended VM migrated within its pool without any disk changing SR', () => {
-    const job = mountMigrateJob(createVm({ power_state: VM_POWER_STATE.SUSPENDED, $pool: POOL_ID }))
-
-    expect(job.canRun).toBe(true)
-    expect(job.errorMessage).toBeUndefined()
-  })
-
-  it('can run for a running VM migrated within its pool without any disk changing SR', () => {
-    const job = mountMigrateJob(createVm({ power_state: VM_POWER_STATE.RUNNING, $pool: POOL_ID }))
-
-    expect(job.canRun).toBe(true)
-    expect(job.errorMessage).toBeUndefined()
-  })
-
-  it('cannot run for a paused VM', () => {
-    const job = mountMigrateJob(createVm({ power_state: VM_POWER_STATE.PAUSED }))
-
-    expect(job.canRun).toBe(false)
-    expect(job.errorMessage).toBe(t('job:vm-migrate:paused'))
-  })
+  itCannotRun([
+    {
+      name: 'cannot run for a paused VM',
+      mountJob: () => mountMigrateJob(createVm({ power_state: VM_POWER_STATE.PAUSED })),
+      errorMessage: t('job:vm-migrate:paused'),
+    },
+    {
+      name: 'cannot run when migrate_send is blocked on the VM',
+      mountJob: () =>
+        mountMigrateJob(createVm({ blockedOperations: { migrate_send: 'true' } as FrontXoVm['blockedOperations'] })),
+      errorMessage: t('job:vm-migrate:blocked-operation'),
+    },
+    {
+      name: 'cannot run when pool_migrate is blocked on the VM',
+      mountJob: () =>
+        mountMigrateJob(createVm({ blockedOperations: { pool_migrate: 'true' } as FrontXoVm['blockedOperations'] })),
+      errorMessage: t('job:vm-migrate:blocked-operation'),
+    },
+    {
+      name: 'cannot run when the destination host is not in the collection',
+      mountJob: () =>
+        mountMigrateJob(createVm({ power_state: VM_POWER_STATE.HALTED, $pool: POOL_ID }), {
+          payload: unknownHostPayload,
+        }),
+      errorMessage: t('job:vm-migrate:missing-host'),
+    },
+  ])
 
   it('reports a migration in progress while the VM is being migrated', () => {
     const job = mountMigrateJob(createVm({ current_operations: { 'op-1': VM_OPERATIONS.MIGRATE_SEND } }))
@@ -160,39 +157,6 @@ describe('validate', () => {
     expect(job.canRun).toBe(false)
     expect(job.isRunning).toBe(true)
     expect(job.errorMessage).toBe(t('job:vm-migrate:in-progress'))
-  })
-
-  it('cannot run when migrate_send is blocked on the VM', () => {
-    const job = mountMigrateJob(
-      createVm({ blockedOperations: { migrate_send: 'true' } as FrontXoVm['blockedOperations'] })
-    )
-
-    expect(job.canRun).toBe(false)
-    expect(job.errorMessage).toBe(t('job:vm-migrate:blocked-operation'))
-  })
-
-  it('cannot run when pool_migrate is blocked on the VM', () => {
-    const job = mountMigrateJob(
-      createVm({ blockedOperations: { pool_migrate: 'true' } as FrontXoVm['blockedOperations'] })
-    )
-
-    expect(job.canRun).toBe(false)
-    expect(job.errorMessage).toBe(t('job:vm-migrate:blocked-operation'))
-  })
-
-  it('can run before the drawer has produced a payload', () => {
-    const job = mountMigrateJob(createVm(), { payload: undefined })
-
-    expect(job.canRun).toBe(true)
-  })
-
-  it('cannot run when the destination host is not in the collection', () => {
-    const job = mountMigrateJob(createVm({ power_state: VM_POWER_STATE.HALTED, $pool: POOL_ID }), {
-      payload: unknownHostPayload,
-    })
-
-    expect(job.canRun).toBe(false)
-    expect(job.errorMessage).toBe(t('job:vm-migrate:missing-host'))
   })
 
   // Reopening the menu mounts a new job instance whose payload is still empty: it must see the migration in progress
@@ -225,16 +189,13 @@ describe('run', () => {
     await job.run()
 
     expect(fetchPostMock).toHaveBeenCalledWith(`vms/${vm.id}/actions/migrate`, payload)
-    expect(monitorTaskMock).toHaveBeenCalledWith(TASK_ID)
+    expect(monitorTaskMock).toHaveBeenCalledWith(`task-of-vms/${vm.id}/actions/migrate`)
   })
 
-  it('rejects when the task fails', async () => {
-    const taskError = new Error('VM_INCOMPATIBLE_WITH_THIS_HOST()')
-    monitorTaskMock.mockRejectedValue(taskError)
-
-    const job = mountMigrateJob(createVm())
-
-    await expect(job.run()).rejects.toBe(taskError)
+  itRejectsWithRequestError('rejects when the task fails', {
+    request: monitorTaskMock,
+    errorMessage: 'VM_INCOMPATIBLE_WITH_THIS_HOST()',
+    run: () => mountMigrateJob(createVm()).run(),
   })
 
   it('rejects before posting when there is no payload', async () => {

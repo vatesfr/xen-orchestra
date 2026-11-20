@@ -14,7 +14,7 @@ import { createV2vDestinationDefaults, createV2vMigrationList } from '@/test/cre
 import { createVmTemplate } from '@/test/create-vm-template.ts'
 import { findAllGenericComponents } from '@/test/find-generic-components.ts'
 import { dangerMessage } from '@/test/form-messages.ts'
-import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
+import { xoCollectionsMock, mockXoCollections } from '@/test/mock-xo-collections.ts'
 import { mountComposableWithI18n } from '@/test/mount-composable.ts'
 import { mountWithSelect } from '@/test/mount-with-select.ts'
 import { seedV2vDestinationPools, V2V_MANAGEMENT_NETWORK_ID } from '@/test/seed-v2v-destination-pools.ts'
@@ -24,34 +24,7 @@ import VtsSelect from '@core/components/select/VtsSelect.vue'
 import { flushPromises } from '@vue/test-utils'
 import { h, nextTick, ref } from 'vue'
 
-vi.mock(
-  import('@/modules/pool/remote-resources/use-xo-pool-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
-vi.mock(
-  import('@/modules/host/remote-resources/use-xo-host-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
-vi.mock(
-  import('@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
-vi.mock(
-  import('@/modules/network/remote-resources/use-xo-network-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
-vi.mock(
-  import('@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
-vi.mock(
-  import('@/modules/pif/remote-resources/use-xo-pif-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
-vi.mock(
-  import('@/modules/vm/remote-resources/use-xo-vm-template-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
+mockXoCollections('host', 'network', 'pbd', 'pif', 'pool', 'sr', 'vmTemplate')
 
 const POOL = createPool()
 

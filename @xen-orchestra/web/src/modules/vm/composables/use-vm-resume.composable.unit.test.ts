@@ -1,35 +1,27 @@
 import { useVmResume } from '@/modules/vm/composables/use-vm-resume.composable.ts'
-import type { useXoVmResumeJob } from '@/modules/vm/jobs/xo-vm-resume.job.ts'
-import type { useXoVmUnpauseJob } from '@/modules/vm/jobs/xo-vm-unpause.job.ts'
+import { useXoVmResumeJob } from '@/modules/vm/jobs/xo-vm-resume.job.ts'
+import { useXoVmUnpauseJob } from '@/modules/vm/jobs/xo-vm-unpause.job.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { createJobResult } from '@/test/create-job-result.ts'
 import { createVm } from '@/test/create-vm.ts'
 import { t } from '@/test/i18n.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
+import { mockedExport } from '@/test/spy-on-module.ts'
 import { VM_POWER_STATE } from '@vates/types'
 import { type MaybeRefOrGetter, ref, toValue } from 'vue'
 
-const { unpause, resume, useUnpauseJob, useResumeJob } = vi.hoisted(() => ({
-  unpause: vi.fn(),
-  resume: vi.fn(),
-  useUnpauseJob: vi.fn(),
-  useResumeJob: vi.fn(),
-}))
-
 // The jobs call the REST API and subscribe to server events
-vi.mock(import('@/modules/vm/jobs/xo-vm-unpause.job.ts'), () => ({
-  useXoVmUnpauseJob: useUnpauseJob as unknown as typeof useXoVmUnpauseJob,
-}))
+const useUnpauseJob = mockedExport(useXoVmUnpauseJob)
+const useResumeJob = mockedExport(useXoVmResumeJob)
 
-vi.mock(import('@/modules/vm/jobs/xo-vm-resume.job.ts'), () => ({
-  useXoVmResumeJob: useResumeJob as unknown as typeof useXoVmResumeJob,
-}))
+const unpause = vi.fn()
+const resume = vi.fn()
 
 beforeEach(() => {
   unpause.mockReset()
   resume.mockReset()
-  useUnpauseJob.mockReset().mockReturnValue(createJobResult(unpause))
-  useResumeJob.mockReset().mockReturnValue(createJobResult(resume))
+  useUnpauseJob.mockReturnValue(createJobResult(unpause))
+  useResumeJob.mockReturnValue(createJobResult(resume))
 })
 
 const pausedVm = createVm({ id: 'vm-paused' as FrontXoVm['id'], power_state: VM_POWER_STATE.PAUSED })

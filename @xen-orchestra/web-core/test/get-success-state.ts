@@ -1,7 +1,7 @@
-import { findTitle } from '@/test/find-titles.ts'
 import VtsSuccessStateHero from '@core/components/success-state-hero/VtsSuccessStateHero.vue'
 import UiAlert from '@core/components/ui/alert/UiAlert.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
+import { findTitle } from '@core-test/find-title.ts'
 import type { VueWrapper } from '@vue/test-utils'
 
 // What the success state of a wrapper tells: its title and its message, and the link among its actions, each

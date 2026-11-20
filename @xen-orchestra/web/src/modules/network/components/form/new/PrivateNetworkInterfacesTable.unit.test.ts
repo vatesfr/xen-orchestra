@@ -9,25 +9,14 @@ import { findTableColumnCells } from '@/test/find-table-cells.ts'
 import { getUiButton } from '@/test/get-button.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
-import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
+import { xoCollectionsMock, mockXoCollections } from '@/test/mock-xo-collections.ts'
 import { openSelect } from '@/test/select.ts'
 import VtsDetailedOption from '@core/components/select/VtsDetailedOption.vue'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import { mount } from '@vue/test-utils'
 import { reactive } from 'vue'
 
-vi.mock(
-  import('@/modules/pool/remote-resources/use-xo-pool-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
-vi.mock(
-  import('@/modules/pif/remote-resources/use-xo-pif-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
-vi.mock(
-  import('@/modules/network/remote-resources/use-xo-network-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
+mockXoCollections('pool', 'pif', 'network')
 
 const POOL = createPool()
 

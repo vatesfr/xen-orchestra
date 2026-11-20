@@ -1,56 +1,29 @@
 import BackupLogBackedUpVmsTable from '@/modules/backup-log/components/backed-up-vms/BackupLogBackedUpVmsTable.vue'
 import type { FrontXoBackupLog } from '@/modules/backup-log/remote-resources/use-xo-backup-log-collection.ts'
-import type { FrontXoVbd, useXoVbdCollection } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
-import type { FrontXoVdi, useXoVdiCollection } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
-import type { FrontXoVm, useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
+import type { FrontXoVbd } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
+import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
+import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { createBackupLog, createBackupLogVmTask } from '@/test/create-backup-log.ts'
-import { createVbd } from '@/test/create-vbd.ts'
-import { createVdi } from '@/test/create-vdi.ts'
 import { createVm } from '@/test/create-vm.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
+import { vmCollectionMock, mockXoVmCollection } from '@/test/mock-xo-vm-collection.ts'
+import { vmDeviceCollectionsMock, mockXoVmDeviceCollections } from '@/test/mock-xo-vm-device-collections.ts'
+import { seedVmDisks } from '@/test/seed-vm-disks.ts'
 import { formatSizeRaw } from '@core/utils/size.util.ts'
 import { mount } from '@vue/test-utils'
 
-const { vmsById, vbdsById, vdisById } = vi.hoisted(() => ({
-  vmsById: new Map<string, FrontXoVm>(),
-  vbdsById: new Map<string, FrontXoVbd>(),
-  vdisById: new Map<string, FrontXoVdi>(),
-}))
+mockXoVmCollection()
 
-vi.mock(import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'), () => ({
-  useXoVmCollection: (() => ({
-    getVmById: (id: string) => vmsById.get(id),
-  })) as unknown as typeof useXoVmCollection,
-}))
-
-vi.mock(import('@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'), () => ({
-  useXoVbdCollection: (() => ({
-    getVbdsByIds: (ids: string[]) => ids.flatMap(id => vbdsById.get(id) ?? []),
-  })) as unknown as typeof useXoVbdCollection,
-}))
-
-vi.mock(import('@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'), () => ({
-  useXoVdiCollection: (() => ({
-    getVdiById: (id: string) => vdisById.get(id),
-  })) as unknown as typeof useXoVdiCollection,
-}))
+mockXoVmDeviceCollections('vbd', 'vdi')
 
 beforeEach(() => {
-  vmsById.clear()
-  vbdsById.clear()
-  vdisById.clear()
+  vmCollectionMock.reset()
+  vmDeviceCollectionsMock.reset()
 })
 
 function mockVmWithDisks(disks: { vbd: Partial<FrontXoVbd>; vdi: Partial<FrontXoVdi> & Pick<FrontXoVdi, 'id'> }[]) {
-  const vbds = disks.map(({ vbd, vdi }, index) =>
-    createVbd({ id: `vbd-${index}` as FrontXoVbd['id'], VDI: vdi.id, ...vbd })
-  )
-
-  vbds.forEach(vbd => vbdsById.set(vbd.id, vbd))
-  disks.forEach(({ vdi }) => vdisById.set(vdi.id, createVdi(vdi)))
-
-  vmsById.set('vm-1', createVm({ id: 'vm-1' as FrontXoVm['id'], $VBDs: vbds.map(vbd => vbd.id) }))
+  vmCollectionMock.vms.value = [createVm({ id: 'vm-1' as FrontXoVm['id'], $VBDs: seedVmDisks(disks) })]
 }
 
 function findVirtualSizeCell(backupLog: FrontXoBackupLog) {

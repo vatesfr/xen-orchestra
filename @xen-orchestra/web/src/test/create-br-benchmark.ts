@@ -1,3 +1,4 @@
+import { createBr } from '@/test/create-br.ts'
 import type { XoBackupRepositoryBenchmark } from '@vates/types'
 
 /**
@@ -11,4 +12,19 @@ export function createBrBenchmark(overrides: Partial<XoBackupRepositoryBenchmark
     timestamp: 1_700_000_000_000,
     ...overrides,
   }
+}
+
+// The rates of the latest benchmark of `createTwiceBenchmarkedBr`
+export const LATEST_BR_BENCHMARK_RATES = { write: 100_000_000, read: 200_000_000 }
+
+/**
+ * A backup repository benchmarked twice: an older benchmark, then the latest one, of `LATEST_BR_BENCHMARK_RATES`.
+ */
+export function createTwiceBenchmarkedBr() {
+  return createBr({
+    benchmarks: [
+      createBrBenchmark({ writeRate: 1_000_000, readRate: 2_000_000 }),
+      createBrBenchmark({ writeRate: LATEST_BR_BENCHMARK_RATES.write, readRate: LATEST_BR_BENCHMARK_RATES.read }),
+    ],
+  })
 }

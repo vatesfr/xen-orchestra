@@ -1,5 +1,6 @@
 import V2vWizardHeader from '@/modules/v2v/components/wizard/V2vWizardHeader.vue'
 import type { V2vWizardStep } from '@/modules/v2v/utils/v2v-wizard-step.util.ts'
+import { findHeadBarStatus } from '@/test/find-header.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import UiNumberedStepper from '@core/components/ui/numbered-stepper/UiNumberedStepper.vue'
@@ -13,11 +14,11 @@ it('shows the wizard title and its summary', () => {
   const wrapper = mountHeader('source', 'vcenter-prod.lab')
 
   expect(wrapper.get('.ui-head-bar').text()).toContain(t('migrate-vms'))
-  expect(wrapper.get('.ui-head-bar .status').text()).toBe('vcenter-prod.lab')
+  expect(findHeadBarStatus(wrapper).text()).toBe('vcenter-prod.lab')
 })
 
 it('shows no summary when there is none', () => {
-  expect(mountHeader('source').find('.ui-head-bar .status').exists()).toBe(false)
+  expect(findHeadBarStatus(mountHeader('source')).exists()).toBe(false)
 })
 
 it('lists the steps of the wizard in order', () => {

@@ -1,11 +1,12 @@
 import { useNewBackupRepository } from '@/modules/backup-repository/composables/use-new-backup-repository.composable.ts'
-import type {
-  NewBackupRepositoryPayload,
+import {
+  type NewBackupRepositoryPayload,
   useXoBackupRepositoryCreateJob,
 } from '@/modules/backup-repository/jobs/xo-backup-repository-create.job.ts'
-import { overlayMock } from '@/test/mock-overlay.ts'
+import { overlayMock, mockOverlay } from '@/test/mock-overlay.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
 import { silenceConsoleError } from '@/test/silence-console-error.ts'
+import { mockedExport } from '@/test/spy-on-module.ts'
 import { KEEP_OVERLAY_OPEN } from '@core/packages/overlay/symbols.ts'
 import type { Ref } from 'vue'
 
@@ -16,16 +17,11 @@ type OverlayOptions = {
   }
 }
 
-const { useCreateJob, run } = vi.hoisted(() => ({
-  useCreateJob: vi.fn(),
-  run: vi.fn(),
-}))
+const useCreateJob = mockedExport(useXoBackupRepositoryCreateJob)
 
-vi.mock(import('@/modules/backup-repository/jobs/xo-backup-repository-create.job.ts'), () => ({
-  useXoBackupRepositoryCreateJob: useCreateJob as unknown as typeof useXoBackupRepositoryCreateJob,
-}))
+const run = vi.fn()
 
-vi.mock(import('@core/packages/overlay/use-overlay.ts'), () => import('@/test/mock-overlay.ts'))
+mockOverlay()
 
 const PAYLOAD: NewBackupRepositoryPayload = {
   name: 'Nightly backups',
@@ -33,7 +29,6 @@ const PAYLOAD: NewBackupRepositoryPayload = {
 }
 
 beforeEach(() => {
-  useCreateJob.mockReset()
   run.mockReset()
   overlayMock.reset()
 

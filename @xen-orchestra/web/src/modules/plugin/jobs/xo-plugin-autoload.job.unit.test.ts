@@ -1,22 +1,16 @@
 import { useXoPluginAutoloadJob } from '@/modules/plugin/jobs/xo-plugin-autoload.job.ts'
 import type { FrontXoPlugin } from '@/modules/plugin/remote-resources/use-xo-plugin-collection.ts'
-import type { fetchPatch } from '@/shared/utils/fetch.util.ts'
+import { fetchPatch } from '@/shared/utils/fetch.util.ts'
 import { createPlugin } from '@/test/create-plugin.ts'
 import { t } from '@/test/i18n.ts'
+import { itCanRun, itCannotRun, itRejectsWithRequestError } from '@/test/job-cases.ts'
 import { expectJobRunning } from '@/test/job-running.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
+import { mockedExport } from '@/test/spy-on-module.ts'
 
-const { patch } = vi.hoisted(() => ({
-  patch: vi.fn(),
-}))
-
-vi.mock(import('@/shared/utils/fetch.util.ts'), () => ({
-  fetchPatch: patch as unknown as typeof fetchPatch,
-}))
+const patch = mockedExport(fetchPatch)
 
 beforeEach(() => {
-  patch.mockReset()
-
   patch.mockResolvedValue(undefined)
 })
 
@@ -37,28 +31,28 @@ describe('run', () => {
     expect(patch).toHaveBeenCalledWith('plugins/transport-email', { autoload: false })
   })
 
-  it('propagates the error of the request', async () => {
-    const error = new Error('request failed')
-    patch.mockRejectedValue(error)
-
-    await expect(mountAutoloadJob(createPlugin()).run()).rejects.toBe(error)
+  itRejectsWithRequestError('propagates the error of the request', {
+    request: patch,
+    errorMessage: 'request failed',
+    run: () => mountAutoloadJob(createPlugin()).run(),
   })
 })
 
 describe('validate', () => {
-  it('can run on any plugin', () => {
-    const job = mountAutoloadJob(createPlugin({ loaded: false, configured: false }))
+  itCanRun([
+    {
+      name: 'can run on any plugin',
+      mountJob: () => mountAutoloadJob(createPlugin({ loaded: false, configured: false })),
+    },
+  ])
 
-    expect(job.canRun).toBe(true)
-    expect(job.errorMessage).toBeUndefined()
-  })
-
-  it('cannot run without plugin', () => {
-    const job = mountAutoloadJob(undefined)
-
-    expect(job.canRun).toBe(false)
-    expect(job.errorMessage).toBe(t('job:plugin-autoload:missing-plugin'))
-  })
+  itCannotRun([
+    {
+      name: 'cannot run without plugin',
+      mountJob: () => mountAutoloadJob(undefined),
+      errorMessage: t('job:plugin-autoload:missing-plugin'),
+    },
+  ])
 
   it('cannot run while the autoload is being updated', () => {
     patch.mockReturnValue(new Promise(() => {}))

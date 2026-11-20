@@ -1,5 +1,5 @@
 import { DISKOR_POOL_NAME } from '@/test/create-pool.ts'
-import { findPanelCardTitles } from '@/test/find-card-title.ts'
+import { findPanelCardTitleLabels } from '@/test/find-card-title.ts'
 import { findCardLabelledValues } from '@/test/find-rendered-values.ts'
 import { findStateHeroTypes } from '@/test/find-state-hero-types.ts'
 import { t } from '@/test/i18n.ts'
@@ -24,7 +24,7 @@ export function describeV2vMappingCardLayout({ mountCard, title }: V2vMappingCar
   it('titles the card, then the disks and the network adapters, each set apart', () => {
     const wrapper = mountCard()
 
-    expect([findPanelCardTitles(wrapper), countDividers(wrapper)]).toEqual([
+    expect([findPanelCardTitleLabels(wrapper), countDividers(wrapper)]).toEqual([
       [title, t('disks'), t('network-adapters')],
       2,
     ])
@@ -36,14 +36,14 @@ export function describeV2vMappingCardLayout({ mountCard, title }: V2vMappingCar
   ])('leaves out the %s of a VM without any, and their divider', (_, rows, titles) => {
     const wrapper = mountCard(rows)
 
-    expect([findPanelCardTitles(wrapper), countDividers(wrapper)]).toEqual([titles, 1])
+    expect([findPanelCardTitleLabels(wrapper), countDividers(wrapper)]).toEqual([titles, 1])
   })
 
   it('shows the devices busy, the pool alone, while loading', () => {
     const wrapper = mountCard({ loading: true })
 
     expect(findStateHeroTypes(wrapper)).toEqual(['busy'])
-    expect([findPanelCardTitles(wrapper), findCardLabelledValues(wrapper), countDividers(wrapper)]).toEqual([
+    expect([findPanelCardTitleLabels(wrapper), findCardLabelledValues(wrapper), countDividers(wrapper)]).toEqual([
       [title],
       { [t('pool')]: DISKOR_POOL_NAME },
       1,

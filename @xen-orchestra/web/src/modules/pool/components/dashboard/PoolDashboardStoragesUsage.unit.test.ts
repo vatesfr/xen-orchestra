@@ -1,8 +1,10 @@
 import PoolDashboardStoragesUsage from '@/modules/pool/components/dashboard/PoolDashboardStoragesUsage.vue'
 import type { XoPoolDashboard } from '@/modules/pool/types/xo-pool-dashboard.type.ts'
+import { itShowsDashboardCardStates } from '@/test/dashboard-card.ts'
 import { findCardNumbers, findLegends } from '@/test/find-rendered-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
+import type { PoolDashboardCardProps } from '@/test/pool-dashboard-card.ts'
 import { mount } from '@vue/test-utils'
 
 type StorageUsage = NonNullable<NonNullable<XoPoolDashboard['srs']>['topFiveUsage']>[number]
@@ -18,9 +20,9 @@ function createStorageUsage(overrides: Partial<StorageUsage> = {}): StorageUsage
   }
 }
 
-function mountStoragesUsage(props: { poolDashboard?: XoPoolDashboard; hasError?: boolean } = {}) {
+function mountStoragesUsage(props: PoolDashboardCardProps = {}) {
   return mount(PoolDashboardStoragesUsage, {
-    props: { poolDashboard: undefined, ...props },
+    props: { poolDashboard: withStorages([createStorageUsage()]), ...props },
     global: createGlobalTestConfig(),
   })
 }
@@ -29,29 +31,12 @@ function withStorages(topFiveUsage: StorageUsage[]): XoPoolDashboard {
   return { srs: { topFiveUsage } }
 }
 
-it('renders the card title and the number of storages it covers', () => {
-  const wrapper = mountStoragesUsage({ poolDashboard: withStorages([createStorageUsage()]) })
-
-  expect(wrapper.get('.ui-card-title').text()).toContain(t('storage-usage'))
-  expect(wrapper.get('.ui-card-title').text()).toContain(t('top-#', 5))
-})
-
-it('shows a loader while the dashboard has not arrived yet', () => {
-  const wrapper = mountStoragesUsage()
-
-  expect(wrapper.find('.ui-loader').exists()).toBe(true)
-})
-
-it('shows a loader while the storage usage is missing from the dashboard', () => {
-  const wrapper = mountStoragesUsage({ poolDashboard: { srs: {} } })
-
-  expect(wrapper.find('.ui-loader').exists()).toBe(true)
-})
-
-it('shows an error message when the dashboard could not be fetched', () => {
-  const wrapper = mountStoragesUsage({ poolDashboard: withStorages([createStorageUsage()]), hasError: true })
-
-  expect(wrapper.get('.vts-state-hero').text()).toBe(t('error-no-data'))
+itShowsDashboardCardStates(mountStoragesUsage, {
+  dashboardProp: 'poolDashboard',
+  title: [t('storage-usage'), t('top-#', 5)],
+  missing: { 'the storage usage': { srs: {} } },
+  findContent: findLegends,
+  hasErrorState: true,
 })
 
 it('reports that there is nothing to show when the pool has no storage', () => {

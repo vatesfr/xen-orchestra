@@ -1,33 +1,17 @@
 import { useXoBackedUpVmsUtils } from '@/modules/backup-job/composables/use-xo-backed-up-vms-utils.composable.ts'
 import type { FrontXoVmBackupJob } from '@/modules/backup-job/remote-resources/use-xo-backup-job-collection.ts'
-import type { FrontXoPool, useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
-import type { FrontXoVm, useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
+import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
+import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { createPool } from '@/test/create-pool.ts'
 import { createVm } from '@/test/create-vm.ts'
+import { xoCollectionsMock, mockXoCollections } from '@/test/mock-xo-collections.ts'
+import { vmCollectionMock, mockXoVmCollection } from '@/test/mock-xo-vm-collection.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
 import { ref } from 'vue'
 
-const { vms, pools } = vi.hoisted(() => ({
-  vms: [] as FrontXoVm[],
-  pools: [] as FrontXoPool[],
-}))
+mockXoVmCollection()
 
-vi.mock(import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'), async () => {
-  const { ref: vueRef } = await import('vue')
-
-  return {
-    useXoVmCollection: (() => ({
-      vms: vueRef(vms),
-      getVmsByIds: (ids: FrontXoVm['id'][]) => vms.filter(vm => ids.includes(vm.id)),
-    })) as unknown as typeof useXoVmCollection,
-  }
-})
-
-vi.mock(import('@/modules/pool/remote-resources/use-xo-pool-collection.ts'), () => ({
-  useXoPoolCollection: (() => ({
-    getPoolsByIds: (ids: FrontXoPool['id'][] = []) => pools.filter(pool => ids.includes(pool.id)),
-  })) as unknown as typeof useXoPoolCollection,
-}))
+mockXoCollections('pool')
 
 const firstPool = createPool({ id: 'pool-1' as FrontXoPool['id'], name_label: 'First pool' })
 const secondPool = createPool({ id: 'pool-2' as FrontXoPool['id'], name_label: 'Second pool' })
@@ -37,8 +21,10 @@ const untaggedVm = createVm({ id: 'vm-2' as FrontXoVm['id'], tags: [] })
 const noBakVm = createVm({ id: 'vm-3' as FrontXoVm['id'], tags: ['test', 'xo:no-bak'] })
 
 beforeEach(() => {
-  vms.splice(0, vms.length, taggedVm, untaggedVm, noBakVm)
-  pools.splice(0, pools.length, firstPool, secondPool)
+  vmCollectionMock.reset()
+  xoCollectionsMock.reset()
+  vmCollectionMock.vms.value = [taggedVm, untaggedVm, noBakVm]
+  xoCollectionsMock.pools.value = [firstPool, secondPool]
 })
 
 function mountBackedUpVms(backedUpVms: FrontXoVmBackupJob['vms']) {

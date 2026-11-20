@@ -1,87 +1,52 @@
 import { useVmBulkPowerStateActions } from '@/modules/vm/composables/use-vm-bulk-power-state-actions.composable.ts'
 import type { useVmResume } from '@/modules/vm/composables/use-vm-resume.composable.ts'
-import type { useXoVmForceRebootJob } from '@/modules/vm/jobs/xo-vm-force-reboot.job.ts'
-import type { useXoVmForceShutdownJob } from '@/modules/vm/jobs/xo-vm-force-shutdown.job.ts'
-import type { useXoVmPauseJob } from '@/modules/vm/jobs/xo-vm-pause.job.ts'
-import type { useXoVmRebootJob } from '@/modules/vm/jobs/xo-vm-reboot.job.ts'
-import type { useXoVmShutdownJob } from '@/modules/vm/jobs/xo-vm-shutdown.job.ts'
-import type { useXoVmStartJob } from '@/modules/vm/jobs/xo-vm-start.job.ts'
-import type { useXoVmSuspendJob } from '@/modules/vm/jobs/xo-vm-suspend.jobs.ts'
+import { useXoVmForceRebootJob } from '@/modules/vm/jobs/xo-vm-force-reboot.job.ts'
+import { useXoVmForceShutdownJob } from '@/modules/vm/jobs/xo-vm-force-shutdown.job.ts'
+import { useXoVmPauseJob } from '@/modules/vm/jobs/xo-vm-pause.job.ts'
+import { useXoVmRebootJob } from '@/modules/vm/jobs/xo-vm-reboot.job.ts'
+import { useXoVmShutdownJob } from '@/modules/vm/jobs/xo-vm-shutdown.job.ts'
+import { useXoVmStartJob } from '@/modules/vm/jobs/xo-vm-start.job.ts'
+import { useXoVmSuspendJob } from '@/modules/vm/jobs/xo-vm-suspend.jobs.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
-import { createJobResult } from '@/test/create-job-result.ts'
+import { createJobResult, toJobComposableResult } from '@/test/create-job-result.ts'
 import { createVm } from '@/test/create-vm.ts'
 import { t } from '@/test/i18n.ts'
+import { confirmOpenedModal } from '@/test/mock-overlay.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
+import { mockedExport, mockModule } from '@/test/spy-on-module.ts'
 import type { useActionModal } from '@core/composables/modals/use-action-modal.ts'
 import { VM_POWER_STATE } from '@vates/types'
 import { type MaybeRefOrGetter, toValue } from 'vue'
 
-const { JOB_NAMES, runs, jobs, openModal } = vi.hoisted(() => {
-  const JOB_NAMES = [
-    'start',
-    'pause',
-    'resume',
-    'suspend',
-    'reboot',
-    'forceReboot',
-    'shutdown',
-    'forceShutdown',
-  ] as const
-
-  const createMocks = <TFn extends (...args: never[]) => unknown>() =>
-    Object.fromEntries(JOB_NAMES.map(name => [name, vi.fn<TFn>()])) as Record<
-      (typeof JOB_NAMES)[number],
-      ReturnType<typeof vi.fn<TFn>>
-    >
-
-  return {
-    JOB_NAMES,
-    runs: createMocks<(...args: unknown[]) => void>(),
-    jobs: createMocks<(vms: unknown) => ReturnType<typeof createJobResult<(...args: unknown[]) => void>>>(),
-    openModal: vi.fn(),
-  }
-})
+const JOB_NAMES = ['start', 'pause', 'resume', 'suspend', 'reboot', 'forceReboot', 'shutdown', 'forceShutdown'] as const
 
 type JobName = (typeof JOB_NAMES)[number]
 
+const runs = Object.fromEntries(JOB_NAMES.map(name => [name, vi.fn()])) as Record<
+  JobName,
+  ReturnType<typeof vi.fn<() => void>>
+>
+
 // The jobs and the resume composable call the REST API and open SSE subscriptions
-vi.mock(import('@/modules/vm/jobs/xo-vm-start.job.ts'), () => ({
-  useXoVmStartJob: jobs.start as unknown as typeof useXoVmStartJob,
+const jobs: Record<JobName, ReturnType<typeof mockedExport>> = {
+  start: mockedExport(useXoVmStartJob),
+  pause: mockedExport(useXoVmPauseJob),
+  resume: vi.fn(),
+  suspend: mockedExport(useXoVmSuspendJob),
+  reboot: mockedExport(useXoVmRebootJob),
+  forceReboot: mockedExport(useXoVmForceRebootJob),
+  shutdown: mockedExport(useXoVmShutdownJob),
+  forceShutdown: mockedExport(useXoVmForceShutdownJob),
+}
+
+const openModal = vi.fn()
+
+mockModule(import('@/modules/vm/composables/use-vm-resume.composable.ts'), () => ({
+  useVmResume: ((vms: unknown) =>
+    toJobComposableResult(jobs.resume(vms), 'resumeVms', 'isResumingVms')) as unknown as typeof useVmResume,
 }))
 
-vi.mock(import('@/modules/vm/jobs/xo-vm-pause.job.ts'), () => ({
-  useXoVmPauseJob: jobs.pause as unknown as typeof useXoVmPauseJob,
-}))
-
-vi.mock(import('@/modules/vm/jobs/xo-vm-suspend.jobs.ts'), () => ({
-  useXoVmSuspendJob: jobs.suspend as unknown as typeof useXoVmSuspendJob,
-}))
-
-vi.mock(import('@/modules/vm/jobs/xo-vm-reboot.job.ts'), () => ({
-  useXoVmRebootJob: jobs.reboot as unknown as typeof useXoVmRebootJob,
-}))
-
-vi.mock(import('@/modules/vm/jobs/xo-vm-force-reboot.job.ts'), () => ({
-  useXoVmForceRebootJob: jobs.forceReboot as unknown as typeof useXoVmForceRebootJob,
-}))
-
-vi.mock(import('@/modules/vm/jobs/xo-vm-shutdown.job.ts'), () => ({
-  useXoVmShutdownJob: jobs.shutdown as unknown as typeof useXoVmShutdownJob,
-}))
-
-vi.mock(import('@/modules/vm/jobs/xo-vm-force-shutdown.job.ts'), () => ({
-  useXoVmForceShutdownJob: jobs.forceShutdown as unknown as typeof useXoVmForceShutdownJob,
-}))
-
-vi.mock(import('@/modules/vm/composables/use-vm-resume.composable.ts'), () => ({
-  useVmResume: ((vms: unknown) => {
-    const { run, canRun, isRunning, errorMessage } = jobs.resume(vms)
-
-    return { resumeVms: run, canResumeVms: canRun, isResumingVms: isRunning, resumeVmsErrorMessage: errorMessage }
-  }) as unknown as typeof useVmResume,
-}))
-
-vi.mock(import('@core/composables/modals/use-action-modal.ts'), () => ({
+mockModule(import('@core/composables/modals/use-action-modal.ts'), () => ({
   useActionModal: (() => ({ open: openModal })) as unknown as typeof useActionModal,
 }))
 
@@ -126,10 +91,6 @@ function findActions(vms: FrontXoVm[] = [runningVm]) {
   const [start, pause, resume, suspend, reboot, forceReboot, shutdown, forceShutdown] = powerStateActions
 
   return { start, pause, resume, suspend, reboot, forceReboot, shutdown, forceShutdown }
-}
-
-function confirmModal() {
-  openModal.mock.calls[0][0].events.onConfirm()
 }
 
 describe('powerStateActions', () => {
@@ -208,7 +169,7 @@ describe('actions requiring a confirmation', () => {
   it.each(confirmedActions)('runs the $action in the background once confirmed', ({ name }) => {
     findActions()[name].onClick()
 
-    confirmModal()
+    confirmOpenedModal([{ open: openModal }])
 
     expect(runs[name]).toHaveBeenCalledWith({ detached: true })
   })

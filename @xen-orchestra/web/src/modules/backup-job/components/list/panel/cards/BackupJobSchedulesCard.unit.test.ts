@@ -5,6 +5,7 @@ import { createSchedule } from '@/test/create-schedule.ts'
 import { findCardLabelledValues } from '@/test/find-rendered-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
+import { mockXoRoutes } from '@/test/mock-xo-routes.ts'
 import VtsDivider from '@core/components/divider/VtsDivider.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
@@ -12,7 +13,7 @@ import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTi
 import { formatDateTime } from '@core/utils/time.util.ts'
 import { mount, type VueWrapper } from '@vue/test-utils'
 
-vi.mock(import('@/shared/remote-resources/use-xo-routes.ts'), () => import('@/test/mock-xo-routes.ts'))
+mockXoRoutes()
 
 beforeEach(() => {
   vi.useFakeTimers()
