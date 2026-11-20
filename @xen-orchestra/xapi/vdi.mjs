@@ -266,22 +266,17 @@ class Vdi {
   }
 
   /**
-   * Write the content of a disk into an existing VDI.
+   * Grow a VDI to a new virtual size.
    *
-   * A XAPI task is created for the transfer and linked to the VDI through its
-   * `other_config` (`xo:import:task` / `xo:import:length`). When `content` is a
-   * stream, its progress is reported on that task since XCP-ng does not do it
-   * for every format.
+   * If the VDI is attached to a running VM, the resize is done online when the
+   * XAPI supports it.
    *
-   * @param {string} ref - reference of the destination VDI
-   * @param {import('node:stream').Readable | Buffer} content - disk content, whose
-   * `length` (in bytes) must be known: a stream must carry it as a property, a
-   * Buffer (e.g. the cloud config drive) has it natively
-   * @param {object} opts
-   * @param {AbortSignal} [opts.signal]
-   * @param {'raw' | 'vhd' | 'qcow2'} opts.format - format of `content`, must be
-   * one of `SUPPORTED_VDI_FORMAT`
+   * @param {string} vdiRef - reference of the VDI to resize
+   * @param {number} size - new virtual size in bytes, cannot be below the current one
    * @returns {Promise<void>}
+   * @throws invalid parameters error if `size` is below the current virtual size
+   * @throws `VDI_IN_USE` if the VDI is attached to a running VM and the XAPI
+   * does not support online resize
    */
   async resize(vdiRef, size) {
     // XAPI may return int64 fields as strings
@@ -307,6 +302,24 @@ class Vdi {
     }
   }
 
+  /**
+   * Write the content of a disk into an existing VDI.
+   *
+   * A XAPI task is created for the transfer and linked to the VDI through its
+   * `other_config` (`xo:import:task` / `xo:import:length`). When `content` is a
+   * stream, its progress is reported on that task since XCP-ng does not do it
+   * for every format.
+   *
+   * @param {string} ref - reference of the destination VDI
+   * @param {import('node:stream').Readable | Buffer} content - disk content, whose
+   * `length` (in bytes) must be known: a stream must carry it as a property, a
+   * Buffer (e.g. the cloud config drive) has it natively
+   * @param {object} opts
+   * @param {AbortSignal} [opts.signal]
+   * @param {'raw' | 'vhd' | 'qcow2'} opts.format - format of `content`, must be
+   * one of `SUPPORTED_VDI_FORMAT`
+   * @returns {Promise<void>}
+   */
   async importContent(ref, content, { signal, format }) {
     assert.notEqual(format, undefined)
     // now we'll handle the VHD and qcow2 export
