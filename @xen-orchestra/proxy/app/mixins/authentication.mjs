@@ -11,13 +11,14 @@ const { warn } = createLogger('xo:proxy:authentication')
 const isValidToken = t => typeof t === 'string' && t.length !== 0
 
 export default class Authentication {
-  #app
+  // kept in memory because the config is not reloaded when the token is written at construction
+  #token
 
   constructor(app, { appName, config: { authenticationToken: token } }) {
-    this.#app = app
-
     const setToken = ({ token }) => {
       assert(isValidToken(token), 'invalid authentication token: ' + token)
+
+      this.#token = token
 
       // save this token in the automatically handled conf file
       fse.outputFileSync(
@@ -38,6 +39,13 @@ export default class Authentication {
       }
     }
 
+    // follow config changes (including the ones made by setToken)
+    app.config.watch('authenticationToken', token => {
+      if (isValidToken(token)) {
+        this.#token = token
+      }
+    })
+
     app.api.addMethod('authentication.setToken', setToken, {
       description: 'change the authentication token used by this XO Proxy',
       params: {
@@ -50,7 +58,9 @@ export default class Authentication {
   }
 
   async findProfile(credentials) {
-    if (credentials?.token === this.#app.config.get('authenticationToken')) {
+    const token = credentials?.token
+    // never match an empty/missing token, even if no valid token is known
+    if (isValidToken(token) && token === this.#token) {
       return new Profile()
     }
   }
