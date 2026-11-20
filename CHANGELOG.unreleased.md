@@ -72,7 +72,11 @@
 >>>>>>> ff21cace97 (fix after mikita review)
 =======
 - [REST API] `sr: import:vdi` privilege is split into `import:vdi:upload` and `import:vdi:url`, existing `import:vdi` privileges cover both (PR [#10751](https://github.com/vatesfr/xen-orchestra/pull/10751))
+<<<<<<< HEAD
 >>>>>>> d173dbda22 (acl changes for additional level permissions)
+=======
+- - [REST API] `POST /rest/v0/vdis` (create an empty VDI) now only requires the `vdi: create` privilege, `sr: import:vdi` is no longer needed (PR [#10751](https://github.com/vatesfr/xen-orchestra/pull/10751))
+>>>>>>> 68e5a3cb6d (update changelog)
 
 ### Bug fixes
 
