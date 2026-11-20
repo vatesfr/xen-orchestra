@@ -51,7 +51,7 @@ sidebar_position: 5
 | **NFS**           | Network File System                      | File-based **SR** backed by an NFS export.                                                                                       |
 | **QCOW2**         | QEMU Copy On Write v2                    | Disk format lifting the 2 TiB **VHD** limit (up to 16 TiB per disk), generally available since XO 6.5 and recent XCP-ng releases. |
 | **SR-IOV**        | Single Root I/O Virtualization           | Passing a virtual function of a physical NIC to a **VM** for near-native I/O.                                                    |
-| **Traffic rules** |                                          | Firewall-like rules applied to networks and **VIFs** through the [SDN controller](../manage-your-infrastructure/networking/sdn_controller.md).                        |
+| **Traffic rules** |                                          | Firewall-like rules applied to networks and **VIFs** through the [SDN controller](../manage-your-infrastructure/sdn-controller/traffic-rules.md).                        |
 | **VHD**           | Virtual Hard Disk                        | Historical disk and backup format of the platform, limited to 2 TiB per disk (see **QCOW2**).                                    |
 | **VLAN**          | Virtual LAN                              | Logical LAN segment; often tied to **PIF** tagging in XAPI.                                                                      |
 | **XVA**           | XenServer Virtual Appliance              | Archive format for a complete VM export, used by [full backups](../backups-and-dr/backup-types/full_backups.md).                                            |

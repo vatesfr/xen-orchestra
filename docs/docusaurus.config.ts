@@ -87,7 +87,7 @@ export default {
             from: ['/backups', '/xo5/backups'],
           },
           {
-            to: '/backups-and-dr/backups-in-xo6', 
+            to: '/backups-and-dr/backups-in-xo6',
             from: '/xo6/backups',
           },
           {
@@ -236,8 +236,17 @@ export default {
             from: ['/xo5/rolling_snapshots', '/rolling_snapshots'],
           },
           {
-            to: '/manage-your-infrastructure/networking/sdn_controller',
-            from: ['/sdn_controller', '/xo5/sdn_controller', '/manage-your-infrastructure/sdn_controller'],
+            to: '/category/sdn-controller',
+            from: '/category/networking',
+          },
+          {
+            to: '/manage-your-infrastructure/sdn-controller/setup',
+            from: [
+              '/sdn_controller',
+              '/xo5/sdn_controller',
+              '/manage-your-infrastructure/sdn_controller',
+              '/manage-your-infrastructure/networking/sdn_controller',
+            ],
           },
           {
             to: '/getting-started/requirements#host-compatibility-list',
