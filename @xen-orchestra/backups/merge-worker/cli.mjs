@@ -66,6 +66,11 @@ const main = Disposable.wrap(async function* main(args) {
             await handler.unlink(previousTaskFile)
           }
 
+          // the task has been removed since the queue was listed, nothing to do
+          if (error.code === 'ENOENT') {
+            return
+          }
+
           throw error
         }
 
@@ -80,7 +85,8 @@ const main = Disposable.wrap(async function* main(args) {
             }
           }
 
-          handler.unlink(taskFile).catch(error => warn('deleting task failure', { error }))
+          // wait for the deletion, otherwise the next listing may return a task which is about to be removed
+          await handler.unlink(taskFile).catch(error => warn('deleting task failure', { error }))
         } catch (error) {
           warn('failure handling task', { error })
         }
