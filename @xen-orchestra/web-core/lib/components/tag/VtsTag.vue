@@ -7,7 +7,6 @@
     :removable
     :truncate="!wrap"
     :wrap
-    class="vts-tag"
     @remove="emit('remove')"
   >
     <template #term>{{ parsedTag.term }}</template>
