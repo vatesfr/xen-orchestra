@@ -45,20 +45,27 @@ export function useNewVmPoolResources(pool: MaybeRefOrGetter<FrontXoPool | undef
 
   const getIsoLabel = (vdi: FrontXoVdi) => `[${isoSrNameByVdiId.value.get(vdi.id) ?? ''}] ${vdi.name_label}`
 
-  const defaultNetwork = computed(() => {
+  const defaultNetworks = computed(() => {
     if (poolId.value === undefined) {
-      return undefined
+      return []
     }
 
-    return (
-      poolNetworks.value.find(network => network.other_config.automatic === 'true') ??
-      poolNetworks.value.find(network => {
-        const pifs = getPifsByNetworkId(network.id)
+    const automaticNetworks = poolNetworks.value.filter(network => network.other_config.automatic === 'true')
 
-        return pifs.length > 0 && pifs.every(pif => pif.management)
-      })
-    )
+    if (automaticNetworks.length > 0) {
+      return automaticNetworks
+    }
+
+    const managementNetwork = poolNetworks.value.find(network => {
+      const pifs = getPifsByNetworkId(network.id)
+
+      return pifs.length > 0 && pifs.every(pif => pif.management)
+    })
+
+    return managementNetwork === undefined ? [] : [managementNetwork]
   })
+
+  const defaultNetwork = computed(() => defaultNetworks.value.at(0))
 
   return {
     hosts,
@@ -67,6 +74,7 @@ export function useNewVmPoolResources(pool: MaybeRefOrGetter<FrontXoPool | undef
     poolSrs,
     isoVdis,
     getIsoLabel,
+    defaultNetworks,
     defaultNetwork,
   }
 }

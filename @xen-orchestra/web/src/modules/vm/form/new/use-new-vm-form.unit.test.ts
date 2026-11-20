@@ -141,6 +141,45 @@ describe('vmState', () => {
     ])
   })
 
+  it('gives a template without network interface one on each automatic network of the pool', async () => {
+    const form = mountForm()
+    const otherAutomaticNetwork = createNetwork({
+      id: 'network-other-automatic' as typeof NEW_VM_NETWORK.id,
+      other_config: { automatic: 'true' },
+    })
+    xoCollectionsMock.networks.value = [NEW_VM_NETWORK, NEW_VM_AUTOMATIC_NETWORK, otherAutomaticNetwork]
+
+    await chooseNewVmTemplate(form, NEW_VM_DISKLESS_TEMPLATE)
+
+    expect(form.vmState.vifs).toEqual([
+      { key: expect.any(String), network: NEW_VM_AUTOMATIC_NETWORK.id, mac: '' },
+      { key: expect.any(String), network: otherAutomaticNetwork.id, mac: '' },
+    ])
+  })
+
+  it('gives a template without network interface one on the management network when none is automatic', async () => {
+    const form = mountForm()
+    const managementNetwork = createNetwork({ id: 'network-management' as typeof NEW_VM_NETWORK.id })
+    xoCollectionsMock.networks.value = [NEW_VM_NETWORK, managementNetwork]
+    xoCollectionsMock.pifs.value = [
+      createPif({ $network: NEW_VM_NETWORK.id }),
+      createManagementPif(NEW_VM_POOL, managementNetwork.id),
+    ]
+
+    await chooseNewVmTemplate(form, NEW_VM_DISKLESS_TEMPLATE)
+
+    expect(form.vmState.vifs).toEqual([{ key: expect.any(String), network: managementNetwork.id, mac: '' }])
+  })
+
+  it('leaves a template without network interface as is when the pool has no default network', async () => {
+    const form = mountForm()
+    xoCollectionsMock.networks.value = [NEW_VM_NETWORK]
+
+    await chooseNewVmTemplate(form, NEW_VM_DISKLESS_TEMPLATE)
+
+    expect(form.vmState.vifs).toEqual([])
+  })
+
   it('lists a template disk that is a VDI snapshot', async () => {
     const vdiSnapshot = createVdiSnapshot({ name_label: 'Snapshot disk', $SR: NEW_VM_SR.id })
     const form = mountForm()
@@ -221,7 +260,7 @@ describe('vmState', () => {
       networkConfig: '',
       vdis: [],
       existingVdis: [],
-      vifs: [],
+      vifs: [{ network: NEW_VM_AUTOMATIC_NETWORK.id, mac: '' }],
     })
   })
 

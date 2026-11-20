@@ -217,6 +217,20 @@ describe('vifs', () => {
 
     expect(result.payload).toMatchObject({ vifs: [{ network: NEW_VM_AUTOMATIC_NETWORK.id, mac: '' }] })
   })
+
+  it('creates the default interface of a template without one', async () => {
+    const { payload } = await mountPayload(NEW_VM_DISKLESS_TEMPLATE)
+
+    expect(payload).toMatchObject({ vifs: [{ network: NEW_VM_AUTOMATIC_NETWORK.id, mac: '' }] })
+  })
+
+  it('creates no interface once the default one is removed', async () => {
+    const result = await mountPayload(NEW_VM_DISKLESS_TEMPLATE)
+
+    result.removeVif(result.vmState.vifs[0].key)
+
+    expect(result.payload).not.toHaveProperty('vifs')
+  })
 })
 
 describe('install', () => {
