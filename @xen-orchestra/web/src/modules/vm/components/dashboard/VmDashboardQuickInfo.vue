@@ -1,5 +1,5 @@
 <template>
-  <VtsQuickInfoCard class="vm-dashboard-quick-info" :loading="!areVmsReady">
+  <VtsQuickInfoCard :loading="!areVmsReady" class="vm-dashboard-quick-info">
     <VtsKeyValueList>
       <VtsKeyValueRow :label="t('state')">
         <template #value>
@@ -21,8 +21,8 @@
           <UiLink
             v-if="pool"
             :to="{ name: '/pool/[id]/dashboard', params: { id: pool.id } }"
-            size="medium"
             icon="object:pool"
+            size="medium"
           >
             {{ pool.name_label }}
           </UiLink>
@@ -39,12 +39,17 @@
           </template>
         </template>
       </VtsKeyValueRow>
-      <VtsKeyValueRow :label="t('storages')">
+      <VtsKeyValueRow :label="t('storage', srs.length)">
         <template #value>
           <ul v-if="srs.length > 0" class="storages">
-            <li v-for="sr in srs" :key="sr.id">
-              <UiLink :to="{ name: '/sr/[id]/general', params: { id: sr.id } }" size="medium" icon="object:sr">
+            <li v-for="sr in displayedSrs" :key="sr.id">
+              <UiLink :to="{ name: '/sr/[id]/general', params: { id: sr.id } }" icon="object:sr" size="medium">
                 {{ sr.name_label }}
+              </UiLink>
+            </li>
+            <li v-if="hiddenSrsCount > 0" class="hidden-srs-count">
+              <UiLink :to="{ name: '/vm/[id]/vdis', params: { id: vm.id } }" size="medium">
+                {{ t('plus-n', { n: hiddenSrsCount }) }}
               </UiLink>
             </li>
           </ul>
@@ -75,13 +80,11 @@
 <script lang="ts" setup>
 import HostLink from '@/modules/host/components/HostLink.vue'
 import { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
-import { useXoSrCollection } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import { useXoUserResource } from '@/modules/user/remote-resources/use-xo-user.ts'
-import { useXoVdiCollection, type FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
 import VmTagsEditor from '@/modules/vm/components/tags/VmTagsEditor.vue'
 import VmGuestToolsStatus from '@/modules/vm/components/VmGuestToolsStatus.vue'
+import { useXoVmDisksSrs } from '@/modules/vm/composables/xo-vm-disks-srs.composable.ts'
 import { useXoVmUtils } from '@/modules/vm/composables/xo-vm-utils.composable.ts'
-import { useXoVmVbdsUtils } from '@/modules/vm/composables/xo-vm-vbd-utils.composable.ts'
 import { type FrontXoVm, useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsKeyValueList from '@core/components/key-value-list/VtsKeyValueList.vue'
@@ -118,27 +121,25 @@ const virtualizationType = computed(() =>
 
 const host = computed(() => getVmHost(vm))
 
-const { useGetVdisByIds } = useXoVdiCollection()
-const { useGetSrsByIds } = useXoSrCollection()
+const MAX_DISPLAYED_SRS = 1
 
-// CD drives only hold an ISO mounted from a SR: they are not files of the VM
-const { notCdDriveVbds } = useXoVmVbdsUtils(() => vm)
+const { srs } = useXoVmDisksSrs(() => vm)
 
-const vdiIds = computed(() => notCdDriveVbds.value.flatMap(vbd => (vbd.VDI ? [vbd.VDI as FrontXoVdi['id']] : [])))
+const displayedSrs = computed(() => srs.value.slice(0, MAX_DISPLAYED_SRS))
 
-const vdis = useGetVdisByIds(vdiIds)
-
-const srIds = computed(() => [...new Set(vdis.value.map(vdi => vdi.$SR))])
-
-const srs = useGetSrsByIds(srIds)
+const hiddenSrsCount = computed(() => srs.value.length - displayedSrs.value.length)
 </script>
 
 <style lang="postcss" scoped>
 .vm-dashboard-quick-info {
   .storages {
     display: flex;
-    flex-direction: column;
-    gap: 0.4rem;
+    align-items: baseline;
+    gap: 0.8rem;
+  }
+
+  .hidden-srs-count {
+    flex-shrink: 0;
   }
 
   .value {
