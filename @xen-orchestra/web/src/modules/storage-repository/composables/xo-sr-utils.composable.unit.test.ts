@@ -36,7 +36,7 @@ describe('getSrSelectLabel', () => {
   ])('labels the SR with its location and %s', (_, sr, gbLeft) => {
     const { getSrSelectLabel, t } = mountComposableWithI18n(() => useXoSrUtils())
 
-    expect(getSrSelectLabel(sr)).toBe(`${sr.name_label} (${t('shared')}) - ${t('n-gb-left', { n: gbLeft })}`)
+    expect(getSrSelectLabel(sr)).toBe(`${sr.name_label} - ${t('n-gb-left', { n: gbLeft })} (${t('shared')})`)
   })
 })
 

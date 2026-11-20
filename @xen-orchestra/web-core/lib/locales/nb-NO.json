@@ -818,7 +818,6 @@
   "new-vm": "Ny VM",
   "new-vm:add": "Legg til en ny VM",
   "new-vm:description": "VM-beskrivelse",
-  "new-vm:disk-size-below-template": "{name}: størrelsen kan ikke være mindre enn diskstørrelsen i malen ({size} GB)",
   "new-vm:ha-best-effort": "Beste innsats",
   "new-vm:ha-best-effort-description": "Hvis verten svikter, prøver HA å starte VM-en på nytt på en annen vert, men først etter alle «Omstart»-VM-er. Ikke garantert.",
   "new-vm:ha-disabled": "Deaktivert",

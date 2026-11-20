@@ -7,6 +7,10 @@ import type {
   useXoVdiCollection as realUseXoVdiCollection,
 } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
 import type {
+  FrontXoVdiSnapshot,
+  useXoVdiSnapshotCollection as realUseXoVdiSnapshotCollection,
+} from '@/modules/vdi/remote-resources/use-xo-vdi-snapshot-collection.ts'
+import type {
   FrontXoVif,
   useXoVifCollection as realUseXoVifCollection,
 } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
@@ -23,6 +27,7 @@ export const vmDeviceCollectionsMock = {
   areVbdsReady: ref(true),
   vdis: ref<FrontXoVdi[]>([]),
   areVdisReady: ref(true),
+  vdiSnapshots: ref<FrontXoVdiSnapshot[]>([]),
   vifs: ref<FrontXoVif[]>([]),
   areVifsReady: ref(true),
   reset() {
@@ -30,6 +35,7 @@ export const vmDeviceCollectionsMock = {
     this.areVbdsReady.value = true
     this.vdis.value = []
     this.areVdisReady.value = true
+    this.vdiSnapshots.value = []
     this.vifs.value = []
     this.areVifsReady.value = true
   },
@@ -40,13 +46,21 @@ export const vmDeviceCollectionsMock = {
 export const useXoVbdCollection = (() => ({
   vbds: vmDeviceCollectionsMock.vbds,
   areVbdsReady: vmDeviceCollectionsMock.areVbdsReady,
+  getVbdById: (id: FrontXoVbd['id']) => vmDeviceCollectionsMock.vbds.value.find(vbd => vbd.id === id),
   getVbdsByIds: (ids: FrontXoVbd['id'][]) => filterByIds(vmDeviceCollectionsMock.vbds.value, ids),
 })) as unknown as typeof realUseXoVbdCollection
 
 export const useXoVdiCollection = (() => ({
   vdis: vmDeviceCollectionsMock.vdis,
   areVdisReady: vmDeviceCollectionsMock.areVdisReady,
+  getVdiById: (id: FrontXoVdi['id']) => vmDeviceCollectionsMock.vdis.value.find(vdi => vdi.id === id),
 })) as unknown as typeof realUseXoVdiCollection
+
+export const useXoVdiSnapshotCollection = (() => ({
+  vdiSnapshots: vmDeviceCollectionsMock.vdiSnapshots,
+  getVdiSnapshotById: (id: FrontXoVdiSnapshot['id']) =>
+    vmDeviceCollectionsMock.vdiSnapshots.value.find(vdiSnapshot => vdiSnapshot.id === id),
+})) as unknown as typeof realUseXoVdiSnapshotCollection
 
 export const useXoVifCollection = (() => ({
   vifs: vmDeviceCollectionsMock.vifs,

@@ -6,7 +6,7 @@
     <div v-else class="table-container">
       <UiTableControlsBar v-if="controlsBarProps" v-bind="controlsBarProps" />
       <div ref="wrapper" class="wrapper">
-        <table class="table" vertical-border>
+        <table class="table" :class="{ fixed }" vertical-border>
           <slot />
         </table>
       </div>
@@ -42,6 +42,7 @@ const { state, sticky, paginationBindings, selectionBindings } = defineProps<{
   paginationBindings?: PaginationBindings
   selectionBindings?: SelectionBindings
   horizontal?: boolean
+  fixed?: boolean
 }>()
 
 const controlsBarProps = computed<TableControlsBarProps | undefined>(() => {
@@ -94,13 +95,18 @@ const className = computed(() =>
   }
 
   .table {
-    min-width: 100%;
+    min-width: var(--vts-table-min-width, 100%);
     width: max-content;
     border-spacing: 0;
 
     &:has(.ui-table-cell.flexible) {
       width: 100%;
       white-space: nowrap;
+    }
+
+    &.fixed {
+      table-layout: fixed;
+      width: 100%;
     }
   }
 

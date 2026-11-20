@@ -8,8 +8,10 @@ import { renderHeadCell } from '@core/tables/helpers/render-head-cell.ts'
 import type { HeaderConfig } from '@core/tables/types.ts'
 import { h } from 'vue'
 
+type DetailedOption = FormOption<{ icon?: IconName; details?: string }>
+
 export type SelectColumnConfig = HeaderConfig & {
-  optionIcon?: IconName
+  optionIcon?: IconName | ((option: DetailedOption) => IconName | undefined)
 }
 
 function getSelectSlots(optionIcon: SelectColumnConfig['optionIcon']) {
@@ -18,8 +20,12 @@ function getSelectSlots(optionIcon: SelectColumnConfig['optionIcon']) {
   }
 
   return {
-    default: ({ option }: { option: FormOption<{ details?: string }> }) =>
-      h(VtsDetailedOption, { option, icon: optionIcon, details: option.properties.details }),
+    default: ({ option }: { option: DetailedOption }) =>
+      h(VtsDetailedOption, {
+        option,
+        icon: typeof optionIcon === 'function' ? optionIcon(option) : optionIcon,
+        details: option.properties.details,
+      }),
   }
 }
 
