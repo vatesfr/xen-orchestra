@@ -152,7 +152,14 @@ const emoji = success ? '✅' : '❌'
 const status = success ? 'success' : 'failure'
 const successTests = getCount(output, 'pass')
 const totalTests = getCount(output, 'tests')
+const failedTests = getCount(output, 'fail')
+const cancelledTests = getCount(output, 'cancelled')
+const skippedTests = getCount(output, 'skipped')
+
 const subject = `${emoji} ${status} ${successTests}/${totalTests} passed ${formatDatetime(startedAt)} on ${branch}@${commitHash}`
+const summary = `Result: ${emoji} ${status}
+Commit: ${branch}@${commitHash}
+Tests: ${successTests}/${totalTests} passed, ${failedTests} failed, ${cancelledTests} cancelled, ${skippedTests} skipped`
 
 // Attach the full structured debug log if we found its path
 const attachments = []
@@ -171,7 +178,9 @@ await transport.sendMail({
   from: process.env.SMTP_FROM ?? process.env.SMTP_USER,
   to: process.env.SMTP_TO,
   subject,
-  text: output,
+  text: `${summary}
+----------------------------------------
+${output}`,
   attachments,
 })
 
