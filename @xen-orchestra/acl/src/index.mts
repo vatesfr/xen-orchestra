@@ -107,9 +107,9 @@ export function hasPrivilegeOn<T extends SupportedResource>({
       return hasUnknownDeny || (hasUnknownAllow && !hasKnownAllow)
     })
   ) {
-    const error = new Error(
+    const error: Error & { code?: string } = new Error(
       `The privilege couldn't be decided because the object is missing fields the selectors need. action: ${action}, resource: ${resource}`
-    ) as Error & { code?: string }
+    )
     error.code = 'ACL_UNKNOWN_RESULT'
     throw error
   }
