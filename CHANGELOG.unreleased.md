@@ -63,6 +63,7 @@
 - [REST API] `POST /rest/v0/srs/:id/actions/import_vdi_from_url` imports an ISO from an HTTP(S) URL into an ISO SR (PR [#10751](https://github.com/vatesfr/xen-orchestra/pull/10751))
 - [REST API] `sr: import:vdi` privilege is split into `import:vdi:upload` and `import:vdi:url`, existing `import:vdi` privileges cover both (PR [#10751](https://github.com/vatesfr/xen-orchestra/pull/10751))
 - [REST API] `POST /rest/v0/vdis` (create an empty VDI) now only requires the `vdi: create` privilege, `sr: import:vdi` is no longer needed (PR [#10751](https://github.com/vatesfr/xen-orchestra/pull/10751))
+- [Plugins/OpenMetrics] Expose the duration, end time and status of the last finished run of each backup job (`xo_backup_job_last_run_duration_seconds`, `xo_backup_job_last_run_timestamp_seconds`, `xo_backup_job_last_run_status`) (PR [#10870](https://github.com/vatesfr/xen-orchestra/pull/10870))
 
 ### Bug fixes
 
@@ -128,6 +129,7 @@
 - xo-server minor
 - xo-server-audit minor
 - xo-server-load-balancer patch
+- xo-server-openmetrics minor
 - xo-server-sdn-controller minor
 - xo-web minor
 

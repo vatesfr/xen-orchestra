@@ -7,7 +7,10 @@
  */
 
 import type {
+  AnyXoJob,
+  AnyXoLog,
   XoApp,
+  XoBackupLog,
   XoHost,
   XoMessage,
   XoNetwork,
@@ -21,6 +24,7 @@ import type {
   XoVm,
   XoVmController,
 } from '@vates/types'
+import { BACKUP_TYPE } from '@vates/types'
 import { coalesceCalls } from '@vates/coalesce-calls'
 import { createLogger } from '@xen-orchestra/log'
 import { fork, type ChildProcess } from 'node:child_process'
@@ -29,6 +33,8 @@ import { fileURLToPath } from 'node:url'
 import { randomBytes } from 'node:crypto'
 import { performance } from 'node:perf_hooks'
 import v8 from 'node:v8'
+
+import { BACKUP_RUN_STATUSES } from './openmetric-formatter.mjs'
 
 // ============================================================================
 // Types
@@ -127,6 +133,15 @@ export type SrDataItem = Pick<XoSr, 'uuid' | 'name_label' | 'size' | 'physical_u
   tags?: string[]
 }
 
+export interface BackupJobLastRunItem {
+  jobId: string
+  jobName: string
+  jobType: string
+  status: XoBackupLog['status']
+  start: number
+  end: number
+}
+
 export interface XoMetricsData {
   pendingTaskCount: number
   poolCount: number
@@ -142,6 +157,7 @@ export interface XoMetricsData {
     type: string
     jobCount: number
   }>
+  backupJobLastRuns: BackupJobLastRunItem[]
   nodeProcess: {
     eluMean: number
     eluP99: number
@@ -478,6 +494,12 @@ const XOSTOR_UPDATES_TIMEOUT_MS = 30_000
 
 const IPMI_POWER_CACHE_TTL_MS = 60_000
 
+/** Cache lifetime for the last run of each backup job (ms): building backup logs is expensive. */
+const BACKUP_LAST_RUNS_CACHE_TTL_MS = 60_000
+
+/** Job types whose runs are recorded as backup logs */
+const BACKUP_JOB_TYPES = new Set<string>(Object.values(BACKUP_TYPE))
+
 const IPMI_POWER_TIMEOUT_MS = 10_000
 
 export const POWER_SENSOR_REGEX = /^(pwr consumption|sys power|system power|power consumption|total_power)$/i
@@ -745,6 +767,55 @@ function parseXostorHealthCheck(raw: unknown, srUuid: string): XostorHealthCheck
 }
 
 // ============================================================================
+// Backup helpers (module scope)
+// ============================================================================
+
+/**
+ * JobsDb parses every field as JSON: a name like `2024` comes back as a number,
+ * one like `{}` as an object. Names that cannot be restored are dropped.
+ */
+function backupJobName(name: unknown): string {
+  if (typeof name === 'string') {
+    return name
+  }
+  return typeof name === 'number' || typeof name === 'boolean' ? String(name) : ''
+}
+
+/**
+ * Last finished run of each backup job: the one that ended last, not the one
+ * that started last, since a run refused because the job is already running
+ * starts after the run in progress and ends before it.
+ *
+ * Exported for testability.
+ */
+export function selectBackupJobLastRuns(allJobs: AnyXoJob[], logs: AnyXoLog[]): BackupJobLastRunItem[] {
+  const jobs = new Map<string, { name: string; type: string }>()
+  for (const job of allJobs) {
+    if (BACKUP_JOB_TYPES.has(job.type)) {
+      jobs.set(job.id, { name: backupJobName(job.name), type: job.type })
+    }
+  }
+
+  const lastRuns = new Map<string, BackupJobLastRunItem>()
+  for (const log of logs) {
+    if (log.message !== 'backup') continue
+    const { jobId, status, start, end } = log as XoBackupLog
+    if (jobId === undefined || end === undefined) continue
+    // a NaN end would never be replaced, an end before the start (clock change) gives a negative duration
+    if (!Number.isFinite(start) || !Number.isFinite(end) || end < start) continue
+    if (!BACKUP_RUN_STATUSES.includes(status)) continue
+    const job = jobs.get(jobId)
+    if (job === undefined) continue
+
+    const lastRun = lastRuns.get(jobId)
+    if (lastRun === undefined || end > lastRun.end) {
+      lastRuns.set(jobId, { jobId, jobName: job.name, jobType: job.type, status, start, end })
+    }
+  }
+  return [...lastRuns.values()]
+}
+
+// ============================================================================
 // Plugin Class
 // ============================================================================
 
@@ -765,6 +836,7 @@ class OpenMetricsPlugin {
   #xostorSmartCache = new TtlCache<XostorSmartPayload>('XOSTOR SMART', XOSTOR_SMART_CACHE_TTL_MS)
   #xostorUpdatesCache = new TtlCache<XostorUpdatesPayload>('XOSTOR updates', XOSTOR_UPDATES_CACHE_TTL_MS)
   #hostPowerCache = new TtlCache<HostPowerPayload>('host power', IPMI_POWER_CACHE_TTL_MS)
+  #backupJobLastRunsCache = new TtlCache<BackupJobLastRunItem[]>('backup job last runs', BACKUP_LAST_RUNS_CACHE_TTL_MS)
 
   constructor(xo: XoApp) {
     this.#xo = xo
@@ -1118,6 +1190,7 @@ class OpenMetricsPlugin {
               hostCountByVersion: [],
               hostCountByLicense: [],
               backupJobStats: [],
+              backupJobLastRuns: [],
               nodeProcess: {
                 eluMean: 0,
                 eluP99: 0,
@@ -1740,6 +1813,21 @@ class OpenMetricsPlugin {
   }
 
   /**
+   * Collect the last finished run of each existing backup job.
+   *
+   * Cached with `BACKUP_LAST_RUNS_CACHE_TTL_MS`. Runs without end (in progress
+   * or interrupted) and runs of deleted jobs are ignored.
+   */
+  #getBackupJobLastRuns(): Promise<BackupJobLastRunItem[]> {
+    return this.#backupJobLastRunsCache.get(() => this.#collectBackupJobLastRuns())
+  }
+
+  async #collectBackupJobLastRuns(): Promise<BackupJobLastRunItem[]> {
+    const [jobs, logs] = await Promise.all([this.#xo.getAllJobs(), this.#xo.getBackupNgLogs()])
+    return selectBackupJobLastRuns(jobs, Object.values(logs))
+  }
+
+  /**
    * Collect XO management plane metrics.
    * Gathers counts and stats from XO objects and XO APIs.
    */
@@ -1827,6 +1915,13 @@ class OpenMetricsPlugin {
       logger.warn('Failed to get backup job stats for XO metrics', { error: err })
     }
 
+    let backupJobLastRuns: BackupJobLastRunItem[] = []
+    try {
+      backupJobLastRuns = await this.#getBackupJobLastRuns()
+    } catch (err) {
+      logger.warn('Failed to get backup job last runs for XO metrics', { error: err })
+    }
+
     // Node.js process metrics
     const samples = this.#eluSamples
     this.#eluSamples = []
@@ -1859,6 +1954,7 @@ class OpenMetricsPlugin {
       hostCountByVersion,
       hostCountByLicense,
       backupJobStats,
+      backupJobLastRuns,
       nodeProcess: {
         eluMean,
         eluP99,
