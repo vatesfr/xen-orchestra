@@ -8,6 +8,7 @@
 import { createLogger } from '@xen-orchestra/log'
 
 import type {
+  BackupJobLastRunItem,
   HostStatusItem,
   LabelLookupData,
   SrDataItem,
@@ -877,6 +878,9 @@ const METRIC_PREFIX = 'xcp'
 
 /** OpenMetrics prefix for XO management plane metrics */
 const XO_METRIC_PREFIX = 'xo'
+
+/** Statuses of a finished backup run */
+export const BACKUP_RUN_STATUSES: BackupJobLastRunItem['status'][] = ['success', 'skipped', 'interrupted', 'failure']
 
 /**
  * Serialize XO object tags into the `tags` label value
@@ -1851,6 +1855,42 @@ export function formatXoMetrics(data: XoMetricsData): FormattedMetric[] {
       value: jobCount,
       timestamp,
     })
+  }
+
+  // Last finished run of each backup job
+  for (const run of data.backupJobLastRuns) {
+    const labels: Record<string, string> = { job_id: run.jobId, job_type: run.jobType }
+    if (run.jobName !== '') {
+      labels.job_name = run.jobName
+    }
+
+    metrics.push(
+      {
+        name: `${XO_METRIC_PREFIX}_backup_job_last_run_duration_seconds`,
+        help: 'Duration of the last finished run of the backup job in seconds',
+        type: 'gauge',
+        labels,
+        value: (run.end - run.start) / 1000,
+        timestamp,
+      },
+      {
+        name: `${XO_METRIC_PREFIX}_backup_job_last_run_timestamp_seconds`,
+        help: 'End time of the last finished run of the backup job (Unix epoch in seconds)',
+        type: 'gauge',
+        labels,
+        value: run.end / 1000,
+        timestamp,
+      },
+      // state set: a status change only changes values, no series disappears
+      ...BACKUP_RUN_STATUSES.map(status => ({
+        name: `${XO_METRIC_PREFIX}_backup_job_last_run_status`,
+        help: 'Status of the last finished run of the backup job (1 for its status, 0 for the others)',
+        type: 'gauge' as const,
+        labels: { ...labels, status },
+        value: run.status === status ? 1 : 0,
+        timestamp,
+      }))
+    )
   }
 
   return metrics

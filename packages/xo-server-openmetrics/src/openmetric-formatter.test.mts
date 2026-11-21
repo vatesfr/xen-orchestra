@@ -18,6 +18,7 @@ import {
   formatVdiMetrics,
   formatVmStatusMetrics,
   formatVmUptimeMetrics,
+  formatXoMetrics,
   formatXostorAlarmsMetrics,
   formatXostorClusterMetrics,
   formatXostorSmartMetrics,
@@ -30,10 +31,12 @@ import {
 import { indexSrUuidTruncations, POWER_SENSOR_REGEX } from './index.mjs'
 
 import type {
+  BackupJobLastRunItem,
   HostStatusItem,
   SrDataItem,
   VdiDataItem,
   VmStatusItem,
+  XoMetricsData,
   XostorAlarmsItem,
   XostorClusterItem,
   XostorSmartHost,
@@ -3810,5 +3813,126 @@ describe('tags label on status, uptime and SR metrics', () => {
     assert.ok(result)
     assert.equal(result.labels.device, 'xvda')
     assert.equal(result.labels.tags, 'prod')
+  })
+})
+
+// ============================================================================
+// formatXoMetrics Tests
+// ============================================================================
+
+describe('formatXoMetrics backup job last runs', () => {
+  const createXoMetricsData = (backupJobLastRuns: BackupJobLastRunItem[]): XoMetricsData => ({
+    pendingTaskCount: 0,
+    poolCount: 0,
+    hostCount: 0,
+    vmCount: 0,
+    srCountByContentType: {},
+    userCount: 0,
+    groupCount: 0,
+    socketCount: 0,
+    hostCountByVersion: [],
+    hostCountByLicense: [],
+    backupJobStats: [],
+    backupJobLastRuns,
+    nodeProcess: {
+      eluMean: 0,
+      eluP99: 0,
+      eluMax: 0,
+      memoryRssBytes: 0,
+      memoryHeapUsedBytes: 0,
+      memoryHeapTotalBytes: 0,
+      memoryExternalBytes: 0,
+      memoryArrayBuffersBytes: 0,
+      heapSizeLimitBytes: 0,
+      heapAvailableBytes: 0,
+      detachedContexts: 0,
+      cpuUserSeconds: 0,
+      cpuSystemSeconds: 0,
+    },
+  })
+
+  const lastRunMetrics = (backupJobLastRuns: BackupJobLastRunItem[]): FormattedMetric[] =>
+    formatXoMetrics(createXoMetricsData(backupJobLastRuns)).filter(m => m.name.startsWith('xo_backup_job_last_run_'))
+
+  const run = {
+    jobId: 'job-1',
+    jobName: 'Nightly',
+    jobType: 'backup',
+    status: 'success' as const,
+    start: 1_700_000_000_000,
+    end: 1_700_000_754_500,
+  }
+
+  it('should emit duration, timestamp and status metrics for each job', () => {
+    const metrics = lastRunMetrics([run, { ...run, jobId: 'job-2', jobName: 'Mirror', jobType: 'mirrorBackup' }])
+
+    assert.equal(metrics.length, 12)
+    assert.deepEqual(
+      metrics.filter(m => m.labels.job_id === 'job-2').map(m => m.name),
+      [
+        'xo_backup_job_last_run_duration_seconds',
+        'xo_backup_job_last_run_timestamp_seconds',
+        'xo_backup_job_last_run_status',
+        'xo_backup_job_last_run_status',
+        'xo_backup_job_last_run_status',
+        'xo_backup_job_last_run_status',
+      ]
+    )
+  })
+
+  it('should compute duration and end timestamp in seconds', () => {
+    const metrics = lastRunMetrics([run])
+
+    const duration = metrics.find(m => m.name === 'xo_backup_job_last_run_duration_seconds')!
+    assert.equal(duration.value, 754.5)
+    assert.equal(duration.type, 'gauge')
+    assert.deepEqual(duration.labels, { job_id: 'job-1', job_type: 'backup', job_name: 'Nightly' })
+
+    const timestamp = metrics.find(m => m.name === 'xo_backup_job_last_run_timestamp_seconds')!
+    assert.equal(timestamp.value, 1_700_000_754.5)
+  })
+
+  it('should emit the status as a state set: 1 for the status of the run, 0 for the others', () => {
+    const metrics = lastRunMetrics([{ ...run, status: 'failure' }])
+
+    const statusValues = Object.fromEntries(
+      metrics.filter(m => m.name === 'xo_backup_job_last_run_status').map(m => [m.labels.status, m.value])
+    )
+    assert.deepEqual(statusValues, { success: 0, skipped: 0, interrupted: 0, failure: 1 })
+  })
+
+  it('should emit the same status series whatever the status, so that a status change only changes values', () => {
+    const statusSeries = (status: BackupJobLastRunItem['status']) =>
+      lastRunMetrics([{ ...run, status }])
+        .filter(m => m.name === 'xo_backup_job_last_run_status')
+        .map(m => JSON.stringify(m.labels))
+
+    assert.deepEqual(statusSeries('failure'), statusSeries('success'))
+  })
+
+  it('should carry the status only on the status metric', () => {
+    const metrics = lastRunMetrics([{ ...run, status: 'failure' }])
+
+    for (const m of metrics.filter(m => m.name !== 'xo_backup_job_last_run_status')) {
+      assert.equal(m.labels.status, undefined)
+    }
+  })
+
+  it('should omit job_name label when empty', () => {
+    for (const m of lastRunMetrics([{ ...run, jobName: '' }])) {
+      assert.equal(m.labels.job_name, undefined)
+    }
+  })
+
+  it('should emit nothing when no backup job has finished a run', () => {
+    assert.deepEqual(lastRunMetrics([]), [])
+  })
+
+  it('should serialize to OpenMetrics format', () => {
+    const output = formatToOpenMetrics(lastRunMetrics([run]))
+
+    assert.match(output, /# TYPE xo_backup_job_last_run_duration_seconds gauge/)
+    assert.match(output, /xo_backup_job_last_run_status\{[^}]*status="success"[^}]*\} 1 /)
+    assert.match(output, /xo_backup_job_last_run_status\{[^}]*status="failure"[^}]*\} 0 /)
   })
 })

@@ -6,7 +6,9 @@ import assert from 'node:assert/strict'
 import { describe, it } from 'node:test'
 import { setImmediate } from 'node:timers/promises'
 
-import { configurationSchema, ensureSecret, TtlCache } from './index.mjs'
+import type { AnyXoJob, AnyXoLog } from '@vates/types'
+
+import { configurationSchema, ensureSecret, selectBackupJobLastRuns, TtlCache } from './index.mjs'
 
 describe('configurationSchema', () => {
   it('does not generate the secret as a schema default', () => {
@@ -105,5 +107,101 @@ describe('TtlCache', () => {
     await cache.get(load)
     await cache.get(load)
     assert.equal(loads, 1)
+  })
+})
+
+describe('selectBackupJobLastRuns', () => {
+  const job = (props: Record<string, unknown>) =>
+    ({ id: 'job-1', name: 'Nightly', type: 'backup', ...props }) as unknown as AnyXoJob
+  const jobs = [job({})]
+  const backupLog = (props: Record<string, unknown>) =>
+    ({
+      id: `log-${props.start}`,
+      message: 'backup',
+      jobId: 'job-1',
+      status: 'success',
+      ...props,
+    }) as unknown as AnyXoLog
+
+  it('keeps the run that ended last, not the one that started last', () => {
+    const runs = selectBackupJobLastRuns(jobs, [
+      backupLog({ start: 1000, end: 5000, status: 'success' }),
+      // refused because the job is already running: starts later, ends earlier
+      backupLog({ start: 2000, end: 2001, status: 'failure' }),
+    ])
+
+    assert.deepEqual(runs, [
+      { jobId: 'job-1', jobName: 'Nightly', jobType: 'backup', status: 'success', start: 1000, end: 5000 },
+    ])
+  })
+
+  it('keeps the last finished run while another run is in progress', () => {
+    const runs = selectBackupJobLastRuns(jobs, [
+      backupLog({ start: 1000, end: 2000, status: 'failure' }),
+      backupLog({ start: 3000, status: 'pending' }),
+    ])
+
+    assert.equal(runs.length, 1)
+    assert.equal(runs[0]!.end, 2000)
+  })
+
+  it('ignores restore logs, runs without end and runs of unknown jobs', () => {
+    const runs = selectBackupJobLastRuns(jobs, [
+      backupLog({ message: 'restore', start: 1000, end: 2000 }),
+      backupLog({ start: 3000, status: 'interrupted' }),
+      backupLog({ jobId: 'deleted-job', start: 4000, end: 5000 }),
+    ])
+
+    assert.deepEqual(runs, [])
+  })
+
+  it('ignores jobs that are not backup jobs, such as sequences', () => {
+    const runs = selectBackupJobLastRuns(
+      [job({ id: 'sequence-1', type: 'call', method: 'schedule.runSequence' })],
+      [backupLog({ jobId: 'sequence-1', start: 1000, end: 2000 })]
+    )
+
+    assert.deepEqual(runs, [])
+  })
+
+  it('ignores runs with an invalid end or an end before their start', () => {
+    const runs = selectBackupJobLastRuns(jobs, [
+      backupLog({ start: 1000, end: NaN }),
+      backupLog({ start: 2000, end: Infinity }),
+      // system clock set back during the run
+      backupLog({ start: 6000, end: 3000 }),
+      backupLog({ start: 4000, end: 5000 }),
+    ])
+
+    assert.deepEqual(
+      runs.map(run => run.end),
+      [5000]
+    )
+  })
+
+  it('ignores runs with a status that is not a final status', () => {
+    const runs = selectBackupJobLastRuns(jobs, [
+      backupLog({ start: 1000, end: 2000 }),
+      backupLog({ start: 3000, end: 4000, status: 'pending' }),
+    ])
+
+    assert.deepEqual(
+      runs.map(run => run.end),
+      [2000]
+    )
+  })
+
+  it('restores job names that the job collection parsed as JSON', () => {
+    const nameOf = (name: unknown) =>
+      selectBackupJobLastRuns([job({ name })], [backupLog({ start: 1000, end: 2000 })])[0]!.jobName
+
+    // a job named `2024` is read back as the number 2024
+    assert.equal(nameOf(2024), '2024')
+    assert.equal(nameOf(true), 'true')
+    assert.equal(nameOf('Nightly'), 'Nightly')
+    // names that cannot be restored are dropped, the job keeps its `job_id`
+    assert.equal(nameOf({ a: 1 }), '')
+    assert.equal(nameOf([1, 2]), '')
+    assert.equal(nameOf(null), '')
   })
 })
