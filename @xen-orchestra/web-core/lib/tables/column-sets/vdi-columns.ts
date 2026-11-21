@@ -12,7 +12,7 @@ export const useVdiColumns = defineColumns(() => {
   const { t } = useI18n()
 
   return {
-    vdi: useLinkColumn({ headerLabel: () => t('vdis') }),
+    vdi: useLinkColumn({ headerLabel: () => t('vdis'), flexible: true }),
     description: useTruncatedTextColumn({ headerLabel: () => t('description') }),
     usedSpace: useProgressBarColumn({ headerLabel: () => t('used-space') }),
     size: useNumberColumn({ headerLabel: () => t('size') }),

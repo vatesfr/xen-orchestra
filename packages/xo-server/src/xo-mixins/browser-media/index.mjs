@@ -32,6 +32,8 @@ import {
   forgetSr,
   getInsertionHost,
   insertIso,
+  isTaggedCd,
+  settleCd,
   unblockOperations,
 } from './_xapi.mjs'
 
@@ -133,6 +135,10 @@ export default class BrowserMedia {
   #missingPools = new Set()
   // sessions of a previous run whose recovery failed, reported once: retried at each reconciliation
   #failedRecoveries = new Set()
+  // opaque ref of a CD drive -> the last change of it, see #onCd()
+  #cdChanges = new Map()
+  // opaque refs of the CD drives whose settling is pending, see #settleCd()
+  #settlingCds = new Set()
 
   #store
   #webSockets
@@ -507,12 +513,10 @@ export default class BrowserMedia {
       assertConnected()
 
       insertion.vdiRef = await xapi.call('VDI.get_by_uuid', mount.vdiUuid)
-      insertion.vbdRef = await insertIso(xapi, {
-        vmRef,
-        cdRef: cd?._xapiRef,
-        vdiRef: insertion.vdiRef,
-        sessionId: session.id,
-      })
+      const params = { vmRef, cdRef: cd?._xapiRef, vdiRef: insertion.vdiRef, sessionId: session.id }
+      insertion.vbdRef = await (cd === undefined
+        ? insertIso(xapi, params)
+        : this.#onCd(cd._xapiRef, () => insertIso(xapi, params)))
       this.#sessionsByVbdRef.set(insertion.vbdRef, session)
       assertConnected()
 
@@ -678,7 +682,7 @@ export default class BrowserMedia {
     const vdiRefs = insertion.vdiRef === undefined ? [] : [insertion.vdiRef]
     for (const vbdRef of await findTaggedCds(xapi, vm._xapiRef, session.id)) {
       this.#sessionsByVbdRef.delete(vbdRef)
-      await ejectIso(xapi, { vbdRef, vdiRefs, sessionId: session.id })
+      await this.#onCd(vbdRef, () => ejectIso(xapi, { vbdRef, vdiRefs, sessionId: session.id }))
     }
     // also if its tag was removed meanwhile, and it was not found
     this.#forgetCd(insertion)
@@ -709,10 +713,12 @@ export default class BrowserMedia {
    * session.
    */
   #listen(xapi) {
-    const vbdEvents = xapi.objects.allIndexes.type.getEventEmitterByType('VBD')
+    const index = xapi.objects.allIndexes.type
+    const vbdEvents = index.getEventEmitterByType('VBD')
     if (!vbdEvents.listeners('update').includes(this.#onVbdUpdated)) {
       vbdEvents.on('update', this.#onVbdUpdated)
       vbdEvents.on('remove', this.#onVbdRemoved)
+      index.getEventEmitterByType('VM').on('update', this.#onVmUpdated)
     }
   }
 
@@ -725,6 +731,54 @@ export default class BrowserMedia {
       log.info('the browser ISO was ejected by another client', { session: session.id })
       session.close(CLOSE_EJECTED, 'ejected')
     }
+    // its VM halts, whichever of their events comes first, see #onVmUpdated()
+    if (previous?.currently_attached && vbd?.currently_attached === false && isTaggedCd(vbd.$ref, vbd.other_config)) {
+      this.#settleCd(vbd.$xapi, vbd.$ref)
+    }
+  }
+
+  // not on a reboot, which does not go through `Halted`, and plugs the drives again right away
+  #onVmUpdated = (vm, previous) => {
+    if (vm?.power_state !== 'Halted' || previous?.power_state === 'Halted') {
+      return
+    }
+    for (const vbd of vm.$VBDs ?? []) {
+      if (vbd !== undefined && isTaggedCd(vbd.$ref, vbd.other_config)) {
+        this.#settleCd(vm.$xapi, vbd.$ref)
+      }
+    }
+  }
+
+  /**
+   * Run the changes of a CD drive one at a time: an insertion, an eject and the settling of a drive
+   * once its VM halts each read the drive, then change it based on what they read.
+   */
+  #onCd(vbdRef, fn) {
+    const change = (this.#cdChanges.get(vbdRef) ?? Promise.resolve()).then(fn)
+    const settled = change.catch(noop)
+    this.#cdChanges.set(vbdRef, settled)
+    settled.then(() => {
+      if (this.#cdChanges.get(vbdRef) === settled) {
+        this.#cdChanges.delete(vbdRef)
+      }
+    })
+    return change
+  }
+
+  /**
+   * See `settleCd()`: once the VM of a CD drive changed for a browser ISO halts, and at each
+   * reconciliation, for a halt which was missed, e.g. while xo-server was not running.
+   */
+  #settleCd(xapi, vbdRef) {
+    if (this.#stopping || this.#settlingCds.has(vbdRef)) {
+      return
+    }
+    this.#settlingCds.add(vbdRef)
+    this.#onCd(vbdRef, () => {
+      // from now on, a new halt needs a new settling
+      this.#settlingCds.delete(vbdRef)
+      return settleCd(xapi, vbdRef)
+    }).catch(error => log.warn('could not settle the CD drive of a browser ISO, will retry', { error, vbd: vbdRef }))
   }
 
   #onVbdRemoved = (_, vbd) => {
@@ -750,6 +804,14 @@ export default class BrowserMedia {
       return
     }
     this.#retryGivenUpReleases()
+    // the halts which were missed, e.g. while xo-server was not running
+    for (const xapi of Object.values(this.#app.getAllXapis())) {
+      for (const vbd of Object.values(xapi.objects.indexes.type.VBD ?? {})) {
+        if (!vbd.currently_attached && isTaggedCd(vbd.$ref, vbd.other_config)) {
+          this.#settleCd(xapi, vbd.$ref)
+        }
+      }
+    }
     const store = await this.#getStore()
     // one read per key rather than createReadStream(): a value which fails to decode would error the
     // whole stream, here it only skips that entry
@@ -862,7 +924,7 @@ export default class BrowserMedia {
       if (vmRef !== undefined) {
         const vdiRefs = srs.flatMap(sr => sr.VDIs)
         for (const vbdRef of await findTaggedCds(xapi, vmRef, sessionId)) {
-          await ejectIso(xapi, { vbdRef, vdiRefs, sessionId })
+          await this.#onCd(vbdRef, () => ejectIso(xapi, { vbdRef, vdiRefs, sessionId }))
         }
         await unblockOperations(xapi, vmRef, sessionId)
       }

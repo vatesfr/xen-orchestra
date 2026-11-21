@@ -2,26 +2,28 @@
   <VtsStateHero v-if="vm === undefined" format="page" type="not-found" size="large">
     {{ t('object-not-found', { id }) }}
   </VtsStateHero>
-  <div v-else class="vm-dashboard-view" :class="{ mobile: uiStore.isSmall }">
-    <VmDashboardQuickInfo class="quick-info" :vm />
-    <div v-if="data.stats === undefined" class="offline-hero-container">
-      <VtsStateHero format="page" type="offline" size="large" horizontal>
-        <span>
-          {{ t('all-quiet-launchpad') }}
-        </span>
-        <span class="title typo-h1">{{ t('vm-shutdown') }}</span>
-        <div class="description typo-body-bold">
-          <span>{{ t('vm-off') }}</span>
-          <span>{{ t('start-vm') }}</span>
-        </div>
-      </VtsStateHero>
+  <div v-else class="scroll-container">
+    <div class="vm-dashboard-view" :class="{ mobile: uiStore.isSmall }">
+      <VmDashboardQuickInfo class="quick-info" :vm />
+      <div v-if="data.stats === undefined" class="offline-hero-container">
+        <VtsStateHero format="page" type="offline" size="large" horizontal>
+          <span>
+            {{ t('all-quiet-launchpad') }}
+          </span>
+          <span class="title typo-h1">{{ t('vm-shutdown') }}</span>
+          <div class="description typo-body-bold">
+            <span>{{ t('vm-off') }}</span>
+            <span>{{ t('start-vm') }}</span>
+          </div>
+        </VtsStateHero>
+      </div>
+      <template v-else>
+        <VmDashboardCpuUsageChart class="cpu-usage-chart" :data :error="!!lastError" :loading="isFetching" />
+        <VmDashboardRamUsageChart class="ram-usage-chart" :data :error="!!lastError" :loading="isFetching" />
+        <VmDashboardNetworkUsageChart class="network-usage-chart" :data :error="!!lastError" :loading="isFetching" />
+        <VmDashboardVdiUsageChart class="vdi-usage-chart" :data :error="!!lastError" :loading="isFetching" />
+      </template>
     </div>
-    <template v-else>
-      <VmDashboardCpuUsageChart class="cpu-usage-chart" :data :error="!!lastError" :loading="isFetching" />
-      <VmDashboardRamUsageChart class="ram-usage-chart" :data :error="!!lastError" :loading="isFetching" />
-      <VmDashboardNetworkUsageChart class="network-usage-chart" :data :error="!!lastError" :loading="isFetching" />
-      <VmDashboardVdiUsageChart class="vdi-usage-chart" :data :error="!!lastError" :loading="isFetching" />
-    </template>
   </div>
 </template>
 
@@ -80,6 +82,12 @@ onUnmounted(() => setRegisteredVm(undefined))
 </script>
 
 <style lang="postcss" scoped>
+.scroll-container {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
 .vm-dashboard-view {
   display: grid;
   margin: 0.8rem;

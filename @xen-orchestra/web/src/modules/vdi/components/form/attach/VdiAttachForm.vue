@@ -28,14 +28,15 @@
     <div class="attach-form">
       <UiTitle>{{ t('options') }}</UiTitle>
       <div>
-        <VdiFormCheckbox v-model="readOnly" :label="t('read-only')" :disabled="forceReadOnly">
-          <template v-if="forceReadOnly" #info>{{ t('info:vdi-attached-rw') }}</template>
-        </VdiFormCheckbox>
+        <FormCheckbox
+          v-model="readOnly"
+          :label="t('read-only')"
+          :info="forceReadOnly ? t('info:vdi-attached-rw') : undefined"
+          :disabled="forceReadOnly"
+        />
       </div>
       <div>
-        <VdiFormCheckbox v-model="bootable" :label="t('bootable')" :disabled="!isPv">
-          <template #info>{{ t('pv-vms-only') }}</template>
-        </VdiFormCheckbox>
+        <FormCheckbox v-model="bootable" :label="t('bootable')" :info="t('pv-vms-only')" :disabled="!isPv" />
       </div>
     </div>
     <div class="buttons-container">
@@ -51,10 +52,10 @@
 
 <script lang="ts" setup>
 import type { NewVbdPayload } from '@/modules/vbd/jobs/xo-vbd-create.job.ts'
-import VdiFormCheckbox from '@/modules/vdi/components/form/attach/inputs/VdiFormCheckbox.vue'
 import VdiFormSelect from '@/modules/vdi/components/form/shared/VdiFormSelect.vue'
 import { useVdiAttachForm } from '@/modules/vdi/form/attach/use-vdi-attach-form.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
+import FormCheckbox from '@/shared/components/form/FormCheckbox.vue'
 import VtsForm from '@core/components/form/VtsForm.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsOption from '@core/components/select/VtsOption.vue'

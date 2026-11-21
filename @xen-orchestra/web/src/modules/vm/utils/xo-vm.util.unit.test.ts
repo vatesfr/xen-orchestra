@@ -6,6 +6,7 @@ import {
   getVmIcon,
   getVmIpAddresses,
   getVmPendingPowerStateOperation,
+  getVmQuickActions,
   getVmsAllowingOperation,
   getVmsPendingOperation,
   hasVmGuestTools,
@@ -250,5 +251,25 @@ describe('extractVmHostId', () => {
     })
 
     expect(extractVmHostId(vm)).toBeUndefined()
+  })
+})
+
+describe('getVmQuickActions', () => {
+  it.each([
+    [VM_POWER_STATE.RUNNING, ['shutdown', 'reboot', 'migrate', 'snapshot']],
+    [VM_POWER_STATE.HALTED, ['start', 'migrate', 'snapshot']],
+    [VM_POWER_STATE.PAUSED, ['unpause', 'migrate', 'snapshot']],
+    [VM_POWER_STATE.SUSPENDED, ['resume', 'migrate', 'snapshot']],
+  ])('lists the quick actions of a %s VM, in order', (powerState, expected) => {
+    expect(getVmQuickActions(createVm({ power_state: powerState }))).toEqual(expected)
+  })
+
+  it('replaces the clean shutdown and reboot by the forced ones when the VM has no guest tools', () => {
+    expect(getVmQuickActions(createVm({ managementAgentDetected: false }))).toEqual([
+      'force-shutdown',
+      'force-reboot',
+      'migrate',
+      'snapshot',
+    ])
   })
 })

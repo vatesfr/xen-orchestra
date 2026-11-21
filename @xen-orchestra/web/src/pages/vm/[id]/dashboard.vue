@@ -1,35 +1,37 @@
 <template>
-  <div class="dashboard" :class="{ mobile: uiStore.isSmall }">
-    <VmDashboardQuickInfo class="quick-info" :vm />
-    <div v-if="!isVmRunning" class="offline-hero-container">
-      <VtsStateHero format="page" type="offline" size="large" horizontal>
-        <span>
-          {{ t('all-quiet-launchpad') }}
-        </span>
-        <span class="title typo-h1">{{ t('vm-shutdown') }}</span>
-        <div class="description typo-body-bold">
-          <span>{{ t('vm-off') }}</span>
-          <span>{{ t('start-vm') }}</span>
-        </div>
-      </VtsStateHero>
-    </div>
-    <template v-else>
-      <VmDashboardBackupRuns class="backup-runs" :vm-id="vm.id" :vm-dashboard :has-error />
-      <VmDashboardBackupArchives class="backup-archives" :vm-dashboard :has-error />
-      <VmDashboardBackupReplication class="backup-replication" :vm-dashboard :has-error />
-      <DashboardAlarms
-        class="alarms"
-        :alarms="vmAlarms"
-        :is-ready="areVmAlarmsReady"
-        :has-error="hasVmAlarmFetchError"
-      />
-      <template v-if="data">
-        <VmDashboardCpuUsageChart class="cpu-usage-chart" :data :error :loading="isFetching" />
-        <VmDashboardRamUsageChart class="ram-usage-chart" :data :error :loading="isFetching" />
-        <VmDashboardNetworkUsageChart class="network-usage-chart" :data :error :loading="isFetching" />
-        <VmDashboardVdiUsageChart class="vdi-usage-chart" :data :error :loading="isFetching" />
+  <div class="scroll-container">
+    <div class="dashboard" :class="{ mobile: uiStore.isSmall }">
+      <VmDashboardQuickInfo class="quick-info" :vm />
+      <div v-if="!isVmRunning" class="offline-hero-container">
+        <VtsStateHero format="page" type="offline" size="large" horizontal>
+          <span>
+            {{ t('all-quiet-launchpad') }}
+          </span>
+          <span class="title typo-h1">{{ t('vm-shutdown') }}</span>
+          <div class="description typo-body-bold">
+            <span>{{ t('vm-off') }}</span>
+            <span>{{ t('start-vm') }}</span>
+          </div>
+        </VtsStateHero>
+      </div>
+      <template v-else>
+        <VmDashboardBackupRuns class="backup-runs" :vm-id="vm.id" :vm-dashboard :has-error />
+        <VmDashboardBackupArchives class="backup-archives" :vm-dashboard :has-error />
+        <VmDashboardBackupReplication class="backup-replication" :vm-dashboard :has-error />
+        <DashboardAlarms
+          class="alarms"
+          :alarms="vmAlarms"
+          :is-ready="areVmAlarmsReady"
+          :has-error="hasVmAlarmFetchError"
+        />
+        <template v-if="data">
+          <VmDashboardCpuUsageChart class="cpu-usage-chart" :data :error :loading="isFetching" />
+          <VmDashboardRamUsageChart class="ram-usage-chart" :data :error :loading="isFetching" />
+          <VmDashboardNetworkUsageChart class="network-usage-chart" :data :error :loading="isFetching" />
+          <VmDashboardVdiUsageChart class="vdi-usage-chart" :data :error :loading="isFetching" />
+        </template>
       </template>
-    </template>
+    </div>
   </div>
 </template>
 
@@ -72,6 +74,12 @@ const { t } = useI18n()
 </script>
 
 <style lang="postcss" scoped>
+.scroll-container {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
 .dashboard {
   display: grid;
   margin: 0.8rem;

@@ -4,7 +4,6 @@ import './env.mjs'
 
 import getopts from 'getopts'
 import { defer } from 'golike-defer'
-import { CancelToken } from 'promise-toolbox'
 import { createVhdStreamWithLength } from 'vhd-lib'
 
 import { createClient } from '../index.mjs'
@@ -50,8 +49,8 @@ defer(async ($defer, argv) => {
   await xapi.connect()
   $defer(() => xapi.disconnect())
 
-  const { cancel, token } = CancelToken.source()
-  process.on('SIGINT', cancel)
+  const controller = new AbortController()
+  process.on('SIGINT', () => controller.abort())
 
   let input = createInputStream(opts._[1])
   $defer.onFailure(() => input.destroy())
@@ -80,7 +79,7 @@ defer(async ($defer, argv) => {
   }
 
   // https://xapi-project.github.io/xen-api/snapshots.html#uploading-a-disk-or-snapshot
-  const result = await xapi.putResource(token, input, '/import_raw_vdi/', {
+  const result = await xapi.putResource(controller.signal, input, '/import_raw_vdi/', {
     query: {
       format: raw ? 'raw' : 'vhd',
       vdi: vdiRef,

@@ -818,7 +818,6 @@
   "new-vm": "Uusi VM",
   "new-vm:add": "Lisää uusi VM",
   "new-vm:description": "VM:n kuvaus",
-  "new-vm:disk-size-below-template": "{name}: koko ei voi olla pienempi kuin mallin levyn koko ({size} Gt)",
   "new-vm:ha-best-effort": "Paras mahdollinen",
   "new-vm:ha-best-effort-description": "Jos isäntä vikaantuu, HA yrittää käynnistää VM:n uudelleen toisella isännällä, mutta vasta kaikkien \"Käynnistä uudelleen\" -VM:ien jälkeen. Ei taattu.",
   "new-vm:ha-disabled": "Pois käytöstä",

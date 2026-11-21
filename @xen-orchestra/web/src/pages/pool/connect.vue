@@ -1,10 +1,12 @@
 <template>
   <PoolConnectionHeader />
-  <UiCard class="pool-connect-card" :class="{ 'full-height': success || hasError }">
-    <PoolConnectionSuccess v-if="success && serverId" :ip :server-id @connect-another-pool="reset()" />
-    <PoolConnectionError v-else-if="hasError && error" :ip :error @go-back="reset()" />
-    <PoolConnectionForm v-else @success="handleSuccess" @error="handleError" />
-  </UiCard>
+  <div class="scroll-container">
+    <UiCard class="pool-connect-card" :class="{ 'full-height': success || hasError }">
+      <PoolConnectionSuccess v-if="success && serverId" :ip :server-id @connect-another-pool="reset()" />
+      <PoolConnectionError v-else-if="hasError && error" :ip :error @go-back="reset()" />
+      <PoolConnectionForm v-else @success="handleSuccess" @error="handleError" />
+    </UiCard>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -43,6 +45,12 @@ function reset() {
 </script>
 
 <style lang="postcss" scoped>
+.scroll-container {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
 .pool-connect-card {
   margin: 0.8rem;
 

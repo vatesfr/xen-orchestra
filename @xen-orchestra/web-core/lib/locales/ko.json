@@ -818,7 +818,6 @@
   "new-vm": "새 VM",
   "new-vm:add": "새 VM 추가",
   "new-vm:description": "VM 설명",
-  "new-vm:disk-size-below-template": "{name}: 크기는 템플릿 디스크 크기({size} GB)보다 작을 수 없습니다",
   "new-vm:ha-best-effort": "최선 노력",
   "new-vm:ha-best-effort-description": "호스트에 장애가 발생하면 HA가 다른 호스트에서 VM을 재시작하려고 시도하지만, 모든 \"재시작\" VM 이후에만 시도합니다. 보장되지 않습니다.",
   "new-vm:ha-disabled": "비활성화됨",

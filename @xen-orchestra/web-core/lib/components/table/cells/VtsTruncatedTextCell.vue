@@ -1,12 +1,12 @@
 <template>
   <UiTableCell>
-    <div class="content">
-      <span class="text">
-        {{ truncatedContent }}
+    <div :class="{ expanded: isExpanded }" class="content">
+      <span ref="text" v-tooltip class="text text-ellipsis">
+        {{ content }}
       </span>
 
       <UiButton
-        v-if="shouldTruncate"
+        v-if="isExpanded || isTruncated"
         accent="brand"
         size="small"
         variant="tertiary"
@@ -22,43 +22,65 @@
 <script setup lang="ts">
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiTableCell from '@core/components/ui/table-cell/UiTableCell.vue'
+import { vTooltip } from '@core/directives/tooltip.directive.ts'
+import { hasEllipsis } from '@core/utils/has-ellipsis.util.ts'
+import { useResizeObserver } from '@vueuse/core'
 import { useToggle } from '@vueuse/shared'
-import { computed } from 'vue'
+import { ref, useTemplateRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { content, limit } = defineProps<{
+const { content } = defineProps<{
   content: string
-  limit?: number
 }>()
-
-const DEFAULT_TRUNCATE_LIMIT = 90
-
-const TRUNCATE_TOLERANCE = 20
 
 const { t } = useI18n()
 
-const truncateLimit = computed(() => limit ?? DEFAULT_TRUNCATE_LIMIT)
-
-const shouldTruncate = computed(() => content.length > truncateLimit.value + TRUNCATE_TOLERANCE)
-
 const [isExpanded, toggleExpanded] = useToggle(false)
 
-const truncatedContent = computed(() => {
-  if (!shouldTruncate.value || isExpanded.value) {
-    return content
-  }
+const textElement = useTemplateRef('text')
 
-  return `${content.slice(0, truncateLimit.value)}…`
-})
+const isTruncated = ref(false)
+
+function updateTruncation() {
+  isTruncated.value = hasEllipsis(textElement.value)
+}
+
+useResizeObserver(textElement, () => updateTruncation())
+
+watch(
+  () => content,
+  () => updateTruncation(),
+  { flush: 'post' }
+)
 </script>
 
 <style lang="postcss" scoped>
+.content {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  max-width: 30rem;
+
+  &.expanded {
+    display: block;
+
+    .text {
+      white-space: normal;
+    }
+
+    .button {
+      float: right;
+      margin-top: -0.25rem;
+    }
+  }
+}
+
 .text {
   overflow-wrap: anywhere;
 }
 
 .button {
-  float: right;
-  margin-top: -0.25rem;
+  flex-shrink: 0;
+  margin-inline-start: auto;
 }
 </style>

@@ -85,7 +85,7 @@ type WrapperXenApi<T, Type extends string, Fn = { (): void }> = T & {
   $pool: XenApiPool
   $type: Type
   $snapshot(params: {
-    cancelToken?: unknown
+    signal?: AbortSignal
     ignoredVdisTag?: string
     name_label?: string
     unplugVusbs?: boolean

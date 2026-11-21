@@ -12,7 +12,7 @@ export const useSrColumns = defineColumns(() => {
 
   return {
     checkbox: useCheckboxColumn(),
-    storageRepository: useLinkColumn({ headerLabel: () => t('storage-repository') }),
+    storageRepository: useLinkColumn({ headerLabel: () => t('storage-repository'), flexible: true }),
     description: useTruncatedTextColumn({ headerLabel: () => t('description') }),
     storageFormat: useLiteralColumn({ headerLabel: () => t('storage-format') }),
     accessMode: useLiteralColumn({ headerLabel: () => t('access-mode') }),

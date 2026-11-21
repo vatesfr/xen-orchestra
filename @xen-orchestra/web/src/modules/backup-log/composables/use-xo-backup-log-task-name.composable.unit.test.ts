@@ -3,45 +3,33 @@ import type {
   FrontXoBackupRepository,
   useXoBackupRepositoryCollection,
 } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
-import type {
-  FrontXoSr,
-  useXoSrCollection,
-} from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
-import type { FrontXoVm, useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
+import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
+import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { createBackupLogTask, createBackupLogVmTask } from '@/test/create-backup-log.ts'
 import { createBr } from '@/test/create-br.ts'
 import { createSr } from '@/test/create-sr.ts'
 import { createVm } from '@/test/create-vm.ts'
 import { t } from '@/test/i18n.ts'
+import { xoCollectionsMock, mockXoCollections } from '@/test/mock-xo-collections.ts'
+import { vmCollectionMock, mockXoVmCollection } from '@/test/mock-xo-vm-collection.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
+import { mockModule } from '@/test/spy-on-module.ts'
 
-const { vmsById, srsById, brsById } = vi.hoisted(() => ({
-  vmsById: new Map<string, FrontXoVm>(),
-  srsById: new Map<string, FrontXoSr>(),
-  brsById: new Map<string, FrontXoBackupRepository>(),
-}))
+const brsById = new Map<string, FrontXoBackupRepository>()
 
-vi.mock(import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'), () => ({
-  useXoVmCollection: (() => ({
-    getVmById: (id: string) => vmsById.get(id),
-  })) as unknown as typeof useXoVmCollection,
-}))
+mockXoVmCollection()
 
-vi.mock(import('@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'), () => ({
-  useXoSrCollection: (() => ({
-    getSrById: (id: string) => srsById.get(id),
-  })) as unknown as typeof useXoSrCollection,
-}))
+mockXoCollections('sr')
 
-vi.mock(import('@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'), () => ({
+mockModule(import('@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'), () => ({
   useXoBackupRepositoryCollection: (() => ({
     getBackupRepositoryById: (id: string) => brsById.get(id),
   })) as unknown as typeof useXoBackupRepositoryCollection,
 }))
 
 beforeEach(() => {
-  vmsById.clear()
-  srsById.clear()
+  vmCollectionMock.reset()
+  xoCollectionsMock.reset()
   brsById.clear()
 })
 
@@ -51,7 +39,7 @@ function mountTaskName() {
 
 describe('getTaskName', () => {
   it('gives the name of the VM with a link to its dashboard', () => {
-    vmsById.set('vm-1', createVm({ id: 'vm-1' as FrontXoVm['id'], name_label: 'My VM' }))
+    vmCollectionMock.vms.value = [createVm({ id: 'vm-1' as FrontXoVm['id'], name_label: 'My VM' })]
 
     expect(mountTaskName().getTaskName(createBackupLogVmTask('vm-1'))).toEqual({
       name: 'My VM',
@@ -70,7 +58,7 @@ describe('getTaskName', () => {
   })
 
   it('gives the name of the SR with a link to its page', () => {
-    srsById.set('sr-1', createSr({ id: 'sr-1' as FrontXoSr['id'], name_label: 'My SR' }))
+    xoCollectionsMock.srs.value = [createSr({ id: 'sr-1' as FrontXoSr['id'], name_label: 'My SR' })]
 
     const task = createBackupLogTask({ data: { type: 'SR', id: 'sr-1' } })
 

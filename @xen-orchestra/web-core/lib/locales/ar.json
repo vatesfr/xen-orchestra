@@ -818,7 +818,6 @@
   "new-vm": "VM جديد",
   "new-vm:add": "إضافة VM جديد",
   "new-vm:description": "وصف VM",
-  "new-vm:disk-size-below-template": "{name}: لا يمكن أن يكون الحجم أصغر من حجم قرص القالب ({size} GB)",
   "new-vm:ha-best-effort": "أفضل جهد",
   "new-vm:ha-best-effort-description": "إذا تعطّل المضيف، يحاول HA إعادة تشغيل VM على مضيف آخر، لكن فقط بعد جميع VM ذات الخيار \"إعادة التشغيل\". غير مضمون.",
   "new-vm:ha-disabled": "معطّل",

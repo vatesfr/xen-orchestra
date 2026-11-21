@@ -1,6 +1,6 @@
 <!-- WIP -->
 <template>
-  <td class="ui-table-cell typo-body-regular" :class="align">
+  <td class="ui-table-cell typo-body-regular" :class="[align, { flexible, capped }]">
     <slot />
   </td>
 </template>
@@ -10,6 +10,8 @@ export type TableCellAlign = 'start' | 'center' | 'end'
 
 const { align = 'start' } = defineProps<{
   align?: TableCellAlign
+  flexible?: boolean
+  capped?: boolean
 }>()
 </script>
 
@@ -36,6 +38,21 @@ const { align = 'start' } = defineProps<{
 
   &.end {
     text-align: end;
+  }
+
+  &.flexible {
+    width: 60rem;
+    max-width: none;
+    min-width: 20rem;
+
+    > :slotted(*) {
+      width: 0;
+      min-width: 100%;
+    }
+  }
+
+  &.capped {
+    max-width: 20rem;
   }
 }
 </style>

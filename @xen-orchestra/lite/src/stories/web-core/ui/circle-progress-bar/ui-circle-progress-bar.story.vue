@@ -7,7 +7,7 @@
       prop('accent')
         .type('CircleProgressBarAccent')
         .required()
-        .enum('info', 'warning', 'danger')
+        .enum('brand', 'info', 'warning', 'danger')
         .preset('info')
         .widget(),
       prop('size')
@@ -16,6 +16,7 @@
         .enum('extra-small', 'small', 'medium', 'large')
         .preset('large')
         .widget(),
+      prop('noValue').bool().widget(),
     ]"
     :presets
   >
@@ -35,6 +36,7 @@ const presets = {
       maxValue: 500,
       size: 'medium',
       accent: 'info',
+      noValue: false,
     },
   },
   '75% of 300': {
@@ -43,6 +45,34 @@ const presets = {
       maxValue: 300,
       size: 'medium',
       accent: 'info',
+      noValue: false,
+    },
+  },
+  'Value above max (success)': {
+    props: {
+      value: 150,
+      maxValue: 100,
+      size: 'medium',
+      accent: 'info',
+      noValue: false,
+    },
+  },
+  'Value above max (warning)': {
+    props: {
+      value: 150,
+      maxValue: 100,
+      size: 'medium',
+      accent: 'warning',
+      noValue: false,
+    },
+  },
+  'Brand ring without value': {
+    props: {
+      value: 1,
+      maxValue: 3,
+      size: 'small',
+      accent: 'brand',
+      noValue: true,
     },
   },
 }

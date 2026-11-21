@@ -102,3 +102,9 @@ export function getHostIcon(host: FrontXoHost | undefined) {
 
   return objectIcon('host', getHostState(host))
 }
+
+export type HostQuickAction = 'new-vm' | 'start' | 'shutdown' | 'reboot'
+
+export function getHostQuickActions(host: FrontXoHost): HostQuickAction[] {
+  return host.power_state === HOST_POWER_STATE.RUNNING ? ['new-vm', 'shutdown', 'reboot'] : ['new-vm', 'start']
+}

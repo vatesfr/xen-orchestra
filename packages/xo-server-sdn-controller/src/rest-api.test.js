@@ -93,8 +93,9 @@ describe('a rule', () => {
 })
 
 describe('the priority of a rule', () => {
-  it('is an integer from 0 to 65535', async () => {
-    for (const priority of [-1, 1.5, 65536]) {
+  // XAPI reserves 0
+  it('is an integer from 1 to 65535', async () => {
+    for (const priority of [-1, 0, 1.5, 65536]) {
       await rejectsInTheTask(createController(), ADD, 'net', { ...WEB, priority }, invalidParameters)
       await rejectsInTheTask(
         createController(),
@@ -133,6 +134,15 @@ describe('the priority of a rule', () => {
     await rejectsInTheTask(createController(), endpoint, 'vif1', { ...SSH, priority: 40000 }, objectAlreadyExists)
   })
 
+  it('cannot be kept at 0, as the rule would be deleted and not added back', async () => {
+    const oldRule = { ...SSH, priority: 0 }
+    const controller = createController()
+    const network = { ...NETWORK, other_config: storeRules([{ ...oldRule, cookie: '0x1' }]) }
+    controller._xo.getObject = () => network
+    const body = { oldRule, newRule: { allow: true } }
+    await rejectsInTheTask(controller, UPDATE, 'net', body, invalidParameters)
+  })
+
   it('may be kept by a rule that shares it, like the copy a clone makes', async () => {
     const controller = createController()
     controller._deleteRule = noop
@@ -154,6 +164,36 @@ describe('the update of a rule', () => {
     await runAction(controller, UPDATE, 'net', { oldRule: NETWORK_RULE, newRule })
     return added
   }
+
+  it('puts the old rule back when the new one cannot be added', async () => {
+    const controller = createController()
+    const added = []
+    controller._deleteNetworkOfRule = noop
+    controller._addNetworkRule = rule => {
+      added.push(rule)
+      if (rule.ipRange === '192.168.0.0/16') {
+        throw new Error('refused by the host')
+      }
+    }
+    await assert.rejects(
+      runAction(controller, UPDATE, 'net', { oldRule: NETWORK_RULE, newRule: { ipRange: '192.168.0.0/16' } }),
+      /refused by the host/
+    )
+    assert.equal(added.length, 2)
+    assert.deepEqual(added[1], { ...NETWORK_RULE, networkId: 'net' })
+  })
+
+  it('fails with the error of the new rule, even if the old one cannot be put back', async () => {
+    const controller = createController()
+    controller._deleteNetworkOfRule = noop
+    controller._addNetworkRule = rule => {
+      throw new Error(rule.ipRange === '192.168.0.0/16' ? 'refused by the host' : 'host unreachable')
+    }
+    await assert.rejects(
+      runAction(controller, UPDATE, 'net', { oldRule: NETWORK_RULE, newRule: { ipRange: '192.168.0.0/16' } }),
+      /refused by the host/
+    )
+  })
 
   it('keeps the priority when `newRule` leaves it out', async () => {
     assert.deepEqual(await update({ allow: true }), { ...SSH, allow: true, priority: 40000, networkId: 'net' })

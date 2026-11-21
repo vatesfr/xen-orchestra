@@ -1,8 +1,9 @@
 <template>
   <VtsMobileMenu :title="t('more-actions')">
-    <template #trigger="{ open }">
+    <template #trigger="{ open, bindings }">
       <UiButtonIcon
         v-tooltip="{ content: t('more-actions'), placement: 'bottom-end' }"
+        v-bind="bindings"
         accent="brand"
         icon="action:more-actions"
         size="medium"

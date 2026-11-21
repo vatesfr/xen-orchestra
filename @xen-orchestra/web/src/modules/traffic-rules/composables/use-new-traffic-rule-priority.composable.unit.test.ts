@@ -1,46 +1,21 @@
-import type {
-  FrontXoNetwork,
-  useXoNetworkCollection,
-} from '@/modules/network/remote-resources/use-xo-network-collection.ts'
+import type { FrontXoNetwork } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
 import { useNewTrafficRulePriority } from '@/modules/traffic-rules/composables/use-new-traffic-rule-priority.composable.ts'
-import type { FrontXoVif, useXoVifCollection } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
-import type { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
+import type { FrontXoVif } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
 import { createNetwork } from '@/test/create-network.ts'
 import { createVif } from '@/test/create-vif.ts'
+import { createVm } from '@/test/create-vm.ts'
+import { xoCollectionsMock, mockXoCollections } from '@/test/mock-xo-collections.ts'
+import { vmCollectionMock, mockXoVmCollection } from '@/test/mock-xo-vm-collection.ts'
+import { vmDeviceCollectionsMock, mockXoVmDeviceCollections } from '@/test/mock-xo-vm-device-collections.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
 import { SDN_CONTROLLER_OF_RULES_KEY, type TrafficRuleTargetType } from '@vates/types'
-import { computed, type MaybeRefOrGetter, toValue } from 'vue'
-
-const { collections } = vi.hoisted(() => ({
-  collections: { networks: [] as FrontXoNetwork[], vifs: [] as FrontXoVif[] },
-}))
 
 // The collections would open SSE subscriptions
-vi.mock(import('@/modules/network/remote-resources/use-xo-network-collection.ts'), () => ({
-  useXoNetworkCollection: (() => {
-    const getNetworkById = (id: FrontXoNetwork['id'] | undefined) =>
-      collections.networks.find(network => network.id === id)
+mockXoCollections('network')
 
-    return {
-      getNetworkById,
-      useGetNetworkById: (rawId: MaybeRefOrGetter<FrontXoNetwork['id'] | undefined>) =>
-        computed(() => getNetworkById(toValue(rawId))),
-    }
-  }) as unknown as typeof useXoNetworkCollection,
-}))
+mockXoVmDeviceCollections('vif')
 
-vi.mock(import('@/modules/vif/remote-resources/use-xo-vif-collection.ts'), () => ({
-  useXoVifCollection: (() => ({
-    vifs: computed(() => collections.vifs),
-    getVifById: (id: FrontXoVif['id']) => collections.vifs.find(vif => vif.id === id),
-  })) as unknown as typeof useXoVifCollection,
-}))
-
-vi.mock(import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'), () => ({
-  useXoVmCollection: (() => ({
-    getVmById: () => ({ name_label: 'VM' }),
-  })) as unknown as typeof useXoVmCollection,
-}))
+mockXoVmCollection()
 
 function withRules(...priorities: number[]) {
   const rules = priorities.map(priority =>
@@ -56,8 +31,13 @@ const vif = createVif({ id: 'vif-1' as FrontXoVif['id'], $network: network.id, o
 const otherVif = createVif({ id: 'vif-2' as FrontXoVif['id'], $network: otherNetwork.id, other_config: withRules(50) })
 
 beforeEach(() => {
-  collections.networks = [network, otherNetwork]
-  collections.vifs = [vif, otherVif]
+  xoCollectionsMock.reset()
+  vmDeviceCollectionsMock.reset()
+  vmCollectionMock.reset()
+  xoCollectionsMock.networks.value = [network, otherNetwork]
+  vmDeviceCollectionsMock.vifs.value = [vif, otherVif]
+  // The VM of every VIF
+  vmCollectionMock.vms.value = [createVm()]
 })
 
 function mountPriority(
@@ -98,13 +78,13 @@ describe('hasFreePriority', () => {
   })
 
   it('is false when a rule of the network has the lowest allowed priority', () => {
-    collections.vifs = [createVif({ id: vif.id, $network: network.id, other_config: withRules(1) })]
+    vmDeviceCollectionsMock.vifs.value = [createVif({ id: vif.id, $network: network.id, other_config: withRules(1) })]
 
     expect(mountPriority('network', network.id).hasFreePriority).toBe(false)
   })
 
   it('is true when the priority is not supported', () => {
-    collections.vifs = [createVif({ id: vif.id, $network: network.id, other_config: withRules(1) })]
+    vmDeviceCollectionsMock.vifs.value = [createVif({ id: vif.id, $network: network.id, other_config: withRules(1) })]
 
     expect(mountPriority('network', network.id, false).hasFreePriority).toBe(true)
   })

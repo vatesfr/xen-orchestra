@@ -818,7 +818,6 @@
   "new-vm": "Nuova VM",
   "new-vm:add": "Aggiungi una nuova VM",
   "new-vm:description": "Descrizione VM",
-  "new-vm:disk-size-below-template": "{name}: la dimensione non può essere inferiore a quella del disco del template ({size} GB)",
   "new-vm:ha-best-effort": "Best-effort",
   "new-vm:ha-best-effort-description": "Se l'host si guasta, l'HA tenta di riavviare la VM su un altro host, ma solo dopo tutte le VM \"Riavvia\". Non garantito.",
   "new-vm:ha-disabled": "Disabilitato",

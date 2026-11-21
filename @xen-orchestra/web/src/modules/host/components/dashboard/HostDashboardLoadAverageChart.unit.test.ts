@@ -1,5 +1,6 @@
 import HostDashboardLoadAverageChart from '@/modules/host/components/dashboard/HostDashboardLoadAverageChart.vue'
 import { createHostStats } from '@/test/create-host-stats.ts'
+import { findCardTitle } from '@/test/find-card-title.ts'
 import { t } from '@/test/i18n.ts'
 import { findLinearChart } from '@/test/linear-chart-stub.ts'
 import { mountChartCard, type ChartCardProps } from '@/test/mount-chart-card.ts'
@@ -14,8 +15,8 @@ const statsWithSamples = createHostStats({ stats: { load: [1.5, 2.5] } })
 it('renders the card title and the period it covers', () => {
   const wrapper = mountChart({ data: statsWithSamples })
 
-  expect(wrapper.get('.ui-card-title').text()).toContain(t('load-average'))
-  expect(wrapper.get('.ui-card-title').text()).toContain(t('last-week'))
+  expect(findCardTitle(wrapper)).toContain(t('load-average'))
+  expect(findCardTitle(wrapper)).toContain(t('last-week'))
 })
 
 it('shows a loader while the stats are loading', () => {

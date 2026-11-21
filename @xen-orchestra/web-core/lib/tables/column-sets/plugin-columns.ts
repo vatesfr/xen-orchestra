@@ -10,7 +10,7 @@ export const usePluginColumns = defineColumns(() => {
   const { t } = useI18n()
 
   return {
-    plugin: useLinkColumn({ headerLabel: () => t('plugin') }),
+    plugin: useLinkColumn({ headerLabel: () => t('plugin'), flexible: true }),
     version: useTextColumn({ headerLabel: () => t('version') }),
     description: useTruncatedTextColumn({ headerLabel: () => t('description') }),
     loaded: useStatusColumn({ headerLabel: () => t('loaded') }),
