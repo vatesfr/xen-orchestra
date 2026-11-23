@@ -9,10 +9,10 @@
     </template>
 
     <template #buttons>
-      <VtsOverlayButton variant="secondary" @click="emit('confirm')">{{ t('action:discard') }}</VtsOverlayButton>
-      <VtsOverlayButton ref="keepEditingButton" variant="primary" @click="emit('cancel')">
+      <VtsOverlayButton ref="keepEditingButton" variant="secondary" @click="emit('cancel')">
         {{ t('action:keep-editing') }}
       </VtsOverlayButton>
+      <VtsOverlayButton variant="primary" @click="emit('confirm')">{{ t('action:discard') }}</VtsOverlayButton>
     </template>
   </UiModal>
 </template>
