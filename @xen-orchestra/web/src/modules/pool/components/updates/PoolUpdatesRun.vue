@@ -32,16 +32,12 @@
       <UiInfo v-if="run.planChange !== undefined" accent="warning" wrap>
         {{ t('rolling-update:plan-change', { n: run.planChange.addedHostIds.length }) }}
       </UiInfo>
-      <UiLogEntryViewer
-        v-if="run.lastError !== null"
-        :content="run.lastError"
-        :label="t('error')"
-        size="small"
-        accent="danger"
-      />
+      <UiInfo v-if="lastError !== null && !isHostError" accent="danger" wrap>
+        {{ getRollingUpdateErrorSummary(t, lastError) }}
+      </UiInfo>
       <template v-for="hostId in hostIds" :key="hostId">
         <VtsDivider type="stretch" />
-        <PoolUpdatesHost :host-id :host="run.hosts[hostId]" />
+        <PoolUpdatesHost :host-id :host="run.hosts[hostId]" :hide-error="state === 'running'" />
       </template>
       <template v-if="state !== 'running'">
         <VtsDivider type="stretch" />
@@ -118,6 +114,9 @@
             variant="secondary"
             accent="brand"
             size="small"
+            :busy="
+              restoringItem !== undefined && getRollingUpdateItemKey(restoringItem) === getRollingUpdateItemKey(item)
+            "
             :disabled="isBusy || state === 'running'"
             @click="emit('restore', item)"
           >
@@ -131,6 +130,11 @@
       <UiCardTitle>{{ t('tasks') }}</UiCardTitle>
       <UiTaskList :tasks="subtasks" />
     </UiCard>
+
+    <UiCard v-if="lastError !== null">
+      <UiCardTitle>{{ t('rolling-update:error-details') }}</UiCardTitle>
+      <UiLogEntryViewer :content="lastError" :label="t('error')" size="small" accent="danger" />
+    </UiCard>
   </div>
 </template>
 
@@ -139,11 +143,12 @@ import { useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host
 import PoolUpdatesHost from '@/modules/pool/components/updates/PoolUpdatesHost.vue'
 import {
   canCloseRollingUpdate,
+  getRollingUpdateErrorSummary,
   getRollingUpdateEstimatedEnd,
-  getRollingUpdateHostsProgress,
   getRollingUpdateItemKey,
   getRollingUpdateItemLabel,
   getRollingUpdateOperatorChangeLabel,
+  getRollingUpdateProgress,
   type RollingUpdatePageState,
 } from '@/modules/pool/utils/rolling-update.util.ts'
 import type { Task } from '@core/components/ui/task-item/UiTaskItem.vue'
@@ -160,16 +165,19 @@ import UiTag, { type TagAccent } from '@core/components/ui/tag/UiTag.vue'
 import UiTaskList from '@core/components/ui/task-list/UiTaskList.vue'
 import { formatDateTime } from '@core/utils/time.util.ts'
 import type { PoolRollingUpdateRecoveryRun, PoolRollingUpdateRecoveryUnrestoredItem } from '@vates/types'
+import { isEqual } from 'lodash-es'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { run, state, task, restoredItems } = defineProps<{
+const { run, state, task, restoredItems, restoringItem } = defineProps<{
   run: PoolRollingUpdateRecoveryRun
   state: Extract<RollingUpdatePageState, 'running' | 'interrupted' | 'review'>
   // The task of the run, when it is still known
   task: Task | undefined
   // The items restored since the page was opened
   restoredItems: PoolRollingUpdateRecoveryUnrestoredItem[]
+  // The item whose restore is in progress
+  restoringItem?: PoolRollingUpdateRecoveryUnrestoredItem
   isBusy: boolean
 }>()
 
@@ -196,9 +204,14 @@ const { getHostById } = useXoHostCollection()
 
 const hostIds = computed(() => run.hostOrder ?? Object.keys(run.hosts))
 
-const progress = computed(() =>
-  state === 'running' && task?.progress !== undefined ? Math.round(task.progress) : getRollingUpdateHostsProgress(run)
-)
+// From the record, as the steps of the hosts: the task is not always known, e.g. after a restart of xo-server
+const progress = computed(() => getRollingUpdateProgress(run))
+
+// The record keeps the error of the previous attempt until the run stops again: it is hidden while the run is resumed
+const lastError = computed(() => (state === 'running' ? null : run.lastError))
+
+// The error of the run is most often the one of a host, which shows it
+const isHostError = computed(() => hostIds.value.some(hostId => isEqual(run.hosts[hostId]?.lastError, lastError.value)))
 
 const estimatedEnd = computed(() => (state === 'running' ? getRollingUpdateEstimatedEnd(run, Date.now()) : undefined))
 

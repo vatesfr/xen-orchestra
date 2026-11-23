@@ -76,7 +76,7 @@ async function mountPageOnRunWhichClosesItself() {
 
   expect(wrapper.findComponent(PoolUpdatesRun).exists()).toBe(true)
 
-  fetchGetMock.mockRejectedValue(createApiError(404))
+  fetchGetMock.mockRejectedValue(createApiError(404, { data: { type: 'rollingUpdateRecovery' } }))
 
   await vi.advanceTimersByTimeAsync(LIVE_POLLING_INTERVAL_MS)
   await flushPromises()

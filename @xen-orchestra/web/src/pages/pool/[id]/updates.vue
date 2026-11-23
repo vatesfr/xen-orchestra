@@ -24,6 +24,7 @@
       :state="runState"
       :task
       :restored-items
+      :restoring-item="isRestoring ? itemToRestore : undefined"
       :is-busy
       @resume="openResumeModal({ props: { poolId: pool.id, operatorChanges: run.operatorChanges } })"
       @close="isForced => (isForced ? openForceCloseModal() : close(false))"

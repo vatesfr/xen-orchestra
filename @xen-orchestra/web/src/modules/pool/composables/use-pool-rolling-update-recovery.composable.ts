@@ -11,6 +11,16 @@ const LIVE_POLLING_INTERVAL_MS = 5_000
 
 const IDLE_POLLING_INTERVAL_MS = 30_000
 
+// A 404 tells that the pool has no run only when the record is what is missing: the pool itself is not found
+// while xo-server is not connected to it yet, e.g. right after its restart
+function isNoRecoveryError(error: unknown) {
+  return (
+    error instanceof ApiError &&
+    error.status === HttpCodes.NotFound &&
+    (error.cause?.data as { type?: unknown } | undefined)?.type === 'rollingUpdateRecovery'
+  )
+}
+
 // Not a remote resource: a pool without recovery answers 404, and a remote resource does not tell
 // which status a failed request got
 export function usePoolRollingUpdateRecovery(poolId: MaybeRefOrGetter<FrontXoPool['id']>) {
@@ -32,7 +42,7 @@ export function usePoolRollingUpdateRecovery(poolId: MaybeRefOrGetter<FrontXoPoo
     try {
       data = await fetchGet<PoolRollingUpdateRecovery>(`pools/${id}/rolling_update_recovery`)
     } catch (error) {
-      hasError = !(error instanceof ApiError && error.status === HttpCodes.NotFound)
+      hasError = !isNoRecoveryError(error)
     }
 
     // The pool changed while the request was pending, or a later request already answered: its answer is the newer

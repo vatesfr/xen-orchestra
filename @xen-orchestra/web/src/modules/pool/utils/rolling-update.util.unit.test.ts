@@ -1,11 +1,14 @@
 import {
   canCloseRollingUpdate,
   getOfferedStartOptions,
+  getRollingUpdateErrorSummary,
   getRollingUpdateEstimatedEnd,
-  getRollingUpdateHostsProgress,
+  getRollingUpdateHostStatus,
   getRollingUpdateItemLabel,
   getRollingUpdateOperatorChangeLabel,
   getRollingUpdatePageState,
+  getRollingUpdateProgress,
+  getRollingUpdateReasonLabel,
   getRollingUpdateStepColumns,
   isRollingUpdateLive,
   isRollingUpdateStartBlocked,
@@ -309,16 +312,103 @@ describe('labels', () => {
   })
 })
 
-describe('getRollingUpdateHostsProgress', () => {
-  it('is 0 without host', () => {
-    expect(getRollingUpdateHostsProgress(createRun())).toBe(0)
+describe('getRollingUpdateReasonLabel', () => {
+  it('explains a known XAPI code, and keeps the code', () => {
+    expect(getRollingUpdateReasonLabel(t, 'VM_REQUIRES_SR')).toBe(
+      `${t('rolling-update:reason:vm-requires-sr')} (VM_REQUIRES_SR)`
+    )
   })
 
-  it('is the rounded share of the hosts succeeded or not needed', () => {
+  it('falls back to the code when it is not known', () => {
+    expect(getRollingUpdateReasonLabel(t, 'SOME_NEW_CODE')).toBe('SOME_NEW_CODE')
+  })
+})
+
+describe('getRollingUpdateErrorSummary', () => {
+  it('explains why a host cannot be evacuated', () => {
+    const error = {
+      code: 'CANNOT_EVACUATE_HOST',
+      params: ['VM_REQUIRES_SR', 'OpaqueRef:vm', 'OpaqueRef:sr'],
+      message: 'CANNOT_EVACUATE_HOST(VM_REQUIRES_SR, OpaqueRef:vm, OpaqueRef:sr)',
+      stack: 'XapiError: CANNOT_EVACUATE_HOST\n    at somewhere',
+    }
+
+    expect(getRollingUpdateErrorSummary(t, error)).toBe(
+      t('rolling-update:error:cannot-evacuate-host', { reason: getRollingUpdateReasonLabel(t, 'VM_REQUIRES_SR') })
+    )
+  })
+
+  it('is the message of any other error, without its stack', () => {
+    expect(
+      getRollingUpdateErrorSummary(t, { message: 'connection lost', stack: 'Error: connection lost\n    at x' })
+    ).toBe('connection lost')
+  })
+
+  it('falls back to the code, then to a generic label', () => {
+    expect(getRollingUpdateErrorSummary(t, { code: 'HOST_OFFLINE' })).toBe('HOST_OFFLINE')
+    expect(getRollingUpdateErrorSummary(t, {})).toBe(t('error'))
+  })
+})
+
+describe('getRollingUpdateProgress', () => {
+  const done = { status: 'observed-succeeded' } as const
+  const notNeeded = { status: 'not-needed' } as const
+
+  it('is 0 without host', () => {
+    expect(getRollingUpdateProgress(createRun())).toBe(0)
+  })
+
+  it('is the rounded share of the steps done, among the steps to do', () => {
     const run = createRun({
-      hosts: { a: createHost('succeeded'), b: createHost('not-needed'), c: createHost('running') },
+      hosts: {
+        a: createHost('running', { linstor: notNeeded, linstorHealth: notNeeded, evacuate: done, update: done }),
+        b: createHost('pending', { linstor: notNeeded, linstorHealth: notNeeded }),
+      },
     })
 
-    expect(getRollingUpdateHostsProgress(run)).toBe(67)
+    // 2 steps done out of 2 × 5
+    expect(getRollingUpdateProgress(run)).toBe(20)
+  })
+
+  it('moves while the first host is not done yet', () => {
+    const run = createRun({ hosts: { a: createHost('running', { linstor: done }), b: createHost('pending') } })
+
+    expect(getRollingUpdateProgress(run)).toBe(7)
+  })
+
+  it('is 100 when no step is left to do', () => {
+    const steps = Object.fromEntries(STEP_NAMES.map(name => [name, notNeeded]))
+
+    const run = createRun({ hosts: { a: createHost('not-needed', steps) } })
+
+    expect(getRollingUpdateProgress(run)).toBe(100)
+  })
+})
+
+describe('getRollingUpdateHostStatus', () => {
+  const done = { status: 'observed-succeeded' } as const
+
+  const allDoneButRestore = {
+    linstor: done,
+    linstorHealth: done,
+    evacuate: done,
+    update: done,
+    reboot: done,
+    enable: done,
+  }
+
+  it('is the status of the host', () => {
+    expect(getRollingUpdateHostStatus(createHost('running', { evacuate: { status: 'running' } }))).toBe('running')
+  })
+
+  // Its VMs come back at the end of the run only: when the run stops on another host, it is not what was interrupted
+  it('is succeeded for an interrupted host which only waits for its VMs', () => {
+    expect(getRollingUpdateHostStatus(createHost('interrupted', allDoneButRestore))).toBe('succeeded')
+  })
+
+  it('stays interrupted while another step is left', () => {
+    const host = createHost('interrupted', { ...allDoneButRestore, enable: { status: 'pending' } })
+
+    expect(getRollingUpdateHostStatus(host)).toBe('interrupted')
   })
 })

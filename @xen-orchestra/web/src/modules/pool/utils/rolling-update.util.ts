@@ -1,6 +1,7 @@
 import type {
   PoolRollingUpdatePrecheck,
   PoolRollingUpdateRecovery,
+  PoolRollingUpdateRecoveryError,
   PoolRollingUpdateRecoveryHost,
   PoolRollingUpdateRecoveryOperatorChange,
   PoolRollingUpdateRecoveryRun,
@@ -202,13 +203,60 @@ export function getRollingUpdateOperatorChangeLabel(t: Translate, change: PoolRo
   return t(`rolling-update:operator-change:${change.observed}`, { item: getRollingUpdateItemLabel(t, change) })
 }
 
-/** Share of the hosts which are done, from 0 to 100 */
-export function getRollingUpdateHostsProgress(run: PoolRollingUpdateRecoveryRun) {
+// The XAPI codes which tell why a VM cannot leave its host, and have a label
+const KNOWN_REASONS = new Set([
+  'HOST_NOT_ENOUGH_FREE_MEMORY',
+  'VM_LACKS_FEATURE',
+  'VM_REQUIRES_NETWORK',
+  'VM_REQUIRES_SR',
+])
+
+/** Why a VM cannot be migrated, in words when the XAPI code is known, e.g. "… (VM_REQUIRES_SR)" */
+export function getRollingUpdateReasonLabel(t: Translate, code: string) {
+  return KNOWN_REASONS.has(code) ? `${t(`rolling-update:reason:${kebabCase(code)}`)} (${code})` : code
+}
+
+/** One line for an error of a run: its details, stack included, are shown apart */
+export function getRollingUpdateErrorSummary(t: Translate, error: PoolRollingUpdateRecoveryError) {
+  const { code, message, params } = error
+
+  if (code === 'CANNOT_EVACUATE_HOST' && Array.isArray(params) && typeof params[0] === 'string') {
+    return t('rolling-update:error:cannot-evacuate-host', { reason: getRollingUpdateReasonLabel(t, params[0]) })
+  }
+
+  return message ?? (code !== undefined ? String(code) : t('error'))
+}
+
+/** Share of the steps which are done, among the steps the hosts need, from 0 to 100 */
+export function getRollingUpdateProgress(run: PoolRollingUpdateRecoveryRun) {
   const hosts = Object.values(run.hosts)
 
   if (hosts.length === 0) {
     return 0
   }
 
-  return Math.round((hosts.filter(isHostDone).length / hosts.length) * 100)
+  const steps = hosts.flatMap(host => Object.values(host.steps)).filter(step => step.status !== 'not-needed')
+
+  if (steps.length === 0) {
+    return 100
+  }
+
+  return Math.round((steps.filter(step => step.status === 'observed-succeeded').length / steps.length) * 100)
+}
+
+/**
+ * The status to show for a host. The VMs of a host come back at the end of the run only: a host which waits for
+ * nothing else is updated, even when the run stopped on another host
+ */
+export function getRollingUpdateHostStatus(
+  host: PoolRollingUpdateRecoveryHost
+): PoolRollingUpdateRecoveryHost['status'] {
+  const { restoreVms, ...otherSteps } = host.steps
+
+  const onlyWaitsForItsVms =
+    host.status === 'interrupted' &&
+    restoreVms.status === 'pending' &&
+    Object.values(otherSteps).every(step => step.status === 'observed-succeeded' || step.status === 'not-needed')
+
+  return onlyWaitsForItsVms ? 'succeeded' : host.status
 }

@@ -13,6 +13,12 @@ const fetchGetMock = mockedExport(fetchGet)
 const POOL_ID = 'pool-1' as FrontXoPool['id']
 const OTHER_POOL_ID = 'pool-2' as FrontXoPool['id']
 
+// What the REST API answers for a pool without recovery record
+const NO_RECOVERY = createApiError(404, { data: { id: POOL_ID, type: 'rollingUpdateRecovery' } })
+
+// What it answers while xo-server is not connected to the pool yet, e.g. right after its restart
+const NO_POOL = createApiError(404, { data: { id: POOL_ID, type: 'pool' } })
+
 // The composable reads the status only
 function createRecovery(status: PoolRollingUpdateRecovery['status']) {
   return { status } as PoolRollingUpdateRecovery
@@ -55,7 +61,7 @@ describe('load', () => {
   })
 
   it('takes a 404 as a pool without run, not as an error', async () => {
-    fetchGetMock.mockRejectedValue(createApiError(404))
+    fetchGetMock.mockRejectedValue(NO_RECOVERY)
 
     const vm = mountRecovery()
     await flushPromises()
@@ -92,6 +98,20 @@ describe('reload', () => {
     expect(vm.hasRecoveryError).toBe(true)
   })
 
+  it('keeps the last record and reports an error while the pool itself is not found', async () => {
+    const recovery = createRecovery('running')
+    fetchGetMock.mockResolvedValue(recovery)
+
+    const vm = mountRecovery()
+    await flushPromises()
+
+    fetchGetMock.mockRejectedValue(NO_POOL)
+    await vm.reloadRecovery()
+
+    expect(vm.recovery).toBe(recovery)
+    expect(vm.hasRecoveryError).toBe(true)
+  })
+
   it('clears the error once a reload answers', async () => {
     fetchGetMock.mockRejectedValue(createApiError(500))
 
@@ -112,7 +132,7 @@ describe('reload', () => {
     const vm = mountRecovery()
     await flushPromises()
 
-    fetchGetMock.mockRejectedValue(createApiError(404))
+    fetchGetMock.mockRejectedValue(NO_RECOVERY)
     await vm.reloadRecovery()
 
     expect(vm.recovery).toBeUndefined()
@@ -120,7 +140,7 @@ describe('reload', () => {
   })
 
   it('ignores the answer of a request which a later one overtook', async () => {
-    fetchGetMock.mockRejectedValue(createApiError(404))
+    fetchGetMock.mockRejectedValue(NO_RECOVERY)
 
     const vm = mountRecovery()
     await flushPromises()
@@ -168,7 +188,7 @@ describe('pool change', () => {
   it('ignores the answer of a request for the previous pool', async () => {
     const previous = createPendingRequest()
     fetchGetMock.mockReturnValueOnce(previous.request)
-    fetchGetMock.mockRejectedValue(createApiError(404))
+    fetchGetMock.mockRejectedValue(NO_RECOVERY)
 
     const poolId = ref(POOL_ID)
     const vm = mountRecovery(poolId)
@@ -200,7 +220,7 @@ describe('polling', () => {
 
   it('reloads the record every 30 seconds only when no run is live', async () => {
     vi.useFakeTimers()
-    fetchGetMock.mockRejectedValue(createApiError(404))
+    fetchGetMock.mockRejectedValue(NO_RECOVERY)
 
     mountRecovery()
     await flushPromises()

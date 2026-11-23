@@ -33,7 +33,9 @@
                 {{ getObjectName(object) }}
               </UiLink>
               <template v-else>{{ getObjectName(object) }}</template>
-              <template v-if="object.reason !== undefined">{{ `: ${object.reason}` }}</template>
+              <template v-if="object.reason !== undefined">
+                {{ `: ${getRollingUpdateReasonLabel(t, object.reason)}` }}
+              </template>
             </li>
           </ul>
         </li>
@@ -60,7 +62,11 @@ import { useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host
 import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import { useXoPoolMissingPatchesCollection } from '@/modules/pool/remote-resources/use-xo-pool-missing-patches-collection.ts'
 import { useXoPoolRollingUpdatePrecheck } from '@/modules/pool/remote-resources/use-xo-pool-rolling-update-precheck.ts'
-import { getOfferedStartOptions, isRollingUpdateStartBlocked } from '@/modules/pool/utils/rolling-update.util.ts'
+import {
+  getOfferedStartOptions,
+  getRollingUpdateReasonLabel,
+  isRollingUpdateStartBlocked,
+} from '@/modules/pool/utils/rolling-update.util.ts'
 import { useXoScheduleCollection } from '@/modules/schedule/remote-resources/use-xo-schedule-collection.ts'
 import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'

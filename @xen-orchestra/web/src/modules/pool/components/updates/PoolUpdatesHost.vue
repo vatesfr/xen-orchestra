@@ -5,8 +5,8 @@
       <UiLink :to="{ name: '/host/[id]/dashboard', params: { id: hostId } }" size="medium">
         {{ getHostById(hostId as never)?.name_label ?? hostId }}
       </UiLink>
-      <UiTag :accent="HOST_ACCENTS[host.status]" variant="secondary">
-        {{ t(`rolling-update:host-status:${host.status}`) }}
+      <UiTag :accent="HOST_ACCENTS[status]" variant="secondary">
+        {{ t(`rolling-update:host-status:${status}`) }}
       </UiTag>
     </div>
     <ul class="steps">
@@ -17,24 +17,23 @@
         </UiInfo>
       </li>
     </ul>
-    <UiLogEntryViewer
-      v-if="host.lastError !== null"
-      :content="host.lastError"
-      :label="t('error')"
-      size="small"
-      accent="danger"
-    />
+    <UiInfo v-if="host.lastError !== null && !hideError" accent="danger" wrap>
+      {{ getRollingUpdateErrorSummary(t, host.lastError) }}
+    </UiInfo>
   </div>
 </template>
 
 <script lang="ts" setup>
 import { useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
-import { getRollingUpdateStepColumns } from '@/modules/pool/utils/rolling-update.util.ts'
+import {
+  getRollingUpdateErrorSummary,
+  getRollingUpdateHostStatus,
+  getRollingUpdateStepColumns,
+} from '@/modules/pool/utils/rolling-update.util.ts'
 import VtsObjectIcon from '@core/components/object-icon/VtsObjectIcon.vue'
 import UiInfo, { type InfoAccent } from '@core/components/ui/info/UiInfo.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiLoader from '@core/components/ui/loader/UiLoader.vue'
-import UiLogEntryViewer from '@core/components/ui/log-entry-viewer/UiLogEntryViewer.vue'
 import UiTag, { type TagAccent } from '@core/components/ui/tag/UiTag.vue'
 import type { PoolRollingUpdateRecoveryHost, PoolRollingUpdateRecoveryStep } from '@vates/types'
 import { kebabCase } from 'lodash-es'
@@ -44,6 +43,8 @@ import { useI18n } from 'vue-i18n'
 const { host } = defineProps<{
   hostId: string
   host: PoolRollingUpdateRecoveryHost
+  // The record keeps the error of the previous attempt while the run is resumed
+  hideError?: boolean
 }>()
 
 const HOST_ACCENTS: Record<PoolRollingUpdateRecoveryHost['status'], TagAccent> = {
@@ -66,6 +67,8 @@ const STEP_ACCENTS: Record<PoolRollingUpdateRecoveryStep['status'], InfoAccent> 
 const { t } = useI18n()
 
 const { getHostById } = useXoHostCollection()
+
+const status = computed(() => getRollingUpdateHostStatus(host))
 
 const steps = computed(() => getRollingUpdateStepColumns(host))
 </script>
