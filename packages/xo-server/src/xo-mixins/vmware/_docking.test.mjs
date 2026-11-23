@@ -108,6 +108,23 @@ test('withDockingIso traces its steps', async t => {
     ])
   })
 
+  await t.test('the docking ISO is still released when the import is aborted', async () => {
+    const { task, steps } = recordSteps()
+    const xapi = fakeXapi()
+    const call = xapi.call
+    xapi.call = async (method, ...args) => {
+      if (method === 'VM.start') {
+        // the user aborts the import while the docking runs
+        task.abort()
+        throw new DOMException('This operation was aborted', 'AbortError')
+      }
+      return call(method, ...args)
+    }
+    await assert.rejects(task.run(() => diagnoseOffline({ xapi, vmRef: VM_REF, context: CONTEXT })))
+    assert.ok(steps.includes('releasing the docking ISO: success'), steps.join(', '))
+    assert.ok(xapi.calls.includes('VBD.destroy OpaqueRef:created-cd'), 'the drive created for the ISO is removed')
+  })
+
   await t.test('warns when the docking ISO could not be released', async () => {
     const { task, steps } = recordSteps()
     const xapi = fakeXapi()

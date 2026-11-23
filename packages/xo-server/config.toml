@@ -112,6 +112,12 @@ autoUnmountPartitionDelay = '24h'
 # Disables VHD merges running in background
 disableMergeWorker = false
 
+# Runs the backup jobs not handled by an XO Proxy inside the xo-server process, instead of a dedicated backup
+# worker process for each job
+#
+# Such a job shares the process with the rest of XO, and it can be aborted from its task.
+#disableWorkers = false
+
 # Mode to use for newly created backup directories
 #
 # https://en.wikipedia.org/wiki/File-system_permissions#Numeric_notation

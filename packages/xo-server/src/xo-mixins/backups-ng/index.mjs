@@ -25,6 +25,7 @@ import { waitAll } from '../../_waitAll.mjs'
 import { isExpression } from '@xen-orchestra/backups/_expressionPredicate.mjs'
 import { buildRunContext } from '@xen-orchestra/backups/_buildContext.mjs'
 import { resolveBackupSrs, resolveBackupRepositories } from './_resolveBackupTargets.mjs'
+import { runInMainThread } from './_runInMainThread.mjs'
 
 const logger = createLogger('xo:xo-mixins:backups-ng')
 
@@ -195,16 +196,7 @@ export default class BackupNg {
     })
 
     app.hooks.on('start', async () => {
-      const executor = async ({
-        signal,
-        data,
-        job,
-        jobData,
-        jobUpdateFct,
-        logger: jobsLogger,
-        runJobId,
-        schedule,
-      }) => {
+      const executor = async ({ signal, data, job, jobData, jobUpdateFct, logger: jobsLogger, runJobId, schedule }) => {
         const backupsConfig = app.config.get('backups')
 
         let vmIds
@@ -355,18 +347,9 @@ export default class BackupNg {
 
         try {
           if (!useXoProxy && backupsConfig.disableWorkers) {
-            const onLogFct = app.tasks.createExternalProgressHandler({
-              onRootTaskStart: log => {
-                jobUpdateFct(log.id).catch(logger.warn) // is async, but makeOnProgress doesn't await onRootTaskXXX functions
-              },
-              onTaskUpdate,
-            })
-            return await Task.run(
-              {
-                properties: { name: 'backup run', ...jobData },
-                onProgress: onLogFct,
-              },
-              () =>
+            return await runInMainThread({
+              app,
+              fn: () =>
                 createRunner({
                   config: backupsConfig,
                   getAdapter: async remoteId =>
@@ -376,8 +359,13 @@ export default class BackupNg {
                   getConnectedRecord: async (xapiType, uuid) => app.getXapiObject(uuid),
                   job,
                   schedule,
-                }).run()
-            )
+                }).run(),
+              onRootTaskStart: log => {
+                jobUpdateFct(log.id).catch(logger.warn) // is async, but makeOnProgress doesn't await onRootTaskXXX functions
+              },
+              onTaskUpdate,
+              properties: { name: 'backup run', ...jobData },
+            })
           }
 
           const recordToXapi = {}
