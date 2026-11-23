@@ -18,7 +18,14 @@ export function useVdiAttach(rawVm: MaybeRefOrGetter<FrontXoVm>) {
       onConfirm: (newPayload: NewVbdPayload) => {
         payload.value = newPayload
 
-        run({ detached: true })
+        run({
+          detached: true,
+          onSuccess: ([result]) => {
+            if (result.status === 'rejected') {
+              console.error('Failed to attach VDI', result.reason)
+            }
+          },
+        })
       },
       onCancel: true,
     },

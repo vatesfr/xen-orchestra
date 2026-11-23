@@ -18,7 +18,14 @@ export function useNewVdi(rawVm: MaybeRefOrGetter<FrontXoVm>) {
       onConfirm: (newPayload: NewVdiPayload) => {
         payload.value = newPayload
 
-        run({ detached: true })
+        run({
+          detached: true,
+          onSuccess: ([result]) => {
+            if (result.status === 'rejected') {
+              console.error('Failed to create VDI', result.reason)
+            }
+          },
+        })
       },
       onCancel: true,
     },
