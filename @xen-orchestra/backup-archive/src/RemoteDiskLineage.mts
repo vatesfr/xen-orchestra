@@ -473,7 +473,7 @@ export class RemoteDiskLineage {
   async #mergeChain(
     chain: string[],
     isResuming: boolean
-  ): Promise<{ finalSizeOnDisk: number | undefined; mergeTargetPath: string; isDifferencing: boolean | undefined }> {
+  ): Promise<{ finalSizeOnDisk: number | undefined; mergeTargetPath: string; isDifferencing: boolean }> {
     assert.ok(chain.length >= 2, `look to merge a chain shorter than 2 ${JSON.stringify(chain)}`)
     const parentPath = chain[0]
     this.#opts.logInfo('merging disk chain', { chain: [...chain] }) // need a copy here to log full chain

@@ -186,11 +186,7 @@ export class VmIncrementalBackupArchive implements VmBackupInterface {
     this.metadata.vhdsSizeOnDisk = vhdsSizeOnDisk
     this.metadata.isVhdDifferencing = this.metadata.isVhdDifferencing ?? {}
     for (const [vdiRef, { isDifferencing }] of Object.entries(updates)) {
-      if (isDifferencing === undefined) {
-        delete this.metadata.isVhdDifferencing[vdiRef]
-      } else {
-        this.metadata.isVhdDifferencing[vdiRef] = isDifferencing
-      }
+      this.metadata.isVhdDifferencing[vdiRef] = isDifferencing
     }
     await this.handler.writeFile(this.metadataPath, JSON.stringify(this.metadata), { flags: 'w' })
   }

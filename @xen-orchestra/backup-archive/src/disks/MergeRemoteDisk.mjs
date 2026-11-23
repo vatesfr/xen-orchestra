@@ -342,12 +342,12 @@ export class MergeRemoteDisk {
    * @param {RemoteDisk} childDisk
    * @param {boolean} cleanStateFile
    *
-   * @returns {Promise<{mergedDataSize: number, finalSizeOnDisk: number | undefined, isDifferencing: boolean | undefined}>} result
+   * @returns {Promise<{mergedDataSize: number, finalSizeOnDisk: number | undefined, isDifferencing: boolean}>} result
    */
   async #cleanup(parentDisk, childDisk, cleanStateFile) {
     const finalSizeOnDisk = this.#state?.sizeOnDisk
     const mergedDataSize = this.#state?.mergedDataSize ?? 0
-    const isDifferencing = this.#state?.isDifferencing
+    const isDifferencing = this.#state?.isDifferencing ?? false
     await parentDisk.close().catch(warn)
     await childDisk.close().catch(warn)
 
