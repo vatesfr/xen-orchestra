@@ -7,6 +7,12 @@ import { ALL_LIFE_CYCLE_STATES } from './xapi.mjs'
 
 const { info } = createLogger('xo-pg')
 
+/**
+ * @typedef {object} PgTransportOptions
+ * @property {boolean} [pgDropSchemaTables] Drop existing schema tables when preparing a pool.
+ * @property {boolean} [pgReadRpcFromDB] Intercept the RPC call and answer from the DB if possible
+ */
+
 function getNonSessionMethods(classDict) {
   const result = new Set()
   for (const c of Object.values(classDict)) {
@@ -24,7 +30,7 @@ function getNonSessionMethods(classDict) {
  * @param poolRef XAPI host pool reference
  * @param dbPool DB connection pool
  * @param classDict
- * @param options
+ * @param {PgTransportOptions} [options]
  */
 async function prepareForPool(poolUuid, poolRef, dbPool, classDict, options = {}) {
   return await withClient(dbPool, async dbClient => {
@@ -49,8 +55,10 @@ async function prepareForPool(poolUuid, poolRef, dbPool, classDict, options = {}
  * The Db connection is tested upon creation.
  * @param pgUrl Postgres connection string, this function will create its own schemas and tables in it.
  * @param createRealTransport
- * @param options
+ * @param {PgTransportOptions} [options]
  * @return {function(*): function(*, *): Promise<*>}
+ * @param {string} pgUrl
+ * @param {(function({dispatcher: *, url: *}): function(*, *): Promise<*|undefined>)|*} createRealTransport
  */
 export async function createPgTransport(pgUrl, createRealTransport, options = {}) {
   const dbPool = new Pool({ connectionString: pgUrl })
@@ -111,15 +119,26 @@ export async function createPgTransport(pgUrl, createRealTransport, options = {}
       }
       if (method === 'event.from' && eventStore) {
         info(`intercepted ${method}`)
-        const [sessionId, xoCovetedClasses, token, timeout] = params
-        const paramClassesSet = new Set(xoCovetedClasses)
-        const other = new Set(observedClassNames)
-        info(`XO wants to get, but xo-pg doesn't track: `, paramClassesSet.difference(other))
-        info(`xo-pg tracks but XO doesn't: `, other.difference(paramClassesSet))
-        await refillDBEvents(dbPool, sessionId, observedClassNames, timeout)
-        const result = await withClient(dbPool, async dbClient => await eventStore.eventsFrom(dbClient, token))
-        info('computed events between', { from: params[2], to: result.token, timeout: params[3] })
-        return result
+        if (options.pgReadRpcFromDB !== false) {
+          const [sessionId, xoCovetedClasses, token, timeout] = params
+          const paramClassesSet = new Set(xoCovetedClasses)
+          const other = new Set(observedClassNames)
+          info(`XO wants to get, but xo-pg doesn't track: `, paramClassesSet.difference(other))
+          info(`xo-pg tracks but XO doesn't: `, other.difference(paramClassesSet))
+          await refillDBEvents(dbPool, sessionId, observedClassNames, timeout)
+          const result = await withClient(dbPool, async dbClient => await eventStore.eventsFrom(dbClient, token))
+          info('computed events between', { from: params[2], to: result.token, timeout: params[3] })
+          return result
+        } else {
+          // don't alter the original query nor respond from the DB
+          const batch = await realTransport('event.from', params)
+          const fixedNames = classNameFixer(batch)
+          await withClient(dbPool, async dbClient => {
+            await eventStore.ingestEvents(dbClient, fixedNames, sessionId)
+            info('refill done', { token: fixedNames.token, changeCount: fixedNames.events.length })
+          })
+          return batch
+        }
       }
       const result = await realTransport(method, params)
       info(`forwarded ${method}`)

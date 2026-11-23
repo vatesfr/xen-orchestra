@@ -56,46 +56,91 @@ test('createPgTransport rejects when the connection check fails', async t => {
   assert.strictEqual(released, true)
 })
 
-test('event.from refreshes from the last database token before reading from the requested token', async t => {
+for (const options of [undefined, {}, { pgReadRpcFromDB: true }]) {
+  test(`event.from refreshes from the database with options ${JSON.stringify(options)}`, async t => {
+    t.mock.method(Pool.prototype, 'connect', async () => ({
+      query: async () => ({ rows: [] }),
+      release: () => {},
+    }))
+    let lastToken = '2'
+    const steps = []
+    t.mock.method(EventStore.prototype, 'getLastToken', async () => lastToken)
+    t.mock.method(EventStore.prototype, 'ingestEvents', async (_client, batch, sessionId) => {
+      steps.push(['ingest', batch.token, sessionId])
+      lastToken = batch.token
+    })
+    const refreshed = { token: '3', events: [{ operation: 'add' }, { operation: 'mod' }], valid_ref_counts: {} }
+    t.mock.method(EventStore.prototype, 'eventsFrom', async (_client, token) => {
+      steps.push(['read', token, lastToken])
+      return refreshed
+    })
+
+    const calls = []
+    const createRealTransport = () => async (method, params) => {
+      calls.push([method, params])
+      if (method === 'system.listMethods') return ['pool.get_all_records']
+      if (method === 'pool.get_all_records') return { 'OpaqueRef:pool': { uuid: 'pool-uuid' } }
+      if (method === 'event.from') {
+        steps.push(['rpc', params])
+        return { token: '3', events: [], valid_ref_counts: {} }
+      }
+      throw new Error(`unexpected RPC: ${method}`)
+    }
+    const createTransport = await createPgTransport('postgres://localhost/test', createRealTransport, options)
+    const transport = createTransport({})
+    await transport('pool.get_all_records', ['session'])
+    calls.length = 0
+    steps.length = 0
+    lastToken = '2'
+
+    assert.strictEqual(await transport('event.from', ['session', ['pool'], '1', 5]), refreshed)
+    assert.deepStrictEqual(calls, [['event.from', ['session', ['pool'], '2', 5]]])
+    assert.deepStrictEqual(steps, [
+      ['rpc', ['session', ['pool'], '2', 5]],
+      ['ingest', '3', 'session'],
+      ['read', '1', '3'],
+    ])
+  })
+}
+
+test('event.from forwards the original request when database reads are disabled', async t => {
   t.mock.method(Pool.prototype, 'connect', async () => ({
     query: async () => ({ rows: [] }),
     release: () => {},
   }))
-  let lastToken = '2'
-  const steps = []
-  t.mock.method(EventStore.prototype, 'getLastToken', async () => lastToken)
+  const ingested = []
+  const getLastToken = t.mock.method(EventStore.prototype, 'getLastToken', async () => 'db-token')
   t.mock.method(EventStore.prototype, 'ingestEvents', async (_client, batch, sessionId) => {
-    steps.push(['ingest', batch.token, sessionId])
-    lastToken = batch.token
+    ingested.push([batch, sessionId])
   })
-  const refreshed = { token: '3', events: [{ operation: 'add' }, { operation: 'mod' }], valid_ref_counts: {} }
-  t.mock.method(EventStore.prototype, 'eventsFrom', async (_client, token) => {
-    steps.push(['read', token, lastToken])
-    return refreshed
+  const eventsFrom = t.mock.method(EventStore.prototype, 'eventsFrom', async () => {
+    throw new Error('unexpected database read')
   })
 
   const calls = []
-  const createTransport = await createPgTransport('postgres://localhost/test', () => async (method, params) => {
-    calls.push([method, params])
-    if (method === 'system.listMethods') return ['pool.get_all_records']
-    if (method === 'pool.get_all_records') return { 'OpaqueRef:pool': { uuid: 'pool-uuid' } }
-    if (method === 'event.from') {
-      steps.push(['rpc', params])
-      return { token: '3', events: [], valid_ref_counts: {} }
-    }
-    throw new Error(`unexpected RPC: ${method}`)
-  })
+  const batch = { token: 'next-token', events: [], valid_ref_counts: {} }
+  const createTransport = await createPgTransport(
+    'postgres://localhost/test',
+    () => async (method, params) => {
+      calls.push([method, params])
+      if (method === 'system.listMethods') return ['pool.get_all_records']
+      if (method === 'pool.get_all_records') return { 'OpaqueRef:pool': { uuid: 'pool-uuid' } }
+      if (method === 'event.from') return batch
+      throw new Error(`unexpected RPC: ${method}`)
+    },
+    { pgReadRpcFromDB: false }
+  )
   const transport = createTransport({})
   await transport('pool.get_all_records', ['session'])
   calls.length = 0
-  steps.length = 0
-  lastToken = '2'
+  ingested.length = 0
+  const initialTokenReads = getLastToken.mock.callCount()
+  const params = ['session', ['VM'], 'requested-token', 5]
 
-  assert.strictEqual(await transport('event.from', ['session', ['pool'], '1', 5]), refreshed)
-  assert.deepStrictEqual(calls, [['event.from', ['session', ['pool'], '2', 5]]])
-  assert.deepStrictEqual(steps, [
-    ['rpc', ['session', ['pool'], '2', 5]],
-    ['ingest', '3', 'session'],
-    ['read', '1', '3'],
-  ])
+  assert.strictEqual(await transport('event.from', params), batch)
+  assert.deepStrictEqual(calls, [['event.from', params]])
+  assert.strictEqual(calls[0][1], params)
+  assert.deepStrictEqual(ingested, [[batch, 'session']])
+  assert.strictEqual(getLastToken.mock.callCount(), initialTokenReads)
+  assert.strictEqual(eventsFrom.mock.callCount(), 0)
 })
