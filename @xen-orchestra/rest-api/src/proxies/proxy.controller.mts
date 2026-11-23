@@ -224,7 +224,7 @@ export class ProxyController extends XoController<XoProxy> {
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(incorrectStateResp.status, incorrectStateResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
-  @Response(502, 'Proxy unreachable')
+  @Response(proxyUnreachableResp.status, proxyUnreachableResp.description)
   upgradeProxy(
     @Path() id: string,
     @Body()

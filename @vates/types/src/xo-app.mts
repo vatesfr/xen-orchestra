@@ -760,7 +760,7 @@ export type XoApp = EventEmitter & {
       url?: string
     }
   ): Promise<XoBackupRepository>
-  /* Throw if backup jobs are running on the proxy, unless ignored; `force` reboots the proxy VM */
+  /** Throw if backup jobs are running on the proxy, unless ignored; `force` reboots the proxy VM */
   upgradeProxyAppliance(id: XoProxy['id'], opts: { force?: boolean; ignoreRunningJobs?: boolean }): Promise<void>
   getAllXapis(): Record<string, Xapi>
   getObjects(opts?: { filter?: Record<string, unknown>; limit?: number }): Record<string, XapiXoRecord>

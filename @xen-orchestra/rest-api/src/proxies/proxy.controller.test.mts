@@ -16,6 +16,7 @@ const unreachableErrors = [
 
 function createController(result: () => Promise<unknown>) {
   const calls: unknown[] = []
+  const tasks: unknown[] = []
   const record =
     (method: string) =>
     async (...args: unknown[]) => {
@@ -23,13 +24,20 @@ function createController(result: () => Promise<unknown>) {
       return result()
     }
   const restApi = {
+    tasks: {
+      create: (properties: unknown) => {
+        tasks.push(properties)
+        return { id: 'task-1', properties, run: (fn: () => unknown) => fn() }
+      },
+    },
     xoApp: {
       checkProxyHealth: record('checkProxyHealth'),
       getProxyApplianceUpdaterState: record('getProxyApplianceUpdaterState'),
+      upgradeProxyAppliance: record('upgradeProxyAppliance'),
     },
   } as unknown as RestApi
   const controller = new ProxyController(restApi)
-  return { calls, controller }
+  return { calls, controller, tasks }
 }
 
 for (const [method, xoAppMethod, xoAppResult, expected] of [
@@ -67,3 +75,59 @@ for (const [method, xoAppMethod, xoAppResult, expected] of [
     })
   })
 }
+
+describe('ProxyController.upgradeProxy', () => {
+  it('upgrades in a task without force by default', async () => {
+    const { calls, controller, tasks } = createController(async () => undefined)
+
+    await controller.upgradeProxy(proxyId, undefined, true)
+
+    assert.deepEqual(calls, [['upgradeProxyAppliance', proxyId, { force: false, ignoreRunningJobs: false }]])
+    assert.deepEqual(tasks, [
+      {
+        name: 'REST API: upgrade proxy appliance',
+        objectId: proxyId,
+        objectType: 'proxy',
+        params: undefined,
+        type: 'xo:rest-api:action',
+      },
+    ])
+    assert.equal(controller.getStatus(), 204)
+  })
+
+  it('ignores running jobs by default when forced', async () => {
+    const { calls, controller } = createController(async () => undefined)
+
+    await controller.upgradeProxy(proxyId, { force: true }, true)
+
+    assert.deepEqual(calls, [['upgradeProxyAppliance', proxyId, { force: true, ignoreRunningJobs: true }]])
+  })
+
+  it('forwards an explicit ignoreRunningJobs', async () => {
+    const { calls, controller } = createController(async () => undefined)
+
+    await controller.upgradeProxy(proxyId, { force: true, ignoreRunningJobs: false }, true)
+
+    assert.deepEqual(calls, [['upgradeProxyAppliance', proxyId, { force: true, ignoreRunningJobs: false }]])
+  })
+
+  it('returns the task id when not synchronous', async () => {
+    const { controller } = createController(async () => undefined)
+
+    assert.deepEqual(await controller.upgradeProxy(proxyId), { taskId: 'task-1' })
+    assert.equal(controller.getStatus(), 202)
+  })
+
+  for (const unreachableError of unreachableErrors) {
+    it(`throws a 502 ApiError on "${unreachableError.message}"`, async () => {
+      const { controller } = createController(async () => {
+        throw unreachableError
+      })
+
+      await assert.rejects(
+        controller.upgradeProxy(proxyId, undefined, true),
+        error => error instanceof ApiError && error.status === 502 && error.message === 'Proxy unreachable'
+      )
+    })
+  }
+})
