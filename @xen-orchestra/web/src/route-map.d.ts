@@ -344,6 +344,7 @@ declare module 'vue-router/auto-routes' {
       | '/pool/[id]/system'
       | '/pool/[id]/tasks'
       | '/pool/[id]/traffic-rules'
+      | '/pool/[id]/updates'
       | '/pool/[id]/vms'
     >,
     '/pool/[id]/dashboard': RouteRecordInfo<
@@ -391,6 +392,13 @@ declare module 'vue-router/auto-routes' {
     '/pool/[id]/traffic-rules': RouteRecordInfo<
       '/pool/[id]/traffic-rules',
       '/pool/:id/traffic-rules',
+      { id: ParamValue<true> },
+      { id: ParamValue<false> },
+      | never
+    >,
+    '/pool/[id]/updates': RouteRecordInfo<
+      '/pool/[id]/updates',
+      '/pool/:id/updates',
       { id: ParamValue<true> },
       { id: ParamValue<false> },
       | never
@@ -877,6 +885,7 @@ declare module 'vue-router/auto-routes' {
         | '/pool/[id]/system'
         | '/pool/[id]/tasks'
         | '/pool/[id]/traffic-rules'
+        | '/pool/[id]/updates'
         | '/pool/[id]/vms'
       views:
         | 'default'
@@ -920,6 +929,12 @@ declare module 'vue-router/auto-routes' {
     'src/pages/pool/[id]/traffic-rules.vue': {
       routes:
         | '/pool/[id]/traffic-rules'
+      views:
+        | never
+    }
+    'src/pages/pool/[id]/updates.vue': {
+      routes:
+        | '/pool/[id]/updates'
       views:
         | never
     }

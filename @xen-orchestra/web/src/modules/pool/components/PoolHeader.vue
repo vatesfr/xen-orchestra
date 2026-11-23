@@ -43,6 +43,18 @@
         {{ t('tasks') }}
       </UiTabItem>
     </RouterLink>
+    <RouterLink v-slot="{ isActive, href }" :to="{ name: '/pool/[id]/updates', params: { id: pool.id } }" custom>
+      <UiTabItem :active="isActive" :href tag="a">
+        {{ t('updates') }}
+        <UiCounter
+          v-if="poolMissingPatches.length > 0"
+          accent="danger"
+          size="small"
+          variant="primary"
+          :value="poolMissingPatches.length"
+        />
+      </UiTabItem>
+    </RouterLink>
     <RouterLink v-slot="{ isActive, href }" :to="{ name: '/pool/[id]/hosts', params: { id: pool.id } }" custom>
       <UiTabItem :active="isActive" :href tag="a">
         {{ t('hosts') }}
@@ -58,8 +70,10 @@
 
 <script lang="ts" setup>
 import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
+import { useXoPoolMissingPatchesCollection } from '@/modules/pool/remote-resources/use-xo-pool-missing-patches-collection.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import TabList from '@core/components/tab-list/TabList.vue'
+import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 import UiHeadBar from '@core/components/ui/head-bar/UiHeadBar.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTabItem from '@core/components/ui/tab-item/UiTabItem.vue'
@@ -71,6 +85,8 @@ const { pool } = defineProps<{
 }>()
 
 const { t } = useI18n()
+
+const { poolMissingPatches } = useXoPoolMissingPatchesCollection({}, () => pool.id)
 
 const { buildXo5Route } = useXoRoutes()
 const xo5PoolStatsHref = computed(() => buildXo5Route(`/pools/${pool.id}/stats`))
