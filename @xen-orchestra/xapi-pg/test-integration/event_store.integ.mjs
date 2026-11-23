@@ -4,7 +4,7 @@ import { Client as DBClient, escapeIdentifier } from 'pg'
 import { convertClassesToTables, createViewsDDL, createViewNames } from '../src/db.mjs'
 import { createEventModels } from '../src/db_history.mjs'
 import { EventStore } from '../src/event_store.mjs'
-import { closeServer, createServer } from './pglite.mjs'
+import { closeServer, createServer } from './database.mjs'
 
 suite('EventStore tests', function () {
   const random_slug = (Math.random() + 1).toString(36).substring(2)
@@ -16,6 +16,10 @@ suite('EventStore tests', function () {
   let eventStore = null
   let xapiDbClasses = null
   let historyTableName = null
+
+  const vmEvent = event => ({ class: 'VM', ...event })
+  const ingest = (token, events, counts, session) =>
+    eventStore.ingestEvents(dbClient, { token, events, valid_ref_counts: counts }, session)
 
   let server
   let socketPath
@@ -99,10 +103,9 @@ suite('EventStore tests', function () {
     const eventBatch = {
       token: 'token1',
       events: [
-        {
+        vmEvent({
           id: '1',
           timestamp: '2026-04-14T21:00:00Z',
-          class: 'VM',
           ref: 'OpaqueRef:vm1',
           operation: 'add',
           snapshot: {
@@ -111,12 +114,12 @@ suite('EventStore tests', function () {
             power_state: 'Halted',
             host: 'OpaqueRef:host1',
           },
-        },
+        }),
       ],
       valid_ref_counts: { VM: 1 },
     }
 
-    const unknownRefs = await eventStore.ingestEvents(dbClient, eventBatch, 'session1')
+    const unknownRefs = await ingest(eventBatch.token, eventBatch.events, eventBatch.valid_ref_counts, 'session1')
     assert.strictEqual(unknownRefs.size, 1) // Host ref is unknown
     assert.ok(unknownRefs.has('OpaqueRef:host1'))
 
@@ -135,21 +138,17 @@ suite('EventStore tests', function () {
 
   test('ingestEvents can modify an existing record', async function () {
     // First add
-    await eventStore.ingestEvents(
-      dbClient,
-      {
-        token: 'token1',
-        events: [
-          {
-            id: '1',
-            class: 'VM',
-            ref: 'OpaqueRef:vm1',
-            operation: 'add',
-            snapshot: { uuid: 'uuid-vm1', name_label: 'My VM', power_state: 'Halted' },
-          },
-        ],
-        valid_ref_counts: { VM: 1 },
-      },
+    await ingest(
+      'token1',
+      [
+        vmEvent({
+          id: '1',
+          ref: 'OpaqueRef:vm1',
+          operation: 'add',
+          snapshot: { uuid: 'uuid-vm1', name_label: 'My VM', power_state: 'Halted' },
+        }),
+      ],
+      { VM: 1 },
       'session1'
     )
 
@@ -157,10 +156,9 @@ suite('EventStore tests', function () {
     const modEventBatch = {
       token: 'token2',
       events: [
-        {
+        vmEvent({
           id: '2',
           timestamp: '2026-04-14T21:05:00Z',
-          class: 'VM',
           ref: 'OpaqueRef:vm1',
           operation: 'mod',
           snapshot: {
@@ -168,12 +166,12 @@ suite('EventStore tests', function () {
             name_label: 'My Updated VM',
             power_state: 'Running',
           },
-        },
+        }),
       ],
       valid_ref_counts: { VM: 1 },
     }
 
-    await eventStore.ingestEvents(dbClient, modEventBatch, 'session1')
+    await ingest(modEventBatch.token, modEventBatch.events, modEventBatch.valid_ref_counts, 'session1')
 
     const records = (await dbClient.query(`SELECT * FROM ${xapiDbClasses.VM.getTableNameEsc()}`)).rows
     assert.strictEqual(records.length, 1)
@@ -186,21 +184,17 @@ suite('EventStore tests', function () {
 
   test('ingestEvents can delete a record', async function () {
     // First add
-    await eventStore.ingestEvents(
-      dbClient,
-      {
-        token: 'token1',
-        events: [
-          {
-            id: '1',
-            class: 'VM',
-            ref: 'OpaqueRef:vm1',
-            operation: 'add',
-            snapshot: { uuid: 'uuid-vm1', name_label: 'My VM', power_state: 'Halted' },
-          },
-        ],
-        valid_ref_counts: { VM: 1 },
-      },
+    await ingest(
+      'token1',
+      [
+        vmEvent({
+          id: '1',
+          ref: 'OpaqueRef:vm1',
+          operation: 'add',
+          snapshot: { uuid: 'uuid-vm1', name_label: 'My VM', power_state: 'Halted' },
+        }),
+      ],
+      { VM: 1 },
       'session1'
     )
 
@@ -208,18 +202,17 @@ suite('EventStore tests', function () {
     const delEvenBatch = {
       token: 'token2',
       events: [
-        {
+        vmEvent({
           id: '2',
           timestamp: '2026-04-14T21:10:00Z',
-          class: 'VM',
           ref: 'OpaqueRef:vm1',
           operation: 'del',
-        },
+        }),
       ],
       valid_ref_counts: { VM: 0 },
     }
 
-    await eventStore.ingestEvents(dbClient, delEvenBatch, 'session1')
+    await ingest(delEvenBatch.token, delEvenBatch.events, delEvenBatch.valid_ref_counts, 'session1')
 
     const records = (await dbClient.query(`SELECT * FROM ${xapiDbClasses.VM.getTableNameEsc()}`)).rows
     assert.strictEqual(records.length, 0)
@@ -229,41 +222,21 @@ suite('EventStore tests', function () {
   })
 
   test('ingestEvents ignores deletion events for unknown references', async function () {
-    await eventStore.ingestEvents(
-      dbClient,
-      {
-        token: 'token1',
-        events: [
-          {
-            id: '1',
-            class: 'VM',
-            ref: 'OpaqueRef:vm1',
-            operation: 'add',
-            snapshot: { uuid: 'uuid-vm1', name_label: 'VM1' },
-          },
-        ],
-        valid_ref_counts: { VM: 1 },
-      },
+    await ingest(
+      'token1',
+      [vmEvent({ id: '1', ref: 'OpaqueRef:vm1', operation: 'add', snapshot: { uuid: 'uuid-vm1', name_label: 'VM1' } })],
+      { VM: 1 },
       'session1'
     )
 
-    await eventStore.ingestEvents(
-      dbClient,
-      {
-        token: 'token2',
-        events: [
-          { id: '2', class: 'VM', ref: 'OpaqueRef:missing', operation: 'del' },
-          { id: '3', class: 'VM', ref: 'OpaqueRef:vm1', operation: 'del' },
-          {
-            id: '4',
-            class: 'VM',
-            ref: 'OpaqueRef:vm2',
-            operation: 'add',
-            snapshot: { uuid: 'uuid-vm2', name_label: 'VM2' },
-          },
-        ],
-        valid_ref_counts: { VM: 1 },
-      },
+    await ingest(
+      'token2',
+      [
+        vmEvent({ id: '2', ref: 'OpaqueRef:missing', operation: 'del' }),
+        vmEvent({ id: '3', ref: 'OpaqueRef:vm1', operation: 'del' }),
+        vmEvent({ id: '4', ref: 'OpaqueRef:vm2', operation: 'add', snapshot: { uuid: 'uuid-vm2', name_label: 'VM2' } }),
+      ],
+      { VM: 1 },
       'session1'
     )
 
@@ -285,39 +258,31 @@ suite('EventStore tests', function () {
   })
 
   test('eventsFrom can retrieve events', async function () {
-    await eventStore.ingestEvents(
-      dbClient,
-      {
-        token: 'token1',
-        events: [
-          {
-            id: '1',
-            class: 'VM',
-            ref: 'OpaqueRef:vm1',
-            operation: 'add',
-            snapshot: { uuid: 'uuid-vm1', name_label: 'VM1', power_state: 'Halted' },
-          },
-        ],
-        valid_ref_counts: { VM: 1 },
-      },
+    await ingest(
+      'token1',
+      [
+        vmEvent({
+          id: '1',
+          ref: 'OpaqueRef:vm1',
+          operation: 'add',
+          snapshot: { uuid: 'uuid-vm1', name_label: 'VM1', power_state: 'Halted' },
+        }),
+      ],
+      { VM: 1 },
       'session1'
     )
 
-    await eventStore.ingestEvents(
-      dbClient,
-      {
-        token: 'token2',
-        events: [
-          {
-            id: '2',
-            class: 'VM',
-            ref: 'OpaqueRef:vm2',
-            operation: 'add',
-            snapshot: { uuid: 'uuid-vm2', name_label: 'VM2', power_state: 'Halted' },
-          },
-        ],
-        valid_ref_counts: { VM: 2 },
-      },
+    await ingest(
+      'token2',
+      [
+        vmEvent({
+          id: '2',
+          ref: 'OpaqueRef:vm2',
+          operation: 'add',
+          snapshot: { uuid: 'uuid-vm2', name_label: 'VM2', power_state: 'Halted' },
+        }),
+      ],
+      { VM: 2 },
       'session1'
     )
 
@@ -340,19 +305,18 @@ suite('EventStore tests', function () {
           operation: 'add',
           snapshot: { uuid: 'uuid-unknown1' },
         },
-        {
+        vmEvent({
           id: '2',
           timestamp: '2026-04-14T21:00:00Z',
-          class: 'VM',
           ref: 'OpaqueRef:vm1',
           operation: 'add',
           snapshot: { uuid: 'uuid-vm1', name_label: 'VM1' },
-        },
+        }),
       ],
       valid_ref_counts: { VM: 1 },
     }
 
-    await eventStore.ingestEvents(dbClient, eventBatch, 'session1')
+    await ingest(eventBatch.token, eventBatch.events, eventBatch.valid_ref_counts, 'session1')
 
     // VM should be ingested, UNKNOWN_CLASS should be ignored
     const records = (await dbClient.query(`SELECT * FROM ${xapiDbClasses.VM.getTableNameEsc()}`)).rows
@@ -397,21 +361,17 @@ suite('EventStore tests', function () {
     const vmUuid = 'uuid-vm-all-1'
     const vmRef = 'OpaqueRef:vm-all-1'
     // Ingest a record first
-    await eventStore.ingestEvents(
-      dbClient,
-      {
-        token: 'token-all',
-        events: [
-          {
-            id: 'all-1',
-            class: 'VM',
-            ref: vmRef,
-            operation: 'add',
-            snapshot: { uuid: vmUuid, name_label: 'VM ALL 1', power_state: 'Halted' },
-          },
-        ],
-        valid_ref_counts: { VM: 1 },
-      },
+    await ingest(
+      'token-all',
+      [
+        vmEvent({
+          id: 'all-1',
+          ref: vmRef,
+          operation: 'add',
+          snapshot: { uuid: vmUuid, name_label: 'VM ALL 1', power_state: 'Halted' },
+        }),
+      ],
+      { VM: 1 },
       'session-all'
     )
     const records = await eventStore.get_all_records(dbClient, 'VM')
@@ -424,39 +384,31 @@ suite('EventStore tests', function () {
     const vmUuid = 'uuid-vm-events-proper'
     const vmRef = 'OpaqueRef:vm-events-proper'
     // 1. Add record
-    await eventStore.ingestEvents(
-      dbClient,
-      {
-        token: 'token-p1',
-        events: [
-          {
-            id: 'p1',
-            class: 'VM',
-            ref: vmRef,
-            operation: 'add',
-            snapshot: { uuid: vmUuid, name_label: 'VM Events 1', power_state: 'Halted' },
-          },
-        ],
-        valid_ref_counts: { VM: 1 },
-      },
+    await ingest(
+      'token-p1',
+      [
+        vmEvent({
+          id: 'p1',
+          ref: vmRef,
+          operation: 'add',
+          snapshot: { uuid: vmUuid, name_label: 'VM Events 1', power_state: 'Halted' },
+        }),
+      ],
+      { VM: 1 },
       'session-p1'
     )
     // 2. Mod record
-    await eventStore.ingestEvents(
-      dbClient,
-      {
-        token: 'token-p2',
-        events: [
-          {
-            id: 'p2',
-            class: 'VM',
-            ref: vmRef,
-            operation: 'mod',
-            snapshot: { uuid: vmUuid, name_label: 'VM Events 1 Mod', power_state: 'Running' },
-          },
-        ],
-        valid_ref_counts: { VM: 1 },
-      },
+    await ingest(
+      'token-p2',
+      [
+        vmEvent({
+          id: 'p2',
+          ref: vmRef,
+          operation: 'mod',
+          snapshot: { uuid: vmUuid, name_label: 'VM Events 1 Mod', power_state: 'Running' },
+        }),
+      ],
+      { VM: 1 },
       'session-p1'
     )
     // Now check for mod event
@@ -466,22 +418,7 @@ suite('EventStore tests', function () {
     assert.ok(modEvent, 'Mod event should be present')
     assert.strictEqual(modEvent.snapshot.name_label, 'VM Events 1 Mod')
     // 3. Del record
-    await eventStore.ingestEvents(
-      dbClient,
-      {
-        token: 'token-p3',
-        events: [
-          {
-            id: 'p3',
-            class: 'VM',
-            ref: vmRef,
-            operation: 'del',
-          },
-        ],
-        valid_ref_counts: { VM: 0 },
-      },
-      'session-p1'
-    )
+    await ingest('token-p3', [vmEvent({ id: 'p3', ref: vmRef, operation: 'del' })], { VM: 0 }, 'session-p1')
     // Now check for del event
     const resultDel = await eventStore.eventsFrom(dbClient, 'token-p2')
     assert.strictEqual(resultDel.token, 'token-p3')

@@ -8,7 +8,7 @@ import {
   recordEventsForClass,
   ReferenceStore,
 } from '../src/db_history.mjs'
-import { closeServer, createServer } from './pglite.mjs'
+import { closeServer, createServer } from './database.mjs'
 
 suite('db_history tests', async function () {
   const random_slug = (Math.random() + 1).toString(36).substring(2)

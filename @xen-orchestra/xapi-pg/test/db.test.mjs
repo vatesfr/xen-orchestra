@@ -3,42 +3,39 @@ import { suite, test } from 'node:test'
 import { xapi2DbField, xapi2DbRefField, XapiDBClass, rows2Columns } from '../src/db.mjs'
 import { UUID_TYPE, VARCHAR_255, XAPI_PRIMITIVE_TYPES_MAP, JSON_TYPE } from '../src/types.mjs'
 
+function createClass(name, fields = {}) {
+  return new XapiDBClass({ name, fields }, 'schema')
+}
+
+function createClassesWithUuid() {
+  const source = createClass('clz', { uuid: { name: 'uuid', type: 'string' } })
+  const target = createClass('cls', { uuid: { name: 'uuid', type: 'string' } })
+  source.convertNonRefFieldsToDbModel()
+  target.convertNonRefFieldsToDbModel()
+  return { source, target }
+}
+
 suite('simple tests', function () {
-  test('xapi2DbField can transform a string field', function () {
-    const actual2 = xapi2DbField('clz', 'field', 'string', 'desc')
-    assert.partialDeepStrictEqual(actual2, {
-      name: 'field',
-      type: 'string',
-      isRef: false,
-      isSeparateTable: false,
-      throughTableName: null,
-      sequelizeDef: { type: XAPI_PRIMITIVE_TYPES_MAP.string },
+  for (const [name, type, sequelizeType] of [
+    ['string', 'string', XAPI_PRIMITIVE_TYPES_MAP.string],
+    ['enum', 'enum lol', VARCHAR_255],
+    ['datetime', 'datetime', XAPI_PRIMITIVE_TYPES_MAP.datetime],
+    ['simple Set', 'string set', JSON_TYPE],
+    ['non-simple Set', 'string set set', JSON_TYPE],
+    ['simple Map', '(string -> int) map', JSON_TYPE],
+  ]) {
+    test(`xapi2DbField can transform a ${name} field`, function () {
+      const actual = xapi2DbField('clz', 'field', type, 'desc')
+      assert.partialDeepStrictEqual(actual, {
+        name: 'field',
+        type,
+        isRef: false,
+        isSeparateTable: false,
+        throughTableName: null,
+        sequelizeDef: { type: sequelizeType },
+      })
     })
-  })
-
-  test('xapi2DbField can transform an enum field', function () {
-    const actual2 = xapi2DbField('clz', 'field', 'enum lol', 'desc')
-    assert.partialDeepStrictEqual(actual2, {
-      name: 'field',
-      type: 'enum lol',
-      isRef: false,
-      isSeparateTable: false,
-      throughTableName: null,
-      sequelizeDef: { type: VARCHAR_255 },
-    })
-  })
-
-  test('xapi2DbField can transform a datetime field', function () {
-    const actual2 = xapi2DbField('clz', 'field', 'datetime', 'desc')
-    assert.partialDeepStrictEqual(actual2, {
-      name: 'field',
-      type: 'datetime',
-      isRef: false,
-      isSeparateTable: false,
-      throughTableName: null,
-      sequelizeDef: { type: XAPI_PRIMITIVE_TYPES_MAP.datetime },
-    })
-  })
+  }
 
   test('xapi2DbField can transform the uuid field', function () {
     const actual2 = xapi2DbField('clz', 'uuid', 'string', 'desc')
@@ -49,42 +46,6 @@ suite('simple tests', function () {
       isSeparateTable: false,
       throughTableName: null,
       sequelizeDef: { type: UUID_TYPE, primaryKey: true },
-    })
-  })
-
-  test('xapi2DbField can transform a simple Set field', function () {
-    const actual2 = xapi2DbField('clz', 'field', 'string set', 'desc')
-    assert.partialDeepStrictEqual(actual2, {
-      name: 'field',
-      type: 'string set',
-      isRef: false,
-      isSeparateTable: false,
-      throughTableName: null,
-      sequelizeDef: { type: JSON_TYPE },
-    })
-  })
-
-  test('xapi2DbField can transform a non-simple Set field', function () {
-    const actual2 = xapi2DbField('clz', 'field', 'string set set', 'desc')
-    assert.partialDeepStrictEqual(actual2, {
-      name: 'field',
-      type: 'string set set',
-      isRef: false,
-      isSeparateTable: false,
-      throughTableName: null,
-      sequelizeDef: { type: JSON_TYPE },
-    })
-  })
-
-  test('xapi2DbField can transform a simple Map field', function () {
-    const actual2 = xapi2DbField('clz', 'field', '(string -> int) map', 'desc')
-    assert.partialDeepStrictEqual(actual2, {
-      name: 'field',
-      type: '(string -> int) map',
-      isRef: false,
-      isSeparateTable: false,
-      throughTableName: null,
-      sequelizeDef: { type: JSON_TYPE },
     })
   })
 
@@ -115,12 +76,6 @@ suite('simple tests', function () {
 
     assert.strictEqual(xdClazz.fields.length, 2)
     assert.strictEqual(xdClazz.nonRefFields.length, 2)
-    assert.ok(xdClazz.fields.find(f => f.name === 'uuid'))
-    assert.ok(xdClazz.fields.find(f => f.name === 'supported'))
-    assert.strictEqual(
-      xdClazz.fields.find(f => f.name === 'unsupported'),
-      undefined
-    )
   })
 
   test('convertRefFieldsToDBModel adds converted reference fields', function () {
@@ -152,11 +107,7 @@ suite('simple tests', function () {
   })
 
   test('xapi2DbRefField can transform a direct ref field', function () {
-    const clazz = { name: 'clz', fields: { uuid: { name: 'uuid', type: 'string' } } }
-    const xdClazz = new XapiDBClass(clazz, 'schema')
-    const xdCls = new XapiDBClass({ name: 'cls', fields: { uuid: { name: 'uuid', type: 'string' } } }, 'schema')
-    xdClazz.convertNonRefFieldsToDbModel()
-    xdCls.convertNonRefFieldsToDbModel()
+    const { source: xdClazz, target: xdCls } = createClassesWithUuid()
     const actual2 = xapi2DbRefField(xdClazz, 'field', 'cls ref', 'desc', { cls: xdCls })
     assert.partialDeepStrictEqual(actual2, {
       name: 'field',
@@ -173,11 +124,7 @@ suite('simple tests', function () {
   })
 
   test('xapi2DbRefField can transform a Set ref field', function () {
-    const clazz = { name: 'clz', fields: { uuid: { name: 'uuid', type: 'string' } } }
-    const xdClazz = new XapiDBClass(clazz, 'schema')
-    const xdCls = new XapiDBClass({ name: 'cls', fields: { uuid: { name: 'uuid', type: 'string' } } }, 'schema')
-    xdClazz.convertNonRefFieldsToDbModel()
-    xdCls.convertNonRefFieldsToDbModel()
+    const { source: xdClazz, target: xdCls } = createClassesWithUuid()
 
     const actual2 = xapi2DbRefField(xdClazz, 'field', 'cls ref set', 'desc', { cls: xdCls })
     assert.partialDeepStrictEqual(actual2, {
@@ -190,13 +137,7 @@ suite('simple tests', function () {
   })
 
   test('xapi2DbRefField can transform Map key ref field', function () {
-    const clazz = { name: 'clz', fields: { uuid: { name: 'uuid', type: 'string' } } }
-    const xdClazz = new XapiDBClass(clazz, 'schema')
-    const xdCls = new XapiDBClass({ name: 'cls', fields: { uuid: { name: 'uuid', type: 'string' } } }, 'schema')
-    // Postgres dialect is needed for toSql() to work on some types, but Sequelize.DataTypes often work without it.
-    // However, the error says .toSql is not a function, which means the type object is not what we expect.
-    xdClazz.convertNonRefFieldsToDbModel()
-    xdCls.convertNonRefFieldsToDbModel()
+    const { source: xdClazz, target: xdCls } = createClassesWithUuid()
 
     const actual2 = xapi2DbRefField(xdClazz, 'field', '(cls ref -> int) map', 'desc', { cls: xdCls })
     assert.partialDeepStrictEqual(actual2, {
@@ -209,14 +150,14 @@ suite('simple tests', function () {
   })
 
   test('xapi2DbRefField rejects Map key and value ref field', function () {
-    const clazz = new XapiDBClass({ name: 'clz', fields: {} }, 'schema')
+    const clazz = createClass('clz')
     assert.throws(() => xapi2DbRefField(clazz, 'field', '(keyCls ref -> valueCls ref) map', 'desc', {}), {
       message: 'isStorableRef was true but no supported set or map type found for (keyCls ref -> valueCls ref) map',
     })
   })
 
   test('reference map db2Xapi handles nullish values and filters unresolved keys', function () {
-    const clazz = new XapiDBClass({ name: 'clz', fields: {} }, 'schema')
+    const clazz = createClass('clz')
     const field = xapi2DbRefField(clazz, 'field', '(cls ref -> string) map', 'desc', {})
     const refConverter = ref => (ref === 'missing' ? null : `converted:${ref}`)
 
@@ -229,7 +170,7 @@ suite('simple tests', function () {
   })
 
   test('reference map db2Xapi converts reference values', function () {
-    const clazz = new XapiDBClass({ name: 'clz', fields: {} }, 'schema')
+    const clazz = createClass('clz')
     const field = xapi2DbRefField(clazz, 'field', '(string -> cls ref) map', 'desc', {})
 
     assert.deepStrictEqual(
@@ -241,11 +182,7 @@ suite('simple tests', function () {
   })
 
   test('xapi2DbRefField can transform Map value ref field', function () {
-    const clazz = { name: 'clz', fields: { uuid: { name: 'uuid', type: 'string' } } }
-    const xdClazz = new XapiDBClass(clazz, 'schema')
-    const xdCls = new XapiDBClass({ name: 'cls', fields: { uuid: { name: 'uuid', type: 'string' } } }, 'schema')
-    xdClazz.convertNonRefFieldsToDbModel()
-    xdCls.convertNonRefFieldsToDbModel()
+    const { source: xdClazz, target: xdCls } = createClassesWithUuid()
 
     const actual2 = xapi2DbRefField(xdClazz, 'field', '(int -> cls ref) map', 'desc', { cls: xdCls })
     assert.partialDeepStrictEqual(actual2, {

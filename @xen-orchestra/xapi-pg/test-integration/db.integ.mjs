@@ -4,7 +4,7 @@ import { Client as DBClient, escapeIdentifier } from 'pg'
 import { convertClassesToTables, createViewNames, createViewsDDL, persistEntities } from '../src/db.mjs'
 import { absRelationEsc } from '../src/sql.mjs'
 import { ident } from '../src/types.mjs'
-import { closeServer, createServer } from './pglite.mjs'
+import { closeServer, createServer } from './database.mjs'
 
 function normalizeSQLStatement(expectedMerge) {
   return expectedMerge.replace(/\n/g, '').replace(/\s+/g, ' ').trim()

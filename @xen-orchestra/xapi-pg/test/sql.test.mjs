@@ -54,10 +54,7 @@ suite('sql.mjs unit tests', function () {
       tc.addColumn('col1', 'uuid', null, { schema: 's2', table: 't2', column: 'uuid' })
       const ddl = tc.getDDL()
       // References are delayed
-      assert.ok(
-        ddl.immediate[0].includes('CREATE TABLE IF NOT EXISTS "s"."t" ()') ||
-          ddl.immediate[0].includes('CREATE TABLE IF NOT EXISTS "s"."t" (PRIMARY KEY ())')
-      )
+      assert.ok(ddl.immediate[0].includes('CREATE TABLE IF NOT EXISTS "s"."t" ()'))
       assert.ok(ddl.delayed.some(s => s.includes('ALTER TABLE "s"."t"')))
       assert.ok(ddl.delayed.some(s => s.includes('ADD COLUMN IF NOT EXISTS "col1" uuid REFERENCES "s2"."t2"("uuid")')))
     })
@@ -92,7 +89,7 @@ suite('sql.mjs unit tests', function () {
   suite('createInsert', function () {
     const mockXapiDbClass = {
       getTableNameEsc: () => '"s"."t"',
-      getField: name => ({
+      getField: _name => ({
         sequelizeDef: { type: 'uuid' },
       }),
     }
@@ -104,9 +101,7 @@ suite('sql.mjs unit tests', function () {
 
       assert.ok(result.sql.includes('INSERT INTO "s"."t" ("uuid", "name")'))
       assert.ok(result.sql.includes('ON CONFLICT (uuid) DO NOTHING'))
-      assert.strictEqual(result.bind.length, 2)
-      assert.deepStrictEqual(result.bind[0], ['u1'])
-      assert.deepStrictEqual(result.bind[1], ['n1'])
+      assert.deepStrictEqual(result.bind, [['u1'], ['n1']])
     })
 
     test('generates correct SQL with UPDATE SET conflict action', function () {

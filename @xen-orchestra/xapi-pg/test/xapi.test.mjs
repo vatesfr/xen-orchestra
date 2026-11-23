@@ -1,32 +1,40 @@
 import * as assert from 'node:assert'
 import { test, suite } from 'node:test'
 import { LifeCycleStates, loadXapiClasses } from '../src/xapi.mjs'
+
+function field(name, type, state, properties = {}) {
+  return {
+    name,
+    description: 'desc',
+    type,
+    qualifier: 'RO/runtime',
+    tag: '',
+    lifecycle: { state },
+    ...properties,
+  }
+}
+
+function xapiClass(name, fields, state, properties = {}) {
+  return {
+    name,
+    description: 'DESC',
+    fields,
+    messages: [],
+    enums: [],
+    lifecycle: { state },
+    tag: '',
+    ...properties,
+  }
+}
+
 suite('xapi JSON transformation tests', function () {
   test('loadXapiClasses can do a simple parsing', function () {
     const input = [
-      {
-        name: 'cls1',
-        description: 'DESC',
-        fields: [
-          {
-            name: 'str1',
-            description: 'desc',
-            type: 'string',
-            qualifier: 'RO/runtime',
-            tag: '',
-            lifecycle: {
-              state: 'Published_s',
-            },
-            default: 'lol',
-          },
-        ],
-        messages: [],
-        enums: [],
-        lifecycle: {
-          state: 'Published_s',
-        },
-        tag: '',
-      },
+      xapiClass(
+        'cls1',
+        [field('str1', 'string', LifeCycleStates.Published, { default: 'lol' })],
+        LifeCycleStates.Published
+      ),
     ]
     const expected = {
       cls1: {
@@ -50,62 +58,20 @@ suite('xapi JSON transformation tests', function () {
 
   test('loadXapiClasses cleans up the Json', function () {
     const input = [
-      {
-        name: 'cls1',
-        description: 'DESC',
-        fields: [
-          {
-            name: 'uuid',
+      xapiClass(
+        'cls1',
+        [
+          field('uuid', 'string', LifeCycleStates.Published, {
             description: 'Unique identifier/object reference',
-            type: 'string',
-            qualifier: 'RO/runtime',
-            tag: '',
-            lifecycle: {
-              state: 'Published_s',
-            },
-          },
-          {
-            name: 'uuid',
+          }),
+          field('uuid', 'string', LifeCycleStates.Deprecated, {
             description: 'Unique identifier/object reference',
-            type: 'string',
-            qualifier: 'RO/runtime',
-            tag: '',
-            lifecycle: {
-              state: 'Deprecated_s',
-            },
-          },
+          }),
         ],
-        messages: [],
-        enums: [],
-        lifecycle: {
-          state: 'Published_s',
-        },
-        tag: '',
-      },
-      {
-        name: 'clsdeprecated',
-        description: 'DESC',
-        fields: [],
-        messages: [],
-        enums: [],
-        lifecycle: {
-          state: 'Deprecated_s',
-        },
-        tag: '',
-        default: 'loldeprecated',
-      },
-      {
-        name: 'clsignored',
-        description: 'DESC',
-        fields: [],
-        messages: [],
-        enums: [],
-        lifecycle: {
-          state: 'Published_s',
-        },
-        tag: '',
-        default: 'lolignored',
-      },
+        LifeCycleStates.Published
+      ),
+      xapiClass('clsdeprecated', [], LifeCycleStates.Deprecated, { default: 'loldeprecated' }),
+      xapiClass('clsignored', [], LifeCycleStates.Published, { default: 'lolignored' }),
     ]
     const expected = {
       cls1: {
@@ -129,39 +95,16 @@ suite('xapi JSON transformation tests', function () {
 
   test('loadXapiClasses removes published fields pointing to filtered out classes', function () {
     const input = [
-      {
-        name: 'cls1',
-        description: 'DESC',
-        fields: [
-          {
-            name: 'ref1',
+      xapiClass(
+        'cls1',
+        [
+          field('ref1', 'clsdeprecated ref', LifeCycleStates.Published, {
             description: 'Unique identifier/object reference',
-            type: 'clsdeprecated ref',
-            qualifier: 'RO/runtime',
-            tag: '',
-            lifecycle: {
-              state: 'Published_s',
-            },
-          },
+          }),
         ],
-        messages: [],
-        enums: [],
-        lifecycle: {
-          state: 'Published_s',
-        },
-        tag: '',
-      },
-      {
-        name: 'clsdeprecated',
-        description: 'DESC',
-        fields: [],
-        messages: [],
-        enums: [],
-        lifecycle: {
-          state: 'Deprecated_s',
-        },
-        tag: '',
-      },
+        LifeCycleStates.Published
+      ),
+      xapiClass('clsdeprecated', [], LifeCycleStates.Deprecated),
     ]
     const expected = {
       cls1: {
