@@ -42,10 +42,10 @@
           {{ t('type') }}
         </template>
         <template #value>
-          {{ t('network') }}
+          {{ networkTypeLabel }}
         </template>
         <template #addons>
-          <VtsCopyButton :value="t('network')" />
+          <VtsCopyButton :value="networkTypeLabel" />
         </template>
       </VtsCardRowKeyValue>
       <VtsCardRowKeyValue v-if="networkVlan">
@@ -82,11 +82,13 @@
           <VtsCopyButton :value="networkDefaultLockingMode" />
         </template>
       </VtsCardRowKeyValue>
+      <NetworkPrivateCardItems :network />
     </VtsCardRowList>
   </UiPanelCard>
 </template>
 
 <script setup lang="ts">
+import NetworkPrivateCardItems from '@/modules/network/components/panel/card-items/NetworkPrivateCardItems.vue'
 import { useXoNetworkUtils } from '@/modules/network/composables/xo-network-utils.composable.ts'
 import type { FrontXoNetwork } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
 import { getPoolNetworkRoute } from '@/modules/network/utils/xo-network.util.ts'
@@ -109,5 +111,5 @@ const { t } = useI18n()
 
 const networkTo = computed(() => getPoolNetworkRoute(network.$pool, network.id))
 
-const { networkVlan, networkNbd, networkDefaultLockingMode } = useXoNetworkUtils(() => network)
+const { networkVlan, networkNbd, networkDefaultLockingMode, networkTypeLabel } = useXoNetworkUtils(() => network)
 </script>
