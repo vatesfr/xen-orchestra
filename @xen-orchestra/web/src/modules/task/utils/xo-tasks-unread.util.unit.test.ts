@@ -1,11 +1,11 @@
 import {
-  getBatchProgress,
+  getHighestSeverity,
   getTaskLastActivity,
   getTaskSeverity,
   getUnreadTaskIds,
   pruneReadActivity,
 } from '@/modules/task/utils/xo-tasks-unread.util.ts'
-import { createTaskItem } from '@/test/create-task-item.ts'
+import { createTaskItem } from '@core-test/create-task-item.ts'
 
 describe('pruneReadActivity', () => {
   it('keeps the read times from `since` onwards only', () => {
@@ -77,6 +77,20 @@ describe('getUnreadTaskIds', () => {
   })
 })
 
+describe('getHighestSeverity', () => {
+  it('is danger when there is a danger, even after a warning', () => {
+    expect(getHighestSeverity(['warning', undefined, 'danger'])).toBe('danger')
+  })
+
+  it('is warning when there is a warning and no danger', () => {
+    expect(getHighestSeverity([undefined, 'warning'])).toBe('warning')
+  })
+
+  it('is undefined when there is no severity', () => {
+    expect(getHighestSeverity([undefined, undefined])).toBeUndefined()
+  })
+})
+
 describe('getTaskSeverity', () => {
   it('is danger for a failed task', () => {
     expect(getTaskSeverity(createTaskItem({ status: 'failure' }))).toBe('danger')
@@ -107,26 +121,5 @@ describe('getTaskSeverity', () => {
 
   it('is undefined for a task without failure nor warnings', () => {
     expect(getTaskSeverity(createTaskItem({ status: 'success', subtasks: [createTaskItem()] }))).toBeUndefined()
-  })
-})
-
-describe('getBatchProgress', () => {
-  const tasks = [
-    createTaskItem({ id: 'done', status: 'success', end: 100 }),
-    createTaskItem({ id: 'failed', status: 'failure', end: 100 }),
-    createTaskItem({ id: 'halfway', status: 'pending', progress: 50 }),
-    createTaskItem({ id: 'unknown', status: 'pending' }),
-    createTaskItem({ id: 'outside', status: 'success', end: 100 }),
-  ]
-
-  it('counts finished tasks as 100 and pending ones as their progress, or 0 when unknown', () => {
-    expect(getBatchProgress(tasks, new Set(['done', 'failed', 'halfway', 'unknown']))).toEqual({
-      value: 250,
-      maxValue: 400,
-    })
-  })
-
-  it('skips the batch tasks that are no longer listed', () => {
-    expect(getBatchProgress(tasks, new Set(['halfway', 'gone']))).toEqual({ value: 50, maxValue: 100 })
   })
 })

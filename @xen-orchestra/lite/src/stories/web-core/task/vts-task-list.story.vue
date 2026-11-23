@@ -6,7 +6,10 @@
       prop('selectedTaskId').str().widget(),
       prop('showEyeIcon').bool().widget(),
       prop('autoCollapseCompleted').bool().widget(),
-      prop('expandAll').bool().widget(),
+      prop('expandAll')
+        .bool()
+        .widget()
+        .help('Shows every task expanded; turning it off restores the tasks expanded before'),
       prop('unreadTaskIds').type('ReadonlySet<string>').help('Shows an unread dot column, with a dot for these tasks'),
       event('select').args({ id: 'string' }),
     ]"

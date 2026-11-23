@@ -1,6 +1,6 @@
 <template>
   <VtsTreeItem :expanded :node-id="task.id" :has-children="hasSubTasks">
-    <VtsTaskItemLabel :selected="isSelected" @toggle="emit('expand')">
+    <VtsTaskItemLabel :selected="isSelected" @toggle="emit('toggle')">
       <UiTaskItem :task :show-eye-icon :show-unread :unread="isUnread" @select="id => select(id)" />
     </VtsTaskItemLabel>
     <template v-if="hasSubTasks" #sublist>
@@ -23,7 +23,7 @@ const { task } = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  expand: []
+  toggle: []
 }>()
 
 const { selectedTaskId, showEyeIcon, unreadTaskIds, select } = useTaskListContext()

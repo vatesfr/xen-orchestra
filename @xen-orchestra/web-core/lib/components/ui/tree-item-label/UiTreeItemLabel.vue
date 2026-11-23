@@ -6,23 +6,7 @@
       class="ui-tree-item-label"
       v-bind="attrs"
     >
-      <template v-if="depth > 1">
-        <VtsTreeLine v-for="i in depth - 1" :key="i" :size="resolvedSize" />
-      </template>
-      <div class="toggle-wrapper">
-        <UiButtonIcon
-          v-if="hasToggle"
-          v-tooltip="isExpanded ? t('action:close') : t('action:open')"
-          :aria-label="isExpanded ? t('action:close') : t('action:open')"
-          class="toggle"
-          accent="brand"
-          :icon="isExpanded ? 'fa:angle-down' : 'fa:angle-right'"
-          size="small"
-          :target-scale="{ x: 1.5, y: 2 }"
-          @click.stop="emit('toggle')"
-        />
-        <div v-else class="h-line" />
-      </div>
+      <VtsTreeItemToggle :size="resolvedSize" @toggle="emit('toggle')" />
       <a :href class="link typo-body-bold-small" @click="navigate">
         <slot name="icon">
           <VtsIcon :name="icon" size="medium" class="icon" />
@@ -40,20 +24,13 @@
 
 <script lang="ts" setup>
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
-import VtsTreeLine from '@core/components/tree/VtsTreeLine.vue'
-import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
+import VtsTreeItemToggle from '@core/components/tree/VtsTreeItemToggle.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import type { IconName } from '@core/icons'
 import { TREE_ITEM_SMALL_HEIGHT } from '@core/packages/tree/types.ts'
-import {
-  IK_TREE_ITEM_EXPANDED,
-  IK_TREE_ITEM_HAS_CHILDREN,
-  IK_TREE_ITEM_LABEL_SIZE,
-  IK_TREE_LIST_DEPTH,
-} from '@core/utils/injection-keys.util.ts'
+import { IK_TREE_ITEM_LABEL_SIZE } from '@core/utils/injection-keys.util.ts'
 import { toVariants } from '@core/utils/to-variants.util.ts'
-import { computed, inject, ref, useAttrs } from 'vue'
-import { useI18n } from 'vue-i18n'
+import { computed, inject, useAttrs } from 'vue'
 import type { RouteLocationRaw } from 'vue-router'
 
 export type TreeItemLabelSize = 'small' | 'medium'
@@ -79,15 +56,7 @@ defineSlots<{
   addons?(): any
 }>()
 
-const { t } = useI18n()
-
 const attrs = useAttrs()
-
-const hasToggle = inject(IK_TREE_ITEM_HAS_CHILDREN, ref(false))
-
-const isExpanded = inject(IK_TREE_ITEM_EXPANDED, ref(true))
-
-const depth = inject(IK_TREE_LIST_DEPTH, ref(0))
 
 const contextSize = inject(IK_TREE_ITEM_LABEL_SIZE, undefined)
 
@@ -106,12 +75,6 @@ const smallHeight = `${TREE_ITEM_SMALL_HEIGHT}px`
   background-color: var(--color-neutral-background-primary);
   gap: 0.4rem;
   padding: 0 0.8rem;
-
-  .toggle-wrapper {
-    flex-shrink: 0;
-    display: flex;
-    align-items: center;
-  }
 
   .link {
     display: flex;
@@ -137,22 +100,10 @@ const smallHeight = `${TREE_ITEM_SMALL_HEIGHT}px`
     flex-shrink: 0;
   }
 
-  .toggle {
-    width: 100%;
-  }
-
-  .h-line {
-    width: 100%;
-  }
-
   /* SIZE VARIANTS */
 
   &.size--small {
     height: v-bind(smallHeight);
-
-    .toggle-wrapper {
-      width: 1.6rem;
-    }
 
     .link {
       gap: 0.8rem;
@@ -162,10 +113,6 @@ const smallHeight = `${TREE_ITEM_SMALL_HEIGHT}px`
   &.size--medium {
     border-radius: 0.8rem;
     margin-bottom: 0.2rem;
-
-    .toggle-wrapper {
-      width: 2.4rem;
-    }
 
     .link {
       padding: 0.8rem 0;

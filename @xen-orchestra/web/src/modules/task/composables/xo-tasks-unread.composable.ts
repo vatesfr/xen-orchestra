@@ -1,25 +1,20 @@
 import { useXoTaskCollection } from '@/modules/task/remote-resources/use-xo-task-collection.ts'
 import {
-  getBatchProgress,
+  getHighestSeverity,
   getTaskLastActivity,
   getTaskSeverity,
   getUnreadTaskIds,
   pruneReadActivity,
-  type TaskSeverity,
 } from '@/modules/task/utils/xo-tasks-unread.util.ts'
-import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { findTask } from '@core/utils/task.util.ts'
 import { createSharedComposable, useLocalStorage } from '@vueuse/core'
-import { computed, ref, watch } from 'vue'
-import { useRoute } from 'vue-router'
+import { computed, type MaybeRefOrGetter, onScopeDispose, readonly, ref, toValue, watch } from 'vue'
 
 // Longer than the last day window of the tasks, as a margin
 const READ_ACTIVITY_RETENTION = 32 * 60 * 60 * 1000
 
 export const useXoTasksUnread = createSharedComposable(() => {
-  const route = useRoute()
   const { lastDayTasks } = useXoTaskCollection()
-  const routeTaskId = useRouteQuery('id')
 
   // Only the first visit uses the client clock; afterwards it is always a task (server) timestamp
   const lastSeenAt = useLocalStorage('my-tasks.last-seen-at', Date.now())
@@ -32,7 +27,23 @@ export const useXoTasksUnread = createSharedComposable(() => {
     readActivityById.value = {}
   }
 
-  const openedTaskId = computed(() => (route.name === '/(site)/tasks' ? routeTaskId.value : undefined))
+  // The task shown by the task side panel, on whichever page
+  const openedTaskId = ref<string>()
+
+  // Called by the task side panel with the task it shows, which stays opened until the panel unmounts
+  function trackOpenedTask(taskId: MaybeRefOrGetter<string | undefined>) {
+    watch(
+      () => toValue(taskId),
+      id => {
+        openedTaskId.value = id
+      },
+      { immediate: true }
+    )
+
+    onScopeDispose(() => {
+      openedTaskId.value = undefined
+    })
+  }
 
   const openedTask = computed(() =>
     openedTaskId.value === undefined ? undefined : findTask(lastDayTasks.value, openedTaskId.value)
@@ -60,40 +71,14 @@ export const useXoTasksUnread = createSharedComposable(() => {
 
   const unreadCount = computed(() => unreadTasks.value.length)
 
-  const unreadSeverity = computed((): TaskSeverity | undefined => {
-    const severities = unreadTasks.value.map(task => getTaskSeverity(task))
+  const unreadSeverity = computed(() => getHighestSeverity(unreadTasks.value.map(task => getTaskSeverity(task))))
 
-    if (severities.includes('danger')) {
-      return 'danger'
-    }
-
-    if (severities.includes('warning')) {
-      return 'warning'
-    }
-
-    return undefined
-  })
-
-  const pendingTaskIds = computed(() =>
-    lastDayTasks.value.filter(task => task.status === 'pending').map(task => task.id)
-  )
-
-  const pendingCount = computed(() => pendingTaskIds.value.length)
-
-  // Tasks running at page load plus the ones started since, kept until none of them is pending anymore
-  const batchTaskIds = ref(new Set<string>())
-
-  watch(
-    pendingTaskIds,
-    taskIds => {
-      batchTaskIds.value = taskIds.length === 0 ? new Set() : new Set([...batchTaskIds.value, ...taskIds])
-    },
-    { immediate: true }
-  )
-
-  const pendingProgress = computed(() =>
-    batchTaskIds.value.size === 0 ? undefined : getBatchProgress(lastDayTasks.value, batchTaskIds.value)
-  )
-
-  return { openedTaskId, unreadTaskIds, unreadCount, unreadSeverity, pendingCount, pendingProgress, markAllAsRead }
+  return {
+    openedTaskId: readonly(openedTaskId),
+    trackOpenedTask,
+    unreadTaskIds,
+    unreadCount,
+    unreadSeverity,
+    markAllAsRead,
+  }
 })

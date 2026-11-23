@@ -20,7 +20,15 @@
         <UiCircleProgressBar :accent="progressAccent" size="small" :value="progress" />
       </div>
       <div v-if="showEyeIcon || showUnread" class="actions">
-        <UiButtonIcon v-if="showEyeIcon" icon="fa:eye" size="small" accent="brand" @click="emit('select', task.id)" />
+        <UiButtonIcon
+          v-if="showEyeIcon"
+          v-tooltip="t('action:see-task')"
+          icon="fa:eye"
+          size="small"
+          accent="brand"
+          :aria-label="t('action:see-task')"
+          @click="emit('select', task.id)"
+        />
         <span v-if="showUnread" class="unread">
           <template v-if="unread">
             <VtsIcon name="fa:circle" size="current" />
@@ -41,6 +49,7 @@ import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import type { LinkOptions } from '@core/composables/link-component.composable.ts'
 import { useTimeAgo } from '@core/composables/locale-time-ago.composable.ts'
+import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { logicOr } from '@vueuse/math'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'

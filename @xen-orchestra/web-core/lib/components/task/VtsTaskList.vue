@@ -1,5 +1,5 @@
 <template>
-  <VtsTaskListLevel :tasks />
+  <VtsTaskListLevel class="vts-task-list" :tasks />
 </template>
 
 <script lang="ts" setup>
@@ -46,3 +46,11 @@ provide(IK_TASK_LIST_CONTEXT, {
   select: id => emit('select', id),
 })
 </script>
+
+<style lang="postcss" scoped>
+.vts-task-list {
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-inline: 0.4rem 0.8rem;
+}
+</style>

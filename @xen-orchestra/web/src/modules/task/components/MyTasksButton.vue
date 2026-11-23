@@ -15,12 +15,13 @@
       :counter
       icon="fa:bars-progress"
       size="medium"
-      @click="toggleSidebar"
+      @click="rightSidebar.toggleExpand()"
     />
   </div>
 </template>
 
 <script lang="ts" setup>
+import { useXoTasksPending } from '@/modules/task/composables/xo-tasks-pending.composable.ts'
 import { useXoTasksUnread } from '@/modules/task/composables/xo-tasks-unread.composable.ts'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiCircleProgressBar from '@core/components/ui/circle-progress-bar/UiCircleProgressBar.vue'
@@ -33,11 +34,9 @@ const { t } = useI18n()
 
 const rightSidebar = useRightSidebarStore()
 
-const { unreadCount, unreadSeverity, pendingCount, pendingProgress } = useXoTasksUnread()
+const { unreadCount, unreadSeverity } = useXoTasksUnread()
 
-function toggleSidebar() {
-  rightSidebar.toggleExpand()
-}
+const { pendingCount, pendingProgress } = useXoTasksPending()
 
 // Pending tasks are counted until they are all done, then unread tasks are counted
 const badge = computed(() => {
@@ -46,9 +45,9 @@ const badge = computed(() => {
       count: pendingCount.value,
       defaultAccent: 'info',
       ariaLabels: {
-        danger: t('tasks:my-tasks-n-in-progress-with-failures', pendingCount.value),
-        warning: t('tasks:my-tasks-n-in-progress-with-warnings', pendingCount.value),
-        default: t('tasks:my-tasks-n-in-progress', pendingCount.value),
+        danger: t('tasks:my-tasks-n-pending-with-failures', pendingCount.value),
+        warning: t('tasks:my-tasks-n-pending-with-warnings', pendingCount.value),
+        default: t('tasks:my-tasks-n-pending', pendingCount.value),
       },
     } as const
   }

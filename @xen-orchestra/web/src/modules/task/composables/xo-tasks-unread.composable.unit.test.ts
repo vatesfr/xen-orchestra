@@ -1,25 +1,18 @@
 import { useXoTasksUnread } from '@/modules/task/composables/xo-tasks-unread.composable.ts'
-import type { useXoTaskCollection } from '@/modules/task/remote-resources/use-xo-task-collection.ts'
-import { createTaskItem } from '@/test/create-task-item.ts'
-import { createTestRouter } from '@/test/create-test-router.ts'
 import { readLocalStorageJson } from '@/test/local-storage.ts'
+import { mockXoTaskCollection, taskCollectionMock } from '@/test/mock-xo-task-collection.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
 import type { Task } from '@core/components/ui/task-item/UiTaskItem.vue'
-import { nextTick } from 'vue'
+import { createTaskItem } from '@core-test/create-task-item.ts'
+import { type MaybeRefOrGetter, nextTick, ref } from 'vue'
 
-const { lastDayTasks } = await vi.hoisted(async () => {
-  const { ref } = await import('vue')
+mockXoTaskCollection()
 
-  return { lastDayTasks: ref<Task[]>([]) }
-})
-
-vi.mock(import('@/modules/task/remote-resources/use-xo-task-collection.ts'), () => ({
-  useXoTaskCollection: (() => ({ lastDayTasks })) as unknown as typeof useXoTaskCollection,
-}))
+const { lastDayTasks } = taskCollectionMock
 
 const LAST_SEEN_AT = 200
 
-// A pending root started before the last sidebar close, whose subtask `a` ended after it
+// A pending root started before everything was last marked as read, whose subtask `a` ended after it
 function createTree(subtasks: Task[] = []) {
   return createTaskItem({
     id: 'root',
@@ -28,41 +21,49 @@ function createTree(subtasks: Task[] = []) {
   })
 }
 
-async function mountUnreadTasks(openedTaskId?: string) {
-  const router = createTestRouter()
+function mountUnreadTasks() {
+  return mountComposable(() => useXoTasksUnread())
+}
 
-  await router.push(openedTaskId === undefined ? '/' : { name: '/(site)/tasks', query: { id: openedTaskId } })
+// Stands in for the task side panel showing `taskId`
+function showInSidePanel(taskId: MaybeRefOrGetter<string | undefined>) {
+  return mountComposable(() => {
+    useXoTasksUnread().trackOpenedTask(taskId)
 
-  return mountComposable(() => useXoTasksUnread(), { router })
+    return {}
+  })
 }
 
 beforeEach(() => {
-  localStorage.clear()
+  taskCollectionMock.reset()
   localStorage.setItem('my-tasks.last-seen-at', String(LAST_SEEN_AT))
-  lastDayTasks.value = []
 })
 
 describe('unreadTaskIds', () => {
-  it('contains the tasks with activity after the last sidebar close, and their parents', async () => {
+  it('contains the tasks with activity since everything was last marked as read, and their parents', () => {
     lastDayTasks.value = [createTree(), createTaskItem({ id: 'old', start: 50, end: 150 })]
 
-    const { wrapper } = await mountUnreadTasks()
+    const { wrapper } = mountUnreadTasks()
 
     expect([...wrapper.vm.unreadTaskIds].sort()).toEqual(['a', 'root'])
   })
 
-  it('no longer contains a parent once its only unread subtask is opened', async () => {
+  it('no longer contains a parent once its only unread subtask is opened', () => {
     lastDayTasks.value = [createTree()]
 
-    const { wrapper } = await mountUnreadTasks('a')
+    const { wrapper } = mountUnreadTasks()
+
+    showInSidePanel('a')
 
     expect(wrapper.vm.unreadTaskIds.size).toBe(0)
   })
 
-  it('contains none of the subtasks of an opened task', async () => {
+  it('contains none of the subtasks of an opened task', () => {
     lastDayTasks.value = [createTree([createTaskItem({ id: 'b', status: 'success', start: 250, end: 280 })])]
 
-    const { wrapper } = await mountUnreadTasks('root')
+    const { wrapper } = mountUnreadTasks()
+
+    showInSidePanel('root')
 
     expect(wrapper.vm.unreadTaskIds.size).toBe(0)
   })
@@ -70,10 +71,15 @@ describe('unreadTaskIds', () => {
   it('contains an opened task again when it has newer activity', async () => {
     lastDayTasks.value = [createTree()]
 
-    const { wrapper } = await mountUnreadTasks()
+    const shownTaskId = ref<string>()
+    const { wrapper } = mountUnreadTasks()
 
-    await wrapper.vm.$router.push({ name: '/(site)/tasks', query: { id: 'root' } })
-    await wrapper.vm.$router.push('/')
+    showInSidePanel(shownTaskId)
+
+    shownTaskId.value = 'root'
+    await nextTick()
+    shownTaskId.value = undefined
+    await nextTick()
 
     lastDayTasks.value = [createTree([createTaskItem({ id: 'c', status: 'failure', start: 400, end: 500 })])]
 
@@ -82,10 +88,10 @@ describe('unreadTaskIds', () => {
 })
 
 describe('markAllAsRead', () => {
-  it('clears every unread task until new activity arrives', async () => {
+  it('clears every unread task until new activity arrives', () => {
     lastDayTasks.value = [createTree()]
 
-    const { wrapper } = await mountUnreadTasks()
+    const { wrapper } = mountUnreadTasks()
 
     wrapper.vm.markAllAsRead()
 
@@ -104,7 +110,7 @@ describe('read activity', () => {
     localStorage.setItem('my-tasks.read-activity-by-id', JSON.stringify({ stale: 68 * hour - 1, kept: 68 * hour }))
     lastDayTasks.value = [createTaskItem({ id: 'opened', status: 'success', start: 90 * hour, end: 100 * hour })]
 
-    await mountUnreadTasks('opened')
+    showInSidePanel('opened')
     await nextTick()
 
     expect(readLocalStorageJson('my-tasks.read-activity-by-id')).toEqual({ kept: 68 * hour, opened: 100 * hour })
@@ -112,120 +118,72 @@ describe('read activity', () => {
 })
 
 describe('unreadCount', () => {
-  it('counts the unread top-level tasks only', async () => {
+  it('counts the unread top-level tasks only', () => {
     lastDayTasks.value = [createTree(), createTaskItem({ id: 'new', start: 600 })]
 
-    const { wrapper } = await mountUnreadTasks()
+    const { wrapper } = mountUnreadTasks()
 
     expect(wrapper.vm.unreadCount).toBe(2)
   })
 })
 
-describe('pendingCount', () => {
-  it('counts the pending top-level tasks only, read or not', async () => {
-    lastDayTasks.value = [
-      createTree([createTaskItem({ id: 'b', status: 'pending', start: 250 })]),
-      createTaskItem({ id: 'new', status: 'pending', start: 600 }),
-      createTaskItem({ id: 'done', status: 'success', start: 600, end: 700 }),
-    ]
-
-    const { wrapper } = await mountUnreadTasks()
-
-    wrapper.vm.markAllAsRead()
-
-    expect(wrapper.vm.pendingCount).toBe(2)
-  })
-})
-
-describe('pendingProgress', () => {
-  it('follows the tasks running at load, not the ones finished before', async () => {
-    lastDayTasks.value = [
-      createTaskItem({ id: 'running', status: 'pending', start: 300, progress: 40 }),
-      createTaskItem({ id: 'done', status: 'success', start: 100, end: 200 }),
-    ]
-
-    const { wrapper } = await mountUnreadTasks()
-
-    expect(wrapper.vm.pendingProgress).toEqual({ value: 40, maxValue: 100 })
-  })
-
-  it('adds newly started tasks and keeps the finished ones at 100', async () => {
-    lastDayTasks.value = [createTaskItem({ id: 'first', status: 'pending', start: 300 })]
-
-    const { wrapper } = await mountUnreadTasks()
-
-    lastDayTasks.value = [
-      createTaskItem({ id: 'first', status: 'success', start: 300, end: 400 }),
-      createTaskItem({ id: 'second', status: 'pending', start: 350 }),
-    ]
-    await nextTick()
-
-    expect(wrapper.vm.pendingProgress).toEqual({ value: 100, maxValue: 200 })
-  })
-
-  it('is cleared once every task of the batch is done, and the next batch starts fresh', async () => {
-    lastDayTasks.value = [createTaskItem({ id: 'first', status: 'pending', start: 300 })]
-
-    const { wrapper } = await mountUnreadTasks()
-
-    lastDayTasks.value = [createTaskItem({ id: 'first', status: 'success', start: 300, end: 400 })]
-    await nextTick()
-
-    expect(wrapper.vm.pendingProgress).toBeUndefined()
-
-    lastDayTasks.value = [...lastDayTasks.value, createTaskItem({ id: 'next', status: 'pending', start: 500 })]
-    await nextTick()
-
-    expect(wrapper.vm.pendingProgress).toEqual({ value: 0, maxValue: 100 })
-  })
-})
-
 describe('unreadSeverity', () => {
-  it('is danger when an unread task has a failed subtask', async () => {
+  it('is danger when an unread task has a failed subtask', () => {
     lastDayTasks.value = [createTree([createTaskItem({ id: 'b', status: 'failure', start: 120, end: 130 })])]
 
-    const { wrapper } = await mountUnreadTasks()
+    const { wrapper } = mountUnreadTasks()
 
     expect(wrapper.vm.unreadSeverity).toBe('danger')
   })
 
-  it('is danger when an unread task failed and another has warnings', async () => {
+  it('is danger when an unread task failed and another has warnings', () => {
     lastDayTasks.value = [
       createTaskItem({ id: 'warned', start: 600, warnings: [{ message: 'warning', data: null }] }),
       createTaskItem({ id: 'failed', status: 'failure', start: 600, end: 700 }),
     ]
 
-    const { wrapper } = await mountUnreadTasks()
+    const { wrapper } = mountUnreadTasks()
 
     expect(wrapper.vm.unreadSeverity).toBe('danger')
   })
 
-  it('is warning when an unread task has warnings', async () => {
+  it('is warning when an unread task has warnings', () => {
     lastDayTasks.value = [createTaskItem({ id: 'new', start: 600, warnings: [{ message: 'warning', data: null }] })]
 
-    const { wrapper } = await mountUnreadTasks()
+    const { wrapper } = mountUnreadTasks()
 
     expect(wrapper.vm.unreadSeverity).toBe('warning')
   })
 
-  it('is undefined when no unread task has a failure or warnings', async () => {
+  it('is undefined when no unread task has a failure or warnings', () => {
     lastDayTasks.value = [createTree()]
 
-    const { wrapper } = await mountUnreadTasks()
+    const { wrapper } = mountUnreadTasks()
 
     expect(wrapper.vm.unreadSeverity).toBeUndefined()
   })
 })
 
 describe('openedTaskId', () => {
-  it('is the task id from the tasks page URL', async () => {
-    const { wrapper } = await mountUnreadTasks('root')
+  it('follows the task the side panel shows, until it shows none', async () => {
+    const shownTaskId = ref<string | undefined>('root')
+    const { wrapper } = mountUnreadTasks()
+
+    showInSidePanel(shownTaskId)
 
     expect(wrapper.vm.openedTaskId).toBe('root')
+
+    shownTaskId.value = undefined
+    await nextTick()
+
+    expect(wrapper.vm.openedTaskId).toBeUndefined()
   })
 
-  it('is undefined outside the tasks page', async () => {
-    const { wrapper } = await mountUnreadTasks()
+  it('is undefined once the side panel unmounts', () => {
+    const { wrapper } = mountUnreadTasks()
+    const panel = showInSidePanel('root')
+
+    panel.wrapper.unmount()
 
     expect(wrapper.vm.openedTaskId).toBeUndefined()
   })

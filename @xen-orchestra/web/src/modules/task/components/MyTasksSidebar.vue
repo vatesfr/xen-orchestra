@@ -28,7 +28,7 @@
     <template #subheader>
       <div class="search">
         <UiInput
-          v-model="filter"
+          v-model="search"
           :aria-label="t('tasks:search-in-my-tasks')"
           :placeholder="t('tasks:search-in-my-tasks')"
           right-icon="fa:magnifying-glass"
@@ -44,14 +44,13 @@
     <VtsStateHero v-else-if="!areTasksReady || isSearching" format="panel" type="busy" size="medium" />
     <VtsTaskList
       v-else-if="displayedTasks.length > 0"
-      class="tasks"
       :tasks="displayedTasks"
       :selected-task-id="openedTaskId"
-      :expand-all="hasFilter"
+      :expand-all="hasSearch"
       :unread-task-ids
     />
     <VtsStateHero v-else format="card" type="no-result" size="medium">
-      {{ hasFilter ? t('no-result') : t('no-task') }}
+      {{ hasSearch ? t('no-result') : t('no-task') }}
     </VtsStateHero>
   </VtsLayoutSidebar>
 </template>
@@ -67,7 +66,7 @@ import VtsTaskList from '@core/components/task/VtsTaskList.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiInput from '@core/components/ui/input/UiInput.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
-import { useDebouncedRef } from '@core/composables/debounced-ref.composable.ts'
+import { useDebouncedSearch } from '@core/composables/debounced-search.composable.ts'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { useRightSidebarStore } from '@core/packages/sidebar'
 import { useUiStore } from '@core/stores/ui.store.ts'
@@ -91,13 +90,13 @@ watch(
   }
 )
 
-const { value: filter, debouncedValue: debouncedFilter, isDebouncing: isSearching } = useDebouncedRef('', 500)
+const { search, debouncedSearch, isSearching } = useDebouncedSearch()
 
-const hasFilter = computed(() => debouncedFilter.value.trim().length > 0)
+const hasSearch = computed(() => debouncedSearch.value.trim() !== '')
 
 const { lastDayTasks, areTasksReady, hasTaskFetchError } = useXoTaskCollection()
 
-const displayedTasks = computed(() => filterTasksByName(lastDayTasks.value, debouncedFilter.value))
+const displayedTasks = computed(() => filterTasksByName(lastDayTasks.value, debouncedSearch.value))
 
 const { openedTaskId, unreadTaskIds, unreadCount, markAllAsRead } = useXoTasksUnread()
 </script>
@@ -123,12 +122,6 @@ const { openedTaskId, unreadTaskIds, unreadCount, markAllAsRead } = useXoTasksUn
 
   .search {
     padding: 0.4rem;
-  }
-
-  .tasks {
-    overflow-x: auto;
-    overflow-y: hidden;
-    padding-inline: 0.4rem 0.8rem;
   }
 }
 </style>

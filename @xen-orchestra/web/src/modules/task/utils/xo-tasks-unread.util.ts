@@ -43,31 +43,19 @@ export function pruneReadActivity(readActivityById: Record<string, number>, sinc
 
 export type TaskSeverity = 'danger' | 'warning'
 
+const SEVERITIES: TaskSeverity[] = ['danger', 'warning']
+
+export function getHighestSeverity(severities: (TaskSeverity | undefined)[]): TaskSeverity | undefined {
+  return SEVERITIES.find(severity => severities.includes(severity))
+}
+
 export function getTaskSeverity(task: Task): TaskSeverity | undefined {
   if (task.status === 'failure' || task.status === 'interrupted') {
     return 'danger'
   }
 
-  const subtaskSeverities = (task.subtasks ?? []).map(subtask => getTaskSeverity(subtask))
-
-  if (subtaskSeverities.includes('danger')) {
-    return 'danger'
-  }
-
-  if ((task.warnings?.length ?? 0) > 0 || subtaskSeverities.includes('warning')) {
-    return 'warning'
-  }
-
-  return undefined
-}
-
-// Progress of the batch as a sum over `maxValue` (100 per task): finished tasks count as 100,
-// pending ones as their progress (0 when unknown). Batch tasks no longer in `tasks` are skipped
-export function getBatchProgress(tasks: Task[], batchTaskIds: ReadonlySet<string>) {
-  const batchTasks = tasks.filter(task => batchTaskIds.has(task.id))
-
-  return {
-    value: batchTasks.reduce((sum, task) => sum + (task.status === 'pending' ? (task.progress ?? 0) : 100), 0),
-    maxValue: batchTasks.length * 100,
-  }
+  return getHighestSeverity([
+    (task.warnings?.length ?? 0) > 0 ? 'warning' : undefined,
+    ...(task.subtasks ?? []).map(subtask => getTaskSeverity(subtask)),
+  ])
 }
