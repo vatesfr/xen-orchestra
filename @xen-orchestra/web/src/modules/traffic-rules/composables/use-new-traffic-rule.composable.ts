@@ -22,7 +22,14 @@ export function useNewTrafficRule(
       onConfirm: (newPayload: TrafficRulePayload) => {
         payload.value = newPayload
 
-        run({ detached: true })
+        run({
+          detached: true,
+          onSuccess: ([result]) => {
+            if (result.status === 'rejected') {
+              console.error('Failed to create traffic rule', result.reason)
+            }
+          },
+        })
       },
       onCancel: true,
     },
