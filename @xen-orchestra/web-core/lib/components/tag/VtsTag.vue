@@ -1,10 +1,29 @@
 <template>
-  <UiTertiaryTag v-if="parsedTag" ref="tertiaryTag" v-tooltip="isTertiaryTagTruncated && value" :accent truncate>
+  <UiTertiaryTag
+    v-if="parsedTag"
+    ref="tertiaryTag"
+    v-tooltip="isTertiaryTagTruncated && value"
+    :accent
+    :removable
+    :truncate="!wrap"
+    :wrap
+    @remove="emit('remove')"
+  >
     <template #term>{{ parsedTag.term }}</template>
     {{ parsedTag.label }}
   </UiTertiaryTag>
-  <UiTag v-else v-tooltip :accent :variant class="vts-tag">
-    {{ value }}
+  <UiTag
+    v-else
+    v-tooltip
+    :accent
+    :removable
+    :variant
+    :class="{ truncate: !wrap }"
+    class="vts-tag"
+    @remove="emit('remove')"
+  >
+    <span v-if="isEmpty" class="empty">{{ t('empty-tag') }}</span>
+    <template v-else>{{ value }}</template>
   </UiTag>
 </template>
 
@@ -14,8 +33,9 @@ import UiTertiaryTag from '@core/components/ui/tag/UiTertiaryTag.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { hasEllipsis } from '@core/utils/has-ellipsis.util.ts'
 import { parseTag } from '@core/utils/parse-tag.util.ts'
-import { unrefElement, useResizeObserver } from '@vueuse/core'
+import { useResizeObserver } from '@vueuse/core'
 import { computed, ref, useTemplateRef, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 type TagVariant = 'primary' | 'secondary'
 
@@ -27,22 +47,33 @@ const {
   value: string
   accent?: TagAccent
   variant?: TagVariant
+  wrap?: boolean
+  removable?: boolean
 }>()
+
+const emit = defineEmits<{
+  remove: []
+}>()
+
+const { t } = useI18n()
 
 const parsedTag = computed(() => parseTag(value))
 
+const isEmpty = computed(() => value.trim() === '')
+
 const tertiaryTag = useTemplateRef('tertiaryTag')
+
+const tertiaryTagElement = computed(() => tertiaryTag.value?.$el as HTMLElement | undefined)
 
 const isTertiaryTagTruncated = ref(false)
 
 function updateTertiaryTagTruncation() {
-  const element = unrefElement(tertiaryTag)
+  const element = tertiaryTagElement.value
 
-  isTertiaryTagTruncated.value =
-    element !== null && element !== undefined && [...element.children].some(part => hasEllipsis(part))
+  isTertiaryTagTruncated.value = element !== undefined && [...element.children].some(part => hasEllipsis(part))
 }
 
-useResizeObserver(tertiaryTag, () => updateTertiaryTagTruncation())
+useResizeObserver(tertiaryTagElement, () => updateTertiaryTagTruncation())
 
 watch(
   () => value,
@@ -53,9 +84,15 @@ watch(
 
 <style lang="postcss" scoped>
 .vts-tag {
-  display: block;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  &.truncate {
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .empty {
+    font-style: italic;
+  }
 }
 </style>
