@@ -49,6 +49,7 @@ import { useXoPoolMissingPatchesCollection } from '@/modules/pool/remote-resourc
 import { useXoPoolTasksCollection } from '@/modules/pool/remote-resources/use-xo-pool-tasks-collection.ts'
 import {
   getRollingUpdatePageState,
+  isRollingUpdateLive,
   type RollingUpdateResumeOptions,
   type RollingUpdateStartOptions,
 } from '@/modules/pool/utils/rolling-update.util.ts'
@@ -77,7 +78,7 @@ const { recovery, isRecoveryReady, hasRecoveryError, reloadRecovery } = usePoolR
 
 const { getTaskById, sortedTasks } = useXoPoolTasksCollection({}, () => pool.id)
 
-const { reloadPoolMissingPatches } = useXoPoolMissingPatchesCollection({}, () => pool.id)
+const { poolMissingPatches, reloadPoolMissingPatches } = useXoPoolMissingPatchesCollection({}, () => pool.id)
 
 // Whether a run which succeeded was closed in this session: the pool is up to date, until another run shows up
 const hasSucceeded = ref(false)
@@ -136,9 +137,24 @@ watch(
   }
 )
 
-watch(recovery, newRecovery => {
+watch(recovery, async (newRecovery, oldRecovery) => {
   if (newRecovery !== undefined) {
     hasSucceeded.value = false
+
+    return
+  }
+
+  // A run which succeeds with nothing to review closes itself: its record goes away while it was live
+  if (!isRollingUpdateLive(oldRecovery)) {
+    return
+  }
+
+  const poolId = pool.id
+
+  await reloadPoolMissingPatches()
+
+  if (poolId === pool.id && recovery.value === undefined) {
+    hasSucceeded.value = poolMissingPatches.value.length === 0
   }
 })
 
