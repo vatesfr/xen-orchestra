@@ -63,6 +63,9 @@ export const VmsXapi = class VmsXapiBackupRunner extends Abstract {
   }
 
   async run() {
+    // abort signal of the backup run: once aborted, no new VM backup starts and no VM backup is retried
+    const signal = Task.abortSignal
+
     const job = this._job
 
     // FIXME: proper SimpleIdPattern handling
@@ -143,6 +146,10 @@ export const VmsXapi = class VmsXapiBackupRunner extends Abstract {
               await asyncEach(
                 [...vms].filter(vm => batchIds.has(vm.uuid)),
                 async vm => {
+                  if (signal?.aborted) {
+                    return
+                  }
+
                   const { task } = getVmTask(vm.uuid, vm.name_label)
 
                   const vmSettings = { ...settings, ...allSettings[vm.uuid] }
@@ -205,7 +212,15 @@ export const VmsXapi = class VmsXapiBackupRunner extends Abstract {
         const queue = new Set(snapshotedVmIds)
 
         const handleVm = vmUuid => {
+          if (signal?.aborted) {
+            return
+          }
+
           const vmBackupFailed = async (error, task) => {
+            if (signal?.aborted) {
+              // the VM backup failed because of the abort, whatever the error it reports
+              return task.failure(signal.reason)
+            }
             if (isLastRun) {
               return task.failure(error)
             } else {
@@ -284,7 +299,7 @@ export const VmsXapi = class VmsXapiBackupRunner extends Abstract {
         const { concurrency } = settings
         const _handleVm = concurrency === 0 ? handleVm : limitConcurrency(concurrency)(handleVm)
 
-        while (queue.size > 0) {
+        while (queue.size > 0 && !signal?.aborted) {
           const vmIds = Array.from(queue)
           queue.clear()
 

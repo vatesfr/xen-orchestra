@@ -55,6 +55,8 @@ export const IncrementalXapi = class IncrementalXapiVmBackupRunner extends Abstr
     const deltaExport = await exportIncrementalVm(exportedVm, baseVdis, {
       nbdConcurrency: this._settings.nbdConcurrency,
       preferNbd: this._settings.preferNbd,
+      // the reads of the disks stop once the backup is aborted
+      signal: Task.abortSignal,
     })
 
     const isVhdDifferencing = {}

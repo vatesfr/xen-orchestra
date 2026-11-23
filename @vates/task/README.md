@@ -41,6 +41,12 @@ const task = new Task({
       const { reason } = event
     }
   },
+
+  // if true, this subtask does not follow the abort of its parent: it follows its parent's cleanup signal
+  // instead (see `Task.cleanupSignal`), so that it still runs after its parent has been aborted
+  //
+  // meant for the cleanup steps of an aborted task
+  cleanup: false,
 })
 
 // this field is settable once before being observed
@@ -54,9 +60,13 @@ task.id
 // - failure
 task.status
 
-// Triggers the abort signal associated to the task.
+// Triggers the abort signal associated to the task, and the ones of its subtasks.
 //
-// This simply requests the task to abort, it will be up to the task to handle or not this signal.
+// A running task is only requested to abort: it is up to its function to handle or not this signal.
+//
+// A task that is not running ends right away as failed, with `reason` as result, and running it afterwards rejects
+// with `reason` without calling its function. This also applies to a subtask created inside an aborted task: each
+// step run as a subtask is therefore skipped once its parent has been aborted.
 task.abort(reason)
 
 // if fn rejects, the task will be marked as failed
@@ -81,6 +91,12 @@ Inside a task:
 ```js
 // the abort signal of the current task if any; otherwise, is `undefined`
 Task.abortSignal
+
+// the cleanup signal of the current task if any; otherwise, is `undefined`
+//
+// it is not aborted by `task.abort()`, it follows the cleanup signal of the parent task, and the cleanup subtasks
+// follow it instead of the abort signal
+Task.cleanupSignal
 
 // sends an info on the current task if any; otherwise, does nothing
 Task.info(message, data)

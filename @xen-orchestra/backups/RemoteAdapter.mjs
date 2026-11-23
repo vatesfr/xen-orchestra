@@ -687,12 +687,14 @@ export class RemoteAdapter {
     return path
   }
 
-  async writeVhd(path, disk, { validator = noop, writeBlockConcurrency, uuid, parentUuid, parentPath } = {}) {
+  // `signal` stops the write once aborted: the partial disk is then removed
+  async writeVhd(path, disk, { signal, validator = noop, writeBlockConcurrency, uuid, parentUuid, parentPath } = {}) {
     const handler = this._handler
 
     if (this.useVhdDirectory()) {
       return await writeToVhdDirectory({
         disk,
+        signal,
         target: {
           handler,
           path,
@@ -705,7 +707,11 @@ export class RemoteAdapter {
         },
       })
     } else {
-      const stream = await toVhdStream(disk, { uuid, parentUuid, parentPath })
+      const stream = await toVhdStream(disk, { signal, uuid, parentUuid, parentPath })
+      // the stream starts reading the disk before the output stream is piped (`outputStream()` creates it first): an
+      // error in between (an abort, a read error) must not be emitted without listener, which would crash the process
+      // the pipeline still fails with this error, kept by the stream
+      stream.on('error', noop)
       const size = await this.outputStream(path, stream, {
         validator,
         // no checksum for VHDs, because they will be invalidated by

@@ -21,6 +21,9 @@ export class HealthCheckVmBackup {
         const xapi = this.#xapi
         const restoredId = restoredVm.uuid
 
+        // the health check stops waiting once the backup is aborted; the caller removes the restored VM
+        const signal = Task.abortSignal
+
         // remove vifs
         await Promise.all(restoredVm.$VIFs.map(vif => xapi.callAsync('VIF.destroy', vif.$ref)))
         const waitForScript = restoredVm.tags.includes('xo-backup-health-check-xenstore')
@@ -33,6 +36,7 @@ export class HealthCheckVmBackup {
         // start Vm
 
         await xapi.callAsync(
+          signal,
           'VM.start',
           restoredVm.$ref,
           false, // Start paused?
@@ -51,6 +55,7 @@ export class HealthCheckVmBackup {
         // wait for the 'Running' event to be really stored in local xapi object cache
 
         restoredVm = await xapi.waitObjectState(restoredVm.$ref, vm => vm.power_state === 'Running', {
+          signal,
           timeout: remainingTimeout,
           timeoutMessage: refOrUuid =>
             `local xapi  did not get Running state for VM ${refOrUuid} after ${timeout / 1000} second`,
@@ -61,6 +66,7 @@ export class HealthCheckVmBackup {
 
         // wait for the guest tools to be detected
         await xapi.waitObjectState(restoredVm.guest_metrics, gm => gm?.PV_drivers_detected, {
+          signal,
           timeout: remainingTimeout,
           timeoutMessage: refOrUuid =>
             `timeout reached while waiting for ${refOrUuid} to report the driver version through the Xen tools. Please check or update the Xen tools.`,
@@ -77,6 +83,7 @@ export class HealthCheckVmBackup {
               (vm.xenstore_data['vm-data/xo-backup-health-check'] === 'success' ||
                 vm.xenstore_data['vm-data/xo-backup-health-check'] === 'failure'),
             {
+              signal,
               timeout: remainingTimeout,
               timeoutMessage: refOrUuid =>
                 `timeout reached while waiting for ${refOrUuid} to report the startup script execution.`,

@@ -13,6 +13,7 @@
 - **Merge size**: {{formatSize globalMergeSize}}
 {{/if}}
 {{>reportWarningsMd task=log}}
+{{>reportAbortMd infos=abortInfos}}
 
 {{#if tasksByStatus.failure.tasks}}
 {{>vmFailure}}
@@ -29,6 +30,7 @@
 {{else}}
 {{>reportErrorMd task=log}}
 {{>reportWarningsMd task=log}}
+{{>reportAbortMd infos=abortInfos}}
 {{/if}}
 ---
 

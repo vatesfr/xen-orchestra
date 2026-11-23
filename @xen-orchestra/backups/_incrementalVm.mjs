@@ -32,7 +32,9 @@ export async function exportIncrementalVm(vm, baseVdis = {}, { signal, nbdConcur
   const disks = {}
   const vdis = {}
   const vbds = {}
-  await abortableMap(signal, vm.$VBDs, async (signal, vbd) => {
+  // the signal given to the callback stops the other initializations when one fails; the disks keep `signal`, which
+  // must keep reaching them once the export is built
+  await abortableMap(signal, vm.$VBDs, async (_initSignal, vbd) => {
     let vdi
     if (vbd.type !== 'Disk' || !(vdi = vbd.$VDI)) {
       // Ignore this VBD.
@@ -68,6 +70,7 @@ export async function exportIncrementalVm(vm, baseVdis = {}, { signal, nbdConcur
       baseRef: baseVdi?.$ref,
       nbdConcurrency,
       preferNbd,
+      signal,
     })
     await disks[vdiRef].init()
   })
@@ -84,6 +87,7 @@ export async function exportIncrementalVm(vm, baseVdis = {}, { signal, nbdConcur
       xapi: vm.$xapi,
       nbdConcurrency,
       preferNbd,
+      signal,
     })
     await disks[vdiRef].init()
   }

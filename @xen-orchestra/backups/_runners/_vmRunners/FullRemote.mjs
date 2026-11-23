@@ -23,6 +23,7 @@ export const FullRemote = class FullRemoteVmBackupRunner extends AbstractRemote 
     const nbTransferrableVms = transferList.length
     let nbTransferredVms = 0
     for (const metadata of transferList) {
+      Task.abortSignal?.throwIfAborted()
       const stream = this._throttleStream(await this._sourceRemoteAdapter.readFullVmBackup(metadata))
       const sizeContainer = watchStreamSize(stream)
       let checksum
@@ -35,6 +36,16 @@ export const FullRemote = class FullRemoteVmBackupRunner extends AbstractRemote 
 
       // a single writer can consume the stream itself: no need to fork it
       const isForked = this._writers.size > 1
+
+      // the source is a plain stream: destroying it stops the reading and makes the writers fail
+      const signal = Task.abortSignal
+      const onAbort = () => stream.destroy(signal.reason)
+      // the abort may have been requested while the source was being opened
+      if (signal?.aborted) {
+        onAbort()
+      } else {
+        signal?.addEventListener('abort', onAbort, { once: true })
+      }
 
       // @todo shouldn't transfer backup if it will be deleted by retention policy (higher retention on source than destination)
       await this._callWriters(
@@ -51,7 +62,7 @@ export const FullRemote = class FullRemoteVmBackupRunner extends AbstractRemote 
             sizeContainer,
           }),
         'writer.run()'
-      )
+      ).finally(() => signal?.removeEventListener('abort', onAbort))
       // for healthcheck
       this._vm = metadata.vm
       nbTransferredVms++
