@@ -27,6 +27,8 @@ import { debounceWithKey, REMOVE_CACHE_ENTRY } from '../_pDebounceWithKey.mjs'
 import { extractIpFromVmNetworks } from '../_extractIpFromVmNetworks.mjs'
 import { generateToken } from '../utils.mjs'
 
+const PROXY_UNREACHABLE = 'PROXY_UNREACHABLE'
+
 const DEBOUNCE_TIME_PROXY_STATE = 60000
 const DEBOUNCE_TIME_PROXY_LICENSE = 24 * 60 * 60 * 1000
 
@@ -527,6 +529,7 @@ export default class Proxy {
       const address = extractIpFromVmNetworks(vm.$guest_metrics?.networks)
       if (address === undefined) {
         const error = new Error('cannot get the proxy address')
+        error.code = PROXY_UNREACHABLE
         error.proxy = omit(proxy, 'authenticationToken')
         throw error
       }
@@ -534,7 +537,13 @@ export default class Proxy {
       url.hostname = address.includes(':') ? `[${address}]` : address
     }
 
-    const response = await fetch(url, request)
+    let response
+    try {
+      response = await fetch(url, request)
+    } catch (error) {
+      error.code = PROXY_UNREACHABLE
+      throw error
+    }
     if (!response.ok) {
       await response.body?.cancel() // free the socket
       throw new Error(`${response.status} ${response.statusText}`)

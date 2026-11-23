@@ -33,7 +33,7 @@ import { XoController } from '../abstract-classes/xo-controller.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
 
 function isProxyUnreachable(error: unknown): boolean {
-  return error instanceof TypeError && error.message === 'fetch failed'
+  return error instanceof Error && 'code' in error && error.code === 'PROXY_UNREACHABLE'
 }
 
 @Route('proxies')
