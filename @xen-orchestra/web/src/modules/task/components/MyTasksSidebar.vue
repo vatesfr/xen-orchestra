@@ -32,7 +32,7 @@
           :aria-label="t('tasks:search-in-my-tasks')"
           :placeholder="t('tasks:search-in-my-tasks')"
           right-icon="fa:magnifying-glass"
-          accent="brand"
+          accent="neutral"
           clearable
         />
       </div>
