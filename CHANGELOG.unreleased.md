@@ -78,6 +78,7 @@
 - [XO6/SR] Add SR creation form on Host/Pool Storage tabs for LVM, EXT, SMB, local ISO, SMB ISO types (PR [#10251](https://github.com/vatesfr/xen-orchestra/pull/10251))
 - [XO5/Licenses] On an airgap XOA, upload an airgap data pack to register the appliance and install or renew its licenses, and export the licenses database to send it back to Vates (PR [#10254](https://github.com/vatesfr/xen-orchestra/pull/10254))
 - [REST API] Check that a proxy can be reached: `GET /rest/v0/proxies/:id/health` (PR [#10752](https://github.com/vatesfr/xen-orchestra/pull/10752))
+- [Pool/Network] Creating a network, a bonded network or an internal network now happens in a drawer instead of a dedicated page (PR [#XXXX](https://github.com/vatesfr/xen-orchestra/pull/XXXX))
 
 ### Bug fixes
 
