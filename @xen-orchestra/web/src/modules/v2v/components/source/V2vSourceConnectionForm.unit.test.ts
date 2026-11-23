@@ -3,13 +3,13 @@ import V2vSourceConnectionForm from '@/modules/v2v/components/source/V2vSourceCo
 import { useV2vConnectionForm } from '@/modules/v2v/form/use-v2v-connection-form.ts'
 import FormTextInput from '@/shared/components/form/FormTextInput.vue'
 import { findInputLabels } from '@/test/find-input-labels.ts'
-import { findInputMessages } from '@/test/find-input-messages.ts'
 import { getButton, getUiButton } from '@/test/get-button.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
 import UiAlert from '@core/components/ui/alert/UiAlert.vue'
 import UiInput from '@core/components/ui/input/UiInput.vue'
+import { findInfoLabels } from '@core-test/find-accented-labels.ts'
 import { flushPromises, mount } from '@vue/test-utils'
 import { reactive } from 'vue'
 
@@ -70,7 +70,7 @@ it('shows the error of a field under it', async () => {
   await form.validate()
   await flushPromises()
 
-  expect(findInputMessages(wrapper.findAllComponents(FormTextInput)[0])).toEqual([t('host-required')])
+  expect(findInfoLabels(wrapper.findAllComponents(FormTextInput)[0])).toEqual([t('host-required')])
 })
 
 it('warns about storing credentials only when remembering the connection', async () => {

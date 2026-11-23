@@ -1,46 +1,91 @@
 import assert from 'node:assert/strict'
 import { after, describe, it, mock } from 'node:test'
-import { mkdtempSync, rmSync } from 'node:fs'
+import { mkdtempSync, readFileSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { forbiddenOperation, incorrectState } from 'xo-common/api-errors.js'
 import { Task } from '@vates/task'
 
 import XenServers from './xen-servers.mjs'
+import { noRpuResume } from '../_rpuRecovery.mjs'
 
 const pool = { id: 'pool-1', name_label: 'pool 1', _xapiRef: 'OpaqueRef:pool-1' }
 const tracesDir = mkdtempSync(join(tmpdir(), 'xo-rpu-test-'))
 after(() => rmSync(tracesDir, { recursive: true, force: true }))
 
 function createXenServers({
+  acceptedOperatorChanges = [],
   backupRunning = false,
-  deleteRecord = async () => {},
+  changedByRun = {},
+  completeRecord = async () => {},
   intentRefused = false,
+  licenseRefused = false,
+  loadBalancerInstalled = true,
   loadBalancerLoaded = false,
+  operatorChanges,
   recordRefused = false,
+  resumeHostsStarted = true,
   softwareVersion = { product_brand: 'XCP-ng', product_version: '8.3.0' },
+  scheduleDisableRefused,
   updateRefused = false,
   withSchedule = false,
+  schedules = withSchedule ? [{ id: 'schedule-1', jobId: 'job-1', enabled: true }] : [],
+  // traces are named after the millisecond: a test which reads its trace needs its own directory
+  traces = tracesDir,
+  wlbDisableRefused = false,
   wlbEnabled = false,
+  wlbRestoreRefused = false,
+  xsCredentials,
 } = {}) {
   const calls = []
   const taskNames = []
+  const taskProperties = []
+  const makeRecorder = (attempt = 1) => ({
+    runId: 'run-1',
+    attempt,
+    markRunning() {},
+    setTaskId() {},
+    async settingChangedByRun(name, value) {
+      calls.push(['recorder.settingChangedByRun', name, value])
+      if (intentRefused) {
+        throw new Error('store unavailable')
+      }
+    },
+    settingRestored(name, id) {
+      calls.push(['recorder.settingRestored', name, id])
+    },
+    async complete() {
+      calls.push(['recorder.complete'])
+      return completeRecord()
+    },
+    async fail() {
+      calls.push(['recorder.fail'])
+    },
+    async dropIfNothingToRecover() {
+      calls.push(['recorder.dropIfNothingToRecover'])
+    },
+  })
   const app = {
-    apiContext: { user: { preferences: {} } },
+    apiContext: { user: { preferences: { xsCredentials } } },
     hooks: { on() {} },
     config: {
       getDuration: () => 0,
-      getOptional: key => (key === 'rpu.tracesDir' ? tracesDir : undefined),
+      getOptional: key => (key === 'rpu.tracesDir' ? traces : undefined),
       getOptionalDuration: () => undefined,
       watchDuration() {},
     },
     tasks: {
       create(properties) {
         taskNames.push(properties.name)
+        taskProperties.push(properties)
         return new Task({ properties })
       },
     },
-    async checkFeatureAuthorization() {},
+    async checkFeatureAuthorization() {
+      if (licenseRefused) {
+        throw new Error('not licensed')
+      }
+    },
     async backupGuard(poolId, opts) {
       calls.push(['backupGuard', poolId, opts])
       if (backupRunning) {
@@ -50,16 +95,19 @@ function createXenServers({
     async getAllJobs() {
       calls.push(['getAllJobs'])
       // smart mode without a pool filter: may concern this pool
-      return withSchedule ? [{ id: 'job-1', vms: {} }] : []
+      return schedules.length > 0 ? [{ id: 'job-1', vms: {} }] : []
     },
     async getAllSchedules() {
-      return withSchedule ? [{ id: 'schedule-1', jobId: 'job-1', enabled: true }] : []
+      return schedules
     },
     async updateSchedule({ id, enabled }) {
       calls.push(['updateSchedule', id, enabled])
+      if (!enabled && id === scheduleDisableRefused) {
+        throw new Error('schedule store unavailable')
+      }
     },
     async getOptionalPlugin() {
-      return loadBalancerLoaded ? { loaded: true, autoload: false } : undefined
+      return loadBalancerInstalled ? { loaded: loadBalancerLoaded, autoload: false } : undefined
     },
     async loadPlugin() {},
     async unloadPlugin(id) {
@@ -70,21 +118,24 @@ function createXenServers({
       if (recordRefused) {
         throw incorrectState({ actual: 'failed', expected: null, object: poolId, property: 'rollingUpdateRecovery' })
       }
+      return makeRecorder()
+    },
+    async resumeRpuRecoveryRun({ id }, schedules, opts) {
+      calls.push(['resumeRpuRecoveryRun', id, schedules, opts])
+      if (operatorChanges !== undefined) {
+        throw incorrectState({ actual: operatorChanges, expected: [], object: id, property: 'operatorChanges' })
+      }
       return {
-        markRunning() {},
-        setTaskId() {},
-        async settingChangedByRun(name, value) {
-          calls.push(['recorder.settingChangedByRun', name, value])
-          if (intentRefused) {
-            throw new Error('store unavailable')
-          }
-        },
-        delete: deleteRecord,
-        async fail() {
-          calls.push(['recorder.fail'])
-        },
-        async dropIfNothingToRecover() {
-          calls.push(['recorder.dropIfNothingToRecover'])
+        acceptedOperatorChanges,
+        recorder: makeRecorder(2),
+        options: { bypassBackupCheck: true, rebootVm: true, shutdownPinnedVms: true },
+        resume: {
+          doneHostIds: new Set(['host-A']),
+          hostsStarted: resumeHostsStarted,
+          hostOrder: ['host-A', 'host-B'],
+          vmHomeById: { vm1: 'host-A' },
+          haltedPinnedVms: {},
+          changedByRun,
         },
       }
     },
@@ -102,15 +153,21 @@ function createXenServers({
     },
     async call(method, ref, value) {
       calls.push(['xapi.call', method, value])
+      if (method === 'pool.set_wlb_enabled' && (value ? wlbRestoreRefused : wlbDisableRefused)) {
+        throw new Error('WLB unreachable')
+      }
     },
-    async rollingPoolUpdate(task, { acceptCurrentStateAsBaseline, rebootVm, shutdownPinnedVms }) {
+    async rollingPoolUpdate(task, { acceptCurrentStateAsBaseline, rebootVm, shutdownPinnedVms, resume }) {
       calls.push(['xapi.rollingPoolUpdate', { acceptCurrentStateAsBaseline, rebootVm, shutdownPinnedVms }])
+      if (resume !== noRpuResume) {
+        calls.push(['xapi.rollingPoolUpdate resume', resume])
+      }
       if (updateRefused) {
         throw incorrectState({ actual: ['host-B'], expected: [], object: 'pool-1', property: 'partiallyUpdatedPool' })
       }
     },
   })
-  return { calls, taskNames, xenServers }
+  return { calls, taskNames, taskProperties, xenServers }
 }
 
 describe('XenServers.rollingPoolUpdate', function () {
@@ -139,6 +196,7 @@ describe('XenServers.rollingPoolUpdate', function () {
         { acceptCurrentStateAsBaseline: true, bypassBackupCheck: true, rebootVm: true, shutdownPinnedVms: false },
       ],
       ['xapi.rollingPoolUpdate', { acceptCurrentStateAsBaseline: true, rebootVm: true, shutdownPinnedVms: false }],
+      ['recorder.complete'],
     ])
   })
 
@@ -148,7 +206,7 @@ describe('XenServers.rollingPoolUpdate', function () {
     assert.deepEqual(calls.slice(3, 10), [
       ['recorder.settingChangedByRun', 'schedules', ['schedule-1']],
       ['updateSchedule', 'schedule-1', false],
-      ['recorder.settingChangedByRun', 'loadBalancer', undefined],
+      ['recorder.settingChangedByRun', 'loadBalancer', { autoload: false }],
       ['unloadPlugin', 'load-balancer'],
       ['recorder.settingChangedByRun', 'wlb', undefined],
       ['xapi.call', 'pool.set_wlb_enabled', false],
@@ -157,6 +215,20 @@ describe('XenServers.rollingPoolUpdate', function () {
         { acceptCurrentStateAsBaseline: undefined, rebootVm: undefined, shutdownPinnedVms: undefined },
       ],
     ])
+  })
+
+  it('tells that the load balancer is about to be loaded again until the re-enable delay has elapsed', async function () {
+    const { xenServers } = createXenServers({ loadBalancerLoaded: true })
+    assert.equal(xenServers.isRpuLoadBalancerReEnablePending(), false)
+
+    await xenServers.rollingPoolUpdate(pool)
+    assert.equal(xenServers.isRpuLoadBalancerReEnablePending(), true)
+
+    // the delay is 0 in this test: the plugin is loaded again in the next turns of the event loop
+    for (let i = 0; i < 100 && xenServers.isRpuLoadBalancerReEnablePending(); i++) {
+      await new Promise(resolve => setTimeout(resolve, 10))
+    }
+    assert.equal(xenServers.isRpuLoadBalancerReEnablePending(), false)
   })
 
   it('leaves the load balancer alone when its change cannot be recorded', async function () {
@@ -179,7 +251,7 @@ describe('XenServers.rollingPoolUpdate', function () {
     await assert.rejects(xenServers.rollingPoolUpdate(pool), error =>
       incorrectState.is(error, { property: 'partiallyUpdatedPool' })
     )
-    assert.deepEqual(calls.slice(-5), [
+    assert.deepEqual(calls.slice(-6), [
       ['updateSchedule', 'schedule-1', false],
       [
         'xapi.rollingPoolUpdate',
@@ -187,6 +259,7 @@ describe('XenServers.rollingPoolUpdate', function () {
       ],
       ['recorder.fail'],
       ['updateSchedule', 'schedule-1', true],
+      ['recorder.settingRestored', 'schedules', 'schedule-1'],
       ['recorder.dropIfNothingToRecover'],
     ])
   })
@@ -221,11 +294,374 @@ describe('XenServers.rollingPoolUpdate', function () {
 
   it('succeeds even if the recovery record cannot be deleted afterwards', async function () {
     const { calls, xenServers } = createXenServers({
-      deleteRecord: async () => {
+      completeRecord: async () => {
         throw new Error('store unavailable')
       },
     })
     await xenServers.rollingPoolUpdate(pool)
-    assert.equal(calls.at(-1)[0], 'xapi.rollingPoolUpdate')
+    assert.equal(calls.at(-1)[0], 'recorder.complete')
+  })
+
+  it('leaves alone the settings already disabled before the run', async function () {
+    const { calls, xenServers } = createXenServers({
+      schedules: [{ id: 'schedule-1', jobId: 'job-1', enabled: false }],
+    })
+    await xenServers.rollingPoolUpdate(pool)
+    assert.deepEqual(calls.slice(3), [
+      [
+        'xapi.rollingPoolUpdate',
+        { acceptCurrentStateAsBaseline: undefined, rebootVm: undefined, shutdownPinnedVms: undefined },
+      ],
+      ['recorder.complete'],
+    ])
+  })
+
+  it('restores a setting whose change failed, so a run failing before any host leaves nothing', async function () {
+    const { calls, xenServers } = createXenServers({
+      scheduleDisableRefused: 'schedule-1',
+      schedules: [
+        { id: 'schedule-1', jobId: 'job-1', enabled: true },
+        { id: 'schedule-2', jobId: 'job-1', enabled: true },
+      ],
+    })
+    await assert.rejects(xenServers.rollingPoolUpdate(pool), { message: 'schedule store unavailable' })
+    assert.deepEqual(calls.slice(3), [
+      ['recorder.settingChangedByRun', 'schedules', ['schedule-1']],
+      ['updateSchedule', 'schedule-1', false],
+      ['recorder.fail'],
+      ['updateSchedule', 'schedule-1', true],
+      ['recorder.settingRestored', 'schedules', 'schedule-1'],
+      ['recorder.dropIfNothingToRecover'],
+    ])
+
+    const wlb = createXenServers({ wlbDisableRefused: true, wlbEnabled: true })
+    await assert.rejects(wlb.xenServers.rollingPoolUpdate(pool), { message: 'WLB unreachable' })
+    assert.deepEqual(wlb.calls.slice(3), [
+      ['recorder.settingChangedByRun', 'wlb', undefined],
+      ['xapi.call', 'pool.set_wlb_enabled', false],
+      ['recorder.fail'],
+      ['xapi.call', 'pool.set_wlb_enabled', true],
+      ['recorder.settingRestored', 'wlb', undefined],
+      ['recorder.dropIfNothingToRecover'],
+    ])
+  })
+
+  it('completes the run once the settings are restored, even one which could not be', async function () {
+    const { calls, xenServers } = createXenServers({
+      loadBalancerLoaded: true,
+      wlbEnabled: true,
+      wlbRestoreRefused: true,
+    })
+    await xenServers.rollingPoolUpdate(pool)
+    assert.deepEqual(calls.slice(-3), [
+      ['xapi.call', 'pool.set_wlb_enabled', true],
+      ['recorder.settingRestored', 'loadBalancer', undefined],
+      ['recorder.complete'],
+    ])
+  })
+
+  it('writes no XenServer credentials to the record', async function () {
+    const secret = 'xs-secret'
+    const { calls, xenServers } = createXenServers({
+      loadBalancerLoaded: true,
+      withSchedule: true,
+      wlbEnabled: true,
+      xsCredentials: { username: secret, apikey: secret },
+    })
+    await xenServers.rollingPoolUpdate(pool, { bypassBackupCheck: true })
+    const recorded = calls.filter(([name]) => name === 'startRpuRecoveryRun' || name.startsWith('recorder.'))
+    assert.ok(recorded.length > 0)
+    assert.ok(!JSON.stringify(recorded).includes(secret))
+  })
+})
+
+describe('XenServers.resumeRollingPoolUpdate', function () {
+  it('runs outside of an API call as the automatic resume after a restart, in a new task of the same run', async function () {
+    const { calls, taskProperties, xenServers } = createXenServers()
+    xenServers._app.apiContext = undefined
+    await xenServers.resumeRollingPoolUpdate(pool, { automatic: true })
+    assert.ok(calls.some(([name]) => name === 'xapi.rollingPoolUpdate'))
+    assert.deepEqual(
+      calls.find(([name]) => name === 'resumeRpuRecoveryRun'),
+      ['resumeRpuRecoveryRun', 'pool-1', [], { acceptOperatorChanges: false, automatic: true }]
+    )
+    assert.equal(taskProperties[0].runId, 'run-1')
+    assert.equal(taskProperties[0].attempt, 2)
+  })
+
+  it('accepts the state of the pool in an automatic resume only when its run started on a host', async function () {
+    const acceptedBy = async opts => {
+      const { calls, xenServers } = createXenServers(opts)
+      await xenServers.resumeRollingPoolUpdate(pool, { automatic: true })
+      return calls.find(([name]) => name === 'xapi.rollingPoolUpdate')[1].acceptCurrentStateAsBaseline
+    }
+    // the master, first host of the run, may have been updated by it
+    assert.equal(await acceptedBy({ resumeHostsStarted: true }), true)
+    // nothing the run did: a half updated pool is left to the operator
+    assert.ok(!(await acceptedBy({ resumeHostsStarted: false })))
+  })
+
+  it('asks the backup guard again, then continues the same run where it stopped', async function () {
+    const { calls, taskProperties, xenServers } = createXenServers()
+    await xenServers.resumeRollingPoolUpdate(pool)
+    assert.deepEqual(calls, [
+      ['backupGuard', 'pool-1', { bypassBackupCheck: false, operation: 'resumeRollingPoolUpdate' }],
+      ['getAllJobs'],
+      ['resumeRpuRecoveryRun', 'pool-1', [], { acceptOperatorChanges: false, automatic: false }],
+      ['xapi.rollingPoolUpdate', { acceptCurrentStateAsBaseline: true, rebootVm: true, shutdownPinnedVms: true }],
+      [
+        'xapi.rollingPoolUpdate resume',
+        {
+          doneHostIds: new Set(['host-A']),
+          hostsStarted: true,
+          hostOrder: ['host-A', 'host-B'],
+          vmHomeById: { vm1: 'host-A' },
+          haltedPinnedVms: {},
+          changedByRun: {},
+        },
+      ],
+      ['recorder.complete'],
+    ])
+    assert.equal(taskProperties[0].runId, 'run-1')
+    assert.equal(taskProperties[0].attempt, 2)
+    assert.equal(taskProperties[0].acceptedOperatorChanges, undefined)
+  })
+
+  it('is refused without a license before the record is read', async function () {
+    const { calls, xenServers } = createXenServers({ licenseRefused: true })
+    await assert.rejects(xenServers.resumeRollingPoolUpdate(pool), { message: 'not licensed' })
+    assert.deepEqual(calls, [])
+  })
+
+  it('does not accept the operator changes in an automatic resume, which is refused', async function () {
+    const changes = [{ type: 'ha', id: 'pool-1', expected: 'disabled', observed: 'enabled' }]
+    const { calls, xenServers } = createXenServers({ operatorChanges: changes })
+    await assert.rejects(xenServers.resumeRollingPoolUpdate(pool, { automatic: true }), error =>
+      incorrectState.is(error, { actual: changes, property: 'operatorChanges' })
+    )
+    assert.deepEqual(
+      calls.find(([name]) => name === 'resumeRpuRecoveryRun'),
+      ['resumeRpuRecoveryRun', 'pool-1', [], { acceptOperatorChanges: false, automatic: true }]
+    )
+    assert.ok(!calls.some(([name]) => name === 'xapi.rollingPoolUpdate'))
+  })
+
+  it('lists in the task the operator changes it was asked to keep', async function () {
+    const changes = [{ type: 'wlb', id: 'pool-1', expected: 'disabled', observed: 'enabled' }]
+    const { calls, taskProperties, xenServers } = createXenServers({ acceptedOperatorChanges: changes })
+    await xenServers.resumeRollingPoolUpdate(pool, { acceptOperatorChanges: true })
+    assert.deepEqual(
+      calls.find(([name]) => name === 'resumeRpuRecoveryRun'),
+      ['resumeRpuRecoveryRun', 'pool-1', [], { acceptOperatorChanges: true, automatic: false }]
+    )
+    assert.deepEqual(taskProperties[0].acceptedOperatorChanges, changes)
+  })
+
+  it('leaves a failed task and a trace listing the operator changes which block it', async function () {
+    const changes = [{ type: 'ha', id: 'pool-1', expected: 'disabled', observed: 'enabled' }]
+    const { calls, taskProperties, xenServers } = createXenServers({
+      operatorChanges: changes,
+      traces: mkdtempSync(join(tracesDir, 'blocked-')),
+    })
+    await assert.rejects(xenServers.resumeRollingPoolUpdate(pool), error =>
+      incorrectState.is(error, { actual: changes, property: 'operatorChanges' })
+    )
+    assert.equal(taskProperties.length, 1)
+    const { name, type, operatorChanges, traceFile } = taskProperties[0]
+    assert.deepEqual(
+      { name, type, operatorChanges },
+      { name: 'Rolling pool update', type: 'pool.rolling_update', operatorChanges: changes }
+    )
+    const events = readFileSync(traceFile, 'utf8')
+      .trim()
+      .split('\n')
+      .map(line => JSON.parse(line))
+    assert.deepEqual(events[0].properties.operatorChanges, changes)
+    assert.equal(events.at(-1).status, 'failure')
+    assert.ok(!calls.some(([name]) => name === 'xapi.rollingPoolUpdate'))
+  })
+
+  it('is refused by the backup guard before the record is read', async function () {
+    const { calls, xenServers } = createXenServers({ backupRunning: true })
+    await assert.rejects(xenServers.resumeRollingPoolUpdate(pool, { bypassBackupCheck: false }), forbiddenOperation.is)
+    assert.deepEqual(calls, [
+      ['backupGuard', 'pool-1', { bypassBackupCheck: false, operation: 'resumeRollingPoolUpdate' }],
+    ])
+  })
+
+  it('keeps disabled during the run the settings a previous attempt left disabled, then restores them', async function () {
+    const { calls, xenServers } = createXenServers({
+      changedByRun: {
+        loadBalancer: { autoload: false },
+        schedules: ['schedule-1', 'schedule-2', 'schedule-deleted'],
+        wlb: true,
+      },
+      schedules: [
+        { id: 'schedule-1', jobId: 'job-1', enabled: false },
+        // enabled again by an operator since
+        { id: 'schedule-2', jobId: 'job-1', enabled: true },
+      ],
+    })
+    await xenServers.resumeRollingPoolUpdate(pool)
+    assert.deepEqual(calls.filter(([name]) => name !== 'xapi.rollingPoolUpdate resume').slice(3), [
+      ['recorder.settingRestored', 'schedules', 'schedule-2'],
+      ['recorder.settingRestored', 'schedules', 'schedule-deleted'],
+      ['recorder.settingChangedByRun', 'schedules', ['schedule-2']],
+      ['updateSchedule', 'schedule-2', false],
+      // its re-enabling timer was lost with xo-server: this attempt takes it over
+      ['recorder.settingChangedByRun', 'loadBalancer', { autoload: false }],
+      ['xapi.rollingPoolUpdate', { acceptCurrentStateAsBaseline: true, rebootVm: true, shutdownPinnedVms: true }],
+      ['xapi.call', 'pool.set_wlb_enabled', true],
+      ['recorder.settingRestored', 'wlb', undefined],
+      ['recorder.settingRestored', 'loadBalancer', undefined],
+      ['updateSchedule', 'schedule-2', true],
+      ['recorder.settingRestored', 'schedules', 'schedule-2'],
+      ['updateSchedule', 'schedule-1', true],
+      ['recorder.settingRestored', 'schedules', 'schedule-1'],
+      ['recorder.complete'],
+    ])
+    assert.equal(xenServers.isRpuLoadBalancerReEnablePending(), true)
+  })
+
+  it('keeps the load balancer a previous attempt left unloaded while its plugin cannot be found', async function () {
+    // uninstalled, or not registered yet right after a restart
+    const { calls, xenServers } = createXenServers({
+      changedByRun: { loadBalancer: { autoload: false } },
+      loadBalancerInstalled: false,
+    })
+    await xenServers.resumeRollingPoolUpdate(pool)
+    assert.deepEqual(
+      calls.filter(([name]) => name.startsWith('recorder.')),
+      [['recorder.complete']]
+    )
+    assert.equal(xenServers.isRpuLoadBalancerReEnablePending(), false)
+  })
+
+  it('keeps the load balancer a previous attempt left unloaded when this attempt cannot take it over', async function () {
+    const { calls, xenServers } = createXenServers({
+      changedByRun: { loadBalancer: { autoload: false } },
+      intentRefused: true,
+    })
+    await assert.rejects(xenServers.resumeRollingPoolUpdate(pool), { message: 'store unavailable' })
+    assert.deepEqual(
+      calls.filter(([name]) => name.startsWith('recorder.')),
+      [
+        ['recorder.settingChangedByRun', 'loadBalancer', { autoload: false }],
+        ['recorder.fail'],
+        ['recorder.dropIfNothingToRecover'],
+      ]
+    )
+    assert.equal(xenServers.isRpuLoadBalancerReEnablePending(), false)
+  })
+
+  it('records the failure of a resume', async function () {
+    const { calls, xenServers } = createXenServers({ updateRefused: true })
+    await assert.rejects(xenServers.resumeRollingPoolUpdate(pool), error =>
+      incorrectState.is(error, { property: 'partiallyUpdatedPool' })
+    )
+    assert.deepEqual(
+      calls.slice(-2).map(([name]) => name),
+      ['recorder.fail', 'recorder.dropIfNothingToRecover']
+    )
+  })
+})
+
+describe('XenServers.restoreRpuLeftovers', function () {
+  const items = [
+    { type: 'wlb', id: 'pool-1' },
+    { type: 'loadBalancer', id: 'load-balancer' },
+    { type: 'schedule', id: 'schedule-1', name: 'nightly' },
+  ]
+  const makeRecord = autoload => ({
+    changedByRun: { wlb: true, loadBalancer: { autoload }, schedules: ['schedule-1'] },
+  })
+
+  function setup(opts) {
+    const { calls, xenServers } = createXenServers({
+      schedules: [{ id: 'schedule-1', jobId: 'job-1', enabled: false }],
+      ...opts,
+    })
+    const xapi = xenServers.getXapi()
+    xenServers.getXapi = () => ({
+      ...xapi,
+      async restoreRpuLeftovers({ items }) {
+        calls.push(['xapi.restoreRpuLeftovers', items])
+      },
+    })
+    xenServers._app.loadPlugin = async id => {
+      calls.push(['loadPlugin', id])
+    }
+    const recorder = {
+      settingRestored(name, id) {
+        calls.push(['recorder.settingRestored', name, id])
+      },
+    }
+    return { calls, recorder, xenServers }
+  }
+
+  it('restores the pool first, then WLB, the load balancer and the backup schedules', async function () {
+    const { calls, recorder, xenServers } = setup()
+    await xenServers.restoreRpuLeftovers(pool, { record: makeRecord(false), items, recorder })
+    assert.deepEqual(calls, [
+      ['xapi.restoreRpuLeftovers', items],
+      ['xapi.call', 'pool.set_wlb_enabled', true],
+      ['recorder.settingRestored', 'wlb', undefined],
+      ['loadPlugin', 'load-balancer'],
+      ['recorder.settingRestored', 'loadBalancer', undefined],
+      ['updateSchedule', 'schedule-1', true],
+      ['recorder.settingRestored', 'schedules', 'schedule-1'],
+    ])
+  })
+
+  it('goes on after a failed restoration, which stays in the record', async function () {
+    const { calls, recorder, xenServers } = setup({ wlbRestoreRefused: true })
+    // the autoload of the plugin was disabled since the run unloaded it
+    await xenServers.restoreRpuLeftovers(pool, { record: makeRecord(true), items, recorder })
+    assert.deepEqual(calls, [
+      ['xapi.restoreRpuLeftovers', items],
+      ['xapi.call', 'pool.set_wlb_enabled', true],
+      ['updateSchedule', 'schedule-1', true],
+      ['recorder.settingRestored', 'schedules', 'schedule-1'],
+    ])
+  })
+
+  it('restores WLB through the connection the pool has once it is restored', async function () {
+    const { calls, recorder, xenServers } = setup()
+    const getXapi = xenServers.getXapi
+    xenServers.getXapi = () => ({
+      ...getXapi(),
+      // the master reconnects while the pool is restored
+      async restoreRpuLeftovers() {
+        xenServers.getXapi = () => ({
+          ...getXapi(),
+          async call(method) {
+            calls.push(['reconnected xapi.call', method])
+          },
+        })
+      },
+    })
+    await xenServers.restoreRpuLeftovers(pool, { record: makeRecord(false), items: [items[0]], recorder })
+    assert.deepEqual(calls, [
+      ['reconnected xapi.call', 'pool.set_wlb_enabled'],
+      ['recorder.settingRestored', 'wlb', undefined],
+    ])
+  })
+
+  it('goes on when the pool is no longer connected', async function () {
+    const { calls, recorder, xenServers } = setup()
+    xenServers.getXapi = () => undefined
+    await xenServers.restoreRpuLeftovers(pool, { record: makeRecord(false), items, recorder })
+    assert.deepEqual(calls, [
+      ['loadPlugin', 'load-balancer'],
+      ['recorder.settingRestored', 'loadBalancer', undefined],
+      ['updateSchedule', 'schedule-1', true],
+      ['recorder.settingRestored', 'schedules', 'schedule-1'],
+    ])
+  })
+
+  it('only restores what is listed', async function () {
+    const { calls, recorder, xenServers } = setup()
+    await xenServers.restoreRpuLeftovers(pool, { record: makeRecord(false), items: [], recorder })
+    assert.deepEqual(calls, [['xapi.restoreRpuLeftovers', []]])
   })
 })

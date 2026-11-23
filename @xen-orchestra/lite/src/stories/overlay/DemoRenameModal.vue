@@ -4,7 +4,7 @@
     <template #content>
       <div class="demo-rename-modal-content">
         <VtsInputWrapper label="New name">
-          <UiInput v-model.trim="newName" accent="brand" required />
+          <UiInput v-model.trim="newName" accent="neutral" required />
         </VtsInputWrapper>
         <p>
           Tip: name the VM "fail" to make the fake API call fail: the confirmation modal closes and this modal stays

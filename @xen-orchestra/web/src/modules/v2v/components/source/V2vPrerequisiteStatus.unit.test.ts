@@ -2,7 +2,7 @@ import V2vPrerequisiteStatus from '@/modules/v2v/components/source/V2vPrerequisi
 import type { V2vPrerequisiteState } from '@/modules/v2v/utils/v2v-prerequisite.util.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
-import UiInfo from '@core/components/ui/info/UiInfo.vue'
+import { findAccentedInfos } from '@core-test/find-accented-labels.ts'
 import { mount } from '@vue/test-utils'
 
 function mountStatus(prerequisite: V2vPrerequisiteState) {
@@ -19,8 +19,5 @@ it.each([
     t('v2v:prerequisite-error-detail', { error: 'glibc too old' }),
   ],
 ] satisfies [V2vPrerequisiteState, string, string][])('shows %j as a %s message', (prerequisite, accent, message) => {
-  const info = mountStatus(prerequisite).getComponent(UiInfo)
-
-  expect(info.text()).toBe(message)
-  expect(info.props('accent')).toBe(accent)
+  expect(findAccentedInfos(mountStatus(prerequisite))).toEqual([{ label: message, accent }])
 })

@@ -84,6 +84,7 @@ import type {
   CreateVmParams,
   FinalizeRollingUpdateBody,
   PoolDashboard,
+  ResumeRollingUpdateBody,
   RollingPoolActionBody,
   RollingPoolUpdateBody,
 } from './pool.type.mjs'
@@ -794,7 +795,13 @@ export class PoolController extends XapiXoController<XoPool> {
 
   /**
    * Recovery status of an incomplete rolling pool update: run and per-host
-   * step statuses, last error, pinned VMs still halted. 404 when the last
+   * step statuses, last error, pinned VMs still halted, VMs the update could
+   * not migrate back to their original host (`vmConflicts`), hosts a resume
+   * added to the plan because of patches released since the run started or
+   * because they joined the pool since (`planChange`), what an operator
+   * changed since: settings the update left changed, hosts, VMs or backup
+   * schedules of the update removed, which block its resume until accepted
+   * (`operatorChanges`). 404 when the last
    * rolling pool update completed successfully (no recovery needed), or when
    * the pool's master does not run XCP-ng or XenServer 8.4+ (no recovery
    * record is kept for those pools).
@@ -820,12 +827,20 @@ export class PoolController extends XapiXoController<XoPool> {
   }
 
   /**
-   * Close the record of an incomplete rolling pool update, once the pool has been reviewed.
+   * Close the record of an incomplete rolling pool update.
    *
-   * Refused with an `incorrect state` error listing what the update changed and did not restore (HA, auto power-on,
-   * WLB, load balancer, backup schedules, disabled hosts, displaced or halted VMs) while any item remains, or when
-   * the record cannot be read. Displaced VMs alone do not refuse it, they are only listed in the task. Set `force` to `true` to close it anyway: the items are abandoned and listed in the
-   * task, nothing is restored nor changed in the pool. 404 when the pool has no record.
+   * What the update changed and did not restore is restored first, best effort: disabled hosts are enabled, halted
+   * pinned VMs are started, displaced VMs are migrated back to their host, and HA, auto power-on, WLB, the load
+   * balancer and the backup schedules are enabled again. The record is closed once nothing is left but VMs which could
+   * not be migrated back: they do not keep the call refused.
+   *
+   * A host which was updated and not rebooted is left disabled, without its VMs: it keeps the call refused, resuming
+   * the update is what finishes it.
+   *
+   * Refused with an `incorrect state` error listing what could not be restored while any other item remains, or when
+   * the record cannot be read: the record is kept. Refused with a `forbidden operation` error while a backup runs or
+   * may run on the pool and VMs are left to migrate back. Set `force` to `true` to close it anyway: the items are
+   * abandoned and listed in the task, nothing is restored nor changed in the pool. 404 when the pool has no record.
    *
    * Required privilege:
    * - resource: pool, action: rolling-update
@@ -858,6 +873,64 @@ export class PoolController extends XapiXoController<XoPool> {
       statusCode: noContentResp.status,
       taskProperties: {
         name: 'finalize rolling pool update',
+        objectId: poolId,
+        params: body,
+        progress: 0,
+      },
+    })
+  }
+
+  /**
+   * Resume a failed or interrupted rolling pool update: the same run continues, the hosts with remaining work are
+   * evacuated, updated and rebooted, and a host a previous attempt finished is updated and rebooted again if patches
+   * were released since. Then the VMs are migrated back to the host they were on before the first attempt. The settings the previous attempts left disabled (HA, auto power on, backup schedules, WLB, load
+   * balancer) stay disabled until the end of the run, then are restored.
+   *
+   * The backup check is not taken from the previous attempts: set `bypassBackupCheck` again if needed.
+   *
+   * 404 when the pool has no record. Refused with an `incorrect state` error when the update is neither failed,
+   * interrupted nor awaiting acceptance.
+   *
+   * When an operator changed a setting the update left changed (HA, auto power on, WLB or a backup schedule enabled
+   * again, a heartbeat SR of HA deleted) or removed a host, a VM or a backup schedule of the update, the update goes
+   * to `awaiting-acceptance` and the resume is refused with an `incorrect state` error on `operatorChanges` listing
+   * them. Set
+   * `acceptOperatorChanges` to keep them: the update starts from the current state, as a new one would. A setting
+   * enabled again is disabled while the update runs and enabled again at its end, HA whose heartbeat SR was deleted
+   * stays disabled, and the removed hosts and VMs are left out.
+   *
+   * Required privilege:
+   * - resource: pool, action: rolling-update
+   *
+   * @example id "355ee47d-ff4c-4924-3db2-fd86ae629676"
+   * @example body { "bypassBackupCheck": false }
+   */
+  @Example(taskLocation)
+  @Extension('x-mcp-exposure', 'confirm')
+  @Post('{id}/actions/resume_rolling_update')
+  @Middlewares([json(), acl({ resource: 'pool', action: 'rolling-update', objectId: 'params.id' })])
+  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
+  @Response(noContentResp.status, noContentResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  @Response(featureUnauthorized.status, featureUnauthorized.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(incorrectStateResp.status, incorrectStateResp.description)
+  resumeRollingUpdate(
+    @Path() id: string,
+    @Body() body?: ResumeRollingUpdateBody,
+    @Query() sync?: boolean
+  ): CreateActionReturnType<void> {
+    const poolId = id as XoPool['id']
+    const action = async (task: VatesTask) => {
+      const pool = this.getObject(poolId)
+      await this.restApi.xoApp.resumeRollingPoolUpdate(pool, { ...body, parentTask: task })
+    }
+
+    return this.createAction<void>(action, {
+      sync,
+      statusCode: noContentResp.status,
+      taskProperties: {
+        name: 'resume rolling pool update',
         objectId: poolId,
         params: body,
         progress: 0,

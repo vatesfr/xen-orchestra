@@ -1,16 +1,22 @@
 import assert from 'assert/strict'
 import test from 'node:test'
 import { Readable } from 'node:stream'
-import { incorrectState } from 'xo-common/api-errors.js'
+import { incorrectState, noSuchObject } from 'xo-common/api-errors.js'
 
 import {
   buildRpuRecoveryView,
   createRpuRecoveryRecord,
   filterError,
+  isRpuHostAwaitingReboot,
+  listOperatorChanges,
+  listRpuPlanChange,
   listUnrestoredItems,
   noopRpuRecorder,
+  planRpuResume,
   readRpuRecoveryView,
   reconcileRpuRecoveryAtBoot,
+  restoreRpuSetting,
+  resumeRpuRecoveryRun,
   RPU_RECOVERY_SCHEMA_VERSION,
   startRpuRecoveryRun,
   unreadableRpuRecoveryView,
@@ -122,6 +128,8 @@ describe('buildRpuRecoveryView()', () => {
     record.vmHomeById = { vm1: 'h1' }
     record.hasMissingPatchesByHost = { h1: true, h2: false }
     record.haltedPinnedVms = { vm2: 'h1' }
+    record.vmConflicts = [{ vmId: 'vm3', vmName: 'vm 3', hostId: 'h2', reason: 'deleted' }]
+    record.operatorChanges = [{ type: 'wlb', id: 'pool1', expected: 'disabled', observed: 'enabled' }]
     record.hosts.h1 = {
       agentStartedAtBeforeUpdate: '123',
       steps: { evacuate: { status: 'observed-succeeded' }, reboot: { status: 'running', startedAt: 'T' } },
@@ -135,7 +143,18 @@ describe('buildRpuRecoveryView()', () => {
     assert.equal(view.variant, 'xcp')
     assert.deepEqual(view.hostOrder, ['h1', 'h2'])
     assert.deepEqual(view.haltedPinnedVms, { vm2: 'h1' })
+    assert.deepEqual(view.vmConflicts, [{ vmId: 'vm3', vmName: 'vm 3', hostId: 'h2', reason: 'deleted' }])
+    assert.deepEqual(view.operatorChanges, [{ type: 'wlb', id: 'pool1', expected: 'disabled', observed: 'enabled' }])
     assert.equal(view.lastError, null)
+    // a record written before the VM conflicts existed
+    assert.deepEqual(
+      buildRpuRecoveryView(createRpuRecoveryRecord({ poolId: 'pool1', options: OPTIONS })).vmConflicts,
+      []
+    )
+    assert.deepEqual(
+      buildRpuRecoveryView(createRpuRecoveryRecord({ poolId: 'pool1', options: OPTIONS })).operatorChanges,
+      []
+    )
 
     // raw intent is never exposed
     assert.equal(view.options, undefined)
@@ -150,6 +169,20 @@ describe('buildRpuRecoveryView()', () => {
     assert.equal(view.hosts.h1.steps.update.status, 'pending')
     // h2 not started yet but listed through hostOrder
     assert.equal(view.hosts.h2.status, 'pending')
+    // the plan did not change
+    assert.equal(view.planChange, undefined)
+  })
+
+  it('reports the hosts a resume added to the plan, not the recomputed inventory', () => {
+    const record = createRpuRecoveryRecord({ poolId: 'pool1', options: OPTIONS })
+    record.hasMissingPatchesByHost = { h1: false, h2: true }
+    record.recomputedPlan = { attempt: 2, hasMissingPatchesByHost: { h1: true, h2: true }, addedHostIds: ['h1'] }
+
+    assert.deepEqual(buildRpuRecoveryView(record).planChange, { attempt: 2, addedHostIds: ['h1'] })
+
+    // recomputed without new patches
+    record.recomputedPlan.addedHostIds = []
+    assert.equal(buildRpuRecoveryView(record).planChange, undefined)
   })
 
   it('derives per-host statuses', () => {
@@ -168,6 +201,54 @@ describe('buildRpuRecoveryView()', () => {
     assert.equal(view.hosts.skipped.status, 'not-needed')
     assert.equal(view.hosts.done.status, 'succeeded')
     assert.equal(view.hosts.half.status, 'running')
+  })
+
+  it('reports a host left in progress by a run that is over as interrupted', () => {
+    const record = createRpuRecoveryRecord({ poolId: 'pool1', options: OPTIONS })
+    record.hostOrder = ['stepRunning', 'half', 'failed', 'pending']
+    record.hosts.stepRunning = { steps: { evacuate: { status: 'running' } } }
+    record.hosts.half = { steps: { evacuate: { status: 'observed-succeeded' } } }
+    record.hosts.failed = { steps: { evacuate: { status: 'failed' } } }
+
+    for (const status of ['interrupted', 'failed']) {
+      record.status = status
+      const { hosts } = buildRpuRecoveryView(record)
+      assert.equal(hosts.stepRunning.status, 'interrupted')
+      assert.equal(hosts.half.status, 'interrupted')
+      assert.equal(hosts.failed.status, 'failed')
+      assert.equal(hosts.pending.status, 'pending')
+      // the step keeps what the run last wrote
+      assert.equal(hosts.stepRunning.steps.evacuate.status, 'running')
+    }
+  })
+
+  it('tells whether the run can be resumed', () => {
+    const record = createRpuRecoveryRecord({ poolId: 'pool1', options: OPTIONS })
+    record.hostOrder = ['h1']
+    record.hosts.h1 = { steps: { evacuate: { status: 'running' } } }
+    // live run
+    assert.equal(buildRpuRecoveryView(record).resumable, false)
+
+    for (const status of ['failed', 'interrupted', 'awaiting-acceptance']) {
+      record.status = status
+      assert.equal(buildRpuRecoveryView(record).resumable, true)
+    }
+
+    record.status = 'succeeded'
+    assert.equal(buildRpuRecoveryView(record).resumable, false)
+
+    // a host stopped after its evacuation
+    record.status = 'interrupted'
+    record.hosts.h1 = { steps: { evacuate: { status: 'observed-succeeded' }, update: { status: 'running' } } }
+    assert.equal(buildRpuRecoveryView(record).resumable, true)
+  })
+
+  it('exposes the attempt, 1 for a record written before resumes existed', () => {
+    const record = createRpuRecoveryRecord({ poolId: 'pool1', options: OPTIONS })
+    assert.equal(buildRpuRecoveryView(record).attempt, 1)
+
+    record.attempt = 3
+    assert.equal(buildRpuRecoveryView(record).attempt, 3)
   })
 })
 
@@ -293,10 +374,16 @@ describe('listUnrestoredItems()', () => {
   })
 
   it('lists the running VMs away from the host they were running on', () => {
-    const record = makeRecord({ vmHomeById: { vm1: 'h1', vm2: 'h1', vm3: 'h2', vm4: 'h2' } })
-    // vm2 is back home, vm3 is halted, vm4 is gone
-    const vms = { vm1: vm('vm 1', 'Running', 'h2'), vm2: vm('vm 2', 'Running', 'h1'), vm3: vm('vm 3', 'Halted') }
-    assert.deepEqual(listUnrestoredItems(record, makeLive({ vms })), [{ type: 'vm', id: 'vm1', name: 'vm 1' }])
+    const record = makeRecord({ vmHomeById: { vm1: 'h1', vm2: 'h1', vm3: 'h2', vm4: 'h2', vm5: 'h3' } })
+    // vm2 is back home, vm3 is halted, vm4 is gone, the home host of vm5 left the pool
+    const vms = {
+      vm1: vm('vm 1', 'Running', 'h2'),
+      vm2: vm('vm 2', 'Running', 'h1'),
+      vm3: vm('vm 3', 'Halted'),
+      vm5: vm('vm 5', 'Running', 'h1'),
+    }
+    const hosts = { h1: host('host 1', true), h2: host('host 2', true) }
+    assert.deepEqual(listUnrestoredItems(record, makeLive({ hosts, vms })), [{ type: 'vm', id: 'vm1', name: 'vm 1' }])
   })
 
   it('does not list the displaced VMs when the pool opted out of the migrate back', () => {
@@ -321,6 +408,87 @@ describe('listUnrestoredItems()', () => {
     assert.equal(listUnrestoredItems(undefined, makeLive()), null)
     assert.equal(listUnrestoredItems(null, makeLive()), null)
     assert.equal(listUnrestoredItems({ schemaVersion: 42, poolId: 'pool1' }, makeLive()), null)
+  })
+})
+
+describe('listOperatorChanges()', () => {
+  function makeRecord(changedByRun) {
+    return { ...createRpuRecoveryRecord({ poolId: 'pool1', options: OPTIONS }), status: 'interrupted', changedByRun }
+  }
+  // a pool as the run left it: every setting it touched still disabled
+  function makeLive({ pool, hosts = {}, schedules = {}, srs = {}, vms = {} } = {}) {
+    return {
+      pool: { ha_enabled: false, wlb_enabled: false, other_config: { auto_poweron: 'false' }, ...pool },
+      getHost: id => hosts[id],
+      getSchedule: id => schedules[id],
+      getSr: id => srs[id],
+      getVm: id => vms[id],
+    }
+  }
+  const HA = { srs: ['sr1'], configuration: { timeout: '60' } }
+
+  it('lists nothing when the pool is as the run left it', () => {
+    const record = makeRecord({ ha: HA, autoPowerOn: true, wlb: true, schedules: ['s1'] })
+    const live = makeLive({ schedules: { s1: { enabled: false, name: 'nightly' } }, srs: { sr1: {} } })
+    assert.deepEqual(listOperatorChanges(record, live), [])
+  })
+
+  it('lists the settings enabled again since the run disabled them', () => {
+    const record = makeRecord({ ha: HA, autoPowerOn: true, wlb: true, schedules: ['s1', 's2', 's3'] })
+    const live = makeLive({
+      pool: { ha_enabled: true, wlb_enabled: true, other_config: { auto_poweron: 'true' } },
+      // s3 was deleted
+      schedules: { s1: { enabled: true, name: 'nightly' }, s2: { enabled: false, name: 'weekly' } },
+    })
+    assert.deepEqual(listOperatorChanges(record, live), [
+      { type: 'ha', id: 'pool1', expected: 'disabled', observed: 'enabled' },
+      { type: 'autoPowerOn', id: 'pool1', expected: 'disabled', observed: 'enabled' },
+      { type: 'wlb', id: 'pool1', expected: 'disabled', observed: 'enabled' },
+      { type: 'schedule', id: 's1', name: 'nightly', expected: 'disabled', observed: 'enabled' },
+      { type: 'schedule', id: 's3', expected: 'disabled', observed: 'missing' },
+    ])
+  })
+
+  it('lists the hosts and VMs of the run which no longer exist', () => {
+    const record = {
+      ...makeRecord({}),
+      hostOrder: ['h1', 'h2'],
+      hosts: { h1: { steps: {} }, h2: { steps: {} } },
+      vmHomeById: { vm1: 'h1', vm2: 'h2' },
+      haltedPinnedVms: { vm3: 'h1' },
+    }
+    const live = makeLive({ hosts: { h1: {} }, vms: { vm1: {} } })
+    assert.deepEqual(listOperatorChanges(record, live), [
+      { type: 'host', id: 'h2', expected: 'present', observed: 'missing' },
+      { type: 'vm', id: 'vm2', expected: 'present', observed: 'missing' },
+      { type: 'vm', id: 'vm3', expected: 'present', observed: 'missing' },
+    ])
+  })
+
+  it('does not list again the VMs the run already reported as deleted', () => {
+    const record = {
+      ...makeRecord({}),
+      vmHomeById: { vm1: 'h1' },
+      vmConflicts: [{ vmId: 'vm1', hostId: 'h1', reason: 'deleted' }],
+    }
+    assert.deepEqual(listOperatorChanges(record, makeLive({ hosts: { h1: {} } })), [])
+  })
+
+  it('lists the HA heartbeat SRs which no longer exist', () => {
+    const record = makeRecord({ ha: { srs: ['sr1', 'sr2'], configuration: {} } })
+    assert.deepEqual(listOperatorChanges(record, makeLive({ srs: { sr1: {} } })), [
+      { type: 'haHeartbeatSr', id: 'sr2', expected: 'present', observed: 'missing' },
+    ])
+  })
+
+  it('never exposes the HA configuration', () => {
+    const record = makeRecord({ ha: { srs: ['sr1'], configuration: { secret: 'hunter2' } } })
+    const changes = listOperatorChanges(record, makeLive({ pool: { ha_enabled: true }, srs: { sr1: {} } }))
+    assert.equal(JSON.stringify(changes).includes('hunter2'), false)
+  })
+
+  it('returns null for an unreadable record', () => {
+    assert.equal(listOperatorChanges({ schemaVersion: 42 }, makeLive()), null)
   })
 })
 
@@ -418,6 +586,25 @@ describe('createRpuRecoveryRecorder()', () => {
     assert.deepEqual(stored().haltedPinnedVms, {})
   })
 
+  it('flush resolves once the requested writes reached the store, even a failed one', async () => {
+    const { store, recorder } = await makeRecorder()
+    const put = store.put.bind(store)
+    let written = 0
+    store.put = async (...args) => {
+      await new Promise(resolve => setImmediate(resolve))
+      if (++written === 2) {
+        throw new Error('disk full')
+      }
+      return put(...args)
+    }
+
+    recorder.setTaskId('task1')
+    recorder.setVariant('xcp')
+    await recorder.flush()
+
+    assert.equal(written, 2)
+  })
+
   it('recordHaltedPinnedVm is strict: rejects on write failure', async () => {
     const { store, recorder } = await makeRecorder()
     store.put = async () => {
@@ -438,6 +625,59 @@ describe('createRpuRecoveryRecorder()', () => {
       throw new Error('disk full')
     }
     await assert.rejects(recorder.settingChangedByRun('wlb'), /disk full/)
+  })
+
+  it('settingChangedByRun refused leaves no trace of a setting the run did not change', async () => {
+    const { store, recorder, stored } = await makeRecorder()
+    await recorder.settingChangedByRun('schedules', ['schedule-1'])
+
+    const { put } = store
+    store.put = async () => {
+      throw new Error('disk full')
+    }
+    await assert.rejects(recorder.settingChangedByRun('schedules', ['schedule-2']), /disk full/)
+    await assert.rejects(recorder.settingChangedByRun('wlb'), /disk full/)
+    store.put = put
+    await recorder.fail(new Error('disk full'))
+
+    assert.deepEqual(stored().changedByRun, { schedules: ['schedule-1'] })
+  })
+
+  it('settingChangedByRun keeps the schedules disabled by a previous attempt', async () => {
+    const { recorder, stored } = await makeRecorder()
+
+    await recorder.settingChangedByRun('schedules', ['schedule-1', 'schedule-2'])
+    await recorder.settingChangedByRun('schedules', ['schedule-2', 'schedule-3'])
+
+    assert.deepEqual(stored().changedByRun.schedules, ['schedule-1', 'schedule-2', 'schedule-3'])
+  })
+
+  it('hostStarting keeps the state of the host before the first attempt', async () => {
+    const { recorder, stored } = await makeRecorder()
+
+    recorder.hostStarting('h1', '123', true)
+    // resumed: the host was disabled by the interrupted attempt
+    recorder.hostStarting('h1', '456', false)
+    await recorder.fail(new Error('later'))
+
+    assert.equal(stored().hosts.h1.agentStartedAtBeforeUpdate, '123')
+    assert.equal(stored().hosts.h1.enabledBeforeUpdate, true)
+  })
+
+  it('settingRestored forgets a setting, or one schedule, once back to its value from before the run', async () => {
+    const { recorder, stored } = await makeRecorder()
+    await recorder.settingChangedByRun('ha', { srs: ['sr1'], configuration: {} })
+    await recorder.settingChangedByRun('wlb')
+    await recorder.settingChangedByRun('schedules', ['schedule-1', 'schedule-2'])
+
+    recorder.settingRestored('ha')
+    recorder.settingRestored('schedules', 'schedule-1')
+    await recorder.fail(new Error('later'))
+    assert.deepEqual(stored().changedByRun, { wlb: true, schedules: ['schedule-2'] })
+
+    recorder.settingRestored('schedules', 'schedule-2')
+    await recorder.fail(new Error('later'))
+    assert.deepEqual(stored().changedByRun, { wlb: true })
   })
 
   it('tracking writes are best effort: a write failure does not throw', async () => {
@@ -465,6 +705,29 @@ describe('createRpuRecoveryRecorder()', () => {
     assert.equal(step.status, 'failed')
     // last error is the most recent one, host and run wide
     assert.equal(stored().hosts.h1.lastError.message, 'second')
+  })
+
+  it('a record kept succeeded forgets the error of a previous attempt', async () => {
+    const { recorder, stored } = await makeRecorder()
+
+    await recorder.fail(new Error('could not migrate VMs back to their host: vm 7'))
+    recorder.setVmConflicts([{ vmId: 'vm7', vmName: 'vm 7', hostId: 'h1', reason: 'stopped' }])
+    await recorder.complete()
+
+    assert.equal(stored().status, 'succeeded')
+    assert.equal(stored().lastError, null)
+  })
+
+  it('setVmConflicts replaces the VMs the previous migrate back could not bring home', async () => {
+    const { recorder, stored } = await makeRecorder()
+    const conflicts = [{ vmId: 'vm2', vmName: 'vm 2', hostId: 'h1', reason: 'stopped' }]
+
+    recorder.setVmConflicts([{ vmId: 'vm1', hostId: 'h2', reason: 'migration-failed', message: 'OPERATION_BLOCKED' }])
+    recorder.setVmConflicts(conflicts)
+    await recorder.complete()
+
+    assert.deepEqual(stored().vmConflicts, conflicts)
+    assert.deepEqual(recorder.getVmConflicts(), conflicts)
   })
 
   it('hostSkipped marks every step not-needed', async () => {
@@ -530,6 +793,101 @@ describe('createRpuRecoveryRecorder()', () => {
     assert.equal(stored().status, 'failed')
   })
 
+  it('dropIfNothingToRecover keeps the record of a resume, which knows what the previous attempts changed', async () => {
+    const { store, recorder: firstAttempt } = await makeRecorder()
+    await firstAttempt.fail(new Error('interrupted'))
+    const { recorder } = await resumeRpuRecoveryRun({ store, poolId: 'pool1' })
+
+    await recorder.fail(new Error('boom'))
+    await recorder.dropIfNothingToRecover()
+
+    assert.equal(store.data.get('pool1').status, 'failed')
+  })
+
+  it('dropIfNothingToRecover keeps the record while a setting the run changed is not restored', async () => {
+    const { recorder, stored } = await makeRecorder()
+
+    await recorder.settingChangedByRun('wlb')
+    await recorder.fail(new Error('pinned VMs'))
+    await recorder.dropIfNothingToRecover()
+
+    assert.deepEqual(stored().changedByRun, { wlb: true })
+  })
+
+  it('setPatchInventory keeps the inventory of the first attempt', async () => {
+    const { recorder, stored } = await makeRecorder()
+
+    recorder.setPatchInventory({ h1: true, h2: true })
+    // resumed: h1 was updated by the previous attempt
+    recorder.setPatchInventory({ h1: false, h2: true })
+    await recorder.fail(new Error('later'))
+
+    assert.deepEqual(stored().hasMissingPatchesByHost, { h1: true, h2: true })
+  })
+
+  it('setPatchInventory keeps the plan a resume recomputed next to the initial inventory', async () => {
+    const { store, recorder, stored } = await makeRecorder()
+    recorder.setPatchInventory({ h1: false, h2: true })
+    await recorder.fail(new Error('first attempt'))
+
+    const { recorder: resumed } = await resumeRpuRecoveryRun({ store, poolId: 'pool1' })
+    resumed.setPatchInventory({ h1: true, h2: true }, ['h1'])
+    await resumed.fail(new Error('later'))
+
+    assert.deepEqual(stored().hasMissingPatchesByHost, { h1: false, h2: true })
+    assert.deepEqual(stored().recomputedPlan, {
+      attempt: 2,
+      hasMissingPatchesByHost: { h1: true, h2: true },
+      addedHostIds: ['h1'],
+    })
+  })
+
+  it('reopenHost forgets what a previous attempt did on a host, but not whether the operator had it enabled', async () => {
+    const { recorder, stored } = await makeRecorder()
+    recorder.hostStarting('h1', '123', false)
+    for (const name of ['evacuate', 'update', 'reboot', 'enable', 'restoreVms']) {
+      recorder.stepObserved('h1', name)
+    }
+
+    recorder.reopenHost('h1')
+    recorder.hostStarting('h1', '456', true)
+    await recorder.fail(new Error('later'))
+
+    assert.deepEqual(stored().hosts.h1, { steps: {}, enabledBeforeUpdate: false, agentStartedAtBeforeUpdate: '456' })
+  })
+
+  it('reopenHost leaves a host done while the attempt has not started it: its VMs are still to bring back', async () => {
+    const { recorder, stored } = await makeRecorder()
+    recorder.hostStarting('h1', '123', false)
+    for (const name of ['evacuate', 'update', 'reboot', 'enable']) {
+      recorder.stepObserved('h1', name)
+    }
+
+    recorder.reopenHost('h1')
+    await recorder.fail(new Error('failed before reaching h1'))
+
+    assert.deepEqual(Object.keys(stored().hosts.h1.steps), ['evacuate', 'update', 'reboot', 'enable'])
+  })
+
+  it('setPatchInventory keeps the hosts an earlier resume added when a later one adds none', async () => {
+    const { store, recorder, stored } = await makeRecorder()
+    recorder.setPatchInventory({ h1: false, h2: true })
+    await recorder.fail(new Error('first attempt'))
+    const { recorder: second } = await resumeRpuRecoveryRun({ store, poolId: 'pool1' })
+    second.setPatchInventory({ h1: true, h2: true }, ['h1'])
+    await second.fail(new Error('second attempt'))
+
+    const { recorder: third } = await resumeRpuRecoveryRun({ store, poolId: 'pool1' })
+    third.setPatchInventory({ h1: true, h2: false }, [])
+    await third.fail(new Error('third attempt'))
+
+    assert.deepEqual(stored().recomputedPlan, {
+      attempt: 2,
+      hasMissingPatchesByHost: { h1: true, h2: false },
+      addedHostIds: ['h1'],
+    })
+  })
+
   it('dropIfNothingToRecover never throws: the record stays failed when it cannot be dropped', async () => {
     const { store, recorder } = await makeRecorder()
     store.del = async () => {
@@ -542,28 +900,490 @@ describe('createRpuRecoveryRecorder()', () => {
     assert.equal(store.data.get('pool1').status, 'failed')
   })
 
-  it('delete removes the record after a successful run', async () => {
+  it('complete removes the record after a successful run which restored everything it changed', async () => {
     const { store, recorder } = await makeRecorder()
 
     recorder.markRunning()
-    await recorder.delete()
+    await recorder.settingChangedByRun('wlb')
+    recorder.settingRestored('wlb')
+    await recorder.complete()
 
     assert.equal(store.data.has('pool1'), false)
   })
 
-  it('delete is strict: rejects when the store fails', async () => {
+  it('complete keeps the record failed, with what is left to restore, when a setting could not be restored', async () => {
+    const { store, recorder } = await makeRecorder()
+
+    recorder.markRunning()
+    await recorder.settingChangedByRun('ha', { srs: ['sr1'], configuration: {} })
+    await recorder.settingChangedByRun('wlb')
+    recorder.settingRestored('wlb')
+    await recorder.complete()
+
+    const record = store.data.get('pool1')
+    assert.equal(record.status, 'failed')
+    assert.deepEqual(record.changedByRun, { ha: { srs: ['sr1'], configuration: {} } })
+    assert.match(record.lastError.message, /not restored: ha/)
+    assert.equal(typeof record.finishedAt, 'string')
+    // a resume restores it again
+    await resumeRpuRecoveryRun({ store, poolId: 'pool1' })
+    const resumed = store.data.get('pool1')
+    assert.equal(resumed.status, 'resuming')
+    assert.deepEqual(resumed.changedByRun, { ha: { srs: ['sr1'], configuration: {} } })
+  })
+
+  it('complete keeps the record failed when some VMs could not be migrated back, so that a resume retries them', async () => {
+    const { store, recorder } = await makeRecorder()
+
+    recorder.markRunning()
+    recorder.setVmConflicts([
+      { vmId: 'vm-1', vmName: 'vm 1', hostId: 'h2', reason: 'migration-failed', message: 'OPERATION_BLOCKED' },
+      { vmId: 'vm-2', vmName: 'vm 2', hostId: 'h1', reason: 'stopped' },
+    ])
+    await recorder.complete()
+
+    const record = store.data.get('pool1')
+    assert.equal(record.status, 'failed')
+    // named after the VMs, not after their host
+    assert.match(record.lastError.message, /vm 1/)
+    assert.doesNotMatch(record.lastError.message, /vm 2/)
+  })
+
+  it('complete keeps the record succeeded when VMs were stopped or deleted during the run, so that Finalize closes it', async () => {
+    const { store, recorder } = await makeRecorder()
+
+    recorder.markRunning()
+    recorder.setVmConflicts([
+      { vmId: 'vm-2', vmName: 'vm 2', hostId: 'h1', reason: 'stopped' },
+      { vmId: 'vm-3', hostId: 'h1', reason: 'deleted' },
+    ])
+    await recorder.complete()
+
+    assert.equal(store.data.get('pool1').status, 'succeeded')
+  })
+
+  it('complete is strict: rejects when the record cannot be deleted', async () => {
     const { store, recorder } = await makeRecorder()
     store.del = async () => {
       throw new Error('disk error')
     }
 
-    await assert.rejects(recorder.delete(), /disk error/)
+    await assert.rejects(recorder.complete(), /disk error/)
     // the record left behind is terminal: not flipped to interrupted at boot
     const record = store.data.get('pool1')
     assert.equal(record.status, 'succeeded')
     assert.equal(typeof record.finishedAt, 'string')
     await reconcileRpuRecoveryAtBoot(store)
     assert.equal(store.data.get('pool1').status, 'succeeded')
+  })
+})
+
+const allSteps = status =>
+  Object.fromEntries(['evacuate', 'update', 'reboot', 'enable', 'restoreVms'].map(name => [name, { status }]))
+
+describe('isRpuHostAwaitingReboot()', () => {
+  const awaiting = host => isRpuHostAwaitingReboot({ hosts: { h1: host } }, 'h1')
+
+  it('is true once the update of the host started, until its reboot is observed', () => {
+    assert.equal(awaiting({ steps: { update: { status: 'running' } } }), true)
+    assert.equal(awaiting({ steps: { update: { status: 'failed' } } }), true)
+    assert.equal(awaiting({ steps: { update: { status: 'observed-succeeded' }, reboot: { status: 'running' } } }), true)
+    // update started in an attempt before the last one
+    assert.equal(awaiting({ updateStarted: true, steps: { update: { status: 'not-needed' } } }), true)
+    assert.equal(
+      awaiting({ steps: { update: { status: 'observed-succeeded' }, reboot: { status: 'observed-succeeded' } } }),
+      false
+    )
+  })
+
+  it('is false for a host the run did not update', () => {
+    assert.equal(awaiting({ steps: { evacuate: { status: 'failed' } } }), false)
+    assert.equal(
+      awaiting({ steps: { evacuate: { status: 'observed-succeeded' }, update: { status: 'not-needed' } } }),
+      false
+    )
+    assert.equal(isRpuHostAwaitingReboot({}, 'h1'), false)
+  })
+
+  describe('with the live boot time of the host', () => {
+    const finishedAt = '2026-11-20T10:00:00.000Z'
+    const updateEndedAt = Date.parse(finishedAt) / 1e3
+    const awaitingAt = (update, bootTime) =>
+      isRpuHostAwaitingReboot(
+        { hosts: { h1: { steps: { update, reboot: { status: 'running' } } } } },
+        'h1',
+        bootTime === undefined ? undefined : String(bootTime)
+      )
+    it('is false for a host which booted after its update ended', () => {
+      assert.equal(awaitingAt({ status: 'observed-succeeded', finishedAt }, updateEndedAt + 60), false)
+    })
+    it('is true for a host which did not boot since its update ended', () => {
+      assert.equal(awaitingAt({ status: 'observed-succeeded', finishedAt }, updateEndedAt - 3600), true)
+    })
+    it('is true for a host which booted during an update which did not end: it may have part of the patches', () => {
+      assert.equal(awaitingAt({ status: 'failed', finishedAt }, updateEndedAt + 60), true)
+      assert.equal(awaitingAt({ status: 'running' }, updateEndedAt + 60), true)
+    })
+    it('is true when the boot time is unknown', () => {
+      assert.equal(awaitingAt({ status: 'observed-succeeded', finishedAt }, undefined), true)
+    })
+  })
+})
+
+describe('planRpuResume()', () => {
+  function makeRecord(hosts) {
+    const record = createRpuRecoveryRecord({ poolId: 'pool1', options: OPTIONS })
+    record.hostOrder = Object.keys(hosts)
+    record.hosts = Object.fromEntries(Object.entries(hosts).map(([hostId, steps]) => [hostId, { steps }]))
+    return record
+  }
+
+  it('sorts the hosts: done, unfinished, left alone', () => {
+    const record = makeRecord({
+      done: { ...allSteps('observed-succeeded'), restoreVms: { status: 'pending' } },
+      evacuateFailed: { evacuate: { status: 'failed' } },
+      evacuated: { evacuate: { status: 'observed-succeeded' } },
+      updateRunning: { evacuate: { status: 'observed-succeeded' }, update: { status: 'running' } },
+      rebootFailed: { ...allSteps('observed-succeeded'), reboot: { status: 'failed' } },
+      rebooting: { ...allSteps('observed-succeeded'), reboot: { status: 'running' }, enable: { status: 'pending' } },
+      ignored: allSteps('not-needed'),
+    })
+    record.hosts.updateRunning.agentStartedAtBeforeUpdate = '1700000000.5'
+    record.hosts.updateRunning.enabledBeforeUpdate = true
+    // not handled yet
+    record.hostOrder.push('pending')
+
+    const plan = planRpuResume(record)
+
+    assert.deepEqual([...plan.doneHostIds], ['done'])
+    assert.deepEqual(Object.keys(plan.unfinishedHosts), [
+      'evacuateFailed',
+      'evacuated',
+      'updateRunning',
+      'rebootFailed',
+      'rebooting',
+    ])
+    assert.deepEqual(plan.unfinishedHosts.updateRunning, {
+      agentStartedAtBeforeUpdate: '1700000000.5',
+      enabledBeforeUpdate: true,
+      rebooting: false,
+    })
+    assert.equal(plan.unfinishedHosts.rebootFailed.rebooting, false)
+    assert.equal(plan.unfinishedHosts.rebooting.rebooting, true)
+    assert.deepEqual([...plan.patchedHostIds], ['done', 'updateRunning', 'rebootFailed', 'rebooting'])
+    assert.equal(plan.hostsStarted, true)
+  })
+
+  it('passes on the patch inventory of the first attempt', () => {
+    const record = createRpuRecoveryRecord({ poolId: 'pool1', options: OPTIONS })
+    assert.equal(planRpuResume(record).patchInventory, undefined)
+
+    record.hasMissingPatchesByHost = { h1: true }
+    assert.deepEqual(planRpuResume(record).patchInventory, { h1: true })
+  })
+})
+
+describe('listRpuPlanChange()', () => {
+  it('lists the hosts with missing patches the initial plan did not update, or a previous attempt finished', () => {
+    const addedHostIds = listRpuPlanChange({
+      patchInventory: { current: false, done: true, pending: true, stillCurrent: false, doneCurrent: true },
+      hasMissingPatchesByHost: {
+        current: true,
+        done: true,
+        pending: true,
+        stillCurrent: false,
+        doneCurrent: false,
+        joined: true,
+      },
+      doneHostIds: new Set(['done', 'doneCurrent']),
+    })
+
+    assert.deepEqual(addedHostIds, ['current', 'done', 'joined'])
+  })
+
+  it('has no change without an initial inventory to compare to', () => {
+    assert.deepEqual(
+      listRpuPlanChange({
+        patchInventory: undefined,
+        hasMissingPatchesByHost: { h1: true },
+        doneHostIds: new Set(),
+      }),
+      []
+    )
+  })
+
+  it('has nothing done without a host order, nor started hosts without host', () => {
+    const record = createRpuRecoveryRecord({ poolId: 'pool1', options: OPTIONS })
+
+    const plan = planRpuResume(record)
+
+    assert.equal(plan.doneHostIds.size, 0)
+    assert.equal(plan.hostsStarted, false)
+    assert.deepEqual(plan.changedByRun, {})
+  })
+
+  it('passes on the settings the previous attempts changed, with their value from before the run', () => {
+    const record = createRpuRecoveryRecord({ poolId: 'pool1', options: OPTIONS })
+    record.changedByRun = { ha: { srs: ['sr1'], configuration: {} }, schedules: ['schedule-1'] }
+
+    assert.deepEqual(planRpuResume(record).changedByRun, record.changedByRun)
+  })
+})
+
+describe('resumeRpuRecoveryRun()', () => {
+  async function storeWith(patch) {
+    const store = makeFakeStore()
+    const record = createRpuRecoveryRecord({ poolId: 'pool1', options: OPTIONS })
+    Object.assign(record, { status: 'failed', finishedAt: 'T' }, patch)
+    await store.put('pool1', record)
+    return { store, record }
+  }
+
+  it('records whether the attempt was started automatically', async () => {
+    const { store } = await storeWith({ status: 'interrupted' })
+    await resumeRpuRecoveryRun({ store, poolId: 'pool1', automatic: true })
+    assert.equal(store.data.get('pool1').resumedAutomatically, true)
+
+    await store.put('pool1', { ...store.data.get('pool1'), status: 'failed' })
+    await resumeRpuRecoveryRun({ store, poolId: 'pool1' })
+    assert.equal(store.data.get('pool1').resumedAutomatically, false)
+  })
+
+  it('fails when the pool has no record', async () => {
+    await assert.rejects(resumeRpuRecoveryRun({ store: makeFakeStore(), poolId: 'pool1' }), error =>
+      noSuchObject.is(error, { id: 'pool1', type: 'rollingUpdateRecovery' })
+    )
+  })
+
+  it('refuses a record which is not failed nor interrupted', async () => {
+    for (const status of ['preparing', 'running', 'resuming', 'cleaning', 'succeeded']) {
+      const { store } = await storeWith({ status })
+      await assert.rejects(resumeRpuRecoveryRun({ store, poolId: 'pool1' }), error =>
+        incorrectState.is(error, { actual: status, property: 'status' })
+      )
+    }
+  })
+
+  it('refuses a blocked record', async () => {
+    const { store } = await storeWith({ schemaVersion: 42 })
+    await assert.rejects(
+      resumeRpuRecoveryRun({ store, poolId: 'pool1' }),
+      // `blocked` is an unreadable record, never a resumable status
+      error =>
+        incorrectState.is(error, { actual: 'blocked', property: 'status' }) && !error.data.expected.includes('blocked')
+    )
+
+    store.get = async () => {
+      throw new SyntaxError('Unexpected token')
+    }
+    await assert.rejects(resumeRpuRecoveryRun({ store, poolId: 'pool1' }), error =>
+      incorrectState.is(error, { actual: 'blocked', property: 'status' })
+    )
+  })
+
+  it('continues the same run: resuming on disk, attempt increased, failed steps of the previous attempt re-armed', async () => {
+    const { store, record } = await storeWith({
+      status: 'interrupted',
+      hostOrder: ['h1', 'h2', 'h3'],
+      hosts: {
+        h1: { steps: { ...allSteps('observed-succeeded'), restoreVms: { status: 'failed' } } },
+        h2: { steps: { evacuate: { status: 'failed' } } },
+        h3: { steps: { evacuate: { status: 'observed-succeeded' }, update: { status: 'failed' } } },
+      },
+    })
+
+    const resumed = await resumeRpuRecoveryRun({ store, poolId: 'pool1' })
+
+    const stored = store.data.get('pool1')
+    assert.equal(stored.runId, record.runId)
+    assert.equal(stored.status, 'resuming')
+    assert.equal(stored.attempt, 2)
+    assert.equal(stored.finishedAt, undefined)
+    assert.equal(stored.hosts.h1.steps.restoreVms.status, 'pending')
+    assert.equal(stored.hosts.h1.steps.reboot.status, 'observed-succeeded')
+    assert.equal(stored.hosts.h2.steps.evacuate.status, 'pending')
+    assert.equal(stored.hosts.h3.steps.update.status, 'pending')
+    assert.equal(resumed.recorder.runId, record.runId)
+    assert.equal(resumed.recorder.attempt, 2)
+    assert.deepEqual([...resumed.plan.doneHostIds], ['h1'])
+    // planned before the reset
+    assert.deepEqual([...resumed.plan.patchedHostIds], ['h1', 'h3'])
+
+    // a failure of the resume is recorded and the run can be resumed again
+    resumed.recorder.stepRunning('h2', 'evacuate')
+    resumed.recorder.hostFailed('h2', new Error('not enough memory'))
+    await resumed.recorder.fail(new Error('not enough memory'))
+    assert.equal(store.data.get('pool1').hosts.h2.steps.evacuate.status, 'failed')
+
+    const again = await resumeRpuRecoveryRun({ store, poolId: 'pool1' })
+    assert.equal(store.data.get('pool1').attempt, 3)
+    // h3 still patched although its update step was reset by the previous resume
+    assert.deepEqual([...again.plan.patchedHostIds], ['h1', 'h3'])
+  })
+
+  it('rejects when the resuming status cannot be written', async () => {
+    const { store } = await storeWith()
+    store.put = async () => {
+      throw new Error('disk full')
+    }
+
+    await assert.rejects(resumeRpuRecoveryRun({ store, poolId: 'pool1' }), /disk full/)
+  })
+
+  describe('with settings changed by an operator since the run', () => {
+    const HA = { srs: ['sr1'], configuration: {} }
+    const changedByRun = { ha: HA, autoPowerOn: true, schedules: ['s1', 's2'] }
+    // HA and s1 enabled again by hand, s2 still disabled
+    const live = {
+      pool: { ha_enabled: true, wlb_enabled: false, other_config: { auto_poweron: 'false' } },
+      getSchedule: id => ({ s1: { enabled: true, name: 'nightly' }, s2: { enabled: false, name: 'weekly' } })[id],
+      getSr: () => ({}),
+    }
+    const CHANGES = [
+      { type: 'ha', id: 'pool1', expected: 'disabled', observed: 'enabled' },
+      { type: 'schedule', id: 's1', name: 'nightly', expected: 'disabled', observed: 'enabled' },
+    ]
+
+    it('holds the record awaiting acceptance and lists the changes', async () => {
+      const { store } = await storeWith({ changedByRun })
+
+      await assert.rejects(resumeRpuRecoveryRun({ store, poolId: 'pool1', live }), error =>
+        incorrectState.is(error, { actual: CHANGES, object: 'pool1', property: 'operatorChanges' })
+      )
+      const stored = store.data.get('pool1')
+      assert.equal(stored.status, 'awaiting-acceptance')
+      assert.deepEqual(stored.operatorChanges, CHANGES)
+      // nothing started: same attempt, the failed steps are kept
+      assert.equal(stored.attempt, undefined)
+      assert.deepEqual(stored.changedByRun, changedByRun)
+    })
+
+    it('holds an automatic resume too, which the next restart does not resume again', async () => {
+      const { store } = await storeWith({ changedByRun, status: 'interrupted' })
+
+      await assert.rejects(resumeRpuRecoveryRun({ store, poolId: 'pool1', live, automatic: true }), error =>
+        incorrectState.is(error, { actual: CHANGES, object: 'pool1', property: 'operatorChanges' })
+      )
+      assert.equal(store.data.get('pool1').status, 'awaiting-acceptance')
+      assert.deepEqual(await reconcileRpuRecoveryAtBoot(store), [])
+      assert.equal(store.data.get('pool1').status, 'awaiting-acceptance')
+    })
+
+    it('still refuses when the awaiting-acceptance status cannot be written', async () => {
+      const { store } = await storeWith({ changedByRun })
+      store.put = async () => {
+        throw new Error('disk full')
+      }
+
+      await assert.rejects(resumeRpuRecoveryRun({ store, poolId: 'pool1', live }), error =>
+        incorrectState.is(error, { property: 'operatorChanges' })
+      )
+    })
+
+    it('adopts the changes once acknowledged', async () => {
+      const { store } = await storeWith({ changedByRun, status: 'awaiting-acceptance', operatorChanges: CHANGES })
+
+      const { plan, acceptedOperatorChanges } = await resumeRpuRecoveryRun({
+        store,
+        poolId: 'pool1',
+        live,
+        acceptOperatorChanges: true,
+      })
+
+      assert.deepEqual(acceptedOperatorChanges, CHANGES)
+      const expected = { autoPowerOn: true, schedules: ['s2'] }
+      assert.deepEqual(plan.changedByRun, expected)
+      const stored = store.data.get('pool1')
+      assert.equal(stored.status, 'resuming')
+      assert.deepEqual(stored.changedByRun, expected)
+      assert.equal(stored.operatorChanges, undefined)
+    })
+
+    it('forgets the hosts, VMs and schedules gone since the run once acknowledged', async () => {
+      const { store } = await storeWith({
+        changedByRun: { schedules: ['s1', 's2'] },
+        hostOrder: ['h1', 'h2'],
+        hosts: { h1: { steps: {} }, h2: { steps: {} } },
+        hasMissingPatchesByHost: { h1: true, h2: true },
+        // vm2 still exists, but its home host is gone
+        vmHomeById: { vm1: 'h1', vm2: 'h2', vm3: 'h1' },
+        haltedPinnedVms: { vm4: 'h2', vm5: 'h1' },
+      })
+      const gone = {
+        ...live,
+        getHost: id => ({ h1: {} })[id],
+        getSchedule: id => ({ s2: { enabled: false, name: 'weekly' } })[id],
+        getVm: id => ({ vm1: {}, vm2: {}, vm4: {}, vm5: {} })[id],
+      }
+
+      const { acceptedOperatorChanges } = await resumeRpuRecoveryRun({
+        store,
+        poolId: 'pool1',
+        live: gone,
+        acceptOperatorChanges: true,
+      })
+
+      assert.deepEqual(acceptedOperatorChanges, [
+        { type: 'schedule', id: 's1', expected: 'disabled', observed: 'missing' },
+        { type: 'host', id: 'h2', expected: 'present', observed: 'missing' },
+        { type: 'vm', id: 'vm3', expected: 'present', observed: 'missing' },
+      ])
+      const stored = store.data.get('pool1')
+      assert.deepEqual(stored.changedByRun, { schedules: ['s2'] })
+      assert.deepEqual(stored.hostOrder, ['h1'])
+      assert.deepEqual(Object.keys(stored.hosts), ['h1'])
+      assert.deepEqual(stored.hasMissingPatchesByHost, { h1: true })
+      assert.deepEqual(stored.vmHomeById, { vm1: 'h1' })
+      assert.deepEqual(stored.haltedPinnedVms, { vm5: 'h1' })
+    })
+
+    it('no longer lists a host gone since the run among the hosts added to the plan', async () => {
+      const { store } = await storeWith({
+        hostOrder: ['h1', 'h2'],
+        hosts: { h1: { steps: {} }, h2: { steps: {} } },
+        hasMissingPatchesByHost: { h1: false, h2: false },
+        recomputedPlan: { attempt: 2, hasMissingPatchesByHost: { h1: true, h2: true }, addedHostIds: ['h1', 'h2'] },
+      })
+
+      await resumeRpuRecoveryRun({
+        store,
+        poolId: 'pool1',
+        live: { ...live, getHost: id => ({ h1: {} })[id] },
+        acceptOperatorChanges: true,
+      })
+
+      const stored = store.data.get('pool1')
+      assert.deepEqual(stored.recomputedPlan, {
+        attempt: 2,
+        hasMissingPatchesByHost: { h1: true },
+        addedHostIds: ['h1'],
+      })
+      assert.deepEqual(buildRpuRecoveryView(stored).planChange, { attempt: 2, addedHostIds: ['h1'] })
+    })
+
+    it('gives up the HA restoration when a heartbeat SR is gone', async () => {
+      const { store } = await storeWith({ changedByRun: { ha: HA } })
+      const noSr = { ...live, pool: { ...live.pool, ha_enabled: false }, getSr: () => undefined }
+
+      const { plan } = await resumeRpuRecoveryRun({ store, poolId: 'pool1', live: noSr, acceptOperatorChanges: true })
+
+      assert.deepEqual(plan.changedByRun, {})
+    })
+
+    it('resumes a record awaiting acceptance once the operator reverted the changes', async () => {
+      const { store } = await storeWith({
+        changedByRun: { autoPowerOn: true },
+        status: 'awaiting-acceptance',
+        operatorChanges: CHANGES,
+      })
+
+      const { acceptedOperatorChanges } = await resumeRpuRecoveryRun({ store, poolId: 'pool1', live })
+
+      assert.deepEqual(acceptedOperatorChanges, [])
+      const stored = store.data.get('pool1')
+      assert.equal(stored.status, 'resuming')
+      assert.equal(stored.operatorChanges, undefined)
+    })
   })
 })
 
@@ -627,19 +1447,64 @@ describe('reconcileRpuRecoveryAtBoot()', () => {
         })()
       )
 
-    await reconcileRpuRecoveryAtBoot(store)
+    assert.deepEqual(await reconcileRpuRecoveryAtBoot(store), [])
+  })
+
+  it('returns the pools whose run this restart interrupted, to resume them automatically', async () => {
+    const store = makeFakeStore()
+    for (const [poolId, status, resumedAutomatically] of [
+      ['running', 'running'],
+      ['resumed-by-hand', 'resuming', false],
+      ['resumed-automatically', 'resuming', true],
+      ['interrupted', 'interrupted'],
+      ['failed', 'failed'],
+      ['succeeded', 'succeeded'],
+    ]) {
+      const record = createRpuRecoveryRecord({ poolId, options: OPTIONS })
+      record.status = status
+      if (resumedAutomatically !== undefined) {
+        record.resumedAutomatically = resumedAutomatically
+      }
+      await store.put(poolId, record)
+    }
+    await store.put('unknown-version', { schemaVersion: 42, status: 'running' })
+
+    const poolIds = await reconcileRpuRecoveryAtBoot(store)
+
+    // a run a previous restart interrupted waits for a manual resume, and an
+    // automatic resume interrupted in turn is not chained with another one
+    assert.deepEqual(poolIds.sort(), ['resumed-by-hand', 'running'])
+    assert.equal(store.data.get('resumed-automatically').status, 'interrupted')
   })
 })
 
 describe('noopRpuRecorder', () => {
   it('accepts every recorder call without effect', async () => {
     noopRpuRecorder.markRunning()
+    await noopRpuRecorder.flush()
     noopRpuRecorder.stepRunning('h1', 'evacuate')
     noopRpuRecorder.hostFailed('h1', new Error('boom'))
     await noopRpuRecorder.recordHaltedPinnedVm('vm1', 'h1')
     await noopRpuRecorder.settingChangedByRun('ha')
     await noopRpuRecorder.fail(new Error('boom'))
     await noopRpuRecorder.dropIfNothingToRecover()
-    await noopRpuRecorder.delete()
+    noopRpuRecorder.settingRestored('ha')
+    await noopRpuRecorder.complete()
+    noopRpuRecorder.setVmConflicts([{ vmId: 'vm1', hostId: 'h1', reason: 'stopped' }])
+    assert.deepEqual(noopRpuRecorder.getVmConflicts(), [])
+  })
+})
+
+describe('restoreRpuSetting()', () => {
+  it('records the setting as restored only once the restore succeeded, and never throws', async () => {
+    const restored = []
+    const recorder = { ...noopRpuRecorder, settingRestored: (name, id) => restored.push([name, id]) }
+
+    await restoreRpuSetting(recorder, 'schedules', async () => {}, 'schedule-1')
+    await restoreRpuSetting(recorder, 'wlb', async () => {
+      throw new Error('WLB unreachable')
+    })
+
+    assert.deepEqual(restored, [['schedules', 'schedule-1']])
   })
 })

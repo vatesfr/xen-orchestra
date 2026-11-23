@@ -7,7 +7,7 @@
     @dismiss="emit('cancel')"
   >
     <template #content>
-      <UiTextarea v-model="editedJson" accent="brand" class="modal-textarea" />
+      <UiTextarea v-model="editedJson" accent="neutral" class="modal-textarea" />
       <VtsOverlayButton variant="tertiary" @click="formatJson()">
         {{ t('action:reformat') }}
       </VtsOverlayButton>

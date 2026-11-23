@@ -3,7 +3,7 @@
     v-slot="{ properties, settings }"
     :params="[
       model().type('string').preset(''),
-      prop('accent').enum('brand', 'warning', 'danger').required().preset('brand').widget(),
+      prop('accent').enum('neutral', 'warning', 'danger').required().preset('neutral').widget(),
       prop('disabled').bool().widget(),
       prop('href').str().widget(),
       prop('max-characters').num().help('When used, it will display the character count under the input').widget(),

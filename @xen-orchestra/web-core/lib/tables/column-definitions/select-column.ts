@@ -32,5 +32,5 @@ function getSelectSlots(optionIcon: SelectColumnConfig['optionIcon']) {
 export const useSelectColumn = defineColumn((config?: SelectColumnConfig) => ({
   renderHead: () => renderHeadCell(config?.headerLabel),
   renderBody: (id: FormSelectId) =>
-    renderBodyCell(() => h(VtsSelect, { accent: 'brand', id }, getSelectSlots(config?.optionIcon))),
+    renderBodyCell(() => h(VtsSelect, { accent: 'neutral', id }, getSelectSlots(config?.optionIcon))),
 }))

@@ -19,7 +19,7 @@ export const useInputColumn = defineColumn((config?: HeaderConfig & InputConfig)
   ) =>
     renderBodyCell(() =>
       h(UiInput, {
-        accent: 'brand',
+        accent: 'neutral',
         placeholder: toValue(config?.placeholder),
         type: toValue(config?.type),
         ...inputProps,
