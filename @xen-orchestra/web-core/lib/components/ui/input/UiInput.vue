@@ -1,4 +1,4 @@
-<!-- v9 -->
+<!-- v10 -->
 <template>
   <div :class="toVariants({ accent, disabled, selected })" class="ui-input" @click.self="focus()">
     <span v-if="slots.prefix || prefix" class="prefix">
@@ -18,17 +18,22 @@
       :disabled
       :required
       :type
+      :aria-busy="busy || undefined"
+      :aria-describedby="wrapperController?.describedBy"
+      :aria-invalid="wrapperController?.invalid || undefined"
       class="typo-body-regular input text-ellipsis"
       v-bind="attrs"
       @input="event => handleInput(event)"
     />
+    <UiLoader v-if="busy" class="loader" />
     <UiButtonIcon
-      v-if="!disabled && modelValue && clearable"
+      v-if="isClearButtonVisible"
       size="small"
       icon="action:close-cancel-clear"
       accent="brand"
       @click="clear()"
     />
+    <VtsIcon v-if="isSuccessIconVisible" name="status:success-circle" size="medium" />
     <slot v-if="slots['right-icon'] || rightIcon" name="right-icon">
       <VtsIcon :name="rightIcon" size="medium" class="right-icon" />
     </slot>
@@ -43,14 +48,13 @@
 <script lang="ts" setup>
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
-import type { LabelAccent } from '@core/components/ui/label/UiLabel.vue'
+import UiLoader from '@core/components/ui/loader/UiLoader.vue'
+import { useInputWrapperController } from '@core/composables/input-wrapper-controller.composable.ts'
 import type { IconName } from '@core/icons'
-import { useMapper } from '@core/packages/mapper/use-mapper.ts'
-import { IK_INPUT_WRAPPER_CONTROLLER } from '@core/utils/injection-keys.util.ts'
 import { toVariants } from '@core/utils/to-variants.util.ts'
-import { inject, ref, useAttrs, watchEffect } from 'vue'
+import { computed, ref, useAttrs } from 'vue'
 
-export type InputAccent = 'brand' | 'warning' | 'danger'
+export type InputAccent = 'neutral' | 'success' | 'warning' | 'danger'
 
 export type InputType = 'text' | 'number' | 'password' | 'search'
 
@@ -58,11 +62,14 @@ defineOptions({
   inheritAttrs: false,
 })
 const {
-  accent: _accent,
+  accent: rawAccent,
   required,
   disabled,
   id,
   detached,
+  busy,
+  readonly,
+  clearable,
 } = defineProps<{
   accent: InputAccent
   id?: string
@@ -74,6 +81,7 @@ const {
   type?: InputType
   rightIcon?: IconName
   clearable?: boolean
+  busy?: boolean
   prefix?: string
   suffix?: string
 }>()
@@ -98,23 +106,16 @@ const attrs = useAttrs()
 
 const inputRef = ref<HTMLInputElement>()
 
-const wrapperController = detached ? undefined : inject(IK_INPUT_WRAPPER_CONTROLLER, undefined)
+const { wrapperController, accent } = useInputWrapperController({
+  accent: () => rawAccent,
+  accents: ['neutral', 'success', 'warning', 'danger'],
+  required: () => required,
+  detached,
+})
 
-const accent = useMapper<LabelAccent, InputAccent>(
-  () => wrapperController?.labelAccent,
-  () => ({
-    neutral: _accent,
-    warning: 'warning',
-    danger: 'danger',
-  }),
-  'neutral'
-)
+const isClearButtonVisible = computed(() => clearable && !disabled && !readonly && Boolean(modelValue.value))
 
-if (wrapperController) {
-  watchEffect(() => {
-    wrapperController.required = required
-  })
-}
+const isSuccessIconVisible = computed(() => accent.value === 'success' && !disabled && !busy && !readonly)
 
 function focus() {
   inputRef.value?.focus()
@@ -131,6 +132,8 @@ defineExpose({ focus })
 
 <style lang="postcss" scoped>
 .ui-input {
+  --padding-inline: 1.6rem;
+
   display: flex;
   align-items: center;
   gap: 1.6rem;
@@ -142,11 +145,16 @@ defineExpose({ focus })
   height: 4rem;
   width: 100%;
   text-align: left;
-  padding-inline: 1.6rem;
+  padding-inline: var(--padding-inline);
 
-  .right-icon {
+  .right-icon,
+  .loader {
     pointer-events: none;
     color: var(--color-brand-txt-base);
+  }
+
+  .loader {
+    flex-shrink: 0;
   }
 
   .prefix,
@@ -163,15 +171,15 @@ defineExpose({ focus })
   .prefix {
     border-end-start-radius: 0.4rem;
     border-start-start-radius: 0.4rem;
-    border-inline-end: 0.1rem solid var(--color-neutral-border);
-    margin-inline-start: -1.6rem;
+    border-inline-end: 0.1rem solid var(--color-neutral-txt-secondary);
+    margin-inline-start: calc(-1 * var(--padding-inline));
   }
 
   .suffix {
     border-end-end-radius: 0.4rem;
     border-start-end-radius: 0.4rem;
-    border-inline-start: 0.1rem solid var(--color-neutral-border);
-    margin-inline-end: -1.6rem;
+    border-inline-start: 0.1rem solid var(--color-neutral-txt-secondary);
+    margin-inline-end: calc(-1 * var(--padding-inline));
   }
 
   &.disabled .right-icon {
@@ -202,62 +210,53 @@ defineExpose({ focus })
 
   /* VARIANT */
 
-  &.accent--brand {
-    --selected-color: var(--color-brand-item-base);
-    border-color: var(--color-neutral-border);
+  &.accent--neutral {
+    --idle-color: var(--color-neutral-txt-secondary);
+    --hover-color: var(--color-brand-txt-hover);
+    --active-color: var(--color-brand-txt-active);
+    --selected-color: var(--color-brand-txt-base);
+  }
 
-    &:hover {
-      border-color: var(--color-brand-item-hover);
-    }
-
-    &:has(input:active) {
-      border-color: var(--color-brand-item-active);
-    }
-
-    &.disabled {
-      border-color: var(--color-neutral-border);
-      background-color: var(--color-neutral-background-disabled);
-    }
+  &.accent--success {
+    --idle-color: var(--color-success-txt-base);
+    --hover-color: var(--color-success-txt-hover);
+    --active-color: var(--color-success-txt-active);
+    --selected-color: var(--color-success-txt-base);
   }
 
   &.accent--warning {
-    --selected-color: var(--color-warning-item-base);
-    border-color: var(--color-warning-item-base);
-
-    &:hover {
-      border-color: var(--color-warning-item-hover);
-    }
-
-    &:has(input:active) {
-      border-color: var(--color-warning-item-active);
-    }
-
-    &.disabled {
-      border-color: var(--color-neutral-border);
-      background-color: var(--color-neutral-background-disabled);
-    }
+    --idle-color: var(--color-warning-txt-base);
+    --hover-color: var(--color-warning-txt-hover);
+    --active-color: var(--color-warning-txt-active);
+    --selected-color: var(--color-warning-txt-base);
   }
 
   &.accent--danger {
-    --selected-color: var(--color-danger-item-base);
-    border-color: var(--color-danger-item-base);
+    --idle-color: var(--color-danger-txt-base);
+    --hover-color: var(--color-danger-txt-hover);
+    --active-color: var(--color-danger-txt-active);
+    --selected-color: var(--color-danger-txt-base);
+  }
 
-    &:hover {
-      border-color: var(--color-danger-item-hover);
-    }
+  border-color: var(--idle-color);
 
-    &:has(input:active) {
-      border-color: var(--color-danger-item-active);
-    }
+  &:hover {
+    border-color: var(--hover-color);
+  }
 
-    &.disabled {
-      border-color: var(--color-neutral-border);
-      background-color: var(--color-neutral-background-disabled);
-    }
+  &:has(input:active) {
+    border-color: var(--active-color);
+  }
+
+  &.disabled {
+    border-color: var(--color-neutral-txt-secondary);
+    background-color: var(--color-neutral-background-disabled);
   }
 
   &:focus-within,
   &.selected {
+    --padding-inline: 1.5rem;
+
     border-color: var(--selected-color);
     border-width: 0.2rem;
   }

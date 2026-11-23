@@ -8,18 +8,21 @@ export class BackupRepositoryService {
   constructor(@inject(RestApi) restApi: RestApi) {
     this.#restApi = restApi
   }
-  isBackupRepositoryReferenced(
-    idsToCheck: AnyXoBackupJob['remotes'],
 
-    repositoryId: XoBackupRepository['id']
-  ): boolean {
+  isBackupRepositoryReferenced(idsToCheck: AnyXoBackupJob['remotes'], repositoryId: XoBackupRepository['id']): boolean {
     if (idsToCheck === undefined) {
       return false
     }
-    const { id } = idsToCheck
-    const ids = typeof id === 'string' ? [id] : id.__or
-    return ids.includes(repositoryId)
+
+    if (typeof idsToCheck === 'string') {
+      return true
+    } else {
+      const { id } = idsToCheck
+      const ids = typeof id === 'string' ? [id] : id.__or
+      return ids.includes(repositoryId)
+    }
   }
+
   public async getReferencingJobs(repositoryId: XoBackupRepository['id']): Promise<AnyXoBackupJob['id'][]> {
     const allJobs = await this.#restApi.xoApp.getAllJobs()
     const referencingJobs: AnyXoBackupJob['id'][] = []

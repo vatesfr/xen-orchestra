@@ -7,7 +7,9 @@
         </template>
       </HostPifsTable>
     </UiCard>
-    <HostPifSidePanel :pif="selectedPif" @close="selectedPif = undefined" />
+    <template #panel>
+      <HostPifSidePanel :pif="selectedPif" @close="selectedPif = undefined" />
+    </template>
   </VtsContentSidePanel>
 </template>
 

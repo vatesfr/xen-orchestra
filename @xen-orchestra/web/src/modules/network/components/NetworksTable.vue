@@ -1,12 +1,13 @@
 <template>
   <div class="networks-table">
     <UiTitle>
-      {{ internal ? t('host-internal-networks') : t('networks') }}
+      {{ title }}
       <template #action>
         <slot name="title-actions" />
       </template>
     </UiTitle>
-    <VtsQueryBuilder :model-value="filter" :schema @search="filter = $event" />
+    <UiAlert v-if="type === 'internal'" accent="info">{{ t('host-internal-networks-info') }}</UiAlert>
+    <VtsQueryBuilder v-bind="searchBindings" :schema />
     <div class="container">
       <VtsTable :state :pagination-bindings sticky="right">
         <thead>
@@ -26,13 +27,14 @@
 
 <script setup lang="ts">
 import { useNetworkDelete } from '@/modules/network/composables/use-network-delete.composable.ts'
+import { useXoNetworkUtils } from '@/modules/network/composables/xo-network-utils.composable.ts'
 import type { FrontXoNetwork } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
-import { getNetworkStatus } from '@/modules/network/utils/xo-network.util.ts'
+import { getNetworkRoute, getNetworkStatus } from '@/modules/network/utils/xo-network.util.ts'
 import { useXoPifCollection } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
-import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import VtsQueryBuilder from '@core/components/query-builder/VtsQueryBuilder.vue'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
+import UiAlert from '@core/components/ui/alert/UiAlert.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { usePagination } from '@core/composables/pagination.composable.ts'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
@@ -49,14 +51,14 @@ import { useI18n } from 'vue-i18n'
 
 const {
   networks: rawNetworks,
-  internal,
+  type,
   busy,
   error,
 } = defineProps<{
   networks: FrontXoNetwork[]
   busy?: boolean
   error?: boolean
-  internal?: boolean
+  type?: 'internal' | 'private'
 }>()
 
 defineSlots<{
@@ -65,11 +67,27 @@ defineSlots<{
 
 const { t } = useI18n()
 
-const { pifs, getPifsByIds } = useXoPifCollection()
+const { getPifsByIds } = useXoPifCollection()
 
 const selectedNetworkId = useRouteQuery('id')
 
-const { items: filteredNetworks, filter } = useQueryBuilderFilter(internal ? 'inw' : 'nw', () => rawNetworks)
+function getTableConfig() {
+  if (type === 'internal') {
+    return { getTitle: () => t('host-internal-networks'), filterId: 'inw', paginationId: 'internal-networks' }
+  }
+
+  if (type === 'private') {
+    return { getTitle: () => t('private-network', 2), filterId: 'pnw', paginationId: 'private-networks' }
+  }
+
+  return { getTitle: () => t('networks'), filterId: 'nw', paginationId: 'networks' }
+}
+
+const tableConfig = getTableConfig()
+
+const title = computed(() => tableConfig.getTitle())
+
+const { items: filteredNetworks, searchBindings } = useQueryBuilderFilter(tableConfig.filterId, () => rawNetworks)
 
 const schema = useQueryBuilderSchema<FrontXoNetwork>({
   '': useStringSchema(t('any-property')),
@@ -93,29 +111,15 @@ const state = useTableState({
         : false,
 })
 
-const getNetworkVlan = (network: FrontXoNetwork) => {
-  const networkPIFs = pifs.value.filter(pif => network.PIFs.includes(pif.id))
-
-  if (networkPIFs.length > 0) {
-    return networkPIFs[0].vlan !== -1 ? networkPIFs[0].vlan.toString() : t('none')
-  }
-}
-
-const getLockingMode = (isLocked: boolean) => (isLocked ? t('disabled') : t('unlocked'))
-
-const { pageRecords: paginatedNetworks, paginationBindings } = usePagination('networks', filteredNetworks)
+const { pageRecords: paginatedNetworks, paginationBindings } = usePagination(tableConfig.paginationId, filteredNetworks)
 
 const { HeadCells, BodyCells } = useNetworkColumns({
-  exclude: internal ? ['vlan', 'status', 'selectItem'] : ['selectItem'],
+  exclude: type === 'internal' ? ['vlan', 'status', 'selectItem'] : ['selectItem'],
   body: (network: FrontXoNetwork) => {
-    const { buildXo5Route } = useXoRoutes()
-
     const networkPifs = computed(() => getPifsByIds(network.PIFs))
 
     const status = computed(() => getNetworkStatus(networkPifs.value))
-    const vlan = computed(() => getNetworkVlan(network))
-    const defaultLockingMode = computed(() => getLockingMode(network.defaultIsLocked))
-    const href = computed(() => buildXo5Route(`/pools/${network.$pool}/network?s=1_0_asc-${network.id}`))
+    const { networkVlan, networkDefaultLockingMode } = useXoNetworkUtils(network)
 
     const { deleteNetworks, isDeletingNetworks } = useNetworkDelete(() => [network])
 
@@ -124,13 +128,13 @@ const { HeadCells, BodyCells } = useNetworkColumns({
         r({
           label: network.name_label,
           icon: icon('object:network'),
-          href: href.value,
+          to: getNetworkRoute(network.id),
         }),
       description: r => r(network.name_description),
       status: r => r(status.value),
-      vlan: r => r(vlan.value),
+      vlan: r => r(networkVlan.value),
       mtu: r => r(network.MTU),
-      defaultLockingMode: r => r(defaultLockingMode.value),
+      defaultLockingMode: r => r(networkDefaultLockingMode.value),
       actions: r =>
         r({
           onClick: () => (selectedNetworkId.value = network.id),

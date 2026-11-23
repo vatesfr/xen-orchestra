@@ -165,18 +165,51 @@ class FakeXapi {
 // the mixin reaches its own methods through `this`
 Object.setPrototypeOf(FakeXapi.prototype, poolMethods)
 
-// records only the step transitions, the rest of the recorder is a no-op
+// records the changes of the pool settings, and what the recorder is told
+// about them and about the hosts
+const settingsSpy = xapi => {
+  const events = []
+  xapi.pool.update_other_config = async (key, value) => events.push(['other_config', key, value])
+  const call = xapi.call.bind(xapi)
+  xapi.call = async (method, ...args) =>
+    method === 'pool.disable_ha' || method === 'pool.enable_ha'
+      ? events.push(['call', method, ...args])
+      : call(method, ...args)
+  // the heartbeat SRs of the tests
+  const getObject = xapi.getObject.bind(xapi)
+  xapi.getObject = (key, ...rest) => (key === 'sr-1' ? { $ref: 'OpaqueRef:sr-1' } : getObject(key, ...rest))
+  const recorder = {
+    ...noopRpuRecorder,
+    async settingChangedByRun(name, value) {
+      events.push(['record', name, value])
+    },
+    settingRestored(name) {
+      events.push(['restored', name])
+    },
+    hostStarting(hostId, agentStartTime, enabled) {
+      events.push(['hostStarting', hostId, enabled])
+    },
+  }
+  return { events, recorder, xapi }
+}
+
+// records only the step transitions and the VM conflicts, the rest of the
+// recorder is a no-op
 const stepSpyRecorder = () => {
   const steps = []
   const record = status => (hostId, name) => steps.push({ status, hostId, name })
-  return {
+  const spy = {
     ...noopRpuRecorder,
     steps,
+    setVmConflicts: vmConflicts => {
+      spy.vmConflicts = vmConflicts
+    },
     stepRunning: record('running'),
     stepObserved: record('observed'),
     stepNotNeeded: record('not-needed'),
     stepFailed: record('failed'),
   }
+  return spy
 }
 
 const rollingPoolReboot = async (xapi, options) => {
@@ -196,8 +229,9 @@ const rollingPoolReboot = async (xapi, options) => {
   })
 
   const strandedVms = events.findLast(_ => _.type === 'property' && _.name === 'strandedVms')?.value ?? []
+  const vmsLeftAlone = events.findLast(_ => _.type === 'property' && _.name === 'vmsLeftAlone')?.value ?? []
   const taskNames = events.filter(_ => _.type === 'start').map(_ => _.properties.name)
-  return { error, strandedVms, taskNames }
+  return { error, strandedVms, taskNames, vmsLeftAlone }
 }
 
 describe('rollingPoolReboot', function () {
@@ -267,50 +301,160 @@ describe('rollingPoolReboot', function () {
       ['vm-a2']
     )
 
-    const { error, strandedVms } = await rollingPoolReboot(xapi)
+    const recorder = stepSpyRecorder()
+
+    const { error, strandedVms, vmsLeftAlone } = await rollingPoolReboot(xapi, { recorder })
 
     assert.equal(error, undefined)
     assert.deepEqual(strandedVms, [])
     assert.deepEqual(xapi.strayedVms(), [])
+    assert.deepEqual(vmsLeftAlone, [{ hostId: 'host-A', vmId: 'vm-a2', vmName: undefined, powerState: undefined }])
+    assert.deepEqual(recorder.vmConflicts, [{ vmId: 'vm-a2', vmName: undefined, hostId: 'host-A', reason: 'deleted' }])
+  })
+
+  it('leaves the VMs halted during the run where they are, and reports them', async function () {
+    const xapi = new FakeXapi([[30], [30], [30]])
+    const callAsync = xapi.callAsync.bind(xapi)
+    xapi.callAsync = async (...args) => {
+      await callAsync(...args)
+      // halted by an operator away from its host, before the migrate back
+      if (xapi._nReboots === xapi.hosts.length) {
+        Object.assign(xapi.getObject('vm-a1'), { power_state: 'Halted', $resident_on: xapi.hosts[1] })
+      }
+    }
+    const recorder = stepSpyRecorder()
+
+    const { error, strandedVms, vmsLeftAlone } = await rollingPoolReboot(xapi, { recorder })
+
+    assert.equal(error, undefined)
+    assert.deepEqual(strandedVms, [])
+    assert.deepEqual(xapi.strayedVms(), ['vm-a1'])
+    assert.deepEqual(vmsLeftAlone, [{ hostId: 'host-A', vmId: 'vm-a1', vmName: 'vm a1', powerState: 'Halted' }])
+    assert.ok(!recorder.steps.some(_ => _.status === 'failed'))
+    // still a conflict to show: the run did not bring it home
+    assert.deepEqual(recorder.vmConflicts, [{ vmId: 'vm-a1', vmName: 'vm a1', hostId: 'host-A', reason: 'stopped' }])
+  })
+
+  it('records every VM a host could not get back in its restoreVms failure', async function () {
+    // host B has room for none of its VMs once the pool has rebooted
+    const xapi = new FakeXapi(
+      [
+        [20, 20],
+        [20, 20],
+      ],
+      [0, 90]
+    )
+    const errors = []
+    const recorder = stepSpyRecorder()
+    recorder.stepFailed = (hostId, name, error) => errors.push([hostId, error.message])
+
+    await rollingPoolReboot(xapi, { recorder })
+
+    assert.deepEqual(
+      errors.map(([hostId]) => hostId),
+      ['host-B']
+    )
+    assert.match(errors[0][1], /vm-b1.*vm-b2/)
+    assert.deepEqual(
+      recorder.vmConflicts.map(({ vmId, vmName, hostId, reason }) => ({ vmId, vmName, hostId, reason })),
+      [
+        { vmId: 'vm-b1', vmName: 'vm b1', hostId: 'host-B', reason: 'migration-failed' },
+        { vmId: 'vm-b2', vmName: 'vm b2', hostId: 'host-B', reason: 'migration-failed' },
+      ]
+    )
+    assert.match(recorder.vmConflicts[0].message, /HOST_NOT_ENOUGH_FREE_MEMORY/)
   })
 
   it('persists the settings it changes before changing them, and how each host was before', async function () {
-    const xapi = new FakeXapi([[30], [30]])
-    const events = []
+    const { events, recorder, xapi } = settingsSpy(new FakeXapi([[30], [30]]))
     xapi.pool.ha_enabled = true
-    xapi.pool.$ha_statefiles = []
-    xapi.pool.ha_configuration = {}
+    xapi.pool.$ha_statefiles = [{ SR: 'OpaqueRef:sr-1', $SR: { uuid: 'sr-1' } }]
+    xapi.pool.ha_configuration = { timeout: '60' }
     xapi.pool.other_config.auto_poweron = 'true'
-    xapi.pool.update_other_config = async (key, value) => events.push(['other_config', key, value])
     // disabled by the operator before the run
     xapi.hosts[1].enabled = false
-    const call = xapi.call.bind(xapi)
-    xapi.call = async (method, ...args) =>
-      method === 'pool.disable_ha' || method === 'pool.enable_ha'
-        ? events.push(['call', method])
-        : call(method, ...args)
-    const recorder = {
-      ...noopRpuRecorder,
-      async settingChangedByRun(name) {
-        events.push(['record', name])
-      },
-      hostStarting(hostId, agentStartTime, enabled) {
-        events.push(['hostStarting', hostId, enabled])
-      },
-    }
 
     const { error } = await rollingPoolReboot(xapi, { recorder })
 
     assert.equal(error, undefined)
     assert.deepEqual(events, [
-      ['record', 'ha'],
+      ['record', 'ha', { srs: ['sr-1'], configuration: { timeout: '60' } }],
       ['call', 'pool.disable_ha'],
-      ['record', 'autoPowerOn'],
+      ['record', 'autoPowerOn', undefined],
       ['other_config', 'auto_poweron', 'false'],
       ['hostStarting', 'host-A', true],
       ['hostStarting', 'host-B', false],
       ['other_config', 'auto_poweron', 'true'],
-      ['call', 'pool.enable_ha'],
+      ['restored', 'autoPowerOn'],
+      ['call', 'pool.enable_ha', ['OpaqueRef:sr-1'], { timeout: '60' }],
+      ['restored', 'ha'],
+    ])
+  })
+
+  it('leaves in the record a setting it could not restore', async function () {
+    const { events, recorder, xapi } = settingsSpy(new FakeXapi([[30], [30]]))
+    xapi.pool.ha_enabled = true
+    xapi.pool.$ha_statefiles = [{ SR: 'OpaqueRef:sr-1', $SR: { uuid: 'sr-1' } }]
+    xapi.pool.ha_configuration = {}
+    const call = xapi.call
+    xapi.call = async (method, ...args) => {
+      const result = await call(method, ...args)
+      if (method === 'pool.enable_ha') {
+        throw new Error('SR_NOT_ATTACHED')
+      }
+      return result
+    }
+
+    const { error } = await rollingPoolReboot(xapi, { recorder })
+
+    assert.equal(error, undefined)
+    assert.equal(events.at(-1)[1], 'pool.enable_ha')
+    assert.ok(!events.some(([name]) => name === 'restored'))
+  })
+
+  it('restores HA even when disabling it failed', async function () {
+    const { events, recorder, xapi } = settingsSpy(new FakeXapi([[30], [30]]))
+    xapi.pool.ha_enabled = true
+    xapi.pool.$ha_statefiles = [{ SR: 'OpaqueRef:sr-1', $SR: { uuid: 'sr-1' } }]
+    xapi.pool.ha_configuration = {}
+    const call = xapi.call
+    xapi.call = async (method, ...args) => {
+      const result = await call(method, ...args)
+      if (method === 'pool.disable_ha') {
+        throw new Error('XAPI timeout')
+      }
+      return result
+    }
+
+    const { error } = await rollingPoolReboot(xapi, { recorder })
+
+    assert.equal(error?.message, 'XAPI timeout')
+    assert.deepEqual(events, [
+      ['record', 'ha', { srs: ['sr-1'], configuration: {} }],
+      ['call', 'pool.disable_ha'],
+      ['call', 'pool.enable_ha', ['OpaqueRef:sr-1'], {}],
+      ['restored', 'ha'],
+    ])
+  })
+
+  it('restores auto power on even when disabling it failed', async function () {
+    const { events, recorder, xapi } = settingsSpy(new FakeXapi([[30], [30]]))
+    xapi.pool.other_config.auto_poweron = 'true'
+    xapi.pool.update_other_config = async (key, value) => {
+      events.push(['other_config', key, value])
+      if (value === 'false') {
+        throw new Error('XAPI timeout')
+      }
+    }
+
+    const { error } = await rollingPoolReboot(xapi, { recorder })
+
+    assert.equal(error?.message, 'XAPI timeout')
+    assert.deepEqual(events, [
+      ['record', 'autoPowerOn', undefined],
+      ['other_config', 'auto_poweron', 'false'],
+      ['other_config', 'auto_poweron', 'true'],
+      ['restored', 'autoPowerOn'],
     ])
   })
 
@@ -334,6 +478,9 @@ describe('rollingPoolReboot', function () {
     // a run which died before reaching it
     assert.ok(taskNames.includes('Skip migrating VMs back'))
     assert.ok(!taskNames.includes('Migrate VMs back'))
+    // nothing was expected to come home: the conflicts of a previous attempt
+    // must not fail this run
+    assert.deepEqual(recorder.vmConflicts, [])
 
     // a skipped phase must not leave `restoreVms` pending, otherwise the
     // recovery record shows a finished run as still running
@@ -342,5 +489,665 @@ describe('rollingPoolReboot', function () {
       notNeeded.map(_ => _.hostId).sort(),
       xapi.hosts.map(_ => _.uuid)
     )
+  })
+
+  describe('afterHostIsBack', function () {
+    // evacuations, reboots and calls of the hook, in order
+    const spyXapi = xapi => {
+      const events = []
+      const clearHost = xapi.clearHost.bind(xapi)
+      xapi.clearHost = async host => {
+        events.push(`evacuate ${host.uuid}`)
+        return clearHost(host)
+      }
+      const callAsync = xapi.callAsync.bind(xapi)
+      xapi.callAsync = async (method, hostRef) => {
+        events.push(`reboot ${xapi.getObject(hostRef).uuid}`)
+        return callAsync(method, hostRef)
+      }
+      return events
+    }
+
+    it('runs once every host is back, the last one included, before the next evacuation', async function () {
+      const xapi = new FakeXapi([[30], [30]])
+      const events = spyXapi(xapi)
+
+      const { error } = await rollingPoolReboot(xapi, {
+        afterHostIsBack: async host => events.push(`back ${host.uuid}`),
+      })
+
+      assert.equal(error, undefined)
+      assert.deepEqual(events, [
+        'evacuate host-A',
+        'reboot host-A',
+        'back host-A',
+        'evacuate host-B',
+        'reboot host-B',
+        'back host-B',
+      ])
+    })
+
+    it('does not run for a host which is not rebooted', async function () {
+      const xapi = new FakeXapi([[30], [30]])
+      const events = spyXapi(xapi)
+
+      const { error } = await rollingPoolReboot(xapi, {
+        afterHostIsBack: async host => events.push(`back ${host.uuid}`),
+        ignoreHost: host => host.uuid === 'host-A',
+      })
+
+      assert.equal(error, undefined)
+      assert.deepEqual(events, ['evacuate host-B', 'reboot host-B', 'back host-B'])
+    })
+
+    it('stops the run before the next evacuation when it fails', async function () {
+      const xapi = new FakeXapi([[30], [30]])
+      const events = spyXapi(xapi)
+      const recorder = stepSpyRecorder()
+
+      const { error } = await rollingPoolReboot(xapi, {
+        recorder,
+        afterHostIsBack: async () => {
+          throw new Error('LINSTOR is not healthy')
+        },
+      })
+
+      assert.equal(error?.message, 'LINSTOR is not healthy')
+      assert.deepEqual(events, ['evacuate host-A', 'reboot host-A'])
+      // the host did reboot: the record must not tell otherwise
+      assert.ok(recorder.steps.some(_ => _.status === 'observed' && _.hostId === 'host-A' && _.name === 'reboot'))
+    })
+
+    it('ends the progress of the run at 100', async function () {
+      const xapi = new FakeXapi([[30], [30]])
+      const progress = []
+      const parentTask = new Task({
+        properties: { name: 'rolling pool reboot', progress: 0 },
+        onProgress: event => {
+          if (event.type === 'property' && event.id === parentTask.id && event.name === 'progress') {
+            progress.push(event.value)
+          }
+        },
+      })
+
+      await parentTask.run(() =>
+        poolMethods.rollingPoolReboot.call(xapi, parentTask, { afterHostIsBack: async () => {} })
+      )
+
+      assert.equal(progress.at(-1), 100)
+      assert.ok(
+        progress.every(value => value <= 100),
+        `${progress}`
+      )
+    })
+  })
+
+  describe('resume', function () {
+    // records which hosts the run touches and what it writes to the record
+    const spyXapi = xapi => {
+      const touched = []
+      const clearHost = xapi.clearHost.bind(xapi)
+      xapi.clearHost = async host => {
+        touched.push(['evacuate', host.uuid])
+        return clearHost(host)
+      }
+      const callAsync = xapi.callAsync.bind(xapi)
+      xapi.callAsync = async (method, ref, ...args) => {
+        touched.push([method, xapi.getObject(ref).uuid])
+        return callAsync(method, ref, ...args)
+      }
+      return touched
+    }
+    const planSpyRecorder = () => {
+      const recorder = stepSpyRecorder()
+      recorder.calls = []
+      recorder.setPlan = plan => recorder.calls.push(['setPlan', plan])
+      recorder.hostStarting = hostId => recorder.calls.push(['hostStarting', hostId])
+      recorder.hostSkipped = hostId => recorder.calls.push(['hostSkipped', hostId])
+      return recorder
+    }
+
+    it('leaves the done hosts alone and brings every VM back to its host of the first attempt', async function () {
+      const xapi = new FakeXapi([
+        [30, 30],
+        [30, 30],
+        [30, 30],
+      ])
+      const vmHomeById = Object.fromEntries(xapi.homeOf)
+      // first attempt: host A done, host B stopped in the middle of its
+      // evacuation, host A's VMs not migrated back yet
+      const [hostA, hostB, hostC] = xapi.hosts
+      const vm = uuid => xapi.getObject(uuid)
+      vm('vm-a1').$resident_on = hostB
+      vm('vm-a2').$resident_on = hostC
+      vm('vm-b1').$resident_on = hostA
+      hostB.enabled = false
+      // started after the first attempt: unknown to the record
+      delete vmHomeById['vm-c2']
+
+      const touched = spyXapi(xapi)
+      const recorder = planSpyRecorder()
+      const { error } = await rollingPoolReboot(xapi, {
+        recorder,
+        resume: {
+          doneHostIds: new Set(['host-A']),
+          hostOrder: ['host-A', 'host-B', 'host-C'],
+          vmHomeById,
+          haltedPinnedVms: {},
+        },
+      })
+
+      assert.equal(error, undefined)
+      assert.deepEqual(touched, [
+        ['evacuate', 'host-B'],
+        ['host.reboot', 'host-B'],
+        ['evacuate', 'host-C'],
+        ['host.reboot', 'host-C'],
+      ])
+      assert.deepEqual(xapi.strayedVms(), [])
+      // the done host keeps its steps, and the record keeps the placement of
+      // the first attempt
+      assert.deepEqual(recorder.calls, [
+        ['setPlan', { hostOrder: ['host-A', 'host-B', 'host-C'], vmHomeById: Object.fromEntries(xapi.homeOf) }],
+        ['hostStarting', 'host-B'],
+        ['hostStarting', 'host-C'],
+      ])
+      assert.ok(recorder.steps.some(_ => _.hostId === 'host-A' && _.name === 'restoreVms' && _.status === 'observed'))
+    })
+
+    it('leaves the pinned VMs a previous attempt halted to their restart, not to the migrate back', async function () {
+      const xapi = new FakeXapi([[30], [30], [30]])
+      xapi.getObject('vm-a1').power_state = 'Halted'
+
+      const { error, vmsLeftAlone } = await rollingPoolReboot(xapi, {
+        resume: {
+          doneHostIds: new Set(),
+          hostOrder: ['host-A', 'host-B', 'host-C'],
+          vmHomeById: Object.fromEntries(xapi.homeOf),
+          // vm-b1 was started again by an operator since
+          haltedPinnedVms: { 'vm-a1': 'host-A', 'vm-b1': 'host-B' },
+        },
+      })
+
+      assert.equal(error, undefined)
+      assert.deepEqual(vmsLeftAlone, [])
+      assert.equal(xapi.getObject('vm-b1').$resident_on.uuid, 'host-B')
+    })
+
+    it('handles the hosts in the order of the first attempt', async function () {
+      const xapi = new FakeXapi([[10], [10], [10]])
+      const recorder = planSpyRecorder()
+
+      const { error } = await rollingPoolReboot(xapi, {
+        recorder,
+        resume: {
+          doneHostIds: new Set(),
+          hostOrder: ['host-A', 'host-C', 'host-B'],
+          vmHomeById: {},
+          haltedPinnedVms: {},
+        },
+      })
+
+      assert.equal(error, undefined)
+      assert.deepEqual(
+        recorder.calls.filter(([name]) => name === 'hostStarting').map(([, hostId]) => hostId),
+        ['host-A', 'host-C', 'host-B']
+      )
+    })
+
+    it('handles first the hosts to reboot first, then the master', async function () {
+      const xapi = new FakeXapi([[10], [10], [10]])
+      const recorder = planSpyRecorder()
+
+      const { error } = await rollingPoolReboot(xapi, {
+        recorder,
+        rebootFirst: host => host.uuid === 'host-C',
+        resume: {
+          doneHostIds: new Set(),
+          hostOrder: ['host-A', 'host-B', 'host-C'],
+          vmHomeById: {},
+          haltedPinnedVms: {},
+        },
+      })
+
+      assert.equal(error, undefined)
+      assert.deepEqual(
+        recorder.calls.filter(([name]) => name === 'hostStarting').map(([, hostId]) => hostId),
+        ['host-C', 'host-A', 'host-B']
+      )
+      // the order a later resume follows
+      assert.deepEqual(recorder.calls.find(([name]) => name === 'setPlan')[1].hostOrder, ['host-C', 'host-A', 'host-B'])
+    })
+
+    it('keeps the order of the hosts to reboot first on a later resume', async function () {
+      const xapi = new FakeXapi([[10], [10], [10], [10]])
+      const recorder = planSpyRecorder()
+      const hostOrder = ['host-C', 'host-D', 'host-A', 'host-B']
+
+      const { error } = await rollingPoolReboot(xapi, {
+        recorder,
+        rebootFirst: host => host.uuid === 'host-C' || host.uuid === 'host-D',
+        resume: { doneHostIds: new Set(), hostOrder, vmHomeById: {}, haltedPinnedVms: {} },
+      })
+
+      assert.equal(error, undefined)
+      assert.deepEqual(
+        recorder.calls.filter(([name]) => name === 'hostStarting').map(([, hostId]) => hostId),
+        hostOrder
+      )
+      assert.deepEqual(recorder.calls.find(([name]) => name === 'setPlan')[1].hostOrder, hostOrder)
+    })
+
+    it('checks the evacuation precondition of the remaining hosts only right before evacuating them', async function () {
+      const xapi = new FakeXapi([[10], [10], [10]])
+      const calls = []
+      for (const host of xapi.hosts) {
+        host.$call = async method => {
+          calls.push([method, host.uuid])
+          // not enough memory while the host disabled by the previous attempt
+          // is still out of the pool
+          if (method === 'get_vms_which_prevent_evacuation' && host.uuid === 'host-C') {
+            return { 'OpaqueRef:vm-c1': ['HOST_NOT_ENOUGH_FREE_MEMORY'] }
+          }
+          return {}
+        }
+      }
+
+      const { error } = await rollingPoolReboot(xapi, {
+        resume: {
+          doneHostIds: new Set(['host-A']),
+          hostsStarted: true,
+          hostOrder: ['host-A', 'host-B', 'host-C'],
+          vmHomeById: {},
+          haltedPinnedVms: {},
+        },
+      })
+
+      assert.equal(error, undefined)
+      assert.ok(!calls.some(([, hostId]) => hostId === 'host-A'))
+      assert.deepEqual(
+        calls.filter(([, hostId]) => hostId === 'host-C'),
+        [
+          ['get_vms_which_prevent_evacuation', 'host-C'],
+          ['assert_can_evacuate', 'host-C'],
+        ]
+      )
+    })
+
+    // XAPI refuses the evacuation while a VM of the host has an operation
+    // running, e.g. a migration started by the interrupted attempt
+    const operationInProgress = () =>
+      Object.assign(new Error('CANNOT_EVACUATE_HOST'), {
+        code: 'CANNOT_EVACUATE_HOST',
+        params: ['OTHER_OPERATION_IN_PROGRESS', 'VM', 'OpaqueRef:vm-b1', 'pool_migrate'],
+      })
+
+    it('waits for the operations an interrupted attempt left running on the VMs of the host to evacuate', async function (t) {
+      t.mock.timers.enable({ apis: ['setTimeout'] })
+      const xapi = new FakeXapi([[10], [10]])
+      const [, hostB] = xapi.hosts
+      let nRefusals = 3
+      const $call = hostB.$call
+      hostB.$call = async method => {
+        if (method === 'assert_can_evacuate' && nRefusals > 0) {
+          nRefusals--
+          throw operationInProgress()
+        }
+        return $call(method)
+      }
+
+      const ticker = setInterval(() => t.mock.timers.tick(10e3), 1)
+      const { error } = await rollingPoolReboot(xapi, {
+        resume: {
+          doneHostIds: new Set(['host-A']),
+          hostsStarted: true,
+          hostOrder: ['host-A', 'host-B'],
+          vmHomeById: {},
+          haltedPinnedVms: {},
+        },
+      }).finally(() => clearInterval(ticker))
+
+      assert.equal(error, undefined)
+      assert.equal(nRefusals, 0)
+    })
+
+    it('gives up on an evacuation the host keeps refusing for another reason', async function () {
+      const xapi = new FakeXapi([[10], [10]])
+      const [, hostB] = xapi.hosts
+      let nChecks = 0
+      const $call = hostB.$call
+      hostB.$call = async method => {
+        if (method === 'assert_can_evacuate') {
+          nChecks++
+          throw Object.assign(new Error('CANNOT_EVACUATE_HOST'), {
+            code: 'CANNOT_EVACUATE_HOST',
+            params: ['HOST_NOT_ENOUGH_FREE_MEMORY'],
+          })
+        }
+        return $call(method)
+      }
+
+      const { error } = await rollingPoolReboot(xapi, {
+        resume: {
+          doneHostIds: new Set(['host-A']),
+          hostsStarted: true,
+          hostOrder: ['host-A', 'host-B'],
+          vmHomeById: {},
+          haltedPinnedVms: {},
+        },
+      })
+
+      assert.equal(error?.code, 'CANNOT_EVACUATE_HOST')
+      assert.equal(nChecks, 1)
+    })
+
+    it('keeps the settings a previous attempt left changed as they are during the run, then restores them', async function () {
+      const { events, recorder, xapi } = settingsSpy(new FakeXapi([[10], [10]]))
+      // auto power on was already disabled before the run: not in the record
+      xapi.pool.other_config.auto_poweron = 'false'
+
+      const { error } = await rollingPoolReboot(xapi, {
+        recorder,
+        resume: {
+          doneHostIds: new Set(),
+          hostOrder: ['host-A', 'host-B'],
+          vmHomeById: {},
+          haltedPinnedVms: {},
+          changedByRun: { ha: { srs: ['sr-1'], configuration: { timeout: '60' } } },
+        },
+      })
+
+      assert.equal(error, undefined)
+      assert.deepEqual(events, [
+        ['hostStarting', 'host-A', true],
+        ['hostStarting', 'host-B', true],
+        ['call', 'pool.enable_ha', ['OpaqueRef:sr-1'], { timeout: '60' }],
+        ['restored', 'ha'],
+      ])
+    })
+
+    it('restores auto power on a previous attempt left disabled', async function () {
+      const { events, recorder, xapi } = settingsSpy(new FakeXapi([[10], [10]]))
+      xapi.pool.other_config.auto_poweron = 'false'
+
+      const { error } = await rollingPoolReboot(xapi, {
+        recorder,
+        resume: {
+          doneHostIds: new Set(),
+          hostOrder: ['host-A', 'host-B'],
+          vmHomeById: {},
+          haltedPinnedVms: {},
+          changedByRun: { autoPowerOn: true },
+        },
+      })
+
+      assert.equal(error, undefined)
+      assert.deepEqual(events, [
+        ['hostStarting', 'host-A', true],
+        ['hostStarting', 'host-B', true],
+        ['other_config', 'auto_poweron', 'true'],
+        ['restored', 'autoPowerOn'],
+      ])
+    })
+
+    it('leaves to the operator HA recorded without its configuration', async function () {
+      const { events, recorder, xapi } = settingsSpy(new FakeXapi([[10], [10]]))
+
+      const { error } = await rollingPoolReboot(xapi, {
+        recorder,
+        resume: {
+          doneHostIds: new Set(),
+          hostOrder: ['host-A', 'host-B'],
+          vmHomeById: {},
+          haltedPinnedVms: {},
+          // written by an xo-server which did not keep the heartbeat SRs
+          changedByRun: { ha: true },
+        },
+      })
+
+      assert.equal(error, undefined)
+      assert.deepEqual(events, [
+        ['hostStarting', 'host-A', true],
+        ['hostStarting', 'host-B', true],
+      ])
+    })
+
+    it('starts again the pinned VMs a previous attempt left halted', async function () {
+      const xapi = new FakeXapi([[10], [10]])
+      const pinnedVm = xapi.getObject('vm-b1')
+      pinnedVm.power_state = 'Halted'
+      const started = []
+      const callAsync = xapi.callAsync.bind(xapi)
+      xapi.callAsync = async (method, ...args) => {
+        if (method === 'VM.start_on') {
+          started.push(args.slice(0, 2))
+          return
+        }
+        return callAsync(method, ...args)
+      }
+
+      const { error } = await rollingPoolReboot(xapi, {
+        resume: {
+          doneHostIds: new Set(),
+          hostOrder: ['host-A', 'host-B'],
+          vmHomeById: {},
+          haltedPinnedVms: { 'vm-b1': 'host-B' },
+        },
+      })
+
+      assert.equal(error, undefined)
+      assert.deepEqual(started, [['OpaqueRef:vm-b1', 'OpaqueRef:host-B']])
+    })
+  })
+})
+
+describe('restoreRpuLeftovers', function () {
+  // what a run stopped after the evacuation of host A left: the host disabled,
+  // its VM on host B, its pinned VM halted, HA and auto power-on disabled
+  function setup() {
+    const { events, recorder, xapi } = settingsSpy(new FakeXapi([[10], []]))
+    const [hostA, hostB] = xapi.hosts
+    hostA.enabled = false
+    xapi.vms[0].$resident_on = hostB
+    xapi.vms.push({ $ref: 'OpaqueRef:vm-p', uuid: 'vm-p', name_label: 'vm p', power_state: 'Halted' })
+    // mixed in from patching.mjs
+    xapi._enableHostOnceBooted = async hostId => {
+      events.push(['enableHost', hostId])
+      xapi.getObject(hostId).enabled = true
+    }
+    xapi.callAsync = async (method, ...args) => {
+      events.push(['callAsync', method, ...args])
+    }
+    const migrateVm = xapi.migrateVm.bind(xapi)
+    xapi.migrateVm = async (vmId, _, hostId) => {
+      events.push(['migrateVm', vmId, hostId])
+      return migrateVm(vmId, _, hostId)
+    }
+    recorder.forgetHaltedPinnedVm = vmId => events.push(['forgetHaltedPinnedVm', vmId])
+    const record = {
+      changedByRun: { autoPowerOn: true, ha: { srs: ['sr-1'], configuration: {} } },
+      haltedPinnedVms: { 'vm-p': 'host-A' },
+      vmHomeById: { 'vm-a1': 'host-A' },
+    }
+    const items = [
+      { type: 'ha', id: 'pool-1' },
+      { type: 'autoPowerOn', id: 'pool-1' },
+      { type: 'host', id: 'host-A' },
+      { type: 'vm', id: 'vm-a1' },
+      { type: 'haltedPinnedVm', id: 'vm-p' },
+    ]
+    const restore = (items, patch) =>
+      Task.run({ properties: { name: 'finalize' } }, () =>
+        xapi.restoreRpuLeftovers({ record: { ...record, ...patch }, items, recorder })
+      )
+    return { events, items, recorder, restore, xapi }
+  }
+
+  const restorationsAfterTheHost = [
+    ['callAsync', 'VM.start_on', 'OpaqueRef:vm-p', 'OpaqueRef:host-A', false, false],
+    ['forgetHaltedPinnedVm', 'vm-p'],
+    ['migrateVm', 'vm-a1', 'host-A'],
+    ['other_config', 'auto_poweron', 'true'],
+    ['restored', 'autoPowerOn'],
+    ['call', 'pool.enable_ha', ['OpaqueRef:sr-1'], {}],
+    ['restored', 'ha'],
+  ]
+
+  it('enables the hosts, starts the pinned VMs, migrates the VMs back, then restores auto power-on and HA', async function () {
+    const { events, items, restore, xapi } = setup()
+    await restore(items)
+    assert.deepEqual(events, [['enableHost', 'host-A'], ...restorationsAfterTheHost])
+    assert.equal(xapi.vms[0].$resident_on.uuid, 'host-A')
+  })
+
+  it('leaves the pinned VMs and the VMs of a host which could not be enabled where they are, and goes on', async function () {
+    const { events, items, restore, xapi } = setup()
+    xapi._enableHostOnceBooted = async () => {
+      throw new Error('HOST_STILL_BOOTING')
+    }
+    await restore(items)
+    assert.deepEqual(events, restorationsAfterTheHost.slice(3))
+    assert.equal(xapi.vms[0].$resident_on.uuid, 'host-B')
+  })
+
+  it('goes on after a failed restoration', async function () {
+    const { events, items, restore, xapi } = setup()
+    xapi.migrateVm = async () => {
+      throw new Error('HOST_NOT_ENOUGH_FREE_MEMORY')
+    }
+    await restore(items)
+    assert.deepEqual(events, [
+      ['enableHost', 'host-A'],
+      ...restorationsAfterTheHost.filter(([name]) => name !== 'migrateVm'),
+    ])
+  })
+
+  it('enables, with its VMs, a host the run updated which booted after its update ended', async function () {
+    const { events, items, restore, xapi } = setup()
+    const finishedAt = '2026-11-20T10:00:00.000Z'
+    xapi.hosts[0].other_config.boot_time = String(Date.parse(finishedAt) / 1e3 + 60)
+    await restore(items, {
+      hosts: {
+        'host-A': { steps: { update: { status: 'observed-succeeded', finishedAt }, reboot: { status: 'running' } } },
+      },
+    })
+    assert.deepEqual(events, [['enableHost', 'host-A'], ...restorationsAfterTheHost])
+    assert.equal(xapi.vms[0].$resident_on.uuid, 'host-A')
+  })
+
+  it('keeps the steps of the run, and does not report a pinned VM which did not start as stopped', async function () {
+    const { events, items, recorder, restore, xapi } = setup()
+    xapi.callAsync = async () => {
+      throw new Error('VM.start_on failed')
+    }
+    for (const method of ['stepRunning', 'stepObserved', 'stepNotNeeded', 'stepFailed']) {
+      recorder[method] = (...args) => events.push([method, ...args])
+    }
+    recorder.setVmConflicts = vmConflicts => events.push(['setVmConflicts', vmConflicts])
+    // nothing can come back to host A
+    xapi.migrateVm = async () => {
+      throw new Error('HOST_NOT_ENOUGH_FREE_MEMORY')
+    }
+    await restore(items, { vmHomeById: { 'vm-a1': 'host-A', 'vm-p': 'host-A' } })
+
+    const recorded = events.filter(([name]) => name.startsWith('step') || name === 'setVmConflicts')
+    assert.deepEqual(
+      recorded.map(([name]) => name),
+      ['setVmConflicts']
+    )
+    assert.deepEqual(
+      recorded[0][1].map(({ vmId, reason }) => [vmId, reason]),
+      [['vm-a1', 'migration-failed']]
+    )
+  })
+
+  it('leaves disabled, without its VMs, a host the run updated and did not reboot', async function () {
+    const { events, items, restore, xapi } = setup()
+    await restore(items, {
+      hosts: { 'host-A': { steps: { update: { status: 'observed-succeeded' }, reboot: { status: 'running' } } } },
+    })
+    assert.deepEqual(events, restorationsAfterTheHost.slice(3))
+    assert.equal(xapi.hosts[0].enabled, false)
+    assert.equal(xapi.vms[0].$resident_on.uuid, 'host-B')
+  })
+
+  it('leaves without its VMs a host disabled before the run, which updated and did not reboot it', async function () {
+    const { events, items, restore, xapi } = setup()
+    // not disabled by the run: not listed
+    await restore(
+      items.filter(({ type }) => type !== 'host'),
+      {
+        hosts: {
+          'host-A': {
+            enabledBeforeUpdate: false,
+            steps: { update: { status: 'observed-succeeded' }, reboot: { status: 'running' } },
+          },
+        },
+      }
+    )
+    assert.deepEqual(events, restorationsAfterTheHost.slice(3))
+    assert.equal(xapi.hosts[0].enabled, false)
+    assert.equal(xapi.vms[0].$resident_on.uuid, 'host-B')
+  })
+
+  describe('VM conflicts of the run', function () {
+    const awaitingReboot = { steps: { update: { status: 'observed-succeeded' }, reboot: { status: 'running' } } }
+    const vmItems = [{ type: 'vm', id: 'vm-a1' }]
+
+    function setupConflicts(vmConflicts) {
+      const context = setup()
+      const { events, recorder } = context
+      recorder.getVmConflicts = () => vmConflicts
+      recorder.setVmConflicts = vmConflicts => events.push(['setVmConflicts', vmConflicts])
+      return context
+    }
+
+    it('keeps them when there is no VM to migrate back', async function () {
+      const { events, restore } = setupConflicts([{ vmId: 'vm-s', hostId: 'host-A', reason: 'stopped' }])
+      await restore(vmItems, { hosts: { 'host-A': awaitingReboot } })
+      assert.deepEqual(events, [])
+    })
+
+    it('keeps the ones of the VMs left out of the migration', async function () {
+      const leftOut = { vmId: 'vm-d', hostId: 'host-B', reason: 'deleted' }
+      const { events, restore } = setupConflicts([leftOut, { vmId: 'vm-a1', hostId: 'host-A', reason: 'stopped' }])
+      await restore(vmItems, {
+        hosts: { 'host-B': awaitingReboot },
+        vmHomeById: { 'vm-a1': 'host-A', 'vm-d': 'host-B' },
+      })
+      assert.deepEqual(events, [
+        ['migrateVm', 'vm-a1', 'host-A'],
+        ['setVmConflicts', [leftOut]],
+      ])
+    })
+  })
+
+  it('enables the hosts at once', async function () {
+    const { events, restore, xapi } = setup()
+    xapi.hosts[1].enabled = false
+    let enabling = 0
+    xapi._enableHostOnceBooted = async hostId => {
+      events.push(['enabling', hostId, ++enabling])
+      await new Promise(resolve => setImmediate(resolve))
+      enabling--
+    }
+    await restore([
+      { type: 'host', id: 'host-A' },
+      { type: 'host', id: 'host-B' },
+    ])
+    assert.deepEqual(events, [
+      ['enabling', 'host-A', 1],
+      ['enabling', 'host-B', 2],
+    ])
+  })
+
+  it('only restores what is listed, and leaves HA recorded without its heartbeat SRs to the operator', async function () {
+    const { events, restore } = setup()
+    await restore([{ type: 'ha', id: 'pool-1' }], { changedByRun: { ha: true } })
+    assert.deepEqual(events, [])
+
+    // restored by hand since the run: still in the record, not listed
+    await restore([])
+    assert.deepEqual(events, [])
   })
 })

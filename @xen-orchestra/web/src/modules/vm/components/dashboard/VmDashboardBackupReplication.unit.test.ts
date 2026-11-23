@@ -1,46 +1,33 @@
-import type { useXoSrUtils } from '@/modules/storage-repository/composables/xo-sr-utils.composable.ts'
-import type { useXoSrCollection } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
+import { useXoSrUtils } from '@/modules/storage-repository/composables/xo-sr-utils.composable.ts'
+import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import VmDashboardBackupReplication from '@/modules/vm/components/dashboard/VmDashboardBackupReplication.vue'
-import type { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import type { XoVmDashboard } from '@/modules/vm/types/vm-dashboard.type.ts'
 import { createSr } from '@/test/create-sr.ts'
 import { createVm } from '@/test/create-vm.ts'
-import { findLabelledValues } from '@/test/find-labelled-values.ts'
+import { type DashboardCardProps, itShowsDashboardCardStates } from '@/test/dashboard-card.ts'
+import { findLabelledValues, findRowLabels } from '@/test/find-rendered-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
-import { d, t } from '@/test/i18n.ts'
+import { t } from '@/test/i18n.ts'
+import { xoCollectionsMock, mockXoCollections } from '@/test/mock-xo-collections.ts'
+import { vmCollectionMock, mockXoVmCollection } from '@/test/mock-xo-vm-collection.ts'
+import { mockedExport } from '@/test/spy-on-module.ts'
 import { objectIcon } from '@core/icons'
+import { formatDateTime } from '@core/utils/time.util.ts'
+import { hasLoader } from '@core-test/expect-loader.ts'
 import { mount } from '@vue/test-utils'
-import { computed, ref } from 'vue'
+import { computed } from 'vue'
 
-const { useXoSrCollectionMock, useXoSrUtilsMock, getSrById, getVmById } = vi.hoisted(() => ({
-  useXoSrCollectionMock: vi.fn(),
-  useXoSrUtilsMock: vi.fn(),
-  getSrById: vi.fn(),
-  getVmById: vi.fn(),
-}))
+const useXoSrUtilsMock = mockedExport(useXoSrUtils)
 
-vi.mock(import('@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'), () => ({
-  useXoSrCollection: useXoSrCollectionMock as unknown as typeof useXoSrCollection,
-}))
+mockXoCollections('sr')
 
-vi.mock(import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'), () => ({
-  useXoVmCollection: (() => ({ getVmById })) as unknown as typeof useXoVmCollection,
-}))
-
-vi.mock(import('@/modules/storage-repository/composables/xo-sr-utils.composable.ts'), () => ({
-  useXoSrUtils: useXoSrUtilsMock as unknown as typeof useXoSrUtils,
-}))
+mockXoVmCollection()
 
 beforeEach(() => {
-  useXoSrCollectionMock.mockReset()
-  useXoSrUtilsMock.mockReset()
-  getSrById.mockReset()
-  getVmById.mockReset()
+  xoCollectionsMock.reset()
+  vmCollectionMock.reset()
 
-  useXoSrCollectionMock.mockReturnValue({ getSrById, areSrsReady: ref(true), hasSrFetchError: ref(false) })
   useXoSrUtilsMock.mockReturnValue({ srStatusIcon: computed(() => objectIcon('sr', 'connected')) })
-  getSrById.mockReturnValue(undefined)
-  getVmById.mockReturnValue(undefined)
 })
 
 type VmReplication = NonNullable<NonNullable<XoVmDashboard['backupsInfo']>['replication']>
@@ -53,70 +40,59 @@ function createDashboard(replication: VmReplication | undefined): XoVmDashboard 
   return { backupsInfo: { replication } } as XoVmDashboard
 }
 
-function mountReplication(vmDashboard: XoVmDashboard | undefined, hasError = false) {
+function mountReplication(props: DashboardCardProps<'vmDashboard', XoVmDashboard> = {}) {
   return mount(VmDashboardBackupReplication, {
-    props: { vmDashboard, hasError },
+    props: { vmDashboard: createDashboard(createReplication()), hasError: false, ...props },
     global: createGlobalTestConfig(),
   })
 }
 
-it('renders the card title', () => {
-  const wrapper = mountReplication(createDashboard(createReplication()))
-
-  expect(wrapper.get('.ui-card-title').text()).toBe(t('backup:last-replication'))
-})
-
-it('shows a loader while the dashboard has not reported any replication yet', () => {
-  const wrapper = mountReplication(createDashboard(undefined))
-
-  expect(wrapper.find('.ui-loader').exists()).toBe(true)
+itShowsDashboardCardStates(mountReplication, {
+  dashboardProp: 'vmDashboard',
+  title: t('backup:last-replication'),
+  missing: { 'the replication': createDashboard(undefined) },
+  findContent: findRowLabels,
+  hasErrorState: true,
 })
 
 it('shows a loader while the storage repositories are still loading', () => {
-  useXoSrCollectionMock.mockReturnValue({ getSrById, areSrsReady: ref(false), hasSrFetchError: ref(false) })
+  xoCollectionsMock.areSrsReady.value = false
 
-  const wrapper = mountReplication(createDashboard(createReplication()))
+  const wrapper = mountReplication()
 
-  expect(wrapper.find('.ui-loader').exists()).toBe(true)
-})
-
-it('shows an error message when the dashboard failed', () => {
-  const wrapper = mountReplication(createDashboard(createReplication()), true)
-
-  expect(wrapper.get('.vts-state-hero').text()).toBe(t('error-no-data'))
+  expect(hasLoader(wrapper)).toBe(true)
 })
 
 it('shows an error message when the storage repositories failed to load', () => {
-  useXoSrCollectionMock.mockReturnValue({ getSrById, areSrsReady: ref(true), hasSrFetchError: ref(true) })
+  xoCollectionsMock.hasSrFetchError.value = true
 
-  const wrapper = mountReplication(createDashboard(createReplication()))
+  const wrapper = mountReplication()
 
   expect(wrapper.get('.vts-state-hero').text()).toBe(t('error-no-data'))
 })
 
 it('reports that the VM is not replicated when the replication is empty', () => {
-  const wrapper = mountReplication(createDashboard({} as VmReplication))
+  const wrapper = mountReplication({ vmDashboard: createDashboard({} as VmReplication) })
 
   expect(wrapper.get('.vts-state-hero').text()).toBe(t('no-replicated-vm'))
 })
 
 it('shows the replicated VM, its date and its storage repository', () => {
-  getVmById.mockReturnValue(createVm({ name_label: 'Web server' }))
-  getSrById.mockReturnValue(createSr({ name_label: 'Backup SR' }))
-
   const replication = createReplication({ sr: 'sr-1' as VmReplication['sr'] })
+  vmCollectionMock.vms.value = [createVm({ id: replication.id, name_label: 'Web server' })]
+  xoCollectionsMock.srs.value = [createSr({ id: 'sr-1' as FrontXoSr['id'], name_label: 'Backup SR' })]
 
-  const wrapper = mountReplication(createDashboard(replication))
+  const wrapper = mountReplication({ vmDashboard: createDashboard(replication) })
 
   expect(findLabelledValues(wrapper)).toMatchObject({
     [t('vm')]: 'Web server',
-    [t('date')]: d(replication.timestamp, { dateStyle: 'short', timeStyle: 'medium' }),
+    [t('date')]: formatDateTime(replication.timestamp),
     [t('storage-repository')]: 'Backup SR',
   })
 })
 
 it('leaves the VM and storage repository rows empty when neither can be resolved', () => {
-  const wrapper = mountReplication(createDashboard(createReplication()))
+  const wrapper = mountReplication()
 
   expect(findLabelledValues(wrapper)).toMatchObject({ [t('vm')]: '', [t('storage-repository')]: '' })
 })

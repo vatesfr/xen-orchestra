@@ -17,13 +17,12 @@
 
 <script setup lang="ts">
 import type { XenApiHost } from '@/libs/xen-api/xen-api.types.ts'
-import { useHostMetricsStore } from '@/stores/xen-api/host-metrics.store.ts'
+import { useHostUtils } from '@/modules/host/composables/host-utils.composable.ts'
 import VtsRelativeTime from '@core/components/relative-time/VtsRelativeTime.vue'
 import VtsTabularKeyValueList from '@core/components/tabular-key-value-list/VtsTabularKeyValueList.vue'
 import VtsTabularKeyValueRow from '@core/components/tabular-key-value-row/VtsTabularKeyValueRow.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
-import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { host } = defineProps<{
@@ -32,7 +31,5 @@ const { host } = defineProps<{
 
 const { t } = useI18n()
 
-const { isHostRunning } = useHostMetricsStore().subscribe()
-
-const isRunning = computed(() => isHostRunning(host))
+const { isRunning } = useHostUtils(() => host)
 </script>

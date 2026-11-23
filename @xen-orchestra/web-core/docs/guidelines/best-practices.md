@@ -50,6 +50,21 @@
   const isVmRunning = computed(() => vm.running_state === 'running')
   ```
 
+- Names MUST NOT start with an underscore. A destructured prop renamed to free its name for a derived value
+  MUST use the `raw` prefix:
+
+  ```ts
+  // ❌ Bad
+  const { accent: _accent } = defineProps<{ accent: InputAccent }>()
+  ```
+
+  ```ts
+  // ✅ Good
+  const { accent: rawAccent } = defineProps<{ accent: InputAccent }>()
+
+  const accent = computed(() => rawAccent)
+  ```
+
 ## Code formatting
 
 - Add blank lines between code blocks for better readability:

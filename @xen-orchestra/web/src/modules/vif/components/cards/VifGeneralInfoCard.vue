@@ -41,9 +41,9 @@
 </template>
 
 <script setup lang="ts">
+import { useXoNetworkUtils } from '@/modules/network/composables/xo-network-utils.composable.ts'
 import { useXoNetworkCollection } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
 import { getPoolNetworkRoute } from '@/modules/network/utils/xo-network.util.ts'
-import { useXoPifCollection } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
 import { useXoVifUtils } from '@/modules/vif/composables/xo-vif-utils.composable.ts'
 import type { FrontXoVif } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
 import VtsCodeSnippet from '@core/components/code-snippet/VtsCodeSnippet.vue'
@@ -63,7 +63,6 @@ const { vif } = defineProps<{ vif: FrontXoVif }>()
 const { t } = useI18n()
 
 const { useGetNetworkById } = useXoNetworkCollection()
-const { getPifsByNetworkId } = useXoPifCollection()
 const { lockingModeLabel } = useXoVifUtils(() => vif)
 
 const network = useGetNetworkById(() => vif.$network)
@@ -72,15 +71,7 @@ const networkTo = computed(() =>
   network.value ? getPoolNetworkRoute(network.value.$pool, network.value.id) : undefined
 )
 
-const pifs = computed(() => getPifsByNetworkId(vif.$network))
-
-const networkVlan = computed(() => {
-  if (pifs.value.length === 0) {
-    return
-  }
-
-  return pifs.value[0].vlan !== -1 ? pifs.value[0].vlan.toString() : t('none')
-})
+const { networkVlan } = useXoNetworkUtils(network)
 
 const vifStatus = computed(() => (vif.attached ? CONNECTION_STATUS.CONNECTED : CONNECTION_STATUS.DISCONNECTED))
 

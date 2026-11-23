@@ -10,9 +10,9 @@ export const useSnapshotColumns = defineColumns(() => {
   const { t } = useI18n()
 
   return {
-    name: useLinkColumn({ headerLabel: () => t('name') }),
+    name: useLinkColumn({ headerLabel: () => t('name'), flexible: true }),
     description: useTruncatedTextColumn({ headerLabel: () => t('description') }),
-    creationDate: useDateColumn({ headerLabel: () => t('creation-date'), dateStyle: 'short', timeStyle: 'medium' }),
+    creationDate: useDateColumn({ headerLabel: () => t('creation-date') }),
     trigger: useLinkOrTextColumn({ headerLabel: () => t('trigger') }),
     actions: useActionColumn({}),
   }

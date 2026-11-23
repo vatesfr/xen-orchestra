@@ -1,0 +1,57 @@
+import BackupJobTargetsCard from '@/modules/backup-job/components/list/panel/cards/BackupJobTargetsCard.vue'
+import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
+import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
+import { createBr } from '@/test/create-br.ts'
+import { createSr } from '@/test/create-sr.ts'
+import { createGlobalTestConfig } from '@/test/global-test-config.ts'
+import { t } from '@/test/i18n.ts'
+import { xoCollectionsMock, mockXoCollections } from '@/test/mock-xo-collections.ts'
+import VtsDivider from '@core/components/divider/VtsDivider.vue'
+import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
+import { findLinks } from '@core-test/find-links.ts'
+import { mount } from '@vue/test-utils'
+
+mockXoCollections('host', 'pbd')
+
+beforeEach(() => {
+  xoCollectionsMock.reset()
+})
+
+const sr = createSr({ id: 'sr-1' as FrontXoSr['id'], name_label: 'Replication SR' })
+const br = createBr({ id: 'br-1' as FrontXoBackupRepository['id'], name: 'Backup BR' })
+
+function mountTargetsCard(storageRepositoryTargets: FrontXoSr[], backupRepositoryTargets: FrontXoBackupRepository[]) {
+  return mount(BackupJobTargetsCard, {
+    props: { storageRepositoryTargets, backupRepositoryTargets },
+    global: createGlobalTestConfig(),
+  })
+}
+
+it('lists the storage repositories, then the backup repositories, linked to their pages', () => {
+  const wrapper = mountTargetsCard([sr], [br])
+
+  expect(wrapper.findAllComponents(UiPanelCardTitle).map(title => title.props('label'))).toEqual([
+    t('backup-targets'),
+    t('storage-repositories'),
+    t('backup-repositories'),
+  ])
+  expect(findLinks(wrapper)).toEqual([
+    ['Replication SR', '/sr/sr-1/general'],
+    ['Backup BR', '/admin/backup-repository/br-1/general'],
+  ])
+  expect(wrapper.findComponent(VtsDivider).exists()).toBe(true)
+})
+
+it('counts every target of the backup job', () => {
+  expect(mountTargetsCard([sr], [br]).getComponent(UiPanelCardTitle).props('counter')).toBe(2)
+})
+
+it('only lists the backup repositories of a backup job without storage repository', () => {
+  const wrapper = mountTargetsCard([], [br])
+
+  expect(wrapper.findAllComponents(UiPanelCardTitle).map(title => title.props('label'))).toEqual([
+    t('backup-targets'),
+    t('backup-repositories'),
+  ])
+  expect(wrapper.findComponent(VtsDivider).exists()).toBe(false)
+})

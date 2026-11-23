@@ -1,7 +1,7 @@
 <template>
-  <UiPanelCard class="backup-repository-smb-card">
+  <UiPanelCard>
     <UiPanelCardTitle size="medium" :label="t('smb')" />
-    <div class="content">
+    <VtsCardRowList>
       <VtsCardRowKeyValue>
         <template #key>{{ t('path-on-share') }}</template>
         <template #value>{{ pathOnShare }}</template>
@@ -38,7 +38,7 @@
           <VtsCopyButton :value="formattedOptions" />
         </template>
       </VtsCardRowKeyValue>
-    </div>
+    </VtsCardRowList>
   </UiPanelCard>
 </template>
 
@@ -49,6 +49,7 @@ import {
   MASKED_SECRET,
 } from '@/modules/backup-repository/utils/xo-backup-repository.util.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
+import VtsCardRowList from '@core/components/card/VtsCardRowList.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
 import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
@@ -67,13 +68,3 @@ const pathOnShare = computed(() => formatSmbPathOnShare(smb.host, smb.path))
 
 const formattedOptions = computed(() => formatMountOptions(options))
 </script>
-
-<style scoped lang="postcss">
-.backup-repository-smb-card {
-  .content {
-    display: flex;
-    flex-direction: column;
-    gap: 0.4rem;
-  }
-}
-</style>

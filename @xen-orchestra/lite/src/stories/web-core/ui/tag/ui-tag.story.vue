@@ -6,7 +6,7 @@
         .type('TagAccent')
         .required()
         .preset('info')
-        .enum('info', 'neutral', 'success', 'warning', 'danger', 'muted')
+        .enum('brand', 'info', 'neutral', 'success', 'warning', 'danger', 'muted')
         .widget(),
       prop('variant').type('TagVariant').required().preset('primary').enum('primary', 'secondary').widget(),
       slot(),

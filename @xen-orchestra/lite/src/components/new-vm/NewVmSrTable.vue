@@ -1,5 +1,5 @@
 <template>
-  <VtsTable>
+  <VtsTable class="new-vm-sr-table" fixed>
     <thead>
       <tr>
         <HeadCells />
@@ -49,6 +49,7 @@ const emit = defineEmits<{
 const { t } = useI18n()
 
 const { HeadCells, BodyCells, colspan } = useNewVmSrColumns({
+  exclude: ['rank'],
   body: ({ vdi, onRemove }: { vdi: Vdi; onRemove?: () => void }) => {
     const { id: srSelectId } = useFormSelect(() => srs, {
       model: toRef(vdi, 'SR'),
@@ -76,3 +77,9 @@ const { HeadCells, BodyCells, colspan } = useNewVmSrColumns({
   },
 })
 </script>
+
+<style lang="postcss" scoped>
+.new-vm-sr-table {
+  --vts-table-min-width: 80rem;
+}
+</style>

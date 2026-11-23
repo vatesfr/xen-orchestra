@@ -17,3 +17,11 @@ export function createBr(overrides: Partial<FrontXoBackupRepository> = {}): Fron
     ...overrides,
   }
 }
+
+// Two repositories told apart by their id, `backup-repository-1` and `backup-repository-2`
+export function createTwoBrs() {
+  return [1, 2].map(index => createBr({ id: `backup-repository-${index}` as FrontXoBackupRepository['id'] })) as [
+    FrontXoBackupRepository,
+    FrontXoBackupRepository,
+  ]
+}

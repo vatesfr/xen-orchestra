@@ -13,7 +13,12 @@
     <VtsTabularKeyValueList v-else full-height>
       <VtsTabularKeyValueRow :label="t('vm')">
         <template v-if="vm" #value>
-          <UiLink size="medium" :icon="vmPowerStateIcon" :to="{ name: '/vm/[id]/dashboard', params: { id: vm.id } }">
+          <UiLink
+            size="medium"
+            :icon="vmPowerStateIcon"
+            :icon-tooltip="vmIconTooltip"
+            :to="{ name: '/vm/[id]/dashboard', params: { id: vm.id } }"
+          >
             {{ vm.name_label }}
           </UiLink>
         </template>
@@ -38,16 +43,17 @@
 <script setup lang="ts">
 import { useXoSrUtils } from '@/modules/storage-repository/composables/xo-sr-utils.composable.ts'
 import { useXoSrCollection } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
+import { useXoVmOperationLabel } from '@/modules/vm/composables/xo-vm-operation-label.composable.ts'
 import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import type { XoVmDashboard } from '@/modules/vm/types/vm-dashboard.type.ts'
+import { getVmIcon } from '@/modules/vm/utils/xo-vm.util.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import VtsTabularKeyValueList from '@core/components/tabular-key-value-list/VtsTabularKeyValueList.vue'
 import VtsTabularKeyValueRow from '@core/components/tabular-key-value-row/VtsTabularKeyValueRow.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
-import { objectIcon } from '@core/icons'
-import { toLower } from 'lodash-es'
+import { formatDateTime } from '@core/utils/time.util.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -59,7 +65,7 @@ const { hasError, vmDashboard } = defineProps<{
 const { getSrById, areSrsReady, hasSrFetchError } = useXoSrCollection()
 const { getVmById } = useXoVmCollection()
 
-const { t, d } = useI18n()
+const { t } = useI18n()
 
 const replication = computed(() => vmDashboard?.backupsInfo?.replication)
 
@@ -71,13 +77,14 @@ const isEmpty = computed(() => replication.value !== undefined && Object.keys(re
 
 const vm = computed(() => getVmById(replication.value?.id))
 
-const vmPowerStateIcon = computed(() => objectIcon('vm', toLower(vm.value?.power_state)))
+const { getVmIconTooltip } = useXoVmOperationLabel()
+
+const vmPowerStateIcon = computed(() => getVmIcon(vm.value))
+const vmIconTooltip = computed(() => getVmIconTooltip(vm.value))
 
 const storageRepository = computed(() => getSrById(replication.value?.sr))
 
-const formattedDate = computed(() =>
-  replication.value ? d(replication.value.timestamp, { dateStyle: 'short', timeStyle: 'medium' }) : undefined
-)
+const formattedDate = computed(() => (replication.value ? formatDateTime(replication.value.timestamp) : undefined))
 
 const { srStatusIcon } = useXoSrUtils(() => storageRepository.value)
 </script>

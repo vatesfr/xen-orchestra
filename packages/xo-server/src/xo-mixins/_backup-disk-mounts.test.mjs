@@ -3,7 +3,7 @@ import { EventEmitter } from 'node:events'
 import { describe, it } from 'node:test'
 import { noSuchObject } from 'xo-common/api-errors.js'
 
-import BackupDiskMountsResolver from './backup-disk-mounts.mjs'
+import BackupDiskMountsResolver, { rejectsUnknownParams } from './backup-disk-mounts.mjs'
 
 const archiveId = 'remote-1/xo-vm-backups/vm-1/20260101T000000Z.json'
 const hostId = 'host-1'
@@ -72,6 +72,44 @@ const isKnown = (resolver, id) => {
     throw error
   }
 }
+
+// what `callProxyMethod` throws when the proxy's API rejects the params: a JSON-RPC error carrying
+// Ajv's validation errors
+const invalidParamsFromProxy = errors => Object.assign(new Error('invalid parameters'), { code: 10, data: { errors } })
+
+const unknownParam = name => ({
+  instancePath: '',
+  keyword: 'additionalProperties',
+  message: 'must NOT have additional properties',
+  params: { additionalProperty: name },
+  schemaPath: '#/additionalProperties',
+})
+
+describe('rejectsUnknownParams', () => {
+  it('recognizes a proxy which does not know one of the params', () => {
+    assert.equal(rejectsUnknownParams(invalidParamsFromProxy([unknownParam('vm')]), ['cacheXapi', 'vm']), true)
+  })
+
+  it('ignores a param it does not know which is not one of those', () => {
+    assert.equal(rejectsUnknownParams(invalidParamsFromProxy([unknownParam('streamLogs')]), ['cacheXapi', 'vm']), false)
+  })
+
+  it('ignores any other invalid param, which says nothing about the version of the proxy', () => {
+    const missing = {
+      instancePath: '',
+      keyword: 'required',
+      message: "must have required property 'srUuid'",
+      params: { missingProperty: 'srUuid' },
+      schemaPath: '#/required',
+    }
+    assert.equal(rejectsUnknownParams(invalidParamsFromProxy([missing]), ['cacheXapi', 'vm']), false)
+  })
+
+  it('ignores an error which is not about the params, or carries no details', () => {
+    assert.equal(rejectsUnknownParams(new Error('fetch failed'), ['vm']), false)
+    assert.equal(rejectsUnknownParams(Object.assign(new Error('invalid parameters'), { code: 10 }), ['vm']), false)
+  })
+})
 
 describe('registerProxyBackupArchiveDiskMounts', () => {
   it('records each mount with its own host and the proxy serving it', () => {

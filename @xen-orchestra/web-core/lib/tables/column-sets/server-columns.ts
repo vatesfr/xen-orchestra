@@ -9,7 +9,7 @@ export const useServerColumns = defineColumns(() => {
   const { t } = useI18n()
 
   return {
-    pool: useLinkColumn({ headerLabel: () => t('pool') }),
+    pool: useLinkColumn({ headerLabel: () => t('pool'), flexible: true }),
     hostIp: useAddressColumn({ headerLabel: () => t('ip-address') }),
     status: useStatusColumn({ headerLabel: () => t('status') }),
     primaryHost: useLinkColumn({ headerLabel: () => t('master') }),

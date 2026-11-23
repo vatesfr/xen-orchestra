@@ -1,0 +1,200 @@
+import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
+import UiLink from '@core/components/ui/link/UiLink.vue'
+import { findLinks } from '@core-test/find-links.ts'
+import type { VueWrapper } from '@vue/test-utils'
+
+type QueryableWrapper = Pick<VueWrapper, 'findAll'>
+
+type RowWrapper = ReturnType<QueryableWrapper['findAll']>[number]
+
+type PairSelectors = { root: string; label: string; value: string }
+
+const KEY_VALUE_ROW_SELECTOR = '.vts-tabular-key-value-row, .vts-key-value-row'
+
+// For a check on the row elements themselves, e.g. whether a button sits inside a row
+export const CARD_KEY_VALUE_ROW_SELECTOR = '.vts-card-row-key-value'
+
+const CARD_ROW: PairSelectors = { root: CARD_KEY_VALUE_ROW_SELECTOR, label: '.key', value: '.value' }
+
+const readCardRowLabel = (row: RowWrapper) => row.get(CARD_ROW.label).text()
+
+/**
+ * The reading strategy every helper below shares. Selectors travel in an object
+ * rather than positionally: transposing `label` and `value` would still
+ * typecheck and still produce plausible-looking output.
+ */
+function findPairs(wrapper: QueryableWrapper, { root, label, value }: PairSelectors): [string, string][] {
+  return wrapper.findAll(root).map(element => [element.get(label).text(), element.get(value).text()])
+}
+
+/**
+ * Reads every `VtsTabularKeyValueRow` / `VtsKeyValueRow` of a mounted component
+ * as a plain `{ label: value }` record, so a single assertion can cover all the
+ * rows a user sees — and fail loudly when a value lands under the wrong label.
+ *
+ * Rows sharing the same label collapse into one entry: query those directly.
+ */
+export function findLabelledValues(wrapper: QueryableWrapper): Record<string, string> {
+  return Object.fromEntries(findPairs(wrapper, { root: KEY_VALUE_ROW_SELECTOR, label: 'dt.label', value: 'dd.value' }))
+}
+
+/**
+ * Same as {@link findLabelledValues}, for the `VtsCardRowKeyValue` rows used by
+ * the side-panel cards.
+ */
+export function findCardLabelledValues(wrapper: QueryableWrapper): Record<string, string> {
+  return Object.fromEntries(findCardRows(wrapper))
+}
+
+// The label of every `VtsTabularKeyValueRow` / `VtsKeyValueRow`, in order
+export function findRowLabels(wrapper: QueryableWrapper): string[] {
+  return wrapper.findAll(KEY_VALUE_ROW_SELECTOR).map(row => row.get('dt.label').text())
+}
+
+// The label of every `VtsCardRowKeyValue` row of a side-panel card, in order
+export function findCardRowLabels(wrapper: QueryableWrapper): string[] {
+  return wrapper.findAll(CARD_ROW.root).map(readCardRowLabel)
+}
+
+/**
+ * Same as {@link findCardLabelledValues}, as ordered `[label, value]` pairs: rows sharing a label (one row per VM,
+ * labelled on the first one only) each keep their own pair.
+ */
+export function findCardRows(wrapper: QueryableWrapper): [string, string][] {
+  return findPairs(wrapper, CARD_ROW)
+}
+
+// The `VtsCardRowKeyValue` row labelled `label`, to query what it holds (a link, a copy button); throws without one
+export function getCardRow(wrapper: QueryableWrapper, label: string) {
+  const row = wrapper.findAll(CARD_ROW.root).find(row => readCardRowLabel(row) === label)
+
+  if (row === undefined) {
+    throw new Error(`No row labelled "${label}"`)
+  }
+
+  return row
+}
+
+// The link the `VtsCardRowKeyValue` row labelled `label` holds; throws without one
+export function getCardRowLink(wrapper: QueryableWrapper, label: string) {
+  return getCardRow(wrapper, label).getComponent(UiLink)
+}
+
+// Every `VtsCardRowKeyValue` row as its key and value elements, to read what they hold beyond their text
+export function findCardRowElements(wrapper: QueryableWrapper) {
+  return wrapper.findAll(CARD_ROW.root).map(row => ({ key: row.get(CARD_ROW.label), value: row.get(CARD_ROW.value) }))
+}
+
+// Whether the `VtsCardRowKeyValue` row labelled `label` offers to copy its value
+export function hasCardRowCopy(wrapper: QueryableWrapper, label: string) {
+  return getCardRow(wrapper, label).findComponent(VtsCopyButton).exists()
+}
+
+// Every link the `VtsCardRowKeyValue` rows hold, as its `[text, href]`, in order
+export function findCardRowLinks(wrapper: QueryableWrapper) {
+  return wrapper.findAll(CARD_ROW.root).flatMap(row => findLinks(row))
+}
+
+/**
+ * Reads every `VtsCardRowKeyValue` as `{ label: values }`, each value of a
+ * multi-value row (an address list, report recipients) being its own entry, in
+ * the order the row lists them. A single-value row reads as a one-entry list.
+ */
+export function findCardLabelledValueLists(wrapper: QueryableWrapper): Record<string, string[]> {
+  return Object.fromEntries(
+    wrapper
+      .findAll(CARD_ROW.root)
+      .map(row => [
+        readCardRowLabel(row),
+        row.findAll('.value-row > .value, .value-container > .value').map(value => value.text()),
+      ])
+  )
+}
+
+/**
+ * Reads the value each `VtsTabularKeyValueRow` / `VtsKeyValueRow` offers to copy, keyed
+ * by its label. Rows without a copy button are left out, so a single `toEqual` pins
+ * both which rows are copyable and what they copy.
+ */
+export function findCopiedValues(wrapper: QueryableWrapper): Record<string, unknown> {
+  return Object.fromEntries(
+    wrapper.findAll(KEY_VALUE_ROW_SELECTOR).flatMap(row => {
+      const button = row.findComponent(VtsCopyButton)
+
+      return button.exists() ? [[row.get('dt.label').text(), button.props('value')]] : []
+    })
+  )
+}
+
+/**
+ * Reads the value each `VtsCopyButton` of the `VtsCardRowKeyValue` rows would copy, in
+ * order — so a card test asserts what is copyable, and what is left out (a secret, an
+ * empty value).
+ *
+ * Scoped to the rows: a `UiPanelCardTitle` has a copy button of its own, for the id.
+ */
+export function findCardCopiedValues(wrapper: QueryableWrapper): unknown[] {
+  return wrapper
+    .findAll(CARD_KEY_VALUE_ROW_SELECTOR)
+    .flatMap(row => row.findAllComponents(VtsCopyButton))
+    .map(button => button.props('value'))
+}
+
+/**
+ * Reads every `UiLegend` of a mounted component as ordered `[label, value]`
+ * pairs — the donut and progress-bar cards render their values through it.
+ *
+ * Pairs rather than a record: a card may legend the same label twice, and the
+ * order it lists them in is part of what a user reads.
+ */
+export function findLegends(wrapper: QueryableWrapper): [string, string][] {
+  return findPairs(wrapper, { root: '.ui-legend', label: '.label', value: '.value-and-unit' })
+}
+
+/**
+ * Same as {@link findLegends}, but grouped by `VtsProgressBarGroup`: a card that
+ * renders several groups needs to know which group a legend landed in, where a
+ * flat list of legends would not say.
+ */
+export function findProgressBarGroupLegends(wrapper: QueryableWrapper): [string, string][][] {
+  const sections = wrapper.findAll('.vts-progress-bar-group')
+
+  return sections.map(section => findLegends(section))
+}
+
+/**
+ * Same as {@link findLegends}, for the `UiCardNumbers` a dashboard card lays out
+ * next to its progress bar or donut. `.values` holds the number and, when the
+ * card passes a `max`, the percentage above it.
+ */
+export function findCardNumbers(wrapper: QueryableWrapper): [string, string][] {
+  return findPairs(wrapper, { root: '.ui-card-numbers', label: '.label', value: '.values' })
+}
+
+/**
+ * Reads the `tbody` of a mounted table as one array of cell texts per row.
+ *
+ * Cells rather than each row's whole text: `row.text()` concatenates the
+ * columns, so a patch named `XSAPATCH-1` at version `1.0` and one named
+ * `XSAPATCH-11` at version `.0` would read the same.
+ */
+export function findTableRows(wrapper: QueryableWrapper): string[][] {
+  const rows = wrapper.findAll('tbody tr')
+
+  return rows.map(row => row.findAll('td').map(cell => cell.text()))
+}
+
+/**
+ * Reads every `UiTag` of a mounted component as its text, in the order the
+ * component lists them.
+ */
+export function findTags(wrapper: QueryableWrapper): string[] {
+  const tags = wrapper.findAll('.ui-tag')
+
+  return tags.map(tag => tag.text())
+}
+
+// The inline style of the fill of the `UiProgressBar` of a mounted component, its width the share it shows
+export function findProgressBarFillStyle(wrapper: Pick<VueWrapper, 'get'>): string | undefined {
+  return wrapper.get('.ui-progress-bar .fill').attributes('style')
+}

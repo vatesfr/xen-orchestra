@@ -1,32 +1,15 @@
 import { useXoVmUtils } from '@/modules/vm/composables/xo-vm-utils.composable.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
-import type { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import { createVm } from '@/test/create-vm.ts'
-import { mountComposable } from '@/test/mount-composable.ts'
+import { mountComposable, mountComposableWithI18n } from '@/test/mount-composable.ts'
 import { getRelativeTime } from '@core/composables/relative-time.composable.ts'
-import { parseDateTime } from '@core/utils/time.util.ts'
+import { formatDate } from '@core/utils/time.util.ts'
 import { VM_OPERATIONS, VM_POWER_STATE } from '@vates/types'
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { buildXo5Route } = vi.hoisted(() => ({
-  buildXo5Route: vi.fn(),
-}))
-
-vi.mock(import('@/shared/remote-resources/use-xo-routes.ts'), () => ({
-  useXoRoutes: (() => ({ buildXo5Route })) as unknown as typeof useXoRoutes,
-}))
-
-beforeEach(() => {
-  buildXo5Route.mockReset()
-})
-
 function mountVmUtils(overrides: Partial<FrontXoVm> = {}) {
-  return mountComposable(() => {
-    const { t } = useI18n()
-
-    return { ...useXoVmUtils(createVm(overrides)), t }
-  }).wrapper.vm
+  return mountComposableWithI18n(() => useXoVmUtils(createVm(overrides)))
 }
 
 describe('powerState', () => {
@@ -39,18 +22,14 @@ describe('powerState', () => {
 
   it('reacts to changes of the source VM', () => {
     const vm = ref(createVm({ power_state: VM_POWER_STATE.RUNNING }))
-    const { wrapper } = mountComposable(() => {
-      const { t } = useI18n()
+    const result = mountComposableWithI18n(() => useXoVmUtils(vm))
 
-      return { ...useXoVmUtils(vm), t }
-    })
-
-    expect(wrapper.vm.powerState.icon).toBe('status:running-circle')
+    expect(result.powerState.icon).toBe('status:running-circle')
 
     vm.value = createVm({ power_state: VM_POWER_STATE.HALTED })
 
-    expect(wrapper.vm.powerState.icon).toBe('status:halted-circle')
-    expect(wrapper.vm.powerState.text).toBe(wrapper.vm.t('vm:status:halted'))
+    expect(result.powerState.icon).toBe('status:halted-circle')
+    expect(result.powerState.text).toBe(result.t('vm:status:halted'))
   })
 })
 
@@ -87,29 +66,11 @@ describe('installDateFormatted', () => {
     expect(result.installDateFormatted).toBe(result.t('unknown'))
   })
 
-  it('formats the install date with the current locale', () => {
+  it('formats the install date with formatDate', () => {
     const installTime = 1660000000
-    const { wrapper } = mountComposable(() => {
-      const { locale, t } = useI18n()
-      const { installDateFormatted } = useXoVmUtils(createVm({ installTime }))
-      const expected = new Intl.DateTimeFormat(locale.value, { dateStyle: 'long' }).format(
-        new Date(parseDateTime(installTime * 1000))
-      )
+    const result = mountVmUtils({ installTime })
 
-      return { installDateFormatted, expected, t }
-    })
-
-    expect(wrapper.vm.installDateFormatted).toBe(wrapper.vm.expected)
-  })
-})
-
-describe('hasGuestTools', () => {
-  it('requires both management agent and PV drivers to be detected', () => {
-    const result = mountVmUtils()
-
-    expect(result.hasGuestTools(createVm({ managementAgentDetected: true, pvDriversDetected: true }))).toBe(true)
-    expect(result.hasGuestTools(createVm({ managementAgentDetected: false, pvDriversDetected: true }))).toBe(false)
-    expect(result.hasGuestTools(createVm({ managementAgentDetected: true, pvDriversDetected: false }))).toBe(false)
+    expect(result.installDateFormatted).toBe(formatDate(installTime * 1000))
   })
 })
 
@@ -130,8 +91,8 @@ describe('guestToolsDisplay', () => {
     expect(result.guestToolsDisplay).toEqual({
       type: 'missing',
       icon: 'status:halted-circle',
-      value: 'Install guest tools',
-      tooltip: 'Management agent not detected',
+      value: result.t('action:install-guest-tools'),
+      tooltip: result.t('management-agent-not-detected'),
     })
   })
 
@@ -158,7 +119,7 @@ describe('guestToolsDisplay', () => {
       type: 'up-to-date',
       icon: 'status:success-circle',
       value: '7.5.0',
-      tooltip: 'Installed',
+      tooltip: result.t('installed'),
     })
   })
 
@@ -175,7 +136,7 @@ describe('guestToolsDisplay', () => {
       type: 'outdated',
       icon: 'status:warning-circle',
       value: '7.5.0',
-      tooltip: 'Guest tools out of date',
+      tooltip: result.t('guest-tools-out-of-date'),
     })
   })
 
@@ -192,7 +153,7 @@ describe('guestToolsDisplay', () => {
       type: 'unknown',
       icon: 'status:info-circle',
       value: '7.5.0',
-      tooltip: 'Guest tools status unknown',
+      tooltip: result.t('guest-tools-status-unknown'),
     })
   })
 
@@ -209,17 +170,17 @@ describe('guestToolsDisplay', () => {
   })
 })
 
-describe('isChangingState', () => {
-  it('is false when no state-changing operation is pending', () => {
+describe('hasPendingOperation', () => {
+  it('is false when no tracked operation is pending', () => {
     const result = mountVmUtils({ current_operations: {} })
 
-    expect(result.isChangingState).toBe(false)
+    expect(result.hasPendingOperation).toBe(false)
   })
 
-  it('is true while a state-changing operation is pending', () => {
+  it('is true while a tracked operation is pending', () => {
     const result = mountVmUtils({ current_operations: { task1: VM_OPERATIONS.CLEAN_REBOOT } })
 
-    expect(result.isChangingState).toBe(true)
+    expect(result.hasPendingOperation).toBe(true)
   })
 })
 
@@ -227,7 +188,9 @@ describe('currentOperation', () => {
   it('maps the pending operation to a translated label', () => {
     const result = mountVmUtils({ current_operations: { task1: VM_OPERATIONS.SNAPSHOT } })
 
-    expect(result.currentOperation).toBe(result.t('operation:snapshot'))
+    expect(result.currentOperation).toBe(
+      result.t('operation-in-progress', { operation: result.t('operation:snapshot') })
+    )
   })
 
   it('falls back to an empty label for an unknown operation', () => {
@@ -243,12 +206,18 @@ describe('currentOperation', () => {
   })
 })
 
-describe('xo5VmAdvancedHref', () => {
-  it('builds the XO5 advanced route for the VM id', () => {
-    buildXo5Route.mockImplementation((path: string) => `https://xo5.example.com/#${path}`)
+describe('iconTooltip', () => {
+  it('shows the operation changing the power state', () => {
+    const result = mountVmUtils({ current_operations: { task1: VM_OPERATIONS.CLEAN_REBOOT } })
 
-    const result = mountVmUtils({ id: 'vm-42' as FrontXoVm['id'] })
+    expect(result.iconTooltip).toBe(
+      result.t('operation-in-progress', { operation: result.t('operation:clean-reboot') })
+    )
+  })
 
-    expect(result.xo5VmAdvancedHref).toBe('https://xo5.example.com/#/vms/vm-42/advanced')
+  it('is empty while no operation changes the power state', () => {
+    const result = mountVmUtils({ current_operations: { task1: VM_OPERATIONS.SNAPSHOT } })
+
+    expect(result.iconTooltip).toBe('')
   })
 })

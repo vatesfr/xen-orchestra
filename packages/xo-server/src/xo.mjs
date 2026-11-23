@@ -76,6 +76,7 @@ export default class Xo extends EventEmitter {
     }
 
     this.hooks.on('start', () => this._watchObjects())
+    // `decorate` can return `undefined` to ignore an object
     this.hooks.on('registerCollection', async ({ collection, type, decorate = obj => obj }) => {
       const cache = new Map()
       const emitter = new EventEmitter()
@@ -86,7 +87,10 @@ export default class Xo extends EventEmitter {
         await Promise.all(
           objects.map(async object => {
             // pass a copy of the object to avoid any mutation on the source object
-            cache.set(object.id, await decorate({ ...object }))
+            const obj = await decorate({ ...object })
+            if (obj !== undefined) {
+              cache.set(obj.id, obj)
+            }
           })
         )
       })()
@@ -109,6 +113,13 @@ export default class Xo extends EventEmitter {
             const previous = cache.get(object.id)
             const newEntry = previous === undefined
             const obj = await decorate({ ...object })
+            if (obj === undefined) {
+              if (!newEntry) {
+                cache.delete(object.id)
+                emitter.emit('remove', undefined, previous)
+              }
+              return
+            }
             cache.set(obj.id, obj)
             emitter.emit(newEntry ? 'add' : 'update', obj, previous)
           })

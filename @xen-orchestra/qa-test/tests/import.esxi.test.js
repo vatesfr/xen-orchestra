@@ -9,7 +9,7 @@ import { createLogger } from '@xen-orchestra/log'
 
 import { DispatchClient } from '../client/dispatchClient.js'
 import { createResourceTracker } from '../utils/resourceTracker.js'
-import { getRequiredEnv } from '../utils/index.js'
+import { getRequiredEnv, waitUntil } from '../utils/index.js'
 import { formatBytes } from '../utils/exportUtils.js'
 import {
   assertRawExportsAreIdentical,
@@ -42,7 +42,9 @@ describe('ESXi migration (V2V)', { skip: getEsxiSkipReason() }, () => {
   let esxiConfig
   /** @type {Object} */
   let sourceMetadata
-  /** Parameters shared by every `vm.importFromEsxi` call */
+  /** Pool the VMs are imported into */
+  let poolId
+  /** Body shared by every `import_vms_from_vmware` call */
   let migrationParams
 
   before(async () => {
@@ -58,16 +60,31 @@ describe('ESXi migration (V2V)', { skip: getEsxiSkipReason() }, () => {
     const sr = await dispatchClient.sr.details(getRequiredEnv('SR_ID'))
     assert.notEqual(sr, undefined, 'SR_ID does not resolve to an SR')
 
+    poolId = sr.$pool
     migrationParams = {
-      host: esxiConfig.host,
-      user: esxiConfig.user,
-      password: esxiConfig.password,
-      sslVerify: esxiConfig.sslVerify,
-      vm: esxiConfig.vmId,
-      sr: sr.uuid,
-      network: await findNetwork(dispatchClient, sr.$pool),
-      template: await findTemplate(dispatchClient, sr.$pool),
+      connection: {
+        host: esxiConfig.host,
+        username: esxiConfig.user,
+        password: esxiConfig.password,
+        skipSslCheck: !esxiConfig.sslVerify,
+      },
+      defaults: {
+        sr: sr.uuid,
+        network: await findNetwork(dispatchClient, poolId),
+        template: await findTemplate(dispatchClient, poolId),
+      },
+      vms: [{ id: esxiConfig.vmId }],
     }
+
+    // the wizard lists the VMs to migrate from the inventory: the source VM must be in it
+    const inventory = await dispatchClient.restApiClient.post('/rest/v0/v2v/inventory', {
+      platform: 'vmware',
+      connection: migrationParams.connection,
+    })
+    assert.ok(
+      inventory.vms.some(({ id }) => id === esxiConfig.vmId),
+      `the inventory of the source should list ${esxiConfig.vmId}`
+    )
 
     log.info('Ready to migrate source VM', {
       name: sourceMetadata.name_label,
@@ -75,7 +92,10 @@ describe('ESXi migration (V2V)', { skip: getEsxiSkipReason() }, () => {
       disks: sourceMetadata.disks.length,
       sr: sr.name_label,
     })
-    log.debug('Migration parameters', { ...migrationParams, password: '<redacted>' })
+    log.debug('Migration parameters', {
+      ...migrationParams,
+      connection: { ...migrationParams.connection, password: '<redacted>' },
+    })
     log.debug('Resolved timings', {
       requestTimeoutMinutes: Math.round(esxiConfig.timeout / 60_000),
       resetSettleSeconds: Math.round(esxiConfig.resetSettleMs / 1000),
@@ -83,8 +103,8 @@ describe('ESXi migration (V2V)', { skip: getEsxiSkipReason() }, () => {
     log.debug('Target pool objects resolved', {
       pool: sr.$pool,
       sr: { uuid: sr.uuid, name_label: sr.name_label },
-      network: migrationParams.network,
-      template: migrationParams.template,
+      network: migrationParams.defaults.network,
+      template: migrationParams.defaults.template,
     })
   })
 
@@ -296,22 +316,38 @@ describe('ESXi migration (V2V)', { skip: getEsxiSkipReason() }, () => {
    */
   async function migrate({ stopSource }) {
     const startTime = Date.now()
-    log.debug('Calling vm.importFromEsxi', { vm: esxiConfig.vmId, stopSource })
+    log.debug('Calling import_vms_from_vmware', { vm: esxiConfig.vmId, stopSource })
 
-    let result
-    try {
-      result = await dispatchClient.xoClient.call('vm.importFromEsxi', { ...migrationParams, stopSource })
-    } catch (cause) {
+    // asynchronous: a migration lasts far longer than an HTTP client waits for the headers of its answer
+    const { taskId } = await dispatchClient.restApiClient.post(
+      `/rest/v0/pools/${poolId}/actions/import_vms_from_vmware`,
+      { ...migrationParams, defaults: { ...migrationParams.defaults, stopSource } }
+    )
+    const task = await waitUntil(
+      async () => {
+        const task = await dispatchClient.restApiClient.get(`/rest/v0/tasks/${taskId}`)
+        return task.status === 'pending' ? false : task
+      },
+      10_000,
+      esxiConfig.timeout
+    )
+    log.debug('import_vms_from_vmware task ended', { status: task.status, result: task.result })
+
+    if (task.status !== 'success') {
       // `succeeded` maps the source VM to the XCP-ng VM created before the failure, and is
       // the only way to find the leftover VM to clean up
-      log.warn('Migration failed', { stopSource, succeeded: cause.succeeded, error: cause })
-      throw cause
+      log.warn('Migration failed', { stopSource, succeeded: task.result?.succeeded, error: task.result })
+      throw new Error(`the migration ended with the status ${task.status}: ${task.result?.message}`)
     }
+    // the front tells the imports in progress by this property
+    assert.deepEqual(task.properties.sourceVmIds, [esxiConfig.vmId])
 
-    const vmUuid = result[esxiConfig.vmId]
-    log.debug('vm.importFromEsxi returned', { result })
+    const vmUuid = task.result[esxiConfig.vmId]
+    assert.equal(typeof vmUuid, 'string', `the migration did not return a VM for ${esxiConfig.vmId}`)
 
-    assert.equal(typeof vmUuid, 'string', `vm.importFromEsxi did not return a VM for ${esxiConfig.vmId}`)
+    // the front tells an import from its clones, restores and replicas by the UUID it records
+    const vm = await dispatchClient.restApiClient.get(`/rest/v0/vms/${vmUuid}`)
+    assert.equal(vm.other['xo:v2v:importedVmUuid'], vmUuid)
     log.info('Migration done', { stopSource, vmUuid, durationSeconds: Math.round((Date.now() - startTime) / 1000) })
 
     return vmUuid

@@ -1,3 +1,4 @@
+import { useXoHostOperationLabel } from '@/modules/host/composables/xo-host-operation-label.composable.ts'
 import { type FrontXoHost, useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import { getHostIcon } from '@/modules/host/utils/xo-host.util.ts'
 import { getPoolInfo } from '@/modules/pool/utils/xo-pool.util.ts'
@@ -17,15 +18,17 @@ export interface PoolFilterableData extends FrontXoServer {
 
 export interface PoolDisplayData extends PoolFilterableData {
   // Formatted values for UI display
-  poolIcon: ReturnType<typeof icon>
+  poolIcon: ReturnType<typeof icon> | undefined
   hostIcon: ReturnType<typeof objectIcon> | undefined
   primaryHostIcon: ReturnType<typeof objectIcon> | undefined
+  primaryHostIconTooltip: string
   primaryHostRightIcon: ReturnType<typeof icon> | undefined
 }
 
 export function usePoolEnhancedData(rawServers: MaybeRefOrGetter<FrontXoServer[]>) {
   const servers = toComputed(rawServers)
   const { getHostById, isMasterHost } = useXoHostCollection()
+  const { getHostIconTooltip } = useXoHostOperationLabel()
 
   /**
    * Get master host icon if applicable
@@ -66,9 +69,10 @@ export function usePoolEnhancedData(rawServers: MaybeRefOrGetter<FrontXoServer[]
 
     return {
       ...pool,
-      poolIcon: icon('object:pool'),
+      poolIcon: getPoolInfo(pool).icon,
       hostIcon,
       primaryHostIcon: hostIcon,
+      primaryHostIconTooltip: getHostIconTooltip(host),
       primaryHostRightIcon,
     }
   }

@@ -1,10 +1,16 @@
 <!-- v6 -->
 <template>
   <component :is="component" :class="classes" class="ui-link" v-bind="attributes">
-    <VtsIcon :name="icon" :busy :busy-tooltip size="medium" />
+    <span v-if="icon || busy" class="icon-container">
+      <VtsIcon :name="icon" :tooltip="iconTooltip" :busy :busy-tooltip size="medium" />
+    </span>
     <slot />
-    <VtsIcon v-if="attributes.target === '_blank'" name="action:open-in-new-tab" size="medium" class="external-icon" />
-    <VtsIcon v-if="isPrimary" v-tooltip="primaryTooltip" name="status:primary-circle" size="medium" />
+    <span v-if="attributes.target === '_blank'" class="icon-container">
+      <VtsIcon name="action:open-in-new-tab" size="medium" class="external-icon" />
+    </span>
+    <span v-if="isPrimary" class="icon-container">
+      <VtsIcon v-tooltip="primaryTooltip" name="status:primary-circle" size="medium" />
+    </span>
   </component>
 </template>
 
@@ -19,6 +25,7 @@ const props = defineProps<
   LinkOptions & {
     size: 'small' | 'medium'
     icon?: IconName
+    iconTooltip?: string
     busy?: boolean
     busyTooltip?: string
     isPrimary?: boolean
@@ -40,7 +47,7 @@ const classes = computed(() => [typoClasses[props.size], { disabled: isDisabled.
 <style lang="postcss" scoped>
 .ui-link {
   display: inline-flex;
-  align-items: center;
+  align-items: baseline;
   gap: 0.8rem;
   color: var(--color-brand-txt-base);
 
@@ -76,6 +83,14 @@ const classes = computed(() => [typoClasses[props.size], { disabled: isDisabled.
   &:not([href]) {
     text-decoration: none;
     cursor: default;
+  }
+
+  .icon-container {
+    align-self: flex-start;
+    display: inline-flex;
+    align-items: center;
+    height: 1lh;
+    flex-shrink: 0;
   }
 
   .external-icon {

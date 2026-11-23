@@ -1,4 +1,5 @@
 import { defineColumns } from '@core/packages/table/define-columns.ts'
+import { useActionColumn } from '@core/tables/column-definitions/action-column.ts'
 import { useAddressColumn } from '@core/tables/column-definitions/address-column.ts'
 import { useCheckboxColumn } from '@core/tables/column-definitions/checkbox-column.ts'
 import { useLinkColumn } from '@core/tables/column-definitions/link-column.ts'
@@ -13,11 +14,12 @@ export const useHostColumns = defineColumns(() => {
 
   return {
     checkbox: useCheckboxColumn(),
-    host: useLinkColumn({ headerLabel: () => t('host') }),
+    host: useLinkColumn({ headerLabel: () => t('host'), flexible: true }),
     description: useTruncatedTextColumn({ headerLabel: () => t('description') }),
     ipAddresses: useAddressColumn({ headerLabel: () => t('management-ip') }),
     tags: useTagColumn({ headerLabel: () => t('tags') }),
     srStatus: useStatusColumn({ headerLabel: () => t('status') }),
     selectItem: useSelectItemColumn(),
+    actions: useActionColumn({}),
   }
 })

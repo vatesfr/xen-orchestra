@@ -3,6 +3,7 @@ import { asyncMap, asyncMapSettled } from '@xen-orchestra/async-map'
 import { createLogger } from '@xen-orchestra/log'
 import { stringify } from 'uuid'
 import { decorateMethodsWith } from '@vates/decorate-with'
+import assert from 'node:assert'
 import { basename, dirname, join, resolve } from 'node:path'
 import { normalize } from '@xen-orchestra/fs/path'
 import { synchronized } from 'decorator-synchronized'
@@ -26,6 +27,7 @@ import { formatFilenameDate } from './_filenameDate.mjs'
 import { isMetadataFile } from './_backupType.mjs'
 import {
   isKnownJournalEvent,
+  purgeBackupJournal,
   readBackupJournal,
   writeBackupJournalEntries,
   writeBackupJournalEntry,
@@ -64,6 +66,10 @@ export class RemoteAdapter {
     this._handler = handler
     this._readCacheListVmBackups = synchronized.withKey()(this._readCacheListVmBackups)
     this._useGetDiskLegacy = useGetDiskLegacy
+
+    // Cache of the partition list per diskId, populated by listPartitions and evicted by
+    // getDisk when the disk is unmounted
+    this._partitionsCache = new Map()
   }
 
   get handler() {
@@ -317,6 +323,14 @@ export class RemoteAdapter {
     return this.handler.getConfig('useVhdDirectory')
   }
 
+  /**
+   * @returns {string | undefined} the compression of the VHD directories written on this remote ('none' if not
+   *   compressed), undefined if this remote writes plain VHD files
+   */
+  getVhdDirectoryCompression() {
+    return this.useVhdDirectory() ? (this.handler.getConfig('compressionType') ?? 'brotli') : undefined // compatibility layer
+  }
+
   #useAlias() {
     return this.useVhdDirectory()
   }
@@ -546,6 +560,14 @@ export class RemoteAdapter {
     return readBackupJournal(this._handler, cursor, opts)
   }
 
+  /**
+   * @param {number} before timestamp in ms, the journal days before its own are removed
+   * @returns {Promise<void>}
+   */
+  async purgeBackupJournal(before) {
+    return purgeBackupJournal(this._handler, before)
+  }
+
   // Same as `readBackupJournal()`, with the current metadata of the added and changed backups
   // attached, so that a listing can be brought up to date from the result alone, in a single
   // round-trip for a caller which is not on this host.
@@ -676,7 +698,7 @@ export class RemoteAdapter {
           path,
           concurrency: writeBlockConcurrency,
           validator,
-          compression: handler.getConfig('compressionType') ?? 'brotli', // compatibility layer
+          compression: this.getVhdDirectoryCompression(),
           uuid,
           parentUuid,
           parentPath,
@@ -716,19 +738,24 @@ export class RemoteAdapter {
   }
 
   // open the  hierarchy of ancestors until we find a full one
-  async _createVhdDisk(handler, path, { useChain }) {
+  async _createVhdDisk(handler, path, { useChain, rawBlocksCompression }) {
     let disk
     if (useChain) {
+      assert.strictEqual(rawBlocksCompression, undefined, `can't read raw blocks of a disk chain`)
       disk = await openDiskChain({ handler, path })
     } else {
-      disk = new RemoteVhdDisk({ handler, path })
+      disk = new RemoteVhdDisk({ handler, path, rawBlocksCompression })
       await disk.init()
     }
     disk = new ReadAhead(disk)
     return disk
   }
 
-  async readIncrementalVmBackup(metadata, ignoredVdis, { useChain = true } = {}) {
+  /**
+   * `rawBlocksCompression`: the blocks of the VHD directories using this compression are read as stored (see
+   * RemoteVhdDisk), to be written as is in a remote using the same compression
+   */
+  async readIncrementalVmBackup(metadata, ignoredVdis, { useChain = true, rawBlocksCompression } = {}) {
     const handler = this._handler
     const { vbds, vhds, vifs, vm, vmSnapshot, vtpms } = metadata
     const dir = dirname(metadata._filename)
@@ -736,7 +763,7 @@ export class RemoteAdapter {
     const disks = {}
     await asyncMapSettled(Object.keys(vdis), async ref => {
       delete vdis[ref].baseVdi
-      disks[ref] = await this._createVhdDisk(handler, join(dir, vhds[ref]), { useChain })
+      disks[ref] = await this._createVhdDisk(handler, join(dir, vhds[ref]), { useChain, rawBlocksCompression })
     })
 
     return {

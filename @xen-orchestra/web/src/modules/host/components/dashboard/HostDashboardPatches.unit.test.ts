@@ -1,23 +1,19 @@
 import HostDashboardPatches from '@/modules/host/components/dashboard/HostDashboardPatches.vue'
 import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
-import type {
-  MissingPatch,
+import {
+  type MissingPatch,
   useXoHostMissingPatchesCollection,
 } from '@/modules/host/remote-resources/use-xo-host-missing-patches-collection.ts'
 import { createHost } from '@/test/create-host.ts'
+import { findTableRows } from '@/test/find-rendered-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
+import { itShowsHostDashboardCard } from '@/test/host-dashboard-card.ts'
 import { t } from '@/test/i18n.ts'
+import { mockedExport } from '@/test/spy-on-module.ts'
 import { mount } from '@vue/test-utils'
 import { ref } from 'vue'
 
-const { useXoHostMissingPatchesCollectionMock } = vi.hoisted(() => ({
-  useXoHostMissingPatchesCollectionMock: vi.fn(),
-}))
-
-vi.mock(import('@/modules/host/remote-resources/use-xo-host-missing-patches-collection.ts'), () => ({
-  useXoHostMissingPatchesCollection:
-    useXoHostMissingPatchesCollectionMock as unknown as typeof useXoHostMissingPatchesCollection,
-}))
+const useXoHostMissingPatchesCollectionMock = mockedExport(useXoHostMissingPatchesCollection)
 
 const host = createHost({ id: 'host-1' as FrontXoHost['id'] })
 
@@ -29,7 +25,6 @@ function givenMissingPatches(missingPatches: MissingPatch[], areReady = true) {
 }
 
 beforeEach(() => {
-  useXoHostMissingPatchesCollectionMock.mockReset()
   givenMissingPatches([])
 })
 
@@ -40,15 +35,7 @@ function mountPatches() {
   })
 }
 
-function findPatchRows(wrapper: ReturnType<typeof mountPatches>) {
-  return wrapper.findAll('tbody tr').map(row => row.text())
-}
-
-it('renders the card title', () => {
-  const wrapper = mountPatches()
-
-  expect(wrapper.get('.ui-card-title').text()).toContain(t('patches'))
-})
+itShowsHostDashboardCard(mountPatches, { title: t('patches') })
 
 it('counts the missing patches next to the title', () => {
   givenMissingPatches([
@@ -75,14 +62,17 @@ it('lists one row per missing patch', () => {
 
   const wrapper = mountPatches()
 
-  expect(findPatchRows(wrapper)).toEqual(['XSAPATCH-11.0', 'XSAPATCH-22.0'])
+  expect(findTableRows(wrapper)).toEqual([
+    ['XSAPATCH-1', '1.0'],
+    ['XSAPATCH-2', '2.0'],
+  ])
 })
 
 it('reports the host as up to date when it misses no patch', () => {
   const wrapper = mountPatches()
 
   expect(wrapper.get('.vts-state-hero').text()).toContain(t('patches-up-to-date'))
-  expect(findPatchRows(wrapper)).toEqual([])
+  expect(findTableRows(wrapper)).toEqual([])
 })
 
 it('reports the host as up to date while its patches are still loading', () => {

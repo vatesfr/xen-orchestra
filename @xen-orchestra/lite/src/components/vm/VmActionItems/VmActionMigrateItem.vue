@@ -1,18 +1,15 @@
 <template>
-  <MenuItem
-    v-tooltip="
-      selectedRefs.length > 0 &&
-      !isMigratable &&
-      t(isSingleAction ? 'this-vm-cant-be-migrated' : 'no-selected-vm-can-be-migrated')
-    "
-    accent="neutral"
+  <VtsActionButton
+    variant="tertiary"
+    accent="brand"
     :busy="isMigrating"
     :disabled="isDisabled"
     icon="fa:route"
+    :hint="disabledReason"
     @click="openMigrateModal()"
   >
     {{ t('action:migrate') }}
-  </MenuItem>
+  </VtsActionButton>
 </template>
 
 <script lang="ts" setup>
@@ -21,16 +18,15 @@ import { areSomeVmOperationAllowed, isVmOperationPending } from '@/libs/vm.ts'
 import { VM_OPERATION } from '@/libs/xen-api/xen-api.enums.ts'
 import type { XenApiVm } from '@/libs/xen-api/xen-api.types.ts'
 import { useVmStore } from '@/stores/xen-api/vm.store.ts'
-import MenuItem from '@core/components/menu/MenuItem.vue'
+import VtsActionButton from '@core/components/action-button/VtsActionButton.vue'
 import { useDisabled } from '@core/composables/disabled.composable.ts'
-import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { KEEP_OVERLAY_OPEN } from '@core/packages/overlay/symbols.ts'
 import { useOverlay } from '@core/packages/overlay/use-overlay.ts'
 import { reactiveComputed } from '@vueuse/core'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { selectedRefs } = defineProps<{
+const { selectedRefs, isSingleAction } = defineProps<{
   selectedRefs: XenApiVm['$ref'][]
   isSingleAction?: boolean
 }>()
@@ -52,6 +48,12 @@ const isMigrating = computed(() =>
 )
 
 const isDisabled = useDisabled(() => !isMigratable.value)
+
+const disabledReason = computed(() =>
+  selectedRefs.length > 0 && !isMigratable.value
+    ? t(isSingleAction ? 'this-vm-cant-be-migrated' : 'no-selected-vm-can-be-migrated')
+    : undefined
+)
 
 const { selectedHost, availableHosts, isValid, migrate } = useVmMigration(() => selectedRefs)
 

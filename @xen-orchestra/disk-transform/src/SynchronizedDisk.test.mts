@@ -9,7 +9,7 @@ async function consumeGenerator(source: AsyncGenerator) {
   return 'finished'
 }
 test('Disk class', async t => {
-  const testRes = await t.test('synchronised fork disk ', async () => {
+  const testRes = await t.test('synchronized fork disk ', async () => {
     const blockSize = 1024
     const nbBlocks = 20
     const source = new DebugDisk({ nbBlocks, blockSize, fillRate: 100 })

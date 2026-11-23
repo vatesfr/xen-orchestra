@@ -4,7 +4,10 @@
     :params="[
       prop('accent').enum('info', 'success', 'warning', 'danger', 'muted').required().preset('info').widget(),
       prop('wrap').bool().help('Choose if the text should wrap if too long').widget(),
-      prop('size').enum('small', 'medium').preset('medium').widget(),
+      prop('size')
+        .enum('small', 'medium')
+        .help('Text size only, the icon is always medium. Defaults to small inside a VtsSidePanel, medium elsewhere')
+        .widget(),
       slot(),
       setting('defaultSlot').widget(text()).preset('message'),
     ]"

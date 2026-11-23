@@ -1,26 +1,9 @@
 <template>
   <UiPanelCard class="traffic-rule-vif-network-info-card">
     <UiPanelCardTitle size="medium" :label="t('vif-network-info')" />
-    <div class="content">
-      <template v-if="ipAddresses.length">
-        <VtsCardRowKeyValue v-for="(ip, index) in ipAddresses" :key="ip" align-top>
-          <template #key>
-            <div v-if="index === 0">{{ t('ip-addresses') }}</div>
-          </template>
-          <template #value>{{ ip }}</template>
-          <template #addons>
-            <VtsCopyButton :value="ip" />
-            <VtsCopyAllMenuItem v-if="index === 0 && ipAddresses.length > 1" :values="ipAddresses" />
-          </template>
-        </VtsCardRowKeyValue>
-      </template>
-      <VtsCardRowKeyValue v-else>
-        <template #key>
-          {{ t('ip-addresses') }}
-        </template>
-        <template #value>
-          <span class="value" />
-        </template>
+    <VtsCardRowList class="content">
+      <VtsCardRowKeyValue :values="ipAddresses" align-top>
+        <template #key>{{ t('ip-addresses') }}</template>
       </VtsCardRowKeyValue>
       <VtsCardRowKeyValue>
         <template #key>
@@ -33,7 +16,7 @@
           <VtsCopyButton :value="vif.MAC" />
         </template>
       </VtsCardRowKeyValue>
-    </div>
+    </VtsCardRowList>
   </UiPanelCard>
 </template>
 
@@ -41,7 +24,7 @@
 import type { FrontXoVif } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
 import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
-import VtsCopyAllMenuItem from '@core/components/copy-all-menu-item/VtsCopyAllMenuItem.vue'
+import VtsCardRowList from '@core/components/card/VtsCardRowList.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
 import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
@@ -65,10 +48,6 @@ const ipAddresses = computed(() => {
 <style scoped lang="postcss">
 .traffic-rule-vif-network-info-card {
   .content {
-    display: flex;
-    flex-direction: column;
-    gap: 0.4rem;
-
     .value:empty::before {
       content: '-';
     }

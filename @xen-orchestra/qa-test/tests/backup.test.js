@@ -117,6 +117,36 @@ describe('Backup basic tests', () => {
       assert(backupJob.name === name)
     })
   })
+  describe('Edit and delete backup job', () => {
+    it('should update the backup job and its schedule', async () => {
+      await createBackupJobForTest(defaultConfig, 'delta')
+      const scheduleId = getScheduleKey(backupJob)
+      assert(scheduleId, 'Schedule key is required but was undefined')
+
+      const newName = `${name} (edited)`
+      await dispatchClient.backup.updateBackupJob(backupJobId, { name: newName, mode: 'full' })
+      const updatedJob = await dispatchClient.backup.details(backupJobId)
+      assert.strictEqual(updatedJob.name, newName, 'Job name should be updated')
+      assert.strictEqual(updatedJob.mode, 'full', 'Job mode should be updated')
+      assert.deepStrictEqual(updatedJob.vms, backupJob.vms, 'Properties not passed should be kept')
+
+      await dispatchClient.backup.updateSchedule(scheduleId, { cron: '0 12 * * *', enabled: false })
+      const schedule = await dispatchClient.backup.getSchedule(scheduleId)
+      assert.strictEqual(schedule.cron, '0 12 * * *', 'Schedule cron should be updated')
+      assert.strictEqual(schedule.enabled, false, 'Schedule should be disabled')
+      assert.strictEqual(schedule.jobId, backupJobId, 'Schedule should still belong to the job')
+    })
+    it('should delete the backup job and its schedule', async () => {
+      await createBackupJobForTest(defaultConfig, 'delta')
+      const scheduleId = getScheduleKey(backupJob)
+      assert(scheduleId, 'Schedule key is required but was undefined')
+
+      await dispatchClient.backup.deleteBackupJob(backupJobId)
+
+      await assert.rejects(dispatchClient.backup.details(backupJobId), { status: 404 }, 'Job should be deleted')
+      await assert.rejects(dispatchClient.backup.getSchedule(scheduleId), { status: 404 }, 'Schedule should be deleted')
+    })
+  })
   describe('Run backup jobs', () => {
     it('should run the backup job in delta mode with health checks', async () => {
       await createBackupJobForTest(defaultConfig, 'delta')

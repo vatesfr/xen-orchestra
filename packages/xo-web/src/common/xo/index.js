@@ -8,6 +8,7 @@ import semver from 'semver'
 import updater from 'xoa-updater'
 import URL from 'url-parse'
 import Xo from 'xo-lib'
+import { asyncEach } from '@vates/async-each'
 import { createBackoff } from 'jsonrpc-websocket-client'
 import { get as getDefined } from '@xen-orchestra/defined'
 import { pFinally, reflect, retry, tap, tapCatch } from 'promise-toolbox'
@@ -1637,6 +1638,32 @@ const RPU_UNRESTORED_ITEM_LABELS = {
   wlb: 'rpuUnrestoredWlb',
 }
 
+const RPU_OPERATOR_CHANGE_LABELS = {
+  autoPowerOn: 'rpuOperatorChangeAutoPowerOn',
+  ha: 'rpuOperatorChangeHa',
+  haHeartbeatSr: 'rpuOperatorChangeHaHeartbeatSr',
+  host: 'rpuOperatorChangeHost',
+  schedule: 'rpuOperatorChangeSchedule',
+  vm: 'rpuOperatorChangeVm',
+  wlb: 'rpuOperatorChangeWlb',
+}
+
+export const renderRpuOperatorChanges = changes => (
+  <ul>
+    {changes.map(({ type, id, name, observed }) => {
+      const missing = observed === 'missing'
+      // a deleted object has no name left: its UUID identifies it
+      const object = name ?? (missing ? id : undefined)
+      return (
+        <li key={type + id}>
+          {_(type === 'schedule' && missing ? 'rpuOperatorChangeScheduleDeleted' : RPU_OPERATOR_CHANGE_LABELS[type])}
+          {object !== undefined && `: ${object}`}
+        </li>
+      )
+    })}
+  </ul>
+)
+
 export const finalizeRollingPoolUpdate = async poolId => {
   await confirm({
     body: _('rpuRecoveryFinalizeConfirm'),
@@ -1676,8 +1703,62 @@ export const finalizeRollingPoolUpdate = async poolId => {
       icon: 'pool-rolling-update',
     })
     await _call('pool.finalizeRollingUpdate', { pool: poolId, force: true })
+  } finally {
+    // a refused finalization may have restored a part of the items
+    rollingUpdateRecoveryByPool[poolId]?.forceRefresh()
   }
-  rollingUpdateRecoveryByPool[poolId]?.forceRefresh()
+}
+
+export const resumeRollingPoolUpdate = async poolId => {
+  await confirm({
+    body: _('rpuRecoveryResumeConfirm'),
+    title: _('rpuRecoveryResume'),
+    icon: 'pool-rolling-update',
+  })
+
+  const resume = async (options = {}) => {
+    try {
+      await _call('pool.resumeRollingUpdate', { pool: poolId, ...options })
+      subscribeHostMissingPatches.forceRefresh()
+    } catch (err) {
+      // once the backup check is bypassed, the refusal comes from a run in progress
+      if (forbiddenOperation.is(err) && !options.bypassBackupCheck) {
+        await confirm({
+          body: (
+            <p className='text-warning'>
+              <Icon icon='alarm' /> {_('bypassBackupPoolModalMessage')}
+            </p>
+          ),
+          title: _('rpuRecoveryResume'),
+          icon: 'pool-rolling-update',
+        })
+        return resume({ ...options, bypassBackupCheck: true })
+      }
+      // settings changed by an operator since the update: kept once confirmed
+      if (incorrectState.is(err, { property: 'operatorChanges' }) && !options.acceptOperatorChanges) {
+        await confirm({
+          body: (
+            <div className='text-warning'>
+              <p>
+                <Icon icon='alarm' /> {_('rpuRecoveryAcceptOperatorChangesConfirm')}
+              </p>
+              {renderRpuOperatorChanges(err.data.actual)}
+            </div>
+          ),
+          title: _('rpuRecoveryResume'),
+          icon: 'pool-rolling-update',
+        })
+        return resume({ ...options, acceptOperatorChanges: true })
+      }
+      throw err
+    }
+  }
+
+  try {
+    await resume()
+  } finally {
+    rollingUpdateRecoveryByPool[poolId]?.forceRefresh()
+  }
 }
 
 export const installSupplementalPack = (host, file) => {
@@ -2721,7 +2802,21 @@ export const deleteOrphanedVdis = vdis =>
         <p>{_('definitiveMessageModal')}</p>
       </div>
     ),
-  }).then(() => Promise.all(map(resolveIds(vdis), id => _call('vdi.delete', { id }))), noop)
+  }).then(async () => {
+    let nErrors = 0
+    await asyncEach(
+      map(vdis, resolveId),
+      id =>
+        _call('vdi.delete', { id }).catch(() => {
+          nErrors++
+        }),
+      { concurrency: 5 }
+    )
+
+    if (nErrors !== 0) {
+      error(_('failedToDeleteVdisTitle', { nVdis: nErrors }), _('failedToDeleteVdisMessage', { nVdis: nErrors }))
+    }
+  }, noop)
 
 export const migrateVdi = (vdi, sr, resourceSet) =>
   _call('vdi.migrate', {
@@ -3301,6 +3396,15 @@ const resolveVdiRestoreTargets = mapVdisSrs =>
     }
     if (type === 'live-mount') {
       return { type, host: resolveId(target.host) }
+    }
+    // a live restore is a live mount which a cache makes read/write
+    if (type === 'live-restore') {
+      const cacheSr = resolveId(target.cacheSr)
+      // without its cache SR, the server would silently fall back to a read-only live mount
+      if (cacheSr == null) {
+        throw new Error('a live restore requires a cache SR')
+      }
+      return { type: 'live-mount', host: resolveId(target.host), cacheSr }
     }
     return { type }
   })
@@ -4280,6 +4384,9 @@ export const subscribeTunnelState = createSubscription(() => _call('xoa.supportT
 export const getApplianceInfo = () => _call('xoa.getApplianceInfo')
 
 export const snapshotXoa = () => _call('xo.snapshotBeforeUpgrade')
+
+// `null` when XO does not run in a VM, or cannot tell which one
+export const getXoVmUuid = () => _call('xo.getCurrentVmUuid')
 
 export const getApiApplianceInfo = () => fetch('./rest/v0/appliance').then(resp => resp.json())
 

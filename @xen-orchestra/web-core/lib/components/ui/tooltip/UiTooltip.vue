@@ -8,8 +8,8 @@
 <script lang="ts" setup>
 import type { TooltipOptions } from '@core/stores/tooltip.store.ts'
 import { hasEllipsis } from '@core/utils/has-ellipsis.util.ts'
+import { placeOverlay } from '@core/utils/placement.util.ts'
 import { isString } from 'lodash-es'
-import place from 'placement.js'
 import { computed, ref, watch, watchEffect } from 'vue'
 
 const props = defineProps<{
@@ -46,7 +46,7 @@ function updatePlacement() {
     return
   }
 
-  place(props.target, tooltipElement.value, {
+  placeOverlay(props.target, tooltipElement.value, {
     placement: placement.value,
   })
 }
@@ -60,6 +60,9 @@ watch(content, () => updatePlacement(), { flush: 'post' })
 .ui-tooltip {
   position: relative;
   display: inline-flex;
+  width: max-content;
+  max-width: 48rem;
+  overflow-wrap: anywhere;
   padding: 0.4rem 0.8rem;
   pointer-events: none;
   color: var(--color-neutral-background-primary);

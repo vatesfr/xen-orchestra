@@ -14,6 +14,8 @@ The Query Builder package is part of the core library and can be imported direct
 import { useQueryBuilder } from '@core/packages/query-builder/use-query-builder'
 import { useQueryBuilderFilter } from '@core/packages/query-builder/use-query-builder-filter'
 import { useQueryBuilderSchema } from '@core/packages/query-builder/schema/use-query-builder-schema'
+import { withEnumeratedValues } from '@core/packages/query-builder/schema/with-enumerated-values'
+import { setFilterProperty } from '@core/packages/query-builder/filter-string'
 ```
 
 ### Quick Start Example
@@ -52,7 +54,7 @@ const schema = useQueryBuilderSchema<Product>({
 })
 
 // 4. Use the filter composable
-const { items: filteredProducts, filter } = useQueryBuilderFilter('products', () => products.value)
+const { items: filteredProducts, searchBindings } = useQueryBuilderFilter('products', () => products.value)
 ```
 
 **Alternative: Using Schema Utilities**
@@ -87,7 +89,7 @@ const schema = useQueryBuilderSchema<Product>({
   price: useNumberSchema('Price'),
 })
 
-const { items: filteredProducts, filter } = useQueryBuilderFilter('products', () => products.value)
+const { items: filteredProducts, searchBindings } = useQueryBuilderFilter('products', () => products.value)
 ```
 
 ## Glossary
@@ -208,9 +210,9 @@ const schema = useQueryBuilderSchema<User>({...})
 
 // The composable automatically:
 // - Persists the filter in the URL (e.g., ?qb.users=name:John)
-// - Filters your items in real-time
+// - Applies the filter 500 ms after its last change
 // - Handles invalid filter expressions gracefully
-const { items: filteredItems, filter } = useQueryBuilderFilter(
+const { items: filteredItems, filter, searchBindings } = useQueryBuilderFilter(
   'users',           // Unique ID (used in URL, unless ignoreRoute is true)
   () => items.value, // Your data source
   {
@@ -222,8 +224,11 @@ const { items: filteredItems, filter } = useQueryBuilderFilter(
 // Use filteredItems in your template or computed properties
 console.log(filteredItems.value)  // Reactive array of filtered items
 
-// Access the filter string
-console.log(filter.value)  // Current filter expression
+// The applied filter: setting it updates the search input and applies it right away
+filter.value = 'name:Jane'
+
+// Bindings to pass to VtsQueryBuilder (value, loader, immediate apply on Enter)
+console.log(searchBindings.value)
 ```
 
 ### useQueryBuilder: Advanced Query Building
@@ -378,13 +383,14 @@ The component handles the complete filtering workflow:
 **Updating the filter:**
 
 - `v-model` updates the filter on every keystroke
-- The `search` event is emitted with the filter on Enter, on a click on the search button, when the input is cleared and when the visual query builder is confirmed
+- The `search` event is emitted on Enter and when the visual query builder is confirmed
+- The `busy` prop shows a loader in the input
 
-To apply the filter only on search, bind it one-way and update it from the `search` event:
+With `useQueryBuilderFilter`, the filter is applied 500 ms after the last keystroke. Pass `searchBindings` to the component to bind the filter, show the loader and apply the filter right away on `search`:
 
 ```vue
 <template>
-  <VtsQueryBuilder :model-value="filter" :schema @search="filter = $event" />
+  <VtsQueryBuilder v-bind="searchBindings" :schema />
 </template>
 ```
 
@@ -630,12 +636,12 @@ const posts = ref<Post[]>([...])
 const userSchema = useQueryBuilderSchema<User>({...})
 const postSchema = useQueryBuilderSchema<Post>({...})
 
-const { items: filteredUsers, filter: userFilter } = useQueryBuilderFilter(
+const { items: filteredUsers, searchBindings: userSearchBindings } = useQueryBuilderFilter(
   'users',
   () => users.value
 )
 
-const { items: filteredPosts, filter: postFilter } = useQueryBuilderFilter(
+const { items: filteredPosts, searchBindings: postSearchBindings } = useQueryBuilderFilter(
   'posts',
   () => posts.value
 )
@@ -704,3 +710,61 @@ This leverages the catch-all `''` property defined in the schema to search all p
 When users write filter expressions that reference properties not defined in the schema, Query Builder gracefully handles this by falling back to the "any property" (`''`) filter. This allows for flexible search experiences where exact property names don't need to be known in advance.
 
 For example, if a schema doesn't define a `custom_field` property but a user types `custom_field:value`, the query parser will fall back to the catch-all property. The result will be no matches (since the property doesn't exist on your objects), which is the expected behavior.
+
+### Values Known Only at Runtime
+
+`useStringSchema` and its siblings call `useI18n`, so they run once, in `setup`: their labels are translated once too, which is enough because the apps reload on a language change. When a property's values come from loaded data, build the schema once and swap the values in a `computed` with `withEnumeratedValues(property, values)`: every operator that takes values (`is`, `isNot`…) gets one entry per value, its label being the value itself; the other operators are kept as they are.
+
+```typescript
+import { useQueryBuilderSchema } from '@core/packages/query-builder/schema/use-query-builder-schema'
+import { withEnumeratedValues } from '@core/packages/query-builder/schema/with-enumerated-values'
+import type { QueryBuilderSchema } from '@core/packages/query-builder/types'
+import { useStringSchema } from '@core/utils/query-builder/use-string-schema'
+import { computed } from 'vue'
+
+const staticSchema = useQueryBuilderSchema<Product>({
+  name: useStringSchema('Product Name'),
+  category: useStringSchema('Category', {}),
+})
+
+const schema = computed<QueryBuilderSchema>(() => ({
+  ...staticSchema,
+  category: withEnumeratedValues(staticSchema.category, categoryNames.value),
+}))
+```
+
+### Reading and Editing a Filter String
+
+`filter-string` reads and edits the filter string itself, outside the query builder UI: a preset button, a field bound to one property of the filter, a count per preset. Each function parses the filter with Complex Matcher; an unparsable filter is never edited, it is returned unchanged.
+
+| Function                                   | Returns                                                                                                       |
+| ------------------------------------------ | ------------------------------------------------------------------------------------------------------------- |
+| `tryParseFilter(filter)`                   | The root Complex Matcher node, or `undefined` when the filter is unparsable                                   |
+| `isFilterParsable(filter)`                 | Whether Complex Matcher can parse the filter                                                                  |
+| `getFilterPropertyValues(filter, name)`    | The values the filter matches for `name` (`[]` when unparsable)                                               |
+| `getFilterPropertyClauses(filter, name)`   | The top-level clauses on `name`, every form: `name:…`, `name?` and their `!` negations (`[]` when unparsable) |
+| `countFilterPropertyClauses(filter, name)` | The number of clauses on `name`, those nested in a group included (`0` when unparsable)                       |
+| `setFilterProperty(filter, name, value)`   | The filter with its `name:…` clauses replaced by the "is" clause of `value`, or removed when `undefined`      |
+| `removeFilterProperty(filter, name)`       | The filter without its top-level clauses on `name`, every form                                                |
+| `addFilterClause(filter, clause)`          | The filter with `clause` appended (unchanged when `clause` is unparsable)                                     |
+
+```typescript
+import {
+  getFilterPropertyValues,
+  removeFilterProperty,
+  setFilterProperty,
+} from '@core/packages/query-builder/filter-string'
+
+const { filter } = useQueryBuilderFilter('products', () => products.value)
+
+const category = computed({
+  get: () => getFilterPropertyValues(filter.value, 'category')[0],
+  set: value => {
+    filter.value = setFilterProperty(filter.value, 'category', value)
+  },
+})
+
+category.value = 'Electronics' // filter: "price:>100 category:/^Electronics$/"
+
+filter.value = removeFilterProperty(filter.value, 'category') // filter: "price:>100"
+```

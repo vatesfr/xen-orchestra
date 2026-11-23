@@ -1,9 +1,11 @@
 import PoolDashboardStatus from '@/modules/pool/components/dashboard/PoolDashboardStatus.vue'
 import type { XoPoolDashboard } from '@/modules/pool/types/xo-pool-dashboard.type.ts'
-import { findCardNumbers } from '@/test/find-labelled-values.ts'
+import { itShowsDashboardCardStates } from '@/test/dashboard-card.ts'
+import { findCardNumbers, findLegends } from '@/test/find-rendered-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
-import { mount } from '@vue/test-utils'
+import type { PoolDashboardCardProps } from '@/test/pool-dashboard-card.ts'
+import { mount, type VueWrapper } from '@vue/test-utils'
 
 type HostsStatus = NonNullable<NonNullable<XoPoolDashboard['hosts']>['status']>
 
@@ -17,7 +19,7 @@ function createVmsStatus(overrides: Partial<VmsStatus> = {}): VmsStatus {
   return { running: 5, paused: 2, suspended: 1, halted: 2, total: 10, ...overrides }
 }
 
-function createPoolDashboard(overrides: Partial<XoPoolDashboard> = {}): XoPoolDashboard {
+function createPoolDashboardStatus(overrides: Partial<XoPoolDashboard> = {}): XoPoolDashboard {
   return {
     hosts: { status: createHostsStatus() },
     vms: { status: createVmsStatus() },
@@ -25,51 +27,28 @@ function createPoolDashboard(overrides: Partial<XoPoolDashboard> = {}): XoPoolDa
   }
 }
 
-function mountStatus(props: { poolDashboard?: XoPoolDashboard; hasError?: boolean } = {}) {
+function mountStatus(props: PoolDashboardCardProps = {}) {
   return mount(PoolDashboardStatus, {
-    props: { poolDashboard: createPoolDashboard(), ...props },
+    props: { poolDashboard: createPoolDashboardStatus(), ...props },
     global: createGlobalTestConfig(),
   })
 }
 
-function findLegendSections(wrapper: ReturnType<typeof mountStatus>) {
+function findLegendSections(wrapper: VueWrapper) {
   return wrapper
     .findAll('.vts-donut-chart-with-legend')
-    .map(section => [
-      section.get('.ui-legend-title').text(),
-      section.findAll('.ui-legend').map(legend => [legend.get('.label').text(), legend.get('.value-and-unit').text()]),
-    ])
+    .map(section => [section.get('.ui-legend-title').text(), findLegends(section)])
 }
 
-it('renders the card title', () => {
-  const wrapper = mountStatus()
-
-  expect(wrapper.get('.ui-card-title').text()).toBe(t('status'))
-})
-
-it('shows a loader while the dashboard has not arrived yet', () => {
-  const wrapper = mountStatus({ poolDashboard: undefined })
-
-  expect(wrapper.find('.ui-loader').exists()).toBe(true)
-  expect(findLegendSections(wrapper)).toEqual([])
-})
-
-it('shows a loader while the status of the hosts is missing from the dashboard', () => {
-  const wrapper = mountStatus({ poolDashboard: { hosts: {}, vms: { status: createVmsStatus() } } })
-
-  expect(wrapper.find('.ui-loader').exists()).toBe(true)
-})
-
-it('shows a loader while the status of the VMs is missing from the dashboard', () => {
-  const wrapper = mountStatus({ poolDashboard: { hosts: { status: createHostsStatus() }, vms: {} } })
-
-  expect(wrapper.find('.ui-loader').exists()).toBe(true)
-})
-
-it('shows an error message when the dashboard could not be fetched', () => {
-  const wrapper = mountStatus({ hasError: true })
-
-  expect(wrapper.get('.vts-state-hero').text()).toBe(t('error-no-data'))
+itShowsDashboardCardStates(mountStatus, {
+  dashboardProp: 'poolDashboard',
+  title: t('status'),
+  missing: {
+    'the status of the hosts': { hosts: {}, vms: { status: createVmsStatus() } },
+    'the status of the VMs': { hosts: { status: createHostsStatus() }, vms: {} },
+  },
+  findContent: findLegendSections,
+  hasErrorState: true,
 })
 
 it('breaks down the hosts and the VMs by status', () => {
@@ -107,7 +86,7 @@ it('totals the hosts and the VMs of the pool', () => {
 
 it('reports that no VM was detected for a pool without VM, and still breaks down the hosts', () => {
   const wrapper = mountStatus({
-    poolDashboard: createPoolDashboard({
+    poolDashboard: createPoolDashboardStatus({
       vms: { status: createVmsStatus({ running: 0, paused: 0, suspended: 0, halted: 0, total: 0 }) },
     }),
   })

@@ -142,11 +142,16 @@ export abstract class Listener<Type extends XoListenerType | undefined = undefin
       return event
     }
 
+    // like the plugin routes, plugin events are restricted to administrators
+    if (this.type === 'plugin') {
+      return
+    }
+
     const userPrivileges = (await restApi.xoApp.getAclV2UserPrivileges(user.id)) as AnyPrivilege[]
     let resource: SupportedResource | undefined
 
     if (!XAPI_TYPES.includes(this.type)) {
-      resource = this.type as Exclude<NonXapiListenerType, 'authentication_token'>
+      resource = this.type as Exclude<NonXapiListenerType, 'authentication_token' | 'plugin'>
     } else {
       const resourceXapiType = Object.entries(XAPI_TYPE_BY_ACL_RESOURCE).find(([, xapiType]) => xapiType === this.type)
       if (resourceXapiType === undefined) {

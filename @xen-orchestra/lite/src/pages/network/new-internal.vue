@@ -98,6 +98,9 @@ function redirectAfterSuccess(networkId: XenApiNetwork['uuid']) {
 
 <style lang="postcss" scoped>
 .card-container {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
   padding: 0.8rem;
 }
 </style>

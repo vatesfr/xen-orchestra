@@ -1,10 +1,12 @@
 import { useNewBackupRepository } from '@/modules/backup-repository/composables/use-new-backup-repository.composable.ts'
-import type {
-  NewBackupRepositoryPayload,
+import {
+  type NewBackupRepositoryPayload,
   useXoBackupRepositoryCreateJob,
 } from '@/modules/backup-repository/jobs/xo-backup-repository-create.job.ts'
+import { overlayMock, mockOverlay } from '@/test/mock-overlay.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
-import type { useOverlay } from '@core/packages/overlay/use-overlay.ts'
+import { silenceConsoleError } from '@/test/silence-console-error.ts'
+import { mockedExport } from '@/test/spy-on-module.ts'
 import { KEEP_OVERLAY_OPEN } from '@core/packages/overlay/symbols.ts'
 import type { Ref } from 'vue'
 
@@ -15,20 +17,11 @@ type OverlayOptions = {
   }
 }
 
-const { useCreateJob, run, useOverlayMock, open } = vi.hoisted(() => ({
-  useCreateJob: vi.fn(),
-  run: vi.fn(),
-  useOverlayMock: vi.fn(),
-  open: vi.fn(),
-}))
+const useCreateJob = mockedExport(useXoBackupRepositoryCreateJob)
 
-vi.mock(import('@/modules/backup-repository/jobs/xo-backup-repository-create.job.ts'), () => ({
-  useXoBackupRepositoryCreateJob: useCreateJob as unknown as typeof useXoBackupRepositoryCreateJob,
-}))
+const run = vi.fn()
 
-vi.mock(import('@core/packages/overlay/use-overlay.ts'), () => ({
-  useOverlay: useOverlayMock as unknown as typeof useOverlay,
-}))
+mockOverlay()
 
 const PAYLOAD: NewBackupRepositoryPayload = {
   name: 'Nightly backups',
@@ -36,23 +29,16 @@ const PAYLOAD: NewBackupRepositoryPayload = {
 }
 
 beforeEach(() => {
-  useCreateJob.mockReset()
   run.mockReset()
-  useOverlayMock.mockReset()
-  open.mockReset()
+  overlayMock.reset()
 
-  vi.spyOn(console, 'error').mockImplementation(() => {})
+  silenceConsoleError()
 
   useCreateJob.mockReturnValue({ run })
-  useOverlayMock.mockReturnValue({ open, abort: vi.fn() })
 })
 
 function mountNewBackupRepository() {
   return mountComposable(() => useNewBackupRepository()).wrapper.vm
-}
-
-function getOverlayOptions(): OverlayOptions {
-  return useOverlayMock.mock.calls[0][0]
 }
 
 function getJobPayload() {
@@ -68,13 +54,13 @@ it('has no payload before the drawer is confirmed', () => {
 it('opens the drawer', () => {
   mountNewBackupRepository().openNewBackupRepositoryDrawer()
 
-  expect(open).toHaveBeenCalledOnce()
+  expect(overlayMock.getOverlay().open).toHaveBeenCalledOnce()
 })
 
 it('closes the drawer when it is cancelled', () => {
   mountNewBackupRepository()
 
-  expect(getOverlayOptions().events.onCancel).toBe(true)
+  expect(overlayMock.getOverlay<OverlayOptions>().events.onCancel).toBe(true)
 })
 
 describe('onConfirm', () => {
@@ -86,7 +72,7 @@ describe('onConfirm', () => {
     })
     mountNewBackupRepository()
 
-    const response = await getOverlayOptions().events.onConfirm(PAYLOAD)
+    const response = await overlayMock.getOverlay<OverlayOptions>().events.onConfirm(PAYLOAD)
 
     expect(run).toHaveBeenCalledOnce()
     expect(response).toBeUndefined()
@@ -96,13 +82,13 @@ describe('onConfirm', () => {
     run.mockResolvedValue([{ status: 'rejected', reason: new Error('Creation failed') }])
     mountNewBackupRepository()
 
-    expect(await getOverlayOptions().events.onConfirm(PAYLOAD)).toBe(KEEP_OVERLAY_OPEN)
+    expect(await overlayMock.getOverlay<OverlayOptions>().events.onConfirm(PAYLOAD)).toBe(KEEP_OVERLAY_OPEN)
   })
 
   it('keeps the drawer open when the job fails', async () => {
     run.mockRejectedValue(new Error('Job failed'))
     mountNewBackupRepository()
 
-    expect(await getOverlayOptions().events.onConfirm(PAYLOAD)).toBe(KEEP_OVERLAY_OPEN)
+    expect(await overlayMock.getOverlay<OverlayOptions>().events.onConfirm(PAYLOAD)).toBe(KEEP_OVERLAY_OPEN)
   })
 })

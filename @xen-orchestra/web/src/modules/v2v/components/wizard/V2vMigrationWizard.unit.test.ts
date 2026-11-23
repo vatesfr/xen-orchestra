@@ -1,0 +1,86 @@
+import V2vDestinationStep from '@/modules/v2v/components/destination/V2vDestinationStep.vue'
+import V2vMappingStep from '@/modules/v2v/components/mapping/V2vMappingStep.vue'
+import V2vReviewStep from '@/modules/v2v/components/review/V2vReviewStep.vue'
+import V2vSourceStep from '@/modules/v2v/components/source/V2vSourceStep.vue'
+import V2vVmsStep from '@/modules/v2v/components/vms/V2vVmsStep.vue'
+import V2vMigrationWizard from '@/modules/v2v/components/wizard/V2vMigrationWizard.vue'
+import V2vWizardHeader from '@/modules/v2v/components/wizard/V2vWizardHeader.vue'
+import { findShownComponents } from '@/test/find-shown-components.ts'
+import { t } from '@/test/i18n.ts'
+import { xoCollectionsMock, mockXoCollections } from '@/test/mock-xo-collections.ts'
+import { mountComponentOnV2vWizard, type V2vWizardSetup } from '@/test/mount-on-v2v-wizard.ts'
+import { seedV2vListPool } from '@/test/seed-v2v-list-pool.ts'
+import { V2V_EMPTY_LIST, V2V_LIST_POOL, V2V_LIST_WITH_VMS, V2V_WIZARD_SOURCE } from '@/test/v2v-wizard-fixtures.ts'
+
+mockXoCollections('pool')
+
+// Which step shows, and what it is summarized with, belongs to useV2vWizard: here only the composition matters
+async function mountWizard(setup: V2vWizardSetup = {}) {
+  seedV2vListPool()
+
+  const { wrapper } = await mountComponentOnV2vWizard(
+    V2vMigrationWizard,
+    {
+      stubs: {
+        V2vSourceStep: true,
+        V2vDestinationStep: true,
+        V2vVmsStep: true,
+        V2vMappingStep: true,
+        V2vReviewStep: true,
+      },
+    },
+    setup
+  )
+
+  return wrapper
+}
+
+beforeEach(() => {
+  xoCollectionsMock.reset()
+})
+
+it('heads the wizard with its current step and summary', async () => {
+  const wrapper = await mountWizard({ step: 'vms', source: V2V_WIZARD_SOURCE, list: V2V_EMPTY_LIST })
+
+  expect(wrapper.getComponent(V2vWizardHeader).props()).toEqual({
+    currentStep: 'vms',
+    summary: t('source-to-destination', {
+      source: V2V_WIZARD_SOURCE.connection.host,
+      destination: V2V_LIST_POOL.name_label,
+    }),
+  })
+})
+
+it.each([
+  ['source', {}, V2vSourceStep],
+  ['destination', { step: 'destination', source: V2V_WIZARD_SOURCE }, V2vDestinationStep],
+  ['VMs', { step: 'vms', source: V2V_WIZARD_SOURCE, list: V2V_EMPTY_LIST }, V2vVmsStep],
+  ['mapping', { step: 'mapping', source: V2V_WIZARD_SOURCE, list: V2V_LIST_WITH_VMS }, V2vMappingStep],
+  ['review', { step: 'review', source: V2V_WIZARD_SOURCE, list: V2V_LIST_WITH_VMS }, V2vReviewStep],
+])('shows the %s step alone', async (_, setup: V2vWizardSetup, stepComponent) => {
+  const wrapper = await mountWizard(setup)
+
+  const shownSteps = findShownComponents(wrapper, [
+    V2vSourceStep,
+    V2vDestinationStep,
+    V2vVmsStep,
+    V2vMappingStep,
+    V2vReviewStep,
+  ])
+
+  expect(shownSteps).toEqual([stepComponent])
+})
+
+it('shows the review step on the pool of the route', async () => {
+  const wrapper = await mountWizard({ step: 'review', source: V2V_WIZARD_SOURCE, list: V2V_LIST_WITH_VMS })
+
+  expect(wrapper.getComponent(V2vReviewStep).props('poolId')).toBe(V2V_LIST_WITH_VMS.poolId)
+})
+
+// Their side panel sits flush with the page edges: the step lays out its own padding
+it.each([
+  ['VMs', { step: 'vms', source: V2V_WIZARD_SOURCE, list: V2V_EMPTY_LIST }],
+  ['mapping', { step: 'mapping', source: V2V_WIZARD_SOURCE, list: V2V_LIST_WITH_VMS }],
+])('lays the %s step out without the padding of the other steps', async (_, setup: V2vWizardSetup) => {
+  expect((await mountWizard(setup)).find('.content').exists()).toBe(false)
+})

@@ -1,7 +1,7 @@
 <template>
-  <UiPanelCard class="vm-resources-card">
+  <UiPanelCard>
     <UiPanelCardTitle size="medium" :label="t('resources')" />
-    <div class="content">
+    <VtsCardRowList>
       <VtsCardRowKeyValue>
         <template #key>{{ t('vcpus') }}</template>
         <template #value>{{ vm.CPUs.number }}</template>
@@ -37,7 +37,7 @@
           <VtsCopyButton :value="String(vm.snapshots.length)" />
         </template>
       </VtsCardRowKeyValue>
-    </div>
+    </VtsCardRowList>
   </UiPanelCard>
 </template>
 
@@ -46,6 +46,7 @@ import { useXoVbdCollection } from '@/modules/vbd/remote-resources/use-xo-vbd-co
 import { useXoVdiCollection } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
+import VtsCardRowList from '@core/components/card/VtsCardRowList.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
 import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
@@ -75,13 +76,3 @@ const formattedDiskSpace = computed(() => {
   return formatSize(totalSize, 1)
 })
 </script>
-
-<style scoped lang="postcss">
-.vm-resources-card {
-  .content {
-    display: flex;
-    flex-direction: column;
-    gap: 0.4rem;
-  }
-}
-</style>

@@ -4,8 +4,14 @@
       <slot name="label">{{ label }}</slot>
     </UiLabel>
     <slot />
-    <UiInfo v-for="{ content, accent } of messages" :key="content" :accent :wrap="wrapMessage">
-      {{ content }}
+    <UiInfo
+      v-for="({ content, accent }, index) of messages"
+      :id="messageIds[index]"
+      :key="content"
+      :accent
+      :wrap="wrapMessage"
+    >
+      <slot name="message" :content :accent>{{ content }}</slot>
     </UiInfo>
   </div>
 </template>
@@ -19,17 +25,21 @@ import type { MaybeArray } from '@core/types/utility.type.ts'
 import { IK_INPUT_WRAPPER_CONTROLLER } from '@core/utils/injection-keys.util.ts'
 import { toArray } from '@core/utils/to-array.utils.ts'
 import { useArrayMap } from '@vueuse/core'
-import { provide, reactive, useId } from 'vue'
+import { computed, provide, reactive, useId } from 'vue'
 
 export type InputWrapperMessage = MaybeArray<string | { content: string; accent?: InfoAccent }>
 
+export type InputWrapperAccent = 'neutral' | 'success' | 'warning' | 'danger'
+
 export type InputWrapperController = {
   id: string
-  labelAccent: LabelAccent
+  accent: InputWrapperAccent
   required: boolean
+  describedBy: string | undefined
+  invalid: boolean
 }
 
-const { message: _message } = defineProps<{
+const { message: rawMessage } = defineProps<{
   label?: string
   learnMoreUrl?: string
   message?: InputWrapperMessage
@@ -39,12 +49,13 @@ const { message: _message } = defineProps<{
 defineSlots<{
   default(): any
   label?(): any
+  message?(props: { content: string; accent: InfoAccent }): any
 }>()
 
 const id = useId()
 
 const unsortedMessages = useArrayMap(
-  () => toArray(_message),
+  () => toArray(rawMessage),
   item => ({
     content: typeof item === 'object' ? item.content : item,
     accent: typeof item === 'object' ? (item.accent ?? 'info') : 'info',
@@ -53,11 +64,11 @@ const unsortedMessages = useArrayMap(
 
 const messages = useRanked(unsortedMessages, ({ accent }) => accent, ['muted', 'info', 'success', 'warning', 'danger'])
 
-const labelAccent = useMapper<InfoAccent, LabelAccent>(
+const messageAccent = useMapper<InfoAccent, InputWrapperAccent>(
   () => messages.value.at(-1)?.accent,
   {
     info: 'neutral',
-    success: 'neutral',
+    success: 'success',
     warning: 'warning',
     danger: 'danger',
     muted: 'neutral',
@@ -65,10 +76,20 @@ const labelAccent = useMapper<InfoAccent, LabelAccent>(
   'info'
 )
 
+const labelAccent = computed<LabelAccent>(() => (messageAccent.value === 'success' ? 'neutral' : messageAccent.value))
+
+const messageIds = computed(() => messages.value.map((_, index) => `${id}-message-${index}`))
+
+const describedBy = computed(() => (messageIds.value.length > 0 ? messageIds.value.join(' ') : undefined))
+
+const invalid = computed(() => messages.value.some(({ accent }) => accent === 'danger'))
+
 const wrapperController = reactive({
   id,
-  labelAccent,
+  accent: messageAccent,
   required: false,
+  describedBy,
+  invalid,
 }) satisfies InputWrapperController
 
 provide(IK_INPUT_WRAPPER_CONTROLLER, wrapperController)

@@ -48,9 +48,6 @@ export class EventService {
       let eventEmitter: EventEmitter
       if (type === 'task') {
         eventEmitter = this.#restApi.xoApp.tasks
-      } else if (type === 'backup-archive') {
-        // the backup archives are not a registered collection: the backups cache owns their emitter
-        eventEmitter = this.#restApi.xoApp.vmBackupArchives
       } else if (type === 'backup-log') {
         eventEmitter = this.#restApi.xoApp.backupLogsEe
       } else if (XAPI_TYPES.includes(isMessage ? 'message' : type)) {

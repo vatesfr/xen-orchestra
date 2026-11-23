@@ -6,7 +6,7 @@
         <slot name="title-actions" />
       </template>
     </UiTitle>
-    <UiQuerySearchBar @search="(value: string) => (searchQuery = value)" />
+    <UiQuerySearchBar v-bind="searchBindings" />
     <VtsTable :state :pagination-bindings sticky="right">
       <thead>
         <tr>
@@ -36,6 +36,7 @@ import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearch
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { usePagination } from '@core/composables/pagination.composable.ts'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
+import { useSearchFilter } from '@core/composables/search-filter.composable.ts'
 import { useTableState } from '@core/composables/table-state.composable.ts'
 import { icon } from '@core/icons'
 import { useMapper } from '@core/packages/mapper'
@@ -45,7 +46,7 @@ import { renderBodyCell } from '@core/tables/helpers/render-body-cell.ts'
 import { CONNECTION_ACTION, CONNECTION_STATUS } from '@core/types/connection.ts'
 import { getUniqueIpAddressesForDevice } from '@core/utils/ip-address.utils.ts'
 import { logicNot } from '@vueuse/math'
-import { computed, ref } from 'vue'
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { vifs: rawVifs, vm } = defineProps<{
@@ -66,19 +67,10 @@ const selectedVifId = useRouteQuery('id')
 
 const getNetworkName = (vif: FrontXoVif) => getNetworkById(vif.$network)?.name_label ?? ''
 
-const searchQuery = ref('')
-
-const filteredVifs = computed(() => {
-  const searchTerm = searchQuery.value.trim().toLocaleLowerCase()
-
-  if (!searchTerm) {
-    return rawVifs
-  }
-
-  return rawVifs.filter(vif =>
-    [...Object.values(vif), getNetworkName(vif)].some(value => String(value).toLocaleLowerCase().includes(searchTerm))
-  )
-})
+const { items: filteredVifs, searchBindings } = useSearchFilter(
+  () => rawVifs,
+  vif => [...Object.values(vif), getNetworkName(vif)]
+)
 
 const state = useTableState({
   busy: logicNot(areVifsReady),

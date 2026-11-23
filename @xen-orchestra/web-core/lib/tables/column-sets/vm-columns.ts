@@ -11,7 +11,7 @@ export const useVmColumns = defineColumns(() => {
   const { t } = useI18n()
   return {
     checkbox: useCheckboxColumn(),
-    vm: useLinkColumn({ headerLabel: () => t('vm') }),
+    vm: useLinkColumn({ headerLabel: () => t('vm'), flexible: true }),
     ipAddresses: useAddressColumn({ headerLabel: () => t('ip-addresses') }),
     vcpus: useNumberColumn({ headerLabel: () => t('vcpus') }),
     ram: useNumberColumn({ headerLabel: () => t('ram') }),

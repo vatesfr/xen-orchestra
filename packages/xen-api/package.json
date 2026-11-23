@@ -1,7 +1,7 @@
 {
   "private": false,
   "name": "xen-api",
-  "version": "5.0.2",
+  "version": "5.1.0",
   "license": "ISC",
   "description": "Connector to the Xen API",
   "keywords": [
@@ -67,7 +67,7 @@
     "source-map-support": "^0.5.21",
     "tap": "^18.7.0",
     "throttle": "^1.0.3",
-    "vhd-lib": "^4.16.2"
+    "vhd-lib": "^4.17.0"
   },
   "scripts": {
     "plot": "gnuplot -p memory-test.gnu",

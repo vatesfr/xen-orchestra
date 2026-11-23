@@ -1,0 +1,23 @@
+#!/bin/sh
+# Nobody is at the console: boot the default entry immediately.
+# Runs in the binary/ directory, after the boot loader configuration is generated.
+# scripts/check-iso.sh verifies the result in CI, as templates change between
+# live-build releases.
+set -e
+
+for f in isolinux/*.cfg; do
+	[ -f "$f" ] || continue
+	# syslinux counts in 1/10 s and "timeout 0" means "wait forever"
+	sed -i -E 's/^([[:space:]]*)timeout[[:space:]]+[0-9]+/\1timeout 10/I' "$f"
+done
+if [ -f isolinux/isolinux.cfg ] && ! grep -qiE '^[[:space:]]*timeout[[:space:]]' isolinux/isolinux.cfg; then
+	echo 'timeout 10' >> isolinux/isolinux.cfg
+fi
+
+for f in boot/grub/*.cfg; do
+	[ -f "$f" ] || continue
+	sed -i -E 's/^([[:space:]]*set[[:space:]]+timeout)=.*/\1=1/' "$f"
+done
+if [ -f boot/grub/grub.cfg ] && ! grep -q 'set timeout=' boot/grub/grub.cfg; then
+	sed -i '1i set timeout=1' boot/grub/grub.cfg
+fi

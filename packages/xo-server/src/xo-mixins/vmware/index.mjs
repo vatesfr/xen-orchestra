@@ -1,6 +1,7 @@
 import { decorateWith } from '@vates/decorate-with'
+import { V2V_START_BLOCKED_REASON, V2V_VM_OTHER_CONFIG } from '@vates/types'
 import { defer as deferrable } from 'golike-defer'
-import { fromEvent } from 'promise-toolbox'
+import { Disposable, fromEvent } from 'promise-toolbox'
 import { Task } from '@xen-orchestra/mixins/Tasks.mjs'
 import asyncMapSettled from '@xen-orchestra/async-map/legacy.js'
 import { createLogger } from '@xen-orchestra/log'
@@ -10,19 +11,39 @@ import { VDI_FORMAT_VHD } from '@xen-orchestra/xapi'
 import OTHER_CONFIG_TEMPLATE from '../../xapi/other-config-template.mjs'
 import { importDisksFromDatastore, importStream } from './importDisksfromDatastore.mjs'
 import { buildDiskChainByNode } from './buildChainByNode.mjs'
+import { assertKnownDevices, resolveDestinations } from './_deviceMapping.mjs'
+import { getSourceId } from './_sourceId.mjs'
+import { findDockingIso, dockImportedVm } from './_docking.mjs'
+import { FIRST_BOOT_LEFT_TO_XO, isFirstBootLeftToXo } from './_dockingInputs.mjs'
+import { firstBootOfDockedVm } from './_firstBoot.mjs'
 import { finished, PassThrough } from 'node:stream'
 import { Ref } from 'xen-api'
 
 const { warn } = createLogger('xo:mixins:vmware')
+
+// written with `sourceVmId` on the imported VM: the id of a VM is only meaningful on its platform.
+// The imports made before this key existed are all from VMware
+const SOURCE_PLATFORM = 'vmware'
+const isFromThisPlatform = otherConfig => (otherConfig.sourcePlatform ?? SOURCE_PLATFORM) === SOURCE_PLATFORM
+
+/**
+ * @typedef {{ isDocked: true, reports: object }} DockedGuest - with the reports of `dockImportedVm`
+ * @typedef {{ isDocked: false }} UndockedGuest - the docking failed, the task says why
+ */
+
+// once XO stops following a first boot which waits for it, the user has to take over
+const withFirstBootHint = (message, reports = {}) =>
+  isFirstBootLeftToXo(reports) ? `${message}. ${FIRST_BOOT_LEFT_TO_XO}` : message
 
 export default class MigrateVm {
   constructor(app) {
     this._app = app
   }
 
-  #connectToEsxi(host, user, password, sslVerify) {
-    return Task.run({ properties: { name: `connecting to ${host}` } }, async () => {
-      const esxi = new Esxi(host, user, password, sslVerify)
+  async #connectToEsxi(host, user, password, sslVerify) {
+    const esxi = new Esxi(host, user, password, sslVerify)
+    // returns nothing: what a step returns is kept as the result of its task
+    await Task.run({ properties: { name: `connecting to ${host}` } }, async () => {
       try {
         await fromEvent(esxi, 'ready')
       } catch (error) {
@@ -31,8 +52,8 @@ export default class MigrateVm {
         await this.#closeEsxi(esxi, host)
         throw error
       }
-      return esxi
     })
+    return new Disposable(() => this.#closeEsxi(esxi, host), esxi)
   }
 
   // a session is not released when this process ends, it lingers on the host until it expires, and
@@ -41,13 +62,12 @@ export default class MigrateVm {
     return esxi.close().catch(error => warn('failed to close the ESXi session', { error, host }))
   }
 
-  async connectToEsxiAndList({ host, user, password, sslVerify }) {
-    const esxi = await this.#connectToEsxi(host, user, password, sslVerify)
-    try {
-      return await esxi.getAllVmMetadata()
-    } finally {
-      await this.#closeEsxi(esxi, host)
-    }
+  connectToEsxiAndList({ host, user, password, sslVerify }) {
+    return Disposable.use(this.#connectToEsxi(host, user, password, sslVerify), esxi => esxi.getAllVmMetadata())
+  }
+
+  getEsxiInventory({ host, user, password, sslVerify }) {
+    return Disposable.use(this.#connectToEsxi(host, user, password, sslVerify), esxi => esxi.getInventory())
   }
 
   async #findBaseVM(xapi, metadata) {
@@ -55,10 +75,11 @@ export default class MigrateVm {
     const candidates = Object.values(xapi.objects.indexes.type.VM).filter(
       object =>
         object.is_a_snapshot === false &&
+        isFromThisPlatform(object.other_config) &&
         object.other_config.sourceVmId === vmId &&
         object.other_config.sourceSnapshotId === snapshots?.current &&
-        object.blocked_operations?.start === 'Esxi migration in progress...' &&
-        object.blocked_operations?.start_on === 'Esxi migration in progress...'
+        object.blocked_operations?.start === V2V_START_BLOCKED_REASON &&
+        object.blocked_operations?.start_on === V2V_START_BLOCKED_REASON
     )
     if (candidates.length === 0) {
       Task.info(`No previously transfered VM found, do a full transfer`)
@@ -89,7 +110,7 @@ export default class MigrateVm {
     return xapiVm
   }
 
-  async #createVmAndNetworks($defer, { metadata, networkId, template, xapi }) {
+  async #createVmAndNetworks($defer, { metadata, network: defaultNetwork, networksByNic, template, xapi }) {
     const { cdrom, guestId, firmware, memory, name_label, networks, nCpus } = metadata
 
     const existingVm = await this.#findBaseVM(xapi, metadata)
@@ -97,9 +118,11 @@ export default class MigrateVm {
       return this.#updateVmMetadata(existingVm, metadata)
     }
     // no reliable candidate : create a new VM
-    return await Task.run({ properties: { name: 'creating VM on XCP side' } }, async () => {
+    let vm
+    // returns nothing: the whole VM would be kept as the result of the task
+    await Task.run({ properties: { name: 'creating VM on XCP side' } }, async () => {
       // got data, ready to start creating
-      const vm = await xapi._getOrWaitObject(
+      vm = await xapi._getOrWaitObject(
         await xapi.VM_create({
           ...OTHER_CONFIG_TEMPLATE,
           memory_dynamic_max: memory,
@@ -121,7 +144,7 @@ export default class MigrateVm {
       await Promise.all([
         vm.update_HVM_boot_params('firmware', firmware),
         vm.update_platform('device-model', 'qemu-upstream-' + (firmware === 'uefi' ? 'uefi' : 'compat')),
-        asyncMapSettled(['start', 'start_on'], op => vm.update_blocked_operations(op, 'Esxi migration in progress...')),
+        asyncMapSettled(['start', 'start_on'], op => vm.update_blocked_operations(op, V2V_START_BLOCKED_REASON)),
         vm.set_name_label(`[Importing...] ${name_label}`),
       ])
 
@@ -132,7 +155,7 @@ export default class MigrateVm {
           const ref = await xapi.VIF_create(
             {
               device: vifDevices[i],
-              network: this._app.getXapiObject(networkId).$ref,
+              network: (networksByNic[network.key] ?? defaultNetwork).$ref,
               VM: vm.$ref,
             },
             {
@@ -147,12 +170,11 @@ export default class MigrateVm {
         const ref = await xapi.VBD_create({ type: 'CD', VM: vm.$ref, VDI: Ref.EMPTY })
         $defer.onFailure(() => xapi.call('VBD.destroy', ref))
       }
-
-      return vm
     })
+    return vm
   }
 
-  async #importDisks($defer, { esxi, metadata, sr, stopSource, vm, vmId }) {
+  async #importDisks($defer, { esxi, metadata, sourceId, sr, srsByNode, stopSource, vm, vmId }) {
     const { disks, powerState, snapshots } = metadata
 
     const isRunning = powerState !== 'poweredOff'
@@ -160,12 +182,9 @@ export default class MigrateVm {
     if (isRunning && !stopSource) {
       Task.warning(`Data after the last snapshot on vmware won't be migrated to XCP-ng`)
     }
-    const chainsByNodes = await Task.run(
-      { properties: { name: `build disks and snapshots chains for ${vmId}` } },
-      async () => {
-        return buildDiskChainByNode(disks, snapshots)
-      }
-    )
+    const chainsByNodes = await Task.run({ properties: { name: 'build disks and snapshots chains' } }, async () => {
+      return buildDiskChainByNode(disks, snapshots)
+    })
 
     const coldChainsByNodes = {}
     const runningChainByNodes = {}
@@ -190,76 +209,267 @@ export default class MigrateVm {
       chainsByNodes: coldChainsByNodes,
       esxi,
       sr,
+      srsByNode,
       vm,
       vmId,
     })
     await sr.$xapi.setFieldEntries('VM', vm.$ref, 'other_config', {
-      sourceVmId: vmId,
-      sourceSnapshotId: snapshots?.current,
+      sourcePlatform: SOURCE_PLATFORM,
+      [V2V_VM_OTHER_CONFIG.SOURCE_VM_ID]: vmId,
+      [V2V_VM_OTHER_CONFIG.SOURCE_SNAPSHOT_ID]: snapshots?.current,
+      // read by the XO6 front: a clone, a restore or a replica inherits these keys, but not the UUID of the VM
+      [V2V_VM_OTHER_CONFIG.IMPORTED_VM_UUID]: vm.uuid,
+      [V2V_VM_OTHER_CONFIG.SOURCE_ID]: sourceId,
+      [V2V_VM_OTHER_CONFIG.SOURCE_VM_INSTANCE_UUID]: metadata.instanceUuid,
     })
-    await vm.$snapshot({ name_label: `after ${isRunning ? 'partial' : 'complete'} import from V2V` })
+    await Task.run({ properties: { name: 'taking a snapshot of the imported VM' } }, async () => {
+      await vm.$snapshot({ name_label: `after ${isRunning ? 'partial' : 'complete'} import from V2V` })
+    })
     if (isRunning) {
       if (stopSource) {
-        await Task.run({ properties: { name: 'stopping source VM' } }, async () => esxi.powerOff(vmId))
+        await Task.run({ properties: { name: 'stopping source VM' } }, async () => {
+          // a clean shut down when the guest allows it: a power off leaves the file systems dirty
+          const stoppedBy = await esxi.shutdown(vmId, { signal: Task.abortSignal })
+          if (stoppedBy === 'powerOff') {
+            Task.warning('the guest could not be shut down cleanly, it was powered off')
+          }
+        })
         await importDisksFromDatastore({
           chainsByNodes,
           esxi,
           sr,
+          srsByNode,
           vm,
           vmId,
         })
-        await sr.$xapi.setFieldEntries('VM', vm.$ref, 'other_config', { sourceVmId: vmId, sourceSnapshotId: null })
-        await vm.$snapshot({ name_label: 'complete import from V2V' })
+        await sr.$xapi.setFieldEntries('VM', vm.$ref, 'other_config', {
+          sourcePlatform: SOURCE_PLATFORM,
+          sourceVmId: vmId,
+          sourceSnapshotId: null,
+        })
+        await Task.run({ properties: { name: 'taking a snapshot of the imported VM' } }, async () => {
+          await vm.$snapshot({ name_label: 'complete import from V2V' })
+        })
       } else {
         await Task.info(`VM was running, no stop source. We'll keep the partial import.`)
       }
     }
   }
+
+  // once the import is complete, before the lock on start is removed: the VM cannot be started by somebody else
+  // between two runs of the ISO. A failed docking does not fail the import: the data is there, the snapshot of the
+  // import is the rollback
+  /** @returns {Promise<DockedGuest | UndockedGuest>} */
+  async #dockVm({ followFirstBoot, metadata, vm }) {
+    const xapi = vm.$xapi
+    try {
+      let reports
+      // returns nothing: each run of the ISO already traces its report in its own task
+      await Task.run({ properties: { name: 'Autopilot docking: preparing the guest for XCP-ng' } }, async () => {
+        reports = await dockImportedVm({ xapi, vmRef: vm.$ref, metadata, followFirstBoot })
+      })
+      return { isDocked: true, reports }
+    } catch (error) {
+      warn('the guest could not be docked', { error, vmId: vm.uuid, sourceVmId: metadata.vmId })
+      Task.warning(withFirstBootHint(`the guest could not be docked: ${error.message}`, error.reports))
+      return { isDocked: false }
+    }
+  }
+
+  // once the import is complete and the lock on start removed: failing to start the VM must not fail the import,
+  // which would destroy the VM
+  async #startVm({ metadata, vm }) {
+    const xapi = vm.$xapi
+    try {
+      await Task.run({ properties: { name: 'starting the VM' } }, () => xapi.call('VM.start', vm.$ref, false, false))
+    } catch (error) {
+      warn('failed to start the imported VM', { error, vmId: vm.uuid, sourceVmId: metadata.vmId })
+      Task.warning(`the VM could not be started: ${error.message}`)
+    }
+  }
+
+  // starts a docked guest and follows its first boot, which does not fail the import either
+  async #startDockedVm({ metadata, reports, vm }) {
+    const xapi = vm.$xapi
+    try {
+      await Task.run({ properties: { name: 'first boot on XCP-ng' } }, () =>
+        firstBootOfDockedVm({ xapi, vmRef: vm.$ref, metadata, reports })
+      )
+    } catch (error) {
+      warn('the first boot of the docked guest failed', { error, vmId: vm.uuid, sourceVmId: metadata.vmId })
+      Task.warning(withFirstBootHint(`the first boot on XCP-ng failed: ${error.message}`, reports))
+    }
+  }
+
   @decorateWith(deferrable)
   async migrationfromEsxi(
     $defer,
-    { host, user, password, sslVerify, sr: srId, network: networkId, vm: vmId, stopSource, template: templateId }
+    {
+      host,
+      user,
+      password,
+      sslVerify,
+      sr: srId,
+      network: networkId,
+      // optional overrides of `sr` by disk node (e.g. `scsi0:0`) and of `network` by NIC device key
+      disks: srIdsByNode = {},
+      nics: networkIdsByNic = {},
+      vm: vmId,
+      stopSource,
+      template: templateId,
+      // prepare the guest to boot on XCP-ng with the docking ISO, once the import is complete. Off by default
+      docking = false,
+      // start the VM once the import is complete, and follow the first boot of a docked guest. Off by default
+      startVm = false,
+    }
   ) {
     const app = this._app
-    const esxi = await this.#connectToEsxi(host, user, password, sslVerify)
-    // every transfer is awaited below, nothing is left reading from the host when this returns
-    $defer(() => this.#closeEsxi(esxi, host))
+    const esxiDisposable = await this.#connectToEsxi(host, user, password, sslVerify)
+    const esxi = esxiDisposable.value
+    // every transfer is awaited below, nothing is left reading from the host when this returns.
+    // `dispose` reads `this`: it cannot be detached from its disposable
+    $defer(() => esxiDisposable.dispose())
     const sr = app.getXapiObject(srId)
     const template = app.getXapiObject(templateId)
     const xapi = sr.$xapi
 
-    let metadata = await Task.run({ properties: { name: `get metadata of ${vmId}` } }, async () => {
+    let metadata = await Task.run({ properties: { name: 'get metadata' } }, async () => {
       return esxi.getTransferableVmMetadata(vmId)
     })
+    // before anything is done on either side: a mapping which cannot be applied would import the
+    // device to the default destination
+    assertKnownDevices(metadata, { srIdsByNode, networkIdsByNic, vmId })
+    if (docking) {
+      // a docking which cannot run would only be known once the disks are transferred
+      findDockingIso(xapi, { sourceVmId: vmId })
+    }
+    const { srsByNode, network, networksByNic } = resolveDestinations(app, {
+      sr,
+      srId,
+      networkId,
+      srIdsByNode,
+      networkIdsByNic,
+      vmId,
+    })
 
-    if (!metadata.snapshots || !metadata.snapshots.current) {
-      if (metadata.powerState !== 'poweredOff') {
-        await Task.run({ properties: { name: `taking a snapshot of ${vmId}` } }, () => {
+    // the change tracking of the host gives the blocks to read: every block the disk uses for the
+    // full pass, powered off or not, and what changed since the snapshot for the delta pass. Without
+    // it, a full pass reads the unallocated blocks too
+    let isChangeTrackingEnabled = false
+    let isChangeTrackingNew = false
+    try {
+      isChangeTrackingNew = await Task.run({ properties: { name: 'enabling change tracking' } }, () =>
+        esxi.enableChangeTracking(vmId)
+      )
+      isChangeTrackingEnabled = true
+    } catch (error) {
+      // not fatal: the disks are read to find their blocks
+      warn('failed to enable the change tracking on the source', { error, vmId })
+      Task.warning(`the change tracking could not be enabled on the source: ${error.message}`)
+    }
+
+    const isRunning = metadata.powerState !== 'poweredOff'
+    // a running VM is only read up to a snapshot
+    const isSnapshotRequired = isRunning && !metadata.snapshots?.current
+    // tracking only starts with the next snapshot: before it the host has no tracking file to answer
+    // from, and an existing snapshot carries no changeId. This is checked on the source rather than
+    // deduced from this run turning the tracking on: a previous run may have turned it on, then failed
+    // before its snapshot. A partial import made from a snapshot without changeId is not resumed on
+    // purpose: its delta can only be read from a COWD extent, which ESXi 7 and later no longer write,
+    // the transfer starts over
+    let isSnapshotUseful = isChangeTrackingNew
+    if (isChangeTrackingEnabled && !isChangeTrackingNew && !isSnapshotRequired) {
+      isSnapshotUseful = await esxi.isChangeTrackingReady(vmId, { signal: Task.abortSignal }).then(
+        isReady => !isReady,
+        error => {
+          Task.abortSignal?.throwIfAborted()
+          // not fatal: a snapshot which turns out useless costs less than a transfer without tracking
+          warn('failed to check the change tracking of the source', { error, vmId })
+          return true
+        }
+      )
+    }
+
+    if (isSnapshotRequired || isSnapshotUseful) {
+      let snapshotTaskInfo
+      try {
+        snapshotTaskInfo = await Task.run({ properties: { name: 'taking a snapshot of the source VM' } }, () => {
           return esxi.snapshot(vmId, '[V2V] migration to XCP-ng', 'created automatically during migration')
         })
+      } catch (error) {
+        if (isSnapshotRequired) {
+          throw error
+        }
+        Task.abortSignal?.throwIfAborted()
+        // not fatal, like the change tracking it would have started
+        warn('failed to snapshot the source to start its change tracking', { error, vmId })
+        Task.warning(`the source could not be snapshotted to start its change tracking: ${error.message}`)
+      }
 
-        metadata = await Task.run(
-          { properties: { name: `updating metadata of ${vmId} after taking a snapshot` } },
-          () => esxi.getTransferableVmMetadata(vmId)
+      const snapshotId = snapshotTaskInfo?.result?.$value
+      if (!isRunning && snapshotId !== undefined) {
+        // only taken to start the tracking, which outlives it: a powered off VM is read as it is,
+        // nothing would ever remove this snapshot from the source
+        await Task.run({ properties: { name: 'removing the snapshot of the source VM' } }, () =>
+          esxi.removeSnapshot(snapshotId)
+        ).catch(error => {
+          Task.abortSignal?.throwIfAborted()
+          // not fatal: the import reads the chain of the disks, this snapshot included
+          warn('failed to remove the snapshot which started the change tracking', { error, snapshotId, vmId })
+          Task.warning(`the snapshot ${snapshotId} could not be removed from the source: ${error.message}`)
+        })
+      }
+
+      if (snapshotTaskInfo !== undefined) {
+        metadata = await Task.run({ properties: { name: 'updating metadata after taking a snapshot' } }, () =>
+          esxi.getTransferableVmMetadata(vmId)
         )
       }
     }
     Task.abortSignal?.throwIfAborted()
-    const vm = await this.#createVmAndNetworks($defer, { metadata, networkId, template, xapi })
+    const vm = await this.#createVmAndNetworks($defer, { metadata, network, networksByNic, template, xapi })
     Task.abortSignal?.throwIfAborted()
     await xapi.barrier()
-    await this.#importDisks($defer, { esxi, metadata, stopSource, vm, sr, vmId })
+    // the moref of a VM is only unique within its vCenter
+    const sourceId = getSourceId(esxi.instanceUuid, host)
+    await this.#importDisks($defer, { esxi, metadata, sourceId, stopSource, vm, sr, srsByNode, vmId })
+    Task.abortSignal?.throwIfAborted()
+    const isComplete = stopSource || metadata.powerState === 'poweredOff'
+    // the guest is only docked, and the VM only started, once the import is complete
+    if (!isComplete && (docking || startVm)) {
+      Task.info('the import is partial: the guest is neither docked nor started until an import completes it')
+    }
+    const isDocking = docking && isComplete
+    const isStarting = startVm && isComplete
+    /** @type {DockedGuest | UndockedGuest | undefined} undefined when no docking is run */
+    let dockingOutcome
+    if (isDocking) {
+      // the VM is started once docked, XO follows its first boot and does its reboots
+      dockingOutcome = await this.#dockVm({ followFirstBoot: isStarting, metadata, vm })
+    }
     Task.abortSignal?.throwIfAborted()
     await Task.run({ properties: { name: 'Finishing transfer' } }, async () => {
       // remove the importing in label
       await vm.set_name_label(metadata.name_label)
-      const wasStopped = metadata.powerState === 'poweredOff'
 
       // remove lock on start if the VM has been completly imported
-      if (stopSource || wasStopped) {
+      if (isComplete) {
         await asyncMapSettled(['start', 'start_on'], op => vm.update_blocked_operations(op, null))
       }
     })
+
+    if (!isStarting) {
+      if (dockingOutcome?.isDocked && metadata.firmware === 'uefi' && metadata.secureBoot) {
+        // the docking disabled it, the first boot would have enabled it again
+        Task.warning('Secure Boot was enabled on the source: enable it again once the VM has booted')
+      }
+    } else if (dockingOutcome === undefined) {
+      await this.#startVm({ metadata, vm })
+    } else if (dockingOutcome.isDocked) {
+      await this.#startDockedVm({ metadata, reports: dockingOutcome.reports, vm })
+    } else {
+      Task.warning('the VM is not started: its guest could not be docked')
+    }
 
     return vm.uuid
   }
@@ -269,36 +479,44 @@ export default class MigrateVm {
   }
 
   async exportEsxiDisk({ disk: diskId, format, host, user, password, vm: vmId }) {
-    const esxi = await this.#connectToEsxi(host, user, password, false)
-    const metadata = await Task.run({ properties: { name: `get metadata of ${vmId}` } }, () => {
-      return esxi.getTransferableVmMetadata(vmId)
-    })
+    const esxiDisposable = await this.#connectToEsxi(host, user, password, false)
+    const esxi = esxiDisposable.value
+    let disk
+    try {
+      const metadata = await Task.run({ properties: { name: `get metadata of ${vmId}` } }, () => {
+        return esxi.getTransferableVmMetadata(vmId)
+      })
 
-    const { disks, powerState, snapshots } = metadata
+      const { disks, powerState, snapshots } = metadata
 
-    const isRunning = powerState !== 'poweredOff'
+      const isRunning = powerState !== 'poweredOff'
 
-    const chainsByNodes = await Task.run(
-      { properties: { name: `build disks and snapshots chains for ${vmId}` } },
-      () => {
-        return buildDiskChainByNode(disks, snapshots)
+      const chainsByNodes = await Task.run(
+        { properties: { name: `build disks and snapshots chains for ${vmId}` } },
+        () => {
+          return buildDiskChainByNode(disks, snapshots)
+        }
+      )
+
+      if (!diskId) {
+        throw new Error(`No diskId provided, detected : ${Object.keys(chainsByNodes).join(',')}`)
       }
-    )
-
-    if (!diskId) {
-      throw new Error(`No diskId provided, detected : ${Object.keys(chainsByNodes).join(',')}`)
-    }
-    if (!chainsByNodes[diskId]) {
-      throw new Error(`disk ${diskId} is not in the migrable disks : ${Object.keys(chainsByNodes).join(',')}`)
-    }
-    const chain = chainsByNodes[diskId]
-    if (isRunning) {
-      if (chain.length < 2) {
-        throw new Error(`Can't migrate any data from a running VM without a snapshot`)
+      if (!chainsByNodes[diskId]) {
+        throw new Error(`disk ${diskId} is not in the migrable disks : ${Object.keys(chainsByNodes).join(',')}`)
       }
-      chain.pop() // remove the active disk
+      const chain = chainsByNodes[diskId]
+      if (isRunning) {
+        if (chain.length < 2) {
+          throw new Error(`Can't migrate any data from a running VM without a snapshot`)
+        }
+        chain.pop() // remove the active disk
+      }
+      disk = chain.pop()
+    } catch (error) {
+      // no transfer has started to release the session once done
+      await esxiDisposable.dispose()
+      throw error
     }
-    const disk = chain.pop()
     const stream = new PassThrough()
     // the transfer outlives this call, so the session cannot be released before the stream is done
     importStream({ esxi, disk, vmId, format }, source => {
@@ -319,7 +537,8 @@ export default class MigrateVm {
         warn('error while reading the disk from esxi', { diskId, error, vmId })
         stream.destroy(error)
       })
-      .finally(() => this.#closeEsxi(esxi, host))
+      // `dispose` reads `this`: it cannot be detached from its disposable
+      .finally(() => esxiDisposable.dispose())
     return stream
   }
 

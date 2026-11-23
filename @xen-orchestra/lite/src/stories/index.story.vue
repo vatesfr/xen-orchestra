@@ -4,7 +4,7 @@
 
     <div class="row">
       Choose a component
-      <VtsSelect :id="componentSelectId" accent="brand" />
+      <VtsSelect :id="componentSelectId" accent="neutral" />
     </div>
 
     <div class="row">

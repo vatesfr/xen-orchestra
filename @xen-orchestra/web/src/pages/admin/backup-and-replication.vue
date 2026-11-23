@@ -9,5 +9,5 @@
 import BackupAndReplicationHeader from '@/modules/admin/components/BackupAndReplicationHeader.vue'
 import { useDefaultTab } from '@core/composables/default-tab.composable.ts'
 
-useDefaultTab('/admin/backup-and-replication', 'backup-repositories')
+useDefaultTab('/admin/backup-and-replication', 'jobs')
 </script>

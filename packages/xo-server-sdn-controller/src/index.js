@@ -8,13 +8,16 @@ import { filter, find, forOwn, map, omitBy } from 'lodash'
 import { fromCallback, promisify } from 'promise-toolbox'
 import { join } from 'path'
 import { v4 as uuidv4 } from 'uuid'
+import { invalidParameters, objectAlreadyExists } from 'xo-common/api-errors.js'
 
 import { OvsdbClient } from './protocol/ovsdb-client'
 import { PrivateNetwork } from './private-network/private-network'
+import { createPrivateNetworkRoute } from './private-network/rest-api'
+import { resolvePrivateNetworkPools } from './private-network/resolve-pools'
 import { TlsHelper } from './utils/tls-helper'
 import { instantiateController } from './openflow-controller'
 import { randomBytes } from 'crypto'
-import { createRestRoutes } from './rest-api'
+import { createRestRoutes, listNetworkRules } from './rest-api'
 
 // =============================================================================
 
@@ -352,15 +355,10 @@ class SDNController extends EventEmitter {
   async load() {
     // ---------------- Private Network method ---------------------------------
 
-    const createPrivateNetwork = params =>
-      this._createPrivateNetwork({
-        encrypted: false,
-        mtu: 0,
-        ...params,
-        vni: ++this._prevVni,
-      })
+    const createPrivateNetwork = params => this._createPrivateNetwork(params)
 
-    createPrivateNetwork.description = 'Creates a pool-wide private network on a selected pool'
+    createPrivateNetwork.description =
+      'Creates a pool-wide private network on a selected pool. Returns the ids of the created networks, one per pool'
     createPrivateNetwork.params = {
       poolIds: {
         type: 'array',
@@ -385,47 +383,57 @@ class SDNController extends EventEmitter {
 
     // ---------------- OpenFlow rules method ----------------------------------
 
-    const addRule = params => this._addRule(params)
+    const addRule = params => {
+      this._checkTrafficRulePriority(params, params.priority)
+      return this._addRule(params, { strict: true })
+    }
     addRule.description = 'Add an ACL rule to a VIF'
     addRule.params = {
       allow: { type: 'boolean' },
       direction: { type: 'string' },
       ipRange: { type: 'string' },
       port: { type: 'integer', optional: true },
+      priority: { type: 'integer', minimum: 1, maximum: 65535, optional: true },
       protocol: { type: 'string' },
       vifId: { type: 'string' },
     }
     addRule.permission = 'admin'
 
-    const deleteRule = params => this._deleteRule(params)
+    const deleteRule = params => this._deleteRule(params, true, { strict: true })
     deleteRule.description = 'Delete an ACL rule from a VIF'
     deleteRule.params = {
       direction: { type: 'string' },
       ipRange: { type: 'string' },
       port: { type: 'integer', optional: true },
+      priority: { type: 'integer', minimum: 0, maximum: 65535, optional: true },
       protocol: { type: 'string' },
       vifId: { type: 'string' },
     }
     deleteRule.permission = 'admin'
 
-    const addNetworkRule = params => this._addNetworkRule(params)
+    const addNetworkRule = params => {
+      this._checkTrafficRulePriority(params, params.priority)
+      return this._addNetworkRule(params, { strict: true })
+    }
     addNetworkRule.description = 'Add an ACL rule to a network'
     addNetworkRule.params = {
       allow: { type: 'boolean' },
       direction: { type: 'string' },
       ipRange: { type: 'string' },
       port: { type: 'integer', optional: true },
+      priority: { type: 'integer', minimum: 1, maximum: 65535, optional: true },
       protocol: { type: 'string' },
       networkId: { type: 'string' },
     }
     addNetworkRule.permission = 'admin'
 
-    const deleteNetworkRule = params => this._deleteNetworkOfRule(params)
+    const deleteNetworkRule = params => this._deleteNetworkOfRule(params, true, { strict: true })
     deleteNetworkRule.description = 'Delete an ACL rule from a network'
     deleteNetworkRule.params = {
       direction: { type: 'string' },
       ipRange: { type: 'string' },
       port: { type: 'integer', optional: true },
+      priority: { type: 'integer', minimum: 0, maximum: 65535, optional: true },
       protocol: { type: 'string' },
       networkId: { type: 'string' },
     }
@@ -445,7 +453,12 @@ class SDNController extends EventEmitter {
       },
     })
 
-    this._cleaners.push(this._xo.registerRestRoutes(createRestRoutes(this), '/plugins/sdn-controller'))
+    this._cleaners.push(
+      this._xo.registerRestRoutes(
+        [...createRestRoutes(this), createPrivateNetworkRoute(this)],
+        '/plugins/sdn-controller'
+      )
+    )
 
     forOwn(this._xo.getAllXapis(), xapi => {
       if (xapi.status === 'connected') {
@@ -515,6 +528,7 @@ class SDNController extends EventEmitter {
       // Add already existing private networks
       const networks = Object.values(xapi.objects.indexes.type.network ?? {})
       const noVniNetworks = []
+      const registeredNetworks = new Set()
       await Promise.all(
         networks.map(async network => {
           // 2019-09-03
@@ -539,29 +553,73 @@ class SDNController extends EventEmitter {
           let privateNetwork = this.privateNetworks[uuid]
           if (privateNetwork === undefined) {
             const preferredCenterUuid = otherConfig['xo:sdn-controller:preferred-center']
-            const preferredCenter =
-              preferredCenterUuid !== undefined
-                ? this._xo.getXapiObject(this._xo.getObject(preferredCenterUuid, 'host'))
-                : undefined
+            let preferredCenter
+            if (preferredCenterUuid !== undefined) {
+              try {
+                preferredCenter = this._xo.getXapiObject(this._xo.getObject(preferredCenterUuid, 'host'))
+              } catch (error) {
+                log.warn('Stale preferred center, will be elected when a host becomes available', {
+                  network: network.name_label,
+                  preferredCenterUuid,
+                  error,
+                })
+              }
+            }
             privateNetwork = new PrivateNetwork(this, uuid, preferredCenter)
             this.privateNetworks[uuid] = privateNetwork
           }
 
-          const vni = otherConfig['xo:sdn-controller:vni']
-          if (vni === undefined) {
-            noVniNetworks.push(network)
-          } else {
-            this._prevVni = Math.max(this._prevVni, +vni)
-          }
+          try {
+            const vni = otherConfig['xo:sdn-controller:vni']
+            if (vni !== undefined) {
+              this._prevVni = Math.max(this._prevVni, +vni)
+            }
 
-          await privateNetwork.addNetwork(network)
+            await privateNetwork.addNetwork(network)
 
-          this._networks.set(network.$id, network.$ref)
-          if (privateNetwork.center !== undefined) {
-            this._starCenters.set(privateNetwork.center.$id, privateNetwork.center.$ref)
+            this._networks.set(network.$id, network.$ref)
+            registeredNetworks.add(network.$ref)
+            if (privateNetwork.center !== undefined) {
+              this._starCenters.set(privateNetwork.center.$id, privateNetwork.center.$ref)
+            }
+
+            // Only networks successfully registered get a VNI: a failed
+            // addNetwork must not reach the re-election loop below
+            if (vni === undefined) {
+              noVniNetworks.push(network)
+            }
+          } catch (error) {
+            log.warn('Error registering network for SDN controller', {
+              network: network.name_label,
+              error,
+            })
           }
         })
       )
+
+      // Undo the partial state left by failed addNetwork calls: the network
+      // has already been inserted in privateNetwork.networks, and a center
+      // may have been set without being recorded in this._starCenters
+      forOwn(this.privateNetworks, (privateNetwork, uuid) => {
+        const network = privateNetwork.networks[xapi.pool.uuid]
+        if (network === undefined || registeredNetworks.has(network.$ref)) {
+          return
+        }
+
+        delete privateNetwork.networks[xapi.pool.uuid]
+        if (
+          privateNetwork.center !== undefined &&
+          privateNetwork.networks[privateNetwork.center.$pool.uuid] === undefined
+        ) {
+          // The election was never finished: drop the orphaned center. No
+          // this._starCenters cleanup is needed as it was only set on success
+          delete privateNetwork.center
+        }
+
+        if (Object.keys(privateNetwork.networks).length === 0) {
+          delete this.privateNetworks[uuid]
+        }
+      })
 
       // Add VNI to other config of networks without VNI
       //
@@ -663,7 +721,37 @@ class SDNController extends EventEmitter {
 
   // ===========================================================================
 
-  async _addRule({ allow, direction, ipRange = '', port, protocol, vifId }) {
+  // Run before anything is written, as the rule methods log their errors instead of throwing them
+  //
+  // 0 is refused, as XAPI reserves it. The delete methods still take it: a rule may have been given it
+  // before it was refused
+  _checkTrafficRulePriority({ networkId, vifId }, priority) {
+    if (this.#staticConfig.useDirectChannel) {
+      if (priority !== undefined) {
+        throw invalidParameters('a traffic rule priority needs the XAPI plugin')
+      }
+      return
+    }
+
+    // TODO: throw once XO 5 and XO 6 send a priority. Until then, a rule without one has the OVS
+    // default, 32768, as the rules from before priorities
+    if (priority === undefined) {
+      return
+    }
+    if (!Number.isInteger(priority) || priority < 1 || priority > 65535) {
+      throw invalidParameters(`traffic rule priority must be an integer from 1 to 65535, not ${priority}`)
+    }
+    networkId ??= this._xo.getObject(vifId, 'VIF').$network
+    const ruleWithPriority = listNetworkRules(this._xo, networkId).find(rule => rule.priority === priority)
+    if (ruleWithPriority !== undefined) {
+      throw objectAlreadyExists({ objectId: JSON.stringify(ruleWithPriority), objectType: 'traffic-rule' })
+    }
+  }
+
+  // strict: an error (e.g. the XAPI plugin fails to apply the rule) is thrown,
+  // and the rule isn't recorded; otherwise, as when the rules are applied again
+  // on events, it's logged
+  async _addRule({ allow, direction, ipRange = '', port, priority, protocol, vifId }, { strict = false } = {}) {
     const vif = this._xo.getXapiObject(this._xo.getObject(vifId, 'VIF'))
     try {
       await this._setPoolControllerIfNeeded(vif.$pool)
@@ -673,7 +761,7 @@ class SDNController extends EventEmitter {
         const channel = await this._getOrCreateOfChannel(vif.$VM.$resident_on)
         if (client !== undefined && channel !== undefined) {
           const ofport = await client.getOfPortForVif(vif)
-          await channel.addRule({ vif, allow, protocol, port, ipRange, direction, ofport })
+          await channel.addRule({ vif, allow, protocol, port, ipRange, direction, priority, ofport })
         }
       } catch (error) {
         if (error.code === 'HOST_OFFLINE') {
@@ -694,6 +782,7 @@ class SDNController extends EventEmitter {
         port,
         ipRange,
         direction,
+        priority,
       })
       if (!newVifRules.includes(stringRule)) {
         newVifRules.push(stringRule)
@@ -711,10 +800,17 @@ class SDNController extends EventEmitter {
         ipRange,
         direction,
       })
+      if (strict) {
+        throw error
+      }
     }
   }
 
-  async _addNetworkRule({ networkId, allow, direction, ipRange = '', port, protocol }) {
+  // strict: as _addRule's
+  async _addNetworkRule(
+    { networkId, allow, direction, ipRange = '', port, priority, protocol },
+    { strict = false } = {}
+  ) {
     try {
       const network = this._xo.getXapiObject(this._xo.getObject(networkId, 'network'))
       assert(network.$PIFs.length > 0, 'Network needs to be plugged to add a rule')
@@ -724,7 +820,11 @@ class SDNController extends EventEmitter {
       // filter matching rule (don't compare allow and cookie)
       const matchRules = networkRules.filter(rule => {
         return (
-          rule.direction === direction && rule.ipRange === ipRange && rule.port === port && rule.protocol === protocol
+          rule.direction === direction &&
+          rule.ipRange === ipRange &&
+          rule.port === port &&
+          rule.priority === priority &&
+          rule.protocol === protocol
         )
       })
 
@@ -750,7 +850,11 @@ class SDNController extends EventEmitter {
       // update the rule if already here (don't compare allow and cookie) to behave like OpenVSwitch
       const newNetworkRules = networkRules.filter(rule => {
         return (
-          rule.protocol !== protocol || rule.port !== port || rule.ipRange !== ipRange || rule.direction !== direction
+          rule.protocol !== protocol ||
+          rule.port !== port ||
+          rule.ipRange !== ipRange ||
+          rule.direction !== direction ||
+          rule.priority !== priority
         )
       })
       const newRule = {
@@ -759,6 +863,7 @@ class SDNController extends EventEmitter {
         port,
         ipRange,
         direction,
+        priority,
         cookie,
       }
       newNetworkRules.push(newRule)
@@ -767,11 +872,14 @@ class SDNController extends EventEmitter {
         const host = this._xo.getXapiObject(this._xo.getObject(network.$PIFs[0].host, 'host'))
         const channel = await this._getOrCreateOfChannel(host)
         if (channel !== undefined) {
-          await channel.addNetworkRule({ network, allow, protocol, port, ipRange, direction, cookie })
+          await channel.addNetworkRule({ network, allow, protocol, port, ipRange, direction, priority, cookie })
         }
       } catch (error) {
         if (error.code === 'HOST_OFFLINE') {
           log.info('addNetworkRule: Ignoring HOST_OFFLINE', { network: networkId })
+        } else if (strict && !this.#staticConfig.useDirectChannel) {
+          // the XAPI plugin failed: the rule isn't recorded
+          throw error
         } else {
           // continue on error: it could be normal to fail
           // (if no port where to apply the rule for example)
@@ -796,10 +904,18 @@ class SDNController extends EventEmitter {
         ipRange,
         direction,
       })
+      if (strict) {
+        throw error
+      }
     }
   }
 
-  async _deleteRule({ direction, ipRange = '', port, protocol, vifId }, updateOtherConfig = true) {
+  // strict: as _addRule's; the rule then stays recorded
+  async _deleteRule(
+    { direction, ipRange = '', port, priority, protocol, vifId },
+    updateOtherConfig = true,
+    { strict = false } = {}
+  ) {
     let vif = this._xo.getXapiObject(this._xo.getObject(vifId, 'VIF'))
     try {
       await this._setPoolControllerIfNeeded(vif.$pool)
@@ -835,7 +951,11 @@ class SDNController extends EventEmitter {
       const newVifRules = JSON.parse(vifRules).filter(vifRule => {
         const rule = JSON.parse(vifRule)
         return (
-          rule.protocol !== protocol || rule.port !== port || rule.ipRange !== ipRange || rule.direction !== direction
+          rule.protocol !== protocol ||
+          rule.port !== port ||
+          rule.ipRange !== ipRange ||
+          rule.direction !== direction ||
+          rule.priority !== priority
         )
       })
 
@@ -858,10 +978,18 @@ class SDNController extends EventEmitter {
         ipRange,
         direction,
       })
+      if (strict) {
+        throw error
+      }
     }
   }
 
-  async _deleteNetworkOfRule({ direction, ipRange = '', port, protocol, networkId }, updateOtherConfig = true) {
+  // strict: as _deleteRule's
+  async _deleteNetworkOfRule(
+    { direction, ipRange = '', port, priority, protocol, networkId },
+    updateOtherConfig = true,
+    { strict = false } = {}
+  ) {
     try {
       let network = this._xo.getXapiObject(this._xo.getObject(networkId, 'network'))
       assert(network.$PIFs.length > 0, 'Network needs to be plugged to delete a rule')
@@ -871,7 +999,11 @@ class SDNController extends EventEmitter {
       // filter matching rule (don't compare allow and cookie)
       const matchRules = networkRules.filter(rule => {
         return (
-          rule.direction === direction && rule.ipRange === ipRange && rule.port === port && rule.protocol === protocol
+          rule.direction === direction &&
+          rule.ipRange === ipRange &&
+          rule.port === port &&
+          rule.priority === priority &&
+          rule.protocol === protocol
         )
       })
 
@@ -897,7 +1029,7 @@ class SDNController extends EventEmitter {
           log.info('deleteNetworkOfRule: Ignoring HOST_OFFLINE', { network: networkId })
         } else {
           log.error('deleteNetworkOfRule: error while deleting OpenFlow rule', error)
-          if (this.#staticConfig.useDirectChannel === false) {
+          if (!this.#staticConfig.useDirectChannel) {
             // means that the xapi python plugin failed
             throw error
           }
@@ -914,6 +1046,7 @@ class SDNController extends EventEmitter {
           rule.port !== port ||
           rule.ipRange !== ipRange ||
           rule.direction !== direction ||
+          rule.priority !== priority ||
           rule.cookie !== cookie
         )
       })
@@ -934,44 +1067,46 @@ class SDNController extends EventEmitter {
         ipRange,
         direction,
       })
+      if (strict) {
+        throw error
+      }
     }
   }
 
   // ---------------------------------------------------------------------------
 
+  // The parameters are all checked before the first network is created: the networks of the pools before a failure
+  // would stay
+  //
+  // The MTU is checked here for both APIs: the REST body can only declare a number, and XAPI reads an MTU of 0 or less
+  // as 1500, so a negative one would silently become the default
+  //
+  // With the XAPI plugin (useDirectChannel: false), a host without sdncontroller.py fails in
+  // _getOrCreateOfChannel: it is called on every host before the first network is created, and the
+  // loop reuses the channels it cached
   async _createPrivateNetwork({
     poolIds,
     pifIds,
     name,
     description,
     encapsulation,
-    vni,
-    encrypted,
-    mtu,
+    encrypted = false,
+    mtu = 0,
     preferredCenterId,
   }) {
-    const pools = poolIds.map(id => this._xo.getXapiObject(id, 'pool'))
-
-    let preferredCenter
-    if (preferredCenterId !== undefined) {
-      preferredCenter = this._xo.getXapiObject(this._xo.getObject(preferredCenterId, 'host'))
-
-      // Put pool of preferred center first
-      const preferredCenterPoolUuid = preferredCenter.$pool.uuid
-      const i = pools.findIndex(pool => pool.uuid === preferredCenterPoolUuid)
-      assert.notStrictEqual(i, -1)
-      poolIds[i] = poolIds[0]
-      poolIds[0] = preferredCenterPoolUuid
+    if (!Number.isInteger(mtu) || mtu < 0) {
+      throw invalidParameters(`MTU must be a non-negative integer, not ${mtu}`)
     }
+    const { poolPifs, preferredCenter } = resolvePrivateNetworkPools(this._xo, { poolIds, pifIds, preferredCenterId })
+    await asyncEach(
+      poolPifs.flatMap(([pool]) => Object.values(pool.$xapi.objects.indexes.type.host ?? {})),
+      host => this._getOrCreateOfChannel(host)
+    )
 
+    const vni = ++this._prevVni
     const privateNetwork = new PrivateNetwork(this, uuidv4(), preferredCenter)
-    for (const pool of pools) {
-      const pifId = pifIds.find(id => {
-        const pif = this._xo.getXapiObject(this._xo.getObject(id, 'PIF'))
-        return pif.$pool.$ref === pool.$ref
-      })
-      const pif = this._xo.getXapiObject(this._xo.getObject(pifId, 'PIF'))
-
+    const networkIds = []
+    for (const [pool, pif] of poolPifs) {
       // Create the private network
       const createdNetworkRef = await pool.$xapi.call('network.create', {
         name_label: name,
@@ -1012,7 +1147,9 @@ class SDNController extends EventEmitter {
       if (privateNetwork.center !== undefined) {
         this._starCenters.set(privateNetwork.center.$id, privateNetwork.center.$ref)
       }
+      networkIds.push(createdNetwork.$id)
     }
+    return networkIds
   }
 
   // ---------------------------------------------------------------------------
@@ -1152,7 +1289,7 @@ class SDNController extends EventEmitter {
     if (!pif.currently_attached) {
       const tunnel = getHostTunnelForNetwork(pif.$host, pif.network)
       await tunnel.set_status({ active: 'false' })
-      if (privateNetwork.center.$ref !== pif.host) {
+      if (privateNetwork.center?.$ref !== pif.host) {
         return
       }
 
@@ -1463,7 +1600,7 @@ class SDNController extends EventEmitter {
 
   async _hostUnreachable(host) {
     let privateNetworks = filter(this.privateNetworks, privateNetwork => {
-      return privateNetwork.center.$ref === host.$ref
+      return privateNetwork.center?.$ref === host.$ref
     })
     for (const privateNetwork of privateNetworks) {
       log.debug('Unreachable star-center, electing a new one', {

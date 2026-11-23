@@ -45,6 +45,7 @@ const emit = defineEmits<{
 const { t } = useI18n()
 
 const { HeadCells, BodyCells, colspan } = useNewVmNetworkColumns({
+  exclude: ['rank'],
   body: ({ networkInterface, onRemove }: { networkInterface: NetworkInterface; onRemove: () => void }) => {
     const { id: interfaceSelectId } = useFormSelect(networks, {
       model: toRef(networkInterface, 'interface'),

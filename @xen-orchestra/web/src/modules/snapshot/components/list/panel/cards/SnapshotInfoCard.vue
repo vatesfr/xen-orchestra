@@ -1,5 +1,5 @@
 <template>
-  <UiPanelCard class="snapshot-info-card">
+  <UiPanelCard>
     <UiPanelCardTitle
       :id="snapshot.id"
       size="medium"
@@ -7,7 +7,7 @@
       :href="buildXo5VmSnapshotRoute(snapshot.$snapshot_of, snapshot.id)"
       icon="object:vm-snapshot"
     />
-    <div class="content">
+    <VtsCardRowList>
       <!-- DESCRIPTION -->
       <VtsCardRowKeyValue truncate align-top>
         <template #key>
@@ -53,12 +53,12 @@
           {{ t('memory') }}
         </template>
         <template #value>
-          <UiInfo :accent="memoryAccent" size="medium">
+          <UiInfo :accent="memoryAccent">
             {{ t(memoryLabel) }}
           </UiInfo>
         </template>
       </VtsCardRowKeyValue>
-    </div>
+    </VtsCardRowList>
   </UiPanelCard>
 </template>
 
@@ -67,24 +67,26 @@ import type { FrontXoVmSnapshot } from '@/modules/snapshot/components/remote-res
 import { useSnapshotTrigger } from '@/modules/snapshot/composables/xo-snapshot-trigger.composable.ts'
 import { useXo5VmSnapshotRoute } from '@/modules/snapshot/composables/xo-vm-snapshot-route-xo5.composable.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
+import VtsCardRowList from '@core/components/card/VtsCardRowList.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
 import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
+import { formatDateTime } from '@core/utils/time.util.ts'
 import { VM_POWER_STATE } from '@vates/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { snapshot } = defineProps<{ snapshot: FrontXoVmSnapshot }>()
 
-const { t, d } = useI18n()
+const { t } = useI18n()
 
 const { getSnapshotTrigger } = useSnapshotTrigger()
 
 const { buildXo5VmSnapshotRoute } = useXo5VmSnapshotRoute()
 
-const formattedDate = computed(() => d(snapshot.snapshot_time * 1000, { dateStyle: 'short', timeStyle: 'medium' }))
+const formattedDate = computed(() => formatDateTime(snapshot.snapshot_time * 1000))
 
 const memoryAccent = computed(() => (snapshot.power_state === VM_POWER_STATE.SUSPENDED ? 'success' : 'muted'))
 
@@ -92,13 +94,3 @@ const memoryLabel = computed(() => (snapshot.power_state === VM_POWER_STATE.SUSP
 
 const trigger = computed(() => getSnapshotTrigger(snapshot))
 </script>
-
-<style scoped lang="postcss">
-.snapshot-info-card {
-  .content {
-    display: flex;
-    flex-direction: column;
-    gap: 0.4rem;
-  }
-}
-</style>
