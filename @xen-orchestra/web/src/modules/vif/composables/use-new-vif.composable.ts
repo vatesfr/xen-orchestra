@@ -18,7 +18,14 @@ export function useNewVif(rawVm: MaybeRefOrGetter<FrontXoVm>) {
       onConfirm: (newPayload: NewVifPayload) => {
         payload.value = newPayload
 
-        run({ detached: true })
+        run({
+          detached: true,
+          onSuccess: ([result]) => {
+            if (result.status === 'rejected') {
+              console.error('Failed to create VIF', result.reason)
+            }
+          },
+        })
       },
       onCancel: true,
     },
