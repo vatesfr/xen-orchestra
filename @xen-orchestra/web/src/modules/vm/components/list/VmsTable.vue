@@ -39,6 +39,8 @@ import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { useTableSelection } from '@core/composables/table-selection.composable.ts'
 import { useTableState } from '@core/composables/table-state.composable.ts'
 import { useVmColumns } from '@core/tables/column-sets/vm-columns.ts'
+import { compareFirstStrings } from '@core/utils/compare-strings.util.ts'
+import { sortByNameLabel } from '@core/utils/sort-by-name-label.util.ts'
 import { sortTags } from '@core/utils/sort-tags.util.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -68,8 +70,6 @@ const state = useTableState({
 
 const displayVms = computed(() => filteredVms.value.map(vm => getDisplayData(vm)))
 
-const { pageRecords: paginatedVms, paginationBindings } = usePagination('vms', displayVms)
-
 const {
   selectedItems: selectedVms,
   pageSelectionModel,
@@ -79,11 +79,12 @@ const {
 } = useTableSelection({
   items: () => rawVms,
   filteredItems: filteredVms,
-  pageItems: paginatedVms,
+  pageItems: () => getPaginatedVms(),
   getItemId: vm => vm.id,
 })
 
-const { HeadCells, BodyCells } = useVmColumns({
+const { HeadCells, BodyCells, sortItems } = useVmColumns({
+  id: 'vms',
   head: () => ({
     checkbox: r => r(pageSelectionModel),
   }),
@@ -109,7 +110,25 @@ const { HeadCells, BodyCells } = useVmColumns({
         }),
     }
   },
+  sort: {
+    vm: sortByNameLabel,
+    ipAddresses: (vm1, vm2) => compareFirstStrings(vm1.ipAddresses, vm2.ipAddresses),
+    vcpus: (vm1, vm2) => vm1.CPUs.number - vm2.CPUs.number,
+    ram: (vm1, vm2) => vm1.ramSize - vm2.ramSize,
+    diskSpace: (vm1, vm2) => vm1.diskSpaceSize - vm2.diskSpaceSize,
+    tags: (vm1, vm2) => compareFirstStrings(sortTags(vm1.tags), sortTags(vm2.tags)),
+  },
+  initialSort: { id: 'vm', direction: 'asc' },
 })
+
+const sortedVms = computed(() => sortItems(displayVms.value))
+
+const { pageRecords: paginatedVms, paginationBindings } = usePagination('vms', sortedVms)
+
+// A function declaration, so that the selection, needed by the columns, can use the page rows sorted by these columns
+function getPaginatedVms(): VmDisplayData[] {
+  return paginatedVms.value
+}
 </script>
 
 <style scoped lang="postcss">

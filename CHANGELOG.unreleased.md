@@ -75,6 +75,7 @@
 - [RPU] On a pool with XOSTOR, a rolling pool update is refused when the storage is not healthy or when its controller runs on several hosts, and waits for the storage to be healthy again after restarting its services and after each host reboot, before moving the VMs of the next host. The controller is now stopped only on the host running it (PR [#10775](https://github.com/vatesfr/xen-orchestra/pull/10775))
 - [Forms] Multi-line text fields have more contrasted borders (PR [#10862](https://github.com/vatesfr/xen-orchestra/pull/10862))
 - [XO6/SR] Add SR creation form on Host/Pool Storage tabs for LVM, EXT, SMB, local ISO, SMB ISO types (PR [#10251](https://github.com/vatesfr/xen-orchestra/pull/10251))
+- [XO6] Table columns can be sorted from their header, the current order being shown on the sorted column; the sort is kept in the URL, so it survives a reload and can be shared by link (PR [#10792](https://github.com/vatesfr/xen-orchestra/pull/10792))
 
 ### Bug fixes
 

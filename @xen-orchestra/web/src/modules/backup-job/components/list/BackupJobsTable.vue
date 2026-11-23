@@ -32,11 +32,18 @@ import BackupJobsFilters from '@/modules/backup-job/components/list/BackupJobsFi
 import { useXoBackupJobActions } from '@/modules/backup-job/composables/use-xo-backup-job-actions.composable.ts'
 import { useXoBackupJobFilters } from '@/modules/backup-job/composables/use-xo-backup-job-filters.composable.ts'
 import { useXoBackupJobLastRuns } from '@/modules/backup-job/composables/use-xo-backup-job-last-runs.composable.ts'
-import { useXoBackupJobModeLabel } from '@/modules/backup-job/composables/use-xo-backup-job-mode-label.composable.ts'
-import { useXoBackupJobTypeLabels } from '@/modules/backup-job/composables/use-xo-backup-job-type-labels.composable.ts'
+import {
+  useGetXoBackupJobModeLabel,
+  useXoBackupJobModeLabel,
+} from '@/modules/backup-job/composables/use-xo-backup-job-mode-label.composable.ts'
+import {
+  useGetXoBackupJobTypeLabels,
+  useXoBackupJobTypeLabels,
+} from '@/modules/backup-job/composables/use-xo-backup-job-type-labels.composable.ts'
 import type { FrontAnyXoBackupJob } from '@/modules/backup-job/remote-resources/use-xo-backup-job-collection.ts'
-import { getBackupJobHealthCheckStatus } from '@/modules/backup-job/utils/xo-backup-job.util.ts'
+import { getBackupJobHealthCheckStatus, isBackupJobEnabled } from '@/modules/backup-job/utils/xo-backup-job.util.ts'
 import { useXoBackupLogCollection } from '@/modules/backup-log/remote-resources/use-xo-backup-log-collection.ts'
+import { useXoScheduleCollection } from '@/modules/schedule/remote-resources/use-xo-schedule-collection.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import VtsQueryBuilder from '@core/components/query-builder/VtsQueryBuilder.vue'
 import VtsRow from '@core/components/table/VtsRow.vue'
@@ -44,12 +51,14 @@ import VtsTable from '@core/components/table/VtsTable.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { usePagination } from '@core/composables/pagination.composable.ts'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
+import { useStatusLabel } from '@core/composables/status-label.composable.ts'
 import { useTableSelection } from '@core/composables/table-selection.composable.ts'
 import { useTableState } from '@core/composables/table-state.composable.ts'
 import { useQueryBuilderSchema } from '@core/packages/query-builder/schema/use-query-builder-schema.ts'
 import { useQueryBuilderFilter } from '@core/packages/query-builder/use-query-builder-filter.ts'
 import { useBackupJobColumns } from '@core/tables/column-sets/backup-job-columns.ts'
 import { renderLoadingCell } from '@core/tables/helpers/render-loading-cell.ts'
+import { compareFirstStrings, compareStrings } from '@core/utils/compare-strings.util.ts'
 import { useStringSchema } from '@core/utils/query-builder/use-string-schema.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -78,8 +87,6 @@ const schema = useQueryBuilderSchema<FrontAnyXoBackupJob>({
 
 const selectedBackupJobId = useRouteQuery('id')
 
-const { pageRecords: paginatedBackupJobs, paginationBindings } = usePagination('backup-jobs', filteredBackupJobs)
-
 const {
   selectedItems: selectedBackupJobs,
   pageSelectionModel,
@@ -89,7 +96,7 @@ const {
 } = useTableSelection({
   items: () => backupJobs,
   filteredItems: filteredBackupJobs,
-  pageItems: paginatedBackupJobs,
+  pageItems: () => getPaginatedBackupJobs(),
   getItemId: backupJob => backupJob.id,
 })
 
@@ -106,7 +113,26 @@ const state = useTableState({
 
 const jobOverviewHref = computed(() => buildXo5Route('/backup/overview'))
 
-const { HeadCells, BodyCells } = useBackupJobColumns({
+const getBackupJobTypeLabels = useGetXoBackupJobTypeLabels()
+
+const getBackupJobModeLabel = useGetXoBackupJobModeLabel()
+
+const { schedulesByJobId } = useXoScheduleCollection()
+
+const { getStatusLabel, compareStatuses } = useStatusLabel()
+
+const getEnabled = (backupJob: FrontAnyXoBackupJob) =>
+  isBackupJobEnabled(schedulesByJobId.value.get(backupJob.id) ?? [])
+
+// Same value as the "Health check" cell, a metadata job having none
+function getHealthCheckLabel(backupJob: FrontAnyXoBackupJob) {
+  const status = getBackupJobHealthCheckStatus(backupJob)
+
+  return status === undefined ? '' : getStatusLabel(status)
+}
+
+const { HeadCells, BodyCells, sortItems } = useBackupJobColumns({
+  id: 'backup-jobs',
   head: () => ({
     checkbox: r => r(pageSelectionModel),
   }),
@@ -142,7 +168,27 @@ const { HeadCells, BodyCells } = useBackupJobColumns({
         }),
     }
   },
+  sort: {
+    backupJob: (backupJob1, backupJob2) => compareStrings(backupJob1.name ?? '', backupJob2.name ?? ''),
+    type: (backupJob1, backupJob2) =>
+      compareFirstStrings(getBackupJobTypeLabels(backupJob1), getBackupJobTypeLabels(backupJob2)),
+    mode: (backupJob1, backupJob2) =>
+      compareStrings(getBackupJobModeLabel(backupJob1), getBackupJobModeLabel(backupJob2)),
+    status: (backupJob1, backupJob2) => compareStatuses(getEnabled(backupJob1), getEnabled(backupJob2)),
+    healthCheck: (backupJob1, backupJob2) =>
+      compareStrings(getHealthCheckLabel(backupJob1), getHealthCheckLabel(backupJob2)),
+  },
+  initialSort: { id: 'backupJob', direction: 'asc' },
 })
+
+const sortedBackupJobs = computed(() => sortItems(filteredBackupJobs.value))
+
+const { pageRecords: paginatedBackupJobs, paginationBindings } = usePagination('backup-jobs', sortedBackupJobs)
+
+// A function declaration, so that the selection, needed by the columns, can use the page rows sorted by these columns
+function getPaginatedBackupJobs(): FrontAnyXoBackupJob[] {
+  return paginatedBackupJobs.value
+}
 </script>
 
 <style scoped lang="postcss">
