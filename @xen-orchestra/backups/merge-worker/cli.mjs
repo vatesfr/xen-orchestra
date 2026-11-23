@@ -24,7 +24,7 @@ const ELOCKED_RETRY_DELAY = 5 * 60e3
 
 catchGlobalErrors(createLogger('xo:backups:mergeWorker'))
 
-const { fatal, info, warn } = createLogger('xo:backups:mergeWorker')
+const { debug, fatal, info, warn } = createLogger('xo:backups:mergeWorker')
 
 // -------------------------------------------------------------------
 
@@ -35,13 +35,38 @@ const main = Disposable.wrap(async function* main(args) {
 
   const adapter = new RemoteAdapter(handler)
 
+  // task file basename → timestamp before which the task must not be retried
+  //
+  // used for tasks whose VM backup dir was locked, so that they are delayed
+  // without blocking the other tasks
+  const retryAfter = new Map()
+
   const listRetry = async () => {
     const timeoutResolver = resolve => setTimeout(resolve, 10e3)
     for (let i = 0; i < 10; ++i) {
       const entries = await handler.list(CLEAN_VM_QUEUE)
+
+      // forget delays of tasks which are no longer in the queue
+      for (const entry of retryAfter.keys()) {
+        if (!entries.includes(entry)) {
+          retryAfter.delete(entry)
+        }
+      }
+
+      const now = Date.now()
+      const readyEntries = entries.filter(entry => {
+        const retryTime = retryAfter.get(entry)
+        return retryTime === undefined || retryTime <= now
+      })
+
+      if (readyEntries.length !== 0) {
+        readyEntries.sort()
+        return readyEntries
+      }
+
+      // only delayed tasks remain: keep waiting for them, the queue is not empty
       if (entries.length !== 0) {
-        entries.sort()
-        return entries
+        --i
       }
       await new Promise(timeoutResolver)
     }
@@ -53,7 +78,6 @@ const main = Disposable.wrap(async function* main(args) {
       appDir: APP_DIR,
       ignoreUnknownFormats: true,
     })
-    let hasLockedTask = false
     await asyncEach(
       taskFiles,
       async taskFileBasename => {
@@ -93,8 +117,8 @@ const main = Disposable.wrap(async function* main(args) {
           if (error.code === 'ELOCKED') {
             // another process (backup, synchronous merge…) is handling this VM,
             // this is not a failure: restore the task name to not count this attempt
-            hasLockedTask = true
-            info('VM backup dir is locked, the task will be retried later', { taskFile: previousTaskFile })
+            retryAfter.set(taskFileBasename, Date.now() + ELOCKED_RETRY_DELAY)
+            debug('VM backup dir is locked, the task will be retried later', { taskFile: previousTaskFile })
             await handler
               .rename(taskFile, previousTaskFile)
               .catch(error => warn('restoring task name failure', { error, taskFile }))
@@ -106,10 +130,6 @@ const main = Disposable.wrap(async function* main(args) {
       },
       { concurrency }
     )
-
-    if (hasLockedTask) {
-      await new Promise(resolve => setTimeout(resolve, ELOCKED_RETRY_DELAY))
-    }
   }
 })
 
