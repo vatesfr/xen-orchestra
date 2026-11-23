@@ -12,13 +12,15 @@ const SPEED_INTERVAL = 5e3
  * Its lifecycle follows the source: started on the first read, ended when the source is exhausted, fails or is closed
  * early. A source never read (a step failing before the transfer, a disk without blocks) leaves no task
  *
- * The current reading speed, in bytes per second, is reported in the `speed` property
+ * The current reading speed, in bytes per second, is reported in the `speed` property every 5 seconds: it is 0 when
+ * the source is stalled
  *
  * Implements `ReadMeter` from `@xen-orchestra/disk-transform`
  */
 export class SourceReadTask {
   #bytesRead = 0
-  #lastSpeedDate
+  #lastSpeed
+  #speedInterval
   #task
 
   /**
@@ -33,22 +35,25 @@ export class SourceReadTask {
    * @param {number} length number of bytes read
    */
   onRead(length) {
-    const task = this.#task
-    const now = Date.now()
-    if (this.#lastSpeedDate === undefined) {
-      this.#lastSpeedDate = now
-      task.start()
-    } else if (task.status !== 'pending') {
-      // already ended, late reads are ignored
-      return
+    if (this.#speedInterval === undefined) {
+      this.#task.start()
+      // on a timer instead of on read: a stalled source must report a speed of 0, not its last one
+      this.#speedInterval = setInterval(() => this.#reportSpeed(), SPEED_INTERVAL)
+      // must not keep the process alive if the source is never ended
+      this.#speedInterval.unref()
     }
 
+    // late reads, after the end, are never reported
     this.#bytesRead += length
-    const elapsed = now - this.#lastSpeedDate
-    if (elapsed >= SPEED_INTERVAL) {
-      task.set('speed', Math.round((this.#bytesRead * 1e3) / elapsed))
-      this.#bytesRead = 0
-      this.#lastSpeedDate = now
+  }
+
+  #reportSpeed() {
+    const speed = Math.round((this.#bytesRead * 1e3) / SPEED_INTERVAL)
+    this.#bytesRead = 0
+    // a source stalled for a long time must not emit an event every interval
+    if (speed !== this.#lastSpeed) {
+      this.#lastSpeed = speed
+      this.#task.set('speed', speed)
     }
   }
 
@@ -60,9 +65,10 @@ export class SourceReadTask {
   onEnd(error) {
     const task = this.#task
     // never started or already ended
-    if (this.#lastSpeedDate === undefined || task.status !== 'pending') {
+    if (this.#speedInterval === undefined || task.status !== 'pending') {
       return
     }
+    clearInterval(this.#speedInterval)
     if (error === undefined) {
       task.success()
     } else {

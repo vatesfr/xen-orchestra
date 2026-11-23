@@ -83,23 +83,58 @@ function createMeteredDisk() {
 }
 
 describe('SourceReadTask', () => {
-  it('reports the current speed, at most every 5 seconds', async () => {
-    mock.timers.enable({ apis: ['Date'], now: 0 })
+  it('reports the current speed every 5 seconds', async () => {
+    mock.timers.enable({ apis: ['setInterval'] })
     try {
       const tasks = await collectTasks(async () => {
         const readTask = new SourceReadTask('read')
         readTask.onRead(1e3)
         mock.timers.tick(2e3)
-        readTask.onRead(1e3) // throttled
+        readTask.onRead(4e3)
         mock.timers.tick(3e3)
-        readTask.onRead(3e3)
-        mock.timers.tick(10e3)
         readTask.onRead(10e3)
+        mock.timers.tick(5e3)
         readTask.onEnd()
       })
 
-      assert.deepEqual(tasks.read.speeds, [1e3, 1e3])
+      assert.deepEqual(tasks.read.speeds, [1e3, 2e3])
       assert.equal(tasks.read.status, 'success')
+    } finally {
+      mock.timers.reset()
+    }
+  })
+
+  it('reports a speed of 0 once, when the source is stalled', async () => {
+    mock.timers.enable({ apis: ['setInterval'] })
+    try {
+      const tasks = await collectTasks(async () => {
+        const readTask = new SourceReadTask('read')
+        readTask.onRead(5e3)
+        mock.timers.tick(5e3)
+        // nothing read during 3 intervals
+        mock.timers.tick(15e3)
+        readTask.onRead(5e3)
+        mock.timers.tick(5e3)
+        readTask.onEnd()
+      })
+
+      assert.deepEqual(tasks.read.speeds, [1e3, 0, 1e3])
+    } finally {
+      mock.timers.reset()
+    }
+  })
+
+  it('stops reporting the speed once ended', async () => {
+    mock.timers.enable({ apis: ['setInterval'] })
+    try {
+      const tasks = await collectTasks(async () => {
+        const readTask = new SourceReadTask('read')
+        readTask.onRead(5e3)
+        readTask.onEnd()
+        mock.timers.tick(10e3)
+      })
+
+      assert.deepEqual(tasks.read.speeds, [])
     } finally {
       mock.timers.reset()
     }
