@@ -24,8 +24,8 @@ beforeEach(() => {
   localStorage.clear()
 })
 
-describe('usePanelStore', () => {
-  it('stays open when another tab collapses its panel', async () => {
+describe('isExpanded', () => {
+  it('stays true when another tab collapses its panel', async () => {
     const panelStore = mountPanelStore({ isExpanded: true, isLocked: false })
 
     await changeFromAnotherTab('panel.expanded', false)
@@ -33,7 +33,7 @@ describe('usePanelStore', () => {
     expect(panelStore.isExpanded).toBe(true)
   })
 
-  it('stays collapsed when another tab expands its panel', async () => {
+  it('stays false when another tab expands its panel', async () => {
     const panelStore = mountPanelStore({ isExpanded: false, isLocked: false })
 
     await changeFromAnotherTab('panel.expanded', true)
@@ -41,7 +41,7 @@ describe('usePanelStore', () => {
     expect(panelStore.isExpanded).toBe(false)
   })
 
-  it('expands when another tab locks the panel', async () => {
+  it('becomes true when another tab locks the panel', async () => {
     const panelStore = mountPanelStore({ isExpanded: false, isLocked: false })
 
     await changeFromAnotherTab('panel.locked', true)
@@ -49,8 +49,10 @@ describe('usePanelStore', () => {
     expect(panelStore.isLocked).toBe(true)
     expect(panelStore.isExpanded).toBe(true)
   })
+})
 
-  it('expands when locked', async () => {
+describe('toggleLock', () => {
+  it('expands the collapsed panel when locking it', async () => {
     const panelStore = mountPanelStore({ isExpanded: false, isLocked: false })
 
     panelStore.toggleLock()
