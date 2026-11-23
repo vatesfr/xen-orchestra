@@ -1,5 +1,6 @@
 import VtsTypeToConfirmInput from '@core/components/type-to-confirm-input/VtsTypeToConfirmInput.vue'
 import { createGlobalTestConfig } from '@core-test/create-global-test-config.ts'
+import { findInfoLabels } from '@core-test/find-accented-labels.ts'
 import { t } from '@core-test/i18n.ts'
 import { mount } from '@vue/test-utils'
 import { nextTick } from 'vue'
@@ -16,7 +17,7 @@ describe('VtsTypeToConfirmInput', () => {
   it('shows no error before validating', () => {
     const wrapper = mountTypeToConfirmInput()
 
-    expect(wrapper.find('.ui-info').exists()).toBe(false)
+    expect(findInfoLabels(wrapper)).toEqual([])
     expect(wrapper.get('input').attributes('aria-invalid')).toBeUndefined()
   })
 
@@ -35,7 +36,7 @@ describe('VtsTypeToConfirmInput', () => {
 
     const error = wrapper.get('.ui-info')
 
-    expect(error.text()).toBe(t('form:error:must-match', { text: '2 VMs' }))
+    expect(findInfoLabels(wrapper)).toEqual([t('form:error:must-match', { text: '2 VMs' })])
     expect(input.attributes('aria-invalid')).toBe('true')
     expect(error.attributes('id')).toBeTruthy()
     expect(input.attributes('aria-describedby')).toBe(error.attributes('id'))
@@ -51,7 +52,7 @@ describe('VtsTypeToConfirmInput', () => {
 
     await nextTick()
 
-    expect(wrapper.find('.ui-info').exists()).toBe(false)
+    expect(findInfoLabels(wrapper)).toEqual([])
   })
 
   it('hides the error as soon as the text changes', async () => {
@@ -61,7 +62,7 @@ describe('VtsTypeToConfirmInput', () => {
 
     await wrapper.get('input').setValue('2')
 
-    expect(wrapper.find('.ui-info').exists()).toBe(false)
+    expect(findInfoLabels(wrapper)).toEqual([])
     expect(wrapper.get('input').attributes('aria-invalid')).toBeUndefined()
   })
 })

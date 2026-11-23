@@ -4,7 +4,7 @@ import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import UiInput from '@core/components/ui/input/UiInput.vue'
 import UiLabel from '@core/components/ui/label/UiLabel.vue'
 import { createGlobalTestConfig } from '@core-test/create-global-test-config.ts'
-import { findAccentedInfos } from '@core-test/find-accented-labels.ts'
+import { findAccentedInfos, findInfoLabels } from '@core-test/find-accented-labels.ts'
 import { mount, type VueWrapper } from '@vue/test-utils'
 import { h, nextTick, type VNode } from 'vue'
 
@@ -147,7 +147,7 @@ describe('VtsInputWrapper', () => {
       slots: { message: '<template #message="{ content, accent }">{{ content }} ({{ accent }})</template>' },
     })
 
-    expect(wrapper.getComponent(UiInfo).text()).toBe('Message (warning)')
+    expect(findInfoLabels(wrapper)).toEqual(['Message (warning)'])
   })
 
   it.each([true, false])('passes wrapMessage %s to the messages', wrapMessage => {
