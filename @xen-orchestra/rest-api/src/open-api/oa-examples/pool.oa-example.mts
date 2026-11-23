@@ -605,4 +605,10 @@ export const poolRollingUpdateRecovery = {
     attempt: 2,
     addedHostIds: ['b61a5c92-700e-4966-a13b-00633f03eea8'],
   },
+  unrestoredItems: [
+    { type: 'ha', id: '355ee47d-ff4c-4924-3db2-fd86ae629676', restorable: true },
+    { type: 'schedule', id: '2f2e4a2b-9f0c-4d5c-8a0e-4c7f2a1f9b11', name: 'Nightly backup', restorable: true },
+    { type: 'host', id: '46522969-d891-4c48-a839-316b767b7b7b', name: 'xcp-ng-host-2', restorable: true },
+    { type: 'haltedPinnedVm', id: '883b6265-6d54-c48b-6a24-4b0e6d88801f', name: 'Firewall', restorable: true },
+  ],
 }

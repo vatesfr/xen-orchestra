@@ -463,6 +463,146 @@ describe('listUnrestoredItems()', () => {
     assert.equal(listUnrestoredItems(null, makeLive()), null)
     assert.equal(listUnrestoredItems({ schemaVersion: 42, poolId: 'pool1' }, makeLive()), null)
   })
+
+  describe('in the view of readRpuRecoveryView()', () => {
+    async function readView(record, live) {
+      const store = makeFakeStore()
+      await store.put('pool1', record)
+      return readRpuRecoveryView(store, 'pool1', async () => live)
+    }
+
+    it('lists what a run which is over left unrestored, as restorable', async () => {
+      const record = makeRecord({
+        status: 'failed',
+        changedByRun: { ha: { srs: ['sr1'] }, autoPowerOn: true, schedules: ['s1'] },
+        hostOrder: ['h1'],
+        hosts: { h1: { enabledBeforeUpdate: true, steps: { evacuate: { status: 'failed' } } } },
+        vmHomeById: { vm1: 'h1' },
+        haltedPinnedVms: { vm2: 'h1' },
+      })
+      const live = makeLive({
+        pool: { ha_enabled: false, other_config: { auto_poweron: 'false' } },
+        schedules: { s1: { enabled: false, name: 'nightly' } },
+        hosts: { h1: host('host 1', false), h2: host('host 2', true) },
+        vms: { vm1: vm('vm 1', 'Running', 'h2'), vm2: vm('vm 2', 'Halted') },
+      })
+
+      const { unrestoredItems } = await readView(record, live)
+
+      assert.deepEqual(
+        unrestoredItems,
+        listUnrestoredItems(record, live).map(item => ({ ...item, restorable: true }))
+      )
+      assert.deepEqual(
+        unrestoredItems.map(({ type }) => type),
+        ['ha', 'autoPowerOn', 'schedule', 'host', 'vm', 'haltedPinnedVm']
+      )
+    })
+
+    it('no longer lists an item restored by hand since the run', async () => {
+      const record = makeRecord({ changedByRun: { ha: { srs: ['sr1'] }, autoPowerOn: true } })
+      const live = makeLive({ pool: { ha_enabled: false } })
+
+      assert.deepEqual((await readView(record, live)).unrestoredItems, [{ type: 'ha', id: 'pool1', restorable: true }])
+    })
+
+    it('lists a host awaiting its reboot, and the VMs to bring back to it, as not restorable', async () => {
+      const record = makeRecord({
+        hostOrder: ['h1', 'h2'],
+        hosts: {
+          h1: {
+            enabledBeforeUpdate: true,
+            steps: { evacuate: { status: 'observed-succeeded' }, update: { status: 'failed' } },
+          },
+          h2: { enabledBeforeUpdate: true, steps: { evacuate: { status: 'failed' } } },
+        },
+        vmHomeById: { vm1: 'h1', vm3: 'h2' },
+        haltedPinnedVms: { vm2: 'h1' },
+      })
+      const live = makeLive({
+        hosts: { h1: host('host 1', false), h2: host('host 2', false), h3: host('host 3', true) },
+        vms: { vm1: vm('vm 1', 'Running', 'h3'), vm2: vm('vm 2', 'Halted'), vm3: vm('vm 3', 'Running', 'h3') },
+      })
+
+      assert.deepEqual((await readView(record, live)).unrestoredItems, [
+        { type: 'host', id: 'h1', name: 'host 1', restorable: false },
+        { type: 'host', id: 'h2', name: 'host 2', restorable: true },
+        { type: 'vm', id: 'vm1', name: 'vm 1', restorable: false },
+        { type: 'vm', id: 'vm3', name: 'vm 3', restorable: true },
+        { type: 'haltedPinnedVm', id: 'vm2', name: 'vm 2', restorable: false },
+      ])
+    })
+
+    it('lists a host which rebooted out of the sight of the run as restorable', async () => {
+      const finishedAt = '2026-08-31T14:07:12.000Z'
+      const record = makeRecord({
+        hostOrder: ['h1'],
+        hosts: {
+          h1: {
+            enabledBeforeUpdate: true,
+            steps: {
+              evacuate: { status: 'observed-succeeded' },
+              update: { status: 'observed-succeeded', finishedAt },
+              reboot: { status: 'running' },
+            },
+          },
+        },
+      })
+      const bootTime = String(Date.parse(finishedAt) / 1e3 + 60)
+      const live = makeLive({ hosts: { h1: { ...host('host 1', false), other_config: { boot_time: bootTime } } } })
+
+      assert.deepEqual((await readView(record, live)).unrestoredItems, [
+        { type: 'host', id: 'h1', name: 'host 1', restorable: true },
+      ])
+    })
+
+    it('lists HA recorded without its heartbeat SRs as not restorable', async () => {
+      const record = makeRecord({ changedByRun: { ha: true } })
+      const live = makeLive({ pool: { ha_enabled: false } })
+
+      assert.deepEqual((await readView(record, live)).unrestoredItems, [{ type: 'ha', id: 'pool1', restorable: false }])
+    })
+
+    it('lists a pinned VM to start on a host which left the pool as not restorable', async () => {
+      const record = makeRecord({ haltedPinnedVms: { vm2: 'h1' } })
+      const live = makeLive({ vms: { vm2: vm('vm 2', 'Halted') } })
+
+      assert.deepEqual((await readView(record, live)).unrestoredItems, [
+        { type: 'haltedPinnedVm', id: 'vm2', name: 'vm 2', restorable: false },
+      ])
+    })
+
+    it('is left out, with the rest of the view, when the state of the pool cannot be read', async () => {
+      const store = makeFakeStore()
+      await store.put('pool1', makeRecord({ status: 'failed' }))
+
+      const view = await readRpuRecoveryView(store, 'pool1', async () => {
+        throw new Error('no connection')
+      })
+
+      assert.equal(view.status, 'failed')
+      assert.equal('unrestoredItems' in view, false)
+    })
+
+    it('is empty while the run is live, without reading the state of the pool', async () => {
+      for (const status of ['preparing', 'running', 'resuming', 'cleaning']) {
+        const record = makeRecord({ status, changedByRun: { autoPowerOn: true } })
+        const store = makeFakeStore()
+        await store.put('pool1', record)
+
+        const view = await readRpuRecoveryView(store, 'pool1', () => assert.fail('live state read'))
+
+        assert.deepEqual(view.unrestoredItems, [], status)
+      }
+    })
+
+    it('is absent from a blocked record', async () => {
+      const view = await readView({ schemaVersion: 42, poolId: 'pool1' }, makeLive())
+
+      assert.equal(view.status, 'blocked')
+      assert.equal('unrestoredItems' in view, false)
+    })
+  })
 })
 
 describe('listOperatorChanges()', () => {

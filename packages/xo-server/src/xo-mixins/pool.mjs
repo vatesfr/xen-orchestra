@@ -11,7 +11,7 @@ import { createLogger } from '@xen-orchestra/log'
 import { decorateMethodsWith } from '@vates/decorate-with'
 import { defer } from 'golike-defer'
 import { Task } from '@vates/task'
-import { incorrectState } from 'xo-common/api-errors.js'
+import { incorrectState, noSuchObject } from 'xo-common/api-errors.js'
 
 import { acquireRpuGuard } from '../_rpuGuard.mjs'
 import { gcRpuTraces, getRpuTracesConfig, openRpuTrace, reconcileRpuTraces } from '../_rpuObservability.mjs'
@@ -165,25 +165,41 @@ export default class Pools {
   }
 
   getRollingUpdateRecovery(poolId) {
-    return readRpuRecoveryView(this._rpuRecoveryStore, poolId)
+    return readRpuRecoveryView(this._rpuRecoveryStore, poolId, record => this._getRpuLiveState(poolId, record))
   }
 
-  // compared with the live state: what the operator restored by hand is not listed
-  async _listUnrestoredRpuItems(pool, record) {
+  // the live state `listUnrestoredItems` compares a record with
+  async _getRpuLiveState(pool, record) {
     const xapi = this._app.getXapi(pool)
-    const [plugin, schedules] = await Promise.all([
+    const [plugin, ...schedules] = await Promise.all([
       this._app.getOptionalPlugin('load-balancer'),
-      this._app.getAllSchedules(),
+      // only the schedules of the record, which may be unreadable: the view is polled
+      ...(record?.changedByRun?.schedules ?? []).map(scheduleId =>
+        this._app.getSchedule(scheduleId).catch(error => {
+          // deleted since the run: nothing left to restore
+          if (!noSuchObject.is(error)) {
+            throw error
+          }
+        })
+      ),
     ])
-    const scheduleById = keyBy(schedules, 'id')
-    return listUnrestoredItems(record, {
+    const scheduleById = keyBy(
+      schedules.filter(schedule => schedule !== undefined),
+      'id'
+    )
+    return {
       pool: xapi.pool,
       // unloaded but waiting for xo-server to load it again is not left changed
       loadBalancerLoaded: plugin?.loaded === true || this._app.isRpuLoadBalancerReEnablePending(),
       getHost: hostId => xapi.getObjectByUuid(hostId, undefined),
       getVm: vmId => xapi.getObjectByUuid(vmId, undefined),
       getSchedule: scheduleId => scheduleById[scheduleId],
-    })
+    }
+  }
+
+  // compared with the live state: what the operator restored by hand is not listed
+  async _listUnrestoredRpuItems(pool, record) {
+    return listUnrestoredItems(record, await this._getRpuLiveState(pool, record))
   }
 
   /**

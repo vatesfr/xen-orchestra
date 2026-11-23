@@ -187,11 +187,17 @@ export function unreadableRpuRecoveryView(poolId) {
 /**
  * Reads the record of a pool and projects it onto its public view.
  *
+ * With `getLive`, the view of a readable record gets `unrestoredItems`: what
+ * the run left unrestored, see `listUnrestoredItemsForView`. Nothing while the
+ * run is live: it restores what it changed itself. Left out when the live
+ * state cannot be read.
+ *
  * @param {object} store - LevelDB sublevel, keyed by pool id
  * @param {string} poolId
+ * @param {(record: object) => Promise<object>} [getLive] - Reads the live state of the pool, see `listUnrestoredItems`
  * @returns {Promise<object | undefined>} `undefined` when the pool has no record
  */
-export async function readRpuRecoveryView(store, poolId) {
+export async function readRpuRecoveryView(store, poolId, getLive) {
   let record
   try {
     record = await store.get(poolId)
@@ -203,7 +209,20 @@ export async function readRpuRecoveryView(store, poolId) {
     log.warn('unreadable RPU recovery record', { error, poolId })
     return unreadableRpuRecoveryView(poolId)
   }
-  return buildRpuRecoveryView(record)
+  const view = buildRpuRecoveryView(record)
+  if (getLive !== undefined && view.status !== 'blocked') {
+    if (LIVE_RUN_STATUSES.has(record.status)) {
+      view.unrestoredItems = []
+    } else {
+      // the state of the run is still worth showing without it
+      try {
+        view.unrestoredItems = listUnrestoredItemsForView(record, await getLive(record))
+      } catch (error) {
+        log.warn('cannot list what the rolling pool update left unrestored', { error, poolId })
+      }
+    }
+  }
+  return view
 }
 
 /**
@@ -317,6 +336,41 @@ export function listUnrestoredItems(record, { pool, loadBalancerLoaded, getHost,
   }
 
   return items
+}
+
+/**
+ * The items of `listUnrestoredItems`, with whether a restore is possible now,
+ * as the finalize does it (see `restoreRpuLeftovers`).
+ *
+ * Not restorable: a host the run updated without seeing it reboot, which stays
+ * disabled until a resume finishes it, the VMs to bring back to or to start on
+ * such a host, a VM to start on a host which left the pool, and HA recorded
+ * without its heartbeat SRs.
+ *
+ * @param {object} record - Readable record
+ * @param {object} live - See `listUnrestoredItems`
+ * @returns {Array<{ type: string, id: string, name?: string, restorable: boolean }>}
+ */
+function listUnrestoredItemsForView(record, live) {
+  const isAwaitingReboot = hostId =>
+    isRpuHostAwaitingReboot(record, hostId, live.getHost(hostId)?.other_config?.boot_time)
+  const isRestorable = ({ type, id }) => {
+    switch (type) {
+      case 'ha':
+        return record.changedByRun.ha.srs !== undefined
+      case 'host':
+        return !isAwaitingReboot(id)
+      case 'vm':
+        return !isAwaitingReboot(record.vmHomeById[id])
+      case 'haltedPinnedVm': {
+        const hostId = record.haltedPinnedVms[id]
+        return live.getHost(hostId) !== undefined && !isAwaitingReboot(hostId)
+      }
+      default:
+        return true
+    }
+  }
+  return listUnrestoredItems(record, live).map(item => ({ ...item, restorable: isRestorable(item) }))
 }
 
 /**

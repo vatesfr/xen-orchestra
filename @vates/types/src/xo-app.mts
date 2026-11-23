@@ -196,6 +196,22 @@ export type PoolRollingUpdateRecoveryPlanChange = {
   addedHostIds: string[]
 }
 
+/** what a run which is over changed and left unrestored, compared with the current state of the pool */
+export type PoolRollingUpdateRecoveryUnrestoredItem = {
+  /** `vm`: running away from its original host; `haltedPinnedVm`: shut down by the run, still halted */
+  type: 'ha' | 'autoPowerOn' | 'wlb' | 'loadBalancer' | 'schedule' | 'host' | 'vm' | 'haltedPinnedVm'
+  /** pool, schedule, host or VM UUID, `load-balancer` for the load balancer */
+  id: string
+  /** schedules, hosts and VMs only */
+  name?: string
+  /**
+   * whether it can be restored now. `false` for a host updated but not rebooted, which stays disabled until a
+   * resume finishes it, for the VMs of such a host, for a VM to start on a host which left the pool, and for HA
+   * when its heartbeat SRs are unknown
+   */
+  restorable: boolean
+}
+
 export type PoolRollingUpdateRecoveryRun = {
   runId: string
   poolId: string
@@ -229,6 +245,8 @@ export type PoolRollingUpdateRecoveryRun = {
   operatorChanges: PoolRollingUpdateRecoveryOperatorChange[]
   /** absent when no resume changed the plan */
   planChange?: PoolRollingUpdateRecoveryPlanChange
+  /** empty while the run is live, absent when the current state of the pool could not be read */
+  unrestoredItems?: PoolRollingUpdateRecoveryUnrestoredItem[]
 }
 
 /** record unreadable or of an unknown schema version: recovery needs a human */
@@ -501,10 +519,7 @@ export type XoApp = EventEmitter & {
    * `assertBrowserMediaInsertable` reports the predictable failures synchronously, e.g. before
    * starting a task.
    */
-  insertBrowserMedia(params: {
-    id: XoBrowserMediaSession['id']
-    vmId: XoVm['id']
-  }): Promise<{ vdiId: XoVdi['id'] }>
+  insertBrowserMedia(params: { id: XoBrowserMediaSession['id']; vmId: XoVm['id'] }): Promise<{ vdiId: XoVdi['id'] }>
   assertBrowserMediaInsertable(params: { id: XoBrowserMediaSession['id']; vmId: XoVm['id'] }): void
   /** Eject the ISO of a browser media session, release its storage, and disconnect the browser */
   ejectBrowserMedia(id: XoBrowserMediaSession['id']): Promise<void>

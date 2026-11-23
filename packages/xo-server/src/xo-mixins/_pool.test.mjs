@@ -108,7 +108,9 @@ function createPools({
   })
   app.getOptionalPlugin = async () => undefined
   app.isRpuLoadBalancerReEnablePending = () => false
-  app.getAllSchedules = async () => []
+  app.getSchedule = async id => {
+    throw noSuchObject(id, 'schedule')
+  }
   app.restoreRpuLeftovers = async (pool, { items, recorder }) => {
     app.calls.push(['restoreRpuLeftovers', pool.id, items])
     await restore(live, recorder)
@@ -146,6 +148,38 @@ const withVmOnH2 = getXapi => () => {
       id === 'vm1' ? { name_label: 'vm 1', power_state: 'Running', $resident_on: { $id: 'h2' } } : getObjectByUuid(id),
   }
 }
+
+describe('Pools.getRollingUpdateRecovery', function () {
+  it('lists what the finalize would restore, from the live state of the pool', async function () {
+    const record = { ...makeDirtyRecord(), changedByRun: { ha: { srs: ['sr1'] }, schedules: ['s1', 's2'] } }
+    const { app, pools } = createPools({ record })
+    // s2 was deleted since the run
+    app.getSchedule = async id => {
+      if (id !== 's1') {
+        throw noSuchObject(id, 'schedule')
+      }
+      return { id, enabled: false, name: 'nightly' }
+    }
+
+    const { unrestoredItems } = await pools.getRollingUpdateRecovery('pool-1')
+
+    assert.deepEqual(unrestoredItems, [
+      { type: 'ha', id: 'pool-1', restorable: true },
+      { type: 'schedule', id: 's1', name: 'nightly', restorable: true },
+      { type: 'host', id: 'h1', name: 'host 1', restorable: true },
+    ])
+    assert.deepEqual(
+      unrestoredItems.map(({ restorable, ...item }) => item),
+      await pools._listUnrestoredRpuItems(pool, record)
+    )
+  })
+
+  it('no longer lists what was restored by hand', async function () {
+    const { pools } = createPools({ record: makeDirtyRecord(), live: { haEnabled: true, hostEnabled: true } })
+
+    assert.deepEqual((await pools.getRollingUpdateRecovery('pool-1')).unrestoredItems, [])
+  })
+})
 
 describe('Pools.finalizeRollingUpdate', function () {
   it('is refused while a rolling pool update or reboot runs on the pool', async function () {
