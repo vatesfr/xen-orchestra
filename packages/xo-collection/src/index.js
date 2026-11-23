@@ -107,7 +107,14 @@ export class Index {
       const type = getIndexType(value)
 
       // Removes item from the previous type's list if any.
-      if (prevType != null) delete itemsByType[prevType][key]
+      if (prevType != null) {
+        delete itemsByType[prevType][key]
+
+        // The item left this type: let the listeners of the previous type know.
+        if (prevType !== type) {
+          this.getEventEmitterByType(prevType)?.emit('remove', undefined, previousObj)
+        }
+      }
 
       // Inserts item into the new type's list if any.
       if (type != null) {
