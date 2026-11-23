@@ -4,7 +4,12 @@
     <UiInfo v-if="hasRecoveryError && recovery !== undefined" accent="warning" wrap>
       {{ t('rolling-update:stale-record') }}
     </UiInfo>
-    <VtsStateHero v-if="!isRecoveryReady" format="page" type="busy" size="medium" />
+    <VtsStateHero
+      v-if="!isRecoveryReady || (isCheckingPatches && recovery === undefined)"
+      format="page"
+      type="busy"
+      size="medium"
+    />
     <VtsStateHero v-else-if="hasRecoveryError && recovery === undefined" format="page" type="error" size="medium">
       {{ t('error-no-data') }}
     </VtsStateHero>
@@ -84,6 +89,9 @@ const { poolMissingPatches, reloadPoolMissingPatches } = useXoPoolMissingPatches
 // Whether a run which succeeded was closed in this session: the pool is up to date, until another run shows up
 const hasSucceeded = ref(false)
 
+// Whether the missing patches are reloaded after a run closed itself: until then, the list holds the patches it installed
+const isCheckingPatches = ref(false)
+
 // Why the last action was refused or failed, when the record does not tell it
 const actionError = ref<string>()
 
@@ -152,7 +160,13 @@ watch(recovery, async (newRecovery, oldRecovery) => {
 
   const poolId = pool.id
 
-  await reloadPoolMissingPatches()
+  isCheckingPatches.value = true
+
+  try {
+    await reloadPoolMissingPatches()
+  } finally {
+    isCheckingPatches.value = false
+  }
 
   if (poolId === pool.id && recovery.value === undefined) {
     hasSucceeded.value = poolMissingPatches.value.length === 0

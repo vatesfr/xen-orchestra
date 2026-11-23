@@ -246,7 +246,7 @@ export function getRollingUpdateProgress(run: PoolRollingUpdateRecoveryRun) {
 
 /**
  * The status to show for a host. The VMs of a host come back at the end of the run only: a host which waits for
- * nothing else is updated, even when the run stopped on another host
+ * nothing else is updated, even when the run stopped on another host, or is resumed for another host
  */
 export function getRollingUpdateHostStatus(
   host: PoolRollingUpdateRecoveryHost
@@ -254,7 +254,7 @@ export function getRollingUpdateHostStatus(
   const { restoreVms, ...otherSteps } = host.steps
 
   const onlyWaitsForItsVms =
-    host.status === 'interrupted' &&
+    (host.status === 'interrupted' || host.status === 'running') &&
     restoreVms.status === 'pending' &&
     Object.values(otherSteps).every(step => step.status === 'observed-succeeded' || step.status === 'not-needed')
 

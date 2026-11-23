@@ -93,6 +93,30 @@ describe('run which closes itself', () => {
     expect(wrapper.findComponent(PoolUpdatesStart).exists()).toBe(false)
   })
 
+  // The list still holds the patches the run installed: the start would offer them again
+  it('does not show the start while the missing patches are reloaded', async () => {
+    let endReload = () => {}
+
+    reloadPoolMissingPatches.mockImplementationOnce(
+      () =>
+        new Promise<void>(resolve => {
+          endReload = resolve
+        })
+    )
+
+    const wrapper = await mountPageOnRunWhichClosesItself()
+
+    expect(reloadPoolMissingPatches).toHaveBeenCalledOnce()
+    expect(wrapper.findComponent(PoolUpdatesStart).exists()).toBe(false)
+
+    reloadedMissingPatches = [{ name: 'xapi' }]
+    poolMissingPatches.value = reloadedMissingPatches
+    endReload()
+    await flushPromises()
+
+    expect(wrapper.findComponent(PoolUpdatesStart).exists()).toBe(true)
+  })
+
   it('goes back to the start when patches are still missing', async () => {
     reloadedMissingPatches = [{ name: 'xapi' }]
 

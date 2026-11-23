@@ -406,6 +406,17 @@ describe('getRollingUpdateHostStatus', () => {
     expect(getRollingUpdateHostStatus(createHost('interrupted', allDoneButRestore))).toBe('succeeded')
   })
 
+  // A resumed run marks it as running again, although nothing runs on it
+  it('is succeeded for a running host which only waits for its VMs', () => {
+    expect(getRollingUpdateHostStatus(createHost('running', allDoneButRestore))).toBe('succeeded')
+  })
+
+  it('stays running while its VMs come back', () => {
+    const host = createHost('running', { ...allDoneButRestore, restoreVms: { status: 'running' } })
+
+    expect(getRollingUpdateHostStatus(host)).toBe('running')
+  })
+
   it('stays interrupted while another step is left', () => {
     const host = createHost('interrupted', { ...allDoneButRestore, enable: { status: 'pending' } })
 
