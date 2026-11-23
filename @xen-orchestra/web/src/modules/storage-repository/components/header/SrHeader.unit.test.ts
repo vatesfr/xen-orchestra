@@ -1,42 +1,19 @@
-import type { useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
-import type { useXoPbdCollection } from '@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'
-import type { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import SrHeader from '@/modules/storage-repository/components/header/SrHeader.vue'
-import type {
-  FrontXoSr,
-  useXoSrCollection,
-} from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
+import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import { createSr } from '@/test/create-sr.ts'
 import { createTestRouter } from '@/test/create-test-router.ts'
 import { findTabs } from '@/test/find-rendered-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
+import { mockXoCollections, xoCollectionsMock } from '@/test/mock-xo-collections.ts'
 import { SR_SCOPE_TYPE, type SrScope } from '@core/types/storage-repository.type.ts'
 import { mount } from '@vue/test-utils'
-import { computed } from 'vue'
 
-vi.mock(import('@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'), () => ({
-  useXoSrCollection: (() => ({ isDefaultSr: () => false })) as unknown as typeof useXoSrCollection,
-}))
+mockXoCollections('host', 'pbd', 'pool', 'sr')
 
-vi.mock(import('@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'), () => ({
-  useXoPbdCollection: (() => ({
-    arePbdsReady: computed(() => true),
-    getPbdsByIds: () => [],
-  })) as unknown as typeof useXoPbdCollection,
-}))
-
-vi.mock(import('@/modules/host/remote-resources/use-xo-host-collection.ts'), () => ({
-  useXoHostCollection: (() => ({
-    useGetHostById: () => computed(() => undefined),
-  })) as unknown as typeof useXoHostCollection,
-}))
-
-vi.mock(import('@/modules/pool/remote-resources/use-xo-pool-collection.ts'), () => ({
-  useXoPoolCollection: (() => ({
-    useGetPoolById: () => computed(() => undefined),
-  })) as unknown as typeof useXoPoolCollection,
-}))
+beforeEach(() => {
+  xoCollectionsMock.reset()
+})
 
 const poolScope: SrScope = { type: SR_SCOPE_TYPE.POOL }
 

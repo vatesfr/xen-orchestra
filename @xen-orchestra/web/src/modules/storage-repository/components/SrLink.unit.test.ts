@@ -1,40 +1,20 @@
-import type { useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
-import type { FrontXoPbd, useXoPbdCollection } from '@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'
+import type { FrontXoPbd } from '@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'
 import SrLink from '@/modules/storage-repository/components/SrLink.vue'
-import type {
-  FrontXoSr,
-  useXoSrCollection,
-} from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
+import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import { createPbd } from '@/test/create-pbd.ts'
+import { createPool } from '@/test/create-pool.ts'
 import { createSr } from '@/test/create-sr.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
+import { mockXoCollections, xoCollectionsMock } from '@/test/mock-xo-collections.ts'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import { objectIcon } from '@core/icons'
 import { mount } from '@vue/test-utils'
 
-const { isDefaultSr, getPbdsByIds } = vi.hoisted(() => ({
-  isDefaultSr: vi.fn(),
-  getPbdsByIds: vi.fn(),
-}))
-
-vi.mock(import('@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'), () => ({
-  useXoSrCollection: (() => ({ isDefaultSr })) as unknown as typeof useXoSrCollection,
-}))
-
-vi.mock(import('@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'), () => ({
-  useXoPbdCollection: (() => ({ getPbdsByIds })) as unknown as typeof useXoPbdCollection,
-}))
-
-vi.mock(import('@/modules/host/remote-resources/use-xo-host-collection.ts'), () => ({
-  useXoHostCollection: (() => ({})) as unknown as typeof useXoHostCollection,
-}))
+mockXoCollections('host', 'pbd', 'pool', 'sr')
 
 beforeEach(() => {
-  isDefaultSr.mockReset()
-  getPbdsByIds.mockReset()
-  isDefaultSr.mockReturnValue(false)
-  getPbdsByIds.mockReturnValue([])
+  xoCollectionsMock.reset()
 })
 
 function mountLink(sr: FrontXoSr = createSr({ id: 'sr-42' as FrontXoSr['id'], name_label: 'Local storage' })) {
@@ -44,10 +24,15 @@ function mountLink(sr: FrontXoSr = createSr({ id: 'sr-42' as FrontXoSr['id'], na
   })
 }
 
-function attachPbds(...attached: boolean[]) {
-  getPbdsByIds.mockReturnValue(
-    attached.map((isAttached, index) => createPbd({ id: `pbd-${index}` as FrontXoPbd['id'], attached: isAttached }))
+// An SR whose PBDs are attached or not, in that order
+function createSrWithPbds(...attached: boolean[]) {
+  const sr = createSr({ id: 'sr-42' as FrontXoSr['id'] })
+
+  xoCollectionsMock.pbds.value = attached.map((isAttached, index) =>
+    createPbd({ id: `pbd-${index}` as FrontXoPbd['id'], SR: sr.id, attached: isAttached })
   )
+
+  return { ...sr, $PBDs: xoCollectionsMock.pbds.value.map(pbd => pbd.id) }
 }
 
 it('shows the name of the SR', () => {
@@ -63,20 +48,24 @@ it.each([
   { attached: [true, false], status: 'partially-connected' },
   { attached: [false, false], status: 'disconnected' },
 ] as const)('shows the $status SR icon when its PBDs are $attached', ({ attached, status }) => {
-  attachPbds(...attached)
+  const sr = createSrWithPbds(...attached)
 
-  expect(mountLink().getComponent(UiLink).props('icon')).toBe(objectIcon('sr', status))
+  expect(mountLink(sr).getComponent(UiLink).props('icon')).toBe(objectIcon('sr', status))
 })
 
 it('flags the default SR of the pool as primary', () => {
-  isDefaultSr.mockReturnValue(true)
+  const sr = createSr({ id: 'sr-42' as FrontXoSr['id'] })
+  xoCollectionsMock.pools.value = [createPool({ id: sr.$pool, default_SR: sr.id })]
 
-  const link = mountLink().getComponent(UiLink)
+  const link = mountLink(sr).getComponent(UiLink)
 
   expect(link.props('isPrimary')).toBe(true)
   expect(link.props('primaryTooltip')).toBe(t('default-storage-repository'))
 })
 
 it('does not flag any other SR as primary', () => {
-  expect(mountLink().getComponent(UiLink).props('isPrimary')).toBe(false)
+  const sr = createSr({ id: 'sr-42' as FrontXoSr['id'] })
+  xoCollectionsMock.pools.value = [createPool({ id: sr.$pool, default_SR: 'sr-other' as FrontXoSr['id'] })]
+
+  expect(mountLink(sr).getComponent(UiLink).props('isPrimary')).toBe(false)
 })

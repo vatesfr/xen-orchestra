@@ -1,4 +1,4 @@
-import type { FrontXoVbd, useXoVbdCollection } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
+import type { FrontXoVbd } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
 import VdiInfosSidepanelCard from '@/modules/vdi/components/list/panel/cards/VdiInfosSidepanelCard.vue'
 import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
 import { VDI_PAGE_CONTEXT, type VdiPageContext } from '@/shared/constants.ts'
@@ -7,22 +7,16 @@ import { createVdi } from '@/test/create-vdi.ts'
 import { findCardCopiedValues, findCardLabelledValues } from '@/test/find-rendered-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
+import { mockXoVmDeviceCollections, vmDeviceCollectionsMock } from '@/test/mock-xo-vm-device-collections.ts'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import { objectIcon } from '@core/icons'
 import { CONNECTION_STATUS } from '@core/types/connection.ts'
 import { mount } from '@vue/test-utils'
 
-const { getVbdsByIds } = vi.hoisted(() => ({
-  getVbdsByIds: vi.fn(),
-}))
-
-vi.mock(import('@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'), () => ({
-  useXoVbdCollection: (() => ({ getVbdsByIds })) as unknown as typeof useXoVbdCollection,
-}))
+mockXoVmDeviceCollections('vbd')
 
 beforeEach(() => {
-  getVbdsByIds.mockReset()
-  getVbdsByIds.mockReturnValue([])
+  vmDeviceCollectionsMock.reset()
 })
 
 const vdi = createVdi({
@@ -39,8 +33,13 @@ function mountCard(fromContext: VdiPageContext, vbd?: FrontXoVbd, cardVdi: Front
   })
 }
 
-function attachVbds(...attached: boolean[]) {
-  getVbdsByIds.mockReturnValue(attached.map(isAttached => createVbd({ attached: isAttached })))
+// The VDI of the card plugged through VBDs attached or not, in that order
+function createVdiWithVbds(...attached: boolean[]) {
+  vmDeviceCollectionsMock.vbds.value = attached.map((isAttached, index) =>
+    createVbd({ id: `vbd-${index}` as FrontXoVbd['id'], attached: isAttached })
+  )
+
+  return { ...vdi, $VBDs: vmDeviceCollectionsMock.vbds.value.map(vbd => vbd.id) }
 }
 
 function findTitleLink(wrapper: ReturnType<typeof mountCard>) {
@@ -64,9 +63,7 @@ it.each([
   { attached: [false, false], icon: objectIcon('vdi', 'detached'), status: CONNECTION_STATUS.DISCONNECTED },
   { attached: [], icon: objectIcon('vdi', 'detached'), status: CONNECTION_STATUS.DISCONNECTED },
 ])('shows the $status icon and status when its VBDs are $attached', ({ attached, icon, status }) => {
-  attachVbds(...attached)
-
-  const wrapper = mountCard(VDI_PAGE_CONTEXT.SR)
+  const wrapper = mountCard(VDI_PAGE_CONTEXT.SR, undefined, createVdiWithVbds(...attached))
 
   expect(findTitleLink(wrapper).props('icon')).toBe(icon)
   expect(findCardLabelledValues(wrapper)).toMatchObject({ [t('status')]: t(status) })
@@ -74,9 +71,7 @@ it.each([
 
 describe('from a VM', () => {
   it('shows the description, the tags, the status and the device of the VDI', () => {
-    attachVbds(true)
-
-    const wrapper = mountCard(VDI_PAGE_CONTEXT.VM, createVbd({ device: 'xvdb' }))
+    const wrapper = mountCard(VDI_PAGE_CONTEXT.VM, createVbd({ device: 'xvdb' }), createVdiWithVbds(true))
 
     expect(findCardLabelledValues(wrapper)).toEqual({
       [t('description')]: 'Root filesystem',

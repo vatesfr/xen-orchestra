@@ -47,6 +47,7 @@ export const xoCollectionsMock = {
   areSrsReady: ref(true),
   hasSrFetchError: ref(false),
   pbds: ref<FrontXoPbd[]>([]),
+  arePbdsReady: ref(true),
   networks: ref<FrontXoNetwork[]>([]),
   areNetworksReady: ref(true),
   pifs: ref<FrontXoPif[]>([]),
@@ -66,6 +67,7 @@ export const xoCollectionsMock = {
     this.areSrsReady.value = true
     this.hasSrFetchError.value = false
     this.pbds.value = []
+    this.arePbdsReady.value = true
     this.networks.value = []
     this.areNetworksReady.value = true
     this.pifs.value = []
@@ -126,6 +128,8 @@ export const useXoSrCollection = recordingIsEnabled('sr', () => ({
   ...createMockCollection('Sr', 'Srs', xoCollectionsMock.srs, xoCollectionsMock.areSrsReady),
   hasSrFetchError: xoCollectionsMock.hasSrFetchError,
   vdiIsosBySrName: xoCollectionsMock.vdiIsosBySrName,
+  // As in the real collection, an SR is the default one of its pool once that pool names it its `default_SR`
+  isDefaultSr: (sr: FrontXoSr) => findById(xoCollectionsMock.pools.value, sr.$pool)?.default_SR === sr.id,
 })) as unknown as typeof realUseXoSrCollection
 
 export const useXoNetworkCollection = (() => ({
@@ -141,7 +145,7 @@ export const useXoNetworkCollection = (() => ({
 
 export const useXoPbdCollection = (() => ({
   pbdsBySr: computed(() => groupBy(xoCollectionsMock.pbds.value, pbd => pbd.SR)),
-  ...createMockCollection('Pbd', 'Pbds', xoCollectionsMock.pbds),
+  ...createMockCollection('Pbd', 'Pbds', xoCollectionsMock.pbds, xoCollectionsMock.arePbdsReady),
 })) as unknown as typeof realUseXoPbdCollection
 
 export const useXoPifCollection = (() => ({

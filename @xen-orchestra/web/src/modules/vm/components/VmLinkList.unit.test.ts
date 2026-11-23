@@ -4,7 +4,7 @@ import { createVm } from '@/test/create-vm.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import { objectIcon } from '@core/icons'
-import { VM_POWER_STATE } from '@vates/types'
+import { VM_OPERATIONS, VM_POWER_STATE } from '@vates/types'
 import { mount } from '@vue/test-utils'
 
 function mountLinkList(vms: FrontXoVm[]) {
@@ -41,6 +41,14 @@ it('shows the icon matching the power state of every VM', () => {
     objectIcon('vm', 'running'),
     objectIcon('vm', 'halted'),
   ])
+})
+
+it('shows the busy icon while the power state of a VM is changing', () => {
+  const wrapper = mountLinkList([
+    createVm({ power_state: VM_POWER_STATE.HALTED, current_operations: { 'task-1': VM_OPERATIONS.START } }),
+  ])
+
+  expect(wrapper.getComponent(UiLink).props('icon')).toBe(objectIcon('vm', 'busy'))
 })
 
 it('renders no link when there is no VM', () => {
