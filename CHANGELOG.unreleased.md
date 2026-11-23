@@ -78,6 +78,8 @@
 - [XO6/SR] Add SR creation form on Host/Pool Storage tabs for LVM, EXT, SMB, local ISO, SMB ISO types (PR [#10251](https://github.com/vatesfr/xen-orchestra/pull/10251))
 - [XO5/Licenses] On an airgap XOA, upload an airgap data pack to register the appliance and install or renew its licenses, and export the licenses database to send it back to Vates (PR [#10254](https://github.com/vatesfr/xen-orchestra/pull/10254))
 - [REST API] Check that a proxy can be reached: `GET /rest/v0/proxies/:id/health` (PR [#10752](https://github.com/vatesfr/xen-orchestra/pull/10752))
+- [Backups] A backup job running in the xo-server process (`backups.disableWorkers`) can be aborted from its task (tasks view, REST API, or the "run schedule" action): the reads and writes stop, the partial backups are removed and the VMs are reported as interrupted (PR [#10875](https://github.com/vatesfr/xen-orchestra/pull/10875))
+- [@vates/task] A subtask created under an aborted task now fails without running, unless it is created with `cleanup: true`, which is meant for the cleanup steps of an aborted task (PR [#10875](https://github.com/vatesfr/xen-orchestra/pull/10875))
 
 ### Bug fixes
 
@@ -107,6 +109,7 @@
 - [VDIs] The storage link of a VDI, in its side panel and on its page, opens the storage repository page of XO 6 instead of XO 5 (PR [#10864](https://github.com/vatesfr/xen-orchestra/pull/10864))
 - [Side panels] Closing a side panel in one browser tab no longer closes it in the other tabs, where the eye buttons stopped working (PR [#10869](https://github.com/vatesfr/xen-orchestra/pull/10869))
 - [Tables] The "Show more"/"Show less" button of long texts stays at the top right of the cell, and expanding every text of a column no longer squeezes it to one letter per line (PR [#10873](https://github.com/vatesfr/xen-orchestra/pull/10873))
+- [Backup reports] Aborted or interrupted VMs are no longer counted as failed (PR [#10875](https://github.com/vatesfr/xen-orchestra/pull/10875))
 
 ### Packages to release
 
@@ -126,6 +129,7 @@
 
 - @vates/obfuscate minor
 - @vates/syslog minor
+- @vates/task major
 - @vates/types major
 - @xen-orchestra/acl minor
 - @xen-orchestra/autopilot-docking minor
@@ -144,6 +148,7 @@
 - xo-collection major
 - xo-server minor
 - xo-server-audit minor
+- xo-server-backup-reports minor
 - xo-server-load-balancer patch
 - xo-server-sdn-controller minor
 - xo-web minor
