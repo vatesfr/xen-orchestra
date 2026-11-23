@@ -44,9 +44,9 @@ export const usePanelStore = defineStore('panel', () => {
 
   watch(
     [() => uiStore.isSmall, isLocked],
-    ([isSmall, isLocked]) => {
+    () => {
       /* Expand when locked on large UI (also when locked from another tab), if not expanded */
-      if (!isSmall && isLocked && !isExpanded.value) {
+      if (!uiStore.isSmall && isLocked.value && !isExpanded.value) {
         expand()
       }
     },
