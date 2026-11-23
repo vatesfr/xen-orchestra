@@ -175,6 +175,205 @@ describe('Task', function () {
     })
   })
 
+  describe('subtask of an aborted task', function () {
+    // events of `subtask`, in the order they were emitted to the root task
+    const subtaskEventTypes = (task, subtask) => task.$events.filter(_ => _.id === subtask.id).map(_ => _.type)
+
+    it('does not run when created after the abort', async function () {
+      const task = createTask()
+      const reason = {}
+      let called = false
+      let subtask
+
+      await task.run(async () => {
+        task.abort(reason)
+
+        subtask = new Task()
+        await assert.rejects(
+          subtask.run(() => {
+            called = true
+          }),
+          error => error === reason
+        )
+      })
+
+      assert.equal(called, false)
+      assert.equal(subtask.status, 'failure')
+      assert.deepEqual(subtaskEventTypes(task, subtask), ['start', 'abortionRequested', 'end'])
+      const end = task.$events.findLast(_ => _.id === subtask.id)
+      assert.equal(end.status, 'failure')
+      assert.equal(end.result, reason)
+    })
+
+    it('does not run a step started with Task.run() after the abort', async function () {
+      const task = createTask()
+      let called = false
+
+      await task.run(async () => {
+        task.abort()
+
+        await assert.rejects(
+          Task.run({ properties: { name: 'step' } }, () => {
+            called = true
+          }),
+          { name: 'AbortError' }
+        )
+      })
+
+      assert.equal(called, false)
+    })
+
+    it('does not run when created before the abort and run after it', async function () {
+      const task = createTask()
+      const reason = {}
+      let called = false
+      let subtask
+
+      await task.run(async () => {
+        subtask = new Task()
+        task.abort(reason)
+
+        await assert.rejects(
+          subtask.run(() => {
+            called = true
+          }),
+          error => error === reason
+        )
+      })
+
+      assert.equal(called, false)
+      assert.equal(subtask.status, 'failure')
+      assert.deepEqual(subtaskEventTypes(task, subtask), ['start', 'abortionRequested', 'end'])
+    })
+
+    it('still throws when run after it ended for another reason', async function () {
+      const task = createTask()
+      task.start()
+      task.success()
+
+      await assert.rejects(task.run(noop), { name: 'AssertionError' })
+    })
+  })
+
+  describe('.cleanupSignal', function () {
+    it('is undefined when run outside a task', function () {
+      assert.equal(Task.cleanupSignal, undefined)
+    })
+
+    it('is not aborted when the task is aborted', async function () {
+      const task = createTask()
+      await task.run(() => {
+        task.abort()
+        assert.equal(Task.abortSignal.aborted, true)
+        assert.equal(Task.cleanupSignal.aborted, false)
+      })
+    })
+
+    it('does not throw in a task created by an older version of the library', async function () {
+      const task = createTask()
+      delete task._cleanupController
+      await task.run(() => {
+        assert.equal(Task.cleanupSignal, undefined)
+      })
+    })
+
+    it('reaches the subtasks', async function () {
+      const task = createTask()
+      const reason = {}
+
+      await task.run(() =>
+        Task.run(() => {
+          const signal = Task.cleanupSignal
+          assert.equal(signal.aborted, false)
+
+          task._cleanupController.abort(reason)
+
+          assert.equal(signal.aborted, true)
+          assert.equal(signal.reason, reason)
+        })
+      )
+    })
+  })
+
+  describe('cleanup subtask', function () {
+    it('runs when created after the abort', async function () {
+      const task = createTask()
+      let subtask
+
+      await task.run(async () => {
+        task.abort()
+
+        subtask = new Task({ cleanup: true })
+        const result = await subtask.run(() => {
+          assert.equal(Task.abortSignal.aborted, false)
+          return 'cleaned'
+        })
+        assert.equal(result, 'cleaned')
+      })
+
+      assert.equal(subtask.status, 'success')
+    })
+
+    it('runs through Task.run() with the cleanup option', async function () {
+      const task = createTask()
+
+      await task.run(async () => {
+        task.abort()
+
+        assert.equal(await Task.run({ properties: { name: 'clean-vm' }, cleanup: true }, () => 'cleaned'), 'cleaned')
+      })
+    })
+
+    it('is not aborted when its parent is aborted while it runs', async function () {
+      const task = createTask()
+
+      await task.run(() =>
+        Task.run({ cleanup: true }, () => {
+          task.abort()
+          assert.equal(Task.abortSignal.aborted, false)
+        })
+      )
+    })
+
+    it('is aborted through the cleanup signal of its parent', async function () {
+      const task = createTask()
+      const reason = {}
+
+      await task.run(() =>
+        Task.run({ cleanup: true }, () => {
+          task._cleanupController.abort(reason)
+          assert.equal(Task.abortSignal.aborted, true)
+          assert.equal(Task.abortSignal.reason, reason)
+        })
+      )
+    })
+
+    it('lets its own subtasks run normally', async function () {
+      const task = createTask()
+
+      await task.run(async () => {
+        task.abort()
+
+        const result = await Task.run({ cleanup: true }, () => Task.run(() => 'done'))
+        assert.equal(result, 'done')
+      })
+    })
+  })
+
+  describe('without abort', function () {
+    it('emits the same events for a task and its subtasks', async function () {
+      const task = createTask()
+
+      await task.run(() => Task.run({ properties: { name: 'step' } }, () => Task.run(() => 'foo')))
+
+      assert.deepEqual(
+        task.$events.map(_ => _.type),
+        ['start', 'start', 'start', 'end', 'end', 'end']
+      )
+      assert.equal(task.status, 'success')
+    })
+  })
+
   describe('#failure()', function () {
     const error = new Error()
 

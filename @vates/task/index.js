@@ -35,6 +35,17 @@ function define(object, property, value) {
 
 const noop = Function.prototype
 
+// aborts `controller` when `signal` is aborted, right away if it already is
+//
+// `signal.aborted` must be checked: the abort event of an already aborted signal is never dispatched again
+function followSignal(signal, controller) {
+  if (signal.aborted) {
+    controller.abort(signal.reason)
+  } else {
+    signal.addEventListener('abort', () => controller.abort(signal.reason), { once: true })
+  }
+}
+
 const FAILURE = 'failure'
 const PENDING = 'pending'
 const SUCCESS = 'success'
@@ -51,6 +62,14 @@ class Task {
     const task = getTask()
     if (task !== undefined) {
       return task._abortController.signal
+    }
+  }
+
+  // signal of the current task that stops its cleanup, see the `cleanup` option of the constructor
+  static get cleanupSignal() {
+    const task = getTask()
+    if (task !== undefined) {
+      return task._cleanupController?.signal
     }
   }
 
@@ -90,6 +109,7 @@ class Task {
   //
   // To ensure compatibility between multiple versions of this lib, they are kept public for now
   _abortController = new AbortController()
+  _cleanupController = new AbortController()
   _onProgress
 
   get id() {
@@ -110,18 +130,25 @@ class Task {
     return this.#status
   }
 
-  constructor({ properties, onProgress } = {}) {
+  // A cleanup subtask (`cleanup: true`) does not follow the abort of its parent: it follows its parent's cleanup
+  // signal instead, so that the cleanup still runs after an abort, until the cleanup itself is stopped.
+  constructor({ properties, onProgress, cleanup = false } = {}) {
     this.#startData = { properties }
 
+    // the parent signal this task's abort follows, once its own listener is registered
+    let parentSignal
     if (onProgress !== undefined) {
       this._onProgress = onProgress
     } else {
       const parent = getTask()
       if (parent !== undefined) {
-        const { signal } = parent._abortController
-        signal.addEventListener('abort', () => {
-          this._abortController.abort(signal.reason)
-        })
+        // `_cleanupController` may be missing on a task created by an older version of this library
+        const parentCleanupSignal = parent._cleanupController?.signal
+        if (parentCleanupSignal !== undefined) {
+          followSignal(parentCleanupSignal, this._cleanupController)
+        }
+
+        parentSignal = cleanup ? parentCleanupSignal : parent._abortController.signal
 
         this._onProgress = parent._onProgress
         this.#startData.parentId = parent.id
@@ -138,10 +165,17 @@ class Task {
         this.#emit('abortionRequested', { reason: signal.reason })
 
         if (!this.#running) {
+          this.#endedByAbort = true
           this.#end(FAILURE, signal.reason)
         }
       }
     })
+
+    // after the listener above: a task created under an aborted parent is aborted, and ended, right away (its
+    // `run()` then rejects without calling its function), as if its parent had been aborted just after its creation
+    if (parentSignal !== undefined) {
+      followSignal(parentSignal, this._abortController)
+    }
   }
 
   abort(reason) {
@@ -192,8 +226,14 @@ class Task {
     return result
   }
 
+  #endedByAbort = false
   #running = false
   async runInside(fn) {
+    // aborted before it could run, either directly or because it was created under an aborted parent
+    if (this.#endedByAbort) {
+      throw this._abortController.signal.reason
+    }
+
     assert.equal(this.status, PENDING)
     assert.equal(this.#running, false)
     this.#running = true
