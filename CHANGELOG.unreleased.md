@@ -10,7 +10,7 @@
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
 - [REST API] Get the state of a proxy appliance updater: `GET /rest/v0/proxies/:id/appliance_updater_state` (PR [#10773](https://github.com/vatesfr/xen-orchestra/pull/10773))
-- [REST API] Upgrade a proxy appliance: \POST /rest/v0/proxies/:id/actions/upgrade` (PR [#10872](https://github.com/vatesfr/xen-orchestra/pull/10872))
+- [REST API] Upgrade a proxy appliance: `POST /rest/v0/proxies/:id/actions/upgrade` (PR [#10872](https://github.com/vatesfr/xen-orchestra/pull/10872))
 
 ### Bug fixes
 
