@@ -1,6 +1,14 @@
 import * as CM from 'complex-matcher'
 import { asyncEach } from '@vates/async-each'
 import { featureUnauthorized, noSuchObject } from 'xo-common/api-errors.js'
+import { BACKUP_ARCHIVE_ID_REGEX } from './backups-ng/_backupArchiveId.mjs'
+
+class AggregateError extends Error {
+  constructor(errors, message) {
+    super(message)
+    this.errors = errors
+  }
+}
 
 /**
  * @typedef {import('@vates/types').XoApp} XoApp
@@ -86,7 +94,9 @@ export default class ObjectResolver {
           const ids = field.path.reduce((object, path) => object?.[path], objectToProcess)
           if (ids !== undefined) {
             for (const id of Array.isArray(ids) ? ids : [ids]) {
-              objectIds.add(id)
+              if (typeof id === 'string') {
+                objectIds.add(id)
+              }
             }
           }
         }
@@ -168,6 +178,13 @@ export default class ObjectResolver {
       () => this._app.getXenServer(id),
     ]
 
+    // the thunks and the `async` are both deliberate: a getter which throws
+    // *synchronously* must become a rejection like any other.
+    //
+    // Building the promises directly in the array literal, or calling the getters
+    // inside the executor below, lets such a throw escape it: the promise then
+    // rejects with that error instead of the `errors` array — so the `catch`
+    // iterates an `Error` and reports `errors is not iterable` rather than the real cause.
     const parallelPromises = parallelGetters.map(async getter => getter())
     try {
       return await new Promise((resolve, reject) => {
@@ -175,7 +192,10 @@ export default class ObjectResolver {
         const errors = []
         for (const promise of parallelPromises) {
           promise.then(resolve, error => {
-            errors.push(error)
+            if (!noSuchObject.is(error) && !featureUnauthorized.is(error)) {
+              errors.push(error)
+            }
+
             if (--pending === 0) {
               reject(errors)
             }
@@ -183,20 +203,30 @@ export default class ObjectResolver {
         }
       })
     } catch (errors) {
-      for (const error of errors) {
-        if (!noSuchObject.is(error) && !featureUnauthorized.is(error)) {
-          throw error
-        }
+      if (errors.length > 0) {
+        throw new AggregateError(errors, `object-resolver failed on the id: ${id}`)
       }
     }
 
     // Then the more costly logs and archives
-    for (const getter of [() => this._app.getVmBackupArchive(id), () => this._app.getBackupNgLogs(id)]) {
-      try {
-        return await getter()
-      } catch (error) {
-        if (!noSuchObject.is(error) && !featureUnauthorized.is(error)) {
-          throw error
+    if (typeof id === 'string') {
+      const getters = []
+
+      if (id.match(BACKUP_ARCHIVE_ID_REGEX)) {
+        getters.push(() => this._app.getVmBackupArchive(id))
+      }
+
+      if (/^\d+$/.test(id)) {
+        getters.push(async () => (await this._app.getBackupNgLogs())[id])
+      }
+
+      for (const getter of getters) {
+        try {
+          return await getter()
+        } catch (error) {
+          if (!noSuchObject.is(error) && !featureUnauthorized.is(error)) {
+            throw error
+          }
         }
       }
     }

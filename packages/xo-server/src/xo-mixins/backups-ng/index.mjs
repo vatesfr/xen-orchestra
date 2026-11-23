@@ -21,9 +21,7 @@ import { serializeError, unboxIdsFromPattern } from '../../utils.mjs'
 import { serveVmBackups, VmBackupsCache } from './_vmBackupsCache.mjs'
 import { VmBackupsSource } from './_vmBackupsSource.mjs'
 import { waitAll } from '../../_waitAll.mjs'
-
-// BR uuid/xo-vm-backups/VM uuid/(ISO 8601 compact).json
-const BACKUP_ARCHIVE_ID_REGEX = /^([0-9a-fA-F-]{36})\/+xo-vm-backups\/+([0-9a-fA-F-]{36})\/+(\d{8}T\d{6}Z)\.json$/
+import { BACKUP_ARCHIVE_ID_REGEX } from './_backupArchiveId.mjs'
 
 const logger = createLogger('xo:xo-mixins:backups-ng')
 

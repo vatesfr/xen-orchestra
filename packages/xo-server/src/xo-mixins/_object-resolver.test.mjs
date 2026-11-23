@@ -194,6 +194,11 @@ describe('ObjectResolver', function () {
       throw noSuchObject()
     }
 
+    // the costly getters only run for ids shaped like what they hold
+    const ARCHIVE_ID =
+      '11111111-1111-1111-1111-111111111111/xo-vm-backups/22222222-2222-2222-2222-222222222222/20250101T000000Z.json'
+    const LOG_ID = '1753776067468'
+
     // `getAnyObject` looks an id up in three tiers, ordered by cost:
     //   1. `getObject`, synchronous, every XAPI object
     //   2. the cheap store reads, raced against each other
@@ -226,17 +231,14 @@ describe('ObjectResolver', function () {
       },
       getXenServer: notFound,
       getVmBackupArchive: async id => {
-        if (id !== 'archive') {
+        if (id !== ARCHIVE_ID) {
           throw noSuchObject(id)
         }
         return { id, kind: 'archive' }
       },
-      getBackupNgLogs: async id => {
-        if (id !== 'log') {
-          throw noSuchObject(id)
-        }
-        return { id, message: 'backup' }
-      },
+      // called without an argument so that every id of a filter run shares one
+      // scan: it returns the whole map and misses are `undefined`, not a throw
+      getBackupNgLogs: async () => ({ [LOG_ID]: { id: LOG_ID, message: 'backup' } }),
       ...over,
     })
 
@@ -278,8 +280,8 @@ describe('ObjectResolver', function () {
     it('falls through to the costly getters', async function () {
       const objectResolver = new ObjectResolver(makeApp())
 
-      assert.deepEqual(await objectResolver.getAnyObject('archive'), { id: 'archive', kind: 'archive' })
-      assert.deepEqual(await objectResolver.getAnyObject('log'), { id: 'log', message: 'backup' })
+      assert.deepEqual(await objectResolver.getAnyObject(ARCHIVE_ID), { id: ARCHIVE_ID, kind: 'archive' })
+      assert.deepEqual(await objectResolver.getAnyObject(LOG_ID), { id: LOG_ID, message: 'backup' })
     })
 
     it('does not reach the costly getters when a cheaper one matches', async function () {
@@ -312,7 +314,31 @@ describe('ObjectResolver', function () {
         })
       )
 
-      await assert.rejects(() => objectResolver.getAnyObject('ghost'), /db down/)
+      await assert.rejects(
+        () => objectResolver.getAnyObject('ghost'),
+        error => error.errors.some(_ => _.message === 'db down')
+      )
+    })
+
+    it('reports every genuine error raised by the cheap getters', async function () {
+      const objectResolver = new ObjectResolver(
+        makeApp({
+          getGroup: async () => {
+            throw new Error('db down')
+          },
+          getProxy: async () => {
+            throw new Error('connection refused')
+          },
+        })
+      )
+
+      await assert.rejects(
+        () => objectResolver.getAnyObject('ghost'),
+        error => {
+          assert.deepEqual(error.errors.map(_ => _.message).sort(), ['connection refused', 'db down'])
+          return true
+        }
+      )
     })
 
     it('propagates a genuine error raised by a costly getter', async function () {
@@ -324,7 +350,7 @@ describe('ObjectResolver', function () {
         })
       )
 
-      await assert.rejects(() => objectResolver.getAnyObject('ghost'), /remote unreachable/)
+      await assert.rejects(() => objectResolver.getAnyObject(LOG_ID), /remote unreachable/)
     })
   })
 })
