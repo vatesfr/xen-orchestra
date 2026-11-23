@@ -54,6 +54,7 @@
 - [Hosts] The host actions of the treeview (change state, restart toolstack, enable or disable, detach, forget, download bugtools archive) are also available in host tables and side panels (PR [#10821](https://github.com/vatesfr/xen-orchestra/pull/10821))
 - [Pool/Traffic rules] Edit the order of traffic rules within a network (PR [#10706](https://github.com/vatesfr/xen-orchestra/pull/10706))
 - [Pool/Traffic rules] Add a priority when creating a traffic rule (PR [#10750](https://github.com/vatesfr/xen-orchestra/pull/10750))
+- [Pool/Traffic rules] Show the network type and private network details in the side panel (PR [#10874](https://github.com/vatesfr/xen-orchestra/pull/10874))
 - [Modals/Menus] Keyboard navigation: Tab stays inside an open modal or drawer and the focus goes back where it was once it closes, and menus such as "Change state" open with Enter and are browsed with the arrow keys (PR [#10828](https://github.com/vatesfr/xen-orchestra/pull/10828))
 - [Menus] Submenus open when hovering their option and can be reached diagonally without opening the neighbouring ones, Escape closes them one level at a time, and menu buttons are announced to screen readers (PR [#10827](https://github.com/vatesfr/xen-orchestra/pull/10827))
 - [Modals] The confirm button of the modals asking to type a text is no longer disabled: confirming with a wrong text keeps the modal open and shows an error under the field (PR [#10826](https://github.com/vatesfr/xen-orchestra/pull/10826))
