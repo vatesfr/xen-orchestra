@@ -11,6 +11,7 @@
 
 - [REST API] Get the state of a proxy appliance updater: `GET /rest/v0/proxies/:id/appliance_updater_state` (PR [#10773](https://github.com/vatesfr/xen-orchestra/pull/10773))
 - [V2V] Import from ESXi 6.5 hosts whose data port only accepts RSA key exchange (PR [#10802](https://github.com/vatesfr/xen-orchestra/pull/10802))
+- [V2V] Import from ESXi 6.5 and 6.7 hosts through a vCenter (PR [#10819](https://github.com/vatesfr/xen-orchestra/pull/10819))
 
 ### Bug fixes
 
