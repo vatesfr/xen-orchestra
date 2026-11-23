@@ -84,6 +84,7 @@
 - [VM/Network] Creating a VIF now happens in a drawer instead of a dedicated page (PR [#10877](https://github.com/vatesfr/xen-orchestra/pull/10877))
 - [VM/VDIs] Creating or attaching a VDI now happens in a drawer instead of a dedicated page (PR [#10878](https://github.com/vatesfr/xen-orchestra/pull/10878))
 - [XO6/Tasks] Add a "My tasks" sidebar (PR [#10805](https://github.com/vatesfr/xen-orchestra/pull/10805))
+- [Pools] Connecting a pool now happens in a drawer, which closes as soon as the connection starts, instead of a dedicated page (PR [#10881](https://github.com/vatesfr/xen-orchestra/pull/10881))
 
 ### Bug fixes
 

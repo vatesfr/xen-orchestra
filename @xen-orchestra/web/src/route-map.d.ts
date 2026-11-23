@@ -381,13 +381,6 @@ declare module 'vue-router/auto-routes' {
       { id: ParamValue<false> },
       | never
     >,
-    '/pool/connect': RouteRecordInfo<
-      '/pool/connect',
-      '/pool/connect',
-      Record<never, never>,
-      Record<never, never>,
-      | never
-    >,
     '/settings': RouteRecordInfo<
       '/settings',
       '/settings',
@@ -866,12 +859,6 @@ declare module 'vue-router/auto-routes' {
     'src/pages/pool/[id]/vms.vue': {
       routes:
         | '/pool/[id]/vms'
-      views:
-        | never
-    }
-    'src/pages/pool/connect.vue': {
-      routes:
-        | '/pool/connect'
       views:
         | never
     }

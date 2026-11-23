@@ -13,6 +13,8 @@ export type PoolConnectionFormData = {
   allowUnauthorized: boolean
 }
 
+export type PoolConnectionPayload = Omit<PoolConnectionFormData, 'httpProxy'> & { httpProxy?: string }
+
 export function usePoolConnectionForm() {
   const { t } = useI18n()
 
@@ -35,7 +37,7 @@ export function usePoolConnectionForm() {
     },
   })
 
-  const payload = computed(() => ({
+  const payload = computed<PoolConnectionPayload>(() => ({
     ...formData,
     httpProxy: formData.httpProxy === '' ? undefined : formData.httpProxy,
   }))
