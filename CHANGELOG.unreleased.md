@@ -137,6 +137,7 @@
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
 - @xen-orchestra/xapi major
+- @xen-orchestra/xapi-pg major
 - xen-api major
 - xo-collection major
 - xo-server minor
