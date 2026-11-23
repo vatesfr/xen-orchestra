@@ -50,6 +50,7 @@ vi.mock(import('@/modules/server/remote-resources/use-xo-server-collection.ts'),
 vi.mock(import('@/modules/snapshot/components/remote-resources/use-xo-vm-snapshot-collection.ts'), spyOnOriginal)
 vi.mock(import('@/modules/snapshot/composables/xo-vm-snapshot-route-xo5.composable.ts'), spyOnOriginal)
 vi.mock(import('@/modules/storage-repository/composables/xo-sr-utils.composable.ts'), spyOnOriginal)
+vi.mock(import('@/modules/storage-repository/jobs/xo-sr-create.job.ts'), spyOnOriginal)
 vi.mock(import('@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'), spyOnOriginal)
 vi.mock(import('@/modules/task/remote-resources/use-xo-task-collection.ts'), spyOnOriginal)
 vi.mock(import('@/modules/user/remote-resources/use-xo-user.ts'), spyOnOriginal)

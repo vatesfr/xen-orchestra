@@ -1,8 +1,9 @@
 import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import { useCreateSrDrawer } from '@/modules/storage-repository/composables/use-create-sr-drawer.composable.ts'
-import type { NewSrRestPayload, useXoSrCreateJob } from '@/modules/storage-repository/jobs/xo-sr-create.job.ts'
-import { overlayMock } from '@/test/mock-overlay.ts'
+import { type NewSrRestPayload, useXoSrCreateJob } from '@/modules/storage-repository/jobs/xo-sr-create.job.ts'
+import { createJobStub } from '@/test/create-job-result.ts'
+import { mockOverlay, overlayMock } from '@/test/mock-overlay.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
 import { silenceConsoleError } from '@/test/silence-console-error.ts'
 import { KEEP_OVERLAY_OPEN } from '@core/packages/overlay/symbols.ts'
@@ -15,16 +16,10 @@ type OverlayOptions = {
   }
 }
 
-const { useCreateJob, run } = vi.hoisted(() => ({
-  useCreateJob: vi.fn(),
-  run: vi.fn(),
-}))
+const createJob = createJobStub(useXoSrCreateJob)
+const { run } = createJob
 
-vi.mock(import('@/modules/storage-repository/jobs/xo-sr-create.job.ts'), () => ({
-  useXoSrCreateJob: useCreateJob as unknown as typeof useXoSrCreateJob,
-}))
-
-vi.mock(import('@core/packages/overlay/use-overlay.ts'), () => import('@/test/mock-overlay.ts'))
+mockOverlay()
 
 const PAYLOAD: NewSrRestPayload = {
   hostId: 'host-456' as FrontXoHost['id'],
@@ -34,13 +29,10 @@ const PAYLOAD: NewSrRestPayload = {
 }
 
 beforeEach(() => {
-  useCreateJob.mockReset()
-  run.mockReset()
+  createJob.reset()
   overlayMock.reset()
 
   silenceConsoleError()
-
-  useCreateJob.mockReturnValue({ run })
 })
 
 function mountCreateSrDrawer() {
@@ -48,7 +40,7 @@ function mountCreateSrDrawer() {
 }
 
 function getJobPayload() {
-  return (useCreateJob.mock.calls[0] as [Ref<NewSrRestPayload | undefined>])[0]
+  return (createJob.use.mock.calls[0] as [Ref<NewSrRestPayload | undefined>])[0]
 }
 
 it('has no payload before the drawer is confirmed', () => {

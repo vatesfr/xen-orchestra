@@ -38,7 +38,7 @@ it('shows its info beside its error and its warning', () => {
     warning: WARNING,
   })
 
-  expect(findInputMessages(wrapper).sort()).toEqual([
+  expect(findInfoLabels(wrapper).sort()).toEqual([
     'Slow storage',
     'Storage is required.',
     'Where the disks are stored.',

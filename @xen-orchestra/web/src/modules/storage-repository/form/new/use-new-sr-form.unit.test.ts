@@ -6,8 +6,8 @@ import { createHost } from '@/test/create-host.ts'
 import { createPool, DISKOR_POOL_NAME, OTHER_POOL_ID, UNKNOWN_POOL_ID } from '@/test/create-pool.ts'
 import { dangerMessage, requiredMessage } from '@/test/form-messages.ts'
 import { t } from '@/test/i18n.ts'
-import { overlayMock } from '@/test/mock-overlay.ts'
-import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
+import { mockOverlay, overlayMock } from '@/test/mock-overlay.ts'
+import { mockXoCollections, xoCollectionsMock } from '@/test/mock-xo-collections.ts'
 import { mountComposableWithI18n } from '@/test/mount-composable.ts'
 import { mountWithSelect } from '@/test/mount-with-select.ts'
 import { openSelect, pickSelectOption } from '@/test/select.ts'
@@ -18,15 +18,8 @@ import { SR_ACCESS_MODE } from '@core/types/storage-repository.type.ts'
 import { flushPromises } from '@vue/test-utils'
 import { h, nextTick } from 'vue'
 
-vi.mock(
-  import('@/modules/pool/remote-resources/use-xo-pool-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
-vi.mock(
-  import('@/modules/host/remote-resources/use-xo-host-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
-vi.mock(import('@core/packages/overlay/use-overlay.ts'), () => import('@/test/mock-overlay.ts'))
+mockXoCollections('pool', 'host')
+mockOverlay()
 
 const POOL = createPool()
 
@@ -117,7 +110,7 @@ function mountWithFormSelect(
     const form = useNewSrForm(POOL.id, hostId)
     formHolder.form = form
 
-    return () => h(VtsSelect, { id: getSelectId(form), accent: 'brand' })
+    return () => h(VtsSelect, { id: getSelectId(form), accent: 'neutral' })
   })
 
   if (formHolder.form === undefined) {

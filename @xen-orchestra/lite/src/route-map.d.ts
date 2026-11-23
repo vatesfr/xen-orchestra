@@ -562,6 +562,13 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/story/web-core/select/vts-detailed-option': RouteRecordInfo<
+      '/story/web-core/select/vts-detailed-option',
+      '/story/web-core/select/vts-detailed-option',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
     '/story/web-core/select/vts-select': RouteRecordInfo<
       '/story/web-core/select/vts-select',
       '/story/web-core/select/vts-select',
@@ -1732,6 +1739,12 @@ declare module 'vue-router/auto-routes' {
     'src/stories/web-core/resources/vts-resources.story.vue': {
       routes:
         | '/story/web-core/resources/vts-resources'
+      views:
+        | never
+    }
+    'src/stories/web-core/select/vts-detailed-option.story.vue': {
+      routes:
+        | '/story/web-core/select/vts-detailed-option'
       views:
         | never
     }
