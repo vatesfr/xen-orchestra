@@ -8,6 +8,7 @@ const DEFAULTS = {
   checkpointSnapshot: false,
   compression: '',
   concurrency: 0,
+  diskPerVmConcurrency: 0,
   fullInterval: 0,
   hideSuccessfulItems: false,
   nbdConcurrency: 1,
@@ -24,6 +25,7 @@ const MODES = {
   __proto__: null,
 
   compression: 'full',
+  diskPerVmConcurrency: 'delta',
   fullInterval: 'delta',
   offlineBackup: 'full',
 }

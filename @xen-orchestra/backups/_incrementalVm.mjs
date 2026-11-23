@@ -30,8 +30,7 @@ export async function updateMemoryFields(xapi, targetVm, vmRecord) {
 export async function exportIncrementalVm(vm, baseVdis = {}, { signal, nbdConcurrency = 1, preferNbd } = {}) {
   // refs of VM's VDIs → base's VDIs.
 
-  // the disks are not opened here: each disk opens an export on the host, they are opened just before their
-  // transfer to limit the number of exports running at the same time (see `diskPerVmConcurrency`)
+  // the disks are not opened here but just before their transfer
   const disks = {}
   const vdis = {}
   const vbds = {}

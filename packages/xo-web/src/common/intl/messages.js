@@ -647,6 +647,9 @@ const messages = {
   distributeReplicationsInformation:
     'This will write exactly one replication of each VM backup instead of writing one per storage repository',
   nbdConcurrency: 'Number of NBD connection per disk',
+  diskPerVmConcurrency: 'Number of disks transferred in parallel per VM',
+  diskPerVmConcurrencyInformation:
+    'Each disk keeps an export open on the host during its transfer. Lower this value if the backups of VMs with several large disks fail with a timeout.',
   cbtDestroySnapshotData: 'Purge snapshot data when using CBT.',
   cbtDestroySnapshotDataInformation:
     "This will automatically enable Change Block Tracking (CBT) on the disks. The snapshot won't use any notable space on the SR, won't be shown in the UI and won't be usable to do a rollback nor differential restores",

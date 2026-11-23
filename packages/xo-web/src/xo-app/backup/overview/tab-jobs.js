@@ -321,6 +321,7 @@ class JobsTable extends React.Component {
             checkpointSnapshot,
             compression,
             concurrency,
+            diskPerVmConcurrency,
             fullInterval,
             hideSuccessfulItems,
             maxExportRate,
@@ -361,6 +362,9 @@ class JobsTable extends React.Component {
               )}
               {concurrency !== undefined && <Li>{_.keyValue(_('concurrency'), concurrency)}</Li>}
               {preferNbd && <Li>{_.keyValue(_('nbdConnections'), nbdConcurrency ?? 1)}</Li>}
+              {diskPerVmConcurrency !== undefined && (
+                <Li>{_.keyValue(_('diskPerVmConcurrency'), diskPerVmConcurrency)}</Li>
+              )}
               {preferNbd && cbtDestroySnapshotData !== undefined && (
                 <Li>
                   {_.keyValue(
