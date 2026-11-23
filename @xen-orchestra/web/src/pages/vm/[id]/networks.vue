@@ -9,7 +9,9 @@
         </template>
       </VifsTable>
     </UiCard>
-    <VifSidePanel :vif="selectedVif" :vm @close="selectedVif = undefined" />
+    <template #panel>
+      <VifSidePanel :vif="selectedVif" :vm @close="selectedVif = undefined" />
+    </template>
   </VtsContentSidePanel>
 </template>
 

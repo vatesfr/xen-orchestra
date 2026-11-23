@@ -1,9 +1,9 @@
 import PoolDashboardCpuUsage from '@/modules/pool/components/dashboard/PoolDashboardCpuUsage.vue'
 import type { XoPoolDashboard } from '@/modules/pool/types/xo-pool-dashboard.type.ts'
 import { createPoolDashboardTopFiveUsage } from '@/test/create-pool-dashboard.ts'
-import { findProgressBarGroupLegends } from '@/test/find-rendered-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
+import { itShowsPoolTopFiveUsage, type PoolDashboardCardProps } from '@/test/pool-dashboard-card.ts'
 import { mount } from '@vue/test-utils'
 
 type HostCpuUsage = NonNullable<NonNullable<XoPoolDashboard['hosts']>['topFiveUsage']>['cpu'][number]
@@ -22,50 +22,20 @@ function withTopFiveCpu(hosts: HostCpuUsage[], vms: VmCpuUsage[]): XoPoolDashboa
   return createPoolDashboardTopFiveUsage({ cpu: hosts }, { cpu: vms })
 }
 
-function createPoolDashboard(overrides: Partial<XoPoolDashboard> = {}): XoPoolDashboard {
-  return { ...withTopFiveCpu([createHostCpuUsage()], [createVmCpuUsage()]), ...overrides }
-}
+const POOL_DASHBOARD = withTopFiveCpu([createHostCpuUsage()], [createVmCpuUsage()])
 
-function mountCpuUsage(props: { poolDashboard?: XoPoolDashboard; hasError?: boolean } = {}) {
+function mountCpuUsage(props: PoolDashboardCardProps = {}) {
   return mount(PoolDashboardCpuUsage, {
-    props: { poolDashboard: createPoolDashboard(), ...props },
+    props: { poolDashboard: POOL_DASHBOARD, ...props },
     global: createGlobalTestConfig(),
   })
 }
 
-it('renders the card title', () => {
-  const wrapper = mountCpuUsage()
-
-  expect(wrapper.get('.ui-card-title').text()).toBe(t('cpu-usage'))
-})
-
-it('splits the card between the hosts and the VMs, each capped to the top five', () => {
-  const wrapper = mountCpuUsage()
-
-  expect(wrapper.findAll('.ui-card-subtitle').map(subtitle => subtitle.text())).toEqual([
-    `${t('host')} ${t('top-#', 5)}`,
-    `${t('vms')} ${t('top-#', 5)}`,
-  ])
-})
-
-it('plots the usage of the hosts and of the VMs in their own section', () => {
-  const wrapper = mountCpuUsage()
-
-  expect(findProgressBarGroupLegends(wrapper)).toEqual([[['Host 1', '30%']], [['VM 1', '70%']]])
-})
-
-it('shows a loader in place of the hosts while their usage has not arrived yet', () => {
-  const wrapper = mountCpuUsage({ poolDashboard: createPoolDashboard({ hosts: {} }) })
-
-  expect(wrapper.findAll('.ui-loader')).toHaveLength(1)
-  expect(findProgressBarGroupLegends(wrapper)).toEqual([[['VM 1', '70%']]])
-})
-
-it('shows a loader in place of the VMs while their usage has not arrived yet', () => {
-  const wrapper = mountCpuUsage({ poolDashboard: createPoolDashboard({ vms: {} }) })
-
-  expect(wrapper.findAll('.ui-loader')).toHaveLength(1)
-  expect(findProgressBarGroupLegends(wrapper)).toEqual([[['Host 1', '30%']]])
+itShowsPoolTopFiveUsage(mountCpuUsage, {
+  title: t('cpu-usage'),
+  dashboard: POOL_DASHBOARD,
+  empty: withTopFiveCpu([], []),
+  legends: { host: ['Host 1', '30%'], vm: ['VM 1', '70%'] },
 })
 
 it('measures both sections against the CPU thresholds, which a full CPU has yet to reach', () => {
@@ -74,20 +44,4 @@ it('measures both sections against the CPU thresholds, which a full CPU has yet 
   })
 
   expect(wrapper.findAll('.ui-progress-bar').map(bar => bar.classes('accent--info'))).toEqual([true, true])
-})
-
-it('reports that there is nothing to show in a section without host or VM', () => {
-  const wrapper = mountCpuUsage({ poolDashboard: withTopFiveCpu([], []) })
-
-  expect(wrapper.findAll('.vts-state-hero').map(hero => hero.text())).toEqual([
-    t('no-data-to-calculate'),
-    t('no-data-to-calculate'),
-  ])
-  expect(wrapper.findAll('.ui-progress-bar')).toEqual([])
-})
-
-it('passes the fetch error down to both sections', () => {
-  const wrapper = mountCpuUsage({ hasError: true })
-
-  expect(wrapper.findAll('.vts-state-hero').map(hero => hero.text())).toEqual([t('error-no-data'), t('error-no-data')])
 })

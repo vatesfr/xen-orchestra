@@ -1,5 +1,6 @@
 import { type CollectionItemId, useCollection } from '@core/packages/collection'
-import { computed, type MaybeRefOrGetter, toValue } from 'vue'
+import { useArrayMap } from '@vueuse/core'
+import { computed, type MaybeRefOrGetter, type Ref, toValue } from 'vue'
 
 export type SelectionBindings = {
   selectedCount: number
@@ -12,22 +13,29 @@ export type SelectionBindings = {
   onClearSelection: () => void
 }
 
-export function useTableSelection<TItem>(config: {
+export function useTableSelection<TItem, TId extends CollectionItemId>(config: {
   items: MaybeRefOrGetter<TItem[]>
   filteredItems: MaybeRefOrGetter<NoInfer<TItem>[]>
   pageItems: MaybeRefOrGetter<NoInfer<TItem>[]>
-  getItemId: (item: TItem) => CollectionItemId
+  getItemId: (item: TItem) => TId
+  selectedIds?: Ref<NoInfer<TId>[]>
 }) {
-  const filteredIds = computed(() => new Set(toValue(config.filteredItems).map(item => config.getItemId(item))))
+  const filteredIds = computed(
+    () => new Set<CollectionItemId>(toValue(config.filteredItems).map(item => config.getItemId(item)))
+  )
 
-  const pageIds = computed(() => new Set(toValue(config.pageItems).map(item => config.getItemId(item))))
+  const pageIds = computed(
+    () => new Set<CollectionItemId>(toValue(config.pageItems).map(item => config.getItemId(item)))
+  )
 
   const { useFlag, useSubset, clearFlag } = useCollection(config.items, {
     itemId: config.getItemId,
-    flags: { selected: true },
+    flags: { selected: { ids: config.selectedIds } },
   })
 
   const selectionFlag = useFlag('selected')
+
+  const selectedItems = useArrayMap(selectionFlag.items, item => item.source)
 
   const filteredCollection = useSubset(item => filteredIds.value.has(item.id))
 
@@ -61,6 +69,7 @@ export function useTableSelection<TItem>(config: {
 
   return {
     selectedIds: selectionFlag.ids,
+    selectedItems,
     pageSelectionModel,
     isSelected: selectionFlag.isOn,
     toggleSelection: selectionFlag.toggle,

@@ -1,5 +1,5 @@
 <template>
-  <VmMoreActions :vm show-change-state />
+  <VmMoreActions :vm layout="change-state-submenu" />
 </template>
 
 <script setup lang="ts">

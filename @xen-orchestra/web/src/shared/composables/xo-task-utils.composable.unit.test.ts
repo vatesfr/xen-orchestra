@@ -1,33 +1,24 @@
-import type { FrontXoTask, useXoTaskCollection } from '@/modules/task/remote-resources/use-xo-task-collection.ts'
+import type { FrontXoTask } from '@/modules/task/remote-resources/use-xo-task-collection.ts'
 import { useXoTaskUtils } from '@/shared/composables/xo-task-utils.composable.ts'
-import { nextTick, ref } from 'vue'
-
-const { task } = vi.hoisted(() => ({
-  task: { value: undefined } as { value: unknown },
-}))
+import { createTask } from '@/test/create-task.ts'
+import { taskCollectionMock, mockXoTaskCollection } from '@/test/mock-xo-task-collection.ts'
+import { nextTick } from 'vue'
 
 // The task collection would open an SSE subscription
-vi.mock(import('@/modules/task/remote-resources/use-xo-task-collection.ts'), () => ({
-  useXoTaskCollection: (() => ({
-    useGetTaskById: () => task.value,
-  })) as unknown as typeof useXoTaskCollection,
-}))
+mockXoTaskCollection()
 
 const TASK_ID = 'task-123' as FrontXoTask['id']
 
-const currentTask = ref<FrontXoTask>()
-
 beforeEach(() => {
-  currentTask.value = undefined
-  task.value = currentTask
+  taskCollectionMock.reset()
 })
 
 afterEach(() => {
   vi.useRealTimers()
 })
 
-function createTask(status: FrontXoTask['status'], result?: FrontXoTask['result']) {
-  return { id: TASK_ID, status, result } as FrontXoTask
+function setTask(status: FrontXoTask['status'], result?: FrontXoTask['result']) {
+  taskCollectionMock.tasks.value = [createTask({ id: TASK_ID, status, result })]
 }
 
 function monitorTask() {
@@ -37,7 +28,7 @@ function monitorTask() {
 }
 
 it('resolves with the result of a task already over', async () => {
-  currentTask.value = createTask('success', { readRate: 42 })
+  setTask('success', { readRate: 42 })
 
   await expect(monitorTask()).resolves.toEqual({ readRate: 42 })
 })
@@ -45,10 +36,10 @@ it('resolves with the result of a task already over', async () => {
 it('resolves with the result once the task succeeds', async () => {
   const promise = monitorTask()
 
-  currentTask.value = createTask('pending')
+  setTask('pending')
   await nextTick()
 
-  currentTask.value = createTask('success', { readRate: 42 })
+  setTask('success', { readRate: 42 })
 
   await expect(promise).resolves.toEqual({ readRate: 42 })
 })
@@ -56,19 +47,19 @@ it('resolves with the result once the task succeeds', async () => {
 it('rejects with the error of a failed task', async () => {
   const promise = monitorTask()
 
-  currentTask.value = createTask('failure', { name: 'TaskError', message: 'Benchmark failed' })
+  setTask('failure', { name: 'TaskError', message: 'Benchmark failed' })
 
   await expect(promise).rejects.toMatchObject({ name: 'TaskError', message: 'Benchmark failed' })
 })
 
 it('rejects a task failed without error details', async () => {
-  currentTask.value = createTask('failure')
+  setTask('failure')
 
   await expect(monitorTask()).rejects.toThrow(`Task ${TASK_ID} failed without error details`)
 })
 
 it('rejects a task interrupted', async () => {
-  currentTask.value = createTask('interrupted', { message: 'Server restarted' })
+  setTask('interrupted', { message: 'Server restarted' })
 
   await expect(monitorTask()).rejects.toThrow('Server restarted')
 })
@@ -86,7 +77,7 @@ it('rejects when the task is never received', async () => {
 it('keeps waiting for a pending task past the reception delay', async () => {
   vi.useFakeTimers()
 
-  currentTask.value = createTask('pending')
+  setTask('pending')
 
   const onSettled = vi.fn()
   const promise = monitorTask().then(onSettled, onSettled)
@@ -96,7 +87,7 @@ it('keeps waiting for a pending task past the reception delay', async () => {
 
   expect(onSettled).not.toHaveBeenCalled()
 
-  currentTask.value = createTask('success', { readRate: 42 })
+  setTask('success', { readRate: 42 })
   await promise
 
   expect(onSettled).toHaveBeenCalledWith({ readRate: 42 })

@@ -1,5 +1,10 @@
 <template>
-  <UiInfo v-tooltip="iconOnly ? currentStatus.text : false" :accent="currentStatus.accent">
+  <UiInfo
+    v-tooltip="iconOnly ? currentStatus.text : false"
+    :accent="currentStatus.accent"
+    :role="iconOnly ? 'img' : undefined"
+    :aria-label="iconOnly ? currentStatus.text : undefined"
+  >
     <template v-if="!iconOnly">{{ currentStatus.text }}</template>
   </UiInfo>
 </template>

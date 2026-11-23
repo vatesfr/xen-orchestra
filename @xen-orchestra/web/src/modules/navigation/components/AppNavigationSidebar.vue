@@ -1,7 +1,7 @@
 <template>
   <VtsLayoutSidebar :side class="app-navigation-sidebar">
     <template #header>
-      <TabList class="sidebar-tabs">
+      <TabList :label="t('navigation')" class="sidebar-tabs">
         <UiTabItem
           :active="activeSidebarPanel === SIDEBAR_PANEL.TREEVIEW"
           tag="button"

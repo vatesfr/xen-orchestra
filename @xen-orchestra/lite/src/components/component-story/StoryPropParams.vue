@@ -38,7 +38,7 @@
             Ctx
           </sup>
         </th>
-        <td>
+        <td class="type">
           <CodeHighlight :code="param.getTypeLabel()" />
         </td>
         <td class="reset-param">
@@ -159,6 +159,10 @@ function openRawValueModal(code: string) {
     font-weight: normal;
     opacity: 0.7;
   }
+}
+
+.type :deep(.code-highlight) {
+  white-space: pre-wrap;
 }
 
 .help {

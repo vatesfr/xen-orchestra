@@ -6,7 +6,9 @@
       </UiCard>
     </div>
 
-    <BackupLogSidePanel :backup-log="selectedBackupLog" @close="selectedBackupLog = undefined" />
+    <template #panel>
+      <BackupLogSidePanel :backup-log="selectedBackupLog" @close="selectedBackupLog = undefined" />
+    </template>
   </VtsContentSidePanel>
 </template>
 

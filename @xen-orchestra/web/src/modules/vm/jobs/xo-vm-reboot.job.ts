@@ -1,10 +1,10 @@
 import { xoVmsArg } from '@/modules/vm/jobs/xo-vm-args.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
-import { areVmsOperationPending, notAllVmsHavingPowerState } from '@/modules/vm/utils/xo-vm.util.ts'
+import { areVmsOperationPending, notAllVmsAllowingOperation } from '@/modules/vm/utils/xo-vm.util.ts'
 import { useXoTaskUtils } from '@/shared/composables/xo-task-utils.composable.ts'
 import { fetchPost } from '@/shared/utils/fetch.util.ts'
 import { defineJob, JobError, JobRunningError } from '@core/packages/job'
-import { VM_OPERATIONS, VM_POWER_STATE, type XoTask } from '@vates/types'
+import { VM_OPERATIONS, type XoTask } from '@vates/types'
 import { useI18n } from 'vue-i18n'
 
 export const useXoVmRebootJob = defineJob('vm.reboot', [xoVmsArg], () => {
@@ -38,7 +38,7 @@ export const useXoVmRebootJob = defineJob('vm.reboot', [xoVmsArg], () => {
         throw new JobRunningError(t('job:vm-reboot:in-progress'))
       }
 
-      if (notAllVmsHavingPowerState(vms, [VM_POWER_STATE.RUNNING, VM_POWER_STATE.PAUSED])) {
+      if (notAllVmsAllowingOperation(vms, VM_OPERATIONS.CLEAN_REBOOT)) {
         throw new JobError(t('job:vm-reboot:bad-power-state'))
       }
 

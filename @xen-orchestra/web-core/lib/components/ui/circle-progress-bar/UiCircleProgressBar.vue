@@ -17,7 +17,7 @@
         :class="{ success: isCompleteWithSuccess }"
       />
     </svg>
-    <div v-if="size !== 'extra-small'" class="overlay">
+    <div v-if="size !== 'extra-small' && !noValue" class="overlay">
       <VtsIcon v-if="isComplete" class="icon" :name="icon" size="medium" />
       <span v-else>{{ percentValue }}</span>
     </div>
@@ -35,18 +35,20 @@ import { useI18n } from 'vue-i18n'
 const {
   accent,
   size,
-  value: _value,
+  value: rawValue,
   maxValue = 100,
+  noValue = false,
 } = defineProps<{
   accent: CircleProgressBarAccent
   size: CircleProgressBarSize
   value: number
   maxValue?: number
+  noValue?: boolean
 }>()
 
 const { n } = useI18n()
 
-export type CircleProgressBarAccent = 'info' | 'warning' | 'danger'
+export type CircleProgressBarAccent = 'brand' | 'info' | 'warning' | 'danger'
 type CircleProgressBarSize = 'extra-small' | 'small' | 'medium' | 'large'
 
 const circleSizeMap = {
@@ -77,7 +79,7 @@ const strokeWidth = computed(() => strokeWidthMap[size])
 const radius = computed(() => (circleSize.value - strokeWidth.value) / 2)
 const circumference = computed(() => 2 * Math.PI * radius.value)
 
-const value = useMax(0, () => _value)
+const value = useMax(0, () => rawValue)
 const valuePercent = useClamp(() => (value.value / maxValue) * 100 || 0, 0, 100)
 
 const isComplete = computed(() => valuePercent.value >= 100)
@@ -109,6 +111,18 @@ const className = computed(() => [
   justify-content: center;
 
   /* ACCENT */
+
+  &.accent--brand {
+    color: var(--color-brand-item-base);
+
+    .fill {
+      stroke: var(--color-brand-item-base);
+    }
+
+    .background {
+      stroke: var(--color-brand-background-selected);
+    }
+  }
 
   &.accent--info {
     color: var(--color-info-item-base);

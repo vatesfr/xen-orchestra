@@ -1,6 +1,7 @@
 import VmSystemGeneralInfo from '@/modules/vm/components/system/VmSystemGeneralInfo.vue'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { createVm } from '@/test/create-vm.ts'
+import { findTitleLabel } from '@/test/find-card-title.ts'
 import { findCopiedValues, findLabelledValues, findTags } from '@/test/find-rendered-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
@@ -17,7 +18,7 @@ function mountGeneralInfo(vm: FrontXoVm = createVm()) {
 it('renders the card title', () => {
   const wrapper = mountGeneralInfo()
 
-  expect(wrapper.get('.ui-title').text()).toBe(t('general-information'))
+  expect(findTitleLabel(wrapper)).toBe(t('general-information'))
 })
 
 it('shows the identity, operating system and guest tools of the VM', () => {
@@ -60,10 +61,16 @@ it('leaves the operating system rows empty when the VM reports no OS version', (
   expect(findLabelledValues(wrapper)).toMatchObject({ [t('os-name')]: '', [t('os-kernel')]: '' })
 })
 
-it('renders one tag per VM tag', () => {
+it('renders one tag per VM tag, in alphabetical order', () => {
   const wrapper = mountGeneralInfo(createVm({ tags: ['production', 'billing'] }))
 
-  expect(findTags(wrapper)).toEqual(['production', 'billing'])
+  expect(findTags(wrapper)).toEqual(['billing', 'production'])
+})
+
+it('renders the VM tags with the brand accent', () => {
+  const wrapper = mountGeneralInfo(createVm({ tags: ['production', 'billing'] }))
+
+  expect(wrapper.findAll('.ui-tag').every(tag => tag.classes('accent--brand'))).toBe(true)
 })
 
 it('renders no tag when the VM has none', () => {

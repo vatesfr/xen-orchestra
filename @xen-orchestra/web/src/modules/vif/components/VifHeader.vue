@@ -17,7 +17,7 @@
   <UiHeadBar icon="object:vif">
     {{ t('vif-device', { device: vif.device }) }}
   </UiHeadBar>
-  <TabList>
+  <TabList :label="t('vif-device', { device: vif.device })">
     <RouterLink v-slot="{ isActive, href }" :to="{ name: '/vif/[id]/general', params: { id: vif.id } }" custom>
       <UiTabItem :active="isActive" :href tag="a">
         {{ t('general') }}

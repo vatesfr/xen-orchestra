@@ -1,6 +1,7 @@
 import { defineColumns } from '@core/packages/table/define-columns.ts'
+import { useActionColumn } from '@core/tables/column-definitions/action-column.ts'
+import { useCheckboxColumn } from '@core/tables/column-definitions/checkbox-column.ts'
 import { useLinkColumn } from '@core/tables/column-definitions/link-column.ts'
-import { useSelectItemColumn } from '@core/tables/column-definitions/select-item-column.ts'
 import { useStatusColumn } from '@core/tables/column-definitions/status-column.ts'
 import { useTextColumn } from '@core/tables/column-definitions/text-column.ts'
 import { useI18n } from 'vue-i18n'
@@ -9,7 +10,8 @@ export const useBackupJobColumns = defineColumns(() => {
   const { t } = useI18n()
 
   return {
-    backupJob: useLinkColumn({ headerLabel: () => t('backup-job') }),
+    checkbox: useCheckboxColumn(),
+    backupJob: useLinkColumn({ headerLabel: () => t('backup-job'), flexible: true }),
     type: useTextColumn({ headerLabel: () => t('type') }),
     mode: useTextColumn({ headerLabel: () => t('mode') }),
     lastRuns: useStatusColumn({
@@ -17,7 +19,8 @@ export const useBackupJobColumns = defineColumns(() => {
       iconOnly: true,
       progressiveSize: true,
     }),
+    status: useStatusColumn({ headerLabel: () => t('status') }),
     healthCheck: useStatusColumn({ headerLabel: () => t('health-check') }),
-    selectItem: useSelectItemColumn(),
+    actions: useActionColumn({}),
   }
 })

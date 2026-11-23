@@ -3,14 +3,16 @@
     <UiCard class="container">
       <NetworksTable :busy="!areNetworksReady" :error="hasNetworkFetchError" :networks>
         <template #title-actions>
-          <MenuList placement="bottom-end">
-            <template #trigger="{ open }">
-              <UiDropdownButton size="medium" variant="primary" @click="open($event)">{{ t('new') }}</UiDropdownButton>
+          <VtsResponsiveMenu :title="t('new')" placement="bottom-end">
+            <template #trigger="{ open, bindings }">
+              <UiDropdownButton v-bind="bindings" variant="primary" size="medium" @click="open($event)">
+                {{ t('new') }}
+              </UiDropdownButton>
             </template>
             <MenuItem accent="neutral">
               <UiLink
-                class="new-network-link"
                 :to="{ name: '/network/new', query: { poolid: pool.id } }"
+                class="new-network-link"
                 icon="fa:plus"
                 size="small"
               >
@@ -19,18 +21,28 @@
             </MenuItem>
             <MenuItem accent="neutral">
               <UiLink
-                class="new-network-link"
                 :to="{ name: '/network/new-bonded', query: { poolid: pool.id } }"
+                class="new-network-link"
                 icon="fa:plus"
                 size="small"
               >
                 {{ t('action:create-bonded-network') }}
               </UiLink>
             </MenuItem>
-          </MenuList>
+          </VtsResponsiveMenu>
         </template>
       </NetworksTable>
-      <NetworksTable :busy="!areNetworksReady" :error="hasNetworkFetchError" :networks="internalNetworks" internal>
+      <NetworksTable :busy="!areNetworksReady" :error="hasNetworkFetchError" :networks="privateNetworks" type="private">
+        <template #title-actions>
+          <PoolNewPrivateNetworkButton :pool />
+        </template>
+      </NetworksTable>
+      <NetworksTable
+        :busy="!areNetworksReady"
+        :error="hasNetworkFetchError"
+        :networks="internalNetworks"
+        type="internal"
+      >
         <template #title-actions>
           <UiLink :to="{ name: '/network/new-internal', query: { poolid: pool.id } }" icon="fa:plus" size="medium">
             {{ t('new') }}
@@ -38,21 +50,24 @@
         </template>
       </NetworksTable>
     </UiCard>
-    <NetworkSidePanel :network="selectedNetwork" @close="selectedNetwork = undefined" />
+    <template #panel>
+      <NetworkSidePanel :network="selectedNetwork" @close="selectedNetwork = undefined" />
+    </template>
   </VtsContentSidePanel>
 </template>
 
-<script setup lang="ts">
+<script lang="ts" setup>
 import NetworksTable from '@/modules/network/components/NetworksTable.vue'
 import NetworkSidePanel from '@/modules/network/components/panel/NetworkSidePanel.vue'
 import {
   type FrontXoNetwork,
   useXoNetworkCollection,
 } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
+import PoolNewPrivateNetworkButton from '@/modules/pool/components/actions/new-private-network/PoolNewPrivateNetworkButton.vue'
 import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import VtsContentSidePanel from '@core/components/layout/VtsContentSidePanel.vue'
 import MenuItem from '@core/components/menu/MenuItem.vue'
-import MenuList from '@core/components/menu/MenuList.vue'
+import VtsResponsiveMenu from '@core/components/menu/VtsResponsiveMenu.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiDropdownButton from '@core/components/ui/dropdown-button/UiDropdownButton.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
@@ -66,12 +81,20 @@ const { pool } = defineProps<{
 
 const { t } = useI18n()
 
-const { areNetworksReady, hasNetworkFetchError, networksWithoutPifs, networksWithPifs, getNetworkById } =
-  useXoNetworkCollection()
+const {
+  areNetworksReady,
+  hasNetworkFetchError,
+  physicalNetworks,
+  privateNetworks: allPrivateNetworks,
+  internalNetworks: allInternalNetworks,
+  getNetworkById,
+} = useXoNetworkCollection()
 
-const internalNetworks = computed(() => networksWithoutPifs.value.filter(network => network.$pool === pool.id))
+const networks = computed(() => physicalNetworks.value.filter(network => network.$pool === pool.id))
 
-const networks = computed(() => networksWithPifs.value.filter(network => network.$pool === pool.id))
+const privateNetworks = computed(() => allPrivateNetworks.value.filter(network => network.$pool === pool.id))
+
+const internalNetworks = computed(() => allInternalNetworks.value.filter(network => network.$pool === pool.id))
 
 const selectedNetwork = useRouteQuery<FrontXoNetwork | undefined>('id', {
   toData: id => getNetworkById(id as FrontXoNetwork['id']),
@@ -79,7 +102,7 @@ const selectedNetwork = useRouteQuery<FrontXoNetwork | undefined>('id', {
 })
 </script>
 
-<style scoped lang="postcss">
+<style lang="postcss" scoped>
 .networks {
   .container {
     height: fit-content;
@@ -93,7 +116,7 @@ const selectedNetwork = useRouteQuery<FrontXoNetwork | undefined>('id', {
 * This selector extends the clickable area of the links for better accessibility
 */
 .new-network-link {
-  height: 100%;
-  width: 100%;
+  flex-grow: 1;
+  padding-block: 1.2rem;
 }
 </style>

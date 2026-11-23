@@ -43,7 +43,7 @@ A VM directory holds **both** the full and the incremental backups of that VM: t
 
 Transient entries, not listed in the trees below:
 
-- `xo-vm-backups/<VM UUID>.lock`, held for the duration of a job run on that VM. When listing VMs, entries starting with `.` and entries ending with `.lock` are ignored.
+- `xo-vm-backups/<VM UUID>.lock`, held while a job writes to that VM's folder and while `cleanVm` cleans or merges it (after a job, after a deletion, or in the merge worker on local remotes). It is effective on S3 (an object rewritten every 30 seconds) and Azure (blob lease) too. When listing VMs, entries starting with `.` and entries ending with `.lock` are ignored.
 - `xo-vm-backups/.queue/clean-vm/<YYYYMMDD>T<HHmmss>-<random>`, the merge worker queue
 - `.<VHD file name>.merge.json`, in a VDI directory, interrupted merge states.
 
@@ -167,6 +167,7 @@ Append-only log of what happened to the VM backup metadata.
 - entries are never modified nor overwritten, so it works on an immutable remote
 - written unencrypted, so it stays readable without the encryption key
 - one directory per day: a reader lists only the days it misses, a purge drops whole directories
+- xo-server removes the days older than `backups.journalRetention` from every enabled remote when it starts, then once a day; it always keeps the `fullListingInterval` of the remote, during which it reads the journal back; a day which cannot be removed is skipped, and the next purge tries it again
 - the time part has a fixed width, so sorting the names by name sorts them by date
 - `event` is `add`, `change` or `del`, and the file content also has a `reason` field
 - the name of the file is only there to be read by a human: XO reads every field from the file content

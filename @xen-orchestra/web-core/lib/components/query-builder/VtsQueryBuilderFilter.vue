@@ -1,14 +1,15 @@
 <template>
   <div class="vts-query-builder-filter">
-    <VtsSelect :id="propertySelectId" ref="propertySelector" accent="brand" />
-    <VtsSelect :id="operatorSelectId" accent="brand" />
-    <UiInput v-if="valueType === 'input'" v-model="value" class="value" accent="brand" />
-    <VtsSelect v-else-if="valueType === 'select'" :id="valueSelectId" class="value" accent="brand" />
+    <VtsSelect :id="propertySelectId" ref="propertySelector" accent="neutral" />
+    <VtsSelect :id="operatorSelectId" accent="neutral" />
+    <UiInput v-if="valueType === 'input'" v-model="value" class="value" accent="neutral" />
+    <VtsSelect v-else-if="valueType === 'select'" :id="valueSelectId" class="value" accent="neutral" />
     <div>
       <MenuList :placement="uiStore.isSmall ? 'bottom' : 'bottom-end'">
-        <template #trigger="{ open }">
+        <template #trigger="{ open, bindings }">
           <UiButton
             v-if="uiStore.isSmall"
+            v-bind="bindings"
             class="actions-button"
             variant="secondary"
             icon="fa:ellipsis"
@@ -18,7 +19,7 @@
           >
             {{ t('filter-actions') }}
           </UiButton>
-          <UiButtonIcon v-else icon="fa:ellipsis" size="medium" accent="brand" @click="open" />
+          <UiButtonIcon v-else v-bind="bindings" icon="fa:ellipsis" size="medium" accent="brand" @click="open" />
         </template>
         <MenuItem accent="neutral" icon="fa:clone" @click="emit('duplicate')">{{ t('action:duplicate') }}</MenuItem>
         <MenuItem accent="neutral" icon="fa:layer-group" @click="emit('convertToGroup')">

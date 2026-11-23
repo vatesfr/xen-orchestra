@@ -9,7 +9,7 @@
         @duplicate="emit('duplicate')"
         @remove="keepChildren => emit('remove', keepChildren)"
       />
-      <UiInput v-else-if="!node.isValid" :model-value="node.rawFilter" class="raw-filter" disabled accent="brand" />
+      <UiInput v-else-if="!node.isValid" :model-value="node.rawFilter" class="raw-filter" disabled accent="neutral" />
       <VtsQueryBuilderFilter
         v-else
         v-model:property="node.property"

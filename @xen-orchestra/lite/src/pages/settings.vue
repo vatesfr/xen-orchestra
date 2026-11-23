@@ -1,114 +1,120 @@
 <template>
   <UiHeadBar icon="fa:gear">{{ t('settings') }}</UiHeadBar>
-  <UiCard class="settings-page">
-    <UiTitle>{{ t('about') }}</UiTitle>
-    <VtsColumns class="about-columns">
-      <VtsTabularKeyValueList>
-        <div class="typo-h5">Xen Orchestra Lite</div>
+  <div class="scroll-container">
+    <UiCard class="settings-page">
+      <UiTitle>{{ t('about') }}</UiTitle>
+      <VtsColumns class="about-columns">
         <VtsTabularKeyValueList>
-          <VtsTabularKeyValueRow :label="t('version')">
-            <template #value>
-              {{ `v${xoLiteVersion}` }}
-              <code v-if="xoLiteGitHead">{{ `(${xoLiteGitHead.slice(0, 5)})` }}</code>
-            </template>
-          </VtsTabularKeyValueRow>
-          <VtsTabularKeyValueRow :label="t('news')">
-            <template #value>
-              <UiLink size="medium" href="https://xen-orchestra.com/blog/">
-                {{ t('news-name', { name: 'Xen Orchestra' }) }}
-              </UiLink>
-            </template>
-          </VtsTabularKeyValueRow>
-          <VtsTabularKeyValueRow :label="t('community')">
-            <template #value>
-              <UiLink size="medium" href="https://xcp-ng.org/forum/category/12/xen-orchestra">
-                {{ t('community-name', { name: 'Xen Orchestra' }) }}
-              </UiLink>
-            </template>
-          </VtsTabularKeyValueRow>
-          <!-- #TODO we dont have ofical documentation for xo-lite -->
-          <!--
- <VtsTabularKeyValueRow :label="t('documentation')">
-            <template #value>
-              <UiLink size="medium" href="https://github.com/vatesfr/xen-orchestra/tree/master/%40xen-orchestra/lite">
-                {{ t('documentation-name', { name: 'XO Lite' }) }}
-              </UiLink>
-            </template>
-          </VtsTabularKeyValueRow>
--->
+          <div class="typo-h5">Xen Orchestra Lite</div>
+          <VtsTabularKeyValueList>
+            <VtsTabularKeyValueRow :label="t('version')">
+              <template #value>
+                {{ `v${xoLiteVersion}` }}
+                <code v-if="xoLiteGitHead">{{ `(${xoLiteGitHead.slice(0, 5)})` }}</code>
+              </template>
+            </VtsTabularKeyValueRow>
+            <VtsTabularKeyValueRow :label="t('news')">
+              <template #value>
+                <UiLink size="medium" href="https://xen-orchestra.com/blog/">
+                  {{ t('news-name', { name: 'Xen Orchestra' }) }}
+                </UiLink>
+              </template>
+            </VtsTabularKeyValueRow>
+            <VtsTabularKeyValueRow :label="t('community')">
+              <template #value>
+                <UiLink size="medium" href="https://xcp-ng.org/forum/category/12/xen-orchestra">
+                  {{ t('community-name', { name: 'Xen Orchestra' }) }}
+                </UiLink>
+              </template>
+            </VtsTabularKeyValueRow>
+            <!-- #TODO we dont have ofical documentation for xo-lite -->
+            <!--
+   <VtsTabularKeyValueRow :label="t('documentation')">
+              <template #value>
+                <UiLink size="medium" href="https://github.com/vatesfr/xen-orchestra/tree/master/%40xen-orchestra/lite">
+                  {{ t('documentation-name', { name: 'XO Lite' }) }}
+                </UiLink>
+              </template>
+            </VtsTabularKeyValueRow>
+  -->
+          </VtsTabularKeyValueList>
         </VtsTabularKeyValueList>
-      </VtsTabularKeyValueList>
-      <VtsTabularKeyValueList>
-        <div class="typo-h5">XCP-ng</div>
         <VtsTabularKeyValueList>
-          <VtsTabularKeyValueRow :label="t('version')">
-            <template #value>{{ `v${xcpVersion}` }}</template>
-          </VtsTabularKeyValueRow>
-          <VtsTabularKeyValueRow :label="t('news')">
-            <template #value>
-              <UiLink size="medium" href="https://xcp-ng.org/blog/">
-                {{ t('news-name', { name: 'XCP-ng' }) }}
-              </UiLink>
-            </template>
-          </VtsTabularKeyValueRow>
-          <VtsTabularKeyValueRow :label="t('community')">
-            <template #value>
-              <UiLink size="medium" href="https://xcp-ng.org/forum">
-                {{ t('community-name', { name: 'XCP-ng' }) }}
-              </UiLink>
-            </template>
-          </VtsTabularKeyValueRow>
-          <VtsTabularKeyValueRow :label="t('documentation')">
-            <template #value>
-              <UiLink size="medium" href="https://xcp-ng.org/docs/">
-                {{ t('documentation-name', { name: 'XCP-ng' }) }}
-              </UiLink>
-            </template>
-          </VtsTabularKeyValueRow>
-          <VtsTabularKeyValueRow :label="t('support')">
-            <template #value>
-              <UiLink size="medium" href="https://xcp-ng.com/">
-                {{ t('professional-support') }}
-              </UiLink>
-            </template>
-          </VtsTabularKeyValueRow>
+          <div class="typo-h5">XCP-ng</div>
+          <VtsTabularKeyValueList>
+            <VtsTabularKeyValueRow :label="t('version')">
+              <template #value>{{ `v${xcpVersion}` }}</template>
+            </VtsTabularKeyValueRow>
+            <VtsTabularKeyValueRow :label="t('news')">
+              <template #value>
+                <UiLink size="medium" href="https://xcp-ng.org/blog/">
+                  {{ t('news-name', { name: 'XCP-ng' }) }}
+                </UiLink>
+              </template>
+            </VtsTabularKeyValueRow>
+            <VtsTabularKeyValueRow :label="t('community')">
+              <template #value>
+                <UiLink size="medium" href="https://xcp-ng.org/forum">
+                  {{ t('community-name', { name: 'XCP-ng' }) }}
+                </UiLink>
+              </template>
+            </VtsTabularKeyValueRow>
+            <VtsTabularKeyValueRow :label="t('documentation')">
+              <template #value>
+                <UiLink size="medium" href="https://xcp-ng.org/docs/">
+                  {{ t('documentation-name', { name: 'XCP-ng' }) }}
+                </UiLink>
+              </template>
+            </VtsTabularKeyValueRow>
+            <VtsTabularKeyValueRow :label="t('support')">
+              <template #value>
+                <UiLink size="medium" href="https://xcp-ng.com/">
+                  {{ t('professional-support') }}
+                </UiLink>
+              </template>
+            </VtsTabularKeyValueRow>
+          </VtsTabularKeyValueList>
         </VtsTabularKeyValueList>
-      </VtsTabularKeyValueList>
-    </VtsColumns>
-    <UiTitle>{{ t('appearance') }}</UiTitle>
-    <div class="options">
-      <div
-        v-for="colorModeOption in colorModeOptions"
-        :key="colorModeOption"
-        class="option"
-        :class="{ selected: uiStore.colorMode === colorModeOption }"
-        @click="uiStore.colorMode = colorModeOption"
-      >
-        <img v-if="colorModeOption === 'light'" src="../assets/color-mode-light.svg" :alt="t('dark-mode:disable')" />
-        <img v-else-if="colorModeOption === 'dark'" src="../assets/color-mode-dark.svg" :alt="t('dark-mode:enable')" />
-        <img v-else src="../assets/color-mode-auto.svg" :alt="t('dark-mode:auto')" />
-        <span>
-          <VtsIcon v-if="uiStore.colorMode === colorModeOption" name="fa:check" size="medium" />
-          {{ t(`theme-${colorModeOption}`) }}
-        </span>
+      </VtsColumns>
+      <UiTitle>{{ t('appearance') }}</UiTitle>
+      <div class="options">
+        <div
+          v-for="colorModeOption in colorModeOptions"
+          :key="colorModeOption"
+          class="option"
+          :class="{ selected: uiStore.colorMode === colorModeOption }"
+          @click="uiStore.colorMode = colorModeOption"
+        >
+          <img v-if="colorModeOption === 'light'" src="../assets/color-mode-light.svg" :alt="t('dark-mode:disable')" />
+          <img
+            v-else-if="colorModeOption === 'dark'"
+            src="../assets/color-mode-dark.svg"
+            :alt="t('dark-mode:enable')"
+          />
+          <img v-else src="../assets/color-mode-auto.svg" :alt="t('dark-mode:auto')" />
+          <span>
+            <VtsIcon v-if="uiStore.colorMode === colorModeOption" name="fa:check" size="medium" />
+            {{ t(`theme-${colorModeOption}`) }}
+          </span>
+        </div>
       </div>
-    </div>
-    <UiTitle>{{ t('language') }}</UiTitle>
-    <!-- for regular spacing using VtsQuickInfoRow even label template is not used for this -->
-    <VtsKeyValueList>
-      <VtsKeyValueRow>
-        <template #label>
-          <VtsSelect :id="localeSelectId" accent="brand" />
-        </template>
-        <template #value>
-          <UiLink size="medium" href="https://translate.vates.tech/engage/xen-orchestra/">
-            {{ t('missing-translations?') }}
-          </UiLink>
-        </template>
-      </VtsKeyValueRow>
-    </VtsKeyValueList>
-    <UiInfo accent="info">{{ t('untranslated-text-helper') }}</UiInfo>
-  </UiCard>
+      <UiTitle>{{ t('language') }}</UiTitle>
+      <!-- for regular spacing using VtsQuickInfoRow even label template is not used for this -->
+      <VtsKeyValueList>
+        <VtsKeyValueRow>
+          <template #label>
+            <VtsSelect :id="localeSelectId" accent="neutral" />
+          </template>
+          <template #value>
+            <UiLink size="medium" href="https://translate.vates.tech/engage/xen-orchestra/">
+              {{ t('missing-translations?') }}
+            </UiLink>
+          </template>
+        </VtsKeyValueRow>
+      </VtsKeyValueList>
+      <UiInfo accent="info">{{ t('untranslated-text-helper') }}</UiInfo>
+    </UiCard>
+  </div>
 </template>
 
 <script lang="ts" setup>
@@ -166,6 +172,12 @@ const { id: localeSelectId } = useFormSelect(availableLocales, {
 </script>
 
 <style lang="postcss" scoped>
+.scroll-container {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
 .settings-page {
   margin: 0.8rem;
 

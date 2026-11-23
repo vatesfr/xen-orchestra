@@ -1,17 +1,19 @@
 <template>
-  <VtsColumns extra-space-around>
-    <VtsColumn>
-      <VmSystemGeneralInfo :vm />
-      <VmSystemNetworking :vm />
-      <VmSystemStorageConfig :vm />
-      <VmSystemResource :vm />
-    </VtsColumn>
-    <VtsColumn>
-      <VmSystemVirtualizationAndBoot :vm />
-      <VmSystemManagement :vm />
-      <VmSystemGraphics :vm />
-    </VtsColumn>
-  </VtsColumns>
+  <div class="scroll-container">
+    <VtsColumns extra-space-around>
+      <VtsColumn>
+        <VmSystemGeneralInfo :vm />
+        <VmSystemNetworking :vm />
+        <VmSystemStorageConfig :vm />
+        <VmSystemResource :vm />
+      </VtsColumn>
+      <VtsColumn>
+        <VmSystemVirtualizationAndBoot :vm />
+        <VmSystemManagement :vm />
+        <VmSystemGraphics :vm />
+      </VtsColumn>
+    </VtsColumns>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -28,3 +30,11 @@ import VtsColumns from '@core/components/columns/VtsColumns.vue'
 
 defineProps<{ vm: FrontXoVm }>()
 </script>
+
+<style lang="postcss" scoped>
+.scroll-container {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+</style>

@@ -53,14 +53,10 @@
     <VtsKeyValueList>
       <VtsKeyValueRow :label="t('vcpus')" :value="String(vm.CPUs.number)" />
       <VtsKeyValueRow :label="t('ram')" :value="ram" />
-      <VtsKeyValueRow :label="t('tags')">
-        <template #value>
-          <UiTagsList v-if="vm.tags.length > 0">
-            <VtsTag v-for="tag in vm.tags" :key="tag" :value="tag" />
-          </UiTagsList>
-        </template>
-      </VtsKeyValueRow>
     </VtsKeyValueList>
+    <template #footer>
+      <VmTagsEditor :vm class="typo-body-regular" />
+    </template>
   </VtsQuickInfoCard>
 </template>
 
@@ -68,6 +64,7 @@
 import HostLink from '@/modules/host/components/HostLink.vue'
 import { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import { useXoUserResource } from '@/modules/user/remote-resources/use-xo-user.ts'
+import VmTagsEditor from '@/modules/vm/components/tags/VmTagsEditor.vue'
 import VmGuestToolsStatus from '@/modules/vm/components/VmGuestToolsStatus.vue'
 import { useXoVmUtils } from '@/modules/vm/composables/xo-vm-utils.composable.ts'
 import { type FrontXoVm, useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
@@ -75,9 +72,7 @@ import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsKeyValueList from '@core/components/key-value-list/VtsKeyValueList.vue'
 import VtsKeyValueRow from '@core/components/key-value-row/VtsKeyValueRow.vue'
 import VtsQuickInfoCard from '@core/components/quick-info-card/VtsQuickInfoCard.vue'
-import VtsTag from '@core/components/tag/VtsTag.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
-import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import { formatSize } from '@core/utils/size.util.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'

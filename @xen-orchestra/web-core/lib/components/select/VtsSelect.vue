@@ -22,7 +22,7 @@
               v-model="searchTerm"
               :placeholder="searchPlaceholder"
               right-icon="fa:magnifying-glass"
-              accent="brand"
+              accent="neutral"
               detached
             />
           </div>
@@ -58,7 +58,7 @@ import { computed, inject } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { accent, id } = defineProps<{
-  accent: 'brand' | 'warning' | 'danger'
+  accent: 'neutral' | 'warning' | 'danger'
   id: TSelectId
 }>()
 
@@ -117,6 +117,10 @@ defineExpose({
   .search-container {
     background-color: var(--color-neutral-background-primary);
     padding: 0.4rem;
+
+    .ui-input:deep(input) {
+      width: 0;
+    }
   }
 }
 </style>

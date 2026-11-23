@@ -151,10 +151,20 @@ export type RollingPoolActionBody = {
 
 export type FinalizeRollingUpdateBody = {
   /**
-   * Close the record even though the update left items unrestored, or its record cannot be read: they are abandoned
-   * and listed in the task, nothing is restored nor changed in the pool. Defaults to false.
+   * Close the record without restoring what the update left unrestored, or when its record cannot be read: the items
+   * are abandoned and listed in the task, nothing is restored nor changed in the pool. Defaults to false.
    */
   force?: boolean
+}
+
+export type ResumeRollingUpdateBody = {
+  /**
+   * Keep what an operator changed since the update: the update starts from the current state, as a new one would.
+   * Without it, such changes block the update. Defaults to false.
+   */
+  acceptOperatorChanges?: boolean
+  /** Skip the backup safety check before rebooting the hosts, asked again on each resume. Defaults to false. */
+  bypassBackupCheck?: boolean
 }
 
 export type RollingPoolUpdateBody = RollingPoolActionBody & {

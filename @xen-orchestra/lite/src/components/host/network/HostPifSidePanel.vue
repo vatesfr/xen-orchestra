@@ -4,7 +4,7 @@
       <VtsForgetButton
         :busy="isForgettingPifs"
         :disabled="!canForgetPifs"
-        :tooltip="!canForgetPifs && forgetPifsErrorMessage"
+        :hint="forgetPifsErrorMessage"
         @click="forgetPifs()"
       />
     </template>

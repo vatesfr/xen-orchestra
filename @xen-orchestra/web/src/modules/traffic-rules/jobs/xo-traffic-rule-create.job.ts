@@ -1,4 +1,8 @@
 import { payloadsArg } from '@/modules/traffic-rules/jobs/xo-traffic-rule-create-args.ts'
+import {
+  MAX_TRAFFIC_RULE_PRIORITY,
+  MIN_TRAFFIC_RULE_PRIORITY,
+} from '@/modules/traffic-rules/utils/xo-traffic-rule.util.ts'
 import { useXoTaskUtils } from '@/shared/composables/xo-task-utils.composable.ts'
 import { fetchPost } from '@/shared/utils/fetch.util.ts'
 import { defineJob, JobError, JobRunningError } from '@core/packages/job'
@@ -21,6 +25,7 @@ export type TrafficRulePayload = {
   protocol: TrafficRuleProtocol
   ipRange: string
   port: number | null
+  priority?: number
 }
 
 export const useXoTrafficRuleCreateJob = defineJob('traffic-rule.create', [payloadsArg], () => {
@@ -68,6 +73,17 @@ export const useXoTrafficRuleCreateJob = defineJob('traffic-rule.create', [paylo
         }
         if (TRAFFIC_RULE_PROTOCOLS_WITH_PORT.includes(payload.protocol) && payload.port === undefined) {
           throw new JobError(t('job:arg:port-required-for-tcp-udp'))
+        }
+        if (payload.priority !== undefined) {
+          const isInteger = Number.isInteger(payload.priority)
+          const isInRange =
+            payload.priority >= MIN_TRAFFIC_RULE_PRIORITY && payload.priority <= MAX_TRAFFIC_RULE_PRIORITY
+
+          if (!isInteger || !isInRange) {
+            throw new JobError(
+              t('job:arg:priority-invalid', { min: MIN_TRAFFIC_RULE_PRIORITY, max: MAX_TRAFFIC_RULE_PRIORITY })
+            )
+          }
         }
       })
     },

@@ -1,6 +1,6 @@
 <template>
   <JsonSchemaInputWrapper :label :description :path>
-    <VtsSelect :id accent="brand" />
+    <VtsSelect :id accent="neutral" />
   </JsonSchemaInputWrapper>
 </template>
 

@@ -3,7 +3,9 @@
     <UiCard class="container">
       <PifsTable :pifs />
     </UiCard>
-    <PifSidePanel :pif="selectedPif" @close="selectedPif = undefined" />
+    <template #panel>
+      <PifSidePanel :pif="selectedPif" @close="selectedPif = undefined" />
+    </template>
   </VtsContentSidePanel>
 </template>
 

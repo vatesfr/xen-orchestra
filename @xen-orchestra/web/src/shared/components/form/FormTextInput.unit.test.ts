@@ -1,0 +1,64 @@
+import FormTextInput from '@/shared/components/form/FormTextInput.vue'
+import { findInputLabels } from '@/test/find-input-labels.ts'
+import { dangerMessage } from '@/test/form-messages.ts'
+import { createGlobalTestConfig } from '@/test/global-test-config.ts'
+import UiInput from '@core/components/ui/input/UiInput.vue'
+import { blurField, setFieldValue } from '@core-test/field-events.ts'
+import { findInfoLabels } from '@core-test/find-accented-labels.ts'
+import { readForwardedFlag } from '@core-test/read-forwarded-flag.ts'
+import { mount } from '@vue/test-utils'
+
+type TextInputProps = InstanceType<typeof FormTextInput>['$props']
+
+function mountTextInput(props: Partial<TextInputProps> = {}) {
+  return mount(FormTextInput, {
+    props: { label: 'Host', modelValue: '', ...props },
+    global: createGlobalTestConfig(),
+  })
+}
+
+it('renders its label', () => {
+  expect(findInputLabels(mountTextInput())).toEqual(['Host'])
+})
+
+it.each(['required', 'disabled'] as const)('forwards %s to the input when asked to', flag => {
+  expect(readForwardedFlag(mountTextInput, UiInput, flag)).toEqual([true, false])
+})
+
+it('shows its placeholder', () => {
+  expect(mountTextInput({ placeholder: '192.168.1.10' }).get('input').attributes('placeholder')).toBe('192.168.1.10')
+})
+
+it('shows no message without information nor error', () => {
+  expect(findInfoLabels(mountTextInput())).toEqual([])
+})
+
+it('shows its information', () => {
+  expect(findInfoLabels(mountTextInput({ info: 'Root by default' }))).toEqual(['Root by default'])
+})
+
+it('shows its error', () => {
+  expect(findInfoLabels(mountTextInput({ error: dangerMessage('Host is required.') }))).toEqual(['Host is required.'])
+})
+
+it('shows both its information and its error', () => {
+  const wrapper = mountTextInput({ info: 'Root by default', error: dangerMessage('Host is required.') })
+
+  expect(findInfoLabels(wrapper).sort()).toEqual(['Host is required.', 'Root by default'])
+})
+
+it('trims the typed value', async () => {
+  expect(await setFieldValue(mountTextInput(), 'input', '  vcenter.lab  ')).toEqual([['vcenter.lab']])
+})
+
+it('emits blur when the input loses focus', async () => {
+  expect(await blurField(mountTextInput(), 'input')).toHaveLength(1)
+})
+
+it('shows the prefix ahead of the value', () => {
+  expect(mountTextInput({ prefix: '\\\\' }).get('.prefix').text()).toBe('\\\\')
+})
+
+it('uses the input type it is given', () => {
+  expect(mountTextInput({ type: 'password' }).getComponent(UiInput).props('type')).toBe('password')
+})

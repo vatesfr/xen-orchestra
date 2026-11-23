@@ -6,7 +6,7 @@
         <slot name="title-actions" />
       </template>
     </UiTitle>
-    <VtsQueryBuilder :model-value="filter" :schema @search="filter = $event" />
+    <VtsQueryBuilder v-bind="searchBindings" :schema />
     <div class="container">
       <VtsTable :state :pagination-bindings sticky="right">
         <thead>
@@ -69,7 +69,7 @@ const { t } = useI18n()
 
 const selectedPifId = useRouteQuery('id')
 
-const { items: filteredPifs, filter } = useQueryBuilderFilter('pifs', () => rawPifs)
+const { items: filteredPifs, searchBindings } = useQueryBuilderFilter('pifs', () => rawPifs)
 
 const schema = useQueryBuilderSchema<FrontXoPif>({
   '': useStringSchema(t('any-property')),

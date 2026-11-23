@@ -1,51 +1,29 @@
 import BackupJobInfosCard from '@/modules/backup-job/components/list/panel/cards/BackupJobInfosCard.vue'
 import type { FrontAnyXoBackupJob } from '@/modules/backup-job/remote-resources/use-xo-backup-job-collection.ts'
-import type { useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
-import type { useXoPbdCollection } from '@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'
-import type {
-  FrontXoSr,
-  useXoSrCollection,
-} from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
-import type { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
+import type { FrontXoSchedule } from '@/modules/schedule/remote-resources/use-xo-schedule-collection.ts'
+import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import { createMetadataBackupJob, createVmBackupJob } from '@/test/create-backup-job.ts'
+import { createSchedule } from '@/test/create-schedule.ts'
 import { createSr } from '@/test/create-sr.ts'
-import { findCardLabelledValueLists, findCardLabelledValues } from '@/test/find-rendered-values.ts'
+import {
+  findCardLabelledValueLists,
+  findCardLabelledValues,
+  findCardRowLinks,
+  findCardRows,
+} from '@/test/find-rendered-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
+import { xoCollectionsMock, mockXoCollections } from '@/test/mock-xo-collections.ts'
+import { mockXoRoutes } from '@/test/mock-xo-routes.ts'
 import VtsCopyAllMenuItem from '@core/components/copy-all-menu-item/VtsCopyAllMenuItem.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
-import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
 import type { XoSchedule } from '@vates/types'
-import { mount } from '@vue/test-utils'
-import { ref } from 'vue'
+import { mount, type VueWrapper } from '@vue/test-utils'
 
-const { srs } = vi.hoisted(() => ({
-  srs: [] as FrontXoSr[],
-}))
+mockXoRoutes()
 
-vi.mock(import('@/shared/remote-resources/use-xo-routes.ts'), () => ({
-  useXoRoutes: (() => ({
-    buildXo5Route: (path: string) => `https://xo5.example.com/#${path}`,
-  })) as unknown as typeof useXoRoutes,
-}))
-
-vi.mock(import('@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'), () => ({
-  useXoSrCollection: (() => ({
-    getSrById: (id: FrontXoSr['id']) => srs.find(sr => sr.id === id),
-  })) as unknown as typeof useXoSrCollection,
-}))
-
-vi.mock(import('@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'), () => ({
-  useXoPbdCollection: (() => ({
-    getPbdsByIds: () => [],
-    pbdsBySr: ref(new Map()),
-  })) as unknown as typeof useXoPbdCollection,
-}))
-
-vi.mock(import('@/modules/host/remote-resources/use-xo-host-collection.ts'), () => ({
-  useXoHostCollection: (() => ({ getHostById: () => undefined })) as unknown as typeof useXoHostCollection,
-}))
+mockXoCollections('host', 'pbd', 'sr')
 
 const firstScheduleId = 'schedule-1' as XoSchedule['id']
 const secondScheduleId = 'schedule-2' as XoSchedule['id']
@@ -53,18 +31,21 @@ const secondScheduleId = 'schedule-2' as XoSchedule['id']
 const healthCheckSr = createSr({ id: 'sr-1' as FrontXoSr['id'], name_label: 'Health check SR' })
 
 beforeEach(() => {
-  srs.splice(0, srs.length, healthCheckSr)
+  xoCollectionsMock.reset()
+  xoCollectionsMock.srs.value = [healthCheckSr]
 })
 
-function mountInfosCard(backupJob: FrontAnyXoBackupJob) {
+function mountInfosCard(backupJob: FrontAnyXoBackupJob, schedules: FrontXoSchedule[] = [createSchedule()]) {
   return mount(BackupJobInfosCard, {
-    props: { backupJob },
+    props: { backupJob, schedules },
     global: createGlobalTestConfig(),
   })
 }
 
-function findValues(wrapper: ReturnType<typeof mountInfosCard>) {
-  return wrapper.findAll('.vts-card-row-key-value').map(row => row.get('.value').text())
+function findStatuses(wrapper: ReturnType<typeof mountInfosCard>) {
+  return (wrapper.findAllComponents(VtsStatus) as VueWrapper<InstanceType<typeof VtsStatus>>[]).map(status =>
+    status.props('status')
+  )
 }
 
 it('titles the card with the backup job, linked to the XO 5 backup overview', () => {
@@ -118,7 +99,24 @@ it('shows the mode and the health check status of the backup job', () => {
     [t('mode')]: t('incremental'),
     [t('health-check-sr')]: 'Health check SR',
   })
-  expect(wrapper.getComponent(VtsStatus).props('status')).toBe('at-least-one-enabled')
+  expect(findStatuses(wrapper)[1]).toBe('at-least-one-enabled')
+})
+
+it('shows the backup job as enabled when at least one of its schedules is enabled', () => {
+  const wrapper = mountInfosCard(createVmBackupJob(), [
+    createSchedule({ id: firstScheduleId, enabled: false }),
+    createSchedule({ id: secondScheduleId, enabled: true }),
+  ])
+
+  expect(findStatuses(wrapper)[0]).toBe(true)
+})
+
+it('shows the backup job as disabled when none of its schedules is enabled', () => {
+  expect(findStatuses(mountInfosCard(createVmBackupJob(), [createSchedule({ enabled: false })]))[0]).toBe(false)
+})
+
+it('shows a backup job without schedule as disabled', () => {
+  expect(findStatuses(mountInfosCard(createVmBackupJob(), []))[0]).toBe(false)
 })
 
 it('links each health check SR to its page, and shows the id of a missing one', () => {
@@ -130,10 +128,8 @@ it('links each health check SR to its page, and shows the id of a missing one', 
     },
   })
   const wrapper = mountInfosCard(backupJob)
-  const srLinks = wrapper.findAll('.vts-card-row-key-value').flatMap(row => row.findAllComponents(UiLink))
-
-  expect(srLinks.map(link => [link.text(), link.attributes('href')])).toEqual([['Health check SR', '/sr/sr-1/general']])
-  expect(findValues(wrapper)).toContain('sr-missing')
+  expect(findCardRowLinks(wrapper)).toEqual([['Health check SR', '/sr/sr-1/general']])
+  expect(findCardRows(wrapper).map(([, value]) => value)).toContain('sr-missing')
 })
 
 it('shows no mode nor health check for a metadata job', () => {

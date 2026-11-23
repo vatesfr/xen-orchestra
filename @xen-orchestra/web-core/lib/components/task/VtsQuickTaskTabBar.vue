@@ -1,5 +1,5 @@
 <template>
-  <TabList :disabled="loading">
+  <TabList :label="t('tasks')" :disabled="loading">
     <UiTabItem v-bind="tabs.pending.bindings">
       {{ t('in-progress') }}
       <UiCounter

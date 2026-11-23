@@ -1,9 +1,6 @@
-import type { useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import JsonSchemaField from '@/modules/plugin/components/json-schema-form/JsonSchemaField.vue'
 import type { JsonSchema } from '@/modules/plugin/utils/json-schema.util.ts'
-import type { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
-import type { useXoSrCollection } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
-import type { FrontXoVm, useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
+import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { OBFUSCATED_VALUE } from '@/shared/constants.ts'
 import { createVm } from '@/test/create-vm.ts'
 import { getButton } from '@/test/get-button.ts'
@@ -11,44 +8,29 @@ import { getCheckbox } from '@/test/get-checkbox.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { getNumberedItemLabel } from '@/test/json-schema-item-label.ts'
+import { xoCollectionsMock, mockXoCollections } from '@/test/mock-xo-collections.ts'
+import { vmCollectionMock, mockXoVmCollection } from '@/test/mock-xo-vm-collection.ts'
 import { mountJsonSchemaForm } from '@/test/mount-json-schema-form.ts'
 import { findSelectOptionLabels, openSelect, pickSelectOption } from '@/test/select.ts'
+import { setFieldValue } from '@core-test/field-events.ts'
+import { findInfoLabels } from '@core-test/find-accented-labels.ts'
 import { mount, type VueWrapper } from '@vue/test-utils'
-import { h, nextTick, ref } from 'vue'
+import { h, nextTick } from 'vue'
 
-vi.mock(import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'), () => ({
-  useXoVmCollection: (() => ({
-    vms: ref([createVm({ id: 'vm-1' as FrontXoVm['id'], name_label: 'Web server' })]),
-    areVmsReady: ref(true),
-    hasVmFetchError: ref(false),
-  })) as unknown as typeof useXoVmCollection,
-}))
+mockXoCollections('host', 'pool', 'sr')
 
-vi.mock(import('@/modules/host/remote-resources/use-xo-host-collection.ts'), () => ({
-  useXoHostCollection: (() => ({
-    hosts: ref([]),
-    areHostsReady: ref(true),
-    hasHostFetchError: ref(false),
-  })) as unknown as typeof useXoHostCollection,
-}))
+mockXoVmCollection()
 
-// The pools fail to load, to test a field without options
-vi.mock(import('@/modules/pool/remote-resources/use-xo-pool-collection.ts'), () => ({
-  useXoPoolCollection: (() => ({
-    pools: ref([]),
-    arePoolsReady: ref(false),
-    hasPoolFetchError: ref(true),
-  })) as unknown as typeof useXoPoolCollection,
-}))
-
-// The SRs never load, to test a field waiting for its options
-vi.mock(import('@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'), () => ({
-  useXoSrCollection: (() => ({
-    srs: ref([]),
-    areSrsReady: ref(false),
-    hasSrFetchError: ref(false),
-  })) as unknown as typeof useXoSrCollection,
-}))
+beforeEach(() => {
+  xoCollectionsMock.reset()
+  vmCollectionMock.reset()
+  vmCollectionMock.vms.value = [createVm({ id: 'vm-1' as FrontXoVm['id'], name_label: 'Web server' })]
+  // The pools fail to load, to test a field without options
+  xoCollectionsMock.arePoolsReady.value = false
+  xoCollectionsMock.hasPoolFetchError.value = true
+  // The SRs never load, to test a field waiting for its options
+  xoCollectionsMock.areSrsReady.value = false
+})
 
 function mountField(props: {
   schema: JsonSchema
@@ -99,22 +81,6 @@ describe('string field', () => {
     expect(wrapper.get('input').element.value).toBe('foo')
   })
 
-  it('emits the typed value', async () => {
-    const wrapper = mountField({ schema: { type: 'string' } })
-
-    await wrapper.get('input').setValue('bar')
-
-    expect(lastEmittedValue(wrapper)).toBe('bar')
-  })
-
-  it('emits undefined when the input is cleared', async () => {
-    const wrapper = mountField({ schema: { type: 'string' }, modelValue: 'foo' })
-
-    await wrapper.get('input').setValue('')
-
-    expect(wrapper.emitted('update:modelValue')).toEqual([[undefined]])
-  })
-
   it('hides passwords', () => {
     const wrapper = mountField({ schema: { type: 'string' }, path: ['password'] })
 
@@ -142,18 +108,20 @@ describe('string field', () => {
     expect(wrapper.get('textarea').element.value).toBe('foo')
   })
 
-  it('emits undefined when a multiline string is cleared', async () => {
-    const wrapper = mountField({ schema: { type: 'string', $multiline: true }, modelValue: 'foo' })
-
-    await wrapper.get('textarea').setValue('')
-
-    expect(wrapper.emitted('update:modelValue')).toEqual([[undefined]])
-  })
+  it.each([
+    { field: 'input', schema: { type: 'string' } },
+    { field: 'textarea', schema: { type: 'string', $multiline: true } },
+  ] satisfies { field: string; schema: JsonSchema }[])(
+    'emits undefined when the $field is cleared',
+    async ({ field, schema }) => {
+      expect(await setFieldValue(mountField({ schema, modelValue: 'foo' }), field, '')).toEqual([[undefined]])
+    }
+  )
 
   it('displays the help text of the description', () => {
     const wrapper = mountField({ schema: { type: 'string', description: 'ID attribute. e.g.: `dn`' } })
 
-    expect(wrapper.get('.ui-info').text()).toBe('ID attribute. e.g.: dn')
+    expect(findInfoLabels(wrapper)).toEqual(['ID attribute. e.g.: dn'])
   })
 
   it('highlights the code spans of the description', () => {
@@ -278,7 +246,7 @@ describe('validation', () => {
     wrapper.vm.submit()
     await nextTick()
 
-    expect(findSectionHeaders(wrapper)[0].get('.ui-info').text()).toBe(t('form:error:min-items', { n: 2 }, 2))
+    expect(findInfoLabels(findSectionHeaders(wrapper)[0])).toEqual([t('form:error:min-items', { n: 2 }, 2)])
   })
 
   it('displays the error of a field under its description', async () => {
@@ -302,23 +270,18 @@ describe('validation', () => {
   })
 })
 
+it.each([
+  { schema: { type: 'string' }, typed: 'bar', emitted: 'bar' },
+  { schema: { type: 'integer' }, typed: '25', emitted: 25 },
+  { schema: { type: 'number' }, typed: '2.5', emitted: 2.5 },
+] satisfies { schema: JsonSchema; typed: string; emitted: unknown }[])(
+  'emits the value typed in a $schema.type field as that type',
+  async ({ schema, typed, emitted }) => {
+    expect(await setFieldValue(mountField({ schema }), 'input', typed)).toEqual([[emitted]])
+  }
+)
+
 describe('number field', () => {
-  it('emits integers', async () => {
-    const wrapper = mountField({ schema: { type: 'integer' } })
-
-    await wrapper.get('input').setValue('25')
-
-    expect(lastEmittedValue(wrapper)).toBe(25)
-  })
-
-  it('emits decimal numbers', async () => {
-    const wrapper = mountField({ schema: { type: 'number' } })
-
-    await wrapper.get('input').setValue('2.5')
-
-    expect(lastEmittedValue(wrapper)).toBe(2.5)
-  })
-
   it('uses a number input, with the bounds of the schema', () => {
     const wrapper = mountField({ schema: { type: 'integer', minimum: 1, maximum: 65535 } })
 
@@ -559,7 +522,7 @@ describe('boolean field', () => {
     const wrapper = mountField({ schema: { type: 'boolean', description: 'Check the certificate' }, label: 'TLS' })
 
     expect(wrapper.get('.ui-checkbox').text()).toBe('TLS')
-    expect(wrapper.get('.ui-info').text()).toBe('Check the certificate')
+    expect(findInfoLabels(wrapper)).toEqual(['Check the certificate'])
   })
 })
 

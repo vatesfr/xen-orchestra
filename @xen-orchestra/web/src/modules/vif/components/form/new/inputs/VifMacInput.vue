@@ -1,6 +1,6 @@
 <template>
   <VtsInputWrapper :label="t('mac-address')" :message="error">
-    <UiInput v-model.trim="model" accent="brand" :placeholder="t('auto-generated')" />
+    <UiInput v-model.trim="model" accent="neutral" :placeholder="t('auto-generated')" />
   </VtsInputWrapper>
 </template>
 

@@ -1,11 +1,12 @@
 <template>
-  <MenuList placement="bottom-end">
-    <template #trigger="{ open }">
+  <VtsResponsiveMenu :title="t('action:copy-all')" placement="bottom-end">
+    <template #trigger="{ open, bindings }">
       <UiButtonIcon
         v-tooltip="{
           placement: 'left',
           content: tooltipContent,
         }"
+        v-bind="bindings"
         :icon
         accent="brand"
         size="small"
@@ -16,12 +17,12 @@
     <MenuItem accent="neutral" icon="action:copy" @click="copy()">
       {{ t('action:copy-all') }}
     </MenuItem>
-  </MenuList>
+  </VtsResponsiveMenu>
 </template>
 
 <script lang="ts" setup>
 import MenuItem from '@core/components/menu/MenuItem.vue'
-import MenuList from '@core/components/menu/MenuList.vue'
+import VtsResponsiveMenu from '@core/components/menu/VtsResponsiveMenu.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import { useCopyToClipboard } from '@core/composables/copy.composable.ts'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
