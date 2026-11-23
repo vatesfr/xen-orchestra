@@ -25,6 +25,7 @@
 - [Pool/Network] Add network dedicated page, with General and PIFs tabs (PR [#10704](https://github.com/vatesfr/xen-orchestra/pull/10704))
 - [Pool/Traffic rules] Display traffic rules by priority within their network (PR [#10688](https://github.com/vatesfr/xen-orchestra/pull/10688))
 - [VMs/Hosts] Show a loader in VM and host icons while their power state is changing, with the operation in progress in the tooltip, and move the header loader next to the name (PR [#10720](https://github.com/vatesfr/xen-orchestra/pull/10720))
+- [VM] Add and remove VM tags from the VM dashboard and the VM side panel (PR [#10804](https://github.com/vatesfr/xen-orchestra/pull/10804))
 - [REST API] Create, update and delete backup jobs and schedules (admin only): `POST /rest/v0/backup-jobs`, `PATCH|DELETE /rest/v0/backup-jobs/:id`, `POST /rest/v0/schedules`, `PATCH|DELETE /rest/v0/schedules/:id` (PR [#10595](https://github.com/vatesfr/xen-orchestra/pull/10595))
 - [Tabs] When tabs don't fit on screen, arrows replace the horizontal scrollbar to scroll them left and right (PR [#10759](https://github.com/vatesfr/xen-orchestra/pull/10759))
 - [Web-Core/UiDropdownButton] Update dropdown buttons design and add a smaller size (PR [#9850](https://github.com/vatesfr/xen-orchestra/pull/9850))
@@ -73,6 +74,8 @@
 - [RPU] Finalizing an incomplete rolling pool update first restores what it left: disabled hosts are enabled, VMs are migrated back to their original host or started again, and HA, auto power on, WLB, the load balancer and backup schedules are enabled again. VMs that could not be moved back do not prevent it. It is refused if something else could not be restored, if a host was updated but not rebooted, or while a backup is running and VMs have to be moved back (PR [#10770](https://github.com/vatesfr/xen-orchestra/pull/10770))
 - [RPU] On a pool with XOSTOR, a rolling pool update is refused when the storage is not healthy or when its controller runs on several hosts, and waits for the storage to be healthy again after restarting its services and after each host reboot, before moving the VMs of the next host. The controller is now stopped only on the host running it (PR [#10775](https://github.com/vatesfr/xen-orchestra/pull/10775))
 - [Forms] Multi-line text fields have more contrasted borders (PR [#10862](https://github.com/vatesfr/xen-orchestra/pull/10862))
+- [XO6/SR] Add SR creation form on Host/Pool Storage tabs for LVM, EXT, SMB, local ISO, SMB ISO types (PR [#10251](https://github.com/vatesfr/xen-orchestra/pull/10251))
+- [XO5/Licenses] On an airgap XOA, upload an airgap data pack to register the appliance and install or renew its licenses, and export the licenses database to send it back to Vates (PR [#10254](https://github.com/vatesfr/xen-orchestra/pull/10254))
 
 ### Bug fixes
 
@@ -100,6 +103,7 @@
 - [XO6] Searchable dropdown lists no longer overflow the screen on mobile (PR [#10854](https://github.com/vatesfr/xen-orchestra/pull/10854))
 - [VM] In the VM creation form, a template without network interface now gets one by default, like in XO 5: one on each automatic network of the pool, or on its management network (PR [#10863](https://github.com/vatesfr/xen-orchestra/pull/10863))
 - [VDIs] The storage link of a VDI, in its side panel and on its page, opens the storage repository page of XO 6 instead of XO 5 (PR [#10864](https://github.com/vatesfr/xen-orchestra/pull/10864))
+- [Side panels] Closing a side panel in one browser tab no longer closes it in the other tabs, where the eye buttons stopped working (PR [#10869](https://github.com/vatesfr/xen-orchestra/pull/10869))
 
 ### Packages to release
 
