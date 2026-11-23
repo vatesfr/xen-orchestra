@@ -22,6 +22,16 @@ import { VDI_FORMAT_QCOW2, VDI_FORMAT_VHD, VHD_MAX_SIZE } from '../index.mjs'
 
 const { debug, info, warn } = createLogger('xo:xapi:xapi-disks')
 
+// `signal.throwIfAborted()` is not available on Node 14
+/**
+ * @param {AbortSignal} [signal]
+ */
+const throwIfAborted = signal => {
+  if (signal?.aborted) {
+    throw signal.reason
+  }
+}
+
 /**
  * Meta class that handles the fallback logic when trying to export a disk from xapi.
  * Uses NBD, change block tracking, and stream export depending on capabilities.
@@ -51,6 +61,9 @@ export class XapiDiskSource extends DiskPassthrough {
 
   /** @type {boolean} */
   #onlyListChangedBlocks = false
+
+  /** @type {AbortSignal | undefined} */
+  #signal
   /**
    * @param {Object} params
    * @param {any} params.xapi
@@ -61,6 +74,8 @@ export class XapiDiskSource extends DiskPassthrough {
    * @param {number} [params.blockSize=2*1024*1024]
    * @param {number} [params.timeout=20*60*1000]
    * @param {boolean} [params.onlyListChangedBlocks=false] When true, skips NBD client creation; only getBlockIndexes() may be called, readBlock() will throw.
+   * @param {AbortSignal} [params.signal] once aborted, the XAPI export is cancelled, no more block is read and the
+   *   source is closed
    */
   constructor({
     xapi,
@@ -71,6 +86,7 @@ export class XapiDiskSource extends DiskPassthrough {
     blockSize = 2 * 1024 * 1024,
     timeout = 20 * 60 * 1000,
     onlyListChangedBlocks = false,
+    signal,
   }) {
     super(undefined)
     this.#baseRef = baseRef
@@ -81,6 +97,69 @@ export class XapiDiskSource extends DiskPassthrough {
     this.#vdiRef = vdiRef
     this.#xapi = xapi
     this.#onlyListChangedBlocks = onlyListChangedBlocks
+    this.#signal = signal
+  }
+
+  /**
+   * Closes the source as soon as the signal is aborted, whatever the source (stream export or NBD): this destroys the
+   * export stream or disconnects the NBD clients, which ends a read in progress.
+   *
+   * It is registered once the source is open, not when the first block is read: an abort between the two would
+   * otherwise leave the source open.
+   */
+  async init() {
+    await super.init()
+
+    const signal = this.#signal
+    if (signal === undefined) {
+      return
+    }
+
+    // a failing close must not replace the abort reason
+    const onAbort = () =>
+      this.close().catch(error => warn('error while closing an aborted disk source', { vdiRef: this.#vdiRef, error }))
+    if (signal.aborted) {
+      // stop here instead of going on with the other disks
+      await onAbort()
+      throw signal.reason
+    }
+    signal.addEventListener('abort', onAbort, { once: true })
+    this.#removeAbortListener = () => signal.removeEventListener('abort', onAbort)
+  }
+
+  #removeAbortListener = () => {}
+
+  async close() {
+    this.#removeAbortListener()
+    await super.close()
+  }
+
+  /**
+   * Stops serving blocks once the signal is aborted.
+   *
+   * @returns {Promise<AsyncGenerator<import('@xen-orchestra/disk-transform').DiskBlock>>}
+   */
+  async buildDiskBlockGenerator() {
+    const signal = this.#signal
+    const generator = await super.buildDiskBlockGenerator()
+    if (signal === undefined) {
+      return generator
+    }
+
+    return (async function* () {
+      throwIfAborted(signal)
+      try {
+        for await (const block of generator) {
+          throwIfAborted(signal)
+          yield block
+        }
+        throwIfAborted(signal)
+      } catch (error) {
+        // a read in progress ended by the close of the source fails with a stream error: report the abort instead
+        throwIfAborted(signal)
+        throw error
+      }
+    })()
   }
 
   /**
@@ -174,10 +253,10 @@ export class XapiDiskSource extends DiskPassthrough {
     try {
       if (exportFormat === VDI_FORMAT_QCOW2) {
         info('export through qcow2')
-        source = new XapiQcow2StreamSource({ vdiRef, baseRef, xapi })
+        source = new XapiQcow2StreamSource({ vdiRef, baseRef, xapi, signal: this.#signal })
       } else {
         info('export through vhd')
-        source = new XapiVhdStreamSource({ vdiRef, baseRef, xapi })
+        source = new XapiVhdStreamSource({ vdiRef, baseRef, xapi, signal: this.#signal })
       }
       await source.init()
       if (source.getBlockSize() < this.#blockSize) {
@@ -198,6 +277,8 @@ export class XapiDiskSource extends DiskPassthrough {
     } catch (error) {
       // init probaby failed, so nothing to close , but better safe than sorry
       await source?.close().catch(warn)
+      // an abort is not a failed delta: no fallback
+      throwIfAborted(this.#signal)
       if (baseRef !== undefined) {
         const warningMessage = `can't compute delta ${vdiRef} from ${baseRef}, fall back to a full`
         // @ts-ignore Task.warning is a static alias set up dynamically, not visible to TS
@@ -271,6 +352,8 @@ export class XapiDiskSource extends DiskPassthrough {
       }
       // init probaby failed, so nothing to close , but better safe than sorry
       await source?.close().catch(warn)
+      // an abort is not a CBT failure: no fallback
+      throwIfAborted(this.#signal)
 
       // A lot of things can go wrong with CBT:
       // Not enabled on the baseRef,

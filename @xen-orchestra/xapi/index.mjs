@@ -272,29 +272,43 @@ export class Xapi extends Base {
     refOrUuid,
     predicate,
     {
+      // stops waiting, rejecting with its reason, once aborted
+      signal,
       timeout,
       timeoutMessage = refOrUuid => `waitObjectState: timeout reached before ${refOrUuid} in expected state`,
     } = {}
   ) {
     return new Promise((resolve, reject) => {
+      if (signal?.aborted) {
+        return reject(signal.reason)
+      }
+
       const object = this.getObject(refOrUuid, undefined)
       if (object !== undefined && predicate(object)) {
         return resolve(object)
       }
 
       let timeoutHandle
+      const onAbort = () => {
+        clearTimeout(timeoutHandle)
+        stop()
+        reject(signal.reason)
+      }
       const stop = this.watchObject(refOrUuid, object => {
         if (predicate(object)) {
           clearTimeout(timeoutHandle)
           stop()
+          signal?.removeEventListener('abort', onAbort)
           resolve(object)
         }
       })
+      signal?.addEventListener('abort', onAbort, { once: true })
 
       if (timeout !== undefined) {
         const error = new Error(timeoutMessage(refOrUuid))
         timeoutHandle = setTimeout(() => {
           stop()
+          signal?.removeEventListener('abort', onAbort)
           reject(error)
         }, timeout)
       }
