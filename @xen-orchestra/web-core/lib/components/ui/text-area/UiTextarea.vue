@@ -122,6 +122,7 @@ const isExceedingMaxCharacters = computed(() =>
     &:focus {
       border-color: var(--selected-color);
       border-width: 0.2rem;
+      padding: 0.7rem 1.5rem;
     }
   }
 }
