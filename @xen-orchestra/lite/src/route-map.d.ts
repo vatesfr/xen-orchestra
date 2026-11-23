@@ -562,6 +562,13 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/story/web-core/select/vts-detailed-option': RouteRecordInfo<
+      '/story/web-core/select/vts-detailed-option',
+      '/story/web-core/select/vts-detailed-option',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
     '/story/web-core/select/vts-select': RouteRecordInfo<
       '/story/web-core/select/vts-select',
       '/story/web-core/select/vts-select',
@@ -621,6 +628,20 @@ declare module 'vue-router/auto-routes' {
     '/story/web-core/tabular-key-value-row/vts-tabular-key-value-row': RouteRecordInfo<
       '/story/web-core/tabular-key-value-row/vts-tabular-key-value-row',
       '/story/web-core/tabular-key-value-row/vts-tabular-key-value-row',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/story/web-core/tag/vts-tag': RouteRecordInfo<
+      '/story/web-core/tag/vts-tag',
+      '/story/web-core/tag/vts-tag',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/story/web-core/tag-select/vts-tag-select': RouteRecordInfo<
+      '/story/web-core/tag-select/vts-tag-select',
+      '/story/web-core/tag-select/vts-tag-select',
       Record<never, never>,
       Record<never, never>,
       | never
@@ -1735,6 +1756,12 @@ declare module 'vue-router/auto-routes' {
       views:
         | never
     }
+    'src/stories/web-core/select/vts-detailed-option.story.vue': {
+      routes:
+        | '/story/web-core/select/vts-detailed-option'
+      views:
+        | never
+    }
     'src/stories/web-core/select/vts-select.story.vue': {
       routes:
         | '/story/web-core/select/vts-select'
@@ -1786,6 +1813,18 @@ declare module 'vue-router/auto-routes' {
     'src/stories/web-core/tabular-key-value-row/vts-tabular-key-value-row.story.vue': {
       routes:
         | '/story/web-core/tabular-key-value-row/vts-tabular-key-value-row'
+      views:
+        | never
+    }
+    'src/stories/web-core/tag/vts-tag.story.vue': {
+      routes:
+        | '/story/web-core/tag/vts-tag'
+      views:
+        | never
+    }
+    'src/stories/web-core/tag-select/vts-tag-select.story.vue': {
+      routes:
+        | '/story/web-core/tag-select/vts-tag-select'
       views:
         | never
     }
