@@ -55,7 +55,7 @@ itShowsDashboardQuickInfo(mountQuickInfo, {
     t('uuid'),
     t('pool'),
     t('host'),
-    t('storage', 0),
+    t('storage'),
     t('description'),
     t('os-name'),
     t('virtualization-type'),
@@ -146,21 +146,9 @@ describe('storages', () => {
     return createVm({ $VBDs: seedVmDisks(srIds.map(srId => ({ vdi: { $SR: srId } }))) })
   }
 
-  it('names the row in the singular when the disks of the VM are on a single storage', () => {
-    const wrapper = mountQuickInfo(createVmWithDisksOn([srA.id, srA.id]))
-
-    expect(wrapper.findAll('.vts-key-value-row').map(row => row.get('dt.label').text())).toContain(t('storage', 1))
-  })
-
-  it('names the row in the plural when the disks of the VM are spread over several storages', () => {
-    const wrapper = mountQuickInfo(createVmWithDisksOn([srA.id, srB.id]))
-
-    expect(wrapper.findAll('.vts-key-value-row').map(row => row.get('dt.label').text())).toContain(t('storage', 2))
-  })
-
   it('links the displayed storage to its page', () => {
     const hrefs = mountQuickInfo(createVmWithDisksOn([srA.id]))
-      .findAll('.storages li a')
+      .findAll('.storage li a')
       .map(link => link.attributes('href'))
 
     expect(hrefs).toEqual(['/sr/sr-a/general'])
@@ -169,18 +157,18 @@ describe('storages', () => {
   it('shows the storage without a "+n" link when the disks of the VM are on a single storage', () => {
     const wrapper = mountQuickInfo(createVmWithDisksOn([srA.id, srA.id]))
 
-    expect(wrapper.findAll('.storages li').map(li => li.text())).toEqual(['Local SR'])
+    expect(wrapper.findAll('.storage li').map(li => li.text())).toEqual(['Local SR'])
   })
 
   it('shows the first storage followed by a "+n" link counting the others', () => {
     const wrapper = mountQuickInfo(createVmWithDisksOn([srA.id, srB.id, srC.id]))
 
-    expect(wrapper.findAll('.storages li').map(li => li.text())).toEqual(['Local SR', t('plus-n', { n: 2 })])
+    expect(wrapper.findAll('.storage li').map(li => li.text())).toEqual(['Local SR', t('plus-n', { n: 2 })])
   })
 
   it('links the "+n" to the disks of the VM', () => {
     const href = mountQuickInfo(createVmWithDisksOn([srA.id, srB.id, srC.id]))
-      .get('.storages li:last-child a')
+      .get('.storage li:last-child a')
       .attributes('href')
 
     expect(href).toBe('/vm/vm-123/vdis')
@@ -191,7 +179,7 @@ describe('storages', () => {
 
     const wrapper = mountQuickInfo(createVm({ $VBDs }))
 
-    expect(wrapper.findAll('.storages li').map(li => li.text())).toEqual(['Local SR', t('plus-n', { n: 1 })])
+    expect(wrapper.findAll('.storage li').map(li => li.text())).toEqual(['Local SR', t('plus-n', { n: 1 })])
   })
 
   it('ignores the ISO mounted in a CD drive', () => {
@@ -199,11 +187,11 @@ describe('storages', () => {
 
     const wrapper = mountQuickInfo(createVm({ $VBDs }))
 
-    expect(wrapper.findAll('.storages li').map(li => li.text())).toEqual(['Local SR'])
+    expect(wrapper.findAll('.storage li').map(li => li.text())).toEqual(['Local SR'])
   })
 
   it('falls back to "None" when the VM has no disk', () => {
-    expect(findLabelledValues(mountQuickInfo())).toMatchObject({ [t('storage', 0)]: t('none') })
+    expect(findLabelledValues(mountQuickInfo())).toMatchObject({ [t('storage')]: t('none') })
   })
 })
 

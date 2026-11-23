@@ -39,9 +39,9 @@
           </template>
         </template>
       </VtsKeyValueRow>
-      <VtsKeyValueRow :label="t('storage', srs.length)">
+      <VtsKeyValueRow :label="t('storage')">
         <template #value>
-          <ul v-if="srs.length > 0" class="storages">
+          <ul v-if="srs.length > 0" class="storage">
             <li v-for="sr in displayedSrs" :key="sr.id">
               <UiLink :to="{ name: '/sr/[id]/general', params: { id: sr.id } }" icon="object:sr" size="medium">
                 {{ sr.name_label }}
@@ -132,7 +132,7 @@ const hiddenSrsCount = computed(() => srs.value.length - displayedSrs.value.leng
 
 <style lang="postcss" scoped>
 .vm-dashboard-quick-info {
-  .storages {
+  .storage {
     display: flex;
     align-items: baseline;
     gap: 0.8rem;

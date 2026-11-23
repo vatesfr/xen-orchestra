@@ -1523,7 +1523,7 @@
   "status:unreachable": "Unreachable",
   "step-n-of": "Step {current} / {total}",
   "stop-on-error": "Stop on error",
-  "storage": "Storage | Storages",
+  "storage": "Storage",
   "storage-configuration": "Storage configuration",
   "storage-format": "Storage format",
   "storage-mode": "Storage mode",
