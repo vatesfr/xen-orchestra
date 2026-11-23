@@ -3,16 +3,24 @@ import { describe, expect, it } from 'vitest'
 
 describe('getTaskSpeed', () => {
   it('returns the speed of a running source', () => {
-    expect(getTaskSpeed({ properties: { speed: 100 } })).toBe(100)
+    expect(getTaskSpeed({ status: 'pending', properties: { speed: 100 } })).toBe(100)
   })
 
   it('sums the speeds of the running subtasks', () => {
     const task = {
+      status: 'pending' as const,
       properties: {},
       tasks: [
-        { properties: {}, tasks: [{ properties: { speed: 100 } }, { properties: { speed: 50 } }] },
-        { properties: { speed: 200 }, end: 1 },
-        { properties: {} },
+        {
+          status: 'pending' as const,
+          properties: {},
+          tasks: [
+            { status: 'pending' as const, properties: { speed: 100 } },
+            { status: 'pending' as const, properties: { speed: 50 } },
+          ],
+        },
+        { status: 'success' as const, properties: { speed: 200 } },
+        { status: 'pending' as const, properties: {} },
       ],
     }
 
@@ -20,10 +28,18 @@ describe('getTaskSpeed', () => {
   })
 
   it('has no speed once ended', () => {
-    expect(getTaskSpeed({ end: 1, properties: {}, tasks: [{ properties: { speed: 100 } }] })).toBeUndefined()
+    expect(
+      getTaskSpeed({ status: 'success', properties: {}, tasks: [{ status: 'pending', properties: { speed: 100 } }] })
+    ).toBeUndefined()
+  })
+
+  it('has no speed once interrupted, even without end date', () => {
+    expect(getTaskSpeed({ status: 'interrupted', properties: { speed: 100 } })).toBeUndefined()
   })
 
   it('has no speed without running source', () => {
-    expect(getTaskSpeed({ properties: {}, tasks: [{ properties: {} }] })).toBeUndefined()
+    expect(
+      getTaskSpeed({ status: 'pending', properties: {}, tasks: [{ status: 'pending', properties: {} }] })
+    ).toBeUndefined()
   })
 })

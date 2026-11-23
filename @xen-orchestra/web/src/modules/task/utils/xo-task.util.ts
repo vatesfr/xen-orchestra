@@ -77,14 +77,15 @@ export function getTaskRoute(taskId: FrontXoTask['id']): RouteLocationAsRelative
   }
 }
 
-type TaskSpeedTree = Pick<FrontXoTask, 'end' | 'properties'> & { tasks?: TaskSpeedTree[] }
+type TaskSpeedTree = Pick<FrontXoTask, 'status' | 'properties'> & { tasks?: TaskSpeedTree[] }
 
 /**
  * Current reading speed of a running task, in bytes per second: its own one (`speed` property of the tasks reading a
  * source), or the sum of the ones of its running subtasks
  */
 export function getTaskSpeed(task: TaskSpeedTree): number | undefined {
-  if (task.end !== undefined) {
+  // not `end`: a task interrupted by a restart of xo-server has none
+  if (task.status !== 'pending') {
     return undefined
   }
 
