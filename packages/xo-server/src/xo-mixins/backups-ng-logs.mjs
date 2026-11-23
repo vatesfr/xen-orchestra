@@ -12,7 +12,15 @@ const isSkippedError = error =>
     error.message === 'no VMs match this pattern' ||
     error.message === 'unhealthy VDI chain')
 
-const getStatus = (error, status) => (status === 'failure' && isSkippedError(error) ? 'skipped' : status)
+// the error of a task stopped by `AbortController#abort()`, serialized or not
+const isAbortError = error => error?.name === 'AbortError'
+
+const getStatus = (error, status) =>
+  status === 'failure' ? (isAbortError(error) ? 'interrupted' : isSkippedError(error) ? 'skipped' : status) : status
+
+// the status a subtask gives to its parent when it is worse than the parent's own one: a real failure wins over an
+// abort, which wins over a skipped VM
+const STATUS_SEVERITY = { success: 0, skipped: 1, interrupted: 2 }
 
 // check if an error subtask was successful after retry
 const isSupersededByRetry = (subtask, siblings) =>
@@ -44,7 +52,7 @@ export const computeStatusAndSortSubtasks = task => {
       }
       return 'failure'
     }
-    if (subtask.status === 'skipped') {
+    if (STATUS_SEVERITY[subtask.status] > (STATUS_SEVERITY[status] ?? Infinity)) {
       status = subtask.status
     }
   }

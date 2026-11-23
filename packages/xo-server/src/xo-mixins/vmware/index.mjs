@@ -410,7 +410,7 @@ export default class MigrateVm {
       if (!isRunning && snapshotId !== undefined) {
         // only taken to start the tracking, which outlives it: a powered off VM is read as it is,
         // nothing would ever remove this snapshot from the source
-        await Task.run({ properties: { name: 'removing the snapshot of the source VM' } }, () =>
+        await Task.run({ properties: { name: 'removing the snapshot of the source VM' }, cleanup: true }, () =>
           esxi.removeSnapshot(snapshotId)
         ).catch(error => {
           Task.abortSignal?.throwIfAborted()
