@@ -410,13 +410,6 @@ declare module 'vue-router/auto-routes' {
       { id: ParamValue<false> },
       | never
     >,
-    '/traffic-rule/new': RouteRecordInfo<
-      '/traffic-rule/new',
-      '/traffic-rule/new',
-      Record<never, never>,
-      Record<never, never>,
-      | never
-    >,
     '/vdi/[id]': RouteRecordInfo<
       '/vdi/[id]',
       '/vdi/:id',
@@ -885,12 +878,6 @@ declare module 'vue-router/auto-routes' {
     'src/pages/sr/[id]/hosts.vue': {
       routes:
         | '/sr/[id]/hosts'
-      views:
-        | never
-    }
-    'src/pages/traffic-rule/new.vue': {
-      routes:
-        | '/traffic-rule/new'
       views:
         | never
     }

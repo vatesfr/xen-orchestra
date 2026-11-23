@@ -4,9 +4,7 @@
       <VtsStateHero v-if="!isReady" format="page" type="busy" size="medium" />
       <TrafficRulesTable v-else :rules="trafficRules" :pool :show-xapi-plugin-required-error show-priority>
         <template #title-action>
-          <UiLink :to="{ name: '/traffic-rule/new', query: { poolid: pool.id } }" icon="fa:plus" size="medium">
-            {{ t('new') }}
-          </UiLink>
+          <NewTrafficRuleButton :pool-id="pool.id" />
         </template>
       </TrafficRulesTable>
     </UiCard>
@@ -24,6 +22,7 @@
 <script setup lang="ts">
 import { useXoNetworkCollection } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
 import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
+import NewTrafficRuleButton from '@/modules/traffic-rules/components/actions/new/NewTrafficRuleButton.vue'
 import TrafficRulesSidePanel from '@/modules/traffic-rules/components/list/panel/TrafficRulesSidePanel.vue'
 import TrafficRulesTable from '@/modules/traffic-rules/components/TrafficRulesTable.vue'
 import { useTrafficRules } from '@/modules/traffic-rules/composables/traffic-rules.composable.ts'
@@ -34,17 +33,13 @@ import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-colle
 import VtsContentSidePanel from '@core/components/layout/VtsContentSidePanel.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
-import UiLink from '@core/components/ui/link/UiLink.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { logicAnd } from '@vueuse/math'
 import { computed } from 'vue'
-import { useI18n } from 'vue-i18n'
 
 const { pool } = defineProps<{
   pool: FrontXoPool
 }>()
-
-const { t } = useI18n()
 
 const { vifs, areVifsReady } = useXoVifCollection()
 
