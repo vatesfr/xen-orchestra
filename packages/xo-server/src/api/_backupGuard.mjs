@@ -28,19 +28,34 @@ export default async function backupGuard(objectId, { bypassBackupCheck = false,
     return
   }
 
-  const jobs = await this.getAllJobs('backup')
-  const guard = id => {
-    // a VM deleted since the job was configured cannot be backed up on this pool
-    if (this.hasObject(id) && this.getObject(id).$pool === poolId) {
-      throw forbiddenOperation('Backup is running', `A backup is running on the pool: ${poolId}`)
-    }
+  const [job] = listRunningBackupJobs(this, poolId, await this.getAllJobs('backup'))
+  if (job !== undefined) {
+    throw job.mayRun
+      ? forbiddenOperation('May have running backup', `A backup may run on the pool: ${poolId}`)
+      : forbiddenOperation('Backup is running', `A backup is running on the pool: ${poolId}`)
   }
+}
 
-  jobs.forEach(({ runId, vms }) => {
+/**
+ * Lists the backup jobs which run, or may run, on a pool: the ones `backupGuard` refuses an operation for.
+ *
+ * @param {object} app - The xo-server instance
+ * @param {string} poolId
+ * @param {object[]} jobs - The backup jobs
+ * @returns {{ id: string, mayRun: boolean }[]} `mayRun`: the job runs, but whether it concerns the pool is not known
+ */
+export function listRunningBackupJobs(app, poolId, jobs) {
+  const runningJobs = []
+  jobs.forEach(({ id, runId, vms }) => {
     // If runId is undefined, the job is not currently running.
     if (runId !== undefined) {
       if (vms.id !== undefined) {
-        extractIdsFromSimplePattern(vms).forEach(guard)
+        // a VM deleted since the job was configured cannot be backed up on this pool
+        if (
+          extractIdsFromSimplePattern(vms).some(vmId => app.hasObject(vmId) && app.getObject(vmId).$pool === poolId)
+        ) {
+          runningJobs.push({ id, mayRun: false })
+        }
       } else {
         // smartmode
         // For the smartmode we take a simplified approach :
@@ -49,9 +64,10 @@ export default async function backupGuard(objectId, { bypassBackupCheck = false,
 
         const isPoolSafe = vms.$pool === undefined ? false : !createPredicate(vms.$pool)(poolId)
         if (!isPoolSafe) {
-          throw forbiddenOperation('May have running backup', `A backup may run on the pool: ${poolId}`)
+          runningJobs.push({ id, mayRun: true })
         }
       }
     }
   })
+  return runningJobs
 }

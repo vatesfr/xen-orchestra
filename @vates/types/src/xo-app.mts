@@ -259,6 +259,18 @@ export type PoolRollingUpdateRecoveryBlocked = {
 
 export type PoolRollingUpdateRecovery = PoolRollingUpdateRecoveryRun | PoolRollingUpdateRecoveryBlocked
 
+/** One check of the precheck of a rolling pool update. A check which does not apply to the pool is absent */
+export type PoolRollingUpdatePrecheck = {
+  /** stable identifier of the check */
+  id: string
+  /** `blocking`: the start refuses the pool, unless called with the option `liftedBy`. `info`: the start goes on */
+  result: 'passed' | 'blocking' | 'info'
+  /** option of the start which lifts a blocking check */
+  liftedBy?: 'acceptCurrentStateAsBaseline' | 'bypassBackupCheck' | 'rebootVm' | 'shutdownPinnedVms'
+  /** what the check concerns, empty when it passes */
+  objects: { type: 'host' | 'job' | 'pool' | 'schedule' | 'VM'; id: string; reason?: string }[]
+}
+
 /** A disk of a backup archive currently served as an iSCSI LUN */
 export type BackupArchiveDiskMount = {
   /** Handle to pass to `unmountBackupArchiveDisk` */
@@ -685,6 +697,7 @@ export type XoApp = EventEmitter & {
     }
   ): Promise<void>
   getRollingUpdateRecovery(poolId: XoPool['id']): Promise<PoolRollingUpdateRecovery | undefined>
+  getRollingUpdatePrecheck(poolId: XoPool['id']): Promise<PoolRollingUpdatePrecheck[]>
   finalizeRollingUpdate(pool: XoPool, opts?: { force?: boolean; parentTask?: VatesTask }): Promise<void>
   restoreRollingUpdateItem(
     pool: XoPool,

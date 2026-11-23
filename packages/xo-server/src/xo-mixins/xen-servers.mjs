@@ -19,7 +19,9 @@ import Disposable from 'promise-toolbox/Disposable'
 
 import * as XenStore from '../_XenStore.mjs'
 import Xapi from '../xapi/index.mjs'
-import { acquireRpuGuard } from '../_rpuGuard.mjs'
+import { acquireRpuGuard, isRpuRunning } from '../_rpuGuard.mjs'
+import { listRunningBackupJobs } from '../api/_backupGuard.mjs'
+import { rpuCheck } from '../_rpuPrecheck.mjs'
 import { noopRpuRecorder, noRpuResume, restoreRpuSetting } from '../_rpuRecovery.mjs'
 import { getRpuTracesConfig, openRpuTrace } from '../_rpuObservability.mjs'
 import { supportsRpuRecovery } from '../xapi/mixins/patching.mjs'
@@ -45,6 +47,35 @@ const log = createLogger('xo:xo-mixins:xen-servers')
 const MAX_TIMER_DELAY = 2 ** 31 - 1
 const DEFAULT_LOAD_BALANCER_RE_ENABLE_DELAY = 30 * 60 * 1000 // 30 minutes, same as config.toml
 const synchronizedLoadBalancerOperation = synchronized()(operation => operation())
+
+// the enabled schedules of the backup jobs which concern, or may concern, the
+// pool: the ones a rolling pool update disables
+const listRpuSchedulesToDisable = (app, poolId, jobs, schedules) => {
+  const jobsOfthePool = []
+  jobs.forEach(({ id: jobId, vms }) => {
+    if (vms.id !== undefined) {
+      for (const vmId of extractIdsFromSimplePattern(vms)) {
+        // try/catch to avoid `no such object`
+        try {
+          if (app.getObject(vmId).$poolId === poolId) {
+            jobsOfthePool.push(jobId)
+            break
+          }
+        } catch {}
+      }
+    } else {
+      // Smart mode
+      // For smart mode, we take a simplified approach:
+      // - if smart mode is explicitly 'resident' or 'not resident' on pools, we
+      //   check if it concerns this pool
+      // - if not, the job may concern this pool so we add it to `jobsOfThePool`
+      if (vms.$pool === undefined || createPredicate(vms.$pool)(poolId)) {
+        jobsOfthePool.push(jobId)
+      }
+    }
+  })
+  return schedules.filter(schedule => jobsOfthePool.includes(schedule.jobId) && schedule.enabled)
+}
 
 export default class XenServers {
   constructor(app, { safeMode }) {
@@ -1148,6 +1179,61 @@ export default class XenServers {
   }
 
   /**
+   * Lists the checks a rolling pool update of the pool would go through, the failed ones included, with the same
+   * functions the start calls. Changes nothing and creates no task.
+   *
+   * @param {string} poolId
+   * @returns {Promise<object[]>} One `{ id, result, liftedBy?, objects }` per check. `result` is `passed`, `blocking`
+   *   (the start refuses the pool, unless called with the option `liftedBy`) or `info` (the start goes on).
+   *   `objects`: the `{ type, id, reason? }` the check concerns, empty when it passes
+   */
+  async getRollingUpdatePrecheck(poolId) {
+    const app = this._app
+    const xapi = this.getXapi(poolId)
+    const poolObject = { type: 'pool', id: poolId }
+    // a pool without recovery keeps no record, the start does not look for one
+    const supportsRecovery = supportsRpuRecovery(xapi.pool.$master)
+    const [licensed, jobs, schedules, loadBalancer, recovery, xapiChecks] = await Promise.all([
+      app.hasFeatureAuthorization('ROLLING_POOL_UPDATE'),
+      app.getAllJobs('backup'),
+      app.getAllSchedules(),
+      app.getOptionalPlugin('load-balancer'),
+      supportsRecovery ? app.getRollingUpdateRecovery(poolId) : undefined,
+      xapi.getRollingUpdatePrecheck(),
+    ])
+    return [
+      rpuCheck('license', 'blocking', licensed ? [] : [poolObject]),
+      rpuCheck('runningRollingOperation', 'blocking', isRpuRunning(poolId) ? [poolObject] : []),
+      ...(supportsRecovery
+        ? [
+            rpuCheck(
+              'rollingUpdateRecovery',
+              'blocking',
+              recovery !== undefined ? [{ ...poolObject, reason: recovery.status }] : []
+            ),
+          ]
+        : []),
+      rpuCheck(
+        'runningBackups',
+        'blocking',
+        listRunningBackupJobs(app, poolId, jobs).map(({ id, mayRun }) => ({
+          type: 'job',
+          id,
+          reason: mayRun ? 'mayRun' : 'running',
+        })),
+        'bypassBackupCheck'
+      ),
+      ...xapiChecks,
+      rpuCheck('pausedLoadBalancer', 'info', loadBalancer?.loaded ? [poolObject] : []),
+      rpuCheck(
+        'pausedSchedules',
+        'info',
+        listRpuSchedulesToDisable(app, poolId, jobs, schedules).map(({ id }) => ({ type: 'schedule', id }))
+      ),
+    ]
+  }
+
+  /**
    * Resumes the failed or interrupted rolling pool update of the pool: same run, the hosts with remaining work are
    * handled, and a host a previous attempt finished is updated and rebooted again if patches were released since.
    * Then the VMs go back to the host they were on before the first attempt. The settings the previous
@@ -1288,38 +1374,12 @@ export default class XenServers {
     // every failure from here on is persisted before the caller sees it: the
     // pool state starts changing below (schedules, load balancer, WLB)
     try {
-      const jobsOfthePool = []
-      jobs.forEach(({ id: jobId, vms }) => {
-        if (vms.id !== undefined) {
-          for (const vmId of extractIdsFromSimplePattern(vms)) {
-            // try/catch to avoid `no such object`
-            try {
-              if (app.getObject(vmId).$poolId === poolId) {
-                jobsOfthePool.push(jobId)
-                break
-              }
-            } catch {}
-          }
-        } else {
-          // Smart mode
-          // For smart mode, we take a simplified approach:
-          // - if smart mode is explicitly 'resident' or 'not resident' on pools, we
-          //   check if it concerns this pool
-          // - if not, the job may concern this pool so we add it to `jobsOfThePool`
-          if (vms.$pool === undefined || createPredicate(vms.$pool)(poolId)) {
-            jobsOfthePool.push(jobId)
-          }
-        }
-      })
-
       recorder.markRunning()
 
       this._restoreRpuSchedules($defer, recorder, changedByRun.schedules ?? [], schedules)
 
       // Disable schedules
-      const schedulesToDisable = schedules.filter(
-        schedule => jobsOfthePool.includes(schedule.jobId) && schedule.enabled
-      )
+      const schedulesToDisable = listRpuSchedulesToDisable(app, poolId, jobs, schedules)
       // recorded one by one, so the record holds no schedule this run did not
       // disable, and restored even if disabling it fails after the change
       for (const schedule of schedulesToDisable) {

@@ -4,7 +4,7 @@ import createMemoryTransport from '@xen-orchestra/log/transports/memory'
 import { configure } from '@xen-orchestra/log/configure'
 import { forbiddenOperation } from 'xo-common/api-errors.js'
 
-import backupGuard from './_backupGuard.mjs'
+import backupGuard, { listRunningBackupJobs } from './_backupGuard.mjs'
 
 const transport = createMemoryTransport()
 configure({ level: 'WARN', transport })
@@ -52,5 +52,32 @@ describe('backupGuard', function () {
     const [log] = transport.logs.filter(({ message }) => message.includes('bypassBackupCheck'))
     assert.match(log.message, /^host\.restart /)
     assert.deepEqual(log.data, { objectId: HOST_ID, poolId: POOL_ID, userId: 'user-1' })
+  })
+})
+
+describe('listRunningBackupJobs', function () {
+  const list = jobs => listRunningBackupJobs(createApp(jobs), POOL_ID, jobs)
+
+  it('lists the jobs the guard refuses the operation for, and no other', async function () {
+    const jobs = [
+      { id: 'job-idle', vms: { id: 'vm-1' } },
+      { id: 'job-other-pool', runId: 'run-1', vms: { id: 'vm-2' } },
+      { id: 'job-gone', runId: 'run-2', vms: { id: { __or: ['vm-gone'] } } },
+      { id: 'job-smart-other-pool', runId: 'run-3', vms: { $pool: { __or: ['pool-2'] } } },
+      { id: 'job-running', runId: 'run-4', vms: { id: 'vm-1' } },
+      { id: 'job-smart', runId: 'run-5', vms: { $pool: { __or: [POOL_ID] } } },
+      { id: 'job-smart-any-pool', runId: 'run-6', vms: { power_state: 'Running' } },
+    ]
+
+    assert.deepEqual(list(jobs), [
+      { id: 'job-running', mayRun: false },
+      { id: 'job-smart', mayRun: true },
+      { id: 'job-smart-any-pool', mayRun: true },
+    ])
+    for (const job of jobs) {
+      const refused = list([job]).length === 1
+      const guarded = backupGuard.call(createApp([job]), POOL_ID)
+      await (refused ? assert.rejects(guarded, forbiddenOperation.is) : guarded)
+    }
   })
 })

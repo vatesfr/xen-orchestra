@@ -42,6 +42,7 @@ import {
 import type { SendObjects } from '../helpers/helper.type.mjs'
 import { XapiXoController } from '../abstract-classes/xapi-xo-controller.mjs'
 import type {
+  PoolRollingUpdatePrecheck,
   PoolRollingUpdateRecovery,
   XapiPoolStats,
   XapiStatsGranularity,
@@ -73,6 +74,7 @@ import {
   poolDashboard,
   poolIds,
   poolMissingPatches,
+  poolRollingUpdatePrecheck,
   poolRollingUpdateRecovery,
   poolStats,
 } from '../open-api/oa-examples/pool.oa-example.mjs'
@@ -825,6 +827,32 @@ export class PoolController extends XapiXoController<XoPool> {
       throw noSuchObject(id, 'rollingUpdateRecovery')
     }
     return recovery
+  }
+
+  /**
+   * Returns every check a rolling pool update of the pool would go through,
+   * without changing anything: hosts running and enabled, running backup
+   * jobs, VMs which cannot migrate, pool partially updated, health and pending
+   * packages of XOSTOR, and what the update pauses (HA, load balancer, backup
+   * schedules). A check is `blocking` when the start would refuse the pool:
+   * `liftedBy` then names the option of the start which lifts it, if any.
+   * `info` checks do not block. A check which does not apply to the pool is
+   * absent.
+   *
+   * Required privilege:
+   * - resource: pool, action: rolling-update
+   *
+   * @example id "355ee47d-ff4c-4924-3db2-fd86ae629676"
+   */
+  @Example(poolRollingUpdatePrecheck)
+  @Extension('x-mcp-exposure', 'allow')
+  @Get('{id}/rolling_update_precheck')
+  @Middlewares(acl({ resource: 'pool', action: 'rolling-update', objectId: 'params.id' }))
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  async getRollingUpdatePrecheck(@Path() id: string): Promise<PoolRollingUpdatePrecheck[]> {
+    const pool = this.getObject(id as XoPool['id'])
+    return this.restApi.xoApp.getRollingUpdatePrecheck(pool.id)
   }
 
   /**

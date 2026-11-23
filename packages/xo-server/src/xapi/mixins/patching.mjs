@@ -1,6 +1,7 @@
 import filter from 'lodash/filter.js'
 import find from 'lodash/find.js'
 import keyBy from 'lodash/keyBy.js'
+import mapValues from 'lodash/mapValues.js'
 import pickBy from 'lodash/pickBy.js'
 import semver from 'semver'
 import some from 'lodash/some.js'
@@ -16,10 +17,11 @@ import { Task } from '@xen-orchestra/mixins/Tasks.mjs'
 import ensureArray from '../../_ensureArray.mjs'
 import { debounceWithKey, REMOVE_CACHE_ENTRY } from '../../_pDebounceWithKey.mjs'
 import { listRpuPlanChange, noopRpuRecorder, noRpuResume } from '../../_rpuRecovery.mjs'
+import { rpuCheck } from '../../_rpuPrecheck.mjs'
 import { forEach, mapFilter, parseXml } from '../../utils.mjs'
 
 import { getLinstorIssues, truncateLinstorIssues, waitLinstorHealthy } from '../_linstorHealth.mjs'
-import { useUpdateSystem } from '../utils.mjs'
+import { isHostRunning, useUpdateSystem } from '../utils.mjs'
 import { incorrectState, notImplemented } from 'xo-common/api-errors.js'
 
 // TOC -------------------------------------------------------------------------
@@ -59,6 +61,13 @@ const _isXcp = host => host.software_version.product_brand === 'XCP-ng'
 const _isXs = host => host.software_version.product_brand === 'XenServer'
 const _isXsWithCdnUpdates = host => _isXs(host) && semver.gt(host.software_version.product_version, '8.3.0')
 
+// The guidances of the updates of a host, as listed by the updates endpoint of
+// XenServer, when they restart its VMs. Empty otherwise
+const listGuidancesRestartingVms = ({ guidance: { full, mandatory, recommended } }) => {
+  const guidances = [...full, ...mandatory, ...recommended]
+  return ['RestartVM', 'RestartDeviceModel'].some(guidance => guidances.includes(guidance)) ? guidances : []
+}
+
 /**
  * Whether a rolling pool update keeps a recovery record: only when the pool's
  * master runs XCP-ng or XenServer 8.4+, older XenServer and CH run it without
@@ -90,6 +99,14 @@ async function _listMissingPatches(hostId) {
 }
 
 const listMissingPatches = debounceWithKey(_listMissingPatches, LISTING_DEBOUNCE_TIME_MS, hostId => hostId)
+
+// the packages a rolling pool update updates on every host of a pool with
+// LINSTOR before the first reboot, in that order
+const LINSTOR_PACKAGES = ['xcp-ng-xapi-plugins', 'xcp-ng-linstor', 'linstor-satellite', 'linstor-controller']
+
+// the members left outdated under a master which is up to date
+const listOutdatedMembers = (master, hasMissingPatchesByHost) =>
+  hasMissingPatchesByHost[master.uuid] ? [] : Object.keys(pickBy(hasMissingPatchesByHost))
 
 // =============================================================================
 
@@ -745,14 +762,19 @@ const methods = {
     log.warn(`the health of LINSTOR cannot be checked on pool ${this.pool.uuid}`, { error })
   },
 
+  // The issues of LINSTOR, none when its health cannot be checked
+  async _listLinstorIssues() {
+    try {
+      return await getLinstorIssues(this)
+    } catch (error) {
+      this._ignoreMissingLinstorHealthCheck(error)
+      return []
+    }
+  },
+
   // Refuses a pool whose LINSTOR is not healthy
   async _assertLinstorHealthy() {
-    let issues
-    try {
-      issues = await getLinstorIssues(this)
-    } catch (error) {
-      return this._ignoreMissingLinstorHealthCheck(error)
-    }
+    const issues = await this._listLinstorIssues()
     if (issues.length > 0) {
       throw incorrectState({
         actual: truncateLinstorIssues(issues),
@@ -775,12 +797,7 @@ const methods = {
 
   async _updateLinstorPackages() {
     const hosts = Object.values(this.objects.indexes.type.host)
-    const steps = [
-      ['updater.py', 'update', { packages: 'xcp-ng-xapi-plugins' }],
-      ['updater.py', 'update', { packages: 'xcp-ng-linstor' }],
-      ['updater.py', 'update', { packages: 'linstor-satellite' }],
-      ['updater.py', 'update', { packages: 'linstor-controller' }],
-    ]
+    const steps = LINSTOR_PACKAGES.map(packages => ['updater.py', 'update', { packages }])
     // the two looks for the controller, the steps above, then the restart of
     // the satellites
     const nOperations = (steps.length + 3) * hosts.length
@@ -870,6 +887,95 @@ const methods = {
     })
   },
 
+  // What `rollingPoolUpdate` checks before it touches a host or LINSTOR, as
+  // the checks of the precheck of a rolling pool update. Changes nothing and
+  // creates no task. A check which does not apply to the pool is absent
+  async getRollingUpdatePrecheck() {
+    const master = this.pool.$master
+    const poolObject = { type: 'pool', id: this.pool.uuid }
+    const checks = await this.getRollingRebootPrecheck()
+
+    const hosts = Object.values(this.objects.indexes.type.host)
+
+    // the patches of a host which is not running cannot be listed. A host
+    // whose listing fails is reported, and left out of the checks which need
+    // its patches
+    const missingPatchesByHost = {}
+    const unlistedHosts = []
+    await asyncEach(hosts.filter(isHostRunning), async host => {
+      try {
+        missingPatchesByHost[host.uuid] = await this.listMissingPatches(host.uuid)
+      } catch (error) {
+        unlistedHosts.push({ type: 'host', id: host.uuid, reason: error.message })
+      }
+    })
+    checks.push(rpuCheck('missingPatchesListing', 'blocking', unlistedHosts))
+    const hasMissingPatchesByHost = mapValues(missingPatchesByHost, missingPatches => missingPatches.length > 0)
+    const toObjects = hostIds => hostIds.map(id => ({ type: 'host', id }))
+
+    // only for XS >= 8.4, as in the start
+    if (_isXsWithCdnUpdates(master)) {
+      const xsUpdatesResult = await this._fetchXsUpdatesEndpoint(master)
+      const runningVms = filter(this.objects.indexes.type.VM, { power_state: 'Running', is_control_domain: false })
+      const pendingGuidances = []
+      await asyncEach([...hosts, ...runningVms], async object => {
+        const guidances = await this._getPendingGuidances(object)
+        if (guidances.length > 0) {
+          pendingGuidances.push({ type: object.$type, id: object.uuid, reason: guidances.join(', ') })
+        }
+      })
+      checks.push(
+        rpuCheck(
+          'vmRestartGuidances',
+          'blocking',
+          toObjects(
+            xsUpdatesResult.hosts.filter(host => listGuidancesRestartingVms(host).length > 0).map(host => host.uuid)
+          ),
+          'rebootVm'
+        ),
+        rpuCheck('pendingGuidances', 'blocking', pendingGuidances)
+      )
+    }
+
+    // not checked without the patches of the master
+    if (supportsRpuRecovery(master) && master.uuid in missingPatchesByHost) {
+      checks.push(
+        rpuCheck(
+          'partiallyUpdatedPool',
+          'blocking',
+          toObjects(listOutdatedMembers(master, hasMissingPatchesByHost)),
+          'acceptCurrentStateAsBaseline'
+        )
+      )
+    }
+
+    if (some(this.objects.indexes.type.SR, { type: 'linstor' })) {
+      // as in the start: with no host to update, the state of LINSTOR changes
+      // nothing to the run
+      const issues = some(hasMissingPatchesByHost) ? await this._listLinstorIssues() : []
+      checks.push(
+        rpuCheck(
+          'linstorHealth',
+          'blocking',
+          truncateLinstorIssues(issues).map(reason => ({ ...poolObject, reason }))
+        ),
+        rpuCheck(
+          'linstorPackages',
+          'info',
+          toObjects(
+            Object.keys(
+              pickBy(missingPatchesByHost, missingPatches =>
+                missingPatches.some(({ name }) => LINSTOR_PACKAGES.includes(name))
+              )
+            )
+          )
+        )
+      )
+    }
+
+    return checks
+  },
+
   async rollingPoolUpdate(
     $defer,
     parentTask,
@@ -944,9 +1050,8 @@ const methods = {
       if (!rebootVm) {
         // warn the user if RPU will reboot some VMs
         xsUpdatesResult.hosts.forEach(host => {
-          const { full, mandatory, recommended } = host.guidance
-          const guidances = [...full, ...mandatory, ...recommended]
-          if (['RestartVM', 'RestartDeviceModel'].some(guidance => guidances.includes(guidance))) {
+          const guidances = listGuidancesRestartingVms(host)
+          if (guidances.length > 0) {
             throw incorrectState({
               actual: guidances,
               expected: [],
@@ -1007,8 +1112,8 @@ const methods = {
     // an interrupted run or by hand: the operator must accept that state as
     // the baseline of this run rather than have it silently completed. A pool
     // without recovery is not checked, as before recovery existed
-    if (supportsRecovery && !acceptCurrentStateAsBaseline && !hasMissingPatchesByHost[master.uuid]) {
-      const outdatedHosts = Object.keys(pickBy(hasMissingPatchesByHost))
+    if (supportsRecovery && !acceptCurrentStateAsBaseline) {
+      const outdatedHosts = listOutdatedMembers(master, hasMissingPatchesByHost)
       if (outdatedHosts.length > 0) {
         throw incorrectState({
           actual: outdatedHosts,

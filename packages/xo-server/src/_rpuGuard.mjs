@@ -17,3 +17,11 @@ export function acquireRpuGuard(poolId, operation) {
   runningPools.add(poolId)
   return () => runningPools.delete(poolId)
 }
+
+/**
+ * Whether a rolling pool update or reboot is running on the pool, ie whether `acquireRpuGuard` would refuse it.
+ *
+ * @param {string} poolId
+ * @returns {boolean}
+ */
+export const isRpuRunning = poolId => runningPools.has(poolId)

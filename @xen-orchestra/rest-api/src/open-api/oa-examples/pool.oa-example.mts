@@ -524,6 +524,36 @@ export const poolMissingPatches = [
   },
 ]
 
+export const poolRollingUpdatePrecheck = [
+  { id: 'license', result: 'passed', objects: [] },
+  { id: 'runningRollingOperation', result: 'passed', objects: [] },
+  { id: 'rollingUpdateRecovery', result: 'passed', objects: [] },
+  {
+    id: 'runningBackups',
+    result: 'blocking',
+    liftedBy: 'bypassBackupCheck',
+    objects: [{ type: 'job', id: '1a4bd0b5-5e6c-4b1f-9b0e-3a2a1f1c2d3e', reason: 'running' }],
+  },
+  { id: 'hostsRunning', result: 'passed', objects: [] },
+  { id: 'hostsEnabled', result: 'passed', objects: [] },
+  {
+    id: 'pinnedVms',
+    result: 'blocking',
+    liftedBy: 'shutdownPinnedVms',
+    objects: [{ type: 'VM', id: '613f541c-4bed-fc77-7ca8-2db6b68f079c', reason: 'VM_HAS_PCI_ATTACHED' }],
+  },
+  { id: 'vmsNotMigratable', result: 'passed', objects: [] },
+  { id: 'pausedHa', result: 'passed', objects: [] },
+  { id: 'missingPatchesListing', result: 'passed', objects: [] },
+  { id: 'partiallyUpdatedPool', result: 'passed', objects: [] },
+  {
+    id: 'pausedLoadBalancer',
+    result: 'info',
+    objects: [{ type: 'pool', id: '355ee47d-ff4c-4924-3db2-fd86ae629676' }],
+  },
+  { id: 'pausedSchedules', result: 'passed', objects: [] },
+]
+
 export const poolRollingUpdateRecovery = {
   runId: '5cea4373-05a7-47ff-9bd8-fea54a37dd63',
   poolId: '355ee47d-ff4c-4924-3db2-fd86ae629676',
