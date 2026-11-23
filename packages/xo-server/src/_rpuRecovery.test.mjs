@@ -203,6 +203,60 @@ describe('buildRpuRecoveryView()', () => {
     assert.equal(view.hosts.half.status, 'running')
   })
 
+  it('reports the XOSTOR steps as not-needed on a pool without XOSTOR, or in a record written before they existed', () => {
+    const record = createRpuRecoveryRecord({ poolId: 'pool1', options: OPTIONS })
+    record.hostOrder = ['done', 'half', 'noVms', 'pending']
+    const done = Object.fromEntries(
+      ['evacuate', 'update', 'reboot', 'enable', 'restoreVms'].map(name => [name, { status: 'observed-succeeded' }])
+    )
+    record.hosts.done = { steps: done }
+    record.hosts.half = { steps: { evacuate: { status: 'observed-succeeded' } } }
+    record.hosts.noVms = { steps: { restoreVms: { status: 'not-needed' } } }
+
+    const { hosts } = buildRpuRecoveryView(record)
+
+    for (const hostId of record.hostOrder) {
+      assert.deepEqual(hosts[hostId].steps.linstor, {
+        status: 'not-needed',
+        startedAt: undefined,
+        finishedAt: undefined,
+      })
+      assert.equal(hosts[hostId].steps.linstorHealth.status, 'not-needed')
+    }
+    // same host statuses as before
+    assert.equal(hosts.done.status, 'succeeded')
+    assert.equal(hosts.half.status, 'running')
+    assert.equal(hosts.noVms.status, 'running')
+    assert.equal(hosts.pending.status, 'pending')
+  })
+
+  it('reports the XOSTOR steps of a pool with XOSTOR', () => {
+    const record = createRpuRecoveryRecord({ poolId: 'pool1', options: OPTIONS })
+    record.hostOrder = ['done', 'waiting', 'pending']
+    record.linstor = { status: 'observed-succeeded', startedAt: 'T1', finishedAt: 'T2' }
+    const done = Object.fromEntries(
+      ['evacuate', 'update', 'reboot', 'enable', 'restoreVms'].map(name => [name, { status: 'observed-succeeded' }])
+    )
+    record.hosts.done = { steps: { ...done, linstorHealth: { status: 'observed-succeeded' } } }
+    record.hosts.waiting = {
+      steps: { ...done, restoreVms: { status: 'pending' }, linstorHealth: { status: 'running' } },
+    }
+
+    const { hosts } = buildRpuRecoveryView(record)
+
+    // the packages of LINSTOR are updated once, for the whole pool
+    for (const hostId of record.hostOrder) {
+      assert.deepEqual(hosts[hostId].steps.linstor, { status: 'observed-succeeded', startedAt: 'T1', finishedAt: 'T2' })
+    }
+    assert.equal(hosts.done.steps.linstorHealth.status, 'observed-succeeded')
+    assert.equal(hosts.done.status, 'succeeded')
+    assert.equal(hosts.waiting.steps.linstorHealth.status, 'running')
+    assert.equal(hosts.waiting.status, 'running')
+    // the update of the packages is not the start of a host
+    assert.equal(hosts.pending.steps.linstorHealth.status, 'pending')
+    assert.equal(hosts.pending.status, 'pending')
+  })
+
   it('reports a host left in progress by a run that is over as interrupted', () => {
     const record = createRpuRecoveryRecord({ poolId: 'pool1', options: OPTIONS })
     record.hostOrder = ['stepRunning', 'half', 'failed', 'pending']
@@ -737,9 +791,50 @@ describe('createRpuRecoveryRecorder()', () => {
     await recorder.recordHaltedPinnedVm('vm1', 'h1')
 
     const steps = stored().hosts.h1.steps
-    for (const name of ['evacuate', 'update', 'reboot', 'enable', 'restoreVms']) {
+    for (const name of ['linstor', 'evacuate', 'update', 'reboot', 'enable', 'linstorHealth', 'restoreVms']) {
       assert.equal(steps[name].status, 'not-needed')
     }
+  })
+
+  it('linstorStep tracks the update of the LINSTOR packages without handling a host', async () => {
+    const { store, recorder, stored } = await makeRecorder()
+
+    recorder.linstorStep('running')
+    await recorder.flush()
+    assert.equal(stored().linstor.status, 'running')
+    assert.equal(typeof stored().linstor.startedAt, 'string')
+
+    recorder.linstorStep('observed-succeeded')
+    await recorder.flush()
+    assert.equal(stored().linstor.status, 'observed-succeeded')
+    assert.equal(typeof stored().linstor.finishedAt, 'string')
+
+    // a later attempt with nothing left to update keeps what this one observed
+    const observed = stored().linstor
+    recorder.linstorStep('not-needed')
+    await recorder.flush()
+    assert.deepEqual(stored().linstor, observed)
+    assert.deepEqual(stored().hosts, {})
+
+    // no host handled: nothing to recover
+    await recorder.fail(new Error('pinned VMs'))
+    await recorder.dropIfNothingToRecover()
+    assert.equal(store.data.has('pool1'), false)
+  })
+
+  it('hostFailed marks the LINSTOR health step failed when LINSTOR does not recover after a host', async () => {
+    const { recorder, stored } = await makeRecorder()
+
+    recorder.stepRunning('h1', 'linstorHealth')
+    const error = new Error(
+      'LINSTOR is not healthy after 600 seconds: volume 0 of resource xcp-volume-1 on node host-B is Outdated'
+    )
+    recorder.hostFailed('h1', error)
+    await recorder.fail(error)
+
+    const host = stored().hosts.h1
+    assert.equal(host.steps.linstorHealth.status, 'failed')
+    assert.match(host.lastError.message, /resource xcp-volume-1 on node host-B/)
   })
 
   it('hostFailed marks the running step failed and records the filtered error', async () => {
@@ -1219,6 +1314,40 @@ describe('resumeRpuRecoveryRun()', () => {
     assert.equal(store.data.get('pool1').attempt, 3)
     // h3 still patched although its update step was reset by the previous resume
     assert.deepEqual([...again.plan.patchedHostIds], ['h1', 'h3'])
+  })
+
+  it('leaves the wait for LINSTOR after a finished host to the run when it failed', async () => {
+    const { store } = await storeWith({
+      hostOrder: ['h1', 'h2'],
+      linstor: { status: 'observed-succeeded' },
+      hosts: {
+        h1: { steps: { ...allSteps('observed-succeeded'), linstorHealth: { status: 'failed' } } },
+        h2: { steps: {} },
+      },
+    })
+
+    const { plan } = await resumeRpuRecoveryRun({ store, poolId: 'pool1' })
+
+    // the XOSTOR steps are observations: h1 is done
+    assert.deepEqual([...plan.doneHostIds], ['h1'])
+    // the run settles it once it waited for LINSTOR, before it handles any host
+    assert.deepEqual(plan.linstorUnverifiedHostIds, ['h1'])
+    const stored = store.data.get('pool1')
+    assert.equal(stored.hosts.h1.steps.linstorHealth.status, 'pending')
+    assert.equal(stored.linstor.status, 'observed-succeeded')
+    // not succeeded as long as LINSTOR was not seen healthy after it
+    const view = buildRpuRecoveryView({ ...stored, status: 'failed' })
+    assert.equal(view.hosts.h1.status, 'interrupted')
+    assert.equal(view.hosts.h2.status, 'pending')
+  })
+
+  it('re-arms an update of the LINSTOR packages the previous attempt did not finish', async () => {
+    const { store } = await storeWith({ linstor: { status: 'failed', startedAt: 'T1', finishedAt: 'T2' } })
+
+    const { plan } = await resumeRpuRecoveryRun({ store, poolId: 'pool1' })
+
+    assert.equal(plan.hostsStarted, false)
+    assert.deepEqual(store.data.get('pool1').linstor, { status: 'pending' })
   })
 
   it('rejects when the resuming status cannot be written', async () => {

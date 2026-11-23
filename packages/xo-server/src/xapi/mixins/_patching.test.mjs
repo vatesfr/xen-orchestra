@@ -350,6 +350,115 @@ describe('rollingPoolUpdate', function () {
       assert.deepEqual(xapi.linstorEvents, ['check', 'update', 'reboot host-A', 'wait', 'reboot host-B', 'wait'])
     })
 
+    describe('recorded steps', function () {
+      // what the run records of LINSTOR, among the steps of its hosts
+      const record = (xapi, options) => {
+        const calls = []
+        const recorder = {
+          ...noopRpuRecorder,
+          linstorStep: status => calls.push(`linstor ${status}`),
+          stepRunning: (hostId, name) => calls.push(`${hostId} ${name} running`),
+          stepObserved: (hostId, name) => calls.push(`${hostId} ${name} observed`),
+          stepNotNeeded: (hostId, name) => calls.push(`${hostId} ${name} not-needed`),
+        }
+        return rollingPoolUpdate(xapi, { ...options, recorder }).then(error => ({
+          error,
+          calls: calls.filter(call => /linstor/i.test(call)),
+        }))
+      }
+
+      it('records the update of the LINSTOR packages, and the wait for LINSTOR after each host', async function () {
+        const { error, calls } = await record(new FakeXapi([1, 2, 0], { linstor: true }))
+
+        assert.equal(error, undefined)
+        assert.deepEqual(calls, [
+          'linstor running',
+          'linstor observed-succeeded',
+          'host-A linstorHealth running',
+          'host-A linstorHealth observed',
+          'host-B linstorHealth running',
+          'host-B linstorHealth observed',
+        ])
+      })
+
+      it('records a failed update of the LINSTOR packages', async function () {
+        const xapi = new FakeXapi([1, 2, 0], { linstor: true })
+        xapi._updateLinstorPackages = async () => {
+          throw new Error('yum failed')
+        }
+
+        const { error, calls } = await record(xapi)
+
+        assert.equal(error?.message, 'yum failed')
+        assert.deepEqual(calls, ['linstor running', 'linstor failed'])
+      })
+
+      // the failure itself is recorded by the reboot, with the one of the host
+      it('leaves the wait for LINSTOR running when LINSTOR does not recover', async function () {
+        const xapi = new FakeXapi([1, 2, 0], { linstor: true })
+        xapi._waitLinstorHealthy = async () => {
+          throw new Error('LINSTOR is not healthy after 600 seconds')
+        }
+
+        const { error, calls } = await record(xapi)
+
+        assert.match(error?.message, /LINSTOR is not healthy/)
+        assert.deepEqual(calls.slice(2), ['host-A linstorHealth running'])
+      })
+
+      it('records nothing on a pool without LINSTOR', async function () {
+        const { error, calls } = await record(new FakeXapi([1, 2, 0]))
+
+        assert.equal(error, undefined)
+        assert.deepEqual(calls, [])
+      })
+
+      it('does not update again the LINSTOR packages once a host started', async function () {
+        const xapi = new FakeXapi([0, 0], { linstor: true })
+
+        const { error, calls } = await record(xapi, {
+          acceptCurrentStateAsBaseline: true,
+          resume: {
+            doneHostIds: new Set(['host-A']),
+            // host-B rebooted since the previous attempt: nothing left to do on it
+            unfinishedHosts: { 'host-B': { agentStartedAtBeforeUpdate: '0', enabledBeforeUpdate: true } },
+            patchedHostIds: new Set(['host-A', 'host-B']),
+            linstorUnverifiedHostIds: [],
+            hostsStarted: true,
+            hostOrder: ['host-A', 'host-B'],
+            vmHomeById: {},
+            haltedPinnedVms: {},
+          },
+        })
+
+        assert.equal(error, undefined)
+        assert.deepEqual(calls, ['linstor not-needed', 'host-B linstorHealth not-needed'])
+      })
+
+      it('records LINSTOR as healthy after the hosts of a previous attempt once it waited for it', async function () {
+        // host-B is left to update: the resume waits for LINSTOR before it
+        const xapi = new FakeXapi([0, 1], { linstor: true })
+
+        const { error, calls } = await record(xapi, {
+          acceptCurrentStateAsBaseline: true,
+          resume: {
+            doneHostIds: new Set(['host-A']),
+            unfinishedHosts: {},
+            patchedHostIds: new Set(['host-A']),
+            // LINSTOR did not recover in time after the reboot of host-A
+            linstorUnverifiedHostIds: ['host-A'],
+            hostsStarted: true,
+            hostOrder: ['host-A', 'host-B'],
+            vmHomeById: {},
+            haltedPinnedVms: {},
+          },
+        })
+
+        assert.equal(error, undefined)
+        assert.deepEqual(calls.slice(0, 2), ['host-A linstorHealth observed', 'linstor not-needed'])
+      })
+    })
+
     it('does not refuse a pool whose plugin is too old to check LINSTOR', async function () {
       const xapi = new FakeXapi([1, 2, 0], { linstor: true })
       xapi.linstorHealth = Object.assign(new Error('UNKNOWN_XENAPI_PLUGIN_FUNCTION(healthCheck)'), {
@@ -398,6 +507,7 @@ describe('rollingPoolUpdate', function () {
       doneHostIds: new Set(hostsStarted ? ['host-A'] : []),
       unfinishedHosts,
       patchedHostIds: new Set(hostsStarted ? ['host-A', ...Object.keys(unfinishedHosts)] : []),
+      linstorUnverifiedHostIds: [],
       hostsStarted,
       hostOrder: ['host-A', 'host-B'],
       vmHomeById: {},

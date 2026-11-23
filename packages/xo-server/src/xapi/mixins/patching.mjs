@@ -1042,7 +1042,17 @@ const methods = {
 
     // with no host left to update or reboot, the state of LINSTOR changes
     // nothing to the run
-    if (hasLinstor && (needsUpdate || Object.keys(unfinishedHosts).some(needsRebootOnly))) {
+    const checksLinstor = hasLinstor && (needsUpdate || Object.keys(unfinishedHosts).some(needsRebootOnly))
+    // LINSTOR is not waited for again after a host which is not handled again:
+    // the wait below, before the first host of this attempt, stands for it
+    const settleLinstorHealth = hostId => {
+      if (checksLinstor && resume !== noRpuResume) {
+        recorder.stepObserved(hostId, 'linstorHealth')
+      } else {
+        recorder.stepNotNeeded(hostId, 'linstorHealth')
+      }
+    }
+    if (checksLinstor) {
       // the previous attempt may have stopped while LINSTOR was recovering from
       // what it did, a restart of its services or the reboot of a host: it is
       // waited for. On a first attempt, an unhealthy LINSTOR is not the doing
@@ -1055,8 +1065,22 @@ const methods = {
         await this._assertLinstorHealthy()
       }
     }
-    if (needsUpdate && !resume.hostsStarted && hasLinstor) {
-      await this._updateLinstorPackages()
+    if (hasLinstor) {
+      // the hosts a previous attempt rebooted without seeing LINSTOR recover
+      resume.linstorUnverifiedHostIds.forEach(settleLinstorHealth)
+      // once a host started, the packages were handled by a previous attempt
+      if (needsUpdate && !resume.hostsStarted) {
+        recorder.linstorStep('running')
+        try {
+          await this._updateLinstorPackages()
+        } catch (error) {
+          recorder.linstorStep('failed')
+          throw error
+        }
+        recorder.linstorStep('observed-succeeded')
+      } else {
+        recorder.linstorStep('not-needed')
+      }
     }
 
     // what is left on the hosts a previous attempt did not finish: the ones it
@@ -1096,6 +1120,7 @@ const methods = {
       for (const name of ['evacuate', 'update', 'reboot', 'enable']) {
         recorder.stepObserved(hostId, name)
       }
+      settleLinstorHealth(hostId)
       doneHostIds.add(hostId)
     }
 
@@ -1107,8 +1132,13 @@ const methods = {
         resume: { ...resume, doneHostIds },
         // the next host must not be evacuated while the volumes of this one are
         // resynchronizing
+        // a failure is recorded by the reboot, as the one of the host
         afterHostIsBack: hasLinstor
-          ? host => this._waitLinstorHealthy({ hostId: host.uuid, hostName: host.name_label })
+          ? async host => {
+              recorder.stepRunning(host.uuid, 'linstorHealth')
+              await this._waitLinstorHealthy({ hostId: host.uuid, hostName: host.name_label })
+              recorder.stepObserved(host.uuid, 'linstorHealth')
+            }
           : undefined,
         beforeEvacuateVms: () => {
           // On XS < 8.4 and CH, start by installing patches on all hosts

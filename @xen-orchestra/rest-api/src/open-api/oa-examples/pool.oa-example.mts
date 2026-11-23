@@ -540,6 +540,11 @@ export const poolRollingUpdateRecovery = {
     'b61a5c92-700e-4966-a13b-00633f03eea8': {
       status: 'interrupted',
       steps: {
+        linstor: {
+          status: 'observed-succeeded',
+          startedAt: '2026-08-31T14:02:12.000Z',
+          finishedAt: '2026-08-31T14:02:19.000Z',
+        },
         evacuate: {
           status: 'observed-succeeded',
           startedAt: '2026-08-31T14:02:20.000Z',
@@ -556,6 +561,11 @@ export const poolRollingUpdateRecovery = {
           finishedAt: '2026-08-31T14:12:44.000Z',
         },
         enable: { status: 'observed-succeeded', finishedAt: '2026-08-31T14:12:44.000Z' },
+        linstorHealth: {
+          status: 'observed-succeeded',
+          startedAt: '2026-08-31T14:12:44.000Z',
+          finishedAt: '2026-08-31T14:12:49.000Z',
+        },
         restoreVms: { status: 'pending' },
       },
       lastError: null,
@@ -563,10 +573,16 @@ export const poolRollingUpdateRecovery = {
     '46522969-d891-4c48-a839-316b767b7b7b': {
       status: 'interrupted',
       steps: {
+        linstor: {
+          status: 'observed-succeeded',
+          startedAt: '2026-08-31T14:02:12.000Z',
+          finishedAt: '2026-08-31T14:02:19.000Z',
+        },
         evacuate: { status: 'running', startedAt: '2026-08-31T14:12:50.000Z' },
         update: { status: 'pending' },
         reboot: { status: 'pending' },
         enable: { status: 'pending' },
+        linstorHealth: { status: 'pending' },
         restoreVms: { status: 'pending' },
       },
       lastError: null,

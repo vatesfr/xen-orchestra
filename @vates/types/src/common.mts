@@ -814,8 +814,21 @@ export const XAPI_TYPES: readonly string[] = [
   'SM',
 ] satisfies readonly XapiXoRecord['type'][]
 
-/** steps of a rolling pool update on one host, in execution order */
-export const RPU_RECOVERY_STEP_NAMES = ['evacuate', 'update', 'reboot', 'enable', 'restoreVms'] as const
+/**
+ * steps of a rolling pool update on one host, in execution order
+ *
+ * `linstor`, the update of the LINSTOR packages of a pool with XOSTOR, is done
+ * once for the whole pool before its first host: it is the same on every host
+ */
+export const RPU_RECOVERY_STEP_NAMES = [
+  'linstor',
+  'evacuate',
+  'update',
+  'reboot',
+  'enable',
+  'linstorHealth',
+  'restoreVms',
+] as const
 
 export type RPU_RECOVERY_STEP_NAME = (typeof RPU_RECOVERY_STEP_NAMES)[number]
 
