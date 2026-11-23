@@ -54,17 +54,6 @@ async function callProxy<T>(call: Promise<T>): Promise<T> {
   }
 }
 
-async function callProxy<T>(call: Promise<T>): Promise<T> {
-  try {
-    return await call
-  } catch (error) {
-    if (isProxyUnreachable(error)) {
-      throw new ApiError('Proxy unreachable', 502)
-    }
-    throw error
-  }
-}
-
 @Route('proxies')
 @Security('*')
 @Response(badRequestResp.status, badRequestResp.description)
@@ -174,7 +163,7 @@ export class ProxyController extends XoController<XoProxy> {
    */
   @Example(proxyUpdaterState)
   @Extension('x-mcp-exposure', 'allow')
-  @Get('{id}/updater-state')
+  @Get('{id}/appliance_updater_state')
   @Middlewares(
     acl({
       resource: 'proxy',
@@ -187,7 +176,7 @@ export class ProxyController extends XoController<XoProxy> {
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
-  @Response(502, 'Proxy unreachable')
+  @Response(proxyUnreachableResp.status, proxyUnreachableResp.description)
   getProxyUpdaterState(@Path() id: string): ReturnType<XoApp['getProxyApplianceUpdaterState']> {
     return callProxy(this.restApi.xoApp.getProxyApplianceUpdaterState(id as XoProxy['id']))
   }
