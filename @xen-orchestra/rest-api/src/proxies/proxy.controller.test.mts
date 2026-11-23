@@ -5,47 +5,65 @@ import { ApiError } from '../helpers/error.helper.mjs'
 import { ProxyController } from './proxy.controller.mjs'
 import type { RestApi } from '../rest-api/rest-api.mjs'
 
-function createController(checkProxyHealth: (id: string) => Promise<void>) {
+const proxyId = 'e625ea0c-a876-405a-b838-109d762efe88'
+
+const updaterState = { level: 'info', message: 'xoa is up to date', state: 'xoa-up-to-date' }
+
+const unreachableErrors = [
+  Object.assign(new TypeError('fetch failed'), { code: 'PROXY_UNREACHABLE' }),
+  Object.assign(new Error('cannot get the proxy address'), { code: 'PROXY_UNREACHABLE' }),
+]
+
+function createController(result: () => Promise<unknown>) {
   const calls: unknown[] = []
+  const record =
+    (method: string) =>
+    async (...args: unknown[]) => {
+      calls.push([method, ...args])
+      return result()
+    }
   const restApi = {
     xoApp: {
-      checkProxyHealth: async (id: string) => {
-        calls.push(['checkProxyHealth', id])
-        return checkProxyHealth(id)
-      },
+      checkProxyHealth: record('checkProxyHealth'),
+      getProxyApplianceUpdaterState: record('getProxyApplianceUpdaterState'),
     },
   } as unknown as RestApi
   const controller = new ProxyController(restApi)
   return { calls, controller }
 }
 
-const proxyId = 'e625ea0c-a876-405a-b838-109d762efe88'
+for (const [method, xoAppMethod, xoAppResult, expected] of [
+  ['getProxyHealth', 'checkProxyHealth', undefined, { success: true }],
+  ['getProxyUpdaterState', 'getProxyApplianceUpdaterState', updaterState, updaterState],
+] as const) {
+  describe(`ProxyController.${method}`, () => {
+    it(`forwards the id to ${xoAppMethod} and returns the result`, async () => {
+      const { calls, controller } = createController(async () => xoAppResult)
 
-describe('ProxyController.getProxyHealth', () => {
-  it('forwards the id and returns success when the proxy is reachable', async () => {
-    const { calls, controller } = createController(async () => {})
-
-    assert.deepEqual(await controller.getProxyHealth(proxyId), { success: true })
-    assert.deepEqual(calls, [['checkProxyHealth', proxyId]])
-  })
-
-  it('throws a 502 ApiError when the proxy is unreachable', async () => {
-    const { controller } = createController(async () => {
-      throw Object.assign(new TypeError('fetch failed'), { code: 'PROXY_UNREACHABLE' })
+      assert.deepEqual(await controller[method](proxyId), expected)
+      assert.deepEqual(calls, [[xoAppMethod, proxyId]])
     })
 
-    await assert.rejects(
-      controller.getProxyHealth(proxyId),
-      error => error instanceof ApiError && error.status === 502 && error.message === 'Proxy unreachable'
-    )
-  })
+    for (const unreachableError of unreachableErrors) {
+      it(`throws a 502 ApiError on "${unreachableError.message}"`, async () => {
+        const { controller } = createController(async () => {
+          throw unreachableError
+        })
 
-  it('rethrows unrelated errors unchanged', async () => {
-    const unrelatedError = new Error('500 Internal Server Error')
-    const { controller } = createController(async () => {
-      throw unrelatedError
+        await assert.rejects(
+          controller[method](proxyId),
+          error => error instanceof ApiError && error.status === 502 && error.message === 'Proxy unreachable'
+        )
+      })
+    }
+
+    it('rethrows unrelated errors unchanged', async () => {
+      const unrelatedError = new Error('401 Unauthorized')
+      const { controller } = createController(async () => {
+        throw unrelatedError
+      })
+
+      await assert.rejects(controller[method](proxyId), error => error === unrelatedError)
     })
-
-    await assert.rejects(controller.getProxyHealth(proxyId), error => error === unrelatedError)
   })
-})
+}
