@@ -21,7 +21,14 @@ export function useNewInternalNetwork(rawPool: MaybeRefOrGetter<FrontXoPool>) {
       onConfirm: (newPayload: NewInternalNetworkPayload) => {
         payload.value = newPayload
 
-        run({ detached: true })
+        run({
+          detached: true,
+          onSuccess: ([result]) => {
+            if (result.status === 'rejected') {
+              console.error('Failed to create internal network', result.reason)
+            }
+          },
+        })
       },
       onCancel: true,
     },

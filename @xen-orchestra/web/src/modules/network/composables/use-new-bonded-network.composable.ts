@@ -21,7 +21,14 @@ export function useNewBondedNetwork(rawPool: MaybeRefOrGetter<FrontXoPool>) {
       onConfirm: (newPayload: NewBondedNetworkPayload) => {
         payload.value = newPayload
 
-        run({ detached: true })
+        run({
+          detached: true,
+          onSuccess: ([result]) => {
+            if (result.status === 'rejected') {
+              console.error('Failed to create bonded network', result.reason)
+            }
+          },
+        })
       },
       onCancel: true,
     },

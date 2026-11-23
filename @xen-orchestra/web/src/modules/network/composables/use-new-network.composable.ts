@@ -18,7 +18,14 @@ export function useNewNetwork(rawPool: MaybeRefOrGetter<FrontXoPool>) {
       onConfirm: (newPayload: NewNetworkPayload) => {
         payload.value = newPayload
 
-        run({ detached: true })
+        run({
+          detached: true,
+          onSuccess: ([result]) => {
+            if (result.status === 'rejected') {
+              console.error('Failed to create network', result.reason)
+            }
+          },
+        })
       },
       onCancel: true,
     },

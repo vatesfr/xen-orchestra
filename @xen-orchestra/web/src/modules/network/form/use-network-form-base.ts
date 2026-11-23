@@ -1,7 +1,13 @@
 import { useNetworkPoolPrefill } from '@/modules/network/form/use-network-pool-prefill.ts'
 import { type FrontXoPool, useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
-import { useFormBindings } from '@core/packages/form-bindings'
 import { useFormSelect } from '@core/packages/form-select'
+import {
+  type FormValidationConfig,
+  mergeValidationConfigs,
+  required,
+  withMessage,
+} from '@core/packages/form-validation'
+import { useValidatedForm } from '@core/packages/validated-form'
 import { type MaybeRefOrGetter, toRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -24,10 +30,24 @@ export type BaseNetworkPayload = {
   insecureNbd?: boolean
 }
 
-export function useNetworkFormBase<T extends BaseNetworkFormData>(
+export function useNetworkFormBase<T extends BaseNetworkFormData & Record<string, unknown>>(
   _poolId: MaybeRefOrGetter<FrontXoPool['id'] | undefined>,
-  formData: T
+  formData: T,
+  extraConfig?: FormValidationConfig<T>
 ) {
+  const { t } = useI18n()
+
+  const baseConfig: FormValidationConfig<BaseNetworkFormData> = {
+    errors: {
+      onSubmit: () => ({
+        pool: { required: withMessage(required, () => t('pool-required')) },
+        name: { required: withMessage(required, () => t('name-required')) },
+      }),
+    },
+  }
+
+  const { useField, useSelect, validate } = useValidatedForm(formData, mergeValidationConfigs(baseConfig, extraConfig))
+
   const { pools, useGetPoolById } = useXoPoolCollection()
 
   const { id: poolSelectId } = useFormSelect(pools, {
@@ -46,10 +66,6 @@ export function useNetworkFormBase<T extends BaseNetworkFormData>(
 
   const selectedPool = useGetPoolById(() => formData.pool)
 
-  const { t } = useI18n()
-
-  const { useField, useSelect } = useFormBindings(formData)
-
   function buildBasePayload(): BaseNetworkPayload {
     return {
       poolId: formData.pool!,
@@ -62,9 +78,12 @@ export function useNetworkFormBase<T extends BaseNetworkFormData>(
   }
 
   return {
+    useField,
+    useSelect,
+    validate,
     selectedPool,
     buildBasePayload,
-    poolSelectBindings: useSelect(poolSelectId, () => ({ label: t('pool') })),
+    poolSelectBindings: useSelect(poolSelectId, 'pool', () => ({ label: t('pool') })),
     nameInputBindings: useField('name', () => ({ label: t('name'), required: true })),
     descriptionInputBindings: useField('description', () => ({ label: t('description') })),
     mtuInputBindings: useField('mtu', () => ({ label: t('mtu'), info: t('mtu-default-value-message') })),
