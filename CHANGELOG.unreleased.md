@@ -58,6 +58,7 @@
 - [XO5] Improve event handling (PR [#10568](https://github.com/vatesfr/xen-orchestra/pull/10568))
 - [Netbox] Support Netbox v4.7.x [#10565](https://github.com/vatesfr/xen-orchestra/issues/10565) (PR [#10574](https://github.com/vatesfr/xen-orchestra/pull/10574))
 - [V2V] Import VMs from ESXi 6.x hosts: their disks are read one request at a time, so more slowly than from ESXi 7 and 8 (PR [#10590](https://github.com/vatesfr/xen-orchestra/pull/10590))
+- [Complex-matcher] Add `[resolve]` for deep resolution, with `[some]` and `[every]` quantifiers (PR [#9911](https://github.com/vatesfr/xen-orchestra/pull/9911))
 
 ### Bug fixes
 
@@ -124,6 +125,7 @@
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
 - @xen-orchestra/xapi minor
+- complex-matcher minor
 - vhd-lib minor
 - xen-api minor
 - xo-acl-resolver minor

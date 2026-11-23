@@ -91,6 +91,9 @@ suite('ACL V2 behavior', async () => {
   const templateDeny = { id: 'template-deny-id', $pool: '2' }
   const vdis = [{ $SR: '2' }, { $SR: '2' }]
   const vdisMultipleSrs = [{ $SR: '1' }, { $SR: '2' }]
+  const vdisOnTaggedSr = [{ $SR: '4' }]
+  const vdisOnUntaggedSr = [{ $SR: '5' }]
+  const srs = { '4': { tags: ['tag'] } }
   const vifs = [{ $network: '1' }]
   const iso = { id: 'iso-vdi-id', $SR: '3' }
   const hostAffinity = { id: 'affinity-host-id', $pool: '1' }
@@ -118,6 +121,14 @@ suite('ACL V2 behavior', async () => {
     action: 'create',
     resource: 'vdi',
     selector: '$SR:2',
+    effect: 'allow',
+    roleId,
+  } satisfies TPrivilege<'vdi'>
+  const vdiCreateResolve = {
+    id: privilegeId,
+    action: 'create',
+    resource: 'vdi',
+    selector: '$SR:[resolve]:tags:tag',
     effect: 'allow',
     roleId,
   } satisfies TPrivilege<'vdi'>
@@ -170,6 +181,11 @@ suite('ACL V2 behavior', async () => {
     isoVdiUse,
     hostVm,
   ]
+
+  const resolvePrivileges = [vdiCreateResolve]
+
+  // === Resolvers
+  const srTagResolver = (id: string) => srs[id]
 
   // === Test ===
   suite('hasPrivilegeOn behavior', () => {
@@ -255,6 +271,35 @@ suite('ACL V2 behavior', async () => {
           objects: [almaVm, alpineVm],
           userPrivileges: allPrivileges,
         }),
+        false
+      )
+    })
+
+    test('should allow create on vdi whose SR has tag', () => {
+      assert.strictEqual(
+        hasPrivilegeOn(
+          {
+            user,
+            action: 'create',
+            resource: 'vdi',
+            objects: vdisOnTaggedSr,
+            userPrivileges: resolvePrivileges,
+          },
+          srTagResolver
+        ),
+        true
+      )
+      assert.strictEqual(
+        hasPrivilegeOn(
+          {
+            user,
+            action: 'create',
+            resource: 'vdi',
+            objects: vdisOnUntaggedSr,
+            userPrivileges: resolvePrivileges,
+          },
+          srTagResolver
+        ),
         false
       )
     })

@@ -213,7 +213,7 @@ export class VmTemplateController extends XapiXoController<XoVmTemplate> {
   @Security('*', ['acl'])
   @Tags('vdis')
   @Response(notFoundResp.status, notFoundResp.description)
-  getVmTemplateVdis(
+  async getVmTemplateVdis(
     @Request() req: ExRequest,
     @Path() id: string,
     @Query() fields?: string,
@@ -221,9 +221,9 @@ export class VmTemplateController extends XapiXoController<XoVmTemplate> {
     @Query() markdown?: boolean,
     @Query() filter?: string,
     @Query() limit?: number
-  ): SendObjects<Partial<Unbrand<XoVdi>>> {
+  ): Promise<SendObjects<Partial<Unbrand<XoVdi>>>> {
     const vdis = this.#vmService.getVmVdis(id as XoVmTemplate['id'], 'VM-template')
-    return this.sendObjects(limitAndFilterArray(vdis, { filter }), req, {
+    return this.sendObjects(await limitAndFilterArray(vdis, { filter }, this.restApi), req, {
       path: obj => obj.type.toLowerCase() + 's',
       limit,
       privilege: { action: 'read', resource: 'vdi' },

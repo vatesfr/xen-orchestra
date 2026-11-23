@@ -1,7 +1,7 @@
 import { createLogger } from '@xen-orchestra/log'
 import type { EventEmitter } from 'node:events'
 import { AnyPrivilege, hasPrivilegeOn, SupportedResource } from '@xen-orchestra/acl'
-import { XAPI_TYPES, type XapiXoRecord, type XoUser } from '@vates/types'
+import { XAPI_TYPES, XoRecord, type XapiXoRecord, type XoUser } from '@vates/types'
 import type { CollectionEventType, EventType, NonXapiListenerType, XoListenerType } from '../events/event.type.mjs'
 import { iocContainer } from '../ioc/ioc.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
@@ -124,8 +124,8 @@ export abstract class Listener<Type extends XoListenerType | undefined = undefin
     userId,
   }: {
     event: CollectionEventType
-    object: object | undefined
-    previousObject: object | undefined
+    object: Partial<XoRecord> | undefined
+    previousObject: Partial<XoRecord> | undefined
     userId: XoUser['id']
   }): Promise<CollectionEventType | undefined> {
     if (this.type === undefined || (object === undefined && previousObject === undefined)) {
@@ -142,7 +142,6 @@ export abstract class Listener<Type extends XoListenerType | undefined = undefin
       return event
     }
 
-    const userPrivileges = (await restApi.xoApp.getAclV2UserPrivileges(user.id)) as AnyPrivilege[]
     let resource: SupportedResource | undefined
 
     if (!XAPI_TYPES.includes(this.type)) {
@@ -156,36 +155,60 @@ export abstract class Listener<Type extends XoListenerType | undefined = undefin
       ;[resource] = resourceXapiType as [keyof typeof XAPI_TYPE_BY_ACL_RESOURCE, XapiXoRecord['type']]
     }
 
+    const userPrivileges = (await restApi.xoApp.getAclV2UserPrivileges(user.id)) as AnyPrivilege[]
+    const privilegeResolver = await restApi.buildPrivilegeResolver(
+      [object, previousObject].filter(o => o !== undefined),
+      userPrivileges,
+      resource
+    )
+
     switch (event) {
       case 'add':
         if (object === undefined) {
           return
         }
 
-        if (!hasPrivilegeOn({ user, userPrivileges, action: 'read', objects: object, resource })) {
+        if (
+          !hasPrivilegeOn(
+            {
+              user,
+              userPrivileges,
+              action: 'read',
+              objects: object,
+              resource,
+            },
+            privilegeResolver
+          )
+        ) {
           return
         }
         return 'add'
       case 'update': {
         const canSeeObject =
           object !== undefined &&
-          hasPrivilegeOn({
-            user,
-            userPrivileges,
-            action: 'read',
-            objects: object,
-            resource,
-          })
+          hasPrivilegeOn(
+            {
+              user,
+              userPrivileges,
+              action: 'read',
+              objects: object,
+              resource,
+            },
+            privilegeResolver
+          )
 
         const canSeePreviousObject =
           previousObject !== undefined &&
-          hasPrivilegeOn({
-            user,
-            userPrivileges,
-            action: 'read',
-            objects: previousObject,
-            resource,
-          })
+          hasPrivilegeOn(
+            {
+              user,
+              userPrivileges,
+              action: 'read',
+              objects: previousObject,
+              resource,
+            },
+            privilegeResolver
+          )
 
         if (canSeeObject && canSeePreviousObject) {
           return 'update'
@@ -203,13 +226,16 @@ export abstract class Listener<Type extends XoListenerType | undefined = undefin
       }
       case 'remove':
         if (
-          !hasPrivilegeOn({
-            user,
-            userPrivileges,
-            action: 'read',
-            objects: object ?? previousObject!,
-            resource,
-          })
+          !hasPrivilegeOn(
+            {
+              user,
+              userPrivileges,
+              action: 'read',
+              objects: object ?? previousObject!,
+              resource,
+            },
+            privilegeResolver
+          )
         ) {
           return
         }

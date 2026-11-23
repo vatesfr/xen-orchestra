@@ -18,7 +18,7 @@ export abstract class XoController<T extends NonXapiXoRecord> extends BaseContro
   ): Promise<Record<T['id'], T>> {
     let objects = await this.getAllCollectionObjects(opts)
 
-    objects = limitAndFilterArray(objects, opts)
+    objects = await limitAndFilterArray(objects, { filter: opts.filter, limit: opts.limit }, this.restApi)
 
     const objectById = {} as Record<T['id'], T>
 

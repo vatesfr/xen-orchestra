@@ -13,6 +13,7 @@ import { iocContainer } from '../ioc/ioc.mjs'
 import type { Branded, NonXapiXoRecord, XapiXoRecord, XoRecord } from '@vates/types'
 import { ServiceIdentifier, ValidateError } from 'tsoa'
 import { ApiError } from '../helpers/error.helper.mjs'
+import type { Resolver } from 'complex-matcher'
 
 export const ACL_MIDDLEWARE_NAME = '_aclMiddleware'
 
@@ -206,6 +207,7 @@ export function acl(acls: AclEntry | AclEntry[]) {
     }
     const invalidFields: { [key: string]: { message: string; value: unknown } } = {}
     const missingPrivilegeParams: AnyPrivilegeOnParam[] = []
+    const objectsToResolve: object[] = []
 
     for (const acl of _acls) {
       let objects: object[] = []
@@ -262,6 +264,8 @@ export function acl(acls: AclEntry | AclEntry[]) {
         }
       }
 
+      objectsToResolve.push(...objects)
+
       // We cast here to restore the discriminated union correlation between `resource` and `action`.
       // When rebuilding an object from individual properties of a discriminated union, TypeScript transform it into an union type
       //   { resource: SupportedResource, action: SupportedAction<SupportedResource> }
@@ -293,7 +297,14 @@ export function acl(acls: AclEntry | AclEntry[]) {
       return next(error)
     }
 
-    const missingPrivileges = getMissingPrivileges(missingPrivilegeParams, userPrivileges)
+    let privilegeResolver: Resolver | undefined
+    try {
+      privilegeResolver = await restApi.buildPrivilegeResolver(objectsToResolve, userPrivileges)
+    } catch (error) {
+      return next(error)
+    }
+
+    const missingPrivileges = getMissingPrivileges(missingPrivilegeParams, userPrivileges, privilegeResolver)
     if (missingPrivileges.length > 0) {
       return next(
         new ApiError('not enough privileges', 403, {

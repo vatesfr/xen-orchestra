@@ -12,6 +12,7 @@ import type {
   XoPool,
   XoPoolBackupArchive,
   XoProxy,
+  XoRecord,
   XoSchedule,
   XoServer,
   XoTask,
@@ -23,6 +24,7 @@ import type {
 import { VatesTask } from './lib/vates-task.mjs'
 import type { PluginRestRouteDefinition } from './lib/rest-api.mjs'
 import type { RPU_RECOVERY_STEP_NAME } from './common.mjs'
+import type { Node as CmNode, Resolver } from 'complex-matcher'
 import {
   Xapi,
   XapiHostStats,
@@ -475,6 +477,7 @@ export type XoApp = EventEmitter & {
     diskId: string
     hostId: XoHost['id']
   }): Promise<BackupArchiveDiskMount>
+  getVmBackupArchive(id: XoVmBackupArchive['id']): Promise<XoVmBackupArchive>
   pingRemote(id: XoBackupRepository['id']): Promise<{ success: true }>
   /**
    * Record the live mounts a proxy created by itself, while running a restore: they never went
@@ -579,6 +582,10 @@ export type XoApp = EventEmitter & {
   ): Promise<XoBackupRepository>
   getAllXapis(): Record<string, Xapi>
   getObjects(opts?: { filter?: Record<string, unknown>; limit?: number }): Record<string, XapiXoRecord>
+  getAnyObject<T extends XoRecord>(id: T['id']): Promise<T>
+  /** Can't be narrower as buildResolver will be asked to walk objects */
+  buildResolver(objects: object | object[], node: CmNode): Promise<Resolver>
+  xapiObjectResolver: Resolver
   getLicenses(params?: { productType?: LicenseProductType }): Promise<License[]>
   bindLicense(params: { licenseId: string; boundObjectId: string }): Promise<License>
   unbindLicense(params: {

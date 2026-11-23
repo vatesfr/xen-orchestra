@@ -316,7 +316,8 @@ export class AclRoleController extends XoController<XoAclRole> {
     @Query() limit?: number
   ): SendObjects<Partial<Unbrand<AnyPrivilege>>> {
     const privileges = (await this.restApi.xoApp.getAclV2RolePrivileges(id as XoAclRole['id'])) as AnyPrivilege[]
-    return this.sendObjects(limitAndFilterArray(privileges, { filter }), req, {
+
+    return this.sendObjects(await limitAndFilterArray(privileges, { filter }, this.restApi), req, {
       path: 'acl-privileges',
       limit,
       privilege: { resource: 'acl-privilege', action: 'read' },
@@ -488,7 +489,7 @@ export class AclRoleController extends XoController<XoAclRole> {
             )
           )
 
-    return this.sendObjects(limitAndFilterArray(users, { filter }), req, {
+    return this.sendObjects(await limitAndFilterArray(users, { filter }, this.restApi), req, {
       path: 'users',
       limit,
       privilege: { resource: 'user', action: 'read' },
@@ -534,7 +535,7 @@ export class AclRoleController extends XoController<XoAclRole> {
             )
           )
 
-    return this.sendObjects(limitAndFilterArray(groups, { filter }), req, {
+    return this.sendObjects(await limitAndFilterArray(groups, { filter }, this.restApi), req, {
       path: 'groups',
       limit,
       privilege: { resource: 'group', action: 'read' },

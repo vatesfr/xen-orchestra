@@ -42,9 +42,8 @@ import {
 } from '../open-api/oa-examples/backup-archive.oa-example.mjs'
 import { taskLocation } from '../open-api/oa-examples/task.oa-example.mjs'
 import { SendObjects } from '../helpers/helper.type.mjs'
-import { BackupArchiveService } from './backup-archive.service.mjs'
 import type { MountLiveDiskBody } from './backup-archive.type.mjs'
-import { acl, autoBindService } from '../middlewares/acl.middleware.mjs'
+import { acl } from '../middlewares/acl.middleware.mjs'
 
 @Route('backup-archives')
 @Security('*')
@@ -53,14 +52,8 @@ import { acl, autoBindService } from '../middlewares/acl.middleware.mjs'
 @Tags('backup-archives')
 @provide(BackupArchiveController)
 export class BackupArchiveController extends XoController<XoVmBackupArchive> {
-  #backupArchiveService: BackupArchiveService
-
-  constructor(
-    @inject(RestApi) restApi: RestApi,
-    @inject(BackupArchiveService) backupArchiveService: BackupArchiveService
-  ) {
+  constructor(@inject(RestApi) restApi: RestApi) {
     super('backup-archive', restApi)
-    this.#backupArchiveService = backupArchiveService
   }
 
   async getAllCollectionObjects({
@@ -88,7 +81,7 @@ export class BackupArchiveController extends XoController<XoVmBackupArchive> {
   }
 
   getCollectionObject(id: XoVmBackupArchive['id']): Promise<XoVmBackupArchive> {
-    return this.#backupArchiveService.getBackupArchive(id)
+    return this.restApi.xoApp.getVmBackupArchive(id)
   }
 
   /**
@@ -138,7 +131,7 @@ export class BackupArchiveController extends XoController<XoVmBackupArchive> {
       resource: 'backup-archive',
       action: 'read',
       objectId: 'params.id',
-      getObject: autoBindService(BackupArchiveService, 'getBackupArchive'),
+      getObject: ({ restApi }) => restApi.xoApp.getVmBackupArchive,
     })
   )
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
