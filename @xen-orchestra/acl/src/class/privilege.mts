@@ -8,9 +8,28 @@ export type SupportedResource = XoAclSupportedResource<SupportedActionsByResourc
 export type SupportedActions<T extends SupportedResource> = XoAclSupportedActions<SupportedActionsByResource, T>
 export type TPrivilege<T extends SupportedResource> = XoAclPrivilege<SupportedActionsByResource, T>
 
+export const UNKNOWN = Symbol('UNKNOWN')
+
+/**
+ * Lists the top-level fields read by a selector.
+ */
+function getSelectorFields(node: CM.Node): string[] {
+  if (node instanceof CM.Property || node instanceof CM.TruthyProperty) {
+    return [node.name]
+  }
+  if (node instanceof CM.Not) {
+    return getSelectorFields(node.child)
+  }
+  if (node instanceof CM.And || node instanceof CM.Or) {
+    return node.children.flatMap(getSelectorFields)
+  }
+  return node instanceof CM.Null ? [] : ['*']
+}
+
 export class Privilege<T extends SupportedResource> {
   #action: TPrivilege<T>['action']
-  #selector?: CM.Node
+  #selector?: (object: object) => boolean
+  #selectorFields: string[] = []
   #resource: TPrivilege<T>['resource']
   #effect: TPrivilege<T>['effect']
 
@@ -28,9 +47,14 @@ export class Privilege<T extends SupportedResource> {
     Privilege.checkActionIsValid(resource, action)
 
     this.#action = action
-    this.#selector = selector !== undefined ? CM.parse(selector) : undefined
     this.#resource = resource
     this.#effect = effect
+
+    if (selector !== undefined) {
+      const node = CM.parse(selector)
+      this.#selector = node.createPredicate()
+      this.#selectorFields = getSelectorFields(node)
+    }
   }
 
   get effect() {
@@ -72,9 +96,14 @@ export class Privilege<T extends SupportedResource> {
       return true
     }
 
-    const resolver = this.#selector.createResolver(knownFields)
+    if (
+      knownFields !== undefined &&
+      this.#selectorFields.some(field => field === '*' || !(field in object || knownFields.includes(field)))
+    ) {
+      return UNKNOWN
+    }
 
-    return resolver(object)
+    return this.#selector(object)
   }
 
   #matchResource(resource: string): resource is SupportedResource {
@@ -86,7 +115,7 @@ export class Privilege<T extends SupportedResource> {
     resource: Resource
     object: object
     knownFields?: string[]
-  }): boolean | typeof CM.UNKNOWN {
+  }): boolean | typeof UNKNOWN {
     return (
       this.#matchResource(constraint.resource) &&
       this.#matchAction(constraint.action) &&

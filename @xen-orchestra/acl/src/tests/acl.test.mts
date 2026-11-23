@@ -1,10 +1,9 @@
 import { test, suite } from 'node:test'
 import assert from 'node:assert'
-import { UNKNOWN } from 'complex-matcher'
 import type { Branded } from '@vates/types/common'
 import type { XoUser } from '@vates/types/xo'
 
-import { Privilege } from '../class/privilege.mjs'
+import { Privilege, UNKNOWN } from '../class/privilege.mjs'
 import type { Privilege as TPrivilege } from '../index.mjs'
 import {
   filterObjectsWithPrivilege,
@@ -111,6 +110,54 @@ suite('Privilege.match behavior', () => {
       assert.strictEqual(
         privilege.match({ resource: 'vm', action: 'read', object: partialObject, knownFields: [] }),
         true
+      )
+    })
+
+    test('Should resolve a field present on the object even if it is not listed', () => {
+      assert.strictEqual(
+        ownVmPrivilege.match({
+          resource: 'vm',
+          action: 'read',
+          object: { creation: { creator: '2' } },
+          knownFields: [],
+        }),
+        true
+      )
+    })
+
+    test('Should resolve a field provided by a getter', () => {
+      class Vm {
+        get creation() {
+          return { creator: '2' }
+        }
+      }
+
+      assert.strictEqual(
+        ownVmPrivilege.match({ resource: 'vm', action: 'read', object: new Vm(), knownFields: [] }),
+        true
+      )
+    })
+
+    test('Should return UNKNOWN on a term not bound to a property', () => {
+      const bareTermPrivilege = new Privilege({ action: 'read', resource: 'vm', selector: 'alma', effect: 'allow' })
+
+      assert.strictEqual(
+        bareTermPrivilege.match({ resource: 'vm', action: 'read', object: partialObject, knownFields: ['id'] }),
+        UNKNOWN
+      )
+    })
+
+    test('Should return UNKNOWN if one of the fields is unknown, even if the others decide the result', () => {
+      const orPrivilege = new Privilege({
+        action: 'read',
+        resource: 'vm',
+        selector: '|(id:alma creation:creator:2)',
+        effect: 'allow',
+      })
+
+      assert.strictEqual(
+        orPrivilege.match({ resource: 'vm', action: 'read', object: partialObject, knownFields: ['id'] }),
+        UNKNOWN
       )
     })
   })

@@ -7,6 +7,7 @@ import {
   SupportedActions,
   SupportedActionsByResource,
   SupportedResource,
+  UNKNOWN,
 } from './class/privilege.mjs'
 
 // Export all types constructed using SUPPORTED_ACTIONS_BY_RESOURCE
@@ -16,7 +17,6 @@ export { SUPPORTED_ACTIONS_BY_RESOURCE }
 export type * from './generated/privilege-types.mjs'
 
 import { AnyPrivilege } from './generated/privilege-types.mjs'
-import { UNKNOWN } from 'complex-matcher'
 
 export type AnyPrivilegeOnParam = {
   [Resource in SupportedResource]: {
