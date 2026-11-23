@@ -31,10 +31,11 @@ import { useXoVbdCollection } from '@/modules/vbd/remote-resources/use-xo-vbd-co
 import { useVdiDelete } from '@/modules/vdi/composables/use-vdi-delete.composable.ts'
 import { useVdiExport } from '@/modules/vdi/composables/use-vdi-export.composable.ts'
 import { useVdiMigrate } from '@/modules/vdi/composables/use-vdi-migrate.composable.ts'
+import { useVdiPageContext } from '@/modules/vdi/composables/use-vdi-page-context.composable.ts'
 import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
 import { getVdiFormat, getVdiIcon } from '@/modules/vdi/utils/xo-vdi.util.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
-import { VDI_PAGE_CONTEXT, type VdiPageContext } from '@/shared/constants.ts'
+import type { VdiPageContext } from '@/shared/constants.ts'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
 import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
@@ -67,7 +68,7 @@ const { t } = useI18n()
 
 const selectedVdiId = useRouteQuery('id')
 
-const isFromVm = computed(() => fromContext === VDI_PAGE_CONTEXT.VM)
+const { isFromVm } = useVdiPageContext(() => fromContext)
 
 const { getVbdsByIds, useGetVbdsByIds } = useXoVbdCollection()
 

@@ -64,12 +64,13 @@
 <script lang="ts" setup>
 import { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
+import { useVdiPageContext } from '@/modules/vdi/composables/use-vdi-page-context.composable.ts'
 import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
 import type { FrontXoVdiSnapshot } from '@/modules/vdi/remote-resources/use-xo-vdi-snapshot-collection.ts'
 import { useXoVmOperationLabel } from '@/modules/vm/composables/xo-vm-operation-label.composable.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.js'
 import { getVmIcon } from '@/modules/vm/utils/xo-vm.util.ts'
-import { VDI_PAGE_CONTEXT, type VdiPageContext } from '@/shared/constants.ts'
+import type { VdiPageContext } from '@/shared/constants.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import UiBreadcrumb from '@core/components/ui/breadcrumb/UiBreadcrumb.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
@@ -98,13 +99,7 @@ const { useGetPoolById } = useXoPoolCollection()
 
 const pool = useGetPoolById(() => sr?.$pool ?? vdiSnapshot?.$pool)
 
-const isFromVm = computed(() => fromContext === VDI_PAGE_CONTEXT.VM)
-
-const isFromSr = computed(() => fromContext === VDI_PAGE_CONTEXT.SR)
-
-const isFromSnapshot = computed(() => fromContext === VDI_PAGE_CONTEXT.SNAPSHOT)
-
-const isFromVdiSnapshot = computed(() => fromContext === VDI_PAGE_CONTEXT.VDI_SNAPSHOT)
+const { isFromVm, isFromSr, isFromSnapshot, isFromVdiSnapshot } = useVdiPageContext(() => fromContext)
 
 const size = computed(() => (uiStore.isSmall ? 'small' : 'medium'))
 

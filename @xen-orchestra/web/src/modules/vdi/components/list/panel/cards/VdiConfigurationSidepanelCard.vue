@@ -68,16 +68,16 @@ import SrLink from '@/modules/storage-repository/components/SrLink.vue'
 import type { FrontXoVbd } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
 import VdiFormatCardItem from '@/modules/vdi/components/list/panel/card-items/VdiFormatCardItem.vue'
 import { useVdiConfiguration } from '@/modules/vdi/composables/use-vdi-configuration.composable.ts'
+import { useVdiPageContext } from '@/modules/vdi/composables/use-vdi-page-context.composable.ts'
 import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
 import VmLinkList from '@/modules/vm/components/VmLinkList.vue'
-import { VDI_PAGE_CONTEXT, type VdiPageContext } from '@/shared/constants.ts'
+import type { VdiPageContext } from '@/shared/constants.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCardRowList from '@core/components/card/VtsCardRowList.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
 import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
-import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { vdi, vbd, fromContext } = defineProps<{
@@ -93,7 +93,5 @@ const { sr, vms, vmNames, isReadOnly, isBootable, isCbtEnabled, isSnapshottingEn
   () => vbd
 )
 
-const isFromSr = computed(() => fromContext === VDI_PAGE_CONTEXT.SR)
-
-const isFromVm = computed(() => fromContext === VDI_PAGE_CONTEXT.VM)
+const { isFromSr, isFromVm } = useVdiPageContext(() => fromContext)
 </script>

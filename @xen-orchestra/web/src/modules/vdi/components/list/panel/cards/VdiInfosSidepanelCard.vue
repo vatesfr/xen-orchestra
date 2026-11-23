@@ -53,8 +53,9 @@
 <script lang="ts" setup>
 import { useVbdsStatus, type VbdAttachmentStatus } from '@/modules/vbd/composables/use-vbds-status.composable.ts'
 import type { FrontXoVbd } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
+import { useVdiPageContext } from '@/modules/vdi/composables/use-vdi-page-context.composable.ts'
 import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
-import { VDI_PAGE_CONTEXT, type VdiPageContext } from '@/shared/constants.ts'
+import type { VdiPageContext } from '@/shared/constants.ts'
 import type { IconName } from '@core/icons'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCardRowList from '@core/components/card/VtsCardRowList.vue'
@@ -77,6 +78,8 @@ const { vdi, vbd, fromContext } = defineProps<{
 
 const { t } = useI18n()
 
+const { isFromVm } = useVdiPageContext(() => fromContext)
+
 const vbdsAttachmentStatus = useVbdsStatus(() => vdi.$VBDs)
 
 const vdiIcon = useMapper<VbdAttachmentStatus, IconName>(
@@ -98,8 +101,6 @@ const vbdsStatus = useMapper<VbdAttachmentStatus, (typeof CONNECTION_STATUS)[key
   },
   'noneAttached'
 )
-
-const isFromVm = computed(() => fromContext === VDI_PAGE_CONTEXT.VM)
 
 const vdiDevice = computed(() => vbd?.device ?? '')
 </script>

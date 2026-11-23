@@ -47,16 +47,16 @@
 import SrLink from '@/modules/storage-repository/components/SrLink.vue'
 import type { FrontXoVbd } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
 import { useVdiConfiguration } from '@/modules/vdi/composables/use-vdi-configuration.composable.ts'
+import { useVdiPageContext } from '@/modules/vdi/composables/use-vdi-page-context.composable.ts'
 import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
 import type { FrontXoVdiSnapshot } from '@/modules/vdi/remote-resources/use-xo-vdi-snapshot-collection.ts'
 import VmLinkList from '@/modules/vm/components/VmLinkList.vue'
-import { VDI_PAGE_CONTEXT, type VdiPageContext } from '@/shared/constants.ts'
+import type { VdiPageContext } from '@/shared/constants.ts'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
 import VtsTabularKeyValueList from '@core/components/tabular-key-value-list/VtsTabularKeyValueList.vue'
 import VtsTabularKeyValueRow from '@core/components/tabular-key-value-row/VtsTabularKeyValueRow.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
-import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { vdi, vdiSnapshot, vbd, fromContext } = defineProps<{
@@ -73,7 +73,5 @@ const { sr, vms, format, isReadOnly, isBootable, isCbtEnabled, isSnapshottingEna
   () => vbd
 )
 
-const isFromSr = computed(() => fromContext === VDI_PAGE_CONTEXT.SR)
-
-const isFromVm = computed(() => fromContext === VDI_PAGE_CONTEXT.VM)
+const { isFromSr, isFromVm } = useVdiPageContext(() => fromContext)
 </script>
