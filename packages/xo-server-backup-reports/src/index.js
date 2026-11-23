@@ -335,7 +335,11 @@ class BackupReportsXoPlugin {
         })
       }
 
-      if (taskLog.result !== undefined) {
+      // an interrupted VM (aborted, or whose run disappeared) may have a result, the error that stopped it
+      if (taskLog.status === 'interrupted') {
+        ++nInterrupted
+        interruptedVms.push({ taskLog, vm, snapshotSubtasks, srsSubTasks, remotesSubTasks })
+      } else if (taskLog.result !== undefined) {
         if (taskLog.status === 'skipped') {
           ++nSkipped
           skippedVms.push({
@@ -354,9 +358,6 @@ class BackupReportsXoPlugin {
         if (taskLog.status === 'failure') {
           ++nFailures
           failedTasks.push({ taskLog, vm, snapshotSubtasks, srsSubTasks, remotesSubTasks })
-        } else if (taskLog.status === 'interrupted') {
-          ++nInterrupted
-          interruptedVms.push({ taskLog, vm, snapshotSubtasks, srsSubTasks, remotesSubTasks })
         } else {
           ++nSuccesses
           successfulVms.push({ taskLog, vm, snapshotSubtasks, srsSubTasks, remotesSubTasks })
@@ -367,6 +368,9 @@ class BackupReportsXoPlugin {
     const nVmTasks = nSuccesses + nFailures + nSkipped + nInterrupted
 
     const context = {
+      // who requested the abort of the run: xo-server adds one info with the id of the user, the other infos of the run
+      // are not shown in the report
+      abortInfos: log.infos?.filter(info => info.data?.userId !== undefined) ?? [],
       jobName,
       log,
       customSubject: this._customSubject,

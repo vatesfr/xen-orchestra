@@ -35,7 +35,7 @@
               {{#if globalMergeSize}}
               <li><span style="font-weight: bold">Merge size</span>: {{formatSize globalMergeSize}}</li>
               {{/if}}
-              {{/if}} {{>reportErrorMjml task=log}} {{>reportWarningsMjml task=log}}
+              {{/if}} {{>reportErrorMjml task=log}} {{>reportWarningsMjml task=log}} {{>reportAbortMjml infos=abortInfos}}
             </ul>
           </mj-text>
         </mj-column>
