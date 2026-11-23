@@ -270,7 +270,7 @@ suite('live DB tests', async function () {
       const ddl = createViewsDDL(VIEW_SCHEMA, xapiDbClasses, new Map([['network', viewNames.get('network')]]))
       /** - `LATERAL` allows us to run a query referencing the table in the `FROM` (the `WHERE linked."network"=uuid` would error otherwise)
        *  - `LEFT JOIN` forces the lateral query to run from every row of the table `network`, including the ones whose assigned_ips is empty
-       *  - `json_object_agg()` transforms the `SELECT` rows into a JSON object (GROUP BY is implicitly "all in one group")
+       *  - `json_object_agg()` transforms the `SELECT` rows into a JSON object (GROUP BY is implicitly "all rows in a single group")
        *  - `json_object_agg()` returns NULL if the `SELECT` has no rows
        *  - `COALESCE(..., '{}')` transforms NULL into an empty object
        *  - `LEFT JOIN ... ON TRUE` because the subquery is returning only one row on the right per row on the left, no need to join anything.

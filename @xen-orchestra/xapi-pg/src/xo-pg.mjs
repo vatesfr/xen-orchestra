@@ -46,6 +46,7 @@ async function prepareForPool(poolUuid, poolRef, dbPool, classDict, options = {}
 
 /**
  * Wraps a xen API transport and save the entities in a Postgres DB on the fly.
+ * The Db connection is tested upon creation.
  * @param pgUrl Postgres connection string, this function will create its own schemas and tables in it.
  * @param createRealTransport
  * @param options
@@ -131,9 +132,6 @@ export async function createPgTransport(pgUrl, createRealTransport, options = {}
         if (sessionId !== null) {
           info(`got session ID from ${method}`)
         }
-      }
-      if (method === 'event.inject') {
-        info(`injected ${result}`)
       }
       if (method === 'pool.get_all_records') {
         if (eventStore === null && Object.keys(result).length) {
