@@ -57,6 +57,11 @@ export const notImplementedResp = {
   description: 'Not implemented',
 } as const
 
+export const proxyUnreachableResp = {
+  status: 502,
+  description: 'Proxy unreachable',
+} as const
+
 export const resourceAlreadyExists = {
   status: 409,
   description: 'Resource already exists',

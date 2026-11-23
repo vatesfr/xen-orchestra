@@ -24,6 +24,7 @@ import {
   forbiddenOperationResp,
   internalServerErrorResp,
   notFoundResp,
+  proxyUnreachableResp,
   unauthorizedResp,
   type Unbrand,
 } from '../open-api/common/response.common.mjs'
@@ -34,6 +35,17 @@ import { RestApi } from '../rest-api/rest-api.mjs'
 
 function isProxyUnreachable(error: unknown): boolean {
   return error instanceof Error && 'code' in error && error.code === 'PROXY_UNREACHABLE'
+}
+
+async function callProxy<T>(call: Promise<T>): Promise<T> {
+  try {
+    return await call
+  } catch (error) {
+    if (isProxyUnreachable(error)) {
+      throw new ApiError(proxyUnreachableResp.description, proxyUnreachableResp.status)
+    }
+    throw error
+  }
 }
 
 @Route('proxies')
@@ -128,16 +140,9 @@ export class ProxyController extends XoController<XoProxy> {
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
-  @Response(502, 'Proxy unreachable')
+  @Response(proxyUnreachableResp.status, proxyUnreachableResp.description)
   async getProxyHealth(@Path() id: string): Promise<{ success: true }> {
-    try {
-      await this.restApi.xoApp.checkProxyHealth(id as XoProxy['id'])
-    } catch (error) {
-      if (isProxyUnreachable(error)) {
-        throw new ApiError('Proxy unreachable', 502)
-      }
-      throw error
-    }
+    await callProxy(this.restApi.xoApp.checkProxyHealth(id as XoProxy['id']))
 
     return { success: true }
   }
