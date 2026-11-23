@@ -4,7 +4,7 @@
   </UiTextarea>
 </template>
 
-<script lang="ts" setup>
+<script setup lang="ts">
 import UiTextarea from '@core/components/ui/text-area/UiTextarea.vue'
 
 defineProps<{
