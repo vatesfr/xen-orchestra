@@ -22,6 +22,11 @@ const SCHEMA_SETTINGS = {
           minimum: 0,
           optional: true,
         },
+        diskPerVmConcurrency: {
+          type: 'number',
+          minimum: 0,
+          optional: true,
+        },
         longTermRetention: {
           type: 'object',
           optional: true,

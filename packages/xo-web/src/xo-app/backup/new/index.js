@@ -128,7 +128,8 @@ export const ReportRecipients = decorate([
   ),
 ])
 
-const SR_BACKEND_FAILURE_LINK = 'https://docs.xen-orchestra.com/backups-and-dr/backup_troubleshooting#sr_backend_failure_44'
+const SR_BACKEND_FAILURE_LINK =
+  'https://docs.xen-orchestra.com/backups-and-dr/backup_troubleshooting#sr_backend_failure_44'
 
 export const BACKUP_NG_DOC_LINK = 'https://docs.xen-orchestra.com/backups-and-dr/backup'
 
@@ -693,6 +694,11 @@ const New = decorate([
           nbdConcurrency,
         })
       },
+      setDiskPerVmConcurrency({ setGlobalSettings }, diskPerVmConcurrency) {
+        setGlobalSettings({
+          diskPerVmConcurrency,
+        })
+      },
       setNRetriesVmBackupFailures({ setGlobalSettings }, nRetries) {
         setGlobalSettings({
           nRetriesVmBackupFailures: nRetries,
@@ -735,6 +741,7 @@ const New = decorate([
       inputBackupReportTplId: generateId,
       inputCbtDestroySnapshotData: generateId,
       inputConcurrencyId: generateId,
+      inputDiskPerVmConcurrency: generateId,
       inputFullIntervalId: generateId,
       inputHideSuccessfulItemsId: generateId,
       inputLongTermRetentionDaily: generateId,
@@ -858,6 +865,7 @@ const New = decorate([
       cbtDestroySnapshotData,
       checkpointSnapshot,
       concurrency,
+      diskPerVmConcurrency,
       fullInterval,
       hideSuccessfulItems,
       longTermRetention = {},
@@ -1236,6 +1244,22 @@ const New = decorate([
                             onChange={effects.setNbdConcurrency}
                             value={nbdConcurrency}
                             disabled={!state.inputPreferNbd}
+                          />
+                        </FormGroup>
+                      )}
+                      {state.isDelta && (
+                        <FormGroup>
+                          <label htmlFor={state.inputDiskPerVmConcurrency}>
+                            <strong>{_('diskPerVmConcurrency')}</strong>
+                          </label>{' '}
+                          <Tooltip content={_('diskPerVmConcurrencyInformation')}>
+                            <Icon icon='info' />
+                          </Tooltip>
+                          <Number
+                            id={state.inputDiskPerVmConcurrency}
+                            min={0}
+                            onChange={effects.setDiskPerVmConcurrency}
+                            value={diskPerVmConcurrency}
                           />
                         </FormGroup>
                       )}
