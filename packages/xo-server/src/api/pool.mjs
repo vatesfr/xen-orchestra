@@ -311,8 +311,8 @@ export async function finalizeRollingUpdate({ force, pool }) {
 }
 
 finalizeRollingUpdate.params = {
-  // close even though the update left items unrestored (or its record cannot
-  // be read): they are abandoned and listed in the task, nothing is restored
+  // close without restoring what the update left unrestored (or when its
+  // record cannot be read): the items are abandoned and listed in the task
   force: {
     optional: true,
     type: 'boolean',
@@ -325,7 +325,32 @@ finalizeRollingUpdate.resolve = {
 }
 
 finalizeRollingUpdate.description =
-  'Close the record of an incomplete rolling pool update once the pool has been reviewed'
+  'Close the record of an incomplete rolling pool update, after restoring what it left unrestored'
+
+// -------------------------------------------------------------------
+
+export async function resumeRollingUpdate({ acceptOperatorChanges, bypassBackupCheck, pool }) {
+  await this.resumeRollingPoolUpdate(pool, { acceptOperatorChanges, bypassBackupCheck })
+}
+
+resumeRollingUpdate.params = {
+  acceptOperatorChanges: {
+    optional: true,
+    type: 'boolean',
+  },
+  bypassBackupCheck: {
+    optional: true,
+    type: 'boolean',
+  },
+  pool: { type: 'string' },
+}
+
+resumeRollingUpdate.resolve = {
+  pool: ['pool', 'pool', 'administrate'],
+}
+
+resumeRollingUpdate.description =
+  'Resume a failed or interrupted rolling pool update: the hosts with remaining work are handled, and a finished host is updated and rebooted again if patches were released since, the settings it left disabled stay disabled until the end, then are restored'
 
 // -------------------------------------------------------------------
 

@@ -1638,6 +1638,32 @@ const RPU_UNRESTORED_ITEM_LABELS = {
   wlb: 'rpuUnrestoredWlb',
 }
 
+const RPU_OPERATOR_CHANGE_LABELS = {
+  autoPowerOn: 'rpuOperatorChangeAutoPowerOn',
+  ha: 'rpuOperatorChangeHa',
+  haHeartbeatSr: 'rpuOperatorChangeHaHeartbeatSr',
+  host: 'rpuOperatorChangeHost',
+  schedule: 'rpuOperatorChangeSchedule',
+  vm: 'rpuOperatorChangeVm',
+  wlb: 'rpuOperatorChangeWlb',
+}
+
+export const renderRpuOperatorChanges = changes => (
+  <ul>
+    {changes.map(({ type, id, name, observed }) => {
+      const missing = observed === 'missing'
+      // a deleted object has no name left: its UUID identifies it
+      const object = name ?? (missing ? id : undefined)
+      return (
+        <li key={type + id}>
+          {_(type === 'schedule' && missing ? 'rpuOperatorChangeScheduleDeleted' : RPU_OPERATOR_CHANGE_LABELS[type])}
+          {object !== undefined && `: ${object}`}
+        </li>
+      )
+    })}
+  </ul>
+)
+
 export const finalizeRollingPoolUpdate = async poolId => {
   await confirm({
     body: _('rpuRecoveryFinalizeConfirm'),
@@ -1677,8 +1703,62 @@ export const finalizeRollingPoolUpdate = async poolId => {
       icon: 'pool-rolling-update',
     })
     await _call('pool.finalizeRollingUpdate', { pool: poolId, force: true })
+  } finally {
+    // a refused finalization may have restored a part of the items
+    rollingUpdateRecoveryByPool[poolId]?.forceRefresh()
   }
-  rollingUpdateRecoveryByPool[poolId]?.forceRefresh()
+}
+
+export const resumeRollingPoolUpdate = async poolId => {
+  await confirm({
+    body: _('rpuRecoveryResumeConfirm'),
+    title: _('rpuRecoveryResume'),
+    icon: 'pool-rolling-update',
+  })
+
+  const resume = async (options = {}) => {
+    try {
+      await _call('pool.resumeRollingUpdate', { pool: poolId, ...options })
+      subscribeHostMissingPatches.forceRefresh()
+    } catch (err) {
+      // once the backup check is bypassed, the refusal comes from a run in progress
+      if (forbiddenOperation.is(err) && !options.bypassBackupCheck) {
+        await confirm({
+          body: (
+            <p className='text-warning'>
+              <Icon icon='alarm' /> {_('bypassBackupPoolModalMessage')}
+            </p>
+          ),
+          title: _('rpuRecoveryResume'),
+          icon: 'pool-rolling-update',
+        })
+        return resume({ ...options, bypassBackupCheck: true })
+      }
+      // settings changed by an operator since the update: kept once confirmed
+      if (incorrectState.is(err, { property: 'operatorChanges' }) && !options.acceptOperatorChanges) {
+        await confirm({
+          body: (
+            <div className='text-warning'>
+              <p>
+                <Icon icon='alarm' /> {_('rpuRecoveryAcceptOperatorChangesConfirm')}
+              </p>
+              {renderRpuOperatorChanges(err.data.actual)}
+            </div>
+          ),
+          title: _('rpuRecoveryResume'),
+          icon: 'pool-rolling-update',
+        })
+        return resume({ ...options, acceptOperatorChanges: true })
+      }
+      throw err
+    }
+  }
+
+  try {
+    await resume()
+  } finally {
+    rollingUpdateRecoveryByPool[poolId]?.forceRefresh()
+  }
 }
 
 export const installSupplementalPack = (host, file) => {
