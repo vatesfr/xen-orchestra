@@ -21,6 +21,9 @@
       <UiLink :size :to="{ name: '/pool/[id]/storage', params: { id: sr.$pool } }">
         {{ t('storage') }}
       </UiLink>
+      <UiLink :size :to="{ name: '/sr/[id]/vdis', params: { id: sr.id }, query: srScopeQuery }" :icon="srStatusIcon">
+        {{ sr.name_label }}
+      </UiLink>
       <span>
         {{ vdi.name_label }}
       </span>
@@ -63,7 +66,9 @@
 
 <script lang="ts" setup>
 import { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
+import { useXoSrUtils } from '@/modules/storage-repository/composables/xo-sr-utils.composable.ts'
 import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
+import { toSrScopeQuery } from '@/modules/storage-repository/utils/sr-scope.util.ts'
 import { useVdiPageContext } from '@/modules/vdi/composables/use-vdi-page-context.composable.ts'
 import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
 import type { FrontXoVdiSnapshot } from '@/modules/vdi/remote-resources/use-xo-vdi-snapshot-collection.ts'
@@ -75,6 +80,7 @@ import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import UiBreadcrumb from '@core/components/ui/breadcrumb/UiBreadcrumb.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import { useUiStore } from '@core/stores/ui.store.ts'
+import { SR_SCOPE_TYPE } from '@core/types/storage-repository.type.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -100,6 +106,11 @@ const { useGetPoolById } = useXoPoolCollection()
 const pool = useGetPoolById(() => sr?.$pool ?? vdiSnapshot?.$pool)
 
 const { isFromVm, isFromSr, isFromSnapshot, isFromVdiSnapshot } = useVdiPageContext(() => fromContext)
+
+const { srStatusIcon } = useXoSrUtils(() => sr)
+
+// The breadcrumb goes through the pool, so the SR page opens in the pool scope
+const srScopeQuery = toSrScopeQuery({ type: SR_SCOPE_TYPE.POOL })
 
 const size = computed(() => (uiStore.isSmall ? 'small' : 'medium'))
 
