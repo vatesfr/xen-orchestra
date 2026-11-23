@@ -44,11 +44,21 @@ export function usePoolConnection() {
         throw promiseConnectResult.reason
       }
     } catch (error) {
-      if (serverId.value !== '') {
-        await forget()
+      console.error(`Failed to connect the pool ${payload.value.host}`, error)
+
+      if (serverId.value === '') {
+        return
       }
 
-      console.error(`Failed to connect the pool ${payload.value.host}`, error)
+      try {
+        const [promiseForgetResult] = await forget()
+
+        if (promiseForgetResult.status === 'rejected') {
+          throw promiseForgetResult.reason
+        }
+      } catch (forgetError) {
+        console.error(`Failed to forget the server ${serverId.value}`, forgetError)
+      }
     }
   }
 
