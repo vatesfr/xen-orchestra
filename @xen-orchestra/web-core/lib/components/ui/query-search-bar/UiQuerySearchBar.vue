@@ -8,7 +8,7 @@
       :id
       v-model="value"
       type="text"
-      accent="brand"
+      accent="neutral"
       :busy
       :aria-label="uiStore.isSmall ? t('query-search-bar:label') : undefined"
       :placeholder="t('query-search-bar:placeholder')"

@@ -2,7 +2,7 @@
   <ComponentStory
     v-slot="{ properties }"
     :params="[
-      prop('accent').required().enum('brand', 'warning', 'danger').preset('brand').widget(),
+      prop('accent').required().enum('neutral', 'warning', 'danger').preset('neutral').widget(),
       prop('options').required().arr('FormOption<TEntry, TValue>').widget().preset(options),
       prop('selectedLabel').str(),
       prop('required').bool().widget(),

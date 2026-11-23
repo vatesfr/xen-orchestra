@@ -23,7 +23,7 @@ async function mountDetailedOption(props: DetailedOptionProps = {}) {
         return () =>
           h(
             VtsSelect,
-            { id, accent: 'brand' },
+            { id, accent: 'neutral' },
             { default: ({ option }: { option: FormOption }) => h(VtsDetailedOption, { option, ...props }) }
           )
       },

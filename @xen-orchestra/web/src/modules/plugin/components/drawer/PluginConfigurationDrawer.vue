@@ -11,7 +11,7 @@
         :message="t('plugin:configuration-presets-info')"
       >
         <div class="preset">
-          <VtsSelect :id="presetSelectId" accent="brand" />
+          <VtsSelect :id="presetSelectId" accent="neutral" />
           <UiButton variant="secondary" accent="brand" size="medium" :disabled="!canApplyPreset" @click="applyPreset()">
             {{ t('action:apply') }}
           </UiButton>

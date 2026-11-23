@@ -1,6 +1,6 @@
 # Composables (XO 6)
 
-The shared rules — mounting in a Vue context, reactivity, a returned function calling `useI18n` — are in [Testing composables](../../../web-core/docs/tests/testing-composables.md). XO 6 mounts with the helpers of `src/test/mount-composable.ts`, which mount a throwaway component with `createGlobalTestConfig()`: the real `vue-i18n` instance, the app form validation messages, a fresh Pinia and a router.
+The shared rules — mounting in a Vue context, reactivity, a returned function calling `useI18n` — are in [Testing composables](../../../web-core/docs/tests/testing-composables.md). XO 6 mounts with the helpers of `src/test/mount-composable.ts`, which run the web-core `mountComposable` with the XO 6 `createGlobalTestConfig()`: the real `vue-i18n` instance, the app form validation messages, a fresh Pinia and a router.
 
 `mountComposableWithI18n` mounts the composable, spreads its result, adds the `t` of the mounted component and returns `wrapper.vm`:
 

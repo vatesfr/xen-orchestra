@@ -4,7 +4,7 @@
     <UiInput
       v-else
       v-model="inputModel"
-      accent="brand"
+      accent="neutral"
       :type
       :required
       :placeholder

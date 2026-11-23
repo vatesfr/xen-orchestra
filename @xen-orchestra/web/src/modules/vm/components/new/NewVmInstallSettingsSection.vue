@@ -17,7 +17,7 @@
       </UiRadioButton>
     </UiRadioButtonGroup>
     <div v-if="vmState.installMode === 'cdrom'" :id="fieldIds.iso" class="iso" :class="{ mobile: uiStore.isSmall }">
-      <VtsSelect :id="isoSelectId" :accent="errors.iso === undefined ? 'brand' : 'danger'" />
+      <VtsSelect :id="isoSelectId" :accent="errors.iso === undefined ? 'neutral' : 'danger'" />
       <UiInfo v-if="errors.iso !== undefined" accent="danger">{{ errors.iso }}</UiInfo>
     </div>
     <div v-if="vmState.installMode === 'cloud-init-config'" class="custom-config" :class="{ mobile: uiStore.isSmall }">

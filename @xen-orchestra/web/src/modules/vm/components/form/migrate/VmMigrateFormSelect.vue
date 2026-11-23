@@ -1,6 +1,6 @@
 <template>
   <VtsInputWrapper :label :message="messages" wrap-message>
-    <VtsSelect :id accent="brand">
+    <VtsSelect :id accent="neutral">
       <template #default="{ option }">
         <VtsOption :option>
           <span class="select-option">

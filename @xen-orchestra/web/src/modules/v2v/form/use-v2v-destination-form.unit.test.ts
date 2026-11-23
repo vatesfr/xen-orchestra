@@ -71,7 +71,7 @@ function mountSelects(getSelectIds: (form: V2vDestinationForm) => FormSelectId[]
     return () =>
       h(
         'div',
-        getSelectIds(form).map(id => h(VtsSelect, { id, accent: 'brand' }))
+        getSelectIds(form).map(id => h(VtsSelect, { id, accent: 'neutral' }))
       )
   })
 }

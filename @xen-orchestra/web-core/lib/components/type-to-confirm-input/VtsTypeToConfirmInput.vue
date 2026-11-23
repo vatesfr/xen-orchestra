@@ -2,7 +2,7 @@
   <div class="vts-type-to-confirm-input">
     <VtsRequiredHint />
     <VtsInputWrapper :label="t('type-x-to-confirm', { text: confirmationText })" :message="errorMessage">
-      <UiInput ref="input" v-model="typedText" accent="brand" required />
+      <UiInput ref="input" v-model="typedText" accent="neutral" required />
     </VtsInputWrapper>
   </div>
 </template>
