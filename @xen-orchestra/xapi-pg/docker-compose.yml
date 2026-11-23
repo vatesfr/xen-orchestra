@@ -1,0 +1,90 @@
+x-variables:
+  HTTP_PORT: &HTTP_PORT '8080'
+  PG_PORT: &PG_PORT '5432'
+services:
+  xen-orchestra:
+    restart: unless-stopped
+    image: ronivay/xen-orchestra:latest
+    container_name: xen-orchestra
+    stop_grace_period: 10s # fast stop for development
+    ports:
+      - target: 80 # hardcoded in config.toml
+        host_ip: 127.0.0.1 # don't expose on local network
+        published: *HTTP_PORT
+        protocol: tcp
+    #environment:
+    #- HTTPS_PORT=443
+
+    #redirect takes effect only if HTTPS_PORT is defined
+    #- REDIRECT_TO_HTTPS=true
+
+    #if HTTPS_PORT is defined and CERT/KEY paths are empty, a self-signed certificate will be generated
+    #- CERT_PATH='/cert.pem'
+    #- KEY_PATH='/cert.key'
+    # capabilities are needed for NFS/SMB mount
+    cap_add:
+      - SYS_ADMIN
+      - DAC_READ_SEARCH
+    # additional setting required for apparmor enabled systems. also needed for NFS mount
+    security_opt:
+      - apparmor:unconfined
+    volumes:
+      - xo-data:/var/lib/xo-server
+      - redis-data:/var/lib/redis
+      - vddk-lib:/usr/local/lib/vddk
+      - ../..:/etc/xen-orchestra
+      # mount certificate files to container if HTTPS is set with cert/key paths
+      #- /path/to/cert.pem:/cert.pem
+      #- /path/to/cert.key:/cert.key
+    # mount your custom CA to container if host certificates are issued by it and you want XO to trust it
+    #- /path/to/ca.pem:/host-ca.pem
+    # logging
+    logging:
+      driver: 'json-file'
+      options:
+        max-size: '1M'
+        max-file: '2'
+    # these are needed for file restore. allows one backup to be mounted at once which will be umounted after some minutes if not used (prevents other backups to be mounted during that)
+    # add loop devices (loop1, loop2 etc) if multiple simultaneous mounts needed.
+    #devices:
+    #  - "/dev/fuse:/dev/fuse"
+    #  - "/dev/loop-control:/dev/loop-control"
+    #  - "/dev/loop0:/dev/loop0"
+
+    # quick and dirty way to reuse the "running" XO docker container for development.
+    command: /bin/sh -c 'apt-get install -y git && yarn run build && /run.sh'
+    depends_on:
+      - pg
+    networks:
+      - private_net
+
+  pg:
+    image: postgres:18
+    restart: unless-stopped
+    ports:
+      - target: *PG_PORT
+        host_ip: 127.0.0.1 # don't expose on local network
+        published: *PG_PORT
+        protocol: tcp
+    command: postgres -c password_encryption=md5
+    environment:
+      POSTGRES_HOST_AUTH_METHOD: trust
+      POSTGRES_INITDB_ARGS: '--auth-local=md5'
+      POSTGRES_PASSWORD: pass
+      POSTGRES_USER: user
+      POSTGRES_DB: data
+    volumes:
+      - pg-data:/var/lib/postgresql
+    networks:
+      - private_net
+
+volumes:
+  xo-data:
+  redis-data:
+  vddk-lib:
+  pg-data:
+
+# private network so the containers can see each other and the host without exposing them to the host's local network
+networks:
+  private_net:
+    driver: bridge
