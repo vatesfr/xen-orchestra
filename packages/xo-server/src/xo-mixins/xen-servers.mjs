@@ -1046,6 +1046,7 @@ export default class XenServers {
     } catch (error) {
       // the pool is no longer connected
       log.warn('failed to restore what a rolling pool update left changed in the pool', { error })
+      Task.warning(`failed to restore what the rolling pool update left changed in the pool: ${error.message}`)
     }
 
     if (idsOf('wlb').length > 0) {
@@ -1071,6 +1072,7 @@ export default class XenServers {
         }
       } catch (error) {
         log.warn('failed to restore the backup schedules a rolling pool update left disabled', { error })
+        Task.warning(`failed to restore the backup schedules the rolling pool update left disabled: ${error.message}`)
       }
     }
   }

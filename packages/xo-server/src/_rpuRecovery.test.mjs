@@ -2,6 +2,7 @@ import assert from 'assert/strict'
 import test from 'node:test'
 import { Readable } from 'node:stream'
 import { incorrectState, noSuchObject } from 'xo-common/api-errors.js'
+import { Task } from '@vates/task'
 
 import {
   buildRpuRecoveryView,
@@ -1775,5 +1776,30 @@ describe('restoreRpuSetting()', () => {
     })
 
     assert.deepEqual(restored, [['schedules', 'schedule-1']])
+  })
+
+  it('reports a failed restore in the task it runs in', async () => {
+    const warnings = []
+    const onProgress = event => {
+      if (event.type === 'warning') {
+        warnings.push([event.message, event.data])
+      }
+    }
+    await new Task({ onProgress }).run(() =>
+      restoreRpuSetting(
+        noopRpuRecorder,
+        'schedules',
+        async () => {
+          throw new Error('schedule store unavailable')
+        },
+        'schedule-1'
+      )
+    )
+    assert.deepEqual(warnings, [
+      [
+        'failed to restore a setting changed by the rolling pool update: schedule store unavailable',
+        { setting: 'schedules', id: 'schedule-1' },
+      ],
+    ])
   })
 })

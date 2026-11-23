@@ -664,4 +664,50 @@ describe('XenServers.restoreRpuLeftovers', function () {
     await xenServers.restoreRpuLeftovers(pool, { record: makeRecord(false), items: [], recorder })
     assert.deepEqual(calls, [['xapi.restoreRpuLeftovers', []]])
   })
+
+  it('restores a single item alone', async function () {
+    const expected = {
+      wlb: [
+        ['xapi.call', 'pool.set_wlb_enabled', true],
+        ['recorder.settingRestored', 'wlb', undefined],
+      ],
+      loadBalancer: [
+        ['loadPlugin', 'load-balancer'],
+        ['recorder.settingRestored', 'loadBalancer', undefined],
+      ],
+      schedule: [
+        ['updateSchedule', 'schedule-1', true],
+        ['recorder.settingRestored', 'schedules', 'schedule-1'],
+      ],
+    }
+    for (const item of items) {
+      const { calls, recorder, xenServers } = setup()
+      await xenServers.restoreRpuLeftovers(pool, { record: makeRecord(false), items: [item], recorder })
+      assert.deepEqual(calls, [['xapi.restoreRpuLeftovers', [item]], ...expected[item.type]], item.type)
+    }
+  })
+
+  it('reports in the task what could not be restored', async function () {
+    const { recorder, xenServers } = setup()
+    xenServers.getXapi = () => undefined
+    xenServers._app.getAllSchedules = async () => {
+      throw new Error('schedule store unavailable')
+    }
+    const warnings = []
+    const onProgress = event => {
+      if (event.type === 'warning') {
+        warnings.push(event.message)
+      }
+    }
+    await new Task({ onProgress }).run(() =>
+      xenServers.restoreRpuLeftovers(pool, { record: makeRecord(false), items, recorder })
+    )
+    assert.equal(warnings.length, 3)
+    assert.match(warnings[0], /^failed to restore what the rolling pool update left changed in the pool: /)
+    assert.match(warnings[1], /^failed to restore a setting changed by the rolling pool update: /)
+    assert.equal(
+      warnings[2],
+      'failed to restore the backup schedules the rolling pool update left disabled: schedule store unavailable'
+    )
+  })
 })

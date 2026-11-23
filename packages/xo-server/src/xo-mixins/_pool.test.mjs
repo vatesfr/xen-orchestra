@@ -321,6 +321,16 @@ describe('Pools.finalizeRollingUpdate', function () {
     assert.equal(store.values.has('pool-1'), true)
   })
 
+  it('is refused when the pool is not connected', async function () {
+    const { app, pools, store } = createPools({ record: makeDirtyRecord() })
+    app.getXapi = () => undefined
+    await assert.rejects(pools.finalizeRollingUpdate(pool), error =>
+      incorrectState.is(error, { actual: 'disconnected', object: 'pool-1' })
+    )
+    assert.deepEqual(app.calls, [])
+    assert.equal(store.values.has('pool-1'), true)
+  })
+
   it('does not run the cleanup when the run left nothing unrestored', async function () {
     const { app, pools } = createPools({ record: makeRecord() })
     await pools.finalizeRollingUpdate(pool)
@@ -595,5 +605,217 @@ describe('Pools automatic resume after a restart', function () {
 
     assert.equal(store.values.get('pool-1').status, 'interrupted')
     assert.equal(app.calls.length, 1)
+  })
+})
+
+describe('Pools.restoreRollingUpdateItem', function () {
+  // host 1 left disabled, nothing else
+  const makeRecordWithHost = () => {
+    const { changedByRun, ...record } = makeDirtyRecord()
+    return record
+  }
+  const hostItem = { type: 'host', id: 'h1' }
+
+  it('is refused while a rolling pool update or reboot runs on the pool', async function () {
+    const { app, pools } = createPools({ record: makeRecordWithHost() })
+    const release = acquireRpuGuard('pool-1', 'test')
+    try {
+      await assert.rejects(pools.restoreRollingUpdateItem(pool, hostItem), forbiddenOperation.is)
+    } finally {
+      release()
+    }
+    assert.deepEqual(app.calls, [])
+  })
+
+  it('is refused while the record belongs to a live run', async function () {
+    const { app, pools } = createPools({ record: { ...makeRecordWithHost(), status: 'running' } })
+    await assert.rejects(pools.restoreRollingUpdateItem(pool, hostItem), error =>
+      incorrectState.is(error, { actual: 'running', property: 'status' })
+    )
+    assert.deepEqual(app.calls, [])
+  })
+
+  it('restores the item alone and keeps the record, which the finalize then closes without force', async function () {
+    const { app, pools, store } = createPools({
+      record: makeRecordWithHost(),
+      restore(live) {
+        live.hostEnabled = true
+      },
+    })
+    await pools.restoreRollingUpdateItem(pool, hostItem)
+    assert.deepEqual(
+      app.calls.map(([name]) => name),
+      ['tasks.create', 'restoreRpuLeftovers']
+    )
+    assert.deepEqual(app.calls[1], ['restoreRpuLeftovers', 'pool-1', [hostItem]])
+    assert.equal(store.values.has('pool-1'), true)
+    assert.deepEqual((await pools.getRollingUpdateRecovery('pool-1')).unrestoredItems, [])
+
+    await pools.finalizeRollingUpdate(pool)
+    assert.equal(store.values.has('pool-1'), false)
+    assert.equal(app.calls.filter(([name]) => name === 'restoreRpuLeftovers').length, 1)
+  })
+
+  it('leaves the other items unrestored', async function () {
+    const { app, pools } = createPools({
+      record: makeDirtyRecord(),
+      restore(live) {
+        live.hostEnabled = true
+      },
+    })
+    await pools.restoreRollingUpdateItem(pool, hostItem)
+    assert.deepEqual(app.calls[1], ['restoreRpuLeftovers', 'pool-1', [hostItem]])
+    assert.deepEqual((await pools.getRollingUpdateRecovery('pool-1')).unrestoredItems, [
+      { type: 'ha', id: 'pool-1', restorable: false },
+    ])
+  })
+
+  it('is refused with the name of an item the run did not leave unrestored', async function () {
+    const { app, pools, store } = createPools({ record: makeRecordWithHost() })
+    const error = await pools.restoreRollingUpdateItem(pool, { type: 'wlb', id: 'pool-1' }).then(
+      () => assert.fail('should reject'),
+      error => error
+    )
+    assert.equal(incorrectState.is(error, { object: 'pool-1', property: 'unrestoredItems' }), true)
+    assert.match(error.message, /^incorrect state: .*wlb pool-1 is not left unrestored/)
+    assert.deepEqual(app.calls, [])
+    assert.equal(store.values.has('pool-1'), true)
+  })
+
+  it('is refused with the name of an item which cannot be restored now', async function () {
+    // HA recorded without its heartbeat SRs
+    const { app, pools } = createPools({ record: makeDirtyRecord() })
+    const error = await pools.restoreRollingUpdateItem(pool, { type: 'ha', id: 'pool-1' }).then(
+      () => assert.fail('should reject'),
+      error => error
+    )
+    assert.equal(incorrectState.is(error, { property: 'unrestoredItems' }), true)
+    assert.deepEqual(error.data.actual, { type: 'ha', id: 'pool-1', restorable: false })
+    assert.match(error.message, /^incorrect state: .*ha pool-1 cannot be restored/)
+    assert.deepEqual(app.calls, [])
+  })
+
+  it('is refused when the record cannot be read', async function () {
+    const { app, pools } = createPools({ record: 'garbage' })
+    await assert.rejects(pools.restoreRollingUpdateItem(pool, hostItem), error =>
+      incorrectState.is(error, { property: 'unrestoredItems' })
+    )
+    assert.deepEqual(app.calls, [])
+  })
+
+  it('fails with the name of the item when it could not be restored, and leaves it listed', async function () {
+    const { pools, store } = createPools({ record: makeRecordWithHost() })
+    await assert.rejects(pools.restoreRollingUpdateItem(pool, hostItem), /could not restore host h1/)
+    assert.equal(store.values.has('pool-1'), true)
+    assert.deepEqual((await pools.getRollingUpdateRecovery('pool-1')).unrestoredItems, [
+      { ...hostItem, name: 'host 1', restorable: true },
+    ])
+  })
+
+  it('reads what is left once the XAPI events of the restoration are received', async function () {
+    const { app, pools } = createPools({ record: makeRecordWithHost() })
+    let restored = false
+    let cached = false
+    app.restoreRpuLeftovers = async () => {
+      restored = true
+    }
+    app.getXapi = () => ({
+      pool: { other_config: {} },
+      getObjectByUuid: id => (id === 'h1' ? { name_label: 'host 1', enabled: cached } : undefined),
+      async barrier() {
+        cached = restored
+      },
+    })
+    await pools.restoreRollingUpdateItem(pool, hostItem)
+  })
+
+  it('is refused when the pool is not connected', async function () {
+    const { app, pools } = createPools({ record: makeRecordWithHost() })
+    app.getXapi = () => undefined
+    await assert.rejects(pools.restoreRollingUpdateItem(pool, hostItem), error =>
+      incorrectState.is(error, { actual: 'disconnected', object: 'pool-1' })
+    )
+    assert.deepEqual(app.calls, [])
+  })
+
+  it('does not report the item as left unrestored when the pool disconnects during the restoration', async function () {
+    const { app, pools } = createPools({
+      record: makeRecordWithHost(),
+      restore() {
+        app.getXapi = () => undefined
+      },
+    })
+    const error = await pools.restoreRollingUpdateItem(pool, hostItem).then(
+      () => assert.fail('should reject'),
+      error => error
+    )
+    assert.match(error.message, /the pool disconnected while host h1 was restored/)
+    assert.doesNotMatch(error.message, /still left unrestored/)
+  })
+
+  it('is refused with the name of the host when the item is a VM of a host left disabled', async function () {
+    // vm1 away from host 1, vm-p halted and pinned to it
+    const { app, pools } = createPools({
+      record: { ...makeRecordWithHost(), vmHomeById: { vm1: 'h1' }, haltedPinnedVms: { 'vm-p': 'h1' } },
+    })
+    const getXapi = withVmOnH2(app.getXapi)
+    app.getXapi = () => {
+      const xapi = getXapi()
+      const { getObjectByUuid } = xapi
+      return {
+        ...xapi,
+        getObjectByUuid: id => (id === 'vm-p' ? { name_label: 'vm p', power_state: 'Halted' } : getObjectByUuid(id)),
+      }
+    }
+    for (const item of [
+      { type: 'vm', id: 'vm1' },
+      { type: 'haltedPinnedVm', id: 'vm-p' },
+    ]) {
+      const error = await pools.restoreRollingUpdateItem(pool, item).then(
+        () => assert.fail('should reject'),
+        error => error
+      )
+      assert.equal(incorrectState.is(error, { property: 'unrestoredItems' }), true)
+      assert.match(error.message, new RegExp(`${item.type} ${item.id} .*restore host h1 first`))
+    }
+    assert.deepEqual(app.calls, [])
+  })
+
+  describe('with VMs away from their home host', function () {
+    const vmItem = { type: 'vm', id: 'vm1' }
+    function createPoolsWithVms(opts) {
+      const residentOn = { vm1: 'h2', vm2: 'h2' }
+      const context = createPools({ ...opts, record: makeRecord({ vmHomeById: { vm1: 'h1', vm2: 'h1' } }) })
+      context.app.getXapi = () => ({
+        pool: { other_config: {} },
+        getObjectByUuid: id =>
+          id in residentOn
+            ? { name_label: id, power_state: 'Running', $resident_on: { $id: residentOn[id] } }
+            : id === 'h1'
+              ? { name_label: 'host 1', enabled: true }
+              : undefined,
+        async barrier() {},
+      })
+      context.app.restoreRpuLeftovers = async (pool, { items, record }) => {
+        context.app.calls.push(['restoreRpuLeftovers', pool.id, items, record.vmHomeById])
+        residentOn.vm1 = 'h1'
+      }
+      return context
+    }
+
+    it('is refused by the backup guard before anything is restored', async function () {
+      const { app, pools } = createPoolsWithVms({ backupRunning: true })
+      await assert.rejects(pools.restoreRollingUpdateItem(pool, vmItem), forbiddenOperation.is)
+      assert.deepEqual(app.calls, [['backupGuard', 'pool-1', { operation: 'restoreRollingUpdateItem' }]])
+    })
+
+    it('migrates this VM only, and leaves the other one listed', async function () {
+      const { app, pools } = createPoolsWithVms()
+      await pools.restoreRollingUpdateItem(pool, vmItem)
+      assert.deepEqual(app.calls.at(-1), ['restoreRpuLeftovers', 'pool-1', [vmItem], { vm1: 'h1' }])
+      assert.deepEqual((await pools.getRollingUpdateRecovery('pool-1')).unrestoredItems, [
+        { type: 'vm', id: 'vm2', name: 'vm2', restorable: true },
+      ])
+    })
   })
 })

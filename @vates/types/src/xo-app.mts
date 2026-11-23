@@ -686,6 +686,10 @@ export type XoApp = EventEmitter & {
   ): Promise<void>
   getRollingUpdateRecovery(poolId: XoPool['id']): Promise<PoolRollingUpdateRecovery | undefined>
   finalizeRollingUpdate(pool: XoPool, opts?: { force?: boolean; parentTask?: VatesTask }): Promise<void>
+  restoreRollingUpdateItem(
+    pool: XoPool,
+    opts: Pick<PoolRollingUpdateRecoveryUnrestoredItem, 'type' | 'id'> & { parentTask?: VatesTask }
+  ): Promise<void>
   resumeRollingPoolUpdate(
     pool: XoPool,
     opts?: { acceptOperatorChanges?: boolean; bypassBackupCheck?: boolean; parentTask?: VatesTask }

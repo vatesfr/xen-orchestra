@@ -976,8 +976,8 @@ describe('restoreRpuLeftovers', function () {
       { type: 'vm', id: 'vm-a1' },
       { type: 'haltedPinnedVm', id: 'vm-p' },
     ]
-    const restore = (items, patch) =>
-      Task.run({ properties: { name: 'finalize' } }, () =>
+    const restore = (items, patch, onProgress) =>
+      new Task({ properties: { name: 'finalize' }, onProgress }).run(() =>
         xapi.restoreRpuLeftovers({ record: { ...record, ...patch }, items, recorder })
       )
     return { events, items, recorder, restore, xapi }
@@ -1138,6 +1138,49 @@ describe('restoreRpuLeftovers', function () {
     assert.deepEqual(events, [
       ['enabling', 'host-A', 1],
       ['enabling', 'host-B', 2],
+    ])
+  })
+
+  it('restores a single item alone', async function () {
+    const expected = {
+      ha: [
+        ['call', 'pool.enable_ha', ['OpaqueRef:sr-1'], {}],
+        ['restored', 'ha'],
+      ],
+      autoPowerOn: [
+        ['other_config', 'auto_poweron', 'true'],
+        ['restored', 'autoPowerOn'],
+      ],
+      host: [['enableHost', 'host-A']],
+      vm: [['migrateVm', 'vm-a1', 'host-A']],
+      haltedPinnedVm: [
+        ['callAsync', 'VM.start_on', 'OpaqueRef:vm-p', 'OpaqueRef:host-A', false, false],
+        ['forgetHaltedPinnedVm', 'vm-p'],
+      ],
+    }
+    for (const item of setup().items) {
+      const { events, restore } = setup()
+      await restore([item])
+      assert.deepEqual(events, expected[item.type], item.type)
+    }
+  })
+
+  it('reports a pinned VM which did not start in the task', async function () {
+    const { items, restore, xapi } = setup()
+    xapi.callAsync = async () => {
+      throw new Error('HOST_NOT_ENOUGH_FREE_MEMORY')
+    }
+    const warnings = []
+    await restore([items[4]], undefined, event => {
+      if (event.type === 'warning') {
+        warnings.push([event.message, event.data])
+      }
+    })
+    assert.deepEqual(warnings, [
+      [
+        'failed to restart a pinned VM shut down by the rolling pool update: HOST_NOT_ENOUGH_FREE_MEMORY',
+        { vmRef: 'OpaqueRef:vm-p' },
+      ],
     ])
   })
 

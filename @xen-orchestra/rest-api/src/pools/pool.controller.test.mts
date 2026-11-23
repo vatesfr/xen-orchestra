@@ -22,6 +22,7 @@ function createController({ v2vService = {} }: { v2vService?: object } = {}) {
     tasks: { create: (properties: unknown) => ({ id: 'task-1', properties, run: (fn: () => unknown) => fn() }) },
     xoApp: {
       finalizeRollingUpdate: record('finalizeRollingUpdate'),
+      restoreRollingUpdateItem: record('restoreRollingUpdateItem'),
       resumeRollingPoolUpdate: record('resumeRollingPoolUpdate'),
       rollingPoolReboot: record('rollingPoolReboot'),
       rollingPoolUpdate: record('rollingPoolUpdate'),
@@ -85,6 +86,18 @@ describe('PoolController.finalizeRollingUpdate', () => {
     assert.deepEqual(calls, [
       { orchestrator: 'finalizeRollingUpdate', parentTask: 'task-1' },
       { orchestrator: 'finalizeRollingUpdate', parentTask: 'task-1', force: true },
+    ])
+  })
+})
+
+describe('PoolController.restoreRollingUpdateItem', () => {
+  it('forwards the item of the body to the orchestrator', async () => {
+    const { calls, controller } = createController()
+
+    await controller.restoreRollingUpdateItem('pool-1', { type: 'host', id: 'host-1' }, true)
+
+    assert.deepEqual(calls, [
+      { orchestrator: 'restoreRollingUpdateItem', parentTask: 'task-1', type: 'host', id: 'host-1' },
     ])
   })
 })

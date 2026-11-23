@@ -509,6 +509,7 @@ const methods = {
         }
       } catch (error) {
         log.warn('failed to restart a pinned VM shut down by a rolling pool reboot', { vmRef, error })
+        Task.warning(`failed to restart a pinned VM shut down by the rolling pool update: ${error.message}`, { vmRef })
       }
     }
   },

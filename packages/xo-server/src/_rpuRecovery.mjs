@@ -1,5 +1,6 @@
 import { createLogger } from '@xen-orchestra/log'
 import { RPU_RECOVERY_STEP_NAMES } from '@vates/types/common'
+import { Task } from '@vates/task'
 import { randomUUID } from 'node:crypto'
 import stringify from 'json-stringify-safe'
 import { incorrectState, noSuchObject } from 'xo-common/api-errors.js'
@@ -347,11 +348,12 @@ export function listUnrestoredItems(record, { pool, loadBalancerLoaded, getHost,
  * such a host, a VM to start on a host which left the pool, and HA recorded
  * without its heartbeat SRs.
  *
- * @param {object} record - Readable record
+ * @param {object} record - Record of the run
  * @param {object} live - See `listUnrestoredItems`
- * @returns {Array<{ type: string, id: string, name?: string, restorable: boolean }>}
+ * @returns {Array<{ type: string, id: string, name?: string, restorable: boolean }> | null} `null` when the record
+ *   cannot be read
  */
-function listUnrestoredItemsForView(record, live) {
+export function listUnrestoredItemsForView(record, live) {
   const isAwaitingReboot = hostId =>
     isRpuHostAwaitingReboot(record, hostId, live.getHost(hostId)?.other_config?.boot_time)
   const isRestorable = ({ type, id }) => {
@@ -370,7 +372,7 @@ function listUnrestoredItemsForView(record, live) {
         return true
     }
   }
-  return listUnrestoredItems(record, live).map(item => ({ ...item, restorable: isRestorable(item) }))
+  return listUnrestoredItems(record, live)?.map(item => ({ ...item, restorable: isRestorable(item) })) ?? null
 }
 
 /**
@@ -519,7 +521,8 @@ export const noopRpuRecorder = Object.freeze({
 /**
  * Restores a setting the run changed, meant to be deferred: the setting is
  * recorded as restored only once the restore succeeded. Never throws, a failed
- * restore is logged with the setting and leaves it in the record.
+ * restore is logged with the setting, reported as a warning of the current
+ * task and leaves it in the record.
  *
  * @param {object} recorder
  * @param {'ha' | 'autoPowerOn' | 'wlb' | 'loadBalancer' | 'schedules'} name
@@ -532,6 +535,10 @@ export async function restoreRpuSetting(recorder, name, restore, id) {
     await restore()
   } catch (error) {
     log.warn('failed to restore a setting changed by the rolling pool update', { error, setting: name, id })
+    Task.warning(`failed to restore a setting changed by the rolling pool update: ${error.message}`, {
+      setting: name,
+      id,
+    })
     return
   }
   recorder.settingRestored(name, id)
