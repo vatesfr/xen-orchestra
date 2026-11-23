@@ -16,6 +16,8 @@ import { openDiskChain } from '@xen-orchestra/backup-archive/disks'
 import { resetVmOtherConfig } from './_otherConfig.mjs'
 
 const { debug, info, warn } = createLogger('xo:backups:importVmBackup')
+
+const noop = Function.prototype
 async function resolveUuid(xapi, cache, uuid, type) {
   if (uuid == null) {
     return uuid
@@ -425,6 +427,22 @@ export class ImportVmBackup {
       }
       backup = await adapter.readFullVmBackup(metadata)
       watchStreamSize(backup, sizeContainer)
+
+      // the restore stops once aborted (e.g. the health check of an aborted backup): a full backup is a stream that
+      // `VM_import()` sends as is, destroying it fails the import, and XAPI drops the partial VM
+      //
+      // set up as soon as the stream exists, so that an abort landing before the import starts, or leaving the transfer
+      // subtask unable to run, still closes it (a file handle or an S3 request)
+      const signal = Task.abortSignal
+      // nothing may be listening yet when it is destroyed: an error event without listener would crash the process
+      backup.on('error', noop)
+      const onAbort = () => backup.destroy(signal.reason)
+      if (signal?.aborted) {
+        onAbort()
+      } else {
+        signal?.addEventListener('abort', onAbort, { once: true })
+        $defer(() => signal.removeEventListener('abort', onAbort))
+      }
     } else {
       assert.strictEqual(metadata.mode, 'delta')
 
@@ -451,12 +469,21 @@ export class ImportVmBackup {
                   additionalVmTag !== undefined && vm.add_tags(additionalVmTag),
                 ])
 
-        const vmRef = isFull
-          ? await xapi.VM_import(backup, srRef, onVmCreation)
-          : await importIncrementalVm(backup, await xapi.getRecord('SR', srRef), {
-              newMacAddresses,
-              vmNamePrefix,
-            })
+        const signal = Task.abortSignal
+        let vmRef
+        try {
+          vmRef = isFull
+            ? await xapi.VM_import(backup, srRef, onVmCreation)
+            : await importIncrementalVm(backup, await xapi.getRecord('SR', srRef), {
+                newMacAddresses,
+                signal,
+                vmNamePrefix,
+              })
+        } catch (error) {
+          // the error of the destroyed stream: report the abort instead
+          signal?.throwIfAborted()
+          throw error
+        }
         let size = 0
         if (isFull) {
           size = sizeContainer.size

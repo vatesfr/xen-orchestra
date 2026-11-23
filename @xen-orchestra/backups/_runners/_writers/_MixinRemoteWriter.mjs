@@ -26,9 +26,12 @@ export const MixinRemoteWriter = (BaseClass = Object) =>
       this._vmBackupDir = getVmBackupDir(rest.vmUuid)
     }
 
-    async _cleanVm(options) {
+    // `cleanup`: the clean-vm is a cleanup subtask, it also runs after the backup has been aborted. Otherwise it is
+    // not started once the backup is aborted, but a merge already running is not interrupted: `cleanVm()` does not
+    // read the signal
+    async _cleanVm({ cleanup = false, ...options }) {
       try {
-        return await Task.run({ properties: { name: 'clean-vm' } }, () => {
+        return await Task.run({ properties: { name: 'clean-vm' }, cleanup }, () => {
           return this._adapter.cleanVm(this._vmBackupDir, {
             ...options,
             logInfo: info,
@@ -72,7 +75,8 @@ export const MixinRemoteWriter = (BaseClass = Object) =>
       const { handler } = this._adapter
       const synchronousMerge = this._settings.mergeBackupsSynchronously
       const willMergeInWorker = !synchronousMerge && !disableMergeWorker && typeof handler.getRealPath === 'function'
-      const { merge } = await this._cleanVm({ remove: true, merge: !willMergeInWorker })
+      // part of the cleanup of the backup: it also runs after an abort, merge included (skipping it is a level 2 abort)
+      const { merge } = await this._cleanVm({ cleanup: true, remove: true, merge: !willMergeInWorker })
       await this.#lock.dispose()
 
       if (merge && willMergeInWorker) {

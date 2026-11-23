@@ -2,6 +2,7 @@ import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
 
 import { formatDateTime } from '@xen-orchestra/xapi'
+import { Task } from '@vates/task'
 
 import { AbstractXapi } from './_AbstractXapi.mjs'
 import { DATETIME, EXPORTED_SUCCESSFULLY, JOB_ID, SCHEDULE_ID } from '../../_otherConfig.mjs'
@@ -655,5 +656,86 @@ describe('run() purges the snapshot data only while the snapshot exists', () => 
 
     assert.equal(calls.markExportSuccessfull, 0, 'the live VM is not marked as exported')
     assert.deepEqual(calls.vmDestroyed, [], 'the live VM must never be destroyed')
+  })
+})
+
+describe('after an abort', () => {
+  // runs `fn` inside a task, as the VM runners are run inside their VM task
+  const runInTask = fn => new Task({ onProgress() {} }).run(fn)
+
+  it('_snapshot() passes the abort signal to the snapshot', async () => {
+    let received
+    const runner = makeRunner({
+      _settings: { bypassVdiChainsCheck: true },
+      _vm: {
+        $ref: 'vm-ref',
+        uuid: 'vm-uuid',
+        $snapshot: async opts => {
+          received = opts
+          throw new Error('stop after the snapshot call')
+        },
+      },
+      _xapi: {},
+      _mustDoSnapshot: async () => true,
+    })
+
+    let vmTask
+    await runInTask(async () => {
+      vmTask = Task.abortSignal
+      await assert.rejects(runner._snapshot(), /stop after the snapshot call/)
+    })
+
+    assert.ok(received.signal instanceof AbortSignal, 'the snapshot gets a signal')
+    assert.equal(received.signal.aborted, vmTask.aborted)
+  })
+
+  it('run() still applies the retention and restores the blocked operations, but skips the health check', async () => {
+    const calls = []
+    const vmTask = new Task({ onProgress() {} })
+    const runner = makeRunner({
+      _settings: { offlineBackup: false, snapshotRetention: 0 },
+      _vm: {
+        uuid: 'live-uuid',
+        power_state: 'Halted',
+        blocked_operations: {},
+        update_blocked_operations: async ops => {
+          calls.push(Object.values(ops).every(_ => _ === null) ? 'unblock' : 'block')
+        },
+        $call: async () => {},
+      },
+      _writers: new Set([{ beforeBackup: async () => {}, afterBackup: async () => calls.push('afterBackup') }]),
+      _xapi: {},
+      _cleanMetadata: async () => {},
+      _fetchJobSnapshots: async () => {},
+      _selectBaseVm: async () => {},
+      _removeUnusedSnapshots: async () => calls.push('removeUnusedSnapshots'),
+      _removeSnapshotData: async () => calls.push('removeSnapshotData'),
+      _healthCheck: async () => calls.push('healthCheck'),
+      _snapshot: async function () {
+        this._exportedVm = { $ref: 'snapshot-ref', is_a_snapshot: true }
+      },
+      // a transfer, aborted while it runs
+      _copy: () =>
+        new Promise((resolve, reject) => {
+          const signal = Task.abortSignal
+          signal.addEventListener('abort', () => reject(signal.reason), { once: true })
+          setImmediate(() => {
+            calls.push('abort')
+            vmTask.abort()
+          })
+        }),
+    })
+
+    await vmTask.run(() => assert.rejects(runner.run(), { name: 'AbortError' })).catch(() => {})
+
+    assert.deepEqual(calls, [
+      'block',
+      'removeUnusedSnapshots',
+      'abort',
+      'removeUnusedSnapshots',
+      'removeSnapshotData',
+      'unblock',
+      'afterBackup',
+    ])
   })
 })

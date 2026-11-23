@@ -48,13 +48,20 @@ export const MixinXapiWriter = (BaseClass = Object) =>
             if (await this.#isAlreadyOnHealthCheckSr(baseVm)) {
               healthCheckVmRef = await Task.run(
                 { properties: { name: 'cloning-vm' } },
-                async () => await xapi.callAsync('VM.clone', this._targetVmRef, `Health Check - ${baseVm.name_label}`)
+                async () =>
+                  await xapi.callAsync(
+                    Task.abortSignal,
+                    'VM.clone',
+                    this._targetVmRef,
+                    `Health Check - ${baseVm.name_label}`
+                  )
               )
             } else {
               healthCheckVmRef = await Task.run(
                 { properties: { name: 'copying-vm' } },
                 async () =>
                   await xapi.callAsync(
+                    Task.abortSignal,
                     'VM.copy',
                     this._targetVmRef,
                     `Health Check - ${baseVm.name_label}`,

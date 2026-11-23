@@ -317,6 +317,34 @@ describe('RemoteAdapter#writeVhd validated by checkDisk', { concurrency: 1 }, ()
       assert.deepEqual(await handler.list(basePath, { ignoreMissing: true }), useVhdDirectory ? ['data'] : [])
       assert.deepEqual(await handler.list(`${basePath}/data`, { ignoreMissing: true }), [])
     })
+
+    test(`${mode}: an aborted write stops and leaves no disk behind`, async () => {
+      const adapter = await getAdapter({ useVhdDirectory })
+      const path = `${basePath}/${adapter.getVhdFileName('base')}`
+      const controller = new AbortController()
+      const read = []
+      // the backup is aborted once the first block has been read
+      class AbortedDisk extends MockDisk {
+        async readBlock(index) {
+          read.push(index)
+          if (read.length === 1) {
+            controller.abort()
+          }
+          return super.readBlock(index)
+        }
+      }
+
+      await assert.rejects(
+        adapter.writeVhd(path, new AbortedDisk(8, [0, 1, 2, 3, 4, 5, 6, 7], 0x11), {
+          signal: controller.signal,
+          uuid: uniqueIdBuffer(),
+        }),
+        { name: 'AbortError' }
+      )
+
+      assert.deepEqual(await handler.list(basePath, { ignoreMissing: true }), useVhdDirectory ? ['data'] : [])
+      assert.deepEqual(await handler.list(`${basePath}/data`, { ignoreMissing: true }), [])
+    })
   }
 })
 

@@ -233,6 +233,7 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
         const snapshotRef = await vm[settings.checkpointSnapshot ? '$checkpoint' : '$snapshot']({
           ignoredVdisTag: '[NOBAK]',
           name_label: TEMP_SNAPSHOT_NAME,
+          signal: Task.abortSignal,
           unplugVusbs: true,
         })
         this.timestamp = Date.now()
