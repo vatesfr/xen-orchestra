@@ -1,24 +1,16 @@
-import type { useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import { usePoolEnhancedData } from '@/modules/pool/composables/use-pool-enhanced-data.composable.ts'
 import { createEnhancedDataHelpers } from '@/test/create-enhanced-data-helpers.ts'
 import { createHost } from '@/test/create-host.ts'
 import { createServer } from '@/test/create-server.ts'
+import { xoCollectionsMock, mockXoCollections } from '@/test/mock-xo-collections.ts'
 import { objectIcon } from '@core/icons'
 import { HOST_POWER_STATE } from '@vates/types'
 import { ref } from 'vue'
 
-const { getHostById, isMasterHost } = vi.hoisted(() => ({
-  getHostById: vi.fn(),
-  isMasterHost: vi.fn(),
-}))
-
-vi.mock(import('@/modules/host/remote-resources/use-xo-host-collection.ts'), () => ({
-  useXoHostCollection: (() => ({ getHostById, isMasterHost })) as unknown as typeof useXoHostCollection,
-}))
+mockXoCollections('host')
 
 beforeEach(() => {
-  getHostById.mockReset()
-  isMasterHost.mockReset()
+  xoCollectionsMock.reset()
 })
 
 const { mountEnhancedData, mountFirstFilterable, mountFirstDisplayData } = createEnhancedDataHelpers(
@@ -55,7 +47,7 @@ describe('filterableServers', () => {
   })
 
   it('resolves primaryHostName from the master host name label', () => {
-    getHostById.mockReturnValue(createHost({ name_label: 'Primary Host' }))
+    xoCollectionsMock.hosts.value = [createHost({ name_label: 'Primary Host' })]
 
     const filterableServer = mountFirstFilterable()
 
@@ -63,8 +55,6 @@ describe('filterableServers', () => {
   })
 
   it('falls back to an empty primaryHostName when the master host is unknown', () => {
-    getHostById.mockReturnValue(undefined)
-
     const filterableServer = mountFirstFilterable()
 
     expect(filterableServer.primaryHostName).toBe('')
@@ -84,8 +74,7 @@ describe('filterableServers', () => {
 
 describe('getDisplayData', () => {
   it('derives the host icons from the state of the master host', () => {
-    getHostById.mockReturnValue(createHost({ power_state: HOST_POWER_STATE.RUNNING }))
-    isMasterHost.mockReturnValue(false)
+    xoCollectionsMock.hosts.value = [createHost({ power_state: HOST_POWER_STATE.RUNNING })]
 
     const displayData = mountFirstDisplayData()
 
@@ -94,8 +83,6 @@ describe('getDisplayData', () => {
   })
 
   it('leaves the host icons undefined when the master host is unknown', () => {
-    getHostById.mockReturnValue(undefined)
-
     const displayData = mountFirstDisplayData()
 
     expect(displayData.hostIcon).toBeUndefined()
@@ -104,8 +91,7 @@ describe('getDisplayData', () => {
   })
 
   it('maps the host icons to the halted state when the master host is halted', () => {
-    getHostById.mockReturnValue(createHost({ power_state: HOST_POWER_STATE.HALTED }))
-    isMasterHost.mockReturnValue(false)
+    xoCollectionsMock.hosts.value = [createHost({ power_state: HOST_POWER_STATE.HALTED })]
 
     const displayData = mountFirstDisplayData()
 
@@ -113,8 +99,7 @@ describe('getDisplayData', () => {
   })
 
   it('maps the host icons to the disabled state when the master host is running but not enabled', () => {
-    getHostById.mockReturnValue(createHost({ power_state: HOST_POWER_STATE.RUNNING, enabled: false }))
-    isMasterHost.mockReturnValue(false)
+    xoCollectionsMock.hosts.value = [createHost({ power_state: HOST_POWER_STATE.RUNNING, enabled: false })]
 
     const displayData = mountFirstDisplayData()
 
@@ -122,8 +107,8 @@ describe('getDisplayData', () => {
   })
 
   it('shows the primary-circle icon when the master host leads its pool', () => {
-    getHostById.mockReturnValue(createHost())
-    isMasterHost.mockReturnValue(true)
+    xoCollectionsMock.hosts.value = [createHost()]
+    xoCollectionsMock.seedMasterHost(createHost())
 
     const displayData = mountFirstDisplayData()
 
@@ -131,8 +116,7 @@ describe('getDisplayData', () => {
   })
 
   it('omits the primary-circle icon when the master host does not lead its pool', () => {
-    getHostById.mockReturnValue(createHost())
-    isMasterHost.mockReturnValue(false)
+    xoCollectionsMock.hosts.value = [createHost()]
 
     const displayData = mountFirstDisplayData()
 
@@ -140,16 +124,12 @@ describe('getDisplayData', () => {
   })
 
   it('sets the pool icon when the pool has a name', () => {
-    getHostById.mockReturnValue(undefined)
-
     const displayData = mountFirstDisplayData()
 
     expect(displayData.poolIcon).toBe('object:pool')
   })
 
   it('omits the pool icon when the pool has no name', () => {
-    getHostById.mockReturnValue(undefined)
-
     const displayData = mountFirstDisplayData([createServer({ poolNameLabel: undefined, poolId: undefined })])
 
     expect(displayData.poolIcon).toBeUndefined()

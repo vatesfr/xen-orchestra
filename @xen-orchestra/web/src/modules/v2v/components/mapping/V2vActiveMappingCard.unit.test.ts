@@ -1,13 +1,13 @@
 import V2vActiveMappingCard from '@/modules/v2v/components/mapping/V2vActiveMappingCard.vue'
 import { DISKOR_POOL_NAME } from '@/test/create-pool.ts'
-import { findAccentedInfos } from '@/test/find-accented-labels.ts'
 import { findInlineParts } from '@/test/find-parts.ts'
-import { findCardLabelledValues } from '@/test/find-rendered-values.ts'
+import { findCardLabelledValues, findCardRowElements } from '@/test/find-rendered-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { describeV2vMappingCardLayout } from '@/test/v2v-mapping-card.ts'
 import { V2V_ACTIVE_DISK_ROWS, V2V_ACTIVE_NIC_ROWS } from '@/test/v2v-mapping-fixtures.ts'
 import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
+import { findAccentedInfos } from '@core-test/find-accented-labels.ts'
 import { mount, type VueWrapper } from '@vue/test-utils'
 
 function mountCard({ diskRows = V2V_ACTIVE_DISK_ROWS, nicRows = V2V_ACTIVE_NIC_ROWS, loading = false } = {}) {
@@ -21,10 +21,10 @@ describeV2vMappingCardLayout({ mountCard, title: t('active-mapping') })
 
 // Each device: its source parts as its key, its destination as its value
 function findDevices(wrapper: VueWrapper) {
-  return wrapper.findAll('.v2v-mapping-card-section .vts-card-row-key-value').map(row => ({
-    sourceParts: findInlineParts(row.get('.key')),
-    destination: row.get('.value').text(),
-  }))
+  return wrapper
+    .findAll('.v2v-mapping-card-section')
+    .flatMap(section => findCardRowElements(section))
+    .map(({ key, value }) => ({ sourceParts: findInlineParts(key), destination: value.text() }))
 }
 
 it('shows its title, locked', () => {

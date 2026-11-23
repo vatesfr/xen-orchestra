@@ -4,17 +4,10 @@ import { ONE_GB } from '@/shared/constants.ts'
 import { createHost } from '@/test/create-host.ts'
 import { createPbd } from '@/test/create-pbd.ts'
 import { createSr } from '@/test/create-sr.ts'
-import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
+import { xoCollectionsMock, mockXoCollections } from '@/test/mock-xo-collections.ts'
 import { mountComposableWithI18n } from '@/test/mount-composable.ts'
 
-vi.mock(
-  import('@/modules/host/remote-resources/use-xo-host-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
-vi.mock(
-  import('@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
+mockXoCollections('host', 'pbd')
 
 const HOST = createHost({ name_label: 'Host A' })
 const LOCAL_SR = createSr({ shared: false })
@@ -36,7 +29,7 @@ describe('getSrSelectLabel', () => {
   ])('labels the SR with its location and %s', (_, sr, gbLeft) => {
     const { getSrSelectLabel, t } = mountComposableWithI18n(() => useXoSrUtils())
 
-    expect(getSrSelectLabel(sr)).toBe(`${sr.name_label} (${t('shared')}) - ${t('n-gb-left', { n: gbLeft })}`)
+    expect(getSrSelectLabel(sr)).toBe(`${sr.name_label} - ${t('n-gb-left', { n: gbLeft })} (${t('shared')})`)
   })
 })
 

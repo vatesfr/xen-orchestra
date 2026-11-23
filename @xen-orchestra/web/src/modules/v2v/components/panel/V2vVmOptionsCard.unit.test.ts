@@ -1,5 +1,5 @@
 import V2vVmOptionsCard from '@/modules/v2v/components/panel/V2vVmOptionsCard.vue'
-import { findPanelCardTitle } from '@/test/find-card-title.ts'
+import { findPanelCardTitleLabel } from '@/test/find-card-title.ts'
 import { getGenericComponent } from '@/test/find-generic-components.ts'
 import { findCardLabelledValues } from '@/test/find-rendered-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
@@ -29,7 +29,7 @@ function mountCard(props: Partial<InstanceType<typeof V2vVmOptionsCard>['$props'
 }
 
 it('shows its title', () => {
-  expect(findPanelCardTitle(mountCard())).toBe(t('options'))
+  expect(findPanelCardTitleLabel(mountCard())).toBe(t('options'))
 })
 
 it.each([

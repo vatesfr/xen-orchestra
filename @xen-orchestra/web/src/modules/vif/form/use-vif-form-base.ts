@@ -1,12 +1,6 @@
+import { vifMacAddress } from '@/modules/vif/form/vif-mac-address.rule.ts'
 import type { BaseVifPayload } from '@/modules/vif/jobs/xo-vif-create.job.ts'
-import {
-  type FormValidationConfig,
-  ipAddresses,
-  macAddress,
-  minValue,
-  or,
-  withMessage,
-} from '@core/packages/form-validation'
+import { type FormValidationConfig, ipAddresses, minValue, withMessage } from '@core/packages/form-validation'
 import { type IpAddress, isIpv6, parseIpList } from '@core/utils/ip-address.utils.ts'
 import { useI18n } from 'vue-i18n'
 
@@ -24,7 +18,7 @@ export function useVifFormBaseValidation(): FormValidationConfig<BaseVifFormData
     errors: {
       onBlur: () => ({
         mac: {
-          macAddress: withMessage(or(macAddress(':'), macAddress('-')), t('invalid-mac-address')),
+          macAddress: withMessage(vifMacAddress, t('invalid-mac-address')),
         },
         rateLimit: {
           minValue: withMessage(minValue(0), t('invalid-rate-limit')),

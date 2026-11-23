@@ -1,6 +1,7 @@
 import VtsSuccessStateHero from '@core/components/success-state-hero/VtsSuccessStateHero.vue'
 import UiAlert from '@core/components/ui/alert/UiAlert.vue'
 import { createGlobalTestConfig } from '@core-test/create-global-test-config.ts'
+import { getSuccessState } from '@core-test/get-success-state.ts'
 import { mount, type VueWrapper } from '@vue/test-utils'
 import type { Window as HappyDomWindow } from 'happy-dom'
 
@@ -17,12 +18,6 @@ function mountSuccessStateHero({ width = 1024, title }: { width?: number; title?
   })
 }
 
-function findTitle(wrapper: VueWrapper) {
-  const title = wrapper.find('.title')
-
-  return title.exists() ? title.text() : undefined
-}
-
 function findWidthClasses(wrapper: VueWrapper, selector: string) {
   return wrapper
     .get(selector)
@@ -35,14 +30,14 @@ describe('VtsSuccessStateHero', () => {
     { label: 'renders the title when one is passed', title: 'Title', expected: 'Title' },
     { label: 'renders no title when none is passed', title: undefined, expected: undefined },
   ])('$label', ({ title, expected }) => {
-    expect(findTitle(mountSuccessStateHero({ title }))).toBe(expected)
+    expect(getSuccessState(mountSuccessStateHero({ title })).title).toBe(expected)
   })
 
   it('renders the message in a success alert', () => {
-    const alert = mountSuccessStateHero().getComponent(UiAlert)
+    const wrapper = mountSuccessStateHero()
 
-    expect(alert.props('accent')).toBe('success')
-    expect(alert.text()).toBe('Message')
+    expect(wrapper.getComponent(UiAlert).props('accent')).toBe('success')
+    expect(getSuccessState(wrapper).message).toBe('Message')
   })
 
   it('renders the actions', () => {

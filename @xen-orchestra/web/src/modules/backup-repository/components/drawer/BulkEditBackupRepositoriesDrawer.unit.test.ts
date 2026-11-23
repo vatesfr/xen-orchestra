@@ -3,22 +3,20 @@ import BackupRepositoryDetailsStep from '@/modules/backup-repository/components/
 import BackupRepositoryGeneralStep from '@/modules/backup-repository/components/form/steps/BackupRepositoryGeneralStep.vue'
 import type { BulkEditBackupRepositoryPayloads } from '@/modules/backup-repository/jobs/xo-backup-repository-bulk-edit.job.ts'
 import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
-import type { useXoProxyCollection } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
 import FormCheckbox from '@/shared/components/form/FormCheckbox.vue'
 import { createBr } from '@/test/create-br.ts'
 import { submitDrawer } from '@/test/drawer.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
+import { proxyCollectionMock, mockXoProxyCollection } from '@/test/mock-xo-proxy-collection.ts'
 import { flushPromises, mount, type VueWrapper } from '@vue/test-utils'
-import { computed, ref } from 'vue'
 import { parse as parseBackupRepositoryUrl } from 'xo-remote-parser'
 
-vi.mock(import('@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'), () => ({
-  useXoProxyCollection: (() => ({
-    proxies: ref([]),
-    useGetProxyById: () => computed(() => undefined),
-  })) as unknown as typeof useXoProxyCollection,
-}))
+mockXoProxyCollection()
+
+beforeEach(() => {
+  proxyCollectionMock.reset()
+})
 
 const FIRST_NFS_BR = createBr({
   id: 'backup-repository-1' as FrontXoBackupRepository['id'],

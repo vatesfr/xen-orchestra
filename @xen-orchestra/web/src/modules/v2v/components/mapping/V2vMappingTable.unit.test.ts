@@ -9,12 +9,11 @@ import {
   createV2vNewMappingStepVm,
   createV2vResumedMappingStepVm,
 } from '@/test/create-v2v-mapping-step-vm.ts'
-import { findAccentedInfos, findAccentedTags } from '@/test/find-accented-labels.ts'
 import { findInlineParts } from '@/test/find-parts.ts'
 import { findTableColumn, findTableColumnCells, findTableHeaders } from '@/test/find-table-cells.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
-import { v2vVmActionsMock } from '@/test/mock-v2v-vm-actions.ts'
+import { v2vVmActionsMock, mockV2vVmActions } from '@/test/mock-v2v-vm-actions.ts'
 import { getV2vVmKindActionList } from '@/test/v2v-vm-kind-actions.ts'
 import VtsActionItems from '@core/components/menu/VtsActionItems.vue'
 import VtsActionsMenu from '@core/components/menu/VtsActionsMenu.vue'
@@ -22,13 +21,11 @@ import VtsActionCell from '@core/components/table/cells/VtsActionCell.vue'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
+import { findAccentedInfos, findAccentedTags } from '@core-test/find-accented-labels.ts'
 import type { XoV2vVm } from '@vates/types'
 import { mount, type VueWrapper } from '@vue/test-utils'
 
-vi.mock(
-  import('@/modules/v2v/composables/use-v2v-vm-actions.composable.ts'),
-  () => import('@/test/mock-v2v-vm-actions.ts')
-)
+mockV2vVmActions()
 
 beforeEach(() => {
   v2vVmActionsMock.reset()

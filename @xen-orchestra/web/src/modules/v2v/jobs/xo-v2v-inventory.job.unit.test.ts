@@ -3,6 +3,7 @@ import { ApiError } from '@/shared/error/api.error.ts'
 import { createV2vConnection } from '@/test/create-v2v-connection.ts'
 import { createV2vInventory } from '@/test/create-v2v-inventory.ts'
 import { hasRequested } from '@/test/fetch-requests.ts'
+import { itCannotRun, itCanRun } from '@/test/job-cases.ts'
 import { expectJobRunning } from '@/test/job-running.ts'
 import { mountComposableWithI18n } from '@/test/mount-composable.ts'
 import { stubFetchResponse } from '@/test/stub-fetch-response.ts'
@@ -31,12 +32,13 @@ describe('run', () => {
 })
 
 describe('errorMessage', () => {
-  it('reports a missing connection', () => {
-    const job = mountInventoryJob(undefined)
-
-    expect(job.canRun).toBe(false)
-    expect(job.errorMessage).toBe(job.t('job:arg:missing-payload'))
-  })
+  itCannotRun([
+    {
+      name: 'reports a missing connection',
+      mountJob: () => mountInventoryJob(undefined),
+      errorMessage: job => job.t('job:arg:missing-payload'),
+    },
+  ])
 
   it('reports a connection in progress', () => {
     const job = mountInventoryJob(createV2vConnection())
@@ -44,9 +46,5 @@ describe('errorMessage', () => {
     expectJobRunning(job, job.t('job:connect:in-progress'))
   })
 
-  it('can run with a connection', () => {
-    const job = mountInventoryJob(createV2vConnection())
-
-    expect(job.canRun).toBe(true)
-  })
+  itCanRun([{ name: 'can run with a connection', mountJob: () => mountInventoryJob(createV2vConnection()) }])
 })

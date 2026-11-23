@@ -818,7 +818,6 @@
   "new-vm": "Нова ВМ",
   "new-vm:add": "Додати нову ВМ",
   "new-vm:description": "Опис ВМ",
-  "new-vm:disk-size-below-template": "{name}: розмір не може бути меншим за розмір диска шаблону ({size} ГБ)",
   "new-vm:ha-best-effort": "За можливості",
   "new-vm:ha-best-effort-description": "Якщо вузол виходить з ладу, HA намагається перезапустити ВМ на іншому вузлі, але лише після всіх ВМ «Перезапуск». Не гарантовано.",
   "new-vm:ha-disabled": "Вимкнено",

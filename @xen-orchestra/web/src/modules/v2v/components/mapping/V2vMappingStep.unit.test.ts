@@ -5,9 +5,9 @@ import { findV2vRouteQuery } from '@/test/create-v2v-wizard-router.ts'
 import { findStateHeroTypes } from '@/test/find-state-hero-types.ts'
 import { getButton, getUiButton } from '@/test/get-button.ts'
 import { t } from '@/test/i18n.ts'
-import { deleteModalMock } from '@/test/mock-delete-modal.ts'
-import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
-import { v2vVmRowsCollectionsMock } from '@/test/mock-xo-v2v-vm-rows-collections.ts'
+import { deleteModalMock, mockDeleteModal } from '@/test/mock-delete-modal.ts'
+import { xoCollectionsMock, mockXoCollections } from '@/test/mock-xo-collections.ts'
+import { v2vVmRowsCollectionsMock, mockXoV2vVmRowsCollections } from '@/test/mock-xo-v2v-vm-rows-collections.ts'
 import { mountComponentOnV2vWizard } from '@/test/mount-on-v2v-wizard.ts'
 import { mountV2vListStep } from '@/test/mount-v2v-list-step.ts'
 import { readV2vStoredListVm } from '@/test/mount-v2v-vm-mapping.ts'
@@ -18,35 +18,9 @@ import { V2V_DB_VM, V2V_WEB_VM } from '@/test/v2v-vms-fixtures.ts'
 import VtsContentSidePanel from '@core/components/layout/VtsContentSidePanel.vue'
 import { flushPromises, type VueWrapper } from '@vue/test-utils'
 
-vi.mock(
-  import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'),
-  () => import('@/test/mock-xo-v2v-vm-rows-collections.ts')
-)
-vi.mock(
-  import('@/modules/task/remote-resources/use-xo-task-collection.ts'),
-  () => import('@/test/mock-xo-v2v-vm-rows-collections.ts')
-)
-vi.mock(
-  import('@/modules/snapshot/components/remote-resources/use-xo-vm-snapshot-collection.ts'),
-  () => import('@/test/mock-xo-v2v-vm-rows-collections.ts')
-)
-vi.mock(
-  import('@/modules/pool/remote-resources/use-xo-pool-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
-vi.mock(
-  import('@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
-vi.mock(
-  import('@/modules/network/remote-resources/use-xo-network-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
-vi.mock(
-  import('@/modules/vm/remote-resources/use-xo-vm-template-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
-vi.mock(import('@core/composables/modals/use-delete-modal.ts'), () => import('@/test/mock-delete-modal.ts'))
+mockXoV2vVmRowsCollections()
+mockXoCollections('network', 'pool', 'sr', 'vmTemplate')
+mockDeleteModal()
 
 // The children render what the step hands them, each covered by its own test: here only the wiring matters
 async function mountStep(vm?: string) {

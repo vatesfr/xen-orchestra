@@ -1,7 +1,7 @@
 import V2vPreviewLabel from '@/modules/v2v/components/review/V2vPreviewLabel.vue'
-import { findAccentedTags } from '@/test/find-accented-labels.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
+import { findAccentedTags } from '@core-test/find-accented-labels.ts'
 import { mount } from '@vue/test-utils'
 
 function mountLabel() {

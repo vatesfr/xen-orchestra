@@ -1,6 +1,6 @@
 <template>
   <VtsInputWrapper :label :message="error">
-    <UiInput v-model.number="model" accent="brand" type="number" :required>
+    <UiInput v-model.number="model" accent="neutral" type="number" :required>
       <template #right-icon>
         <span class="unit typo-body-regular">{{ t('bytes:gi') }}</span>
       </template>

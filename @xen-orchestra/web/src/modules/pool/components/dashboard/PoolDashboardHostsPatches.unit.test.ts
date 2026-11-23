@@ -1,8 +1,10 @@
 import PoolDashboardHostsPatches from '@/modules/pool/components/dashboard/PoolDashboardHostsPatches.vue'
 import type { XoPoolDashboard } from '@/modules/pool/types/xo-pool-dashboard.type.ts'
+import { itShowsDashboardCardStates } from '@/test/dashboard-card.ts'
 import { findTableRows } from '@/test/find-rendered-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
+import type { PoolDashboardCardProps } from '@/test/pool-dashboard-card.ts'
 import { mount } from '@vue/test-utils'
 
 type MissingPatches = NonNullable<NonNullable<XoPoolDashboard['hosts']>['missingPatches']>
@@ -18,30 +20,19 @@ function withAuthorizedPatches(patches: { name: string; version: string }[]): Xo
   })
 }
 
-function mountPatches(props: { poolDashboard?: XoPoolDashboard; hasError?: boolean } = {}) {
+function mountPatches(props: PoolDashboardCardProps = {}) {
   return mount(PoolDashboardHostsPatches, {
     props: { poolDashboard: withAuthorizedPatches([{ name: 'XSAPATCH-1', version: '1.0' }]), ...props },
     global: createGlobalTestConfig(),
   })
 }
 
-it('renders the card title', () => {
-  const wrapper = mountPatches()
-
-  expect(wrapper.get('.ui-card-title').text()).toContain(t('patches'))
-})
-
-it('shows a loader while the dashboard has not arrived yet', () => {
-  const wrapper = mountPatches({ poolDashboard: undefined })
-
-  expect(wrapper.find('.ui-loader').exists()).toBe(true)
-  expect(findTableRows(wrapper)).toEqual([])
-})
-
-it('shows a loader while the missing patches are missing from the dashboard', () => {
-  const wrapper = mountPatches({ poolDashboard: { hosts: {} } })
-
-  expect(wrapper.find('.ui-loader').exists()).toBe(true)
+itShowsDashboardCardStates(mountPatches, {
+  dashboardProp: 'poolDashboard',
+  title: [t('patches')],
+  missing: { 'the list of missing patches': { hosts: {} } },
+  findContent: findTableRows,
+  hasErrorState: false,
 })
 
 it('counts the missing patches next to the title', () => {

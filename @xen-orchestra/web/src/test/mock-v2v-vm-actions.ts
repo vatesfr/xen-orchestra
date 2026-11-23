@@ -1,5 +1,6 @@
 import type * as V2vVmActions from '@/modules/v2v/composables/use-v2v-vm-actions.composable.ts'
 import { createActionItem } from '@/test/create-action-item.ts'
+import { mockModule } from '@/test/spy-on-module.ts'
 import { computed } from 'vue'
 
 function createMoreActions(label: string) {
@@ -29,5 +30,13 @@ export const v2vVmActionsMock = {
   },
 }
 
-// Use as `vi.mock(import('@/modules/v2v/composables/use-v2v-vm-actions.composable.ts'), () => import('@/test/mock-v2v-vm-actions.ts'))`
+// Mocked with `mockV2vVmActions()`
 export const { useV2vNewVmActions, useV2vResumedVmActions, useV2vNotFoundVmActions } = v2vVmActionsMock
+
+// Replaces the module in every test of the file: call it at the top level of the test file
+export function mockV2vVmActions() {
+  mockModule(
+    import('@/modules/v2v/composables/use-v2v-vm-actions.composable.ts'),
+    () => import('@/test/mock-v2v-vm-actions.ts')
+  )
+}

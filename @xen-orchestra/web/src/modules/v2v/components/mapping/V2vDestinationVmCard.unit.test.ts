@@ -1,7 +1,7 @@
 import V2vDestinationVmCard from '@/modules/v2v/components/mapping/V2vDestinationVmCard.vue'
 import type { V2vDestinationVm } from '@/modules/v2v/types/v2v-destination-vm.type.ts'
 import { DISKOR_POOL_NAME } from '@/test/create-pool.ts'
-import { findPanelCardTitle } from '@/test/find-card-title.ts'
+import { findPanelCardTitleLabel } from '@/test/find-card-title.ts'
 import { findInlineParts } from '@/test/find-parts.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
@@ -25,7 +25,7 @@ function mountCard() {
 }
 
 it('shows its title', () => {
-  expect(findPanelCardTitle(mountCard())).toBe(t('destination-vm'))
+  expect(findPanelCardTitleLabel(mountCard())).toBe(t('destination-vm'))
 })
 
 it('links the VM to its page, with the icon of its power state', () => {

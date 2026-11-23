@@ -1,5 +1,5 @@
 <template>
-  <VtsSelect v-if="isSelectWidget(widget)" :id="selectId" accent="brand" />
+  <VtsSelect v-if="isSelectWidget(widget)" :id="selectId" accent="neutral" />
   <UiRadioButtonGroup v-else-if="isRadioWidget(widget)" accent="brand" gap="wide">
     <UiRadioButton
       v-for="choice in widget.choices"

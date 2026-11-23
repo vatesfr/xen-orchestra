@@ -1,39 +1,30 @@
 import PluginMainActions from '@/modules/plugin/components/actions/PluginMainActions.vue'
-import type { useXoPluginActions } from '@/modules/plugin/composables/use-xo-plugin-actions.composable.ts'
-import { createPluginActions } from '@/test/create-plugin-actions.ts'
 import { createPlugin } from '@/test/create-plugin.ts'
 import { findTooltipContent } from '@/test/find-tooltip-content.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
+import { pluginActionsMock, mockXoPluginActions } from '@/test/mock-xo-plugin-actions.ts'
+import { resetStubs } from '@/test/reset-stubs.ts'
 import type { LeafActionItem } from '@core/components/menu/VtsActionsMenu.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import { mount } from '@vue/test-utils'
 
-const { useActions, changeState, configure } = vi.hoisted(() => ({
-  useActions: vi.fn(),
-  changeState: vi.fn(),
-  configure: vi.fn(),
-}))
+const changeState = vi.fn()
+const configure = vi.fn()
 
-// The composable runs the plugin jobs, which call the REST API
-vi.mock(import('@/modules/plugin/composables/use-xo-plugin-actions.composable.ts'), () => ({
-  useXoPluginActions: useActions as unknown as typeof useXoPluginActions,
-}))
+mockXoPluginActions()
 
 beforeEach(() => {
-  useActions.mockReset()
-  changeState.mockReset()
-  configure.mockReset()
+  pluginActionsMock.reset()
+  resetStubs(changeState, configure)
 
   mockActions()
 })
 
 function mockActions(loadOverrides: Partial<LeafActionItem> = {}) {
-  useActions.mockReturnValue(
-    createPluginActions({
-      loadAction: { onClick: changeState, ...loadOverrides },
-      configureAction: { onClick: configure },
-    })
-  )
+  pluginActionsMock.setActions({
+    loadAction: { onClick: changeState, ...loadOverrides },
+    configureAction: { onClick: configure },
+  })
 }
 
 function mountButtons() {

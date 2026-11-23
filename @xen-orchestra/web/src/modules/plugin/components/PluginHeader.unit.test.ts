@@ -2,9 +2,10 @@ import PluginActions from '@/modules/plugin/components/actions/PluginActions.vue
 import PluginHeader from '@/modules/plugin/components/PluginHeader.vue'
 import type { FrontXoPlugin } from '@/modules/plugin/remote-resources/use-xo-plugin-collection.ts'
 import { createPlugin, PLUGIN_CONFIGURATION_SCHEMA } from '@/test/create-plugin.ts'
-import { findAccentedTags } from '@/test/find-accented-labels.ts'
+import { findBreadcrumbItems, findBreadcrumbLink, findHeadBarLabel } from '@/test/find-header.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
+import { findAccentedTags } from '@core-test/find-accented-labels.ts'
 import { mount } from '@vue/test-utils'
 
 function mountHeader(plugin: FrontXoPlugin = createPlugin()) {
@@ -17,19 +18,17 @@ function mountHeader(plugin: FrontXoPlugin = createPlugin()) {
 it('shows the name of the plugin in the head bar', () => {
   const wrapper = mountHeader(createPlugin())
 
-  expect(wrapper.get('.ui-head-bar .label').text()).toBe('transport-email')
+  expect(findHeadBarLabel(wrapper)).toBe('transport-email')
 })
 
 it('lists the plugins then the plugin in the breadcrumb', () => {
   const wrapper = mountHeader(createPlugin())
 
-  expect(wrapper.findAll('.ui-breadcrumb li').map(item => item.text())).toEqual([t('plugins'), 'transport-email'])
+  expect(findBreadcrumbItems(wrapper).map(item => item.text())).toEqual([t('plugins'), 'transport-email'])
 })
 
 it('links the breadcrumb back to the list of plugins', () => {
-  const wrapper = mountHeader()
-
-  expect(wrapper.get('.ui-breadcrumb a.ui-link').attributes('href')).toBe('/admin/plugins')
+  expect(findBreadcrumbLink(mountHeader())).toBe('/admin/plugins')
 })
 
 it('shows the version and the configuration status of a configured plugin', () => {

@@ -7,8 +7,8 @@ import { createV2vInventory } from '@/test/create-v2v-inventory.ts'
 import { createV2vWizardRouter, findV2vRouteQuery } from '@/test/create-v2v-wizard-router.ts'
 import { fillV2vConnectionForm } from '@/test/fill-v2v-connection-form.ts'
 import { invalidCredentialsMessage } from '@/test/form-messages.ts'
-import { deleteModalMock } from '@/test/mock-delete-modal.ts'
-import { v2vStatusMock } from '@/test/mock-xo-v2v-status.ts'
+import { deleteModalMock, mockDeleteModal } from '@/test/mock-delete-modal.ts'
+import { v2vStatusMock, mockXoV2vStatus } from '@/test/mock-xo-v2v-status.ts'
 import { mountComposableWithI18n } from '@/test/mount-composable.ts'
 import { NOW } from '@/test/now.ts'
 import { silenceConsoleError } from '@/test/silence-console-error.ts'
@@ -20,9 +20,9 @@ import { V2V_PLATFORM, type XoV2vConnection } from '@vates/types'
 import { flushPromises } from '@vue/test-utils'
 import { omit } from 'lodash-es'
 
-vi.mock(import('@/modules/v2v/remote-resources/use-xo-v2v-status.ts'), () => import('@/test/mock-xo-v2v-status.ts'))
+mockXoV2vStatus()
 
-vi.mock(import('@core/composables/modals/use-delete-modal.ts'), () => import('@/test/mock-delete-modal.ts'))
+mockDeleteModal()
 
 beforeEach(() => {
   v2vStatusMock.reset()

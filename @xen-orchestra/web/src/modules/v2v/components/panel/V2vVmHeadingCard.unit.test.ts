@@ -2,12 +2,12 @@ import V2vVmHeadingCard from '@/modules/v2v/components/panel/V2vVmHeadingCard.vu
 import type { V2vMappingVmHeading } from '@/modules/v2v/types/v2v-mapping-step.type.ts'
 import { createV2vNewMappingStepVm } from '@/test/create-v2v-mapping-step-vm.ts'
 import { createV2vMappingVmHeading } from '@/test/create-v2v-mapping-vm-heading.ts'
-import { findAccentedTags } from '@/test/find-accented-labels.ts'
 import { findInlineParts } from '@/test/find-parts.ts'
 import { findCardLabelledValues } from '@/test/find-rendered-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
+import { findAccentedTags } from '@core-test/find-accented-labels.ts'
 import type { XoV2vVm } from '@vates/types'
 import { mount } from '@vue/test-utils'
 

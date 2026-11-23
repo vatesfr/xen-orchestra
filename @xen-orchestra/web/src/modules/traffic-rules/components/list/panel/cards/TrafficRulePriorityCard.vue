@@ -62,13 +62,14 @@ import {
   getOrdinalSuffix,
   getTrafficRuleProtocolLabel,
 } from '@/modules/traffic-rules/utils/xo-traffic-rule.util.ts'
+import { useCenteredWindow } from '@/shared/composables/centered-window.composable.ts'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
 import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
 import UiTag from '@core/components/ui/tag/UiTag.vue'
 import { FALLBACK_LOCALE } from '@core/i18n.ts'
-import { computed, ref, watch } from 'vue'
+import { computed, watch } from 'vue'
 import { I18nT, useI18n } from 'vue-i18n'
 
 const { rule, rules, network } = defineProps<{
@@ -111,7 +112,11 @@ const networkRuleItems = computed(() =>
   }))
 )
 
-const isExpanded = ref(false)
+const {
+  isExpanded,
+  hasHiddenItems: hasHiddenRules,
+  visibleItems: visibleNetworkRuleItems,
+} = useCenteredWindow(networkRuleItems, () => rule.rank - 1, VISIBLE_RULES_COUNT)
 
 watch(
   () => rule.id,
@@ -119,20 +124,6 @@ watch(
     isExpanded.value = false
   }
 )
-
-const hasHiddenRules = computed(() => networkRules.value.length > VISIBLE_RULES_COUNT)
-
-const visibleNetworkRuleItems = computed(() => {
-  if (isExpanded.value || !hasHiddenRules.value) {
-    return networkRuleItems.value
-  }
-
-  const lastStart = networkRules.value.length - VISIBLE_RULES_COUNT
-  const centeredStart = rule.rank - 1 - Math.floor(VISIBLE_RULES_COUNT / 2)
-  const start = Math.min(Math.max(centeredStart, 0), lastStart)
-
-  return networkRuleItems.value.slice(start, start + VISIBLE_RULES_COUNT)
-})
 </script>
 
 <style lang="postcss" scoped>

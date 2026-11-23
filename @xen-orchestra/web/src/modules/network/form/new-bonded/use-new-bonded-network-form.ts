@@ -1,6 +1,7 @@
 import { type BaseNetworkFormData, useNetworkFormBase } from '@/modules/network/form/use-network-form-base.ts'
 import { useNetworkPifSelect } from '@/modules/network/form/use-network-pif-select.ts'
 import type { NewBondedNetworkPayload } from '@/modules/network/jobs/xo-bonded-network-create.job.ts'
+import { NETWORK_TYPE } from '@/modules/network/utils/xo-network.util.ts'
 import { type FrontXoPif } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
 import { type FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import { useFormBindings } from '@core/packages/form-bindings'
@@ -43,7 +44,7 @@ export function useNewBondedNetworkForm(_poolId: MaybeRefOrGetter<FrontXoPool['i
 
   const { interfacesSelectId } = useNetworkPifSelect(selectedPool, toRef(formData, 'pifs'), {
     multiple: true,
-    bonded: true,
+    networkType: NETWORK_TYPE.BONDED,
     value: pif => ({ id: pif.id }),
   })
 

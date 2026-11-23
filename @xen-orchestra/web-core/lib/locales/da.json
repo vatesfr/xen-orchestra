@@ -818,7 +818,6 @@
   "new-vm": "Ny VM",
   "new-vm:add": "Tilføj en ny VM",
   "new-vm:description": "VM beskrivelse",
-  "new-vm:disk-size-below-template": "{name}: størrelsen kan ikke være mindre end skabelonens diskstørrelse ({size} GB)",
   "new-vm:ha-best-effort": "Best-effort",
   "new-vm:ha-best-effort-description": "Hvis hosten fejler, forsøger HA at genstarte VM'en på en anden host, men først efter alle \"Genstart\"-VM'er. Ikke garanteret.",
   "new-vm:ha-disabled": "Deaktiveret",

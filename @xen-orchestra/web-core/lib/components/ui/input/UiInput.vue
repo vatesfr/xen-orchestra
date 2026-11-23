@@ -1,4 +1,4 @@
-<!-- v9 -->
+<!-- v10 -->
 <template>
   <div :class="toVariants({ accent, disabled, selected })" class="ui-input" @click.self="focus()">
     <span v-if="slots.prefix || prefix" class="prefix">
@@ -27,12 +27,13 @@
     />
     <UiLoader v-if="busy" class="loader" />
     <UiButtonIcon
-      v-if="!disabled && modelValue && clearable"
+      v-if="isClearButtonVisible"
       size="small"
       icon="action:close-cancel-clear"
       accent="brand"
       @click="clear()"
     />
+    <VtsIcon v-if="isSuccessIconVisible" name="status:success-circle" size="medium" />
     <slot v-if="slots['right-icon'] || rightIcon" name="right-icon">
       <VtsIcon :name="rightIcon" size="medium" class="right-icon" />
     </slot>
@@ -51,9 +52,9 @@ import UiLoader from '@core/components/ui/loader/UiLoader.vue'
 import { useInputWrapperController } from '@core/composables/input-wrapper-controller.composable.ts'
 import type { IconName } from '@core/icons'
 import { toVariants } from '@core/utils/to-variants.util.ts'
-import { ref, useAttrs } from 'vue'
+import { computed, ref, useAttrs } from 'vue'
 
-export type InputAccent = 'brand' | 'warning' | 'danger'
+export type InputAccent = 'neutral' | 'success' | 'warning' | 'danger'
 
 export type InputType = 'text' | 'number' | 'password' | 'search'
 
@@ -66,6 +67,9 @@ const {
   disabled,
   id,
   detached,
+  busy,
+  readonly,
+  clearable,
 } = defineProps<{
   accent: InputAccent
   id?: string
@@ -104,9 +108,14 @@ const inputRef = ref<HTMLInputElement>()
 
 const { wrapperController, accent } = useInputWrapperController({
   accent: () => rawAccent,
+  accents: ['neutral', 'success', 'warning', 'danger'],
   required: () => required,
   detached,
 })
+
+const isClearButtonVisible = computed(() => clearable && !disabled && !readonly && Boolean(modelValue.value))
+
+const isSuccessIconVisible = computed(() => accent.value === 'success' && !disabled && !busy && !readonly)
 
 function focus() {
   inputRef.value?.focus()
@@ -123,6 +132,8 @@ defineExpose({ focus })
 
 <style lang="postcss" scoped>
 .ui-input {
+  --padding-inline: 1.6rem;
+
   display: flex;
   align-items: center;
   gap: 1.6rem;
@@ -134,7 +145,7 @@ defineExpose({ focus })
   height: 4rem;
   width: 100%;
   text-align: left;
-  padding-inline: 1.6rem;
+  padding-inline: var(--padding-inline);
 
   .right-icon,
   .loader {
@@ -160,15 +171,15 @@ defineExpose({ focus })
   .prefix {
     border-end-start-radius: 0.4rem;
     border-start-start-radius: 0.4rem;
-    border-inline-end: 0.1rem solid var(--color-neutral-border);
-    margin-inline-start: -1.6rem;
+    border-inline-end: 0.1rem solid var(--color-neutral-txt-secondary);
+    margin-inline-start: calc(-1 * var(--padding-inline));
   }
 
   .suffix {
     border-end-end-radius: 0.4rem;
     border-start-end-radius: 0.4rem;
-    border-inline-start: 0.1rem solid var(--color-neutral-border);
-    margin-inline-end: -1.6rem;
+    border-inline-start: 0.1rem solid var(--color-neutral-txt-secondary);
+    margin-inline-end: calc(-1 * var(--padding-inline));
   }
 
   &.disabled .right-icon {
@@ -199,62 +210,53 @@ defineExpose({ focus })
 
   /* VARIANT */
 
-  &.accent--brand {
-    --selected-color: var(--color-brand-item-base);
-    border-color: var(--color-neutral-border);
+  &.accent--neutral {
+    --idle-color: var(--color-neutral-txt-secondary);
+    --hover-color: var(--color-brand-txt-hover);
+    --active-color: var(--color-brand-txt-active);
+    --selected-color: var(--color-brand-txt-base);
+  }
 
-    &:hover {
-      border-color: var(--color-brand-item-hover);
-    }
-
-    &:has(input:active) {
-      border-color: var(--color-brand-item-active);
-    }
-
-    &.disabled {
-      border-color: var(--color-neutral-border);
-      background-color: var(--color-neutral-background-disabled);
-    }
+  &.accent--success {
+    --idle-color: var(--color-success-txt-base);
+    --hover-color: var(--color-success-txt-hover);
+    --active-color: var(--color-success-txt-active);
+    --selected-color: var(--color-success-txt-base);
   }
 
   &.accent--warning {
-    --selected-color: var(--color-warning-item-base);
-    border-color: var(--color-warning-item-base);
-
-    &:hover {
-      border-color: var(--color-warning-item-hover);
-    }
-
-    &:has(input:active) {
-      border-color: var(--color-warning-item-active);
-    }
-
-    &.disabled {
-      border-color: var(--color-neutral-border);
-      background-color: var(--color-neutral-background-disabled);
-    }
+    --idle-color: var(--color-warning-txt-base);
+    --hover-color: var(--color-warning-txt-hover);
+    --active-color: var(--color-warning-txt-active);
+    --selected-color: var(--color-warning-txt-base);
   }
 
   &.accent--danger {
-    --selected-color: var(--color-danger-item-base);
-    border-color: var(--color-danger-item-base);
+    --idle-color: var(--color-danger-txt-base);
+    --hover-color: var(--color-danger-txt-hover);
+    --active-color: var(--color-danger-txt-active);
+    --selected-color: var(--color-danger-txt-base);
+  }
 
-    &:hover {
-      border-color: var(--color-danger-item-hover);
-    }
+  border-color: var(--idle-color);
 
-    &:has(input:active) {
-      border-color: var(--color-danger-item-active);
-    }
+  &:hover {
+    border-color: var(--hover-color);
+  }
 
-    &.disabled {
-      border-color: var(--color-neutral-border);
-      background-color: var(--color-neutral-background-disabled);
-    }
+  &:has(input:active) {
+    border-color: var(--active-color);
+  }
+
+  &.disabled {
+    border-color: var(--color-neutral-txt-secondary);
+    background-color: var(--color-neutral-background-disabled);
   }
 
   &:focus-within,
   &.selected {
+    --padding-inline: 1.5rem;
+
     border-color: var(--selected-color);
     border-width: 0.2rem;
   }

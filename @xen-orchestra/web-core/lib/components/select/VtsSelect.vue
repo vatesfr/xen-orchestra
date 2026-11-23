@@ -22,7 +22,7 @@
               v-model="searchTerm"
               :placeholder="searchPlaceholder"
               right-icon="fa:magnifying-glass"
-              accent="brand"
+              accent="neutral"
               detached
             />
           </div>
@@ -58,7 +58,7 @@ import { computed, inject } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { accent, id } = defineProps<{
-  accent: 'brand' | 'warning' | 'danger'
+  accent: 'neutral' | 'warning' | 'danger'
   id: TSelectId
 }>()
 
