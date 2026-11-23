@@ -29,7 +29,7 @@
           </UiInfo>
           <ul v-if="check.objects.length > 0" class="objects typo-body-regular-small">
             <li v-for="object in check.objects" :key="`${object.type}/${object.id}`">
-              <UiLink v-if="getObjectRoute(object) !== undefined" :to="getObjectRoute(object)" size="small">
+              <UiLink v-if="getObjectLink(object) !== undefined" v-bind="getObjectLink(object)" size="small">
                 {{ getObjectName(object) }}
               </UiLink>
               <template v-else>{{ getObjectName(object) }}</template>
@@ -61,7 +61,9 @@ import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-co
 import { useXoPoolMissingPatchesCollection } from '@/modules/pool/remote-resources/use-xo-pool-missing-patches-collection.ts'
 import { useXoPoolRollingUpdatePrecheck } from '@/modules/pool/remote-resources/use-xo-pool-rolling-update-precheck.ts'
 import { getOfferedStartOptions, isRollingUpdateStartBlocked } from '@/modules/pool/utils/rolling-update.util.ts'
+import { useXoScheduleCollection } from '@/modules/schedule/remote-resources/use-xo-schedule-collection.ts'
 import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
+import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import VtsButtonGroup from '@core/components/button-group/VtsButtonGroup.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
@@ -103,6 +105,10 @@ const { getHostById } = useXoHostCollection()
 
 const { getVmById } = useXoVmCollection()
 
+const { getScheduleById } = useXoScheduleCollection()
+
+const { buildXo5Route } = useXoRoutes()
+
 // A blocking check stops the start, unless an option of the start dialog lifts it
 const canStart = computed(() => {
   if (!isPrecheckReady.value || hasPrecheckError.value || poolMissingPatches.value.length === 0) {
@@ -122,17 +128,25 @@ function getObjectName(object: PrecheckObject) {
       return getVmById(object.id as never)?.name_label ?? object.id
     case 'pool':
       return pool.name_label
+    case 'schedule': {
+      const schedule = getScheduleById(object.id as never)
+
+      return schedule === undefined ? object.id : schedule.name || t('untitled')
+    }
     default:
       return object.id
   }
 }
 
-function getObjectRoute(object: PrecheckObject): RouteLocationRaw | undefined {
+function getObjectLink(object: PrecheckObject): { to: RouteLocationRaw } | { href: string | undefined } | undefined {
   switch (object.type) {
     case 'host':
-      return { name: '/host/[id]/dashboard', params: { id: object.id } }
+      return { to: { name: '/host/[id]/dashboard', params: { id: object.id } } }
     case 'VM':
-      return { name: '/vm/[id]/dashboard', params: { id: object.id } }
+      return { to: { name: '/vm/[id]/dashboard', params: { id: object.id } } }
+    // the schedules are managed in XO 5
+    case 'schedule':
+      return getScheduleById(object.id as never) === undefined ? undefined : { href: buildXo5Route('/backup/overview') }
     default:
       return undefined
   }
