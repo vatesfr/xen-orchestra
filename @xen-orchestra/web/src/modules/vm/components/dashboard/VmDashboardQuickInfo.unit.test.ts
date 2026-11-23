@@ -4,7 +4,7 @@ import { createHost } from '@/test/create-host.ts'
 import { createPool } from '@/test/create-pool.ts'
 import { createVm } from '@/test/create-vm.ts'
 import { itShowsDashboardQuickInfo } from '@/test/dashboard-quick-info.ts'
-import { findLabelledValues } from '@/test/find-rendered-values.ts'
+import { findLabelledValues, findTags } from '@/test/find-rendered-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { xoCollectionsMock, mockXoCollections } from '@/test/mock-xo-collections.ts'
@@ -54,10 +54,8 @@ itShowsDashboardQuickInfo(mountQuickInfo, {
     t('guest-tools'),
     t('vcpus'),
     t('ram'),
-    t('tags'),
   ],
   createWithAddress: (uuid, mainIpAddress) => createVm({ id: uuid as FrontXoVm['id'], mainIpAddress }),
-  createWithTags: tags => createVm({ tags }),
 })
 
 it('shows the identity, power state and resources of the VM', () => {
@@ -125,3 +123,16 @@ it('falls back to "None" when the VM has neither a known pool nor a host', () =>
 })
 
 itShowsVmCreator(() => findLabelledValues(mountQuickInfo()))
+
+it('renders the tags below their label', () => {
+  const wrapper = mountQuickInfo(createVm({ tags: ['production'] }))
+
+  expect(wrapper.get('.vm-tags-editor > .header .label').text()).toBe(t('tags'))
+  expect(wrapper.find('.vm-tags-editor > .ui-tags-list').exists()).toBe(true)
+})
+
+it('renders one tag per VM tag, in alphabetical order', () => {
+  const wrapper = mountQuickInfo(createVm({ tags: ['production', 'billing'] }))
+
+  expect(findTags(wrapper)).toEqual(['billing', 'production'])
+})
