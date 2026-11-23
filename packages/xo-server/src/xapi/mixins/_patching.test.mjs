@@ -1348,6 +1348,37 @@ describe('getRollingUpdatePrecheck()', function () {
     assert.ok(incorrectState.is(error, { property: 'linstorHealth' }), error)
   })
 
+  it('reports a LINSTOR which cannot be checked as blocking, as the start refuses it', async function () {
+    const xapi = new FakeXapi([1, 2, 0], { linstor: true })
+    xapi.linstorHealth = new Error('XENAPI_PLUGIN_FAILURE')
+
+    assert.deepEqual((await precheck(xapi)).linstorHealth, {
+      id: 'linstorHealth',
+      result: 'blocking',
+      objects: [{ type: 'pool', id: 'pool-1', reason: 'XENAPI_PLUGIN_FAILURE' }],
+    })
+  })
+
+  it('does not wait 5 minutes for a LINSTOR which does not answer', async function (t) {
+    t.mock.timers.enable({ apis: ['setTimeout'] })
+    const xapi = new FakeXapi([1, 2, 0], { linstor: true })
+    xapi.call = () => new Promise(() => {})
+
+    const checks = precheck(xapi)
+    const ticker = setInterval(() => t.mock.timers.tick(30e3), 1)
+    try {
+      assert.deepEqual((await checks).linstorHealth.objects, [
+        {
+          type: 'pool',
+          id: 'pool-1',
+          reason: 'LINSTOR health check of group linstor_group/thin_device did not answer in 30 seconds',
+        },
+      ])
+    } finally {
+      clearInterval(ticker)
+    }
+  })
+
   it('passes the LINSTOR health when the plugin is too old to check it, as the start does', async function () {
     const xapi = new FakeXapi([1, 2, 0], { linstor: true })
     xapi.linstorHealth = Object.assign(new Error('UNKNOWN_XENAPI_PLUGIN_FUNCTION(healthCheck)'), {

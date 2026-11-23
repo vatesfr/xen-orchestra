@@ -88,8 +88,8 @@ export function getLinstorBlockingIssues({ errors = [], resources = {} }) {
 }
 
 // Checks every LINSTOR storage of the pool once. A failure of the plugin itself
-// is thrown, as is a check which does not answer in HEALTH_CHECK_TIMEOUT
-export async function getLinstorIssues(xapi) {
+// is thrown, as is a check which does not answer in `timeout`
+export async function getLinstorIssues(xapi, { timeout = HEALTH_CHECK_TIMEOUT } = {}) {
   const groupNames = new Set()
   for (const sr of Object.values(xapi.objects.indexes.type.SR)) {
     // a storage without PBD is attached to no host: nothing to check
@@ -102,11 +102,9 @@ export async function getLinstorIssues(xapi) {
   for (const groupName of groupNames) {
     const result = await pTimeout.call(
       xapi.call('host.call_plugin', xapi.pool.master, 'linstor-manager', 'healthCheck', { groupName }),
-      HEALTH_CHECK_TIMEOUT,
+      timeout,
       () => {
-        throw new Error(
-          `LINSTOR health check of group ${groupName} did not answer in ${HEALTH_CHECK_TIMEOUT / 1e3} seconds`
-        )
+        throw new Error(`LINSTOR health check of group ${groupName} did not answer in ${timeout / 1e3} seconds`)
       }
     )
     issues.push(...getLinstorBlockingIssues(JSON.parse(result)))

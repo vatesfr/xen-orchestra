@@ -102,6 +102,10 @@ const listMissingPatches = debounceWithKey(_listMissingPatches, LISTING_DEBOUNCE
 
 // the packages a rolling pool update updates on every host of a pool with
 // LINSTOR before the first reboot, in that order
+// the precheck feeds a page: it does not wait as long as the run for a LINSTOR
+// which does not answer
+const PRECHECK_LINSTOR_TIMEOUT = 30e3
+
 const LINSTOR_PACKAGES = ['xcp-ng-xapi-plugins', 'xcp-ng-linstor', 'linstor-satellite', 'linstor-controller']
 
 // the members left outdated under a master which is up to date
@@ -763,9 +767,9 @@ const methods = {
   },
 
   // The issues of LINSTOR, none when its health cannot be checked
-  async _listLinstorIssues() {
+  async _listLinstorIssues(options) {
     try {
-      return await getLinstorIssues(this)
+      return await getLinstorIssues(this, options)
     } catch (error) {
       this._ignoreMissingLinstorHealthCheck(error)
       return []
@@ -952,12 +956,21 @@ const methods = {
     if (some(this.objects.indexes.type.SR, { type: 'linstor' })) {
       // as in the start: with no host to update, the state of LINSTOR changes
       // nothing to the run
-      const issues = some(hasMissingPatchesByHost) ? await this._listLinstorIssues() : []
+      let issues = []
+      if (some(hasMissingPatchesByHost)) {
+        try {
+          issues = truncateLinstorIssues(await this._listLinstorIssues({ timeout: PRECHECK_LINSTOR_TIMEOUT }))
+        } catch (error) {
+          // the start refuses a LINSTOR which cannot be checked: it is a
+          // blocking check, not a failure of the precheck
+          issues = [error.message]
+        }
+      }
       checks.push(
         rpuCheck(
           'linstorHealth',
           'blocking',
-          truncateLinstorIssues(issues).map(reason => ({ ...poolObject, reason }))
+          issues.map(reason => ({ ...poolObject, reason }))
         ),
         rpuCheck(
           'linstorPackages',
