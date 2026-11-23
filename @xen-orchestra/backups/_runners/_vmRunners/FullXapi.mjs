@@ -1,4 +1,5 @@
 import { createLogger } from '@xen-orchestra/log'
+import { Task } from '@vates/task'
 
 import { forkStreamUnpipe } from '../_forkStreamUnpipe.mjs'
 import { FullRemoteWriter } from '../_writers/FullRemoteWriter.mjs'
@@ -55,6 +56,8 @@ export const FullXapi = class FullXapiVmBackupRunner extends AbstractXapi {
       (
         await this._xapi.VM_export(exportedVm.$ref, {
           compress: Boolean(compression) && (compression === 'native' ? 'gzip' : 'zstd'),
+          // the export stream fails once the backup is aborted, which stops the writers
+          signal: Task.abortSignal,
           useSnapshot: false,
         })
       ).body

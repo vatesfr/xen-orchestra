@@ -304,3 +304,95 @@ describe('ImportVmBackup#_reuseNearestSnapshot()', () => {
     await assert.rejects(() => importer._reuseNearestSnapshot(new Set([SYSTEM.uuid])), /would transfer the disk/)
   })
 })
+
+// resolves once `predicate()` is true, checked after each turn of the event loop
+const waitFor = async predicate => {
+  while (!predicate()) {
+    await new Promise(resolve => setImmediate(resolve))
+  }
+}
+
+describe('ImportVmBackup#run() after an abort', () => {
+  // a full restore whose steps `xapi` and `adapter` are controlled by the test: it reads `xva` and imports it with
+  // `VM_import()`, which, as the XAPI one does, reads its input until it ends and fails when the input fails
+  async function makeFullRestore({ onOpen, onSrLookup } = {}) {
+    const { PassThrough } = await import('node:stream')
+    const xva = new PassThrough()
+    const state = { imported: false }
+    const importer = new ImportVmBackup({
+      adapter: {
+        _handler: { _remote: {} },
+        readFullVmBackup: async () => {
+          await onOpen?.()
+          return xva
+        },
+      },
+      metadata: { ...makeMetadata(), mode: 'full' },
+      srUuid: DEFAULT_SR,
+      xapi: {
+        call: async () => {
+          await onSrLookup?.()
+          return 'OpaqueRef:sr'
+        },
+        VM_import: stream =>
+          new Promise((resolve, reject) => {
+            state.imported = true
+            stream.on('error', () => reject(new Error('premature close'))).resume()
+          }),
+      },
+    })
+    return { importer, state, xva }
+  }
+
+  // the outcome of `run()`, `'still running'` if it does not settle within a second
+  const outcomeOf = pRun =>
+    Promise.race([
+      pRun.then(
+        () => 'resolved',
+        error => error.name
+      ),
+      new Promise(resolve => setTimeout(resolve, 1e3, 'still running')),
+    ])
+
+  it('stops the import of a full backup and fails with the abort', async () => {
+    const { Task } = await import('@vates/task')
+    const { importer, state } = await makeFullRestore()
+
+    const vmTask = new Task({ onProgress() {} })
+    const result = await vmTask
+      .run(async () => {
+        const pRun = importer.run()
+        await waitFor(() => state.imported)
+        vmTask.abort()
+        return outcomeOf(pRun)
+      })
+      .catch(error => error.name)
+
+    assert.equal(result, 'AbortError')
+  })
+
+  it('stops a full restore aborted before its import has started, and destroys its stream', async () => {
+    const { Task } = await import('@vates/task')
+    const vmTask = new Task({ onProgress() {} })
+    // the abort lands during the lookup of the SR, after the transfer subtask started
+    const { importer, xva } = await makeFullRestore({ onSrLookup: () => vmTask.abort() })
+
+    const result = await vmTask.run(() => outcomeOf(importer.run())).catch(error => error.name)
+
+    assert.equal(result, 'AbortError')
+    assert.equal(xva.destroyed, true)
+  })
+
+  it('destroys the stream of a full backup when the abort lands while it is opened', async () => {
+    const { Task } = await import('@vates/task')
+    const vmTask = new Task({ onProgress() {} })
+    // the transfer subtask is then created under an aborted task: it fails without running
+    const { importer, state, xva } = await makeFullRestore({ onOpen: () => vmTask.abort() })
+
+    const result = await vmTask.run(() => outcomeOf(importer.run())).catch(error => error.name)
+
+    assert.equal(result, 'AbortError')
+    assert.equal(state.imported, false)
+    assert.equal(xva.destroyed, true, 'the stream (a file handle or an S3 request) is not left open')
+  })
+})

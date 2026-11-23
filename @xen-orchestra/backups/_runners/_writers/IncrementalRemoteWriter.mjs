@@ -162,7 +162,14 @@ export class IncrementalRemoteWriter extends MixinRemoteWriter(AbstractIncrement
     this.transfer = task.wrapInside(this.transfer)
     this.healthCheck = task.wrapInside(this.healthCheck)
     this.cleanup = task.wrapInside(this.cleanup)
-    this.afterBackup = task.wrap(this.afterBackup)
+
+    // `afterBackup()` cleans the VM directory and releases its lock: it must run even when the task has already
+    // ended because the transfer failed or was aborted, outside of it then
+    const afterBackupInTask = task.wrap(this.afterBackup)
+    const afterBackup = this.afterBackup
+    this.afterBackup = function () {
+      return task.status === 'pending' ? afterBackupInTask.apply(this, arguments) : afterBackup.apply(this, arguments)
+    }
 
     return this._prepare()
   }
@@ -265,6 +272,8 @@ export class IncrementalRemoteWriter extends MixinRemoteWriter(AbstractIncrement
     }
     let size = 0
     await Task.run({ properties: { name: 'transfer' } }, async () => {
+      // stops the writes once the backup is aborted
+      const signal = Task.abortSignal
       await asyncEach(
         Object.entries(deltaExport.disks),
         async ([diskRef, disk]) => {
@@ -285,6 +294,7 @@ export class IncrementalRemoteWriter extends MixinRemoteWriter(AbstractIncrement
             // no checksum for VHDs, because they will be invalidated by
             // merges and chains
             checksum: false,
+            signal,
             validator: tmpPath => checkDisk(handler, tmpPath),
             writeBlockConcurrency: this._config.writeBlockConcurrency,
             uuid: packUuid(vdi.uuid),
@@ -300,6 +310,11 @@ export class IncrementalRemoteWriter extends MixinRemoteWriter(AbstractIncrement
 
       return { size }
     })
+
+    // the metadata makes the backup restorable: it is not written for an aborted backup, whose disks are removed by
+    // the clean-vm of `afterBackup()`
+    Task.abortSignal?.throwIfAborted()
+
     metadataContent.tags = await this.getLongTermRetentionTags(metadataContent)
     metadataContent.size = size // @todo return exactly the size written by this writer
     this._metadataFileName = await adapter.writeVmBackupMetadata(vm.uuid, metadataContent)

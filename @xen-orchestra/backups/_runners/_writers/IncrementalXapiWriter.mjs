@@ -504,6 +504,8 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
     let targetVmRef
     await Task.run({ properties: { name: 'transfer' } }, async () => {
       targetVmRef = await importIncrementalVm(this.#decorateVmMetadata(deltaExport, timestamp), sr, {
+        // the import is stopped once the backup is aborted, and the VM and VDIs it created are destroyed
+        signal: Task.abortSignal,
         targetRef: this._targetVmRef,
       })
       // this also ensure the data are up to date on the snapshot
