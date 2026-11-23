@@ -2910,6 +2910,22 @@ const messages = {
   licensesManage: 'Manage the licenses',
   newLicense: 'New license',
   refreshLicenses: 'Refresh',
+  uploadAirgapDataPack: 'Upload',
+  uploadAirgapDataPackSuccess: 'Airgap data pack successfully uploaded',
+  uploadAirgapDataPackConfirmTitle: 'Upload airgap data pack',
+  uploadAirgapDataPackConfirmButton: 'Continue',
+  uploadAirgapDataPackFirstImportConfirmMessage:
+    'This appliance will switch to airgap mode: it will no longer contact Vates servers for its licenses and updates, but the license server embedded in this appliance. This cannot be undone from Xen Orchestra.',
+  uploadAirgapDataPackReimportConfirmMessage:
+    'This data pack will replace the license database of this appliance. Licenses activated since your last export will be lost: export your licenses and send them to Vates before continuing.',
+  dropFileHere: 'Drop your data file here',
+  airgapDataPackFileRejected: 'File {name} is not a valid airgap data pack (expected a .tar.xz archive)',
+  airgapDataPack: 'Airgap data pack',
+  airgapDataPackDescription:
+    'On an airgapped appliance, import the airgap data pack you received to register the appliance and update your licenses.',
+  removeAirgapDataPack: 'Remove this file',
+  exportAirgapLicenses: 'Export',
+  exportAirgapLicensesDescription: 'Export your current licenses and their bindings to send them back to Vates.',
   getLicensesError: 'Could not fetch licenses',
   licenseHasExpired: 'License has expired.',
   licenseBoundToOtherXoa: 'License bound to another XOA',
