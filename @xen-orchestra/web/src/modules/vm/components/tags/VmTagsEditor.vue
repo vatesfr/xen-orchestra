@@ -59,6 +59,7 @@ const sortedTags = computed(() => sortTags(vm.tags))
     display: flex;
     align-items: center;
     gap: 0.8rem;
+    height: 1lh;
 
     .label {
       color: var(--color-neutral-txt-secondary);

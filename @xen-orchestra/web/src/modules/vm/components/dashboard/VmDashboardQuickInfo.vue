@@ -54,7 +54,9 @@
       <VtsKeyValueRow :label="t('vcpus')" :value="String(vm.CPUs.number)" />
       <VtsKeyValueRow :label="t('ram')" :value="ram" />
     </VtsKeyValueList>
-    <VmTagsEditor :vm class="tags typo-body-regular" />
+    <template #footer>
+      <VmTagsEditor :vm class="typo-body-regular" />
+    </template>
   </VtsQuickInfoCard>
 </template>
 
@@ -108,10 +110,6 @@ const host = computed(() => getVmHost(vm))
     display: flex;
     align-items: center;
     gap: 0.8rem;
-  }
-
-  .tags {
-    grid-column: 1 / -1;
   }
 }
 </style>
