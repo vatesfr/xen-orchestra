@@ -4,8 +4,8 @@ import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-co
 import FormSelect from '@/shared/components/form/FormSelect.vue'
 import { createHost } from '@/test/create-host.ts'
 import { mockXoCollections, xoCollectionsMock } from '@/test/mock-xo-collections.ts'
-import { mountWithSelect } from '@/test/mount-with-select.ts'
-import { findSelectOptionLabels, openSelect, pickSelectOption } from '@/test/select.ts'
+import { mountWithSetupResult } from '@/test/mount-with-setup.ts'
+import { chooseSelectOption, findSelectOptionLabels, openSelect } from '@core-test/select.ts'
 import { h } from 'vue'
 
 mockXoCollections('host')
@@ -37,12 +37,10 @@ const secondClusteredHost = createHost({
 })
 
 function mountPoolExistingHostForm() {
-  let form!: ReturnType<typeof usePoolExistingHostForm>
+  const { wrapper, result: form } = mountWithSetupResult(() => {
+    const form = usePoolExistingHostForm(POOL_ID)
 
-  const wrapper = mountWithSelect(() => {
-    form = usePoolExistingHostForm(POOL_ID)
-
-    return () => h(FormSelect, form.hostSelectBindings.value)
+    return { result: form, render: () => h(FormSelect, form.hostSelectBindings.value) }
   })
 
   return { wrapper, form }
@@ -70,8 +68,7 @@ describe('validateAndGetHostId', () => {
     xoCollectionsMock.hosts.value = [standaloneHost]
     const { wrapper, form } = mountPoolExistingHostForm()
 
-    await openSelect(wrapper)
-    await pickSelectOption(wrapper, standaloneHost.name_label)
+    await chooseSelectOption(wrapper, standaloneHost.name_label)
 
     expect(await form.validateAndGetHostId()).toBe(standaloneHost.id)
   })
