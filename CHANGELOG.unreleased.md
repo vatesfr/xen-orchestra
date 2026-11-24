@@ -82,6 +82,7 @@
 - [REST API] Check that a proxy can be reached: `GET /rest/v0/proxies/:id/health` (PR [#10752](https://github.com/vatesfr/xen-orchestra/pull/10752))
 - [Pool/Network] Creating a network, a bonded network or an internal network now happens in a drawer instead of a dedicated page (PR [#10876](https://github.com/vatesfr/xen-orchestra/pull/10876))
 - [VM/Network] Creating a VIF now happens in a drawer instead of a dedicated page (PR [#10877](https://github.com/vatesfr/xen-orchestra/pull/10877))
+- [VM/VDIs] Creating or attaching a VDI now happens in a drawer instead of a dedicated page (PR [#10878](https://github.com/vatesfr/xen-orchestra/pull/10878))
 
 ### Bug fixes
 

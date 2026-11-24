@@ -438,20 +438,6 @@ declare module 'vue-router/auto-routes' {
       { id: ParamValue<false> },
       | never
     >,
-    '/vdi/attach': RouteRecordInfo<
-      '/vdi/attach',
-      '/vdi/attach',
-      Record<never, never>,
-      Record<never, never>,
-      | never
-    >,
-    '/vdi/new': RouteRecordInfo<
-      '/vdi/new',
-      '/vdi/new',
-      Record<never, never>,
-      Record<never, never>,
-      | never
-    >,
     '/vif/[id]': RouteRecordInfo<
       '/vif/[id]',
       '/vif/:id',
@@ -931,18 +917,6 @@ declare module 'vue-router/auto-routes' {
     'src/pages/vdi/[id]/general.vue': {
       routes:
         | '/vdi/[id]/general'
-      views:
-        | never
-    }
-    'src/pages/vdi/attach.vue': {
-      routes:
-        | '/vdi/attach'
-      views:
-        | never
-    }
-    'src/pages/vdi/new.vue': {
-      routes:
-        | '/vdi/new'
       views:
         | never
     }
