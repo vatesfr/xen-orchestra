@@ -17,16 +17,16 @@ const SCHEMA: JsonSchema = {
 }
 
 function mountField(path: string[], initialValue: unknown = { server: {} }) {
-  const { wrapper, result } = mountInJsonSchemaForm(SCHEMA, initialValue, () => useJsonSchemaFieldValidation(path))
+  const { form, result } = mountInJsonSchemaForm(SCHEMA, initialValue, () => useJsonSchemaFieldValidation(path))
 
-  return { form: wrapper.vm, field: result }
+  return { form, field: result }
 }
 
 describe('in a form', () => {
   it('gives the field the ID the form focuses when the field is invalid', () => {
     const { form, field } = mountField(['server', 'host'])
 
-    expect(field.fieldId.value).toBe(form.errors[0].id)
+    expect(field.fieldId.value).toBe(form.errors.value[0].id)
   })
 
   it('shows no error until the field is left', () => {

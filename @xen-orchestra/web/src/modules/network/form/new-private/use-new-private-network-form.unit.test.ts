@@ -7,7 +7,7 @@ import { createEncryptedNetwork } from '@/test/create-network.ts'
 import { createPool, OTHER_POOL_ID, UNKNOWN_POOL_ID } from '@/test/create-pool.ts'
 import { dangerMessage } from '@/test/form-messages.ts'
 import { xoCollectionsMock, mockXoCollections } from '@/test/mock-xo-collections.ts'
-import { mountWithSetup } from '@/test/mount-with-setup.ts'
+import { mountWithSetupResult } from '@/test/mount-with-setup.ts'
 import { renderSelect } from '@core-test/mount-with-select.ts'
 import { chooseSelectOption, findSelectOptionLabels, openSelect } from '@core-test/select.ts'
 import { TUNNEL_PROTOCOL } from '@vates/types'
@@ -47,25 +47,26 @@ beforeEach(() => {
 
 // The encapsulation and the preferred center are only chosen through their select, rendered here
 function mountForm(poolId: FrontXoPool['id'] = POOL.id) {
-  let form: ReturnType<typeof createForm> | undefined
-
   function createForm() {
     const { t } = useI18n()
 
     return reactive({ ...useNewPrivateNetworkForm(poolId), t })
   }
 
-  const wrapper = mountWithSetup(() => {
-    form = createForm()
+  const { wrapper, result: form } = mountWithSetupResult(() => {
+    const form = createForm()
 
-    return () =>
-      h('div', [
-        h('div', { class: 'encapsulation' }, [renderSelect(form!.encapsulationSelectBindings.id)]),
-        h('div', { class: 'preferred-center' }, [renderSelect(form!.preferredCenterSelectBindings.id)]),
-      ])
+    return {
+      result: form,
+      render: () =>
+        h('div', [
+          h('div', { class: 'encapsulation' }, [renderSelect(form.encapsulationSelectBindings.id)]),
+          h('div', { class: 'preferred-center' }, [renderSelect(form.preferredCenterSelectBindings.id)]),
+        ]),
+    }
   })
 
-  return { wrapper, form: form! }
+  return { wrapper, form }
 }
 
 type Form = ReturnType<typeof mountForm>['form']

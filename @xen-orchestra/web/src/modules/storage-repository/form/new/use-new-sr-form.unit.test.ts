@@ -9,7 +9,7 @@ import { t } from '@/test/i18n.ts'
 import { mockOverlay, overlayMock } from '@/test/mock-overlay.ts'
 import { mockXoCollections, xoCollectionsMock } from '@/test/mock-xo-collections.ts'
 import { mountComposableWithI18n } from '@/test/mount-composable.ts'
-import { mountWithSetup } from '@/test/mount-with-setup.ts'
+import { mountWithSetupResult } from '@/test/mount-with-setup.ts'
 import type { FormSelectId } from '@core/packages/form-select'
 import { OVERLAY_ABORT_EVENT } from '@core/packages/overlay/symbols.ts'
 import { SR_ACCESS_MODE } from '@core/types/storage-repository.type.ts'
@@ -99,28 +99,20 @@ function fillSharedSr(form: UnwrappedNewSrForm) {
   return fillSr(form, 'smb')
 }
 
-// A select only reacts once rendered: renders the one of `getSelectId`, the form being read back from `formHolder`
-function mountWithFormSelect(
+// A select only reacts once rendered: renders the one of `getSelectId`
+function mountNewSrFormSelect(
   getSelectId: (form: ReturnType<typeof useNewSrForm>) => FormSelectId,
   hostId?: FrontXoHost['id']
 ) {
-  const formHolder: { form?: ReturnType<typeof useNewSrForm> } = {}
-
-  const wrapper = mountWithSetup(() => {
+  const { wrapper, result: form } = mountWithSetupResult(() => {
     const form = useNewSrForm(POOL.id, hostId)
-    formHolder.form = form
 
-    return () => renderSelect(getSelectId(form))
+    return { result: form, render: () => renderSelect(getSelectId(form)) }
   })
-
-  if (formHolder.form === undefined) {
-    throw new Error('The form was not set up')
-  }
 
   answerEraseConfirm('onConfirm')
 
   // The tests read and write the form as a mounted component exposes it: refs unwrapped
-  const { form } = formHolder
 
   const unwrappedForm: UnwrappedNewSrForm & Pick<ReturnType<typeof useNewSrForm>, 'submit'> = {
     get nameInputBindings() {
@@ -242,7 +234,7 @@ describe('submit', () => {
     { mode: 'local', hostId: SLAVE.id, fill: fillLocalSr },
     { mode: 'shared', hostId: undefined, fill: fillSharedSr },
   ])('creates the SR on the master of a pool chosen in $mode access mode', async ({ hostId, fill }) => {
-    const { wrapper, form } = mountWithFormSelect(form => form.poolSelectBindings.value.id, hostId)
+    const { wrapper, form } = mountNewSrFormSelect(form => form.poolSelectBindings.value.id, hostId)
     await flushPromises()
 
     await chooseSelectOption(wrapper, DISKOR_POOL_NAME)
@@ -252,7 +244,7 @@ describe('submit', () => {
   })
 
   it('drops the preferred image formats of a type that does not take them', async () => {
-    const { wrapper, form } = mountWithFormSelect(form => form.preferredImageFormatsSelectBindings.value.id, SLAVE.id)
+    const { wrapper, form } = mountNewSrFormSelect(form => form.preferredImageFormatsSelectBindings.value.id, SLAVE.id)
     await fillLocalSr(form)
     await chooseSelectOption(wrapper, 'qcow2')
 
@@ -265,7 +257,7 @@ describe('submit', () => {
 
 describe('preferredImageFormatsSelectBindings', () => {
   it('warns that a format with qcow2 needs qcow2 support on the host', async () => {
-    const { wrapper, rawForm } = mountWithFormSelect(
+    const { wrapper, rawForm } = mountNewSrFormSelect(
       form => form.preferredImageFormatsSelectBindings.value.id,
       SLAVE.id
     )
@@ -279,7 +271,7 @@ describe('preferredImageFormatsSelectBindings', () => {
   })
 
   it('does not warn for VHD alone', async () => {
-    const { wrapper, rawForm } = mountWithFormSelect(
+    const { wrapper, rawForm } = mountNewSrFormSelect(
       form => form.preferredImageFormatsSelectBindings.value.id,
       SLAVE.id
     )

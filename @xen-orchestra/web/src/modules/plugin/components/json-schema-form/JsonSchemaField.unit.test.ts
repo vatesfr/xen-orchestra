@@ -67,7 +67,7 @@ function findSectionHeaders(wrapper: VueWrapper) {
 function mountForm(schema: JsonSchema, modelValue: unknown) {
   return mountJsonSchemaForm(schema, modelValue, value =>
     h(JsonSchemaField, { schema, label: 'Form', required: true, modelValue: value.value })
-  ).wrapper
+  )
 }
 
 describe('string field', () => {
@@ -189,7 +189,7 @@ describe('validation', () => {
   }
 
   it('displays the error of a required field once the user left it', async () => {
-    const wrapper = mountForm(schema, {})
+    const { wrapper } = mountForm(schema, {})
 
     expect(findFieldsInError(wrapper)).toEqual([])
 
@@ -199,54 +199,54 @@ describe('validation', () => {
   })
 
   it('displays all the errors once validated, with their count in the sections', async () => {
-    const wrapper = mountForm(schema, { bind: {} })
+    const { wrapper, form } = mountForm(schema, { bind: {} })
 
-    wrapper.vm.submit()
-    await wrapper.vm.$nextTick()
+    form.submit()
+    await nextTick()
 
     expect(findFieldsInError(wrapper)).toEqual(['uri', 'dn'])
     expect(wrapper.findAll('.ui-counter').map(counter => counter.text())).toEqual(['1'])
   })
 
   it('does not count the errors of a section until they are displayed', () => {
-    const wrapper = mountForm(schema, { bind: {} })
+    const { wrapper } = mountForm(schema, { bind: {} })
 
     expect(wrapper.find('.ui-counter').exists()).toBe(false)
   })
 
   it('gives each field the ID of its error, so that the error summary can focus it', () => {
-    const wrapper = mountForm(schema, { bind: {} })
+    const { wrapper, form } = mountForm(schema, { bind: {} })
 
-    expect(wrapper.vm.errors.map(error => wrapper.find(`[id="${error.id}"] input`).exists())).toEqual([true, true])
+    expect(form.errors.value.map(error => wrapper.find(`[id="${error.id}"] input`).exists())).toEqual([true, true])
   })
 
   it('displays the error of an XO object field whose options are loading, and gives it its ID', async () => {
-    const wrapper = mountForm(
+    const { wrapper, form } = mountForm(
       { type: 'object', properties: { sr: { type: 'string', $type: 'SR' } }, required: ['sr'] },
       {}
     )
 
-    wrapper.vm.submit()
+    form.submit()
     await nextTick()
 
     expect(findFieldsInError(wrapper)).toEqual(['sr'])
-    expect(wrapper.find(`[id="${wrapper.vm.errors[0].id}"]`).exists()).toBe(true)
+    expect(wrapper.find(`[id="${form.errors.value[0].id}"]`).exists()).toBe(true)
   })
 
   it('displays the error of a list under its section', async () => {
-    const wrapper = mountForm(
+    const { wrapper, form } = mountForm(
       { type: 'object', properties: { hosts: { type: 'array', items: { type: 'string' }, minItems: 2 } } },
       { hosts: ['a'] }
     )
 
-    wrapper.vm.submit()
+    form.submit()
     await nextTick()
 
     expect(findInfoLabels(findSectionHeaders(wrapper)[0])).toEqual([t('form:error:min-items', { n: 2 }, 2)])
   })
 
   it('displays the error of a field under its description', async () => {
-    const wrapper = mountForm(
+    const { wrapper } = mountForm(
       { type: 'object', properties: { uri: { type: 'string', description: 'The LDAP URI' } }, required: ['uri'] },
       {}
     )
@@ -260,9 +260,9 @@ describe('validation', () => {
   })
 
   it('validates a filled form', () => {
-    const wrapper = mountForm(schema, { uri: 'ldap://foo' })
+    const { form } = mountForm(schema, { uri: 'ldap://foo' })
 
-    expect(wrapper.vm.submit()).toBe(true)
+    expect(form.submit()).toBe(true)
   })
 })
 
