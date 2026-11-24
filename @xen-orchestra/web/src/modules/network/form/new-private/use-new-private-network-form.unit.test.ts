@@ -7,9 +7,9 @@ import { createEncryptedNetwork } from '@/test/create-network.ts'
 import { createPool, OTHER_POOL_ID, UNKNOWN_POOL_ID } from '@/test/create-pool.ts'
 import { dangerMessage } from '@/test/form-messages.ts'
 import { xoCollectionsMock, mockXoCollections } from '@/test/mock-xo-collections.ts'
-import { mountWithSelect } from '@/test/mount-with-select.ts'
-import { findSelectOptionLabels, openSelect, pickSelectOption } from '@/test/select.ts'
-import VtsSelect from '@core/components/select/VtsSelect.vue'
+import { mountWithSetup } from '@/test/mount-with-setup.ts'
+import { renderSelect } from '@core-test/mount-with-select.ts'
+import { chooseSelectOption, findSelectOptionLabels, openSelect } from '@core-test/select.ts'
 import { TUNNEL_PROTOCOL } from '@vates/types'
 import { flushPromises, type VueWrapper } from '@vue/test-utils'
 import { h, nextTick, reactive } from 'vue'
@@ -55,17 +55,13 @@ function mountForm(poolId: FrontXoPool['id'] = POOL.id) {
     return reactive({ ...useNewPrivateNetworkForm(poolId), t })
   }
 
-  const wrapper = mountWithSelect(() => {
+  const wrapper = mountWithSetup(() => {
     form = createForm()
 
     return () =>
       h('div', [
-        h('div', { class: 'encapsulation' }, [
-          h(VtsSelect, { id: form!.encapsulationSelectBindings.id, accent: 'neutral' }),
-        ]),
-        h('div', { class: 'preferred-center' }, [
-          h(VtsSelect, { id: form!.preferredCenterSelectBindings.id, accent: 'neutral' }),
-        ]),
+        h('div', { class: 'encapsulation' }, [renderSelect(form!.encapsulationSelectBindings.id)]),
+        h('div', { class: 'preferred-center' }, [renderSelect(form!.preferredCenterSelectBindings.id)]),
       ])
   })
 
@@ -75,13 +71,11 @@ function mountForm(poolId: FrontXoPool['id'] = POOL.id) {
 type Form = ReturnType<typeof mountForm>['form']
 
 async function chooseEncapsulation(wrapper: VueWrapper, encapsulation: TUNNEL_PROTOCOL) {
-  await openSelect(wrapper.get('.encapsulation'))
-  await pickSelectOption(wrapper, ENCAPSULATION_LABELS[encapsulation])
+  await chooseSelectOption(wrapper, ENCAPSULATION_LABELS[encapsulation], { container: wrapper.get('.encapsulation') })
 }
 
 async function choosePreferredCenter(wrapper: VueWrapper, host: FrontXoHost) {
-  await openSelect(wrapper.get('.preferred-center'))
-  await pickSelectOption(wrapper, host.name_label)
+  await chooseSelectOption(wrapper, host.name_label, { container: wrapper.get('.preferred-center') })
 }
 
 async function fillInterface(

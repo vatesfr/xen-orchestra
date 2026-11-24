@@ -21,7 +21,7 @@ function createWrapperController(accent: InputWrapperAccent = 'neutral') {
 
 function mountController({
   accent = ref<Accent>('neutral'),
-  required = ref(false),
+  required,
   detached = false,
   wrapperController,
 }: {
@@ -120,12 +120,16 @@ describe('useInputWrapperController', () => {
       expect(wrapperController.required).toBe(false)
     })
 
-    it('leaves the wrapper untouched when detached', () => {
+    it.each([
+      { label: 'when detached', options: { required: ref(true), detached: true }, wrapperRequired: false },
+      { label: 'without a required state of its own', options: {}, wrapperRequired: true },
+    ])('leaves the wrapper untouched $label', ({ options, wrapperRequired }) => {
       const wrapperController = createWrapperController()
+      wrapperController.required = wrapperRequired
 
-      mountController({ required: ref(true), detached: true, wrapperController })
+      mountController({ ...options, wrapperController })
 
-      expect(wrapperController.required).toBe(false)
+      expect(wrapperController.required).toBe(wrapperRequired)
     })
   })
 })

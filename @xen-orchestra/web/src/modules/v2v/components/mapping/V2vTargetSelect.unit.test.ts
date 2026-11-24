@@ -1,7 +1,7 @@
 import V2vTargetSelect from '@/modules/v2v/components/mapping/V2vTargetSelect.vue'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
-import { openSelect, pickSelectOption } from '@/test/select.ts'
 import { V2V_SSD_SR, V2V_TARGET_OPTIONS } from '@/test/v2v-mapping-fixtures.ts'
+import { chooseSelectOption } from '@core-test/select.ts'
 import { mount } from '@vue/test-utils'
 
 it('emits the id of the target picked', async () => {
@@ -10,8 +10,7 @@ it('emits the id of the target picked', async () => {
     global: createGlobalTestConfig(),
   })
 
-  await openSelect(wrapper)
-  await pickSelectOption(wrapper, V2V_SSD_SR.name_label)
+  await chooseSelectOption(wrapper, V2V_SSD_SR.name_label)
 
   expect(wrapper.emitted('update:modelValue')).toEqual([[V2V_SSD_SR.id]])
 })
