@@ -1,7 +1,9 @@
 import { usePoolNewHost } from '@/modules/pool/composables/use-pool-new-host.composable.ts'
 import { useXoPoolAddHostJob } from '@/modules/pool/jobs/xo-pool-add-host.job.ts'
 import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
-import { useServerCreateAndConnect } from '@/modules/server/composables/use-server-create-and-connect.composable.ts'
+import { useXoServerConnectJob } from '@/modules/server/jobs/xo-server-connect.job.ts'
+import { useXoServerCreateJob } from '@/modules/server/jobs/xo-server-create.job.ts'
+import { useXoServerForgetJob } from '@/modules/server/jobs/xo-server-forget.job.ts'
 import { fetchGet } from '@/shared/utils/fetch.util.ts'
 import { createJobStub } from '@/test/create-job-result.ts'
 import { createPool } from '@/test/create-pool.ts'
@@ -29,12 +31,11 @@ type NewHostDrawerProps = {
   allowUnauthorizedCheckboxBindings: ModelBinding<boolean>
 }
 
-const createAndConnectServer = vi.fn()
-const forgetServer = vi.fn()
-
-const useCreateAndConnect = mockedExport(useServerCreateAndConnect)
 const get = mockedExport(fetchGet)
 
+const createServerJob = createJobStub(useXoServerCreateJob)
+const connectServerJob = createJobStub(useXoServerConnectJob)
+const forgetServerJob = createJobStub(useXoServerForgetJob)
 const addHostJob = createJobStub(useXoPoolAddHostJob)
 
 mockXoCollections('pool')
@@ -52,10 +53,13 @@ beforeEach(() => {
   overlayMock.reset()
   xoCollectionsMock.reset()
   xoCollectionsMock.pools.value = [POOL]
+  createServerJob.reset()
+  connectServerJob.reset()
+  forgetServerJob.reset()
   addHostJob.reset()
-  createAndConnectServer.mockReset().mockResolvedValue(SERVER.id)
-  forgetServer.mockReset().mockResolvedValue(undefined)
-  useCreateAndConnect.mockReturnValue({ createAndConnectServer, forgetServer })
+  createServerJob.run.mockResolvedValue([{ status: 'fulfilled', value: SERVER.id }])
+  connectServerJob.run.mockResolvedValue([{ status: 'fulfilled', value: undefined }])
+  forgetServerJob.run.mockResolvedValue([{ status: 'fulfilled', value: undefined }])
   addHostJob.run.mockResolvedValue(undefined)
   get.mockResolvedValue(SERVER)
 })
@@ -110,7 +114,7 @@ describe('on confirm', () => {
     const { drawer } = openDrawer()
 
     expect(await confirm(drawer)).toBe(KEEP_OVERLAY_OPEN)
-    expect(createAndConnectServer).not.toHaveBeenCalled()
+    expect(createServerJob.run).not.toHaveBeenCalled()
   })
 
   it('connects the host to XO, adds it to the pool, then forgets its server', async () => {
@@ -119,12 +123,15 @@ describe('on confirm', () => {
 
     expect(await confirm(drawer)).toBeUndefined()
 
-    expect(toValue(useCreateAndConnect.mock.lastCall?.[0] as MaybeRefOrGetter<unknown>)).toEqual(PAYLOAD)
+    expect(toValue((createServerJob.use.mock.lastCall?.[0] as JobArgs)[0])).toEqual(PAYLOAD)
+    expect(toValue((connectServerJob.use.mock.lastCall?.[0] as JobArgs)[0])).toBe(SERVER.id)
     expect(get).toHaveBeenCalledWith(`servers/${SERVER.id}`)
     expect((addHostJob.use.mock.lastCall as JobArgs).map(arg => toValue(arg))).toEqual([POOL, { hostId: SERVER.master }])
-    expect(forgetServer).toHaveBeenCalledWith(SERVER.id)
+    expect(toValue((forgetServerJob.use.mock.lastCall?.[0] as JobArgs)[0])).toBe(SERVER.id)
 
-    const callOrder = [createAndConnectServer, addHostJob.run, forgetServer].map(run => run.mock.invocationCallOrder[0])
+    const callOrder = [createServerJob.run, connectServerJob.run, addHostJob.run, forgetServerJob.run].map(
+      run => run.mock.invocationCallOrder[0]
+    )
 
     expect(callOrder).toEqual([...callOrder].sort((a, b) => a - b))
   })
@@ -137,18 +144,31 @@ describe('on confirm', () => {
 
     await confirm(drawer)
 
-    expect(forgetServer).toHaveBeenCalledExactlyOnceWith(SERVER.id)
+    expect(forgetServerJob.run).toHaveBeenCalledOnce()
   })
 
-  it('does not add the host when its server could not be created or connected', async () => {
+  it('forgets the server without adding the host when its connection failed', async () => {
     silenceConsoleError()
-    createAndConnectServer.mockRejectedValue(new Error('Authentication failed'))
+    connectServerJob.run.mockResolvedValue([{ status: 'rejected', reason: new Error('Authentication failed') }])
     const { drawer, props } = openDrawer()
     fillForm(props)
 
     await confirm(drawer)
 
     expect(addHostJob.run).not.toHaveBeenCalled()
-    expect(forgetServer).not.toHaveBeenCalled()
+    expect(forgetServerJob.run).toHaveBeenCalledOnce()
+  })
+
+  it('has no server to forget when its creation failed', async () => {
+    silenceConsoleError()
+    createServerJob.run.mockResolvedValue([{ status: 'rejected', reason: new Error('Server already exists') }])
+    const { drawer, props } = openDrawer()
+    fillForm(props)
+
+    await confirm(drawer)
+
+    expect(connectServerJob.run).not.toHaveBeenCalled()
+    expect(addHostJob.run).not.toHaveBeenCalled()
+    expect(forgetServerJob.run).not.toHaveBeenCalled()
   })
 })

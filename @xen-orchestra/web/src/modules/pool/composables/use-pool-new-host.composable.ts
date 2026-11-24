@@ -2,7 +2,9 @@ import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-co
 import { type PoolNewHostFormData, usePoolNewHostForm } from '@/modules/pool/form/use-pool-new-host-form.ts'
 import { type PoolAddHostPayload, useXoPoolAddHostJob } from '@/modules/pool/jobs/xo-pool-add-host.job.ts'
 import { type FrontXoPool, useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
-import { useServerCreateAndConnect } from '@/modules/server/composables/use-server-create-and-connect.composable.ts'
+import { useXoServerConnectJob } from '@/modules/server/jobs/xo-server-connect.job.ts'
+import { useXoServerCreateJob } from '@/modules/server/jobs/xo-server-create.job.ts'
+import { useXoServerForgetJob } from '@/modules/server/jobs/xo-server-forget.job.ts'
 import type { FrontXoServer } from '@/modules/server/remote-resources/use-xo-server-collection.ts'
 import { fetchGet } from '@/shared/utils/fetch.util.ts'
 import { KEEP_OVERLAY_OPEN } from '@core/packages/overlay/symbols.ts'
@@ -29,9 +31,12 @@ export function usePoolNewHost(rawPoolId: MaybeRefOrGetter<FrontXoPool['id']>) {
   } = usePoolNewHostForm()
 
   const serverPayload = ref<PoolNewHostFormData>({ host: '', username: '', password: '', allowUnauthorized: false })
+  const serverId = ref<XoServer['id']>('' as XoServer['id'])
   const addHostPayload = ref<PoolAddHostPayload>()
 
-  const { createAndConnectServer, forgetServer } = useServerCreateAndConnect(serverPayload)
+  const { run: createServer } = useXoServerCreateJob([serverPayload])
+  const { run: connectServer } = useXoServerConnectJob([serverId])
+  const { run: forgetServer } = useXoServerForgetJob([serverId])
   const {
     run: addHostToPool,
     isRunning: isAddingNewHost,
@@ -39,7 +44,25 @@ export function usePoolNewHost(rawPoolId: MaybeRefOrGetter<FrontXoPool['id']>) {
     errorMessage: addNewHostErrorMessage,
   } = useXoPoolAddHostJob(pool, addHostPayload)
 
-  async function getServerMaster(id: XoServer['id']): Promise<FrontXoHost['id']> {
+  async function createHostServer(): Promise<XoServer['id']> {
+    const [createResult] = await createServer()
+
+    if (createResult.status === 'rejected') {
+      throw createResult.reason
+    }
+
+    return createResult.value
+  }
+
+  async function connectHostServer(id: XoServer['id']): Promise<FrontXoHost['id']> {
+    serverId.value = id
+
+    const [connectResult] = await connectServer()
+
+    if (connectResult.status === 'rejected') {
+      throw connectResult.reason
+    }
+
     const { master } = await fetchGet<FrontXoServer>(`servers/${id}`)
 
     if (master === undefined) {
@@ -49,14 +72,24 @@ export function usePoolNewHost(rawPoolId: MaybeRefOrGetter<FrontXoPool['id']>) {
     return master
   }
 
+  async function forgetHostServer(id: XoServer['id']) {
+    serverId.value = id
+
+    const [result] = await forgetServer()
+
+    if (result.status === 'rejected') {
+      console.error(`Failed to forget server ${id}`, result.reason)
+    }
+  }
+
   async function addHostServerToPool(payload: PoolNewHostFormData) {
     let createdServerId: XoServer['id'] | undefined
 
     try {
       serverPayload.value = payload
-      createdServerId = await createAndConnectServer()
+      createdServerId = await createHostServer()
 
-      addHostPayload.value = { hostId: await getServerMaster(createdServerId) }
+      addHostPayload.value = { hostId: await connectHostServer(createdServerId) }
 
       await addHostToPool()
     } catch (error) {
@@ -64,7 +97,7 @@ export function usePoolNewHost(rawPoolId: MaybeRefOrGetter<FrontXoPool['id']>) {
     }
 
     if (createdServerId !== undefined) {
-      await forgetServer(createdServerId)
+      await forgetHostServer(createdServerId)
     }
   }
 
