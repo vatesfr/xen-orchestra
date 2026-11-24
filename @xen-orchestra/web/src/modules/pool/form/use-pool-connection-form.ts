@@ -1,4 +1,3 @@
-import { useCredentialsError } from '@/shared/composables/credentials-error.composable.ts'
 import { required, withMessage } from '@core/packages/form-validation'
 import { useValidatedForm } from '@core/packages/validated-form'
 import { computed, reactive } from 'vue'
@@ -42,16 +41,10 @@ export function usePoolConnectionForm() {
     httpProxy: formData.httpProxy === '' ? undefined : formData.httpProxy,
   }))
 
-  const { showCredentialsError, withCredentialsError } = useCredentialsError([
-    () => formData.username,
-    () => formData.password,
-  ])
-
   return {
     formData,
     validate,
     payload,
-    showCredentialsError,
     hostInputBindings: useField('host', () => ({
       label: t('ip-address'),
       required: true,
@@ -59,10 +52,12 @@ export function usePoolConnectionForm() {
       info: t('pool-connection-ip-info'),
     })),
     httpProxyInputBindings: useField('httpProxy', () => ({ label: t('proxy-url') })),
-    usernameInputBindings: withCredentialsError(
-      useField('username', () => ({ label: t('username'), required: true, info: t('root-by-default') }))
-    ),
-    passwordInputBindings: withCredentialsError(useField('password', () => ({ label: t('password'), required: true }))),
+    usernameInputBindings: useField('username', () => ({
+      label: t('username'),
+      required: true,
+      info: t('root-by-default'),
+    })),
+    passwordInputBindings: useField('password', () => ({ label: t('password'), required: true })),
     readOnlyCheckboxBindings: useField('readOnly', () => ({ label: t('read-only') })),
     allowUnauthorizedCheckboxBindings: useField('allowUnauthorized', () => ({
       label: t('accept-self-signed-certificates'),
