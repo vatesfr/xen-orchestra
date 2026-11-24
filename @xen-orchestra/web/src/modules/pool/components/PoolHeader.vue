@@ -2,10 +2,10 @@
   <UiHeadBar icon="object:pool">
     {{ pool.name_label }}
     <template #actions>
-      <PoolAddHostButton :pool-id="pool.id" />
       <UiLink size="medium" :to="{ name: '/vm/new', query: { poolid: pool.id } }" icon="fa:plus">
         {{ t('new-vm') }}
       </UiLink>
+      <PoolAddHostButton :pool-id="pool.id" />
     </template>
   </UiHeadBar>
   <TabList :label="pool.name_label">
