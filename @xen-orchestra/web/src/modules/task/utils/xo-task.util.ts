@@ -77,26 +77,24 @@ export function getTaskRoute(taskId: FrontXoTask['id']): RouteLocationAsRelative
   }
 }
 
-type TaskSpeedTree = Pick<FrontXoTask, 'start' | 'end' | 'status' | 'properties'> & { tasks?: TaskSpeedTree[] }
-
-/**
- * Current reading speed of a running task, in bytes per second: its own one (`speed` property of the tasks reading a
- * source), or the sum of the ones of its running subtasks
- */
-export function getTaskSpeed(task: TaskSpeedTree): number | undefined {
+// sum of the reading speeds, in bytes per second, of the sources still read by a running task and its subtasks
+export function getTaskReadingSpeed(task: FrontXoTask): number | undefined {
   // not `end`: a task interrupted by a restart of xo-server has none
   if (task.status !== 'pending') {
     return undefined
   }
 
   const { speed } = task.properties
+
   if (typeof speed === 'number') {
     return speed
   }
 
   let sum: number | undefined
+
   for (const subtask of task.tasks ?? []) {
-    const subtaskSpeed = getTaskSpeed(subtask)
+    const subtaskSpeed = getTaskReadingSpeed(subtask)
+
     if (subtaskSpeed !== undefined) {
       sum = (sum ?? 0) + subtaskSpeed
     }
@@ -105,7 +103,7 @@ export function getTaskSpeed(task: TaskSpeedTree): number | undefined {
   return sum
 }
 
-function getTaskBytesRead(task: TaskSpeedTree): number | undefined {
+function getTaskBytesRead(task: FrontXoTask): number | undefined {
   const { bytesRead } = task.properties
 
   if (typeof bytesRead === 'number') {
@@ -125,11 +123,9 @@ function getTaskBytesRead(task: TaskSpeedTree): number | undefined {
   return sum
 }
 
-/**
- * Average reading speed of an ended task, in bytes per second: the bytes read by the task and its subtasks over its
- * whole duration, which is more than the time spent reading for the tasks that are not reading a source themselves
- */
-export function getTaskAverageSpeed(task: TaskSpeedTree): number | undefined {
+// bytes read by an ended task and its subtasks over its whole duration, which is more than the time spent reading for
+// the tasks that are not reading a source themselves
+export function getTaskAverageReadingSpeed(task: FrontXoTask): number | undefined {
   if (task.end === undefined || task.end <= task.start) {
     return undefined
   }

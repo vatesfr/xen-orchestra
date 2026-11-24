@@ -1,88 +1,73 @@
-import { getTaskAverageSpeed, getTaskSpeed } from '@/modules/task/utils/xo-task.util.ts'
-import { describe, expect, it } from 'vitest'
+import type { FrontXoTask } from '@/modules/task/remote-resources/use-xo-task-collection.ts'
+import { getTaskAverageReadingSpeed, getTaskReadingSpeed } from '@/modules/task/utils/xo-task.util.ts'
 
-describe('getTaskSpeed', () => {
+function createTask(overrides: Partial<FrontXoTask> = {}): FrontXoTask {
+  return { id: 'task' as FrontXoTask['id'], start: 0, status: 'pending', properties: {}, ...overrides }
+}
+
+describe('getTaskReadingSpeed', () => {
   it('returns the speed of a running source', () => {
-    expect(getTaskSpeed({ start: 0, status: 'pending', properties: { speed: 100 } })).toBe(100)
+    expect(getTaskReadingSpeed(createTask({ properties: { speed: 100 } }))).toBe(100)
   })
 
   it('sums the speeds of the running subtasks', () => {
-    const task = {
-      start: 0,
-      status: 'pending' as const,
-      properties: {},
+    const task = createTask({
       tasks: [
-        {
-          start: 0,
-          status: 'pending' as const,
-          properties: {},
-          tasks: [
-            { start: 0, status: 'pending' as const, properties: { speed: 100 } },
-            { start: 0, status: 'pending' as const, properties: { speed: 50 } },
-          ],
-        },
-        { start: 0, end: 1, status: 'success' as const, properties: { speed: 200 } },
-        { start: 0, status: 'pending' as const, properties: {} },
+        createTask({
+          tasks: [createTask({ properties: { speed: 100 } }), createTask({ properties: { speed: 50 } })],
+        }),
+        createTask({ status: 'success', end: 1, properties: { speed: 200 } }),
+        createTask(),
       ],
-    }
+    })
 
-    expect(getTaskSpeed(task)).toBe(150)
+    expect(getTaskReadingSpeed(task)).toBe(150)
   })
 
   it('has no speed once ended', () => {
-    expect(
-      getTaskSpeed({
-        start: 0,
-        status: 'success',
-        properties: {},
-        tasks: [{ start: 0, status: 'pending', properties: { speed: 100 } }],
-      })
-    ).toBeUndefined()
+    const task = createTask({ status: 'success', end: 1, tasks: [createTask({ properties: { speed: 100 } })] })
+
+    expect(getTaskReadingSpeed(task)).toBeUndefined()
   })
 
   it('has no speed once interrupted, even without end date', () => {
-    expect(getTaskSpeed({ start: 0, status: 'interrupted', properties: { speed: 100 } })).toBeUndefined()
+    expect(getTaskReadingSpeed(createTask({ status: 'interrupted', properties: { speed: 100 } }))).toBeUndefined()
   })
 
   it('has no speed without running source', () => {
-    expect(
-      getTaskSpeed({
-        start: 0,
-        status: 'pending',
-        properties: {},
-        tasks: [{ start: 0, status: 'pending', properties: {} }],
-      })
-    ).toBeUndefined()
+    expect(getTaskReadingSpeed(createTask({ tasks: [createTask()] }))).toBeUndefined()
   })
 })
 
-describe('getTaskAverageSpeed', () => {
+describe('getTaskAverageReadingSpeed', () => {
   it('returns the bytes read by an ended source over its duration', () => {
-    expect(getTaskAverageSpeed({ start: 0, end: 2e3, status: 'success', properties: { bytesRead: 500 } })).toBe(250)
+    const task = createTask({ status: 'success', end: 2e3, properties: { bytesRead: 500 } })
+
+    expect(getTaskAverageReadingSpeed(task)).toBe(250)
   })
 
   it('sums the bytes read by the subtasks over the duration of the task', () => {
-    const task = {
-      start: 0,
+    const task = createTask({
+      status: 'failure',
       end: 10e3,
-      status: 'failure' as const,
-      properties: {},
       tasks: [
-        { start: 0, end: 2e3, status: 'success' as const, properties: { bytesRead: 1e3 } },
-        { start: 2e3, end: 4e3, status: 'failure' as const, properties: { bytesRead: 3e3 } },
-        { start: 4e3, end: 10e3, status: 'success' as const, properties: {} },
+        createTask({ status: 'success', end: 2e3, properties: { bytesRead: 1e3 } }),
+        createTask({ status: 'failure', start: 2e3, end: 4e3, properties: { bytesRead: 3e3 } }),
+        createTask({ status: 'success', start: 4e3, end: 10e3 }),
       ],
-    }
+    })
 
-    expect(getTaskAverageSpeed(task)).toBe(400)
+    expect(getTaskAverageReadingSpeed(task)).toBe(400)
   })
 
   it('has no average speed while running, or once interrupted without end date', () => {
-    expect(getTaskAverageSpeed({ start: 0, status: 'pending', properties: { speed: 100 } })).toBeUndefined()
-    expect(getTaskAverageSpeed({ start: 0, status: 'interrupted', properties: { bytesRead: 100 } })).toBeUndefined()
+    expect(getTaskAverageReadingSpeed(createTask({ properties: { speed: 100 } }))).toBeUndefined()
+    expect(
+      getTaskAverageReadingSpeed(createTask({ status: 'interrupted', properties: { bytesRead: 100 } }))
+    ).toBeUndefined()
   })
 
   it('has no average speed without source read', () => {
-    expect(getTaskAverageSpeed({ start: 0, end: 1e3, status: 'success', properties: {} })).toBeUndefined()
+    expect(getTaskAverageReadingSpeed(createTask({ status: 'success', end: 1e3 }))).toBeUndefined()
   })
 })
