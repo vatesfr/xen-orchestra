@@ -10,7 +10,7 @@ export function useVmDuplicate(rawVm: MaybeRefOrGetter<FrontXoVm>) {
 
   const payload = ref<DuplicateVmPayload>()
 
-  const { run, isRunning: isDuplicatingVm } = useXoVmDuplicateJob(() => vm.value, payload)
+  const { run, canRun: canDuplicateVm, isRunning: isDuplicatingVm } = useXoVmDuplicateJob(() => vm.value, payload)
 
   const { open } = useOverlay({
     component: () => import('@/modules/vm/components/drawer/VmDuplicateDrawer.vue'),
@@ -34,6 +34,7 @@ export function useVmDuplicate(rawVm: MaybeRefOrGetter<FrontXoVm>) {
 
   return {
     duplicateVm,
+    canDuplicateVm,
     isDuplicatingVm,
   }
 }

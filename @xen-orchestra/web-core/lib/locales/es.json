@@ -351,8 +351,6 @@
   "documentation-name": "Documentación {name}",
   "done": "Terminadas",
   "drop": "Retirar",
-  "duplicate-vm:error-message": "Se ha producido un error al duplicar la máquina virtual. Por favor, revise la configuración (nombre, repositorio de almacenamiento, compresión) e inténtelo de nuevo.",
-  "duplicating-vm": "Duplicando la VM",
   "duplication-method": "Método de duplicación",
   "duration": "Duración",
   "email": "Email",

@@ -1,6 +1,7 @@
 <template>
   <div class="duplicate-vm-form">
     <UiTitle>{{ t('general-information') }}</UiTitle>
+    <VtsRequiredHint />
     <div class="row">
       <DuplicateVmFormTextInput class="field" v-bind="nameInputBindings" />
     </div>
@@ -42,6 +43,7 @@ import DuplicateVmFormTextInput from '@/modules/vm/components/form/duplicate/inp
 import { useDuplicateVmForm } from '@/modules/vm/form/use-duplicate-vm-form.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
+import VtsRequiredHint from '@core/components/required-hint/VtsRequiredHint.vue'
 import VtsOption from '@core/components/select/VtsOption.vue'
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import UiLabel from '@core/components/ui/label/UiLabel.vue'

@@ -1,5 +1,11 @@
 <template>
-  <MenuItem :busy="isDuplicatingVm" accent="neutral" icon="action:duplicate" @click="duplicateVm()">
+  <MenuItem
+    :busy="isDuplicatingVm"
+    :disabled="!canDuplicateVm && !isDuplicatingVm"
+    accent="neutral"
+    icon="action:duplicate"
+    @click="duplicateVm()"
+  >
     {{ t('action:duplicate') }}
   </MenuItem>
 </template>
@@ -16,5 +22,5 @@ const { vm } = defineProps<{
 
 const { t } = useI18n()
 
-const { duplicateVm, isDuplicatingVm } = useVmDuplicate(() => vm)
+const { duplicateVm, canDuplicateVm, isDuplicatingVm } = useVmDuplicate(() => vm)
 </script>
