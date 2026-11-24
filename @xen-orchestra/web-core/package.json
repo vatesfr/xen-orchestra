@@ -93,7 +93,8 @@
     "postversion": "npm publish --access public",
     "build-storybook": "storybook build",
     "storybook": "storybook dev -p 6006",
-    "test": "yarn run type-check && vitest run",
+    "test": "yarn run type-check && vitest run --project unit",
+    "test:storybook": "vitest run --project storybook",
     "test:ui": "vitest --ui",
     "type-check": "vue-tsc --build --force"
   }
