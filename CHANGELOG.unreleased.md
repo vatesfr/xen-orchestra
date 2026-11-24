@@ -13,6 +13,8 @@
 - [Settings/Forwarded headers] When `http.useForwardedHeaders` lists an IPv4 subnet written in IPv6 notation with a short prefix (e.g. `::ffff:10.0.0.0/8`), only the proxies in that subnet are trusted: any client could send its own `X-Forwarded-For` and choose the IP address XO sees (PR [#XXXX](https://github.com/vatesfr/xen-orchestra/pull/XXXX))
 - [Proxy] The proxy authentication token is no longer exposed by the API. **The `url` property of a proxy no longer contains a URL** but a message explaining its removal: scripts relying on it must be updated (PR [#10810](https://github.com/vatesfr/xen-orchestra/pull/10810))
 
+- [SBOM] Add CycloneDX generation script to check all dependencies in one json (PR [#10368](https://github.com/vatesfr/xen-orchestra/pull/10368))
+
 ### Enhancements
 
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
