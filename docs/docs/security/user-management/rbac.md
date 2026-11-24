@@ -190,7 +190,7 @@ This action makes the XO server send a GET request to the given URL, so the hold
 |                     | `reclaim-space`,                                                                                                          |
 | `schedule`          | `read`, `run`                                                                                                             |
 | `restore-log`       | `read`                                                                                                                    |
-| `proxy`             | `read`                                                                                                                    |
+| `proxy`             | `read`, `update:name`                                                                                                     |
 | `server`            | `read`, `create`, `delete`, `connect`, `disconnect`                                                                       |
 | `task`              | `read`, `abort`, `delete`                                                                                                 |
 | `alarm`             | `read`                                                                                                                    |
