@@ -1,6 +1,6 @@
 <template>
   <div class="backup-job-source-pool-table">
-    <VtsQueryBuilder :model-value="filter" :schema @search="filter = $event" />
+    <VtsQueryBuilder v-bind="searchBindings" :schema />
 
     <VtsTable :state :pagination-bindings :selection-bindings>
       <thead>
@@ -47,7 +47,7 @@ const { t } = useI18n()
 
 const {
   items: filteredPools,
-  filter,
+  searchBindings,
   schema,
 } = usePoolQueryBuilder('backup-job-source-pools', () => pools, { ignoreRoute: true })
 

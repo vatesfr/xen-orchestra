@@ -1,6 +1,6 @@
 <template>
   <div class="backup-job-source-backup-vm-table">
-    <VtsQueryBuilder :model-value="filter" :schema @search="filter = $event" />
+    <VtsQueryBuilder v-bind="searchBindings" :schema />
 
     <VtsTable :state :pagination-bindings :selection-bindings>
       <thead>
@@ -49,7 +49,7 @@ const selectedIds = defineModel<FrontXoVm['id'][]>({ required: true })
 
 const { t } = useI18n()
 
-const { items: filteredVms, filter } = useQueryBuilderFilter('backup-job-source-backup-vms', () => vms, {
+const { items: filteredVms, searchBindings } = useQueryBuilderFilter('backup-job-source-backup-vms', () => vms, {
   ignoreRoute: true,
 })
 

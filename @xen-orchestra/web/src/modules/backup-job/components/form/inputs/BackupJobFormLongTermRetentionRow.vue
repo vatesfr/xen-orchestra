@@ -4,7 +4,7 @@
       <I18nT keypath="long-term-retention:row" scope="global">
         <template #count>
           <span class="count">
-            <UiInput v-model.number="retention" :accent="errorMessage !== undefined ? 'danger' : 'brand'" type="number" />
+            <UiInput v-model.number="retention" :accent="errorMessage !== undefined ? 'danger' : 'neutral'" type="number" />
           </span>
         </template>
         <template #period>

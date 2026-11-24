@@ -1,6 +1,6 @@
 <template>
   <div class="backup-job-target-backup-repository-table">
-    <VtsQueryBuilder :model-value="filter" :schema @search="filter = $event" />
+    <VtsQueryBuilder v-bind="searchBindings" :schema />
 
     <VtsTable :state :pagination-bindings :selection-bindings>
       <thead>
@@ -54,7 +54,7 @@ const { t } = useI18n()
 
 const {
   items: displayedBrs,
-  filter,
+  searchBindings,
   schema,
 } = useBackupRepositoryQueryBuilder('backup-job-target-brs', () => brs, { ignoreRoute: true })
 

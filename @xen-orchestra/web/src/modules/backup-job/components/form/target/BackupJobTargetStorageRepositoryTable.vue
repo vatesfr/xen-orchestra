@@ -1,6 +1,6 @@
 <template>
   <div class="backup-job-target-storage-repository-table">
-    <VtsQueryBuilder :model-value="filter" :schema @search="filter = $event" />
+    <VtsQueryBuilder v-bind="searchBindings" :schema />
 
     <VtsTable :state :pagination-bindings :selection-bindings>
       <thead>
@@ -50,7 +50,7 @@ const { t } = useI18n()
 
 const {
   items: displayedSrs,
-  filter,
+  searchBindings,
   schema,
 } = useSrWithPoolQueryBuilder('backup-job-target-srs', () => srs, { ignoreRoute: true })
 

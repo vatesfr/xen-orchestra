@@ -19,7 +19,7 @@ export function useBackupRepositoryQueryBuilder(
 
   const { filterableBrs } = useBackupRepositoryEnhancedData(rawBrs)
 
-  const { items, filter } = useQueryBuilderFilter(id, filterableBrs, options)
+  const { items, filter, searchBindings } = useQueryBuilderFilter(id, filterableBrs, options)
 
   const typeLabels = useXoBackupRepositoryTypeLabels()
 
@@ -39,5 +39,5 @@ export function useBackupRepositoryQueryBuilder(
     }),
   })
 
-  return { items, filter, schema }
+  return { items, filter, searchBindings, schema }
 }

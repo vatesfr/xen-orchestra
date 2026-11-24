@@ -3,7 +3,7 @@
     <BackupJobFormRow>
       <div class="field">
         <UiLabel :accent="hasError ? 'danger' : 'neutral'" required>{{ label }}</UiLabel>
-        <UiInput v-model.number="model" :accent="hasError ? 'danger' : 'brand'" type="number" required />
+        <UiInput v-model.number="model" :accent="hasError ? 'danger' : 'neutral'" type="number" required />
       </div>
     </BackupJobFormRow>
 

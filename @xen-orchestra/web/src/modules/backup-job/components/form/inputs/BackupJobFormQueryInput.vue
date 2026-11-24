@@ -4,7 +4,7 @@
       <UiInput
         v-model="draft"
         class="input"
-        :accent="isUsable && error === undefined ? 'brand' : 'danger'"
+        :accent="isUsable && error === undefined ? 'neutral' : 'danger'"
         :placeholder="t('query-builder:placeholder')"
         :required
         clearable

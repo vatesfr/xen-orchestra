@@ -1,6 +1,6 @@
 <template>
   <div class="backup-job-source-vm-table">
-    <VtsQueryBuilder :model-value="filter" :schema @search="filter = $event" />
+    <VtsQueryBuilder v-bind="searchBindings" :schema />
 
     <VtsTable :state :pagination-bindings :selection-bindings>
       <thead>
@@ -50,7 +50,7 @@ const { t } = useI18n()
 
 const {
   items: filteredVms,
-  filter,
+  searchBindings,
   schema,
   getDisplayData,
 } = useVmQueryBuilder('backup-job-source-vms', () => vms, { ignoreRoute: true })

@@ -19,7 +19,7 @@ export function useSrWithPoolQueryBuilder(
 
   const { filterableSrs } = useSrEnhancedData(rawSrs)
 
-  const { items, filter } = useQueryBuilderFilter(id, filterableSrs, options)
+  const { items, filter, searchBindings } = useQueryBuilderFilter(id, filterableSrs, options)
 
   const schema = useQueryBuilderSchema<SrFilterableData>({
     '': useStringSchema(t('any-property')),
@@ -33,5 +33,5 @@ export function useSrWithPoolQueryBuilder(
     }),
   })
 
-  return { items, filter, schema }
+  return { items, filter, searchBindings, schema }
 }

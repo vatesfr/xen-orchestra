@@ -4,7 +4,7 @@
       <div class="field">
         <UiInput
           v-model="email"
-          :accent="errorMessage === undefined ? 'brand' : 'danger'"
+          :accent="errorMessage === undefined ? 'neutral' : 'danger'"
           type="text"
           @keydown.enter.prevent="addEmail()"
         />

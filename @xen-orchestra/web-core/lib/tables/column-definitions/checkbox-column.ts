@@ -10,7 +10,6 @@ export type CheckboxCellBindings = {
   selected: boolean
   disabled?: boolean
   onToggle: () => void
-  disabled?: boolean
 }
 
 function renderHeadCheckbox(model: Ref<boolean | undefined>) {
@@ -28,7 +27,6 @@ function renderBodyCheckbox({ selected, disabled, onToggle }: CheckboxCellBindin
     accent: 'brand',
     disabled,
     modelValue: selected,
-    disabled,
     'onUpdate:modelValue': onToggle,
   })
 }
