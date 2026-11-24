@@ -1331,6 +1331,10 @@ class SDNController extends EventEmitter {
 
     this._newHosts.splice(i, 1)
 
+    // The OVSDB client can not have been created when the host was added, as it
+    // was not enabled yet: create it now that the host is up.
+    this._getOrCreateOvsdbClient(host)
+
     log.debug('Sync pool certificates', {
       newHost: host.name_label,
       pool: host.$pool.name_label,
