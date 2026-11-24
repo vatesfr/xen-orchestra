@@ -24,13 +24,13 @@ import {
   resetNewVmCollections,
   seedNewVmCollections,
 } from '@/test/new-vm-fixtures.ts'
-import { findSelectOptionLabels, findShownSelections, openSelect } from '@/test/select.ts'
 import VtsDetailedOption from '@core/components/select/VtsDetailedOption.vue'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import UiInput from '@core/components/ui/input/UiInput.vue'
 import { objectIcon } from '@core/icons'
 import { CONNECTION_STATUS } from '@core/types/connection.ts'
 import { findAccentedInfos } from '@core-test/find-accented-labels.ts'
+import { findSelectOptionLabels, findShownSelections, openSelect } from '@core-test/select.ts'
 import { nextTick } from 'vue'
 
 mockNewVmCollections()

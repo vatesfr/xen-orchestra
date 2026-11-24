@@ -5,46 +5,63 @@ This composable manages a collection of filterable form options to be used with 
 ## Usage
 
 ```typescript
-const { searchTerm, options, selectedOptions, selectedValues } = useFormSelect(sources, {
-  properties: source => ({
-    value: source.id, // optional if source has a `value` or `ìd` property
-    label: source.name, // optional if source has a `label` property
-    searchableTerm: [source.name, source.code], // optional, defaults to the label
-    disabled: source.state == 'offline', // optional, defaults to false
-  }),
-  multiple: false,
+const { id, selectedValue } = useFormSelect(sources, {
+  model: selectedSourceId, // optional, kept in sync with the selection
+  option: {
+    value: 'id', // optional if the source has a `value` or `id` property
+    label: 'name', // optional if the source has a `label` property
+    disabled: source => source.status === 'offline', // optional, defaults to false
+  },
+  placeholder: 'Select an item',
+  searchable: true,
 })
 ```
+
+`useFormSelect` provides the select under its `id`: render it with `<VtsSelect :id accent="neutral" />` in the same component or below it.
 
 ## Parameters
 
 |           | Required | Type                          | Default | Description                                               |
 | --------- | :------: | ----------------------------- | ------- | --------------------------------------------------------- |
 | `sources` |    ✓     | `MaybeRefOrGetter<TSource[]>` |         | Array of source objects to be converted into form options |
-| `config`  |    ✓     | (see below)                   |         | Configuration                                             |
+| `config`  |          | (see below)                   |         | Configuration                                             |
 
 ### `config` object
 
-|                             | Required | Type                                                       | Default         | Description                                                                             |
-| --------------------------- | :------: | ---------------------------------------------------------- | --------------- | --------------------------------------------------------------------------------------- |
-| `properties`                |    ~     | Record<string, unknown>                                    |                 | Object containing custom properties for each option                                     |
-| `properties.value`          |    ~     | `TValue`                                                   |                 | A unique value for each option. Required if `TSource` doesn't have an `id` or `value`   |
-| `properties.label`          |    ~     | `string`                                                   |                 | A human-readable label for each option. Required if `TSource` doesn't have a `label`    |
-| `properties.searchableTerm` |          | `MaybeArray<string>`                                       | Same as `label` | Searchable term(s) for each option for filtering                                        |
-| `properties.disabled`       |          | `boolean`                                                  | `false`         | Determines if an option should be disabled                                              |
-| `multiple`                  |          | `boolean`                                                  | `false`         | Whether multiple options can be selected simultaneously                                 |
-| `selectedLabel`             |          | `(count: number, labels: string[]) => string \| undefined` |                 | Function to format the label for selected options. Default label is `labels.join(', ')` |
+|                         | Required | Type                                                              | Default         | Description                                                                  |
+| ----------------------- | :------: | ----------------------------------------------------------------- | --------------- | ---------------------------------------------------------------------------- |
+| `model`                 |          | `Ref<unknown>`                                                    |                 | Value (or values with `multiple`) kept in sync with the selection, both ways |
+| `multiple`              |          | `MaybeRefOrGetter<boolean>`                                       | `false`         | Whether multiple options can be selected simultaneously                      |
+| `disabled`              |          | `MaybeRefOrGetter<boolean>`                                       | `false`         | Whether the whole select is disabled                                         |
+| `required`              |          | `MaybeRefOrGetter<boolean>`                                       | `false`         | Whether the select is required                                               |
+| `loading`               |          | `MaybeRefOrGetter<boolean>`                                       | `false`         | Whether the options are still loading                                        |
+| `searchable`            |          | `MaybeRefOrGetter<boolean>`                                       | `false`         | Whether the dropdown shows a search input                                    |
+| `placeholder`           |          | `MaybeRefOrGetter<string>`                                        | `''`            | Placeholder of the select                                                    |
+| `searchPlaceholder`     |          | `MaybeRefOrGetter<string>`                                        | `''`            | Placeholder of the search input                                              |
+| `selectedLabel`         |          | `(count: number, labels: string[]) => string \| undefined`        |                 | Formats the label of the selection. Defaults to `labels.join(', ')`          |
+| `emptyOption`           |          | `MaybeRefOrGetter<{ value, label, selectedLabel?, properties? }>` |                 | An extra first option standing for "no value"                                |
+| `option.id`             |          | `GetItemId<TSource>`                                              | Guessed         | Unique id of each option                                                     |
+| `option.value`          |    ~     | `keyof TSource \| (source, properties, index) => TValue`          | Guessed         | Value of each option. Required if `TSource` has no `value` or `id`           |
+| `option.label`          |    ~     | `keyof TSource \| (source, properties) => string`                 | Guessed         | Label of each option. Required if `TSource` has no `label`                   |
+| `option.selectedLabel`  |          | `(source, properties) => string`                                  | Same as `label` | Label of the option once selected                                            |
+| `option.disabled`       |          | `(source, properties) => boolean`                                 | `false`         | Whether an option is disabled                                                |
+| `option.searchableTerm` |          | `(source, properties) => MaybeArray<string>`                      | Same as `label` | Searchable term(s) of each option                                            |
+| `option.properties`     |          | `(source) => TCustomProperties`                                   |                 | Custom properties of each option, passed to the other `option` functions     |
 
 ## Return Value
 
-|                   | Type                        | Description                                          |
-| ----------------- | --------------------------- | ---------------------------------------------------- |
-| `searchTerm`      | `Ref<string>`               | Reactive reference to control the search/filter term |
-| `allOptions`      | `ComputedRef<FormOption[]>` | All options, regardless of search filtering          |
-| `options`         | `ComputedRef<FormOption[]>` | Options filtered by the current search term          |
-| `selectedOptions` | `ComputedRef<FormOption[]>` | Options that are currently selected                  |
-| `selectedValues`  | `ComputedRef<TValue[]>`     | Values of options that are currently selected        |
-| `selectedLabel`   | `ComputedRef<string>`       | Label for the selected options                       |
+|                                                                                                           | Type                        | Description                                              |
+| --------------------------------------------------------------------------------------------------------- | --------------------------- | -------------------------------------------------------- |
+| `id`                                                                                                      | `FormSelectId`              | Key the select is provided under, to pass to `VtsSelect` |
+| `searchTerm`                                                                                              | `Ref<string>`               | Reactive reference to control the search/filter term     |
+| `allOptions`                                                                                              | `ComputedRef<FormOption[]>` | All options, regardless of search filtering              |
+| `options`                                                                                                 | `ComputedRef<FormOption[]>` | Options filtered by the current search term              |
+| `selectedOption`                                                                                          | `ComputedRef<FormOption>`   | First selected option                                    |
+| `selectedOptions`                                                                                         | `ComputedRef<FormOption[]>` | Options that are currently selected                      |
+| `selectedValue`                                                                                           | `ComputedRef<TValue>`       | Value of the first selected option                       |
+| `selectedValues`                                                                                          | `ComputedRef<TValue[]>`     | Values of options that are currently selected            |
+| `selectedLabel`                                                                                           | `ComputedRef<string>`       | Label for the selected options                           |
+| `isMultiple`, `isDisabled`, `isRequired`, `isSearchable`, `isLoading`, `placeholder`, `searchPlaceholder` | `ComputedRef`               | The `config` values, resolved                            |
 
 ## `FormOption` object
 
@@ -67,14 +84,15 @@ Each item in the `options` array is a `FormOption` object with these properties:
 
 ```vue
 <template>
-  <VtsSelect :options :selected-label />
+  <VtsSelect :id accent="neutral" />
 </template>
 
 <script lang="ts" setup>
-const { options, selectedLabel, selectedValues } = useFormOptions(vms, {
-  properties: vm => ({
-    label: vm.name_label,
-  }),
+const selectedItemId = ref<string>()
+
+const { id } = useFormSelect(items, {
+  model: selectedItemId,
+  option: { label: 'name' },
 })
 </script>
 ```
@@ -83,14 +101,18 @@ const { options, selectedLabel, selectedValues } = useFormOptions(vms, {
 
 ```vue
 <template>
-  <VtsSelect v-model:search="searchTerm" :options :selected-label />
+  <VtsSelect :id accent="neutral" />
 </template>
 
 <script lang="ts" setup>
-const { options, searchTerm, selectedValues, selectedLabel } = useFormOptions(vms, {
-  properties: vm => ({ label: vm.name_label }),
+const selectedItemIds = ref<string[]>([])
+
+const { id } = useFormSelect(items, {
+  model: selectedItemIds,
+  option: { label: 'name' },
   multiple: true,
-  selectedlabel: count => (count > 3 ? `${count} VMs selected` : undefined), // Keep the default label if less than 3
+  searchable: true,
+  selectedLabel: count => (count > 3 ? `${count} items selected` : undefined), // Keeps the default label up to 3 items
 })
 </script>
 ```

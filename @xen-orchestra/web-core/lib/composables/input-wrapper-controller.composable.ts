@@ -1,5 +1,8 @@
+import type { InputWrapperAccent } from '@core/components/input-wrapper/VtsInputWrapper.vue'
 import { IK_INPUT_WRAPPER_CONTROLLER } from '@core/utils/injection-keys.util.ts'
 import { computed, inject, type MaybeRefOrGetter, toValue, watchEffect } from 'vue'
+
+export const INPUT_WRAPPER_ACCENTS = ['neutral', 'success', 'warning', 'danger'] as const satisfies InputWrapperAccent[]
 
 export function useInputWrapperController<TAccent extends string>({
   accent,
@@ -9,7 +12,7 @@ export function useInputWrapperController<TAccent extends string>({
 }: {
   accent: MaybeRefOrGetter<TAccent>
   accents: readonly NoInfer<TAccent>[]
-  required: MaybeRefOrGetter<boolean>
+  required?: MaybeRefOrGetter<boolean>
   detached?: boolean
 }) {
   const wrapperController = detached ? undefined : inject(IK_INPUT_WRAPPER_CONTROLLER, undefined)
@@ -21,7 +24,7 @@ export function useInputWrapperController<TAccent extends string>({
     return accents.find(supportedAccent => supportedAccent === wrapperAccent) ?? toValue(accent)
   })
 
-  if (wrapperController) {
+  if (wrapperController && required !== undefined) {
     watchEffect(() => {
       wrapperController.required = toValue(required)
     })

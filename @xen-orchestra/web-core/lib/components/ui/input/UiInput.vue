@@ -8,7 +8,8 @@
     </span>
     <span v-if="readonly" class="typo-body-regular input text-ellipsis">
       <input ref="inputRef" class="readonly-input" readonly type="text" />
-      {{ modelValue }}
+      <span v-if="isPlaceholderVisible" class="placeholder">{{ attrs.placeholder }}</span>
+      <template v-else>{{ modelValue }}</template>
     </span>
     <input
       v-else
@@ -49,12 +50,15 @@
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiLoader from '@core/components/ui/loader/UiLoader.vue'
-import { useInputWrapperController } from '@core/composables/input-wrapper-controller.composable.ts'
+import {
+  INPUT_WRAPPER_ACCENTS,
+  useInputWrapperController,
+} from '@core/composables/input-wrapper-controller.composable.ts'
 import type { IconName } from '@core/icons'
 import { toVariants } from '@core/utils/to-variants.util.ts'
 import { computed, ref, useAttrs } from 'vue'
 
-export type InputAccent = 'neutral' | 'success' | 'warning' | 'danger'
+export type InputAccent = (typeof INPUT_WRAPPER_ACCENTS)[number]
 
 export type InputType = 'text' | 'number' | 'password' | 'search'
 
@@ -108,10 +112,15 @@ const inputRef = ref<HTMLInputElement>()
 
 const { wrapperController, accent } = useInputWrapperController({
   accent: () => rawAccent,
-  accents: ['neutral', 'success', 'warning', 'danger'],
+  accents: INPUT_WRAPPER_ACCENTS,
   required: () => required,
   detached,
 })
+
+// A readonly input renders its value as text: the placeholder attribute of an input would not show
+const isPlaceholderVisible = computed(
+  () => (modelValue.value === undefined || modelValue.value === '') && Boolean(attrs.placeholder)
+)
 
 const isClearButtonVisible = computed(() => clearable && !disabled && !readonly && Boolean(modelValue.value))
 
@@ -148,6 +157,7 @@ defineExpose({ focus })
   padding-inline: var(--padding-inline);
 
   .right-icon,
+  :slotted(.right-icon),
   .loader {
     pointer-events: none;
     color: var(--color-brand-txt-base);
@@ -182,7 +192,8 @@ defineExpose({ focus })
     margin-inline-end: calc(-1 * var(--padding-inline));
   }
 
-  &.disabled .right-icon {
+  &.disabled .right-icon,
+  &.disabled :slotted(.right-icon) {
     color: var(--color-neutral-txt-secondary);
   }
 
@@ -199,7 +210,8 @@ defineExpose({ focus })
     outline: none;
     flex: 1;
 
-    &::placeholder {
+    &::placeholder,
+    .placeholder {
       color: var(--color-neutral-txt-secondary);
     }
 

@@ -9,14 +9,14 @@ import { t } from '@/test/i18n.ts'
 import { mockOverlay, overlayMock } from '@/test/mock-overlay.ts'
 import { mockXoCollections, xoCollectionsMock } from '@/test/mock-xo-collections.ts'
 import { mountComposableWithI18n } from '@/test/mount-composable.ts'
-import { mountWithSelect } from '@/test/mount-with-select.ts'
-import { openSelect, pickSelectOption } from '@/test/select.ts'
+import { mountWithSetup } from '@/test/mount-with-setup.ts'
 import type { FormSelectId } from '@core/packages/form-select'
-import VtsSelect from '@core/components/select/VtsSelect.vue'
 import { OVERLAY_ABORT_EVENT } from '@core/packages/overlay/symbols.ts'
 import { SR_ACCESS_MODE } from '@core/types/storage-repository.type.ts'
+import { renderSelect } from '@core-test/mount-with-select.ts'
+import { chooseSelectOption } from '@core-test/select.ts'
 import { flushPromises } from '@vue/test-utils'
-import { h, nextTick } from 'vue'
+import { nextTick } from 'vue'
 
 mockXoCollections('pool', 'host')
 mockOverlay()
@@ -106,11 +106,11 @@ function mountWithFormSelect(
 ) {
   const formHolder: { form?: ReturnType<typeof useNewSrForm> } = {}
 
-  const wrapper = mountWithSelect(() => {
+  const wrapper = mountWithSetup(() => {
     const form = useNewSrForm(POOL.id, hostId)
     formHolder.form = form
 
-    return () => h(VtsSelect, { id: getSelectId(form), accent: 'neutral' })
+    return () => renderSelect(getSelectId(form))
   })
 
   if (formHolder.form === undefined) {
@@ -145,11 +145,6 @@ function mountWithFormSelect(
   }
 
   return { wrapper, form: unwrappedForm, rawForm: form }
-}
-
-async function pickOption(wrapper: ReturnType<typeof mountWithSelect>, label: string) {
-  await openSelect(wrapper)
-  await pickSelectOption(wrapper, label)
 }
 
 describe('accessModeInputBindings', () => {
@@ -250,7 +245,7 @@ describe('submit', () => {
     const { wrapper, form } = mountWithFormSelect(form => form.poolSelectBindings.value.id, hostId)
     await flushPromises()
 
-    await pickOption(wrapper, DISKOR_POOL_NAME)
+    await chooseSelectOption(wrapper, DISKOR_POOL_NAME)
     await fill(form)
 
     expect(await form.submit()).toMatchObject({ hostId: OTHER_MASTER.id })
@@ -259,7 +254,7 @@ describe('submit', () => {
   it('drops the preferred image formats of a type that does not take them', async () => {
     const { wrapper, form } = mountWithFormSelect(form => form.preferredImageFormatsSelectBindings.value.id, SLAVE.id)
     await fillLocalSr(form)
-    await pickOption(wrapper, 'qcow2')
+    await chooseSelectOption(wrapper, 'qcow2')
 
     await chooseType(form, 'local')
     await chooseType(form, 'ext')
@@ -275,7 +270,7 @@ describe('preferredImageFormatsSelectBindings', () => {
       SLAVE.id
     )
 
-    await pickOption(wrapper, 'vhd, qcow2')
+    await chooseSelectOption(wrapper, 'vhd, qcow2')
 
     expect(rawForm.preferredImageFormatsSelectBindings.value.warning).toEqual({
       content: t('sr-preferred-image-formats-qcow2-warning'),
@@ -289,7 +284,7 @@ describe('preferredImageFormatsSelectBindings', () => {
       SLAVE.id
     )
 
-    await pickOption(wrapper, 'vhd')
+    await chooseSelectOption(wrapper, 'vhd')
 
     expect(rawForm.preferredImageFormatsSelectBindings.value.warning).toBeUndefined()
   })

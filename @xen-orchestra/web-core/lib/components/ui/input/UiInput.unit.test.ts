@@ -4,6 +4,7 @@ import UiInput from '@core/components/ui/input/UiInput.vue'
 import UiLoader from '@core/components/ui/loader/UiLoader.vue'
 import type { IconName } from '@core/icons'
 import { setFieldValue } from '@core-test/field-events.ts'
+import { isPlaceholderShown } from '@core-test/is-placeholder-shown.ts'
 import { mountField } from '@core-test/mount-field.ts'
 import type { VueWrapper } from '@vue/test-utils'
 
@@ -91,6 +92,60 @@ describe('UiInput', () => {
 
     expect(wrapper.text()).toBe('Value')
     expect(wrapper.get('input').attributes('readonly')).toBeDefined()
+  })
+
+  it.each([
+    {
+      label: 'the placeholder without value',
+      modelValue: '',
+      placeholder: 'Name',
+      expected: 'Name',
+      placeholderShown: true,
+    },
+    {
+      label: 'the placeholder with an undefined value',
+      modelValue: undefined,
+      placeholder: 'Name',
+      expected: 'Name',
+      placeholderShown: true,
+    },
+    {
+      label: 'nothing without value nor placeholder',
+      modelValue: '',
+      placeholder: undefined,
+      expected: '',
+      placeholderShown: false,
+    },
+    {
+      label: 'nothing with an empty placeholder',
+      modelValue: '',
+      placeholder: '',
+      expected: '',
+      placeholderShown: false,
+    },
+    {
+      label: 'a zero value instead of the placeholder',
+      modelValue: 0,
+      placeholder: 'Name',
+      expected: '0',
+      placeholderShown: false,
+    },
+    {
+      label: 'the value instead of the placeholder',
+      modelValue: 'Value',
+      placeholder: 'Name',
+      expected: 'Value',
+      placeholderShown: false,
+    },
+  ])('renders $label when readonly', ({ modelValue, placeholder, expected, placeholderShown }) => {
+    const wrapper = mountField(
+      UiInput,
+      { readonly: true, modelValue },
+      { attrs: placeholder === undefined ? {} : { placeholder } }
+    )
+
+    expect(wrapper.text()).toBe(expected)
+    expect(isPlaceholderShown(wrapper)).toBe(placeholderShown)
   })
 
   it('renders an editable input when not readonly', () => {

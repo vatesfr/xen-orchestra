@@ -7,8 +7,8 @@ import { getInputWrapper } from '@/test/find-input-labels.ts'
 import { t } from '@/test/i18n.ts'
 import { xoCollectionsMock, mockXoCollections } from '@/test/mock-xo-collections.ts'
 import { mountWithProps } from '@/test/mount-with-props.ts'
-import { openSelect, pickSelectOption } from '@/test/select.ts'
 import VtsRequiredHint from '@core/components/required-hint/VtsRequiredHint.vue'
+import { chooseSelectOption, pickSelectOption } from '@core-test/select.ts'
 import { BOND_MODE } from '@vates/types'
 import { flushPromises, type VueWrapper } from '@vue/test-utils'
 
@@ -35,11 +35,9 @@ async function mountDrawer() {
 }
 
 async function fillDrawer(wrapper: VueWrapper) {
-  await openSelect(getInputWrapper(wrapper, t('interfaces')))
-  await pickSelectOption(wrapper, 'eth0')
+  await chooseSelectOption(wrapper, 'eth0', { container: getInputWrapper(wrapper, t('interfaces')) })
   await pickSelectOption(wrapper, 'eth1')
-  await openSelect(getInputWrapper(wrapper, t('bond-mode')))
-  await pickSelectOption(wrapper, BOND_MODE.ACTIVE_BACKUP)
+  await chooseSelectOption(wrapper, BOND_MODE.ACTIVE_BACKUP, { container: getInputWrapper(wrapper, t('bond-mode')) })
   await getInputWrapper(wrapper, t('name')).get('input').setValue('Bonded network')
 }
 

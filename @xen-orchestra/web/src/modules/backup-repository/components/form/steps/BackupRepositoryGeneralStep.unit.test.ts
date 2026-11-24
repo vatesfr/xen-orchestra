@@ -10,6 +10,7 @@ import FormTextInput from '@/shared/components/form/FormTextInput.vue'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { proxyCollectionMock, mockXoProxyCollection } from '@/test/mock-xo-proxy-collection.ts'
+import { openSelect } from '@core-test/select.ts'
 import { flushPromises, mount, type VueWrapper } from '@vue/test-utils'
 import { defineComponent, h, reactive } from 'vue'
 
@@ -104,8 +105,7 @@ it('describes each backup format with its hint', async () => {
     .findAllComponents(BackupRepositoryFormSelect)
     .find(select => select.props('label') === t('backup-format'))
 
-  await backupFormatSelect!.get('.ui-input').trigger('click')
-  await flushPromises()
+  await openSelect(backupFormatSelect!)
 
   expect(wrapper.findAll('.option-content').map(option => option.text())).toEqual([
     expect.stringMatching(new RegExp(`${t('block-based')}.*${t('block-based-hint')}`, 's')),

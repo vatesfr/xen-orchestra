@@ -7,8 +7,8 @@ import { getInputWrapper } from '@/test/find-input-labels.ts'
 import { t } from '@/test/i18n.ts'
 import { xoCollectionsMock, mockXoCollections } from '@/test/mock-xo-collections.ts'
 import { mountWithProps } from '@/test/mount-with-props.ts'
-import { openSelect, pickSelectOption } from '@/test/select.ts'
 import VtsRequiredHint from '@core/components/required-hint/VtsRequiredHint.vue'
+import { chooseSelectOption } from '@core-test/select.ts'
 import { flushPromises, type VueWrapper } from '@vue/test-utils'
 
 mockXoCollections('pool', 'host', 'network', 'pif')
@@ -31,8 +31,7 @@ async function mountDrawer() {
 }
 
 async function fillDrawer(wrapper: VueWrapper) {
-  await openSelect(getInputWrapper(wrapper, t('interface')))
-  await pickSelectOption(wrapper, PIF.device)
+  await chooseSelectOption(wrapper, PIF.device, { container: getInputWrapper(wrapper, t('interface')) })
   await getInputWrapper(wrapper, t('name')).get('input').setValue('Network')
   await getInputWrapper(wrapper, t('vlan')).get('input').setValue('10')
 }

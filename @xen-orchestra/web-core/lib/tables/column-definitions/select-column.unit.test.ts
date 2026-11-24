@@ -1,11 +1,10 @@
 import VtsDetailedOption from '@core/components/select/VtsDetailedOption.vue'
-import UiDropdown from '@core/components/ui/dropdown/UiDropdown.vue'
 import type { IconName } from '@core/icons'
 import { useFormSelect } from '@core/packages/form-select'
 import { type SelectColumnConfig, useSelectColumn } from '@core/tables/column-definitions/select-column.ts'
-import { createGlobalTestConfig } from '@core-test/create-global-test-config.ts'
-import { flushPromises, mount } from '@vue/test-utils'
-import { defineComponent, h } from 'vue'
+import { mountWithSetup } from '@core-test/mount-with-setup.ts'
+import { findSelectOptionLabels, findShownSelections, openSelect, pickSelectOption } from '@core-test/select.ts'
+import { h } from 'vue'
 
 const OPTIONS: { label: string; icon: IconName; details?: string }[] = [
   { label: 'First', icon: 'fa:plus', details: 'eth0' },
@@ -13,23 +12,16 @@ const OPTIONS: { label: string; icon: IconName; details?: string }[] = [
 ]
 
 async function mountOpenSelectCell(config?: SelectColumnConfig) {
-  const wrapper = mount(
-    defineComponent({
-      setup() {
-        const { id } = useFormSelect(OPTIONS, {
-          option: { id: 'label', label: 'label', properties: ({ icon, details }) => ({ icon, details }) },
-        })
-        const { renderBody } = useSelectColumn(config)
+  const wrapper = mountWithSetup(() => {
+    const { id } = useFormSelect(OPTIONS, {
+      option: { id: 'label', label: 'label', properties: ({ icon, details }) => ({ icon, details }) },
+    })
+    const { renderBody } = useSelectColumn(config)
 
-        return () => h('table', h('tbody', h('tr', renderBody(id))))
-      },
-    }),
-    { global: createGlobalTestConfig() }
-  )
+    return () => h('table', h('tbody', h('tr', renderBody(id))))
+  })
 
-  await flushPromises()
-  await wrapper.get('.ui-input').trigger('click')
-  await flushPromises()
+  await openSelect(wrapper)
 
   return wrapper
 }
@@ -39,7 +31,7 @@ describe('useSelectColumn', () => {
     const wrapper = await mountOpenSelectCell()
 
     expect(wrapper.findAllComponents(VtsDetailedOption)).toEqual([])
-    expect(wrapper.findAllComponents(UiDropdown).map(dropdown => dropdown.text())).toEqual(['First', 'Second'])
+    expect(findSelectOptionLabels(wrapper)).toEqual(['First', 'Second'])
   })
 
   it('shows the same icon before every option', async () => {
@@ -67,7 +59,7 @@ describe('useSelectColumn', () => {
       undefined,
       undefined,
     ])
-    expect(wrapper.findAllComponents(UiDropdown).map(dropdown => dropdown.text())).toEqual(['First eth0', 'Second'])
+    expect(findSelectOptionLabels(wrapper)).toEqual(['First eth0', 'Second'])
   })
 
   it('shows the details an option is given after its label', async () => {
@@ -82,8 +74,8 @@ describe('useSelectColumn', () => {
   it('selects the option clicked among the options shown with an icon', async () => {
     const wrapper = await mountOpenSelectCell({ optionIcon: 'object:network' })
 
-    await wrapper.findAllComponents(UiDropdown)[1].trigger('click')
+    await pickSelectOption(wrapper, 'Second')
 
-    expect(wrapper.get('.vts-select .ui-input').text()).toBe('Second')
+    expect(findShownSelections(wrapper)).toEqual(['Second'])
   })
 })
