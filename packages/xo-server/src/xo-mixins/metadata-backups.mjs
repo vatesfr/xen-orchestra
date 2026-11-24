@@ -62,11 +62,22 @@ export default class metadataBackup {
     }
 
     if (isExpression(job.remotes)) {
-      const { backupRepositoryIds: remoteIds, invalidUrlIds } = resolveBackupRepositories(
-        job,
-        await app.getAllRemotes(),
-        runContext
-      )
+      const {
+        backupRepositoryIds: remoteIds,
+        proxySkippedIds,
+        invalidUrlIds,
+      } = resolveBackupRepositories(job, await app.getAllRemotes(), runContext)
+
+      if (proxySkippedIds.length > 0) {
+        jobsLogger.warning(
+          'some backup repositories matched the expression but are not linked to the proxy of this job, they are skipped',
+          {
+            event: 'task.warning',
+            taskId: runJobId,
+            data: { backupRepositories: proxySkippedIds, proxy: job.proxy },
+          }
+        )
+      }
 
       if (invalidUrlIds.length > 0) {
         jobsLogger.warning(
@@ -83,7 +94,7 @@ export default class metadataBackup {
     }
 
     if (isExpression(job.pools)) {
-      const poolIds = resolveBackupPools(job, Object.values(app.getObjects({ filter: { type: 'pool' } })), runContext)
+      const poolIds = resolveBackupPools(job, Object.values(app.getObjectsByType('pool')), runContext)
 
       if (poolIds.length === 0) {
         jobsLogger.warning('no matching pool found', {

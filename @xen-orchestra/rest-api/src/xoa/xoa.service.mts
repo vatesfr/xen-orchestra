@@ -14,7 +14,6 @@ import {
   XoBackupLog,
 } from '@vates/types'
 import { createLogger } from '@xen-orchestra/log'
-import { createPredicate } from 'value-matcher'
 import { extractIdsFromSimplePattern } from '@xen-orchestra/backups/extractIdsFromSimplePattern.mjs'
 import { noSuchObject } from 'xo-common/api-errors.js'
 import { parse } from 'xo-remote-parser'
@@ -361,23 +360,22 @@ export class XoaService {
     const nonReplicaVms = Object.values(this.#restApi.getObjectsByType<XoVm>('VM', { filter: vm => !isReplicaVm(vm) }))
     const restApi = this.#restApi
     const xoApp = restApi.xoApp
-    function _extractVmIdsFromBackupJob(job: XoVmBackupJob) {
-      let vmIds: XoVm['id'][]
+    const backupJobService = this.#backupJobService
+    async function _extractVmIdsFromBackupJob(job: XoVmBackupJob): Promise<XoVm['id'][]> {
       try {
-        vmIds = extractIdsFromSimplePattern(job.vms)
+        return extractIdsFromSimplePattern(job.vms)
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
       } catch (_) {
-        const predicate = createPredicate(job.vms)
-        vmIds = nonReplicaVms.filter(predicate).map(vm => vm.id)
+        const isVmInJob = await backupJobService.getBackupJobVmMatcher(job)
+        return nonReplicaVms.filter(isVmInJob).map(vm => vm.id)
       }
-      return vmIds
     }
-    function _processVmsProtection(job: XoVmBackupJob, isProtected: boolean) {
+    async function _processVmsProtection(job: XoVmBackupJob, isProtected: boolean) {
       if (job.type !== BACKUP_TYPE.backup) {
         return
       }
 
-      _extractVmIdsFromBackupJob(job).forEach(vmId => {
+      ;(await _extractVmIdsFromBackupJob(job)).forEach(vmId => {
         _updateVmProtection(vmId, isProtected)
       })
     }
@@ -434,7 +432,7 @@ export class XoaService {
 
         for (const job of jobs) {
           if (!(await this.#backupJobService.backupJobHasAtLeastOneScheduleEnabled(job.id))) {
-            _processVmsProtection(job, false)
+            await _processVmsProtection(job, false)
             disabledJobs++
             continue
           }
@@ -486,7 +484,7 @@ export class XoaService {
           }
 
           if (last3BackupLogs.length === 0) {
-            _processVmsProtection(job, false)
+            await _processVmsProtection(job, false)
             continue
           }
 
@@ -500,11 +498,11 @@ export class XoaService {
               backupLogStatusesByVm[id].push(isSuccess)
             }
 
-            last3BackupLogs.forEach(jobLob => {
-              const { tasks, status } = jobLob
+            let jobVmIds: XoVm['id'][] | undefined
+            for (const { tasks, status } of last3BackupLogs) {
               if (tasks === undefined) {
-                const vmIds = _extractVmIdsFromBackupJob(job)
-                vmIds.forEach(vmId => updateVmBackupLogStatuses(vmId, status === 'success'))
+                jobVmIds ??= await _extractVmIdsFromBackupJob(job)
+                jobVmIds.forEach(vmId => updateVmBackupLogStatuses(vmId, status === 'success'))
               } else {
                 tasks.forEach(task => {
                   if (task.data === undefined) {
@@ -513,7 +511,7 @@ export class XoaService {
                   updateVmBackupLogStatuses(task.data.id as XoVm['id'], task.status === 'success')
                 })
               }
-            })
+            }
 
             for (const [vmId, statuses] of Object.entries(backupLogStatusesByVm)) {
               _updateVmProtection(

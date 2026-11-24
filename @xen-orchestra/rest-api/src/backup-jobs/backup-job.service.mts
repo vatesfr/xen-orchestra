@@ -104,22 +104,45 @@ export class BackupJobService {
       return false
     }
 
+    const isVmInJob = await this.getBackupJobVmMatcher(backupJob)
+    return isVmInJob(vm)
+  }
+
+  /**
+   * Returns a function telling whether a VM is selected by the `vms` of the job,
+   * whether it is a list of IDs, an object pattern or an expression
+   */
+  async getBackupJobVmMatcher(backupJob: XoVmBackupJob): Promise<(vm: XoVm) => boolean> {
     try {
-      const vmIds: XoVm['id'][] = extractIdsFromSimplePattern(backupJob.vms)
-      return vmIds.some(id => id === vm.id)
+      const vmIds = new Set<XoVm['id']>(extractIdsFromSimplePattern(backupJob.vms))
+      return vm => vmIds.has(vm.id)
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (_) {
-      let isMatchingVm: (vm: XoVm) => boolean
-      if (isExpression(backupJob.vms)) {
-        const predicate = compileExpression(backupJob.vms)
-        const runContext = buildRunContext(new Date(), backupJob.settings['']?.timezone)
-        isMatchingVm = vm => predicate(buildVmContext(vm, runContext))
-      } else {
-        isMatchingVm = createPredicate(backupJob.vms)
+      if (!isExpression(backupJob.vms)) {
+        return createPredicate(backupJob.vms)
       }
 
-      return isMatchingVm(vm)
+      // `run:` clauses depend on the timezone, which is resolved per schedule like the executor does,
+      // so the VM is in the job if it matches for at least one of its schedules
+      const predicate = compileExpression(backupJob.vms)
+      const now = new Date()
+      const runContexts = (await this.#getScheduleTimezones(backupJob)).map(timezone => buildRunContext(now, timezone))
+      return vm => runContexts.some(runContext => predicate(buildVmContext(vm, runContext)))
     }
+  }
+
+  async #getScheduleTimezones(backupJob: XoVmBackupJob): Promise<(string | undefined)[]> {
+    const schedules = (await this.#restApi.xoApp.getAllSchedules()).filter(schedule => schedule.jobId === backupJob.id)
+    if (schedules.length === 0) {
+      return [backupJob.settings['']?.timezone]
+    }
+
+    return schedules.map(schedule => {
+      const scheduleTimezone = backupJob.settings[schedule.id]?.timezone
+      return typeof scheduleTimezone === 'string'
+        ? scheduleTimezone
+        : (backupJob.settings['']?.timezone ?? schedule.timezone)
+    })
   }
 
   async backupJobHasAtLeastOneScheduleEnabled(id: XoVmBackupJob['id']): Promise<boolean> {

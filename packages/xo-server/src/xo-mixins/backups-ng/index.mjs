@@ -216,11 +216,22 @@ export default class BackupNg {
 
         const remotesExpression = isExpression(job.remotes) ? job.remotes : undefined
         if (remotesExpression !== undefined) {
-          const { backupRepositoryIds: remoteIds, invalidUrlIds } = resolveBackupRepositories(
-            job,
-            await app.getAllRemotes(),
-            runContext
-          )
+          const {
+            backupRepositoryIds: remoteIds,
+            proxySkippedIds,
+            invalidUrlIds,
+          } = resolveBackupRepositories(job, await app.getAllRemotes(), runContext)
+
+          if (proxySkippedIds.length > 0) {
+            jobsLogger.warning(
+              'some backup repositories matched the expression but are not linked to the proxy of this job, they are skipped',
+              {
+                event: 'task.warning',
+                taskId: runJobId,
+                data: { backupRepositories: proxySkippedIds, proxy: job.proxy },
+              }
+            )
+          }
 
           if (invalidUrlIds.length > 0) {
             jobsLogger.warning(
