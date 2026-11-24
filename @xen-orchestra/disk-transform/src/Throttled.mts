@@ -8,6 +8,10 @@ export class ThrottledDisk extends DiskPassthrough {
     super(source)
     this.#throttle = throttle
   }
+  async init(): Promise<void> {
+    // nothing to open here, but the source may not be opened yet
+    await this.source.init()
+  }
   async buildDiskBlockGenerator(): Promise<AsyncGenerator<DiskBlock>> {
     const generator = await this.source.buildDiskBlockGenerator()
     //throttle want to be able to know the length of the data

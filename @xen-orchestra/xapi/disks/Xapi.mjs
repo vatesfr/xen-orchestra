@@ -51,6 +51,11 @@ export class XapiDiskSource extends DiskPassthrough {
 
   /** @type {boolean} */
   #onlyListChangedBlocks = false
+
+  /** @type {Promise<void> | undefined} */
+  #initPromise
+  #initialized = false
+  #closed = false
   /**
    * @param {Object} params
    * @param {any} params.xapi
@@ -282,6 +287,50 @@ export class XapiDiskSource extends DiskPassthrough {
       // Try without CBT on failure.
       return this.#openNbdStream()
     }
+  }
+
+  /**
+   * Opens the source only once: each call, even concurrent, gets the same promise.
+   *
+   * This disk can be shared by several consumers (e.g. the writers of a backup job), each of them
+   * initializing it, and opening it again would start another export on the host.
+   *
+   * @returns {Promise<void>}
+   */
+  init() {
+    if (this.#initPromise === undefined) {
+      if (this.#closed) {
+        // it would open an export on the host that nobody would close
+        return Promise.reject(new Error(`Can't open the closed disk ${this.#vdiRef}`))
+      }
+      this.#initPromise = (async () => {
+        await super.init()
+        this.#initialized = true
+      })()
+    }
+    return this.#initPromise
+  }
+
+  /**
+   * Waits for a pending opening: the source does not exist before, and the export opened on the host would be left
+   * open.
+   *
+   * @returns {Promise<void>}
+   */
+  async close() {
+    this.#closed = true
+    try {
+      await this.#initPromise
+    } catch (error) {
+      // the opening has failed, there is nothing to close
+      debug('close: opening failed', { vdiRef: this.#vdiRef, error })
+    }
+    await super.close()
+  }
+
+  /** @returns {boolean} */
+  isInitialized() {
+    return this.#initialized
   }
 
   /**
