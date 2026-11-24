@@ -13,12 +13,9 @@ import { groupBy } from '@/test/group-by.ts'
 import { overlayMock } from '@/test/mock-overlay.ts'
 import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
-import { silenceConsoleError } from '@/test/silence-console-error.ts'
 import { KEEP_OVERLAY_OPEN } from '@core/packages/overlay/symbols.ts'
 import { flushPromises } from '@vue/test-utils'
 import { computed, type MaybeRefOrGetter, toValue } from 'vue'
-
-type AddHostResults = PromiseSettledResult<unknown>[]
 
 type ExistingHostDrawerOptions = {
   events: { onConfirm: (hostId: FrontXoHost['id'] | undefined) => unknown }
@@ -28,7 +25,7 @@ const { servers, forgetServerRun, addHostRun, jobArgs } = vi.hoisted(() => ({
   servers: { value: [] as FrontXoServer[] },
   forgetServerRun: vi.fn(),
   addHostRun: vi.fn(),
-  jobArgs: {} as Record<'forget' | 'addHost', unknown>,
+  jobArgs: {} as Record<'forget' | 'addHost', MaybeRefOrGetter<unknown>[]>,
 }))
 
 vi.mock(
@@ -50,8 +47,8 @@ vi.mock(import('@/modules/server/jobs/xo-server-forget.job.ts'), () => ({
 }))
 
 vi.mock(import('@/modules/pool/jobs/xo-pool-add-host.job.ts'), () => ({
-  useXoPoolAddHostJob: ((arg: MaybeRefOrGetter<unknown>) => {
-    jobArgs.addHost = arg
+  useXoPoolAddHostJob: ((...args: MaybeRefOrGetter<unknown>[]) => {
+    jobArgs.addHost = args
     return { run: addHostRun }
   }) as unknown as typeof useXoPoolAddHostJob,
 }))
@@ -76,10 +73,8 @@ beforeEach(() => {
   addHostRun.mockReset()
 })
 
-function mockAddHostResults(results: AddHostResults) {
-  addHostRun.mockImplementation(({ onSuccess }: { onSuccess: (results: AddHostResults) => Promise<void> }) =>
-    onSuccess(results)
-  )
+function mockAddHostSuccess() {
+  addHostRun.mockImplementation(({ onSuccess }: { onSuccess: () => Promise<void> }) => onSuccess())
 }
 
 function mountExistingHost() {
@@ -112,24 +107,22 @@ describe('on confirm', () => {
 
     drawer.events.onConfirm(HOST.id)
 
-    expect(toValue(jobArgs.addHost as MaybeRefOrGetter<unknown>)).toEqual({ poolId: POOL_ID, hostId: HOST.id })
+    expect(jobArgs.addHost.map(arg => toValue(arg))).toEqual([POOL_ID, { hostId: HOST.id }])
     expect(addHostRun).toHaveBeenCalledWith({ detached: true, onSuccess: expect.any(Function) })
   })
 
   it('forgets the server of the former pool of the host once added', async () => {
-    mockAddHostResults([{ status: 'fulfilled', value: undefined }])
+    mockAddHostSuccess()
     const { drawer } = mountExistingHost()
 
     drawer.events.onConfirm(HOST.id)
     await flushPromises()
 
-    expect(toValue((jobArgs.forget as MaybeRefOrGetter<unknown>[])[0])).toBe(SOURCE_SERVER.id)
+    expect(toValue(jobArgs.forget[0])).toBe(SOURCE_SERVER.id)
     expect(forgetServerRun).toHaveBeenCalledOnce()
   })
 
   it('keeps the server of the former pool when adding the host failed', async () => {
-    silenceConsoleError()
-    mockAddHostResults([{ status: 'rejected', reason: new Error('Host is not compatible') }])
     const { drawer } = mountExistingHost()
 
     drawer.events.onConfirm(HOST.id)

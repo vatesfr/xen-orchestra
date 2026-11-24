@@ -28,9 +28,7 @@
 <script setup lang="ts">
 import { usePoolConnectionForm } from '@/modules/pool/form/use-pool-connection-form.ts'
 import { isAuthenticationFailedError } from '@/modules/pool/utils/xo-pool.util.ts'
-import { useXoServerConnectJob } from '@/modules/server/jobs/xo-server-connect.job.ts'
-import { useXoServerCreateJob } from '@/modules/server/jobs/xo-server-create.job.ts'
-import { useXoServerForgetJob } from '@/modules/server/jobs/xo-server-forget.job.ts'
+import { useServerCreateAndConnect } from '@/modules/server/composables/use-server-create-and-connect.composable.ts'
 import FormCheckbox from '@/shared/components/form/FormCheckbox.vue'
 import FormPasswordInput from '@/shared/components/form/FormPasswordInput.vue'
 import FormTextInput from '@/shared/components/form/FormTextInput.vue'
@@ -40,8 +38,6 @@ import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { useUiStore } from '@core/stores/ui.store.ts'
 import type { XoServer } from '@vates/types'
-import { logicOr } from '@vueuse/math'
-import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const emit = defineEmits<{
@@ -51,7 +47,6 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 const uiStore = useUiStore()
-const serverId = ref<XoServer['id']>('' as XoServer['id'])
 
 const {
   formData,
@@ -66,17 +61,9 @@ const {
   allowUnauthorizedCheckboxBindings,
 } = usePoolConnectionForm()
 
-// TODO: multiple server creation not possible in the UI for now
-// so only handle a single payload
-const { isRunning: createIsRunning, run: create } = useXoServerCreateJob([payload])
-const { isRunning: connectIsRunning, run: connect } = useXoServerConnectJob([serverId])
-const { isRunning: removeIsRunning, run: remove } = useXoServerForgetJob([serverId])
-
-const isServerJobRunning = logicOr(connectIsRunning, createIsRunning, removeIsRunning)
+const { createAndConnectServer, isRunning: isServerJobRunning } = useServerCreateAndConnect(payload)
 
 async function onSubmit() {
-  serverId.value = '' as XoServer['id']
-
   const valid = await validate()
 
   if (!valid) {
@@ -84,24 +71,10 @@ async function onSubmit() {
   }
 
   try {
-    // TODO: multiple server creation not possible in the UI for now
-    // so only handle single server creation
-    const [promiseCreateResult] = await create()
-    if (promiseCreateResult.status === 'rejected') {
-      throw promiseCreateResult.reason
-    }
-    serverId.value = promiseCreateResult.value
-    const [promiseConnectResult] = await connect()
-    if (promiseConnectResult.status === 'rejected') {
-      throw promiseConnectResult.reason
-    }
+    const serverId = await createAndConnectServer()
 
-    emit('success', serverId.value, formData.host)
+    emit('success', serverId, formData.host)
   } catch (error) {
-    if (serverId.value !== '') {
-      await remove()
-    }
-
     if (!(error instanceof Error)) {
       console.error('Unknown error:', error)
       return

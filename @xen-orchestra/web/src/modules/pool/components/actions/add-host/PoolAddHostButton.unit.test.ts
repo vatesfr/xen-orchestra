@@ -1,4 +1,6 @@
+import PoolAddExistingHostButton from '@/modules/pool/components/actions/add-host/PoolAddExistingHostButton.vue'
 import PoolAddHostButton from '@/modules/pool/components/actions/add-host/PoolAddHostButton.vue'
+import PoolAddNewHostButton from '@/modules/pool/components/actions/add-host/PoolAddNewHostButton.vue'
 import type { usePoolExistingHost } from '@/modules/pool/composables/use-pool-existing-host.composable.ts'
 import type { usePoolNewHost } from '@/modules/pool/composables/use-pool-new-host.composable.ts'
 import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
@@ -6,81 +8,80 @@ import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import MenuItem from '@core/components/menu/MenuItem.vue'
 import UiDropdownButton from '@core/components/ui/dropdown-button/UiDropdownButton.vue'
+import { IK_IN_MENU } from '@core/utils/injection-keys.util.ts'
 import { mount } from '@vue/test-utils'
-import { nextTick, toValue } from 'vue'
-
-const { useNewHost, useExistingHost, addNewHost, addExistingHost } = vi.hoisted(() => ({
-  useNewHost: vi.fn(),
-  useExistingHost: vi.fn(),
-  addNewHost: vi.fn(),
-  addExistingHost: vi.fn(),
-}))
+import { computed, nextTick } from 'vue'
 
 vi.mock(import('@/modules/pool/composables/use-pool-new-host.composable.ts'), () => ({
-  usePoolNewHost: useNewHost as unknown as typeof usePoolNewHost,
+  usePoolNewHost: (() => ({
+    addNewHost: vi.fn(),
+    isAddingNewHost: computed(() => false),
+    canAddNewHost: computed(() => true),
+    addNewHostErrorMessage: computed(() => undefined),
+  })) as unknown as typeof usePoolNewHost,
 }))
 
 vi.mock(import('@/modules/pool/composables/use-pool-existing-host.composable.ts'), () => ({
-  usePoolExistingHost: useExistingHost as unknown as typeof usePoolExistingHost,
+  usePoolExistingHost: (() => ({
+    addExistingHost: vi.fn(),
+    isAddingExistingHost: computed(() => false),
+    canAddExistingHost: computed(() => true),
+    addExistingHostErrorMessage: computed(() => undefined),
+  })) as unknown as typeof usePoolExistingHost,
 }))
-
-beforeEach(() => {
-  useNewHost.mockReset().mockReturnValue({ addNewHost })
-  useExistingHost.mockReset().mockReturnValue({ addExistingHost })
-  addNewHost.mockReset()
-  addExistingHost.mockReset()
-})
 
 const POOL_ID = 'pool-1' as FrontXoPool['id']
 
-function mountButton() {
+function mountButton({ isInMenu = false } = {}) {
   return mount(PoolAddHostButton, {
     props: { poolId: POOL_ID },
-    global: createGlobalTestConfig(),
+    global: {
+      ...createGlobalTestConfig(),
+      provide: { [IK_IN_MENU as symbol]: isInMenu },
+    },
   })
 }
 
 async function openMenu(wrapper: ReturnType<typeof mountButton>) {
   await wrapper.getComponent(UiDropdownButton).trigger('click')
   await nextTick()
-
-  return wrapper.findAllComponents(MenuItem)
 }
 
-it('offers to add a host', () => {
-  expect(mountButton().getComponent(UiDropdownButton).text()).toBe(t('action:add-host'))
+function expectHostChoices(wrapper: ReturnType<typeof mountButton>) {
+  expect(wrapper.getComponent(PoolAddNewHostButton).props('poolId')).toBe(POOL_ID)
+  expect(wrapper.getComponent(PoolAddExistingHostButton).props('poolId')).toBe(POOL_ID)
+}
+
+describe('outside of a menu', () => {
+  it('is a dropdown to add a host', () => {
+    const wrapper = mountButton()
+
+    expect(wrapper.getComponent(UiDropdownButton).text()).toBe(t('action:add-host'))
+  })
+
+  it('offers a new host or an existing host of the pool', async () => {
+    const wrapper = mountButton()
+
+    await openMenu(wrapper)
+
+    expectHostChoices(wrapper)
+  })
 })
 
-it('adds the host to the pool', () => {
-  mountButton()
+describe('in a menu', () => {
+  it('is a menu item to add a host', () => {
+    const wrapper = mountButton({ isInMenu: true })
 
-  const [newHostPoolId] = useNewHost.mock.lastCall ?? []
-  const [existingHostPoolId] = useExistingHost.mock.lastCall ?? []
+    expect(wrapper.findComponent(UiDropdownButton).exists()).toBe(false)
+    expect(wrapper.getComponent(MenuItem).text()).toBe(t('action:add-host'))
+  })
 
-  expect(toValue(newHostPoolId)).toBe(POOL_ID)
-  expect(toValue(existingHostPoolId)).toBe(POOL_ID)
-})
+  it('offers a new host or an existing host of the pool in its submenu', async () => {
+    const wrapper = mountButton({ isInMenu: true })
 
-it('offers a new host or an existing host', async () => {
-  const items = await openMenu(mountButton())
+    await wrapper.get('.menu-trigger').trigger('click')
+    await nextTick()
 
-  expect(items.map(item => item.text())).toEqual([t('new-host'), t('existing-host')])
-})
-
-it('adds a new host when clicking its menu item', async () => {
-  const [newHostItem] = await openMenu(mountButton())
-
-  await newHostItem.get('.menu-trigger').trigger('click')
-
-  expect(addNewHost).toHaveBeenCalledOnce()
-  expect(addExistingHost).not.toHaveBeenCalled()
-})
-
-it('adds an existing host when clicking its menu item', async () => {
-  const [, existingHostItem] = await openMenu(mountButton())
-
-  await existingHostItem.get('.menu-trigger').trigger('click')
-
-  expect(addExistingHost).toHaveBeenCalledOnce()
-  expect(addNewHost).not.toHaveBeenCalled()
+    expectHostChoices(wrapper)
+  })
 })

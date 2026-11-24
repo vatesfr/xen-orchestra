@@ -20,7 +20,12 @@ export function usePoolExistingHost(rawPoolId: MaybeRefOrGetter<FrontXoPool['id'
   const addHostPayload = ref<PoolAddHostPayload>()
 
   const { run: forgetServer } = useXoServerForgetJob([serverId])
-  const { run: addHostToPool } = useXoPoolAddHostJob(addHostPayload)
+  const {
+    run: addHostToPool,
+    isRunning: isAddingExistingHost,
+    canRun: canAddExistingHost,
+    errorMessage: addExistingHostErrorMessage,
+  } = useXoPoolAddHostJob(poolId, addHostPayload)
 
   const { open } = useOverlay({
     component: () => import('@/modules/pool/components/drawer/PoolExistingHostDrawer.vue'),
@@ -33,16 +38,11 @@ export function usePoolExistingHost(rawPoolId: MaybeRefOrGetter<FrontXoPool['id'
         const hostPoolId = getHostById(hostId)?.$pool
         const sourceServerId = hostPoolId !== undefined ? serverByPool.value.get(hostPoolId)?.[0]?.id : undefined
 
-        addHostPayload.value = { poolId: poolId.value, hostId }
+        addHostPayload.value = { hostId }
 
         addHostToPool({
           detached: true,
-          onSuccess: async ([result]) => {
-            if (result.status === 'rejected') {
-              console.error(`Failed to add host ${hostId} to the pool`, result.reason)
-              return
-            }
-
+          onSuccess: async () => {
             if (sourceServerId === undefined) {
               console.error(`No server found for host ${hostId}`)
               return
@@ -70,5 +70,5 @@ export function usePoolExistingHost(rawPoolId: MaybeRefOrGetter<FrontXoPool['id'
     return open({ props })
   }
 
-  return { addExistingHost }
+  return { addExistingHost, isAddingExistingHost, canAddExistingHost, addExistingHostErrorMessage }
 }

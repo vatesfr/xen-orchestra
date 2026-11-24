@@ -7,49 +7,49 @@ import type { XoTask } from '@vates/types'
 import { useI18n } from 'vue-i18n'
 
 export type PoolAddHostPayload = {
-  poolId: FrontXoPool['id']
   hostId: FrontXoHost['id']
 }
 
-const payloadArg = defineJobArg<PoolAddHostPayload>({
-  identify: payload => payload.hostId,
-  toArray: true,
+const poolIdArg = defineJobArg<FrontXoPool['id']>({
+  identify: true,
+  toArray: false,
 })
 
-export const useXoPoolAddHostJob = defineJob('pool.add-host', [payloadArg], () => {
+const payloadArg = defineJobArg<PoolAddHostPayload>({
+  identify: false,
+  toArray: false,
+})
+
+export const useXoPoolAddHostJob = defineJob('pool.add-host', [poolIdArg, payloadArg], () => {
   const { t } = useI18n()
   const { monitorTask } = useXoTaskUtils()
 
   return {
-    run(payloads) {
-      return Promise.allSettled(
-        payloads.map(async ({ poolId, hostId }) => {
-          const { taskId } = await fetchPost<{ taskId: XoTask['id'] }>(`pools/${poolId}/actions/add_host`, {
-            host: hostId,
-            force: true,
-          })
-          await monitorTask(taskId)
-        })
-      )
+    async run(poolId: FrontXoPool['id'], { hostId }: PoolAddHostPayload) {
+      const { taskId } = await fetchPost<{ taskId: XoTask['id'] }>(`pools/${poolId}/actions/add_host`, {
+        host: hostId,
+        force: true,
+      })
+
+      await monitorTask(taskId)
     },
-    validate(isRunning, payloads) {
+    validate(isRunning, poolId: FrontXoPool['id'] | undefined, payload: PoolAddHostPayload | undefined) {
+      if (poolId === undefined) {
+        throw new JobError(t('job:arg:pool-id-required'))
+      }
+
       if (isRunning) {
         throw new JobRunningError(t('job:pool-add-host:in-progress'))
       }
 
-      if (payloads.length === 0) {
-        throw new JobError(t('job:arg:missing-payload'))
+      // The payload only exists once the drawer is confirmed
+      if (payload === undefined) {
+        return
       }
 
-      payloads.forEach(payload => {
-        if (payload.poolId === undefined) {
-          throw new JobError(t('job:arg:pool-id-required'))
-        }
-
-        if (payload.hostId === undefined) {
-          throw new JobError(t('job:arg:host-required'))
-        }
-      })
+      if (payload.hostId === undefined) {
+        throw new JobError(t('job:arg:host-required'))
+      }
     },
   }
 })

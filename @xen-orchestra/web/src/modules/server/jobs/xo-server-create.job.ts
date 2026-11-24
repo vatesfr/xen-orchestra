@@ -4,7 +4,7 @@ import type { XoServer } from '@vates/types'
 import type { Ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-type TCreateServerPayload = {
+export type TCreateServerPayload = {
   host: string
   username: string
   password: string
