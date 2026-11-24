@@ -3,6 +3,15 @@
  * Default theme is defined in web-core/_colors.pcss
  */
 
+/* Data colors are tuned for the default theme only: themed charts keep each theme's own accent colors */
+:root:is(.theme-nord, .theme-solarized, .theme-dracula, .theme-monokai) {
+  --color-brand-data: var(--color-brand-item-base);
+  --color-info-data: var(--color-info-item-base);
+  --color-success-data: var(--color-success-item-base);
+  --color-warning-data: var(--color-warning-item-base);
+  --color-danger-data: var(--color-danger-item-base);
+}
+
 /*
  * Nord Theme - Light Mode
  * An arctic, north-bluish color palette

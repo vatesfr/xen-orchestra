@@ -42,7 +42,7 @@ const progress = computed(() => {
 .progress-circle-fill {
   animation: progress 1s ease-out forwards;
   fill: none;
-  stroke: var(--color-success-item-base);
+  stroke: var(--color-success-data);
   stroke-width: 1.2;
   stroke-linecap: round;
   stroke-dasharray: v-bind(progress), 100;
