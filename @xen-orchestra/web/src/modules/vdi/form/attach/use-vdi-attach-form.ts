@@ -5,7 +5,7 @@ import { type BaseVdiFormData, useVdiFormBase } from '@/modules/vdi/form/use-vdi
 import { type FrontXoVdi, useXoVdiCollection } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
 import { getVdiIcon } from '@/modules/vdi/utils/xo-vdi.util.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
-import { required } from '@core/packages/form-validation'
+import { required, withMessage } from '@core/packages/form-validation'
 import { toComputed } from '@core/utils/to-computed.util.ts'
 import { DOMAIN_TYPE, VBD_MODE } from '@vates/types'
 import { computed, type MaybeRefOrGetter, reactive, toRefs, watch } from 'vue'
@@ -35,7 +35,7 @@ export function useVdiAttachForm(rawVm: MaybeRefOrGetter<FrontXoVm>) {
     {
       errors: {
         onSubmit: () => ({
-          vdi: { required },
+          vdi: { required: withMessage(required, () => t('vdi-required')) },
         }),
       },
     }

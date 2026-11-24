@@ -2,6 +2,7 @@ import VtsOverlayList from '@core/components/overlay/VtsOverlayList.vue'
 import { useOverlayFocus } from '@core/packages/overlay/use-overlay-focus.ts'
 import { useOverlay } from '@core/packages/overlay/use-overlay.ts'
 import { createGlobalTestConfig } from '@core-test/create-global-test-config.ts'
+import { mountWithSetupResult } from '@core-test/mount-with-setup.ts'
 import { flushPromises, mount } from '@vue/test-utils'
 import { defineComponent, h, onMounted, ref, type VNodeChild } from 'vue'
 
@@ -33,17 +34,15 @@ function createTestModal(content: () => VNodeChild = () => null) {
 }
 
 function mountOverlayHost(modal = createTestModal()) {
-  const wrapper = mount(
-    defineComponent({
-      setup() {
-        return useOverlay({ component: () => Promise.resolve(modal), events: { onConfirm: true } })
-      },
+  const { result: overlay } = mountWithSetupResult(
+    () => ({
+      result: useOverlay({ component: () => Promise.resolve(modal), events: { onConfirm: true } }),
       render: () => [h('button', { class: 'opener' }, 'Open'), h(VtsOverlayList)],
     }),
-    { global: createGlobalTestConfig(), attachTo: document.body }
+    { attachTo: document.body }
   )
 
-  return { open: wrapper.vm.open, opener: getElement('.opener') }
+  return { open: overlay.open, opener: getElement('.opener') }
 }
 
 function getElement(selector: string) {

@@ -3,7 +3,7 @@ import type { JsonSchema } from '@/modules/plugin/utils/json-schema.util.ts'
 import { t } from '@/test/i18n.ts'
 import { getNumberedItemLabel } from '@/test/json-schema-item-label.ts'
 import { mountInJsonSchemaForm } from '@/test/mount-json-schema-form.ts'
-import { inject } from 'vue'
+import { injectOrThrow } from '@core-test/inject-or-throw.ts'
 
 const SCHEMA: JsonSchema = {
   type: 'object',
@@ -23,16 +23,17 @@ const VALID_VALUE = { server: { host: 'ldap.example.org', port: 389 }, base: 'dc
 
 function mountForm(schema: JsonSchema | undefined, initialValue: unknown) {
   const {
-    wrapper,
+    form,
     value,
     result: context,
-  } = mountInJsonSchemaForm(schema, initialValue, () => inject(IK_JSON_SCHEMA_FORM))
+  } = mountInJsonSchemaForm(schema, initialValue, () => injectOrThrow(IK_JSON_SCHEMA_FORM))
 
-  if (context === undefined) {
-    throw new Error('the form context is not provided')
-  }
+  return { form, value, context }
+}
 
-  return { wrapper, value, context }
+// SCHEMA with its required fields left empty
+function mountIncompleteForm() {
+  return mountForm(SCHEMA, { server: {} })
 }
 
 function findErrorMessages(errors: { message: string }[]) {
@@ -41,9 +42,9 @@ function findErrorMessages(errors: { message: string }[]) {
 
 describe('errors', () => {
   it('lists the missing fields with the titles of their sections, or their key', () => {
-    const { wrapper } = mountForm(SCHEMA, { server: {} })
+    const { form } = mountIncompleteForm()
 
-    expect(findErrorMessages(wrapper.vm.errors)).toEqual(
+    expect(findErrorMessages(form.errors.value)).toEqual(
       [
         t('json-schema:nested-label', { parent: 'Server', label: 'Host' }),
         t('json-schema:nested-label', { parent: 'Server', label: 'port' }),
@@ -53,12 +54,12 @@ describe('errors', () => {
   })
 
   it('labels the items of an array without title by their position', () => {
-    const { wrapper } = mountForm(
+    const { form } = mountForm(
       { type: 'object', properties: { uris: { type: 'array', items: { type: 'string' } } } },
       { uris: [''] }
     )
 
-    expect(findErrorMessages(wrapper.vm.errors)).toEqual([
+    expect(findErrorMessages(form.errors.value)).toEqual([
       t('form:error:field-required', {
         field: t('json-schema:nested-label', {
           parent: 'uris',
@@ -78,9 +79,9 @@ describe('errors', () => {
     }
 
     function findMessages(initialValue: unknown) {
-      const { wrapper } = mountForm(constrainedSchema, initialValue)
+      const { form } = mountForm(constrainedSchema, initialValue)
 
-      return wrapper.vm.errors.map(({ fieldMessage, message }) => ({ fieldMessage, message }))
+      return form.errors.value.map(({ fieldMessage, message }) => ({ fieldMessage, message }))
     }
 
     it.each([
@@ -114,9 +115,9 @@ describe('errors', () => {
   })
 
   it('gives each missing field the ID of its field', () => {
-    const { wrapper, context } = mountForm(SCHEMA, { server: {} })
+    const { form, context } = mountIncompleteForm()
 
-    expect(wrapper.vm.errors.map(error => error.id)).toEqual([
+    expect(form.errors.value.map(error => error.id)).toEqual([
       context.getFieldId(['server', 'host']),
       context.getFieldId(['server', 'port']),
       context.getFieldId(['base']),
@@ -124,55 +125,55 @@ describe('errors', () => {
   })
 
   it('follows the value', () => {
-    const { wrapper, value } = mountForm(SCHEMA, { server: {} })
+    const { form, value } = mountIncompleteForm()
 
     value.value = VALID_VALUE
 
-    expect(wrapper.vm.errors).toEqual([])
+    expect(form.errors.value).toEqual([])
   })
 
   it('has no errors without schema', () => {
-    const { wrapper } = mountForm(undefined, undefined)
+    const { form } = mountForm(undefined, undefined)
 
-    expect(wrapper.vm.errors).toEqual([])
+    expect(form.errors.value).toEqual([])
   })
 })
 
 describe('summaryErrors', () => {
   it('is empty until the form is submitted', () => {
-    const { wrapper } = mountForm(SCHEMA, { server: {} })
+    const { form } = mountIncompleteForm()
 
-    expect(wrapper.vm.summaryErrors).toEqual([])
+    expect(form.summaryErrors.value).toEqual([])
   })
 })
 
 describe('submit', () => {
   it('shows all the errors', () => {
-    const { wrapper, context } = mountForm(SCHEMA, { server: {} })
+    const { form, context } = mountIncompleteForm()
 
-    wrapper.vm.submit()
+    form.submit()
 
-    expect(wrapper.vm.summaryErrors).toEqual(wrapper.vm.errors)
+    expect(form.summaryErrors.value).toEqual(form.errors.value)
     expect(context.countVisibleErrors([])).toBe(3)
   })
 
   it('returns false for an invalid value', () => {
-    const { wrapper } = mountForm(SCHEMA, { server: {} })
+    const { form } = mountIncompleteForm()
 
-    expect(wrapper.vm.submit()).toBe(false)
+    expect(form.submit()).toBe(false)
   })
 
   it('returns true for a valid value', () => {
-    const { wrapper } = mountForm(SCHEMA, VALID_VALUE)
+    const { form } = mountForm(SCHEMA, VALID_VALUE)
 
-    expect(wrapper.vm.submit()).toBe(true)
+    expect(form.submit()).toBe(true)
   })
 
   it('focuses the first missing field', () => {
-    const { wrapper, context } = mountForm(SCHEMA, { server: {} })
+    const { form, context } = mountIncompleteForm()
     document.body.innerHTML = `<div id="${context.getFieldId(['server', 'host'])}"><input /></div>`
 
-    wrapper.vm.submit()
+    form.submit()
 
     expect(document.activeElement).toBe(document.querySelector('input'))
   })
@@ -180,20 +181,20 @@ describe('submit', () => {
 
 describe('reset', () => {
   it('hides the errors shown by the validation', () => {
-    const { wrapper, context } = mountForm(SCHEMA, { server: {} })
+    const { form, context } = mountIncompleteForm()
 
-    wrapper.vm.submit()
-    wrapper.vm.reset()
+    form.submit()
+    form.reset()
 
-    expect(wrapper.vm.summaryErrors).toEqual([])
+    expect(form.summaryErrors.value).toEqual([])
     expect(context.countVisibleErrors([])).toBe(0)
   })
 
   it('forgets the fields which were left', () => {
-    const { wrapper, context } = mountForm(SCHEMA, { server: {} })
+    const { form, context } = mountIncompleteForm()
 
     context.touch(['base'])
-    wrapper.vm.reset()
+    form.reset()
 
     expect(context.getVisibleError(['base'])).toBeUndefined()
   })
@@ -201,7 +202,7 @@ describe('reset', () => {
 
 describe('getFieldId', () => {
   it('gives a different ID to each field', () => {
-    const { context } = mountForm(SCHEMA, { server: {} })
+    const { context } = mountIncompleteForm()
 
     expect(context.getFieldId(['server', 'host'])).not.toBe(context.getFieldId(['base']))
   })
@@ -209,13 +210,13 @@ describe('getFieldId', () => {
 
 describe('getVisibleError', () => {
   it('is undefined for a missing field which is not left yet', () => {
-    const { context } = mountForm(SCHEMA, { server: {} })
+    const { context } = mountIncompleteForm()
 
     expect(context.getVisibleError(['base'])).toBeUndefined()
   })
 
   it('is the error of a missing field once it is left', () => {
-    const { context } = mountForm(SCHEMA, { server: {} })
+    const { context } = mountIncompleteForm()
 
     context.touch(['base'])
 
@@ -231,7 +232,7 @@ describe('getVisibleError', () => {
   })
 
   it('stays defined for a field left several times', () => {
-    const { context } = mountForm(SCHEMA, { server: {} })
+    const { context } = mountIncompleteForm()
 
     context.touch(['base'])
     context.touch(['base'])
@@ -240,17 +241,17 @@ describe('getVisibleError', () => {
   })
 
   it('is defined for every missing field once the form is validated', () => {
-    const { wrapper, context } = mountForm(SCHEMA, { server: {} })
+    const { form, context } = mountIncompleteForm()
 
-    wrapper.vm.submit()
+    form.submit()
 
     expect(context.getVisibleError(['server', 'port'])).toBeDefined()
   })
 
   it('is undefined for a section containing a visible error', () => {
-    const { wrapper, context } = mountForm(SCHEMA, { server: {} })
+    const { form, context } = mountIncompleteForm()
 
-    wrapper.vm.submit()
+    form.submit()
 
     expect(context.getVisibleError(['server'])).toBeUndefined()
   })
@@ -258,13 +259,13 @@ describe('getVisibleError', () => {
 
 describe('countVisibleErrors', () => {
   it('counts no error until the fields are left', () => {
-    const { context } = mountForm(SCHEMA, { server: {} })
+    const { context } = mountIncompleteForm()
 
     expect(context.countVisibleErrors([])).toBe(0)
   })
 
   it('counts the visible errors within a section', () => {
-    const { context } = mountForm(SCHEMA, { server: {} })
+    const { context } = mountIncompleteForm()
 
     context.touch(['server', 'host'])
     context.touch(['base'])
@@ -274,9 +275,9 @@ describe('countVisibleErrors', () => {
   })
 
   it('counts every error of a section once the form is validated', () => {
-    const { wrapper, context } = mountForm(SCHEMA, { server: {} })
+    const { form, context } = mountIncompleteForm()
 
-    wrapper.vm.submit()
+    form.submit()
 
     expect(context.countVisibleErrors(['server'])).toBe(2)
   })

@@ -18,10 +18,12 @@ import { createSr } from '@/test/create-sr.ts'
 import { createVbd } from '@/test/create-vbd.ts'
 import { createVdi } from '@/test/create-vdi.ts'
 import { createVm } from '@/test/create-vm.ts'
+import { getButton } from '@/test/get-button.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { xoCollectionsMock, mockXoCollections } from '@/test/mock-xo-collections.ts'
 import { vmDeviceCollectionsMock, mockXoVmDeviceCollections } from '@/test/mock-xo-vm-device-collections.ts'
+import { chooseSelectOption } from '@core-test/select.ts'
 import { flushPromises, mount, type VueWrapper } from '@vue/test-utils'
 
 mockXoCollections('host', 'network', 'pbd', 'pif', 'pool', 'sr')
@@ -106,39 +108,19 @@ function getField(wrapper: VueWrapper, label: string) {
   return field
 }
 
-async function select(wrapper: VueWrapper, label: string, optionLabel: string) {
-  await getField(wrapper, label).get('.vts-select .ui-input').trigger('click')
-  await flushPromises()
-
-  const option = wrapper.findAll('.ui-dropdown').find(option => option.text().startsWith(optionLabel))
-
-  if (option === undefined) {
-    throw new Error(`No option "${optionLabel}" in the select labelled "${label}"`)
-  }
-
-  await option.trigger('click')
-  await flushPromises()
-}
-
 async function submit(wrapper: VueWrapper) {
   await wrapper.get('form').trigger('submit')
   await flushPromises()
 }
 
 async function clickButton(wrapper: VueWrapper, label: string) {
-  const button = wrapper.findAll('.buttons button').find(button => button.text() === label)
-
-  if (button === undefined) {
-    throw new Error(`No button "${label}"`)
-  }
-
-  await button.trigger('click')
+  await getButton(wrapper, label).trigger('click')
   await flushPromises()
 }
 
 async function mountDrawerAtMappingStep(vm?: FrontXoVm) {
   const wrapper = await mountDrawer(vm)
-  await select(wrapper, t('destination-host'), 'Target host')
+  await chooseSelectOption(wrapper, 'Target host', { container: getField(wrapper, t('destination-host')) })
   await submit(wrapper)
 
   return wrapper

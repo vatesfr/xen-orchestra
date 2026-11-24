@@ -1,6 +1,6 @@
 import { useTagSelectKeyboard } from '@core/composables/tag-select-keyboard.composable.ts'
-import { mount } from '@vue/test-utils'
-import { defineComponent, h, nextTick, ref } from 'vue'
+import { mountWithSetup } from '@core-test/mount-with-setup.ts'
+import { h, nextTick, ref } from 'vue'
 
 async function mountTagSelectKeyboard({ hasTarget = true }: { hasTarget?: boolean } = {}) {
   const onCancel = vi.fn()
@@ -27,45 +27,43 @@ async function mountTagSelectKeyboard({ hasTarget = true }: { hasTarget?: boolea
     )
   }
 
-  mount(
-    defineComponent({
-      setup() {
-        const dropdown = ref<HTMLElement>()
+  mountWithSetup(
+    () => {
+      const dropdown = ref<HTMLElement>()
 
-        useTagSelectKeyboard({
-          target: () => (hasTarget ? dropdown.value : undefined),
-          itemSelector: '.item',
-          onCancel,
-          onFocusLost,
-        })
+      useTagSelectKeyboard({
+        target: () => (hasTarget ? dropdown.value : undefined),
+        itemSelector: '.item',
+        onCancel,
+        onFocusLost,
+      })
 
-        return () =>
-          h('div', { onKeydown: onParentKeydown }, [
-            h('div', { ref: dropdown }, [
-              isRemoveVisible.value
-                ? h(
-                    'button',
-                    {
-                      // Like the tag remove button, which stops the click propagation
-                      onClick: (event: MouseEvent) => {
-                        event.stopPropagation()
-                        isRemoveVisible.value = false
-                      },
+      return () =>
+        h('div', { onKeydown: onParentKeydown }, [
+          h('div', { ref: dropdown }, [
+            isRemoveVisible.value
+              ? h(
+                  'button',
+                  {
+                    // Like the tag remove button, which stops the click propagation
+                    onClick: (event: MouseEvent) => {
+                      event.stopPropagation()
+                      isRemoveVisible.value = false
                     },
-                    'Remove'
-                  )
-                : undefined,
-              h('input', { 'aria-label': 'Search' }),
-              h('button', { disabled: isSelectAllDisabled.value, onClick: () => (isSelectAllDisabled.value = true) }, [
-                'Select all',
-              ]),
-              renderItem('Option A'),
-              renderItem('Option B'),
-              h('button', 'Save'),
+                  },
+                  'Remove'
+                )
+              : undefined,
+            h('input', { 'aria-label': 'Search' }),
+            h('button', { disabled: isSelectAllDisabled.value, onClick: () => (isSelectAllDisabled.value = true) }, [
+              'Select all',
             ]),
-          ])
-      },
-    }),
+            renderItem('Option A'),
+            renderItem('Option B'),
+            h('button', 'Save'),
+          ]),
+        ])
+    },
     { attachTo: document.body }
   )
 

@@ -16,11 +16,11 @@ import { findAllGenericComponents } from '@/test/find-generic-components.ts'
 import { dangerMessage } from '@/test/form-messages.ts'
 import { xoCollectionsMock, mockXoCollections } from '@/test/mock-xo-collections.ts'
 import { mountComposableWithI18n } from '@/test/mount-composable.ts'
-import { mountWithSelect } from '@/test/mount-with-select.ts'
+import { mountWithSetup } from '@/test/mount-with-setup.ts'
 import { seedV2vDestinationPools, V2V_MANAGEMENT_NETWORK_ID } from '@/test/seed-v2v-destination-pools.ts'
-import { findSelectOptionLabels, findShownSelections, openSelect } from '@/test/select.ts'
 import type { FormSelectId } from '@core/packages/form-select'
-import VtsSelect from '@core/components/select/VtsSelect.vue'
+import { renderSelect } from '@core-test/mount-with-select.ts'
+import { findSelectOptionLabels, findShownSelections, openSelect } from '@core-test/select.ts'
 import { flushPromises } from '@vue/test-utils'
 import { h, nextTick, ref } from 'vue'
 
@@ -65,13 +65,13 @@ function mountDestinationForm({
 
 // The options and the selection of a select only show once rendered, here on the first pool
 function mountSelects(getSelectIds: (form: V2vDestinationForm) => FormSelectId[], storedList?: V2vMigrationList) {
-  return mountWithSelect(() => {
+  return mountWithSetup(() => {
     const form = useV2vDestinationForm({ poolId: ref(POOL.id), storedList })
 
     return () =>
       h(
         'div',
-        getSelectIds(form).map(id => h(VtsSelect, { id, accent: 'neutral' }))
+        getSelectIds(form).map(id => renderSelect(id))
       )
   })
 }

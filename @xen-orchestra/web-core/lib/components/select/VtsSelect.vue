@@ -7,9 +7,13 @@
       :model-value="selectedLabel"
       :placeholder
       :required="isRequired"
-      right-icon="fa:angle-down"
       readonly
-    />
+    >
+      <template #right-icon>
+        <VtsIcon v-if="isSuccessIconVisible" name="status:success-circle" size="medium" />
+        <VtsIcon name="fa:angle-down" size="medium" class="right-icon" />
+      </template>
+    </UiInput>
 
     <template v-if="isOpen">
       <VtsBackdrop />
@@ -42,10 +46,15 @@
 
 <script generic="TSelectId extends FormSelectId" lang="ts" setup>
 import VtsBackdrop from '@core/components/backdrop/VtsBackdrop.vue'
+import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsOption from '@core/components/select/VtsOption.vue'
 import UiDropdown from '@core/components/ui/dropdown/UiDropdown.vue'
 import UiDropdownList from '@core/components/ui/dropdown/UiDropdownList.vue'
-import UiInput from '@core/components/ui/input/UiInput.vue'
+import UiInput, { type InputAccent } from '@core/components/ui/input/UiInput.vue'
+import {
+  INPUT_WRAPPER_ACCENTS,
+  useInputWrapperController,
+} from '@core/composables/input-wrapper-controller.composable.ts'
 import {
   type FormSelect,
   type FormSelectId,
@@ -58,7 +67,7 @@ import { computed, inject } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { accent, id } = defineProps<{
-  accent: 'neutral' | 'warning' | 'danger'
+  accent: InputAccent
   id: TSelectId
 }>()
 
@@ -91,6 +100,14 @@ const { rootRef, triggerRef, dropdownRef, searchRef, isOpen, floatingStyles } = 
 )
 
 const className = computed(() => toVariants({ accent }))
+
+// The trigger is a readonly input, which hides its own success icon: the select shows it instead
+const { accent: resolvedAccent } = useInputWrapperController({
+  accent: () => accent,
+  accents: INPUT_WRAPPER_ACCENTS,
+})
+
+const isSuccessIconVisible = computed(() => resolvedAccent.value === 'success' && !isDisabled.value)
 
 const { width } = useElementSize(rootRef)
 

@@ -5,12 +5,9 @@ import {
 } from '@/modules/v2v/composables/use-v2v-connection.composable.ts'
 import { createV2vConnection } from '@/test/create-v2v-connection.ts'
 import { createV2vInventory } from '@/test/create-v2v-inventory.ts'
-import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
+import { mountComposableUnderSetup } from '@/test/mount-with-setup.ts'
 import { v2vConnectionProvide } from '@/test/v2v-connection-provide.ts'
-import { V2vConnectionReader } from '@/test/v2v-connection-reader.ts'
-import { mount } from '@vue/test-utils'
-import { defineComponent, h } from 'vue'
 
 describe('createV2vConnectionContext', () => {
   it('is not connected at first', () => {
@@ -59,16 +56,7 @@ describe('sourceId', () => {
 
 describe('provideV2vConnection', () => {
   function mountProvidedContext() {
-    const wrapper = mount(
-      defineComponent(() => {
-        provideV2vConnection()
-
-        return () => h(V2vConnectionReader)
-      }),
-      { global: createGlobalTestConfig() }
-    )
-
-    return wrapper.getComponent(V2vConnectionReader).vm.context
+    return mountComposableUnderSetup(provideV2vConnection, useV2vConnection).result
   }
 
   it('gives each wizard a new context, without the connection of the previous one', () => {
