@@ -318,7 +318,7 @@ export type XoApp = EventEmitter & {
   }
 
   tasks: EventEmitter & {
-    abort(id: XoTask['id'], reason?: string): Promise<void>
+    abort(id: XoTask['id'], reason?: string, options?: { skipCleanup?: boolean }): Promise<void>
     clearLogs(): Promise<void>
     create: (params: { name: string; objectId?: string; type?: string }) => VatesTask
     deleteLog(id: XoTask['id']): Promise<void>
@@ -503,10 +503,7 @@ export type XoApp = EventEmitter & {
    * `assertBrowserMediaInsertable` reports the predictable failures synchronously, e.g. before
    * starting a task.
    */
-  insertBrowserMedia(params: {
-    id: XoBrowserMediaSession['id']
-    vmId: XoVm['id']
-  }): Promise<{ vdiId: XoVdi['id'] }>
+  insertBrowserMedia(params: { id: XoBrowserMediaSession['id']; vmId: XoVm['id'] }): Promise<{ vdiId: XoVdi['id'] }>
   assertBrowserMediaInsertable(params: { id: XoBrowserMediaSession['id']; vmId: XoVm['id'] }): void
   /** Eject the ISO of a browser media session, release its storage, and disconnect the browser */
   ejectBrowserMedia(id: XoBrowserMediaSession['id']): Promise<void>

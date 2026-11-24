@@ -8,6 +8,7 @@ export interface VatesTask {
   status: 'failure' | 'pending' | 'success'
 
   abort(reason?: unknown): void
+  abortCleanup(reason?: unknown): void
   failure(error?: unknown): void
   info(message: string, data: unknown): void
   run<T>(fn: () => T | (() => Promise<T>)): Promise<T>
