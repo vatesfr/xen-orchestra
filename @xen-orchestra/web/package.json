@@ -10,6 +10,7 @@
     "build-only": "vite build",
     "type-check": "vue-tsc --build --force",
     "prepublishOnly": "yarn run build-only",
+    "test": "vitest run",
     "test:ui": "vitest --ui"
   },
   "devDependencies": {
