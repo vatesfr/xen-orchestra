@@ -299,6 +299,85 @@ describe('SDN controller reliability', () => {
   })
 })
 
+describe('a host joining a pool with private networks', () => {
+  function makeJoiningHost(xapi) {
+    return {
+      $type: 'host',
+      $ref: 'host-ref-1',
+      $id: 'host-id-1',
+      $xapi: xapi,
+      name_label: 'joining-host',
+      enabled: false,
+      PIFs: [],
+      $pool: { uuid: 'pool-uuid-1', $ref: 'pool-ref-1', $id: 'pool-id-1', name_label: 'pool' },
+    }
+  }
+
+  it('creates the OVSDB client when the just-joined host becomes enabled', async () => {
+    const controller = createFakeController()
+    const xapi = createFakeXapi()
+    xapi.objects = new EventEmitter()
+    xapi.objects.indexes = { type: {} }
+
+    controller._getOrCreateOfChannel = mock.fn(() => undefined)
+    controller._setBridgeControllerForHost = mock.fn()
+
+    const host = makeJoiningHost(xapi)
+    controller._objectsAdded({ 'host-id-1': host })
+
+    // the host is not enabled yet: no client on the add event
+    assert.equal(controller.ovsdbClients[host.$ref], undefined)
+    assert.deepEqual(controller._newHosts, [host])
+
+    // the host becomes enabled: the client must be created by the update path
+    host.enabled = true
+    host.PIFs = ['pif-ref-1']
+    controller._objectsUpdated({ 'host-id-1': host })
+    await new Promise(resolve => setImmediate(resolve))
+
+    assert.notEqual(controller.ovsdbClients[host.$ref], undefined)
+    assert.deepEqual(controller._newHosts, [])
+  })
+
+  it('adds the host to the private networks through its tunnels', async () => {
+    const controller = createFakeController()
+    const xapi = createFakeXapi()
+
+    const network = { $ref: 'network-ref-1', name_label: 'test-network' }
+    const accessPif = {
+      $ref: 'pif-ref-tunnel',
+      host: 'host-ref-1',
+      device: 'tunnel0',
+      currently_attached: true,
+      $network: network,
+    }
+    // a tunnel for another host must be ignored
+    xapi.objects.indexes = {
+      type: {
+        tunnel: [
+          { $ref: 'tunnel-ref-1', access_PIF: 'pif-ref-tunnel' },
+          { $ref: 'tunnel-ref-2', access_PIF: 'pif-ref-other-host' },
+        ],
+      },
+    }
+    xapi.getObjectByRef = ref =>
+      ref === accessPif.$ref ? accessPif : { $ref: 'pif-ref-other-host', host: 'host-ref-other', $network: network }
+
+    const host = makeJoiningHost(xapi)
+    host.enabled = true
+
+    const addHostToPrivateNetwork = mock.fn(async () => undefined)
+    controller._addHostToPrivateNetwork = addHostToPrivateNetwork
+
+    await controller._addHostToPrivateNetworks(host)
+
+    // only the tunnel whose access PIF belongs to the host is processed
+    assert.equal(addHostToPrivateNetwork.mock.calls.length, 1)
+    assert.equal(addHostToPrivateNetwork.mock.calls[0].arguments[0], host)
+    assert.equal(addHostToPrivateNetwork.mock.calls[0].arguments[1], network)
+  })
+})
+
 describe('VIF traffic rules', () => {
   // a VIF on a host where the XAPI plugin fails to apply (or remove) the rule
   function controllerWithFailingPlugin() {
