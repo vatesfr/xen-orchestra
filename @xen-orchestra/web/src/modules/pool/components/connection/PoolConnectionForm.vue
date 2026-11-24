@@ -2,6 +2,7 @@
   <div class="connection-form" :class="{ mobile: uiStore.isSmall }">
     <div class="primary-host-section">
       <UiTitle>{{ t('master') }}</UiTitle>
+      <VtsRequiredHint />
       <div class="inputs-container">
         <FormTextInput v-bind="hostInputBindings" />
         <FormTextInput v-bind="httpProxyInputBindings" />
@@ -22,6 +23,7 @@ import { usePoolConnectionForm } from '@/modules/pool/form/use-pool-connection-f
 import FormCheckbox from '@/shared/components/form/FormCheckbox.vue'
 import FormPasswordInput from '@/shared/components/form/FormPasswordInput.vue'
 import FormTextInput from '@/shared/components/form/FormTextInput.vue'
+import VtsRequiredHint from '@core/components/required-hint/VtsRequiredHint.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { useUiStore } from '@core/stores/ui.store.ts'
 import { useI18n } from 'vue-i18n'
