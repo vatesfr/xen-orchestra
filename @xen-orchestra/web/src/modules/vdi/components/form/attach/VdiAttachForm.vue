@@ -2,6 +2,7 @@
   <div class="vdi-attach-form">
     <div class="attach-form">
       <UiTitle>{{ t('general-information') }}</UiTitle>
+      <VtsRequiredHint />
       <div class="row">
         <VdiFormSelect v-bind="srSelectBindings">
           <template #option="{ option }">
@@ -48,6 +49,7 @@ import { useVdiAttachForm } from '@/modules/vdi/form/attach/use-vdi-attach-form.
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import FormCheckbox from '@/shared/components/form/FormCheckbox.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
+import VtsRequiredHint from '@core/components/required-hint/VtsRequiredHint.vue'
 import VtsOption from '@core/components/select/VtsOption.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { useI18n } from 'vue-i18n'

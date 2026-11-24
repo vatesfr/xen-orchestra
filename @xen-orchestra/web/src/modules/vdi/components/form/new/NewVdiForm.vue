@@ -2,6 +2,7 @@
   <div class="vdi-new-form">
     <div class="new-form">
       <UiTitle>{{ t('general-information') }}</UiTitle>
+      <VtsRequiredHint />
 
       <NewVdiSourceSelector v-model="source" />
 
@@ -51,6 +52,7 @@ import { useNewVdiForm } from '@/modules/vdi/form/new/use-new-vdi-form.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import FormTextarea from '@/shared/components/form/FormTextarea.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
+import VtsRequiredHint from '@core/components/required-hint/VtsRequiredHint.vue'
 import VtsOption from '@core/components/select/VtsOption.vue'
 import UiCheckbox from '@core/components/ui/checkbox/UiCheckbox.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'

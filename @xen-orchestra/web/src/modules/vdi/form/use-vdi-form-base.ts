@@ -12,7 +12,12 @@ import { useXoVmVbdsUtils } from '@/modules/vm/composables/xo-vm-vbd-utils.compo
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import type { InputWrapperMessage } from '@core/components/input-wrapper/VtsInputWrapper.vue'
 import { objectIcon } from '@core/icons'
-import { type FormValidationConfig, mergeValidationConfigs, required } from '@core/packages/form-validation'
+import {
+  type FormValidationConfig,
+  mergeValidationConfigs,
+  required,
+  withMessage,
+} from '@core/packages/form-validation'
 import { useValidatedForm } from '@core/packages/validated-form'
 import { toComputed } from '@core/utils/to-computed.util.ts'
 import { computed, type MaybeRefOrGetter } from 'vue'
@@ -34,7 +39,7 @@ export function useVdiFormBase<T extends BaseVdiFormData & Record<string, unknow
   const baseConfig: FormValidationConfig<BaseVdiFormData> = {
     errors: {
       onSubmit: () => ({
-        sr: { required },
+        sr: { required: withMessage(required, () => t('sr-required')) },
       }),
     },
   }
