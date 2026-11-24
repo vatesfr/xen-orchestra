@@ -233,11 +233,42 @@ export const configurationSchema = {
             type: 'string',
           },
         },
+        certificate: {
+          title: 'Client certificate',
+          description:
+            'TLS only: path to the PEM file of the certificate presented to the server, followed by its intermediate certificates if any, for servers which require one (mutual TLS), with the key below',
+          type: 'string',
+        },
+        key: {
+          title: 'Client key',
+          description:
+            'TLS only: path to the PEM file of the private key of the client certificate, not encrypted, readable by the user running xo-server only',
+          type: 'string',
+        },
+        hostname: {
+          title: 'Host name',
+          description:
+            'Host name of the messages (ASCII), e.g. the FQDN of XO (default: the host name of the system, often a short name)',
+          type: 'string',
+        },
       },
       additionalProperties: false,
       required: ['uri'],
     },
   },
+}
+
+// an empty path (e.g. a field cleared through the API) is not set
+const readPem = async (setting, path) => {
+  if (path === undefined || path === '') {
+    return
+  }
+  try {
+    return await fromCallback(readFile, path, 'utf8')
+  } catch (error) {
+    error.message = `${setting} ${path}: ${error.message}`
+    throw error
+  }
 }
 
 const NAMESPACE = 'audit'
@@ -273,14 +304,28 @@ class AuditXoPlugin {
     let syslogForwarder, syslogError
     if (syslog !== undefined) {
       try {
-        const { certificateAuthorities, ...options } = syslog
-        syslogForwarder = new SyslogForwarder({
-          ...options,
-          ca:
-            certificateAuthorities === undefined
-              ? undefined
-              : await Promise.all(certificateAuthorities.map(path => fromCallback(readFile, path, 'utf8'))),
-        })
+        const { certificate, certificateAuthorities, key, ...options } = syslog
+        const [ca, cert, keyPem] = await Promise.all([
+          certificateAuthorities === undefined
+            ? undefined
+            : Promise.all(certificateAuthorities.map(path => readPem('certificate authority', path))),
+          readPem('client certificate', certificate),
+          readPem('client key', key),
+        ])
+        if (keyPem?.includes('ENCRYPTED')) {
+          throw new Error(
+            `client key ${key}: encrypted keys are not supported, use a decrypted copy, e.g. made with openssl pkey -in ${key} -out decrypted.key`
+          )
+        }
+        try {
+          syslogForwarder = new SyslogForwarder({ ...options, ca, cert, key: keyPem })
+        } catch (error) {
+          // e.g. OpenSSL errors which do not say which file is invalid
+          if (cert !== undefined && error.message.startsWith('error:')) {
+            error.message = `invalid client certificate ${certificate} or key ${key}: ${error.message}`
+          }
+          throw error
+        }
       } catch (error) {
         // a configuration change is rejected so that the user sees why
         if (this._configured) {

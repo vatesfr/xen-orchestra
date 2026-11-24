@@ -278,6 +278,130 @@ describe('TLS', () => {
     client.close()
   })
 
+  // the server only accepts clients presenting a certificate it trusts
+  const createMutualTlsServer = () =>
+    createStreamServer(listener =>
+      tls.createServer(
+        {
+          ca: [fixture('client.pem')],
+          cert: fixture('server.pem'),
+          key: fixture('server.key'),
+          rejectUnauthorized: true,
+          requestCert: true,
+        },
+        listener
+      )
+    )
+
+  it('presents a client certificate', async () => {
+    const server = await createMutualTlsServer()
+    const client = createClient(`tls://localhost:${server.port}`, {
+      ca: [CA],
+      cert: fixture('client.pem'),
+      key: fixture('client.key'),
+    })
+    await client.send('message')
+    await wait(50)
+    client.close()
+
+    assert.match(server.data, / - message\n$/)
+  })
+
+  it('reports a server which refuses the client', async () => {
+    const server = await createMutualTlsServer()
+    const client = createClient(`tls://localhost:${server.port}`, { ca: [CA] })
+    await assert.rejects(client.send('message'), { code: 'ERR_SSL_TLSV13_ALERT_CERTIFICATE_REQUIRED' })
+    client.close()
+
+    assert.equal(server.data, '')
+  })
+
+  it('reports a client certificate refused by the server', async () => {
+    const server = await createStreamServer(listener =>
+      tls.createServer(
+        {
+          ca: [CA],
+          cert: fixture('server.pem'),
+          key: fixture('server.key'),
+          rejectUnauthorized: true,
+          requestCert: true,
+        },
+        listener
+      )
+    )
+    const client = createClient(`tls://localhost:${server.port}`, {
+      ca: [CA],
+      cert: fixture('client.pem'),
+      key: fixture('client.key'),
+    })
+    // a Node server closes the connection without sending an alert
+    await assert.rejects(client.send('message'), /closed the connection/)
+    client.close()
+
+    assert.equal(server.data, '')
+  })
+
+  it('reports a client refused during a TLS 1.2 handshake, with a host name of several addresses', async () => {
+    // localhost resolves to ::1 then 127.0.0.1, the server only listens on the latter
+    const server = await createStreamServer(listener =>
+      tls.createServer(
+        {
+          ca: [CA],
+          cert: fixture('server.pem'),
+          key: fixture('server.key'),
+          maxVersion: 'TLSv1.2',
+          rejectUnauthorized: true,
+          requestCert: true,
+        },
+        listener
+      )
+    )
+    const client = createClient(`tls://localhost:${server.port}`, {
+      ca: [CA],
+      cert: fixture('client.pem'),
+      key: fixture('client.key'),
+    })
+    await assert.rejects(client.send('message'))
+    client.close()
+  })
+
+  it('reports a client refused after the handshake, even after session tickets', async () => {
+    // e.g. rsyslog checking the name of the client certificate
+    const server = await createStreamServer(listener =>
+      tls.createServer({ cert: fixture('server.pem'), key: fixture('server.key') }, socket => {
+        listener(socket)
+        setTimeout(() => socket.destroy(), 100)
+      })
+    )
+    const client = createClient(`tls://localhost:${server.port}`, { ca: [CA] })
+    await assert.rejects(client.send('message'), /closed the connection/)
+  })
+
+  it('reports a refused client when closed right after sending', async () => {
+    const server = await createMutualTlsServer()
+    const client = createClient(`tls://localhost:${server.port}`, { ca: [CA] })
+    const sent = client.send('message')
+    client.close()
+    await assert.rejects(sent)
+  })
+
+  it('rejects an encrypted key', () => {
+    const cert = fixture('client.pem')
+    assert.throws(
+      () => createClient('tls://localhost', { cert, key: '-----BEGIN ENCRYPTED PRIVATE KEY-----\n' }),
+      /encrypted keys are not supported/
+    )
+  })
+
+  it('rejects an incomplete or invalid client certificate', () => {
+    const cert = fixture('client.pem')
+    const key = fixture('client.key')
+    assert.throws(() => createClient('tls://localhost', { cert }), /both the certificate and its key/)
+    assert.throws(() => createClient('tls://localhost', { key }), /both the certificate and its key/)
+    assert.throws(() => createClient('tcp://localhost', { cert, key }), /only used with TLS/)
+    assert.throws(() => createClient('tls://localhost', { cert, key: fixture('server.key') }), /does not match/)
+  })
+
   it('defaults to port 6514', () => {
     assert.equal(createClient('tls://localhost')._port, 6514)
     assert.equal(createClient('tcp://[::1]')._port, 514)

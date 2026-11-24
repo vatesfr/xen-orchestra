@@ -9,8 +9,18 @@ const SEVERITIES = {
 
 // sends audit records, as JSON, to a syslog server
 export class SyslogForwarder {
-  constructor({ allowUnauthorized, ca, facility = 'authpriv', framing, uri }) {
-    this._client = createClient(uri, { allowUnauthorized, appName: 'xo-audit', ca, facility, framing })
+  constructor({ allowUnauthorized, ca, cert, facility = 'authpriv', framing, hostname, key, uri }) {
+    this._client = createClient(uri, {
+      allowUnauthorized,
+      appName: 'xo-audit',
+      ca,
+      cert,
+      facility,
+      framing,
+      // an empty setting uses the default, `os.hostname()`
+      hostname: hostname?.trim() || undefined,
+      key,
+    })
     this._nFailures = 0
   }
 
