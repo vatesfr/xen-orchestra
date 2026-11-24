@@ -107,6 +107,7 @@
 - [VDIs] The storage link of a VDI, in its side panel and on its page, opens the storage repository page of XO 6 instead of XO 5 (PR [#10864](https://github.com/vatesfr/xen-orchestra/pull/10864))
 - [Side panels] Closing a side panel in one browser tab no longer closes it in the other tabs, where the eye buttons stopped working (PR [#10869](https://github.com/vatesfr/xen-orchestra/pull/10869))
 - [Tables] The "Show more"/"Show less" button of long texts stays at the top right of the cell, and expanding every text of a column no longer squeezes it to one letter per line (PR [#10873](https://github.com/vatesfr/xen-orchestra/pull/10873))
+- [Treeview] The treeview scrollbar can be dragged again: the resize handle, which covered it, now sits just outside the treeview (PR [#10886](https://github.com/vatesfr/xen-orchestra/pull/10886))
 
 ### Packages to release
 

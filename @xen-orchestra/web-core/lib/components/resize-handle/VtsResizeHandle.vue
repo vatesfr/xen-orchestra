@@ -70,7 +70,7 @@ function handleArrowKey(direction: 'left' | 'right') {
   }
 
   &.position--end {
-    inset-inline-end: 0;
+    inset-inline-end: -0.8rem;
   }
 }
 </style>
