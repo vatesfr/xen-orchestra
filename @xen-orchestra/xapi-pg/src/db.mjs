@@ -216,18 +216,28 @@ export class XapiDBClass {
   }
 
   /**
-   * Does the firsts 2 steps in one action: call persists the 'non ref' records, and return all the references in the ref records.
+   * Prepare the non-reference records and collect their references without performing database I/O.
+   * @param records
+   * @returns {{sql: string|undefined, bind: *[]}| null} null if there are no simple columns in this table
+   */
+  prepareNonRefRecords(records) {
+    const { newRecords: nonRefRecords, actualColumns } = this.nonRefXapi2Db(records)
+    if (actualColumns.size) {
+      const updatableFields = this.getUpdateOnDuplicateNonRef().filter(fName => actualColumns.has(fName))
+      return createInsert(this, updatableFields, Array.from(actualColumns), nonRefRecords)
+    }
+    return null
+  }
+
+  /**
+   * Persists the 'non ref' records and returns all the references in the ref records.
    * @returns {Promise<Set<string>>}
    * @param dbClient
    * @param records
    */
   async persistNonRefRecordsToDB(dbClient, records) {
-    const { newRecords: nonRefRecords, actualColumns } = this.nonRefXapi2Db(records)
-    if (actualColumns.size) {
-      const updatableFields = this.getUpdateOnDuplicateNonRef().filter(fName => actualColumns.has(fName))
-      const { sql, bind } = createInsert(this, updatableFields, Array.from(actualColumns), nonRefRecords)
-      await dbClient.query(sql, bind)
-    }
+    const prepared = this.prepareNonRefRecords(records)
+    if (prepared) await dbClient.query(prepared.sql, prepared.bind)
     return this.getRefsFromRecords(records)
   }
 

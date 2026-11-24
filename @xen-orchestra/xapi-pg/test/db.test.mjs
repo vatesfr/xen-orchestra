@@ -49,6 +49,25 @@ suite('simple tests', function () {
     })
   })
 
+  test('prepareNonRefRecords builds reusable writes and persistNonRefRecordsToDB keeps its API', async function () {
+    const clazz = createClass('clz', {
+      uuid: { name: 'uuid', type: 'string' },
+      name_label: { name: 'name_label', type: 'string' },
+    })
+    clazz.convertNonRefFieldsToDbModel()
+    const records = [{ uuid: 'uuid-1', name_label: 'name' }]
+    const prepared = clazz.prepareNonRefRecords(records)
+
+    assert.match(prepared.sql, /INSERT INTO "schema"\."clz"/)
+    assert.deepStrictEqual(prepared.bind, [['uuid-1'], ['name']])
+
+    const queries = []
+    const references = await clazz.persistNonRefRecordsToDB({ query: async (...query) => queries.push(query) }, records)
+
+    assert.deepStrictEqual(queries, [[prepared.sql, prepared.bind]])
+    assert.deepStrictEqual(references, new Set())
+  })
+
   test('xapi2DbField returns undefined and logs an error for an unsupported field type', function () {
     const actual = xapi2DbField('clz', 'field', 'unsupported', 'desc')
     assert.strictEqual(actual, undefined)

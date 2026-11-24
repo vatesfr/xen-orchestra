@@ -1,5 +1,6 @@
 import { escapeLiteral } from 'pg'
 import { eventsFrom, getValidRefCounts, recordEventsForClass, ReferenceStore } from './db_history.mjs'
+import { executeSerialized } from './sql.mjs'
 import { NULL_REF } from './xapi.mjs'
 
 function groupByEntries(obj, keySelector) {
@@ -49,30 +50,39 @@ export class EventStore {
   async ingestEvents(dbClient, eventBatch, sessionId) {
     const refStore = this.refStore
     const currentToken = eventBatch.token
-    let events = eventBatch.events
     // some classes are ignored because of API filtering
-    events = events.filter(event => event.class in this.classesDict)
-    const addEvents = events.filter(e => e.operation === 'add')
-    const modEvents = events.filter(e => e.operation === 'mod')
-    await dbClient.query(`BEGIN ISOLATION LEVEL SERIALIZABLE READ WRITE DEFERRABLE`)
-    let transactionOngoing = true
-    try {
+    const events = eventBatch.events.filter(event => event.class in this.classesDict)
+    const survivingEvents = events.filter(e => e.operation === 'add' || e.operation === 'mod')
+    const newrefs2Uuid = survivingEvents.map(e => [e.ref, e.snapshot.uuid])
+    const survivingEventsByClass = Object.groupBy(survivingEvents, e => e.class)
+    /** a dict of class-> records for added or modified records, both cases will be handled by MERGE. */
+    const survivingObjectsByClass = Object.fromEntries(
+      Object.entries(survivingEventsByClass).map(([cl, evts]) => [cl, evts.map(e => e.snapshot)])
+    )
+    const preparedNonRefByClass = {}
+    for (const [className, records] of Object.entries(survivingObjectsByClass)) {
+      const prepared = this.classesDict[className].prepareNonRefRecords(records)
+      if (prepared) preparedNonRefByClass[className] = prepared
+    }
+    const linkedReferences = Object.entries(survivingObjectsByClass).flatMap(([className, records]) =>
+      this.classesDict[className].getRefsFromRecords(records)
+    )
+    const eventContent = JSON.stringify({ ...eventBatch, events: [] })
+    const notifData = JSON.stringify({ token: currentToken, sessionId, poolRef: this.refLifetimeRef })
+    // can't call NOTIFY with a bound string
+    const notification = `SELECT pg_notify('event', ${escapeLiteral(notifData)});`
+    const attemptEvents = events.map(event => ({
+      ...event,
+      ...(event.snapshot === undefined ? {} : { snapshot: { ...event.snapshot } }),
+    }))
+    const { unknownRef, attemptRefStore } = await executeSerialized(dbClient, async () => {
+      const attemptRefStore = refStore.createOverlay()
       await dbClient.query('SET LOCAL synchronous_commit = off;')
-      const survivingEvents = addEvents.concat(modEvents)
-      const newrefs2Uuid = survivingEvents.map(e => [e.ref, e.snapshot.uuid])
-      const survivingEventsByClass = Object.groupBy(survivingEvents, e => e.class)
-      /**
-       * a dict of class-> records for added or modified records, both cases will be handled by MERGE.
-       */
-      const survivingObjectsByClass = Object.fromEntries(
-        Object.entries(survivingEventsByClass).map(([cl, evts]) => [cl, evts.map(e => e.snapshot)])
-      )
-      const linkedReferences = []
-      for (const [className, records] of Object.entries(survivingObjectsByClass)) {
-        linkedReferences.push(...(await this.classesDict[className].persistNonRefRecordsToDB(dbClient, records)))
+      for (const { sql, bind } of Object.values(preparedNonRefByClass)) {
+        if (sql !== undefined) await dbClient.query(sql, bind)
       }
-      await refStore.bulkRecordUuid(newrefs2Uuid, dbClient)
-      const resolvedRefs = await refStore.bulkSearchUuid(linkedReferences, dbClient)
+      await attemptRefStore.bulkRecordUuid(newrefs2Uuid, dbClient)
+      const resolvedRefs = await attemptRefStore.bulkSearchUuid(linkedReferences, dbClient)
       const unknownRef = new Set()
       const ref2uuid = ref => {
         if (!resolvedRefs.has(ref)) {
@@ -83,12 +93,16 @@ export class EventStore {
       for (const [className, records] of Object.entries(survivingObjectsByClass)) {
         await this.classesDict[className].persistRefRecordsToDB(dbClient, records, ref2uuid)
       }
-      const { events: filteredEvents, delEvents } = await this._prepareDelEvents(dbClient, events, refStore)
-      // record event history now, before the ref2Uuid cache is cleared of deleted objects
+      const { events: filteredEvents, delEvents } = await this._prepareDelEvents(
+        dbClient,
+        attemptEvents,
+        attemptRefStore
+      )
+      // record event history before deleting the corresponding objects
       await dbClient.query(
         `INSERT INTO ${this.eventTableName} (token, content)
                             VALUES ($1, $2) ON CONFLICT (token) DO NOTHING`,
-        [currentToken, JSON.stringify({ ...eventBatch, events: [] })]
+        [currentToken, eventContent]
       )
       for (const [className, evts] of groupByEntries(filteredEvents, e => e.class)) {
         await recordEventsForClass(dbClient, evts, className, this.historyTableName, currentToken)
@@ -96,33 +110,16 @@ export class EventStore {
       for (const event of delEvents) {
         if (event.snapshot?.uuid) {
           // let's hope all the "delete cascade" are well configured.
-          await dbClient.query(
-            `DELETE
-             FROM ${this.classesDict[event.class].getTableNameEsc()}
-             WHERE uuid = $1`,
-            [event.snapshot.uuid]
-          )
+          await dbClient.query(`DELETE FROM ${this.classesDict[event.class].getTableNameEsc()} WHERE uuid = $1`, [
+            event.snapshot.uuid,
+          ])
         }
       }
-      // can't call NOTIFY with a bound string
-      await dbClient.query(
-        `SELECT pg_notify('event', ${escapeLiteral(JSON.stringify({ token: currentToken, sessionId, poolRef: this.refLifetimeRef }))});`
-      )
-      await dbClient.query('COMMIT')
-      transactionOngoing = false
-      return unknownRef
-    } catch (error) {
-      await dbClient.query('ROLLBACK')
-      transactionOngoing = false
-      throw new Error('Rollback', { cause: error })
-    } finally {
-      /* node:coverage disable */
-      if (transactionOngoing) {
-        // somebody returned without rolling back the transaction
-        await dbClient.query('ROLLBACK')
-      }
-      /* node:coverage enable */
-    }
+      await dbClient.query(notification)
+      return { unknownRef, attemptRefStore }
+    })
+    attemptRefStore.mergeCache()
+    return unknownRef
   }
 
   /**
@@ -167,13 +164,7 @@ export class EventStore {
       where = `WHERE uuid = ANY ($1)`
       bind = [uuids]
     }
-    return (
-      await dbClient.query(
-        `SELECT *
-                 FROM ${viewName} ${where}`,
-        bind
-      )
-    ).rows
+    return (await dbClient.query(`SELECT * FROM ${viewName} ${where}`, bind)).rows
   }
 
   /**

@@ -10,7 +10,7 @@ import { Client as DBClient, escapeIdentifier } from 'pg'
 /** Starts pglite asynchronously in the main process and makes it listen on a unix socket in a temporary directory.
  * This convoluted connection scheme allows testing with the actual PG driver. */
 export async function createServer() {
-  const db = await PGlite.create()
+  const db = await PGlite.create({ postgresqlconf: 'max_prepared_transactions = 2' })
   const socketPath = await mkdtemp(join(tmpdir(), 'pg-'))
   const server = new PGLiteSocketServer({
     db,

@@ -3,6 +3,7 @@ import assert from 'node:assert'
 import { Client, escapeIdentifier, escapeLiteral, Pool } from 'pg'
 import { rows2Columns } from './db.mjs'
 import { UUID_TYPE } from './types.mjs'
+
 const { info } = createLogger('xo-pg')
 /**
  * @param xapiDbClass
@@ -352,5 +353,35 @@ export async function withClient(poolOrClient, task) {
       `poolOrClient was expected to be an instance of pg.Client, was: ${poolOrClient ? Object.getPrototypeOf(poolOrClient) : poolOrClient}`
     )
     return await task(poolOrClient)
+  }
+}
+const MAX_RETRIES = 3
+
+/**
+ * @param {*} dbClient
+ * @param {(function(Client): Promise<void>)|*} work
+ * @param {(function(Client): Promise<void>)|*} beforeRetry
+ */
+export async function executeSerialized(dbClient, work, beforeRetry = async () => {}) {
+  for (let retry = 0; ; retry++) {
+    if (retry > 0) await beforeRetry(dbClient)
+    await dbClient.query('BEGIN ISOLATION LEVEL SERIALIZABLE READ WRITE DEFERRABLE')
+    let result
+    let committed = false
+    try {
+      result = await work(dbClient)
+      await dbClient.query('COMMIT')
+      committed = true
+      return result
+    } catch (error) {
+      // https://www.postgresql.org/docs/current/errcodes-appendix.html
+      if (error?.code === '40001') {
+        if (retry < MAX_RETRIES) continue
+        else throw new Error(`Serialization error, and retries are exhausted (${MAX_RETRIES})`, { cause: error })
+      }
+      throw new Error('Rollback because of exception', { cause: error })
+    } finally {
+      if (!committed) await dbClient.query('ROLLBACK')
+    }
   }
 }

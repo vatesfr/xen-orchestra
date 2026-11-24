@@ -23,7 +23,7 @@ Set; or the entry not added to the Map.
 
 There is a `docker-compose.yml` file that can be used to run the code in a Docker container with a second PostgreSQL container attached.
 
-Set the option `pgUrl = 'postgres://user:pass@pg/data'` in xo-server/config.toml and run `docker-compose up` from here (xapi-pg), the compose file will expose the entire project (../..) to a node container, and run `yarn build` at startup before starting XO.
+Set the option `pgUrl = 'postgres://user:pass@pg/data'` in xo-server/config.toml and run `docker-compose up` from here (xapi-pg), the compose file will expose the entire project (../..) to a node container, then run `yarn build` before starting XO.
 
 The xo-server instance will be available at http://localhost:8080 and the db at `postgres://localhost:5432/data`, neither should be visible outside your computer.
 

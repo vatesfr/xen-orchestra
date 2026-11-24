@@ -1,6 +1,8 @@
+import assert from 'node:assert/strict'
 import { absRelationEsc } from './sql.mjs'
 import { REF_TYPE, TOKEN_TYPE, UUID_TYPE, VARCHAR_255 } from './types.mjs'
 import { NULL_REF } from './xapi.mjs'
+
 /**
  *
  * @file This is the history tracker code.
@@ -156,13 +158,34 @@ export async function getValidRefCounts(dbClient, className, historyTableName) {
   return Number.parseInt(result.rows[0].count)
 }
 
+/**
+ * Stores reference-to-UUID associations for a single reference lifetime, with
+ * in-memory caches in both directions. The `NULL_REF` reference is always
+ * associated with a `null` UUID. Cache misses are looked up in the database;
+ * only found associations are included in the returned maps.
+ *
+ * Use an overlay when recording associations in a transaction: it reads from
+ * its parent cache, but keeps new and fetched associations local. Merge the
+ * overlay into its parent only after the transaction commits; discard it after
+ * a rollback. Recording updates the local cache before the database insert
+ * completes, so an overlay prevents an unsuccessful transaction from
+ * polluting the parent cache.
+ */
 export class ReferenceStore {
+  /** @type {Map<string, string | null>} */
   ref2Uuid = new Map([[NULL_REF, null]])
+  /** @type {Map<string | null, string>} */
   uuid2Ref = new Map([[null, NULL_REF]])
 
-  constructor(ref2UuidTableName, lifetimeRef) {
+  /**
+   * @param {string} ref2UuidTableName
+   * @param {string} lifetimeRef
+   * @param {ReferenceStore} [parentStore]
+   */
+  constructor(ref2UuidTableName, lifetimeRef, parentStore) {
     this.ref2UuidTableName = ref2UuidTableName
     this.lifetimeRef = lifetimeRef
+    this._parentStore = parentStore
     this._insertStatement = `
       INSERT INTO ${this.ref2UuidTableName} (uuid, ref, lifetime_ref)
         (SELECT *, $3::${REF_TYPE}
@@ -170,14 +193,56 @@ export class ReferenceStore {
       ON CONFLICT DO NOTHING`
   }
 
-  _recordInMemory(ref, uuid) {
-    if (ref === NULL_REF && uuid !== null) {
-      throw new Error(`${NULL_REF} should always be associated to null, tried to associate it to ${uuid}.`)
+  /**
+   * Creates a child cache that falls back to this store on cache misses.
+   * Changes remain local until {@link mergeCache} is called.
+   * @returns {ReferenceStore}
+   */
+  createOverlay() {
+    return new ReferenceStore(this.ref2UuidTableName, this.lifetimeRef, this)
+  }
+
+  /**
+   * Copies this overlay's cached associations into its parent. Call only after
+   * the transaction that populated the overlay has committed.
+   * @throws {Error} If this store has no parent.
+   */
+  mergeCache() {
+    const parentStore = this._parentStore
+    assert(parentStore, 'Cannot merge a reference cache without a parent store.')
+    for (const [ref, uuid] of this.ref2Uuid) {
+      if (ref !== NULL_REF) parentStore.ref2Uuid.set(ref, uuid)
     }
+    for (const [uuid, ref] of this.uuid2Ref) {
+      if (uuid !== null) parentStore.uuid2Ref.set(uuid, ref)
+    }
+  }
+
+  _recordInMemory(ref, uuid) {
+    assert(ref !== undefined && uuid !== undefined, 'References and UUIDs cannot be undefined.')
+    assert(!(ref === NULL_REF && uuid !== null), `Tried to associate ${NULL_REF} to ${uuid}.`)
     this.ref2Uuid.set(ref, uuid)
     this.uuid2Ref.set(uuid, ref)
   }
 
+  _getCachedRef(ref) {
+    const uuid = this.ref2Uuid.get(ref)
+    return uuid !== undefined ? uuid : this._parentStore?._getCachedRef(ref)
+  }
+
+  _getCachedUuid(uuid) {
+    const ref = this.uuid2Ref.get(uuid)
+    return ref !== undefined ? ref : this._parentStore?._getCachedUuid(uuid)
+  }
+
+  /**
+   * Records reference/UUID pairs in memory and inserts them for this
+   * reference lifetime. The in-memory update happens before the query, so use
+   * an overlay when the database operation is part of a transaction.
+   * @param {Iterable<[string, string | null]>} pairs
+   * @param {Client} dbClient
+   * @returns {Promise<void>}
+   */
   async bulkRecordUuid(pairs, dbClient) {
     for (const [ref, uuid] of pairs) {
       this._recordInMemory(ref, uuid)
@@ -186,20 +251,21 @@ export class ReferenceStore {
   }
 
   /**
+   * Finds UUIDs for references, checking this store and its parent caches
+   * before querying the database. References without a known association are
+   * omitted from the returned map; the `NULL_REF` association maps to `null`.
    * @param {Iterable<string>} refs
    * @param {Client} dbClient
-   * @return {Promise<Map<string, string>>} a map of the found references
+   * @returns {Promise<Map<string, string | null>>} Found reference-to-UUID associations.
    */
   async bulkSearchUuid(refs, dbClient) {
-    const refSet = new Set(refs)
     const result = new Map()
     const missingFromMemory = []
-    for (const ref of refSet) {
-      if (this.ref2Uuid.has(ref)) {
-        result.set(ref, this.ref2Uuid.get(ref))
-      } else {
-        missingFromMemory.push(ref)
-      }
+    // new Set -> dedup
+    for (const ref of new Set(refs)) {
+      const cached = this._getCachedRef(ref)
+      if (cached !== undefined) result.set(ref, cached)
+      else missingFromMemory.push(ref)
     }
     if (missingFromMemory.length > 0) {
       const fromDb = await dbClient.query(
@@ -216,15 +282,21 @@ export class ReferenceStore {
     return result
   }
 
+  /**
+   * Finds references for UUIDs, checking this store and its parent caches
+   * before querying the database. UUIDs without a known association are
+   * omitted from the returned map; `null` maps to `NULL_REF`.
+   * @param {Client} dbClient
+   * @param {Iterable<string | null>} uuids
+   * @returns {Promise<Map<string | null, string>>} Found UUID-to-reference associations.
+   */
   async bulkSearchRef(dbClient, uuids) {
     const result = new Map()
     const missingFromMemory = []
     for (const uuid of uuids) {
-      if (this.uuid2Ref.has(uuid)) {
-        result.set(uuid, this.uuid2Ref.get(uuid))
-      } else {
-        missingFromMemory.push(uuid)
-      }
+      const cached = this._getCachedUuid(uuid)
+      if (cached !== undefined) result.set(uuid, cached)
+      else missingFromMemory.push(uuid)
     }
     if (missingFromMemory.length > 0) {
       const fromDb = await dbClient.query(
