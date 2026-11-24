@@ -1,8 +1,10 @@
 import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
+import { addHostPayloadArg } from '@/modules/pool/jobs/xo-pool-add-host-args.ts'
+import { xoPoolArg } from '@/modules/pool/jobs/xo-pool-args.ts'
 import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import { useXoTaskUtils } from '@/shared/composables/xo-task-utils.composable.ts'
 import { fetchPost } from '@/shared/utils/fetch.util.ts'
-import { defineJob, defineJobArg, JobError, JobRunningError } from '@core/packages/job'
+import { defineJob, JobError, JobRunningError } from '@core/packages/job'
 import type { XoTask } from '@vates/types'
 import { useI18n } from 'vue-i18n'
 
@@ -10,18 +12,7 @@ export type PoolAddHostPayload = {
   hostId: FrontXoHost['id']
 }
 
-// The job identifies its arguments before validating them: a missing pool must not throw here
-const poolArg = defineJobArg<FrontXoPool>({
-  identify: (pool: FrontXoPool | undefined) => pool?.id,
-  toArray: false,
-})
-
-const payloadArg = defineJobArg<PoolAddHostPayload>({
-  identify: false,
-  toArray: false,
-})
-
-export const useXoPoolAddHostJob = defineJob('pool.add-host', [poolArg, payloadArg], () => {
+export const useXoPoolAddHostJob = defineJob('pool.add-host', [xoPoolArg, addHostPayloadArg], () => {
   const { t } = useI18n()
   const { monitorTask } = useXoTaskUtils()
 
