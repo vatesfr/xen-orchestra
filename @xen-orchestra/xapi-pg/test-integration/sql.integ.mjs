@@ -133,6 +133,13 @@ suite('executeSerialized PGlite integration tests', function () {
     const preparedTransaction = `ssi_${randomUUID().replaceAll('-', '')}`
     await dbClient.query(`CREATE TABLE ${doctorsTable} (id integer PRIMARY KEY, on_call boolean NOT NULL)`)
     await dbClient.query(`INSERT INTO ${doctorsTable} VALUES (1, TRUE), (2, TRUE)`)
+
+    // Transaction A reads both doctors, then takes doctor 1 off call. Preparing it leaves its
+    // changes uncommitted but frees PGlite's single connection for another transaction.
+    // Transaction B in the tests also reads both doctors and tries to take doctor 2 off call.
+    // Both see two doctors on call, but if run one after the other, the second would see only
+    // one. PostgreSQL rejects B with a serialization error (40001) rather than allow these
+    // conflicting observations; B can be retried after A finishes.
     await dbClient.query('BEGIN ISOLATION LEVEL SERIALIZABLE')
     await dbClient.query(`SELECT count(*) FROM ${doctorsTable} WHERE on_call`)
     await dbClient.query(`UPDATE ${doctorsTable} SET on_call = false WHERE id = 1`)
