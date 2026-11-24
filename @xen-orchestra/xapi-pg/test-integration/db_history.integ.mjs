@@ -168,6 +168,6 @@ suite('db_history tests', async function () {
     assert.strictEqual(refs.get(null), 'OpaqueRef:NULL')
     await assert.rejects(async () => {
       await store.bulkRecordUuid([['OpaqueRef:NULL', 'some-uuid']])
-    }, /OpaqueRef:NULL should always be associated to null/)
+    }, /Tried to associate OpaqueRef:NULL to some-uuid./)
   })
 })
