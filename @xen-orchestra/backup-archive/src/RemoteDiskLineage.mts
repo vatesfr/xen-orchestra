@@ -235,6 +235,9 @@ export class RemoteDiskLineage {
     remove = this.#opts.remove ?? false,
     merge = this.#opts.merge ?? false,
   }: { remove?: boolean; merge?: boolean } = {}): Promise<CleanResult> {
+    const { signal } = this.#opts
+    signal?.throwIfAborted()
+
     const orphanDisks = new Set([...this.#diskPaths].filter(p => !this.#activeDiskPaths.has(p)))
     const toDelete = new Set<string>()
     const toMerge: { chain: string[]; isResuming: boolean }[] = []
@@ -407,6 +410,12 @@ export class RemoteDiskLineage {
       await asyncEach(
         Array.from(toDelete),
         async path => {
+          // a removal already started completes, the next ones do not start. Throwing here would reject before the
+          // removals in flight have settled, and the caller would release the lock of the directory while they run:
+          // the check after the loop rejects instead.
+          if (signal?.aborted) {
+            return
+          }
           this.#opts.logInfo('deleting unused disk', { path })
           try {
             const disk = await openDisk({ handler: this.#handler, path, ignoreBlockIndexes: true })
@@ -421,19 +430,34 @@ export class RemoteDiskLineage {
       )
     }
 
+    signal?.throwIfAborted()
+
     if (toMerge.length > 0) {
       this.#opts.logInfo('Disk chain needs merging', { count: toMerge.length })
     }
 
     // mergeTargetPath: final size of the disk everything was merged into
     const mergedSizes = new Map<string, number>()
+    // merge targets whose merge has been stopped by the signal, or not started
+    const mergesLeft: string[] = []
     if (merge) {
       const limitedMergeChain = defaultMergeLimiter(this.#mergeChain.bind(this))
       const doMerge = async () => {
         await asyncEach(
           toMerge,
           async ({ chain, isResuming }) => {
-            const { finalDiskSize, mergeTargetPath } = await limitedMergeChain([...chain], isResuming)
+            let result
+            try {
+              result = await limitedMergeChain([...chain], isResuming)
+            } catch (error) {
+              // the merge keeps its state for the next clean, and the merges completed before it keep their sizes
+              if (signal?.aborted && error === signal.reason) {
+                mergesLeft.push(chain[chain.length - 1])
+                return
+              }
+              throw error
+            }
+            const { finalDiskSize, mergeTargetPath } = result
             mergedSizes.set(mergeTargetPath, (mergedSizes.get(mergeTargetPath) ?? 0) + finalDiskSize)
             // parentPath alias deleted by parentDisk.rename(mergeTargetPath)
             // intermediates deleted by childDisk.unlink() when removeUnused=true
@@ -445,19 +469,38 @@ export class RemoteDiskLineage {
           },
           { concurrency: this.#opts.mergeConcurrency ?? DEFAULT_MERGE_CONCURRENCY }
         )
+        // the merge task fails when a merge is left, even if others have completed
+        if (mergesLeft.length !== 0) {
+          signal?.throwIfAborted()
+        }
       }
       if (toMerge.length !== 0) {
-        await Task.run({ properties: { name: 'merge' } }, doMerge)
+        try {
+          await Task.run({ properties: { name: 'merge' } }, doMerge)
+        } catch (error) {
+          if (!(signal?.aborted && error === signal.reason)) {
+            throw error
+          }
+        }
       }
     }
 
-    await this.#cleanOrphanDataFiles(remove)
+    if (signal?.aborted) {
+      // A completed merge has removed its state, so the next clean would not update the metadata of its backups: the
+      // clean resolves, for its caller to do it, without its last step
+      if (mergedSizes.size === 0) {
+        throw signal.reason
+      }
+    } else {
+      await this.#cleanOrphanDataFiles(remove)
+    }
 
     return {
       removedFiles: Array.from(toDelete),
       merge: toMerge.length > 0,
       size: [...mergedSizes.values()].reduce((total, subSize) => total + subSize, 0),
       mergedSizes,
+      mergesLeft,
     }
   }
 
@@ -467,6 +510,8 @@ export class RemoteDiskLineage {
    */
   async #mergeChain(chain: string[], isResuming: boolean): Promise<{ finalDiskSize: number; mergeTargetPath: string }> {
     assert.ok(chain.length >= 2, `look to merge a chain shorter than 2 ${JSON.stringify(chain)}`)
+    // the chain may have waited for its slot while the clean was aborted
+    this.#opts.signal?.throwIfAborted()
     const parentPath = chain[0]
     this.#opts.logInfo('merging disk chain', { chain: [...chain] }) // need a copy here to log full chain
     // The last disk in the chain is the active one that everything gets merged into
@@ -477,6 +522,7 @@ export class RemoteDiskLineage {
       removeUnused: this.#opts.remove,
       mergeBlockConcurrency: this.#opts.mergeBlockConcurrency,
       onProgress: this.#opts.onProgress,
+      signal: this.#opts.signal,
     })
     let parentDisk: RemoteDisk | undefined
     let childDisk: RemoteDisk | undefined

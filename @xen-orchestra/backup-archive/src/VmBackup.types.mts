@@ -25,6 +25,11 @@ export interface BackupCleanOptions {
   remove?: boolean
   mergeBlockConcurrency?: number
   mergeConcurrency?: number
+  // stops the clean between two operations, and the merges between two blocks; the clean then rejects with the
+  // reason of the signal. A merge keeps its state and is resumed by the next clean. Once a merge has completed, the
+  // clean resolves instead: the other merges are still stopped, but the metadata of the backups is updated. Once the
+  // clean has started to update the metadata files of the backups, it is not stopped anymore.
+  signal?: AbortSignal
   onProgress?: (progress: { total: number; done: number }) => void
   logInfo?: (message: any, opts?: object) => void
   logWarn?: (message: any, opts?: object) => void
@@ -39,6 +44,8 @@ export interface ArchiveCleanOptions {
   remove?: boolean
   merge?: boolean
   mergedSizes?: Map<string, number>
+  // whether a disk may still have a merge to do, after a stopped clean
+  hasMergeLeft?: (diskPath: string) => boolean
 }
 
 export interface CheckResult {
@@ -60,6 +67,8 @@ export type CleanResult = {
   merge?: boolean
   size?: number
   mergedSizes?: Map<string, number>
+  // merge targets whose merge has been stopped by the signal, or not started
+  mergesLeft?: string[]
 }
 
 export interface VmBackupInterface {

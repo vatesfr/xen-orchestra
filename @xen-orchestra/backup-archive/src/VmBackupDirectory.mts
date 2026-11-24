@@ -1,5 +1,5 @@
 import { RemoteHandlerAbstract } from '@xen-orchestra/fs'
-import { basename, normalize } from '@xen-orchestra/fs/path'
+import { basename, dirname, normalize } from '@xen-orchestra/fs/path'
 import { resolve } from 'node:path'
 import { VmFullBackupArchive } from './VmFullBackupArchive.mjs'
 import { VmIncrementalBackupArchive } from './VmIncrementalBackupArchive.mjs'
@@ -80,6 +80,10 @@ export class VmBackupDirectory implements VmBackupInterface {
     this.#uniqueLineages = new Map()
 
     for (const fullPath of this.files.filter(path => path.endsWith('.json'))) {
+      // outside of the `try` below: an archive that fails to load is ignored, and its metadata would then be
+      // removed as an orphan
+      this.opts.signal?.throwIfAborted()
+
       let metadata: PartialBackupMetadata | undefined
       try {
         metadata = JSON.parse(await this.handler.readFile(fullPath)) satisfies PartialBackupMetadata
@@ -107,6 +111,7 @@ export class VmBackupDirectory implements VmBackupInterface {
     await this.#checkCacheCount()
 
     for (const backupArchive of this.backupArchives.values()) {
+      this.opts.signal?.throwIfAborted()
       await backupArchive.check()
     }
 
@@ -131,6 +136,9 @@ export class VmBackupDirectory implements VmBackupInterface {
     remove = this.opts.remove ?? false,
     merge = this.opts.merge ?? false,
   }: ArchiveCleanOptions = {}): Promise<CleanResult> {
+    const { signal } = this.opts
+    signal?.throwIfAborted()
+
     // Use cached check result if available, otherwise run check now
     const { orphans } = this.#checkResult ?? (await this.check())
 
@@ -139,10 +147,26 @@ export class VmBackupDirectory implements VmBackupInterface {
 
     // Merge/delete orphan disks in VDI directories covered by archives; collect merged sizes per disk path
     const allMergedSizes = new Map<string, number>()
+    // once the clean is stopped: the merges left, and the VDI directories whose merges are not known
+    const mergesLeft = new Set<string>()
+    const stoppedVdiDirs = new Set<string>()
     await asyncEach(
       Array.from(this.#uniqueLineages!.entries()),
-      async ([_vdiDir, lineage]) => {
-        const { mergedSizes, removedFiles, merge: hasPendingMerge } = await lineage.clean({ remove, merge })
+      async ([vdiDir, lineage]) => {
+        let result
+        try {
+          result = await lineage.clean({ remove, merge })
+        } catch (error) {
+          // stopped before any of its merges has completed: the merges completed in the other directories keep their
+          // sizes
+          if (signal?.aborted && error === signal.reason) {
+            stoppedVdiDirs.add(vdiDir)
+            return
+          }
+          throw error
+        }
+        const { mergedSizes, removedFiles, merge: hasPendingMerge } = result
+        result.mergesLeft?.forEach(path => mergesLeft.add(path))
         if (removedFiles.length > 0) {
           cacheNeedsRegen = true
         }
@@ -157,12 +181,23 @@ export class VmBackupDirectory implements VmBackupInterface {
     )
 
     // Delete VDI directories not referenced by any archive
-    const coveredDirs = new Set(this.#uniqueLineages!.keys())
-    await cleanOrphanDiskDirs(this.handler, this.rootPath, coveredDirs, {
-      remove,
-      logWarn: this.opts.logWarn,
-      logInfo: this.opts.logInfo,
-    })
+    if (!signal?.aborted) {
+      const coveredDirs = new Set(this.#uniqueLineages!.keys())
+      await cleanOrphanDiskDirs(this.handler, this.rootPath, coveredDirs, {
+        remove,
+        logWarn: this.opts.logWarn,
+        logInfo: this.opts.logInfo,
+      })
+    }
+
+    // Last point where the clean stops, unless a merge has completed: it has removed its state, so the next clean would
+    // not update the metadata of its backups. What follows is not stopped: the archive cleans remove metadata files and
+    // rewrite others, which the cache below and the journal written by the caller once the clean resolves must both
+    // record.
+    if (signal?.aborted && allMergedSizes.size === 0) {
+      throw signal.reason
+    }
+    const hasMergeLeft = (diskPath: string) => mergesLeft.has(diskPath) || stoppedVdiDirs.has(dirname(diskPath))
 
     // Let each archive clean its own files (e.g. remove metadata for incomplete backups)
     // and update metadata with merged sizes if applicable
@@ -175,6 +210,7 @@ export class VmBackupDirectory implements VmBackupInterface {
         const { removedFiles, changedFiles: archiveChangedFiles } = await archive.clean({
           remove,
           mergedSizes: allMergedSizes,
+          hasMergeLeft,
         })
         if (removedFiles.length > 0) {
           cacheNeedsRegen = true

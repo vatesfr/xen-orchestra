@@ -16,6 +16,7 @@ import { MergeRemoteDisk } from '../dist/disks/MergeRemoteDisk.mjs'
 import { VHDFOOTER, VHDHEADER } from './tests.fixtures.mjs'
 import { VhdFile, Constants, VhdDirectory, VhdAbstract } from 'vhd-lib'
 import { dirname, basename } from 'node:path'
+import { createHash } from 'node:crypto'
 import { promisify } from 'node:util'
 import zlib from 'node:zlib'
 import { rimraf } from 'rimraf'
@@ -983,3 +984,668 @@ test('it regenerates a pre-existing cache after a metadata removal', async () =>
   )
   assert.equal(cache[`/${rootPath}metadata1.json`].stale, undefined, 'the entry must come from the archive on disk')
 })
+
+// ---------------------------------------------------------------------------------------------
+// abort of the clean and of the merge (XO-3353)
+//
+// `signal` stops `cleanVm()` and `MergeRemoteDisk` between two operations. An aborted merge keeps its
+// state file, and the next clean resumes it: the result must be the one of a merge never interrupted.
+
+const MERGE_FORMATS = [
+  { name: 'VHD files', opts: {} },
+  { name: 'VHD directories with alias', opts: { mode: 'directory', useAlias: true } },
+]
+
+// a merge between two VHD directories moves the blocks out of the child instead of copying them
+const isMovingBlocks = opts => opts.mode === 'directory'
+
+// ancestor (blocks 0, 1) <- child (blocks 2 to 5), the child being the only backup listed in metadata. `prefix`
+// names the disks of a second chain in the same directory
+async function createMergeChain(root, relative, { mode, useAlias, prefix = '' } = {}) {
+  const base = `${root}/${relative}`
+  await fs.mkdirp(`${tempDir}/${base}`)
+  const ext = useAlias ? '.alias.vhd' : ''
+  const ancestor = await generateVhd(`${base}/${prefix}ancestor.vhd`, { mode, useAlias, blocks: [0, 1] })
+  await generateVhd(`${base}/${prefix}child.vhd`, {
+    mode,
+    useAlias,
+    header: { parentUnicodeName: `${prefix}ancestor.vhd` + ext, parentUuid: ancestor.footer.uuid },
+    blocks: [2, 3, 4, 5],
+  })
+  return {
+    base,
+    ancestorPath: `${base}/${prefix}ancestor.vhd${ext}`,
+    childPath: `${base}/${prefix}child.vhd${ext}`,
+    listed: `${relative}/${prefix}child.vhd${ext}`,
+    stateFile: `${base}/.${prefix}ancestor.vhd${ext}.merge.json`,
+  }
+}
+
+const exists = async path => (await handler.list(dirname(path))).includes(basename(path))
+
+async function writeMetadata(root, chains) {
+  await handler.writeFile(
+    `${root}/metadata.json`,
+    JSON.stringify({ mode: 'delta', size: 12000, vhds: chains.map(_ => _.listed) })
+  )
+}
+
+async function openMergeDisks({ ancestorPath, childPath }, { force = false } = {}) {
+  const parent = new RemoteVhdDisk({ handler, path: ancestorPath })
+  const child = new RemoteVhdDisk({ handler, path: childPath })
+  await parent.init({ force })
+  await child.init({ force })
+  return { parent, child }
+}
+
+// the aborts the merge after `n` blocks have been merged into the parent
+function abortAfterBlocks(parent, n, controller) {
+  const mergeBlock = parent.mergeBlock.bind(parent)
+  let merged = 0
+  parent.mergeBlock = async (...args) => {
+    const size = await mergeBlock(...args)
+    if (++merged === n) {
+      controller.abort()
+    }
+    return size
+  }
+}
+
+async function digestBlocks(disks, indexes) {
+  const digest = {}
+  for (const index of indexes) {
+    const disk = disks.find(disk => disk.hasBlock(index))
+    if (disk !== undefined) {
+      digest[index] = createHash('md5')
+        .update((await disk.readBlock(index)).data)
+        .digest('hex')
+    }
+  }
+  return digest
+}
+
+// what a restore of the backup reads: each block comes from the child, or else from its ancestor
+async function readChain({ ancestorPath, childPath }) {
+  const { parent, child } = await openMergeDisks({ ancestorPath, childPath }, { force: true })
+  try {
+    return await digestBlocks([child, parent], [0, 1, 2, 3, 4, 5])
+  } finally {
+    await parent.close()
+    await child.close()
+  }
+}
+
+async function readMerged(childPath) {
+  const merged = new RemoteVhdDisk({ handler, path: childPath })
+  await merged.init({ force: false })
+  try {
+    assert.deepEqual(merged.getBlockIndexes(), [0, 1, 2, 3, 4, 5])
+    return await digestBlocks([merged], [0, 1, 2, 3, 4, 5])
+  } finally {
+    await merged.close()
+  }
+}
+
+// the data of a merge never interrupted, on a chain of the same shape
+async function referenceDigest(format) {
+  const root = 'xo-vm-backups/REFERENCE'
+  const chain = await createMergeChain(root, `vdis/${jobId}/${uniqueId()}`, format)
+  await writeMetadata(root, [chain])
+  await VmBackupDirectory.cleanVm(handler, root, { remove: true, merge: true, logInfo: () => {}, logWarn: () => {} })
+  return readMerged(chain.childPath)
+}
+
+async function assertMergeCompleted(chain, expected) {
+  const files = await handler.list(chain.base)
+  assert.equal(files.includes(basename(chain.stateFile)), false, 'the merge state is removed')
+  assert.equal(await exists(chain.ancestorPath), false, 'the ancestor is consolidated in the child')
+  assert.deepEqual(await readMerged(chain.childPath), expected, 'same data as a merge never interrupted')
+}
+
+const resumeMerge = () =>
+  VmBackupDirectory.cleanVm(handler, rootPath, { remove: true, merge: true, logInfo: () => {}, logWarn: () => {} })
+
+for (const { name, opts } of MERGE_FORMATS) {
+  describe(`MergeRemoteDisk, abort (${name})`, () => {
+    test('stops before the first block and changes nothing', async () => {
+      const chain = await createMergeChain(rootPath, relativePath, opts)
+      await writeMetadata(rootPath, [chain])
+      const before = await readChain(chain)
+
+      const controller = new AbortController()
+      controller.abort()
+      const { parent, child } = await openMergeDisks(chain)
+      const merger = new MergeRemoteDisk(handler, { removeUnused: true, writeStateDelay: 0, signal: controller.signal })
+      await assert.rejects(merger.merge(parent, child), { name: 'AbortError' })
+      await parent.close()
+      await child.close()
+
+      assert.equal(await exists(chain.stateFile), false, 'no state is written: nothing was merged')
+      assert.deepEqual(await readChain(chain), before)
+    })
+
+    for (const concurrency of isMovingBlocks(opts) ? [] : [1, 2]) {
+      for (const blocks of [1, 2]) {
+        test(`stops after ${blocks} block(s) with a concurrency of ${concurrency}, keeps its state, resumes`, async () => {
+          const expected = await referenceDigest(opts)
+          const chain = await createMergeChain(rootPath, relativePath, opts)
+          await writeMetadata(rootPath, [chain])
+          const before = await readChain(chain)
+
+          const controller = new AbortController()
+          const { parent, child } = await openMergeDisks(chain)
+          abortAfterBlocks(parent, blocks, controller)
+          const progress = []
+          const merger = new MergeRemoteDisk(handler, {
+            removeUnused: true,
+            writeStateDelay: 0,
+            mergeBlockConcurrency: concurrency,
+            signal: controller.signal,
+            onProgress: _ => progress.push(_),
+          })
+          await assert.rejects(merger.merge(parent, child), { name: 'AbortError' })
+
+          const { done, total } = progress.at(-1)
+          assert.ok(done < total, `the progress of a stopped merge is not 100% (${done} / ${total})`)
+
+          const state = JSON.parse(await handler.readFile(chain.stateFile))
+          assert.equal(state.step, 'mergeBlocks')
+          assert.equal(typeof state.currentBlock, 'number')
+          assert.equal(await exists(chain.ancestorPath), true, 'the ancestor is not removed')
+          assert.deepEqual(await readChain(chain), before, 'the backup is still restorable before the resume')
+
+          await resumeMerge()
+          await assertMergeCompleted(chain, expected)
+        })
+      }
+    }
+
+    // the blocks are moved out of the child, the disk of the listed backup, which cannot be read until the merge has
+    // completed: the merge is not stopped once a block has moved, including after the last one
+    for (const concurrency of isMovingBlocks(opts) ? [1, 2] : []) {
+      for (const blocks of [1, 2, 4]) {
+        test(`does not stop after ${blocks} block(s) with a concurrency of ${concurrency}, completes`, async () => {
+          const expected = await referenceDigest(opts)
+          const chain = await createMergeChain(rootPath, relativePath, opts)
+          await writeMetadata(rootPath, [chain])
+
+          const controller = new AbortController()
+          const { parent, child } = await openMergeDisks(chain)
+          abortAfterBlocks(parent, blocks, controller)
+          const merger = new MergeRemoteDisk(handler, {
+            removeUnused: true,
+            writeStateDelay: 0,
+            mergeBlockConcurrency: concurrency,
+            signal: controller.signal,
+          })
+          await merger.merge(parent, child)
+
+          assert.equal(controller.signal.aborted, true)
+          await assertMergeCompleted(chain, expected)
+        })
+      }
+    }
+
+    // what the abort leaves behind is what a failure in the middle of the blocks leaves: the abort adds no new state
+    for (const concurrency of [1, 2]) {
+      for (const blocks of [1, 2, 3]) {
+        test(`resumes a merge that failed after ${blocks} block(s) with a concurrency of ${concurrency}`, async () => {
+          const expected = await referenceDigest(opts)
+          const chain = await createMergeChain(rootPath, relativePath, opts)
+          await writeMetadata(rootPath, [chain])
+
+          const { parent, child } = await openMergeDisks(chain)
+          const mergeBlock = parent.mergeBlock.bind(parent)
+          let merged = 0
+          parent.mergeBlock = async (...args) => {
+            if (merged === blocks) {
+              throw new Error('simulated interruption')
+            }
+            ++merged
+            return mergeBlock(...args)
+          }
+          const merger = new MergeRemoteDisk(handler, {
+            removeUnused: true,
+            writeStateDelay: 0,
+            mergeBlockConcurrency: concurrency,
+          })
+          await assert.rejects(merger.merge(parent, child), /simulated interruption/)
+
+          await resumeMerge()
+          await assertMergeCompleted(chain, expected)
+        })
+      }
+    }
+
+    test('stops after the last block, before the metadata, and resumes', { skip: isMovingBlocks(opts) }, async () => {
+      const expected = await referenceDigest(opts)
+      const chain = await createMergeChain(rootPath, relativePath, opts)
+      await writeMetadata(rootPath, [chain])
+
+      const controller = new AbortController()
+      const { parent, child } = await openMergeDisks(chain)
+      abortAfterBlocks(parent, 4, controller)
+      const merger = new MergeRemoteDisk(handler, { removeUnused: true, writeStateDelay: 0, signal: controller.signal })
+      await assert.rejects(merger.merge(parent, child), { name: 'AbortError' })
+
+      assert.equal(JSON.parse(await handler.readFile(chain.stateFile)).step, 'mergeBlocks')
+      assert.equal(await exists(chain.ancestorPath), true)
+
+      await resumeMerge()
+      await assertMergeCompleted(chain, expected)
+    })
+
+    test('does not stop once the metadata of the parent is written', async () => {
+      const expected = await referenceDigest(opts)
+      const chain = await createMergeChain(rootPath, relativePath, opts)
+      await writeMetadata(rootPath, [chain])
+
+      const controller = new AbortController()
+      const { parent, child } = await openMergeDisks(chain)
+      // the parent now carries the uuid of the child while the state still says `mergeBlocks`: the next clean would
+      // not resume the merge but remove the parent
+      const mergeMetadata = parent.mergeMetadata.bind(parent)
+      parent.mergeMetadata = async (...args) => {
+        await mergeMetadata(...args)
+        controller.abort()
+      }
+      const merger = new MergeRemoteDisk(handler, { removeUnused: true, writeStateDelay: 0, signal: controller.signal })
+      await merger.merge(parent, child)
+
+      await assertMergeCompleted(chain, expected)
+    })
+
+    test('does not stop inside its final step', async () => {
+      const expected = await referenceDigest(opts)
+      const chain = await createMergeChain(rootPath, relativePath, opts)
+      await writeMetadata(rootPath, [chain])
+
+      const controller = new AbortController()
+      const { parent, child } = await openMergeDisks(chain)
+      // the signal is aborted while the merged disks are removed and the result renamed
+      const unlink = child.unlink.bind(child)
+      child.unlink = async (...args) => {
+        controller.abort()
+        return unlink(...args)
+      }
+      const merger = new MergeRemoteDisk(handler, { removeUnused: true, writeStateDelay: 0, signal: controller.signal })
+      await merger.merge(parent, child)
+
+      await assertMergeCompleted(chain, expected)
+    })
+
+    test('resumes after two aborts at different points', { skip: isMovingBlocks(opts) }, async () => {
+      const expected = await referenceDigest(opts)
+      const chain = await createMergeChain(rootPath, relativePath, opts)
+      await writeMetadata(rootPath, [chain])
+
+      for (const force of [false, true]) {
+        const controller = new AbortController()
+        const { parent, child } = await openMergeDisks(chain, { force })
+        abortAfterBlocks(parent, 1, controller)
+        const merger = new MergeRemoteDisk(handler, {
+          removeUnused: true,
+          writeStateDelay: 0,
+          mergeBlockConcurrency: 1,
+          signal: controller.signal,
+        })
+        await assert.rejects(merger.merge(parent, child), { name: 'AbortError' })
+      }
+
+      await resumeMerge()
+      await assertMergeCompleted(chain, expected)
+    })
+  })
+}
+
+describe('cleanVm, abort', () => {
+  test('with an already aborted signal removes and merges nothing', async () => {
+    const chain = await createMergeChain(rootPath, relativePath)
+    await generateVhd(`${chain.base}/abandoned.vhd`, {
+      header: { parentUnicodeName: 'gone.vhd', parentUuid: uniqueIdBuffer() },
+    })
+    await writeMetadata(rootPath, [chain])
+    const before = (await handler.list(chain.base)).sort()
+
+    const controller = new AbortController()
+    controller.abort()
+    await assert.rejects(
+      VmBackupDirectory.cleanVm(handler, rootPath, {
+        remove: true,
+        merge: true,
+        signal: controller.signal,
+        logInfo: () => {},
+        logWarn: () => {},
+      }),
+      { name: 'AbortError' }
+    )
+
+    assert.deepEqual((await handler.list(chain.base)).sort(), before)
+  })
+
+  test('stops removing the unused disks once aborted', async () => {
+    const chain = await createMergeChain(rootPath, relativePath)
+    const abandoned = []
+    for (let i = 0; i < 8; i++) {
+      abandoned.push(`abandoned${i}.vhd`)
+      await generateVhd(`${chain.base}/abandoned${i}.vhd`, {
+        header: { parentUnicodeName: 'gone.vhd', parentUuid: uniqueIdBuffer() },
+      })
+    }
+    await writeMetadata(rootPath, [chain])
+
+    const controller = new AbortController()
+    const logInfo = message => {
+      if (message === 'deleting unused disk') {
+        controller.abort()
+      }
+    }
+    // slow removals: the clean must not reject, and its caller release the lock, while one of them still runs
+    const events = []
+    const unlink = handler.unlink.bind(handler)
+    handler.unlink = async (...args) => {
+      await new Promise(resolve => setTimeout(resolve, 20))
+      await unlink(...args)
+      events.push('removed')
+    }
+    await assert.rejects(
+      VmBackupDirectory.cleanVm(handler, rootPath, {
+        remove: true,
+        signal: controller.signal,
+        logInfo,
+        logWarn: () => {},
+      }).finally(() => events.push('rejected')),
+      { name: 'AbortError' }
+    )
+    // leaves a removal still running the time to end
+    await new Promise(resolve => setTimeout(resolve, 100))
+    handler.unlink = unlink
+    assert.equal(events.at(-1), 'rejected', 'no removal ends after the clean has rejected')
+
+    const remaining = (await handler.list(chain.base)).filter(file => abandoned.includes(file))
+    assert.ok(remaining.length > 0, 'the disks not yet removed are left to the next clean')
+
+    // the next clean, not aborted, removes the leftovers
+    await VmBackupDirectory.cleanVm(handler, rootPath, { remove: true, logInfo: () => {}, logWarn: () => {} })
+    assert.deepEqual(
+      (await handler.list(chain.base)).filter(file => abandoned.includes(file)),
+      []
+    )
+  })
+
+  test('does not merge the chains that were still to be merged, and the next clean does', async () => {
+    const chain1 = await createMergeChain(rootPath, relativePath)
+    const chain2 = await createMergeChain(rootPath, relativePath2)
+    await writeMetadata(rootPath, [chain1, chain2])
+
+    const controller = new AbortController()
+    const merged = []
+    const logInfo = (message, data) => {
+      if (message === 'merging disk chain') {
+        merged.push(data.chain)
+        controller.abort()
+      }
+    }
+    await assert.rejects(
+      VmBackupDirectory.cleanVm(handler, rootPath, {
+        remove: true,
+        merge: true,
+        signal: controller.signal,
+        logInfo,
+        logWarn: () => {},
+      }),
+      { name: 'AbortError' }
+    )
+    assert.equal(merged.length, 1, 'only the merge that was running is started')
+
+    // the chain whose merge never started is untouched
+    const untouched = merged[0].some(path => path.includes(vdiId2)) ? chain1 : chain2
+    assert.equal(await exists(untouched.ancestorPath), true)
+    assert.equal(await exists(untouched.stateFile), false)
+
+    await resumeMerge()
+    for (const chain of [chain1, chain2]) {
+      assert.equal(await exists(chain.ancestorPath), false)
+      assert.equal(await exists(chain.stateFile), false)
+    }
+  })
+
+  test('stops between two backups while it loads them', async () => {
+    for (const name of ['a', 'b', 'c']) {
+      await handler.writeFile(`${rootPath}/${name}.xva`, 'xva')
+      await handler.writeFile(`${rootPath}/${name}.json`, JSON.stringify({ mode: 'full', xva: `./${name}.xva` }))
+    }
+    const before = (await handler.list(rootPath)).sort()
+
+    const controller = new AbortController()
+    let read = 0
+    const readFile = handler.readFile.bind(handler)
+    handler.readFile = async (path, ...args) => {
+      if (String(path).endsWith('.json')) {
+        ++read
+        controller.abort()
+      }
+      return readFile(path, ...args)
+    }
+    await assert.rejects(
+      VmBackupDirectory.cleanVm(handler, rootPath, {
+        remove: true,
+        merge: true,
+        signal: controller.signal,
+        logInfo: () => {},
+        logWarn: () => {},
+      }),
+      { name: 'AbortError' }
+    )
+    handler.readFile = readFile
+
+    assert.equal(read, 1, 'the other backups are not loaded')
+    assert.deepEqual((await handler.list(rootPath)).sort(), before)
+  })
+
+  test('does not stop once it removes the incomplete backups, so that the cache does not list them', async () => {
+    const chain = await createMergeChain(rootPath, relativePath)
+    await writeMetadata(rootPath, [chain])
+    // an incomplete backup: its disk is missing
+    await handler.writeFile(
+      `${rootPath}/incomplete.json`,
+      JSON.stringify({ mode: 'delta', vhds: [`${relativePath2}/gone.vhd`] })
+    )
+    await handler.writeFile(
+      `${rootPath}/cache.json.gz`,
+      await gzip(JSON.stringify({ [`/${rootPath}metadata.json`]: {}, [`/${rootPath}incomplete.json`]: {} }))
+    )
+
+    const controller = new AbortController()
+    const unlink = handler.unlink.bind(handler)
+    handler.unlink = async (path, ...args) => {
+      await unlink(path, ...args)
+      if (String(path).endsWith('incomplete.json')) {
+        controller.abort()
+      }
+    }
+    const result = await VmBackupDirectory.cleanVm(handler, rootPath, {
+      remove: true,
+      merge: true,
+      signal: controller.signal,
+      logInfo: () => {},
+      logWarn: () => {},
+    })
+    handler.unlink = unlink
+
+    assert.equal(controller.signal.aborted, true)
+    assert.ok(
+      result.removedFiles.some(file => file.endsWith('incomplete.json')),
+      'the removal is reported'
+    )
+    const cache = JSON.parse((await gunzip(await handler.readFile(`${rootPath}/cache.json.gz`))).toString())
+    assert.deepEqual(Object.keys(cache), [`/${rootPath}metadata.json`])
+  })
+})
+
+describe('cleanVm, abort during a merge of VHD directories', () => {
+  test('completes the merge once a block has moved, the backup stays restorable', async () => {
+    const opts = { mode: 'directory', useAlias: true }
+    const expected = await referenceDigest(opts)
+    const chain = await createMergeChain(rootPath, relativePath, opts)
+    await writeMetadata(rootPath, [chain])
+
+    const controller = new AbortController()
+    const rename = handler.rename.bind(handler)
+    handler.rename = async (from, ...args) => {
+      await rename(from, ...args)
+      if (String(from).includes('/blocks/')) {
+        controller.abort()
+      }
+    }
+    await VmBackupDirectory.cleanVm(handler, rootPath, {
+      remove: true,
+      merge: true,
+      signal: controller.signal,
+      logInfo: () => {},
+      logWarn: () => {},
+    }).finally(() => {
+      handler.rename = rename
+    })
+
+    assert.equal(controller.signal.aborted, true)
+    await assertMergeCompleted(chain, expected)
+  })
+})
+
+// A merge that completes after the signal is aborted has removed its state: the next clean would not know about it,
+// so the clean that ran it must update the metadata of its backup (size, disks no longer differencing)
+
+// the metadata of a delta backup of one VDI per chain, before any merge
+async function writeDeltaMetadata(path, chains) {
+  const vhds = {}
+  const vdis = {}
+  const isVhdDifferencing = {}
+  chains.forEach((chain, i) => {
+    vhds[`vdi${i}`] = chain.listed
+    vdis[`vdi${i}`] = {}
+    isVhdDifferencing[`vdi${i}`] = true
+  })
+  await handler.writeFile(path, JSON.stringify({ mode: 'delta', size: 12000, vhds, vdis, isVhdDifferencing }))
+}
+
+const readMetadata = async path => JSON.parse(await handler.readFile(path))
+
+// aborts the signal when a merge starts its final step (removal of the merged disks, rename of the result), which is
+// not stopped: the merge completes
+function abortAtFinalStep(controller) {
+  const writeFile = handler.writeFile.bind(handler)
+  handler.writeFile = async (path, data, ...args) => {
+    if (String(path).endsWith('.merge.json') && JSON.parse(data).step === 'cleanup') {
+      controller.abort()
+    }
+    return writeFile(path, data, ...args)
+  }
+  return () => {
+    handler.writeFile = writeFile
+  }
+}
+
+const cleanWithSignal = signal =>
+  VmBackupDirectory.cleanVm(handler, rootPath, {
+    remove: true,
+    merge: true,
+    signal,
+    logInfo: () => {},
+    logWarn: () => {},
+  })
+
+for (const { name, opts } of MERGE_FORMATS) {
+  describe(`cleanVm, abort once a merge has completed (${name})`, () => {
+    test('updates the metadata of the merged backup', async () => {
+      // the metadata of a merge never interrupted, on a backup of the same shape
+      const referenceRoot = 'xo-vm-backups/REFERENCE'
+      const reference = await createMergeChain(referenceRoot, `vdis/${jobId}/${uniqueId()}`, opts)
+      await writeDeltaMetadata(`${referenceRoot}/metadata.json`, [reference])
+      await VmBackupDirectory.cleanVm(handler, referenceRoot, {
+        remove: true,
+        merge: true,
+        logInfo: () => {},
+        logWarn: () => {},
+      })
+      const expected = await readMetadata(`${referenceRoot}/metadata.json`)
+
+      const chain = await createMergeChain(rootPath, relativePath, opts)
+      await writeDeltaMetadata(`${rootPath}/metadata.json`, [chain])
+
+      const controller = new AbortController()
+      const restore = abortAtFinalStep(controller)
+      await cleanWithSignal(controller.signal).finally(restore)
+
+      assert.equal(controller.signal.aborted, true)
+      assert.equal(await exists(chain.stateFile), false, 'the merge has completed')
+      const metadata = await readMetadata(`${rootPath}/metadata.json`)
+      assert.deepEqual(metadata.isVhdDifferencing, { vdi0: false })
+      assert.equal(metadata.size, expected.size)
+    })
+
+    test('does not update a backup whose other disk has its merge left, the next clean does', async () => {
+      const chains = [
+        await createMergeChain(rootPath, relativePath, opts),
+        await createMergeChain(rootPath, relativePath2, opts),
+      ]
+      await writeDeltaMetadata(`${rootPath}/metadata.json`, chains)
+
+      const controller = new AbortController()
+      const restore = abortAtFinalStep(controller)
+      await cleanWithSignal(controller.signal).finally(restore)
+
+      const left = []
+      for (const chain of chains) {
+        if (await exists(chain.ancestorPath)) {
+          left.push(chain)
+        }
+      }
+      assert.equal(left.length, 1, 'the merge running completes, the other one does not start')
+      // updated now, it would mark the disk still to merge as not differencing
+      const metadata = await readMetadata(`${rootPath}/metadata.json`)
+      assert.equal(metadata.size, 12000)
+      assert.deepEqual(metadata.isVhdDifferencing, { vdi0: true, vdi1: true })
+
+      await resumeMerge()
+      assert.equal(await exists(left[0].ancestorPath), false)
+      assert.deepEqual((await readMetadata(`${rootPath}/metadata.json`)).isVhdDifferencing, {
+        vdi0: false,
+        vdi1: false,
+      })
+    })
+
+    test('updates the backup whose merge has completed, not the one whose merge is left', async () => {
+      // two backups whose disks are in the same VDI directory
+      const chains = [
+        await createMergeChain(rootPath, relativePath, opts),
+        await createMergeChain(rootPath, relativePath, { ...opts, prefix: 'other-' }),
+      ]
+      await writeDeltaMetadata(`${rootPath}/metadata0.json`, [chains[0]])
+      await writeDeltaMetadata(`${rootPath}/metadata1.json`, [chains[1]])
+
+      const controller = new AbortController()
+      const restore = abortAtFinalStep(controller)
+      await cleanWithSignal(controller.signal).finally(restore)
+
+      const merged = []
+      for (const [i, chain] of chains.entries()) {
+        const isMerged = !(await exists(chain.ancestorPath))
+        if (isMerged) {
+          merged.push(i)
+        }
+        assert.deepEqual(
+          (await readMetadata(`${rootPath}/metadata${i}.json`)).isVhdDifferencing,
+          { vdi0: !isMerged },
+          `backup ${i}`
+        )
+      }
+      assert.equal(merged.length, 1, 'the merge running completes, the other one does not start')
+
+      await resumeMerge()
+      for (const i of [0, 1]) {
+        assert.deepEqual((await readMetadata(`${rootPath}/metadata${i}.json`)).isVhdDifferencing, { vdi0: false })
+      }
+    })
+  })
+}

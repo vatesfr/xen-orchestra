@@ -185,6 +185,17 @@ export class RemoteDisk extends RandomAccessDisk {
 
   /**
    * Abstract
+   * Whether `mergeBlock()` moves the blocks out of the child disk instead of copying them: the child cannot be read
+   * until the merge has completed.
+   * @param {RemoteDisk} childDisk
+   * @returns {Promise<boolean>} mergeMovesBlocks
+   */
+  async mergeMovesBlocks(childDisk) {
+    throw new Error(`mergeMovesBlocks must be implemented`)
+  }
+
+  /**
+   * Abstract
    * Manually set the disk allocated blocks.
    * @param {Array<number>} blockIds
    * @returns {Promise<void>}

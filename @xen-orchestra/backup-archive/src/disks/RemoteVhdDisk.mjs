@@ -309,6 +309,20 @@ export class RemoteVhdDisk extends RemoteDisk {
   }
 
   /**
+   * Between two VHD directories, a block is moved (renamed) out of the child: the child cannot be read until the merge
+   * has completed.
+   * @param {RemoteDisk} childDisk
+   * @returns {Promise<boolean>} mergeMovesBlocks
+   */
+  async mergeMovesBlocks(childDisk) {
+    return (
+      (childDisk instanceof RemoteVhdDisk || childDisk instanceof RemoteVhdDiskChain) &&
+      (await this.isDirectory()) &&
+      (await childDisk.isDirectory())
+    )
+  }
+
+  /**
    * Reads a specific block from the child disk to copy/move it to this disk.
    * @param {RemoteDisk} childDisk
    * @param {number} index
@@ -316,13 +330,11 @@ export class RemoteVhdDisk extends RemoteDisk {
    * @returns {Promise<number>} blockSize
    */
   async mergeBlock(childDisk, index, isResumingMerge) {
-    if (
-      (childDisk instanceof RemoteVhdDisk || childDisk instanceof RemoteVhdDiskChain) &&
-      (await this.isDirectory()) &&
-      (await childDisk.isDirectory())
-    ) {
+    if (await this.mergeMovesBlocks(childDisk)) {
+      // checked by mergeMovesBlocks()
+      const childVhd = /** @type {RemoteVhdDisk | RemoteVhdDiskChain} */ (childDisk)
       try {
-        await this.#handler.rename(childDisk.getBlockPath(index), this.getBlockPath(index))
+        await this.#handler.rename(childVhd.getBlockPath(index), this.getBlockPath(index))
 
         this.setAllocatedBlocks([index])
       } catch (error) {
