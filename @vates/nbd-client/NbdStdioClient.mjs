@@ -94,6 +94,7 @@ export default class NbdStdioClient extends AbstractNbdClient {
         serverError.code = 'NBD_SERVER_EXITED'
         serverError.exitCode = state.child.exitCode
         serverError.command = this.#command
+        serverError.stderr = state.stderr
         throw serverError
       }
       throw error

@@ -8,7 +8,12 @@ describe('NbdStdioClient', () => {
     // the end of stdout and the exit of the process come in either order: repeat
     for (let i = 0; i < 20; i++) {
       const client = new NbdStdioClient({ command: 'sh', args: ['-c', 'echo "the actual reason" >&2; exit 1'] })
-      await assert.rejects(client.connect(), { code: 'NBD_SERVER_EXITED', exitCode: 1, message: 'the actual reason' })
+      await assert.rejects(client.connect(), {
+        code: 'NBD_SERVER_EXITED',
+        exitCode: 1,
+        message: 'the actual reason',
+        stderr: 'the actual reason\n',
+      })
     }
   })
 })
