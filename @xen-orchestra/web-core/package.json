@@ -80,7 +80,6 @@
   },
   "scripts": {
     "postversion": "npm publish --access public",
-    "test": "yarn run type-check && vitest run",
     "test:ui": "vitest --ui",
     "type-check": "vue-tsc --build --force"
   }

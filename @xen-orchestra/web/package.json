@@ -10,7 +10,6 @@
     "build-only": "vite build",
     "type-check": "vue-tsc --build --force",
     "prepublishOnly": "yarn run build-only",
-    "test": "vitest run",
     "test:ui": "vitest --ui"
   },
   "devDependencies": {
@@ -26,7 +25,7 @@
     "@types/d3-time-format": "^4.0.3",
     "@types/lodash-es": "^4.17.12",
     "@types/node": "^18.19.80",
-    "@vates/types": "^2.5.0",
+    "@vates/types": "^3.0.0",
     "@vitejs/plugin-vue": "^6.0.0",
     "@vitest/ui": "^4.1.9",
     "@vue/test-utils": "^2.4.11",
