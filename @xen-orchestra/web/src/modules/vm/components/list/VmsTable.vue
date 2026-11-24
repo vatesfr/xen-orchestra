@@ -84,6 +84,7 @@ const {
 })
 
 const { HeadCells, BodyCells } = useVmColumns({
+  exclude: ['lastBackupDate'],
   head: () => ({
     checkbox: r => r(pageSelectionModel),
   }),

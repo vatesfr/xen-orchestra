@@ -45,6 +45,8 @@ mockXoBackupLogCollection()
 
 mockXoCollections('host', 'pbd', 'pool', 'sr')
 
+const backupRepositories: FrontXoBackupRepository[] = []
+
 mockModule(import('@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'), () => ({
   useXoBackupRepositoryCollection: (() => ({
     backupRepositories: ref(backupRepositories),
@@ -59,8 +61,6 @@ mockXoVmCollection()
 mockXoVmDeviceCollections('vbd', 'vdi')
 
 const vmBackupJob = createVmBackupJob()
-
-const backupRepositories: FrontXoBackupRepository[] = []
 
 const PROXY_ID = 'proxy-1' as FrontXoProxy['id']
 

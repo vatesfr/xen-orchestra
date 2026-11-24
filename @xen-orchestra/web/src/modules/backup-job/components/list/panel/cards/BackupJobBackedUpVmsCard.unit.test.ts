@@ -86,10 +86,11 @@ it('shows the first backed up VMs, offering to see the other ones', () => {
 })
 
 it('shows the query of a dynamic selection with the VMs it matches', () => {
-  const wrapper = mountBackedUpVmsCard('name_label:"VM 1"' as unknown as FrontXoVmBackupJob['vms'])
+  const wrapper = mountBackedUpVmsCard('vm:(name_label:"VM 1")' as unknown as FrontXoVmBackupJob['vms'])
 
   expect(wrapper.text()).toContain(t('dynamic-selection-query'))
   expect(wrapper.text()).toContain('name_label:"VM 1"')
+  expect(wrapper.text()).not.toContain('vm:(')
   expect(findVmLinks(wrapper)).toEqual([['VM 1', '/vm/vm-1/dashboard']])
 })
 

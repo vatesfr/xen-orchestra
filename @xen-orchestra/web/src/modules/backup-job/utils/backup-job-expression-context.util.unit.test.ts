@@ -1,8 +1,10 @@
 import {
   toBackupRepositoryExpressionContext,
+  toPoolExpressionContext,
   toSrExpressionContext,
 } from '@/modules/backup-job/utils/backup-job-expression-context.util.ts'
 import { createBr } from '@/test/create-br.ts'
+import { createPool } from '@/test/create-pool.ts'
 import { createSr } from '@/test/create-sr.ts'
 
 describe('toBackupRepositoryExpressionContext', () => {
@@ -26,5 +28,13 @@ describe('toSrExpressionContext', () => {
         createSr({ name_label: 'NFS storage', name_description: 'Shared', SR_type: 'nfs', tags: ['prod'] })
       )
     ).toEqual({ name_label: 'NFS storage', type: 'nfs', description: 'Shared', tags: ['prod'] })
+  })
+})
+
+describe('toPoolExpressionContext', () => {
+  it('exposes the pool under the property names used by the backups', () => {
+    expect(
+      toPoolExpressionContext(createPool({ name_label: 'Main pool', name_description: 'Production', tags: ['prod'] }))
+    ).toEqual({ name_label: 'Main pool', description: 'Production', tags: ['prod'] })
   })
 })

@@ -12,7 +12,7 @@ export function usePoolQueryBuilder(
 ) {
   const { t } = useI18n()
 
-  const { items, filter } = useQueryBuilderFilter(id, pools, options)
+  const { items, filter, searchBindings } = useQueryBuilderFilter(id, pools, options)
 
   const schema = useQueryBuilderSchema<FrontXoPool>({
     '': useStringSchema(t('any-property')),
@@ -21,5 +21,5 @@ export function usePoolQueryBuilder(
     tags: useStringSchema(t('tags')),
   })
 
-  return { items, filter, schema }
+  return { items, filter, searchBindings, schema }
 }
