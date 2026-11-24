@@ -40,7 +40,7 @@
     "@vates/fatfs": "^0.11.1",
     "@vates/multi-key-map": "^0.2.0",
     "@vates/nbd-client": "^3.7.0",
-    "@vates/obfuscate": "^0.1.0",
+    "@vates/obfuscate": "^0.2.0",
     "@vates/otp": "^1.1.0",
     "@vates/parse-duration": "^0.1.1",
     "@vates/predicates": "^1.1.0",
