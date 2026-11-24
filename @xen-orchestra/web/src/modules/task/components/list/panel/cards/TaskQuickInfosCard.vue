@@ -54,7 +54,7 @@
         <template #value>{{ formattedSize }}</template>
       </VtsCardRowKeyValue>
       <VtsCardRowKeyValue v-if="formattedSpeed !== undefined">
-        <template #key>{{ t('reading-speed') }}</template>
+        <template #key>{{ task.status === 'pending' ? t('reading-speed') : t('average-reading-speed') }}</template>
         <template #value>{{ formattedSpeed }}</template>
       </VtsCardRowKeyValue>
 
@@ -78,7 +78,7 @@
 <script lang="ts" setup>
 import { useXoTaskNameResolver } from '@/modules/task/composables/xo-task-name-resolver.composable.ts'
 import type { FrontXoTask } from '@/modules/task/remote-resources/use-xo-task-collection.ts'
-import { getTaskAccents, getTaskSpeed } from '@/modules/task/utils/xo-task.util.ts'
+import { getTaskAccents, getTaskAverageSpeed, getTaskSpeed } from '@/modules/task/utils/xo-task.util.ts'
 import { useXoUserResource } from '@/modules/user/remote-resources/use-xo-user.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCardRowList from '@core/components/card/VtsCardRowList.vue'
@@ -150,9 +150,9 @@ const formattedEndDate = computed(() => {
 })
 
 // reading speed of the sources (disks, XVA) still read by this task and its subtasks, each source counted once whatever
-// the number of targets: this is not the writing speed
+// the number of targets: this is not the writing speed. Once the task has ended, this is its average reading speed
 const formattedSpeed = computed(() => {
-  const bytesPerSecond = getTaskSpeed(task)
+  const bytesPerSecond = getTaskSpeed(task) ?? getTaskAverageSpeed(task)
 
   return bytesPerSecond ? formatSpeed(bytesPerSecond) : undefined
 })

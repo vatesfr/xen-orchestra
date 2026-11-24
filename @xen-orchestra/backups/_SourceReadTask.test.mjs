@@ -98,6 +98,7 @@ describe('SourceReadTask', () => {
       })
 
       assert.deepEqual(tasks.read.speeds, [1e3, 2e3])
+      assert.equal(tasks.read.properties.bytesRead, 15e3)
       assert.equal(tasks.read.status, 'success')
     } finally {
       mock.timers.reset()
@@ -233,6 +234,7 @@ describe('SourceReadTask', () => {
     })
 
     assert.equal(tasks['read disk'].status, 'failure')
+    assert.equal(tasks['read disk'].properties.bytesRead, 2 * BLOCK_SIZE)
     assert.equal(tasks['read disk'].result.message, 'NBD connection lost')
   })
 

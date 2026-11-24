@@ -77,7 +77,7 @@ export function getTaskRoute(taskId: FrontXoTask['id']): RouteLocationAsRelative
   }
 }
 
-type TaskSpeedTree = Pick<FrontXoTask, 'status' | 'properties'> & { tasks?: TaskSpeedTree[] }
+type TaskSpeedTree = Pick<FrontXoTask, 'start' | 'end' | 'status' | 'properties'> & { tasks?: TaskSpeedTree[] }
 
 /**
  * Current reading speed of a running task, in bytes per second: its own one (`speed` property of the tasks reading a
@@ -103,4 +103,38 @@ export function getTaskSpeed(task: TaskSpeedTree): number | undefined {
   }
 
   return sum
+}
+
+function getTaskBytesRead(task: TaskSpeedTree): number | undefined {
+  const { bytesRead } = task.properties
+
+  if (typeof bytesRead === 'number') {
+    return bytesRead
+  }
+
+  let sum: number | undefined
+
+  for (const subtask of task.tasks ?? []) {
+    const subtaskBytesRead = getTaskBytesRead(subtask)
+
+    if (subtaskBytesRead !== undefined) {
+      sum = (sum ?? 0) + subtaskBytesRead
+    }
+  }
+
+  return sum
+}
+
+/**
+ * Average reading speed of an ended task, in bytes per second: the bytes read by the task and its subtasks over its
+ * whole duration, which is more than the time spent reading for the tasks that are not reading a source themselves
+ */
+export function getTaskAverageSpeed(task: TaskSpeedTree): number | undefined {
+  if (task.end === undefined || task.end <= task.start) {
+    return undefined
+  }
+
+  const bytesRead = getTaskBytesRead(task)
+
+  return bytesRead !== undefined ? Math.round((bytesRead * 1e3) / (task.end - task.start)) : undefined
 }

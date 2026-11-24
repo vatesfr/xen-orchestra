@@ -13,12 +13,14 @@ const SPEED_INTERVAL = 5e3
  * early. A source never read (a step failing before the transfer, a disk without blocks) leaves no task
  *
  * The current reading speed, in bytes per second, is reported in the `speed` property every 5 seconds: it is 0 when
- * the source is stalled
+ * the source is stalled. The total number of bytes read is reported in the `bytesRead` property at the end, to compute
+ * the average speed
  *
  * Implements `ReadMeter` from `@xen-orchestra/disk-transform`
  */
 export class SourceReadTask {
   #bytesRead = 0
+  #bytesReadSinceLastSpeed = 0
   #lastSpeed
   #speedInterval
   #task
@@ -45,11 +47,12 @@ export class SourceReadTask {
 
     // late reads, after the end, are never reported
     this.#bytesRead += length
+    this.#bytesReadSinceLastSpeed += length
   }
 
   #reportSpeed() {
-    const speed = Math.round((this.#bytesRead * 1e3) / SPEED_INTERVAL)
-    this.#bytesRead = 0
+    const speed = Math.round((this.#bytesReadSinceLastSpeed * 1e3) / SPEED_INTERVAL)
+    this.#bytesReadSinceLastSpeed = 0
     // a source stalled for a long time must not emit an event every interval
     if (speed !== this.#lastSpeed) {
       this.#lastSpeed = speed
@@ -69,6 +72,7 @@ export class SourceReadTask {
       return
     }
     clearInterval(this.#speedInterval)
+    task.set('bytesRead', this.#bytesRead)
     if (error === undefined) {
       task.success()
     } else {
