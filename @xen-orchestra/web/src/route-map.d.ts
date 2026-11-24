@@ -311,27 +311,6 @@ declare module 'vue-router/auto-routes' {
       { id: ParamValue<false> },
       | never
     >,
-    '/network/new': RouteRecordInfo<
-      '/network/new',
-      '/network/new',
-      Record<never, never>,
-      Record<never, never>,
-      | never
-    >,
-    '/network/new-bonded': RouteRecordInfo<
-      '/network/new-bonded',
-      '/network/new-bonded',
-      Record<never, never>,
-      Record<never, never>,
-      | never
-    >,
-    '/network/new-internal': RouteRecordInfo<
-      '/network/new-internal',
-      '/network/new-internal',
-      Record<never, never>,
-      Record<never, never>,
-      | never
-    >,
     '/pool/[id]': RouteRecordInfo<
       '/pool/[id]',
       '/pool/:id',
@@ -846,24 +825,6 @@ declare module 'vue-router/auto-routes' {
     'src/pages/network/[id]/pifs.vue': {
       routes:
         | '/network/[id]/pifs'
-      views:
-        | never
-    }
-    'src/pages/network/new.vue': {
-      routes:
-        | '/network/new'
-      views:
-        | never
-    }
-    'src/pages/network/new-bonded.vue': {
-      routes:
-        | '/network/new-bonded'
-      views:
-        | never
-    }
-    'src/pages/network/new-internal.vue': {
-      routes:
-        | '/network/new-internal'
       views:
         | never
     }
