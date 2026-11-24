@@ -735,3 +735,200 @@ describe('after an abort', () => {
     ])
   })
 })
+
+describe('with the cleanup skipped', () => {
+  // runs `fn(task)` inside a task, as the VM runners are run inside their VM task
+  const runInTask = fn => {
+    const task = new Task({ onProgress() {} })
+    return task.run(() => fn(task))
+  }
+
+  // `count` old exported snapshots of the job, which a retention of 0 removes
+  const makeRetentionRunner = ({ count, onDestroy }) => {
+    const destroyed = []
+    const registry = {}
+    const vdis = []
+    for (let i = 0; i < count; i++) {
+      const vm = { $ref: `vm-${i}`, name_label: `old-${i}`, is_control_domain: false, $snapshot_of: 'live-vm-ref' }
+      const vdi = {
+        $ref: `vdi-${i}`,
+        other_config: {
+          [DATETIME]: `2024010${i + 1}T00:00:00Z`,
+          [SCHEDULE_ID]: 'schedule-1',
+          [EXPORTED_SUCCESSFULLY]: 'true',
+        },
+        $VBDs: [{ $VM: vm }],
+      }
+      vdis.push(vdi)
+      registry[vdi.$ref] = vdi
+    }
+    const runner = makeRunner({
+      _vm: { uuid: 'live-uuid', $snapshots: [] },
+      _baseSettings: { snapshotRetention: 0 },
+      _jobSnapshotVdis: vdis,
+      _disklessJobSnapshotVms: [],
+      job: { mode: 'full', settings: {} },
+      _xapi: {
+        barrier: async () => {},
+        getObject: ref => registry[ref],
+        VM_destroy: async ref => {
+          destroyed.push(ref)
+          onDestroy?.(ref)
+        },
+        VDI_destroy: async ref => {
+          destroyed.push(ref)
+        },
+      },
+    })
+    return { runner, destroyed }
+  }
+
+  it('_removeUnusedSnapshots() destroys nothing when the cleanup is already aborted', async () => {
+    const { runner, destroyed } = makeRetentionRunner({ count: 3 })
+
+    await runInTask(async task => {
+      task.abortCleanup()
+      await runner._removeUnusedSnapshots()
+    })
+
+    assert.deepEqual(destroyed, [])
+  })
+
+  it('_removeUnusedSnapshots() destroys no further snapshot once the cleanup is aborted, the next run does', async () => {
+    let task
+    const { runner, destroyed } = makeRetentionRunner({ count: 3, onDestroy: () => task.abortCleanup() })
+
+    await runInTask(async t => {
+      task = t
+      await runner._removeUnusedSnapshots()
+    })
+
+    assert.equal(destroyed.length, 1, 'the destroy in progress is not cancelled, the others are not started')
+
+    // the next run applies the retention to what is left
+    runner._xapi.VM_destroy = async ref => destroyed.push(ref)
+    runner._jobSnapshotVdis = runner._jobSnapshotVdis.filter(vdi => !destroyed.includes(vdi.$VBDs[0].$VM.$ref))
+    await runInTask(() => runner._removeUnusedSnapshots())
+    assert.equal(destroyed.length, 3)
+  })
+
+  it('_removeUnusedSnapshots() still removes everything when only the backup is aborted (level 1)', async () => {
+    const { runner, destroyed } = makeRetentionRunner({ count: 3 })
+
+    await runInTask(async task => {
+      task.abort()
+      await runner._removeUnusedSnapshots()
+    })
+
+    assert.equal(destroyed.length, 3)
+  })
+
+  const makeSnapshotDataRunner = ({ onVmDestroy } = {}) => {
+    const calls = { vmDestroyed: [], dataDestroyed: [] }
+    const runner = makeRunner({
+      _exportedVm: { $ref: 'snapshot-ref', $snapshot_of: 'live-vm-ref' },
+      _settings: { snapshotRetention: 0, preferNbd: true, cbtDestroySnapshotData: true },
+      _xapi: {
+        VM_getDisks: async () => ['vdi-1', 'vdi-2'],
+        call: async (method, ref) => {
+          calls.vmDestroyed.push(`${method}:${ref}`)
+          onVmDestroy?.()
+        },
+        VDI_dataDestroy: async ref => {
+          calls.dataDestroyed.push(ref)
+        },
+      },
+    })
+    return { calls, runner }
+  }
+
+  it('_removeSnapshotData() is skipped when the cleanup is already aborted', async () => {
+    const { calls, runner } = makeSnapshotDataRunner()
+
+    await runInTask(async task => {
+      task.abortCleanup()
+      await runner._removeSnapshotData()
+    })
+
+    assert.deepEqual(calls, { vmDestroyed: [], dataDestroyed: [] })
+  })
+
+  it('_removeSnapshotData() completes once started, even if the cleanup is then skipped', async () => {
+    let task
+    const { calls, runner } = makeSnapshotDataRunner({ onVmDestroy: () => task.abortCleanup() })
+
+    await runInTask(async t => {
+      task = t
+      await runner._removeSnapshotData()
+    })
+
+    assert.deepEqual(calls.vmDestroyed, ['VM.destroy:snapshot-ref'])
+    assert.deepEqual(
+      calls.dataDestroyed,
+      ['vdi-1', 'vdi-2'],
+      'no VDI is left with its data, which the next run would miss'
+    )
+  })
+
+  // the steps kept at level 2: the VM must be usable and unblocked, and the writers must release their locks
+  const makeKeptStepsRunner = ({ calls, vmTask, offline }) =>
+    makeRunner({
+      _settings: { offlineBackup: offline, snapshotRetention: 0 },
+      _vm: {
+        uuid: 'live-uuid',
+        power_state: 'Running',
+        blocked_operations: {},
+        update_blocked_operations: async ops => {
+          calls.push(Object.values(ops).every(_ => _ === null) ? 'unblock' : 'block')
+        },
+        $call: async () => {},
+        $callAsync: async method => {
+          calls.push(method)
+        },
+      },
+      _writers: new Set([{ beforeBackup: async () => {}, afterBackup: async () => calls.push('afterBackup') }]),
+      _xapi: {},
+      _cleanMetadata: async () => {},
+      _fetchJobSnapshots: async () => {},
+      _selectBaseVm: async () => {},
+      _removeUnusedSnapshots: async () => {
+        // the user skips the cleanup while the snapshots are removed
+        calls.push('removeUnusedSnapshots')
+        vmTask.abortCleanup()
+      },
+      _removeSnapshotData: async () => calls.push('removeSnapshotData'),
+      _healthCheck: async () => calls.push('healthCheck'),
+      _snapshot: async function () {
+        this._exportedVm = { $ref: 'snapshot-ref', is_a_snapshot: true }
+      },
+      _copy: async () => {
+        vmTask.abort()
+        throw Task.abortSignal.reason
+      },
+    })
+
+  it('run() still restores the blocked operations and calls afterBackup() when the cleanup is skipped', async () => {
+    const calls = []
+    const vmTask = new Task({ onProgress() {} })
+    const runner = makeKeptStepsRunner({ calls, vmTask, offline: false })
+
+    await vmTask.run(() => assert.rejects(runner.run(), { name: 'AbortError' })).catch(() => {})
+
+    assert.ok(calls.includes('unblock'), 'the VM can be migrated again')
+    assert.ok(calls.includes('afterBackup'), 'the writers release their locks')
+    assert.ok(!calls.includes('healthCheck'))
+  })
+
+  it('run() still starts again a VM shut down for an offline backup when the cleanup is skipped', async () => {
+    const calls = []
+    const vmTask = new Task({ onProgress() {} })
+    const runner = makeKeptStepsRunner({ calls, vmTask, offline: true })
+
+    await vmTask.run(() => assert.rejects(runner.run(), { name: 'AbortError' })).catch(() => {})
+
+    assert.deepEqual(
+      calls.filter(_ => _ === 'clean_shutdown' || _ === 'start'),
+      ['clean_shutdown', 'start']
+    )
+  })
+})

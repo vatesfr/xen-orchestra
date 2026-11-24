@@ -449,3 +449,42 @@ describe('RemoteAdapter raw blocks copy', { concurrency: 1 }, () => {
     )
   })
 })
+
+describe('RemoteAdapter#cleanVm() with a signal', { concurrency: 1 }, () => {
+  const strayFile = `${rootPath}/stray.xva`
+
+  async function prepare() {
+    const adapter = await getAdapter()
+    const timestamp = Date.now()
+    await writeFullBackup(adapter, timestamp)
+    // the xva of the backup, without it a clean removes the backup as incomplete
+    await handler.writeFile(`${rootPath}/${formatFilenameDate(timestamp)}.xva`, 'xva')
+    // an orphan that a clean with `remove` deletes
+    await handler.writeFile(strayFile, 'not a backup')
+    return adapter
+  }
+
+  test('removes nothing and rejects with the abort reason once the signal is aborted', async () => {
+    const adapter = await prepare()
+    const controller = new AbortController()
+    controller.abort()
+
+    await assert.rejects(adapter.cleanVm(rootPath, { remove: true, lock: false, signal: controller.signal }), {
+      name: 'AbortError',
+    })
+
+    assert.ok((await listVmDir()).includes('stray.xva'), 'the orphan is left to the next clean')
+  })
+
+  test('the next clean, without a signal, removes what the aborted one left', async () => {
+    const adapter = await prepare()
+    const controller = new AbortController()
+    controller.abort()
+    await assert.rejects(adapter.cleanVm(rootPath, { remove: true, lock: false, signal: controller.signal }))
+
+    await adapter.cleanVm(rootPath, { remove: true, lock: false })
+
+    assert.ok(!(await listVmDir()).includes('stray.xva'))
+    assert.equal((await adapter.listVmBackups(vmUuid)).length, 1, 'the backup is still listed')
+  })
+})

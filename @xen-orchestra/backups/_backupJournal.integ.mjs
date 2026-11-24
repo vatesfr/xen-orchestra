@@ -240,6 +240,49 @@ describe('backup journal', { concurrency: 1 }, () => {
     )
   })
 
+  test('a clean whose cleanup is skipped while it removes an incomplete backup still records it', async () => {
+    await handler.outputFile(
+      `/${rootPath}/incomplete.json`,
+      JSON.stringify({ mode: 'delta', vhds: { vdi: `${relativePath}/gone.vhd` }, vdis: { vdi: {} } })
+    )
+    const parent = await generateVhd(`${basePath}/parent.vhd`, { blocks: [0] })
+    await generateVhd(`${basePath}/child.vhd`, {
+      header: { parentUnicodeName: 'parent.vhd', parentUuid: parent.footer.uuid },
+      blocks: [1],
+    })
+    await handler.outputFile(
+      `/${rootPath}/complete.json`,
+      JSON.stringify({ mode: 'delta', vhds: { vdi: `${relativePath}/child.vhd` }, vdis: { vdi: {} }, size: 1 })
+    )
+
+    // the cleanup is skipped right after the removal of the incomplete backup
+    const controller = new AbortController()
+    const unlink = handler.unlink.bind(handler)
+    handler.unlink = async (path, ...args) => {
+      await unlink(path, ...args)
+      if (String(path).endsWith('incomplete.json')) {
+        controller.abort()
+      }
+    }
+    const cursor = await mark()
+    await adapter.cleanVm(rootPath, {
+      remove: true,
+      merge: true,
+      signal: controller.signal,
+      logInfo: noop,
+      logWarn: noop,
+      lock: false,
+    })
+    handler.unlink = unlink
+    assert.equal(controller.signal.aborted, true)
+
+    const entries = await adapter.readBackupJournal(cursor)
+    assert.deepEqual(entries.map(({ event, filename, reason }) => ({ event, filename, reason })).sort(byFilename), [
+      { event: 'change', filename: `/${rootPath}/complete.json`, reason: 'merge' },
+      { event: 'del', filename: `/${rootPath}/incomplete.json`, reason: 'clean-vm' },
+    ])
+  })
+
   test('a dry run of cleanVm() records nothing', async () => {
     await handler.outputFile(
       `/${rootPath}/incomplete.json`,

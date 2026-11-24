@@ -1,3 +1,5 @@
+import { Task } from '@vates/task'
+
 import { AbstractAggregatedRemoteWriter } from './_AbstractAggregatedRemoteWriter.mjs'
 
 export class AggregatedFullRemoteWriter extends AbstractAggregatedRemoteWriter {
@@ -23,10 +25,10 @@ export class AggregatedFullRemoteWriter extends AbstractAggregatedRemoteWriter {
     return this.mainWriter.run(props)
   }
 
-  // cleanup if deleteFirst is NOT selected
+  // cleanup if deleteFirst is NOT selected, unless the cleanup has been skipped (level 2 abort): the next run does it
   // release  the lock on every adapters with this VM
   async afterBackup() {
-    if (!this.props.settings.deleteFirst) {
+    if (!this.props.settings.deleteFirst && Task.cleanupSignal?.aborted !== true) {
       await this.deleteOldBackups()
     }
     await Promise.all(this.writers.map(writer => writer.afterBackup()))

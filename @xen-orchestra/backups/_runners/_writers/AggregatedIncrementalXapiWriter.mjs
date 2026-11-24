@@ -1,5 +1,6 @@
 import { AbstractAggregatedXapiWriter } from './_AbstractAggregatedXapiWriter.mjs'
 import { createLogger } from '@xen-orchestra/log'
+import { Task } from '@vates/task'
 
 const { debug } = createLogger('xo:backups:AggregatedIncrementalXapiWriter')
 export class AggregatedIncrementalXapiWriter extends AbstractAggregatedXapiWriter {
@@ -60,10 +61,12 @@ export class AggregatedIncrementalXapiWriter extends AbstractAggregatedXapiWrite
     return this.mainWriter.transfer(args)
   }
 
-  // remove the backups and remove the entries
+  // remove the backups and remove the entries, unless the cleanup has been skipped (level 2 abort): the next run does it
   async cleanup() {
     debug('cleanup')
-    await this.deleteOldReplicas()
+    if (Task.cleanupSignal?.aborted !== true) {
+      await this.deleteOldReplicas()
+    }
     await Promise.all(this.writers.map(writer => writer.cleanup()))
   }
 
