@@ -3,7 +3,8 @@
     <template #title>{{ t('new-vif:add') }}</template>
 
     <template #content>
-      <UiTitle class="section-title">{{ t('configuration') }}</UiTitle>
+      <UiTitle>{{ t('configuration') }}</UiTitle>
+      <VtsRequiredHint class="required-hint" />
       <NewVifForm ref="form" :vm-id :pool-id />
     </template>
 
@@ -21,6 +22,7 @@ import type { NewVifPayload } from '@/modules/vif/jobs/xo-vif-create.job.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import VtsOverlayCancelButton from '@core/components/overlay/VtsOverlayCancelButton.vue'
 import VtsOverlayConfirmButton from '@core/components/overlay/VtsOverlayConfirmButton.vue'
+import VtsRequiredHint from '@core/components/required-hint/VtsRequiredHint.vue'
 import UiDrawer from '@core/components/ui/drawer/UiDrawer.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { useTemplateRef } from 'vue'
@@ -51,8 +53,8 @@ async function handleConfirm() {
 
 <style lang="postcss" scoped>
 .new-vif-drawer {
-  .section-title {
-    margin-block-end: 2.4rem;
+  .required-hint {
+    margin-block: 2.4rem;
   }
 }
 </style>

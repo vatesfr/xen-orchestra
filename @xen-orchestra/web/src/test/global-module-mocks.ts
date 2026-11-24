@@ -67,6 +67,8 @@ vi.mock(import('@/modules/v2v/remote-resources/use-xo-v2v-status.ts'), spyOnOrig
 vi.mock(import('@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'), spyOnOriginal)
 vi.mock(import('@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'), spyOnOriginal)
 vi.mock(import('@/modules/vdi/remote-resources/use-xo-vdi-snapshot-collection.ts'), spyOnOriginal)
+vi.mock(import('@/modules/vif/composables/use-new-vif.composable.ts'), spyOnOriginal)
+vi.mock(import('@/modules/vif/jobs/xo-vif-create.job.ts'), spyOnOriginal)
 vi.mock(import('@/modules/vif/remote-resources/use-xo-vif-collection.ts'), spyOnOriginal)
 vi.mock(import('@/modules/vm/composables/use-vm-bulk-power-state-actions.composable.ts'), spyOnOriginal)
 vi.mock(import('@/modules/vm/composables/use-vm-delete.composable.ts'), spyOnOriginal)
