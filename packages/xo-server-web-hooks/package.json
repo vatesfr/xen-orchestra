@@ -29,7 +29,7 @@
     "node": ">=8.10"
   },
   "dependencies": {
-    "@xen-orchestra/log": "^0.7.2"
+    "@xen-orchestra/log": "^1.0.0"
   },
   "devDependencies": {
     "@babel/cli": "^7.29.0",

@@ -25,7 +25,7 @@
     "@vates/parse-duration": "^0.1.1",
     "@vates/task": "^0.7.0",
     "@xen-orchestra/backup-archive": "^1.2.0",
-    "@xen-orchestra/log": "^0.7.2",
+    "@xen-orchestra/log": "^1.0.0",
     "acme-client": "^5.0.0",
     "app-conf": "^3.0.0",
     "fast-xml-parser": "^4.0.0",
