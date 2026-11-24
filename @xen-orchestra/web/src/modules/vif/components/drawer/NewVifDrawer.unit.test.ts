@@ -3,6 +3,7 @@ import { createNetwork } from '@/test/create-network.ts'
 import { createVm } from '@/test/create-vm.ts'
 import { cancelDrawer, submitDrawer } from '@/test/drawer.ts'
 import { getInputWrapper } from '@/test/find-input-labels.ts'
+import { dangerMessage } from '@/test/form-messages.ts'
 import { t } from '@/test/i18n.ts'
 import { xoCollectionsMock, mockXoCollections } from '@/test/mock-xo-collections.ts'
 import { mountWithProps } from '@/test/mount-with-props.ts'
@@ -39,6 +40,7 @@ describe('confirm', () => {
     await submitDrawer(wrapper)
 
     expect(wrapper.emitted('confirm')).toBeUndefined()
+    expect(getInputWrapper(wrapper, t('network')).props('message')).toEqual(dangerMessage(t('network-required')))
   })
 
   it('confirms with the VIF to create on the VM of the page', async () => {
