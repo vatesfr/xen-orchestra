@@ -6,9 +6,9 @@ import { findCardTitle } from '@/test/find-card-title.ts'
 import { findSelectStubLabels } from '@/test/find-select-stub-labels.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
-import { mountWithSelect } from '@/test/mount-with-select.ts'
-import { openSelect } from '@/test/select.ts'
+import { mountWithSetup } from '@/test/mount-with-setup.ts'
 import { useFormSelect } from '@core/packages/form-select'
+import { openSelect } from '@core-test/select.ts'
 import { mount } from '@vue/test-utils'
 import { h } from 'vue'
 
@@ -32,7 +32,7 @@ it('lets the user choose the pool', () => {
 it('shows each pool option with its name and resource counts', async () => {
   const pool = createPool()
   const counts = { hosts: 1, srs: 4, networks: 6 }
-  const wrapper = mountWithSelect(() => {
+  const wrapper = mountWithSetup(() => {
     const { id } = useFormSelect([pool], { option: { label: 'name_label', properties: () => ({ counts }) } })
 
     return () => h(V2vDestinationPoolCard, { poolSelectBindings: { ...POOL_SELECT_BINDINGS, id } })

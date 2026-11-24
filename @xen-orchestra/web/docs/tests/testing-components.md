@@ -202,7 +202,7 @@ Pushing before mounting is what makes the active tab assertable; without a push 
 How `VtsSelect` renders and opens its options belongs to the web-core tests, never to an XO 6 one; XO 6's `FormSelect` wraps it:
 
 - A component that only passes select bindings on is mounted with `createGlobalTestConfig({ stubs: { FormSelect: true } })`, given `createSelectBindings`, and read with `findSelectStubLabels`.
-- The options a form builds (their labels, their custom properties) are read by mounting the form with `mountWithSelect`, rendering a `VtsSelect` for its select, then `openSelect` and `findSelectOptionLabels`; `findShownSelections` reads the selection each select shows.
+- The options a form builds (their labels, their custom properties) are read by mounting the form with `mountWithSetup` (`mountWithSetupResult` when the test reads the form too; it takes the `createGlobalTestConfig` options, as `mountUnderNewVmForm` does), rendering its select with `renderSelect(id)` (`@core-test/mount-with-select.ts`), then `openSelect` and `findSelectOptionLabels`; `findShownSelections` reads the selection each select shows. Those readers live in web-core (`@core-test/select.ts`), beside the `mountWithSetup` (`@core-test/mount-with-setup.ts`) that XO 6's wraps.
 
 ## Remote-resource collections
 

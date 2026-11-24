@@ -9,11 +9,10 @@ import { createNetwork } from '@/test/create-network.ts'
 import { createPif } from '@/test/create-pif.ts'
 import { createPool } from '@/test/create-pool.ts'
 import { createVm } from '@/test/create-vm.ts'
-import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { xoCollectionsMock, mockXoCollections } from '@/test/mock-xo-collections.ts'
-import type { FormSelect, FormSelectId } from '@core/packages/form-select'
-import { mount } from '@vue/test-utils'
-import { defineComponent, h, inject, nextTick } from 'vue'
+import { mountComposableUnderSetup } from '@/test/mount-with-setup.ts'
+import { injectOrThrow } from '@core-test/inject-or-throw.ts'
+import { nextTick } from 'vue'
 
 mockXoCollections('host', 'network', 'pif', 'pool')
 
@@ -106,46 +105,16 @@ beforeEach(() => {
   xoCollectionsMock.pifs.value = pifs
 })
 
-type SelectProbe = { select: FormSelect }
-
-const SelectProbe = defineComponent({
-  props: { selectId: { type: Symbol, required: true } },
-  setup(props) {
-    return { select: inject(props.selectId as FormSelectId) }
-  },
-  render: () => null,
-})
-
 function mountVmMigrateForm(vm: FrontXoVm = createVm({ $pool: POOL_ID, $container: SOURCE_HOST_ID })) {
-  let form: ReturnType<typeof useVmMigrateForm> | undefined
-
-  const wrapper = mount(
-    defineComponent({
-      setup() {
-        form = useVmMigrateForm(vm)
-
-        const { hostSelectBindings, migrationNetworkSelectBindings } = form
-
-        return () => [
-          h(SelectProbe, { selectId: hostSelectBindings.value.id }),
-          h(SelectProbe, { selectId: migrationNetworkSelectBindings.value.id }),
-        ]
-      },
-    }),
-    { global: createGlobalTestConfig() }
+  const { provided: form, result } = mountComposableUnderSetup(
+    () => useVmMigrateForm(vm),
+    ({ hostSelectBindings, migrationNetworkSelectBindings }) => ({
+      hostSelect: injectOrThrow(hostSelectBindings.value.id),
+      networkSelect: injectOrThrow(migrationNetworkSelectBindings.value.id),
+    })
   )
 
-  const [hostProbe, networkProbe] = wrapper.findAllComponents(SelectProbe)
-
-  if (form === undefined || hostProbe === undefined || networkProbe === undefined) {
-    throw new Error('VM migrate form did not mount')
-  }
-
-  return {
-    form,
-    hostSelect: (hostProbe.vm as unknown as SelectProbe).select,
-    networkSelect: (networkProbe.vm as unknown as SelectProbe).select,
-  }
+  return { form, ...result }
 }
 
 describe('host select', () => {

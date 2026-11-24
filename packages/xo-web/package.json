@@ -1,7 +1,7 @@
 {
   "private": true,
   "name": "xo-web",
-  "version": "5.208.0",
+  "version": "5.209.0",
   "license": "AGPL-3.0-or-later",
   "description": "Web interface client for Xen-Orchestra",
   "keywords": [
@@ -41,7 +41,7 @@
     "@vates/async-each": "^1.0.3",
     "@xen-orchestra/cron": "^1.0.7",
     "@xen-orchestra/defined": "^0.0.2",
-    "@xen-orchestra/log": "^0.7.2",
+    "@xen-orchestra/log": "^1.0.0",
     "@xen-orchestra/template": "^0.1.1",
     "ansi_up": "^5.0.0",
     "asap": "^2.0.6",

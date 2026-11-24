@@ -1,6 +1,9 @@
 <template>
   <UiTitle>
     {{ t('backup-jobs') }}
+    <template #action>
+      <slot name="title-actions" />
+    </template>
   </UiTitle>
   <div class="search-and-filters">
     <VtsQueryBuilder v-bind="searchBindings" :schema />
@@ -58,6 +61,10 @@ const { backupJobs, busy, error } = defineProps<{
   backupJobs: FrontAnyXoBackupJob[]
   busy: boolean
   error: boolean
+}>()
+
+defineSlots<{
+  'title-actions'?(): any
 }>()
 
 const { t } = useI18n()
