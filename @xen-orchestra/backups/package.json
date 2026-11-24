@@ -37,7 +37,7 @@
     "@xen-orchestra/log": "^1.0.0",
     "@xen-orchestra/qcow2": "^1.4.1",
     "@xen-orchestra/template": "^0.1.1",
-    "@xen-orchestra/backup-archive": "^1.2.0",
+    "@xen-orchestra/backup-archive": "^1.2.1",
     "app-conf": "^3.0.0",
     "compare-versions": "^6.0.0",
     "complex-matcher": "^1.1.1",
