@@ -4,7 +4,11 @@
       :id="vdi.id"
       size="medium"
       :label="vdi.name_label"
-      :to="{ name: '/vdi/[id]/general', params: { id: vdi.id }, query: { from: VDI_PAGE_CONTEXT.VM } }"
+      :to="{
+        name: '/vdi/[id]/general',
+        params: { id: vdi.id },
+        query: { from: fromContext },
+      }"
       :icon="vdiIcon"
     />
     <VtsCardRowList>
@@ -35,7 +39,7 @@
           <VtsCopyButton :value="vbdsStatus" />
         </template>
       </VtsCardRowKeyValue>
-      <VtsCardRowKeyValue>
+      <VtsCardRowKeyValue v-if="isFromVm">
         <template #key>{{ t('device') }}</template>
         <template #value>{{ vdiDevice }}</template>
         <template v-if="vdiDevice" #addons>
@@ -48,10 +52,10 @@
 
 <script lang="ts" setup>
 import { useVbdsStatus, type VbdAttachmentStatus } from '@/modules/vbd/composables/use-vbds-status.composable.ts'
+import type { FrontXoVbd } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
+import { useVdiPageContext } from '@/modules/vdi/composables/use-vdi-page-context.composable.ts'
 import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
-import { useXoVmVbdsUtils } from '@/modules/vm/composables/xo-vm-vbd-utils.composable.ts'
-import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
-import { VDI_PAGE_CONTEXT } from '@/shared/constants.ts'
+import type { VdiPageContext } from '@/shared/constants.ts'
 import type { IconName } from '@core/icons'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCardRowList from '@core/components/card/VtsCardRowList.vue'
@@ -66,12 +70,15 @@ import { CONNECTION_STATUS } from '@core/types/connection.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { vdi, vm } = defineProps<{
+const { vdi, vbd, fromContext } = defineProps<{
   vdi: FrontXoVdi
-  vm: FrontXoVm
+  vbd?: FrontXoVbd
+  fromContext: VdiPageContext
 }>()
 
 const { t } = useI18n()
+
+const { isFromVm } = useVdiPageContext(() => fromContext)
 
 const vbdsAttachmentStatus = useVbdsStatus(() => vdi.$VBDs)
 
@@ -95,7 +102,5 @@ const vbdsStatus = useMapper<VbdAttachmentStatus, (typeof CONNECTION_STATUS)[key
   'noneAttached'
 )
 
-const { notCdDriveVbds } = useXoVmVbdsUtils(() => vm)
-
-const vdiDevice = computed(() => notCdDriveVbds.value.find(vbd => vbd.VDI === vdi.id)?.device ?? '')
+const vdiDevice = computed(() => vbd?.device ?? '')
 </script>

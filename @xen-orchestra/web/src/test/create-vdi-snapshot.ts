@@ -1,5 +1,9 @@
 import type { FrontXoVdiSnapshot } from '@/modules/vdi/remote-resources/use-xo-vdi-snapshot-collection.ts'
 
+/**
+ * Builds a fully-populated `FrontXoVdiSnapshot` for use in tests. Pass
+ * `overrides` to tweak only the fields relevant to the case under test.
+ */
 export function createVdiSnapshot(overrides: Partial<FrontXoVdiSnapshot> = {}): FrontXoVdiSnapshot {
   return {
     id: 'vdi-snapshot-1' as FrontXoVdiSnapshot['id'],
