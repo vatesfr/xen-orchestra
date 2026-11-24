@@ -2,7 +2,7 @@
   <div class="schedule-step-input typo-body-regular">
     <span>{{ t('every') }}</span>
     <span class="step">
-      <UiInput :model-value="step ?? ''" accent="brand" type="number" @update:model-value="updateStep($event)" />
+      <UiInput :model-value="step ?? ''" accent="neutral" type="number" @update:model-value="updateStep($event)" />
     </span>
     <span>{{ unit }}</span>
   </div>
