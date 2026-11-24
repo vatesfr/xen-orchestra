@@ -80,6 +80,8 @@
 - [REST API] Check that a proxy can be reached: `GET /rest/v0/proxies/:id/health` (PR [#10752](https://github.com/vatesfr/xen-orchestra/pull/10752))
 - [Backups] A backup job running in the xo-server process (`backups.disableWorkers`) can be aborted from its task (tasks view, REST API, or the "run schedule" action): the reads and writes stop, the partial backups are removed and the VMs are reported as interrupted (PR [#10875](https://github.com/vatesfr/xen-orchestra/pull/10875))
 - [@vates/task] With the new `skipSubtasksAfterAbort` option of a root task, a subtask created after the abort fails without running, unless it is created with `cleanup: true`, which is meant for the cleanup steps of an aborted task (PR [#10875](https://github.com/vatesfr/xen-orchestra/pull/10875))
+- [Backups] The cleanup of an aborted backup job running in the xo-server process (removal of old snapshots, clean of the backup repository, merges) can itself be stopped with `skipCleanup` (`POST /rest/v0/tasks/:id/actions/abort` with `{ "skipCleanup": true }`): what is left is cleaned by the next run (PR [#10918](https://github.com/vatesfr/xen-orchestra/pull/10918))
+- [@vates/task] `task.abortCleanup()` stops the cleanup subtasks of a task, which follow `Task.cleanupSignal` (PR [#10918](https://github.com/vatesfr/xen-orchestra/pull/10918))
 
 ### Bug fixes
 
@@ -133,6 +135,7 @@
 - @vates/types major
 - @xen-orchestra/acl minor
 - @xen-orchestra/autopilot-docking minor
+- @xen-orchestra/backup-archive minor
 - @xen-orchestra/backups major
 - @xen-orchestra/fs minor
 - @xen-orchestra/log major
