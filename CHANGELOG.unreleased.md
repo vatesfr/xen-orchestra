@@ -87,6 +87,7 @@
 - [XO6/Tasks] Add a "My tasks" sidebar (PR [#10805](https://github.com/vatesfr/xen-orchestra/pull/10805))
 - [Pools] Connecting a pool now happens in a drawer, which closes as soon as the connection starts, instead of a dedicated page (PR [#10881](https://github.com/vatesfr/xen-orchestra/pull/10881))
 - [Pool/Traffic rules] Creating a traffic rule now happens in a drawer instead of a dedicated page (PR [#10880](https://github.com/vatesfr/xen-orchestra/pull/10880))
+- [Backup jobs] Display the query and the matching objects of dynamic selections (VMs, backup repositories, storage repositories) in the backup job side panel (PR [#10757](https://github.com/vatesfr/xen-orchestra/pull/10757))
 
 ### Bug fixes
 

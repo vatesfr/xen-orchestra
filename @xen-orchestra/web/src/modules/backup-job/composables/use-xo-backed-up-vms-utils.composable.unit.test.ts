@@ -6,12 +6,15 @@ import { createPool } from '@/test/create-pool.ts'
 import { createVm } from '@/test/create-vm.ts'
 import { xoCollectionsMock, mockXoCollections } from '@/test/mock-xo-collections.ts'
 import { vmCollectionMock, mockXoVmCollection } from '@/test/mock-xo-vm-collection.ts'
+import { mockXoVmDeviceCollections } from '@/test/mock-xo-vm-device-collections.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
 import { ref } from 'vue'
 
 mockXoVmCollection()
 
 mockXoCollections('pool')
+
+mockXoVmDeviceCollections('vbd', 'vdi')
 
 const firstPool = createPool({ id: 'pool-1' as FrontXoPool['id'], name_label: 'First pool' })
 const secondPool = createPool({ id: 'pool-2' as FrontXoPool['id'], name_label: 'Second pool' })
@@ -79,6 +82,16 @@ describe('useXoBackedUpVmsUtils', () => {
 
     it('reads the power state of the VMs', () => {
       expect(mountBackedUpVms({ type: 'VM', power_state: 'Running' }).smartModePowerState).toBe('Running')
+    })
+  })
+
+  describe('dynamic selection query', () => {
+    it('lists the VMs matching the query, except the ones tagged xo:no-bak', () => {
+      const result = mountBackedUpVms('tags:test' as unknown as FrontXoVmBackupJob['vms'])
+
+      expect(result.backedUpVmsExpression).toBe('tags:test')
+      expect(result.isSmartModeEnabled).toBe(false)
+      expect(result.backedUpVms.map(vm => vm.id)).toEqual([taggedVm.id])
     })
   })
 })

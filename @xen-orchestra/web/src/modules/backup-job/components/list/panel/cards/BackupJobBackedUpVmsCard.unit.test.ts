@@ -9,6 +9,7 @@ import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { xoCollectionsMock, mockXoCollections } from '@/test/mock-xo-collections.ts'
 import { vmCollectionMock, mockXoVmCollection } from '@/test/mock-xo-vm-collection.ts'
+import { mockXoVmDeviceCollections } from '@/test/mock-xo-vm-device-collections.ts'
 import VtsTag from '@core/components/tag/VtsTag.vue'
 import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
 import { findLinks } from '@core-test/find-links.ts'
@@ -17,6 +18,8 @@ import { mount } from '@vue/test-utils'
 mockXoVmCollection()
 
 mockXoCollections('pool')
+
+mockXoVmDeviceCollections('vbd', 'vdi')
 
 const firstPool = createPool({ id: 'pool-1' as FrontXoPool['id'], name_label: 'First pool' })
 const secondPool = createPool({ id: 'pool-2' as FrontXoPool['id'], name_label: 'Second pool' })
@@ -80,4 +83,18 @@ it('shows the first backed up VMs, offering to see the other ones', () => {
 
   expect(wrapper.getComponent(UiPanelCardTitle).props('counter')).toBe(6)
   expect(wrapper.text()).toContain(t('action:see-n-more', { n: 1 }))
+})
+
+it('shows the query of a dynamic selection with the VMs it matches', () => {
+  const wrapper = mountBackedUpVmsCard('name_label:"VM 1"' as unknown as FrontXoVmBackupJob['vms'])
+
+  expect(wrapper.text()).toContain(t('dynamic-selection-query'))
+  expect(wrapper.text()).toContain('name_label:"VM 1"')
+  expect(findVmLinks(wrapper)).toEqual([['VM 1', '/vm/vm-1/dashboard']])
+})
+
+it('says that every VM is backed up by a smart mode without criteria', () => {
+  const wrapper = mountBackedUpVmsCard({ type: 'VM' })
+
+  expect(wrapper.text()).toContain(t('all-objects-vms'))
 })
