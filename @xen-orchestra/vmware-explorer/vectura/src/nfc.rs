@@ -337,21 +337,28 @@ pub fn read_greeting<R: Read>(reader: &mut R) -> Result<greeting::Greeting, Erro
 /// TLS starts on the same connection right after the greeting line,
 /// whatever capabilities it announces. A host that refuses the ECDHE suites
 /// is asked again on a new connection, with RSA key exchange, which
-/// `transcript` says under the port's number.
+/// `transcript` says under the port's number. That connection must be
+/// greeted as the first one was.
 ///
 /// # Errors
-/// When connecting, reading the greeting or the TLS handshake fails.
+/// When connecting, reading the greeting or the TLS handshake fails, or the
+/// reopened connection is greeted differently.
 pub(crate) fn capture(
     host: &str,
     port: u16,
     transcript: Transcript,
 ) -> Result<tls::Presented, Error> {
     let mut stream = tls::connect(host, port)?;
-    read_greeting(&mut stream)?;
+    let greeted = read_greeting(&mut stream)?;
     match tls::capture(&mut stream, host) {
         Err(error) if error.refused_suites() => {
             transcript.fallback(&port.to_string());
-            let (stream, _) = greet_again(host, port)?;
+            let (stream, again) = greet_again(host, port)?;
+            // Another greeting means another peer: its certificate is not
+            // the data port's.
+            if again != greeted {
+                return Err(Error::GreetingChanged);
+            }
             Ok(tls::capture_rsa_kx(&stream)?)
         }
         presented => Ok(presented?),
@@ -1199,8 +1206,10 @@ mod tests {
     /// A fatal `handshake_failure` alert, as one TLS 1.2 record.
     const HANDSHAKE_FAILURE: [u8; 7] = [0x15, 0x03, 0x03, 0x00, 0x02, 0x02, 0x28];
 
-    #[test]
-    fn a_host_greeting_differently_after_refusing_ecdhe_is_not_offered_rsa_key_exchange() {
+    /// A host that refuses ECDHE, then greets the reopened connection as another peer.
+    ///
+    /// Returns its port and what the client wrote on the reopened connection.
+    fn greeting_differently_after_refusing_ecdhe() -> (u16, thread::JoinHandle<Vec<u8>>) {
         let listener = TcpListener::bind("127.0.0.1:0").unwrap();
         let port = listener.local_addr().unwrap().port();
         let host = thread::spawn(move || {
@@ -1221,6 +1230,12 @@ mod tests {
             let _ = second.read_to_end(&mut received);
             received
         });
+        (port, host)
+    }
+
+    #[test]
+    fn a_host_greeting_differently_after_refusing_ecdhe_is_not_offered_rsa_key_exchange() {
+        let (port, host) = greeting_differently_after_refusing_ecdhe();
         let pin = tls::Pin::sha256(&tls::sha256(b"a certificate")).unwrap();
 
         let error = Connection::establish(
@@ -1239,6 +1254,16 @@ mod tests {
             error.to_string(),
             "greeting: the host announced other capabilities on the connection reopened for RSA key exchange"
         );
+        assert!(host.join().unwrap().is_empty(), "no handshake was started");
+    }
+
+    #[test]
+    fn a_capture_greeted_differently_after_refusing_ecdhe_reports_no_thumbprint() {
+        let (port, host) = greeting_differently_after_refusing_ecdhe();
+
+        let error = capture("127.0.0.1", port, QUIET).unwrap_err();
+
+        assert!(matches!(error, Error::GreetingChanged), "{error:?}");
         assert!(host.join().unwrap().is_empty(), "no handshake was started");
     }
 

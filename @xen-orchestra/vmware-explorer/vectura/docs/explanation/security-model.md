@@ -67,9 +67,11 @@ carries the password, is verified the same way on every host.
 The data port of some ESXi 6.5 hosts accepts no ECDHE suite. When the
 host answers the first handshake with a `handshake_failure` alert, and
 only then, Vectura connects again and offers TLS 1.2 with RSA key
-exchange and AES-GCM. The certificate is judged as before: its thumbprint
-is compared with the ticket's before anything is written, and the second
-session must present it again. With RSA key exchange the host signs
+exchange and AES-GCM. The certificate is judged by its thumbprint, compared
+with the ticket's once the handshake completes. By then the client has
+sent `ClientKeyExchange` and `Finished`, but no ticket and no application
+data go out before the check, and the second session must present the
+same certificate. With RSA key exchange the host signs
 nothing: it proves it holds the private key by decrypting the secret the
 client sent, which the `Finished` messages confirm, so the pinned
 certificate still authenticates it. Two things are given up, on such a

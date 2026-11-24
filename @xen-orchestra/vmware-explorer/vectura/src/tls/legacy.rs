@@ -7,8 +7,10 @@
 //! obtains the host's private key can decrypt a recording of it.
 //!
 //! No chain and no host name are checked here. The certificate is judged by
-//! its thumbprint alone, before the session is handed to the caller, so
-//! nothing is written to a host that presented another certificate.
+//! its thumbprint alone, before the session is handed to the caller. The
+//! handshake has by then sent `ClientKeyExchange` and `Finished`, but no
+//! ticket and no application data reach a host that presented another
+//! certificate.
 
 // Rust guideline compliant 2026-10-09
 
