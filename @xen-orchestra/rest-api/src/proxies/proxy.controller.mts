@@ -1,8 +1,10 @@
 import {
+  Body,
   Example,
   Extension,
   Get,
   Middlewares,
+  Patch,
   Path,
   Query,
   Request,
@@ -13,16 +15,20 @@ import {
   Tags,
 } from 'tsoa'
 import { inject } from 'inversify'
+import { json } from 'express'
 import { provide } from 'inversify-binding-decorators'
 import type { Request as ExRequest } from 'express'
-import type { XoProxy } from '@vates/types'
+import type { XoProxy, XoVm } from '@vates/types'
+import { forbiddenOperation } from 'xo-common/api-errors.js'
 
-import { acl } from '../middlewares/acl.middleware.mjs'
+import { acl, actionFromBody } from '../middlewares/acl.middleware.mjs'
 import { ApiError } from '../helpers/error.helper.mjs'
 import {
   badRequestResp,
   forbiddenOperationResp,
   internalServerErrorResp,
+  invalidParameters,
+  noContentResp,
   notFoundResp,
   proxyUnreachableResp,
   unauthorizedResp,
@@ -145,5 +151,54 @@ export class ProxyController extends XoController<XoProxy> {
     await callProxy(this.restApi.xoApp.checkProxyHealth(id as XoProxy['id']))
 
     return { success: true }
+  }
+
+  /**
+   * Updates a proxy
+   *
+   * Set `address` or `vmUuid` to `null` to remove it.
+   *
+   * Only an administrator can change `address` or `vmUuid`
+   *
+   * Required privileges:
+   * - resource: proxy, action: update (grants all fields)
+   * - resource: proxy, action: update:name (if name is passed)
+   *
+   * @example id "e625ea0c-a876-405a-b838-109d762efe88"
+   * @example body { "name": "My proxy" }
+   */
+  @Extension('x-mcp-exposure', 'confirm')
+  @Patch('{id}')
+  @Middlewares([
+    json(),
+    acl({
+      resource: 'proxy',
+      action: actionFromBody<'proxy'>('update:name'),
+      objectId: 'params.id',
+      getObject: ({ restApi }) => restApi.xoApp.getProxy,
+    }),
+  ])
+  @SuccessResponse(noContentResp.status, noContentResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(invalidParameters.status, invalidParameters.description)
+  @Response(internalServerErrorResp.status, internalServerErrorResp.description)
+  async updateProxy(
+    @Path() id: string,
+    @Body() body: { address?: string | null; name?: string; vmUuid?: string | null }
+  ): Promise<void> {
+    const user = this.restApi.getCurrentUser()
+    if (user.permission !== 'admin' && (body.address !== undefined || body.vmUuid !== undefined)) {
+      throw forbiddenOperation('update proxy', 'only an administrator can change address or vmUuid')
+    }
+
+    if (typeof body.vmUuid === 'string') {
+      this.restApi.getObject<XoVm>(body.vmUuid as XoVm['id'], 'VM')
+    }
+
+    await this.restApi.xoApp.updateProxy(id as XoProxy['id'], {
+      ...body,
+      vmUuid: body.vmUuid as XoVm['id'] | null | undefined,
+    })
   }
 }
