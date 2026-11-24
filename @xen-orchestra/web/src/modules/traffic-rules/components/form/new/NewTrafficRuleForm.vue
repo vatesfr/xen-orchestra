@@ -1,5 +1,5 @@
 <template>
-  <VtsForm class="new-traffic-rule-form" @submit="onSubmit()">
+  <div class="new-traffic-rule-form">
     <div class="row">
       <TrafficRuleFormSelect v-bind="allowSelectBindings">
         <template #option="{ option }">
@@ -48,34 +48,24 @@
         </template>
       </TrafficRuleFormSelect>
     </div>
-    <NewTrafficRuleButtonsSection :cancel-to :submit-label="t('action:create-traffic-rule')" />
-  </VtsForm>
+  </div>
 </template>
 
 <script setup lang="ts">
 import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import TrafficRuleFormSelect from '@/modules/traffic-rules/components/form/inputs/TrafficRuleFormSelect.vue'
 import TrafficRuleFormTextInput from '@/modules/traffic-rules/components/form/inputs/TrafficRuleFormTextInput.vue'
-import NewTrafficRuleButtonsSection from '@/modules/traffic-rules/components/form/new/NewTrafficRuleButtonsSection.vue'
 import { useNewTrafficRuleForm } from '@/modules/traffic-rules/form/new/use-new-traffic-rule-form.ts'
-import type { TrafficRulePayload } from '@/modules/traffic-rules/jobs/xo-traffic-rule-create.job.ts'
 import type { FrontXoVif } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
-import VtsForm from '@core/components/form/VtsForm.vue'
 import VtsNumberInput from '@core/components/number-input/VtsNumberInput.vue'
 import VtsDetailedOption from '@core/components/select/VtsDetailedOption.vue'
 import VtsOption from '@core/components/select/VtsOption.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
 import { useI18n } from 'vue-i18n'
-import type { RouteLocationRaw } from 'vue-router'
 
 const { poolId, vifId } = defineProps<{
   poolId?: FrontXoPool['id']
   vifId?: FrontXoVif['id']
-  cancelTo: RouteLocationRaw
-}>()
-
-const emit = defineEmits<{
-  create: [data: TrafficRulePayload]
 }>()
 
 const { t } = useI18n()
@@ -98,13 +88,9 @@ const {
   () => vifId
 )
 
-async function onSubmit() {
-  const payload = await validateAndBuildPayload()
-
-  if (payload !== undefined) {
-    emit('create', payload)
-  }
-}
+defineExpose({
+  validate: validateAndBuildPayload,
+})
 </script>
 
 <style lang="postcss" scoped>

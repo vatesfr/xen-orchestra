@@ -381,13 +381,6 @@ declare module 'vue-router/auto-routes' {
       { id: ParamValue<false> },
       | never
     >,
-    '/pool/connect': RouteRecordInfo<
-      '/pool/connect',
-      '/pool/connect',
-      Record<never, never>,
-      Record<never, never>,
-      | never
-    >,
     '/settings': RouteRecordInfo<
       '/settings',
       '/settings',
@@ -415,13 +408,6 @@ declare module 'vue-router/auto-routes' {
       '/sr/:id/hosts',
       { id: ParamValue<true> },
       { id: ParamValue<false> },
-      | never
-    >,
-    '/traffic-rule/new': RouteRecordInfo<
-      '/traffic-rule/new',
-      '/traffic-rule/new',
-      Record<never, never>,
-      Record<never, never>,
       | never
     >,
     '/vdi/[id]': RouteRecordInfo<
@@ -528,13 +514,6 @@ declare module 'vue-router/auto-routes' {
       '/vm/:id/vdis',
       { id: ParamValue<true> },
       { id: ParamValue<false> },
-      | never
-    >,
-    '/vm/duplicate': RouteRecordInfo<
-      '/vm/duplicate',
-      '/vm/duplicate',
-      Record<never, never>,
-      Record<never, never>,
       | never
     >,
     '/vm/new': RouteRecordInfo<
@@ -869,12 +848,6 @@ declare module 'vue-router/auto-routes' {
       views:
         | never
     }
-    'src/pages/pool/connect.vue': {
-      routes:
-        | '/pool/connect'
-      views:
-        | never
-    }
     'src/pages/settings.vue': {
       routes:
         | '/settings'
@@ -898,12 +871,6 @@ declare module 'vue-router/auto-routes' {
     'src/pages/sr/[id]/hosts.vue': {
       routes:
         | '/sr/[id]/hosts'
-      views:
-        | never
-    }
-    'src/pages/traffic-rule/new.vue': {
-      routes:
-        | '/traffic-rule/new'
       views:
         | never
     }
@@ -999,12 +966,6 @@ declare module 'vue-router/auto-routes' {
     'src/pages/vm/[id]/vdis.vue': {
       routes:
         | '/vm/[id]/vdis'
-      views:
-        | never
-    }
-    'src/pages/vm/duplicate.vue': {
-      routes:
-        | '/vm/duplicate'
       views:
         | never
     }
