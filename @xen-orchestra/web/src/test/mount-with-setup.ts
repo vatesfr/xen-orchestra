@@ -5,13 +5,17 @@ import {
   mountWithSetup as mountCoreWithSetup,
   mountWithSetupResult as mountCoreWithSetupResult,
 } from '@core-test/mount-with-setup.ts'
+import type { MountingOptions } from '@vue/test-utils'
 import type { VNodeChild } from 'vue'
 
 /**
  * The web-core `mountWithSetup`, on the XO 6 global test config.
  */
-export function mountWithSetup(setup: () => () => VNodeChild) {
-  return mountCoreWithSetup(setup, { global: createGlobalTestConfig() })
+export function mountWithSetup(
+  setup: () => () => VNodeChild,
+  { attachTo }: Pick<MountingOptions<object>, 'attachTo'> = {}
+) {
+  return mountCoreWithSetup(setup, { global: createGlobalTestConfig(), attachTo })
 }
 
 /**
