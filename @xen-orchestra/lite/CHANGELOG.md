@@ -16,7 +16,7 @@
 - [Side panels] Fix the double scrollbar when the side panel content is taller than the screen: the page header now stays in place, and the list and the side panel each scroll on their own. All scrollbars are now thin, like the side panel one (PR [#10807](https://github.com/vatesfr/xen-orchestra/pull/10807))
 - [Mobile] Searchable dropdown lists no longer overflow the screen (PR [#10854](https://github.com/vatesfr/xen-orchestra/pull/10854))
 - [New/VM] Fix the storage table overflowing horizontally, which hid part of the delete button (PR [#10851](https://github.com/vatesfr/xen-orchestra/pull/10851))
-- [New/VM] Fix template disk settings being applied to every disk of the new VM: each disk now keeps its own name, description and SR (PR [#XXXXX](https://github.com/vatesfr/xen-orchestra/pull/XXXXX))
+- [New/VM] Fix template disk settings being applied to every disk of the new VM: each disk now keeps its own name, description and SR (PR [#10898](https://github.com/vatesfr/xen-orchestra/pull/10898))
 
 ## **0.27.0** (2026-10-29)
 
