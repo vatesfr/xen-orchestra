@@ -1,4 +1,7 @@
-import { type BackupRepositoryFilterableData, useBackupRepositoryEnhancedData } from '@/modules/backup-repository/composables/use-backup-repository-enhanced-data.composable.ts'
+import {
+  type BackupRepositoryFilterableData,
+  useBackupRepositoryEnhancedData,
+} from '@/modules/backup-repository/composables/use-backup-repository-enhanced-data.composable.ts'
 import { useXoBackupRepositoryTypeLabels } from '@/modules/backup-repository/composables/use-xo-backup-repository-type-labels.composable.ts'
 import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
 import { useQueryBuilderSchema } from '@core/packages/query-builder/schema/use-query-builder-schema.ts'

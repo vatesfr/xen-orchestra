@@ -5,10 +5,11 @@ import {
 import type { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { createVm } from '@/test/create-vm.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
+import { mockModule } from '@/test/spy-on-module.ts'
 import { reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-vi.mock(import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'), () => ({
+mockModule(import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'), () => ({
   useXoVmCollection: (() => ({
     vms: ref([createVm({ tags: ['prod', 'web'] }), createVm({ tags: ['prod'] })]),
   })) as unknown as typeof useXoVmCollection,

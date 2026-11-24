@@ -38,6 +38,11 @@ const emit = defineEmits<{
   'update:modelValue': [value: boolean]
 }>()
 
+const slots = defineSlots<{
+  default?(): any
+  info?(): any
+}>()
+
 const warningMessages = computed(() =>
   toArray(warning).map(message => (typeof message === 'object' ? message.content : message))
 )

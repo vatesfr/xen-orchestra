@@ -28,7 +28,66 @@
 - [VMs/Hosts] Show a loader in VM and host icons while their power state is changing, with the operation in progress in the tooltip, and move the header loader next to the name (PR [#10720](https://github.com/vatesfr/xen-orchestra/pull/10720))
 - [VM] Add and remove VM tags from the VM dashboard and the VM side panel (PR [#10804](https://github.com/vatesfr/xen-orchestra/pull/10804))
 - [REST API] Create, update and delete backup jobs and schedules (admin only): `POST /rest/v0/backup-jobs`, `PATCH|DELETE /rest/v0/backup-jobs/:id`, `POST /rest/v0/schedules`, `PATCH|DELETE /rest/v0/schedules/:id` (PR [#10595](https://github.com/vatesfr/xen-orchestra/pull/10595))
-- [Backup jobs] Add backup job creation form in admin menu (PR [#10673](https://github.com/vatesfr/xen-orchestra/pull/10673))
+- [Tabs] When tabs don't fit on screen, arrows replace the horizontal scrollbar to scroll them left and right (PR [#10759](https://github.com/vatesfr/xen-orchestra/pull/10759))
+- [Web-Core/UiDropdownButton] Update dropdown buttons design and add a smaller size (PR [#9850](https://github.com/vatesfr/xen-orchestra/pull/9850))
+- [REST API] `PUT /rest/v0/acl-roles/:id/users/:userId` refuses to attach a role to an admin, and `GET /rest/v0/users/:id/acl-privileges` returns no privileges for an admin (PR [#10694](https://github.com/vatesfr/xen-orchestra/pull/10694))
+- [REST API/V2V] `POST /rest/v0/v2v/inventory` reads the inventory of a vCenter or ESXi (datacenters, clusters, hosts, datastores, networks and VMs with their disks and network cards), and `POST /rest/v0/pools/:id/actions/import_vms_from_vmware` imports a list of VMs into the pool, with an SR per disk and a network per network card, resuming partial imports with a delta. Restricted to administrators, credentials are never stored (PR [#10597](https://github.com/vatesfr/xen-orchestra/pull/10597))
+- [V2V] Add the _Migrate VMs_ wizard in Administration › V2V: connect to a VMware source, choose the destination pool and its defaults, select the VMs to migrate, map their disks, network cards and settings, then review and start the migration (PR [#10816](https://github.com/vatesfr/xen-orchestra/pull/10816))
+- [V2V] Optional `docking` of the guest once its import is complete: the VM boots on the docking ISO deployed on the pool (`vates-autopilot-docking-<build date and time>-<commit>.iso`), with the guest tools ISO, which prepares it to run on XCP-ng (Xen drivers, VMware tools disabled, guest agent, network interface names, Windows first boot). Off by default, available on `POST /rest/v0/pools/:id/actions/import_vms_from_vmware` (PR [#10621](https://github.com/vatesfr/xen-orchestra/pull/10621))
+- [V2V] Optional `startVm` once the import is complete: a docked guest is followed through its first boot (Windows drivers and agent installation, with a diagnosis of the VM when it does not complete), then Secure Boot is enabled again when the source had it (PR [#10621](https://github.com/vatesfr/xen-orchestra/pull/10621))
+- [REST API] Expose `GET /rest/v0/backup-archives/:id/disks/:diskId/partitions` (PR [#9941](https://github.com/vatesfr/xen-orchestra/pull/9941))
+- [REST API] Expose `GET /rest/v0/backup-archives/:id/disks/:diskId/partitions/:partitionId/files` (PR [#9941](https://github.com/vatesfr/xen-orchestra/pull/9941))
+- [REST API] Expose `GET /rest/v0/backup-archives/:id/disks/:diskId/files` (PR [#9941](https://github.com/vatesfr/xen-orchestra/pull/9941))
+- [REST API] Expose `GET /rest/v0/backup-archives/:id/disks/:diskId/partitions/:partitionId/files.:format` to get file(s) from a partition (PR [#9941](https://github.com/vatesfr/xen-orchestra/pull/9941))
+- [REST API] Expose `GET /rest/v0/backup-archives/:id/disks/:diskId/files.:format` to get file(s) from a bare disk (PR [#9941](https://github.com/vatesfr/xen-orchestra/pull/9941))
+- [Backups] The backup journal of a remote (`xo-backup-log/`) no longer grows forever: its entries are deleted after 30 days, configurable with `backups.journalRetention` (PR [#10703](https://github.com/vatesfr/xen-orchestra/pull/10703))
+- [Backups] Add a detail page for backup logs (PR [#10718](https://github.com/vatesfr/xen-orchestra/pull/10718))
+- [Tables] Tables are filtered as you type, half a second after the last keystroke, or right away with Enter; the "Search" button is removed (PR [#10797](https://github.com/vatesfr/xen-orchestra/pull/10797))
+- [Backups] VM backups on S3 and Azure repositories now lock the VM's folder like on other repositories: two jobs, or a job and the cleanup that follows a deletion, no longer modify the same VM's folder at the same time, and the second one fails with "Lock file is already being held". On S3, buckets with Object Lock enabled are not locked yet (PR [#10549](https://github.com/vatesfr/xen-orchestra/pull/10549))
+- [VMs] Select multiple VMs in VM tables to change their power state, snapshot or delete them at once (PR [#10780](https://github.com/vatesfr/xen-orchestra/pull/10780))
+- [Backups] Add filters and actions on backup jobs (PR [#10772](https://github.com/vatesfr/xen-orchestra/pull/10772))
+- [VM] The VM creation form is now a 3-step workflow: choose the pool and the template, configure the VM, then review every setting (with the values overridden from the template highlighted) before creating it. Required fields are checked at each step, and a failed creation shows its error details without losing the form (PR [#10851](https://github.com/vatesfr/xen-orchestra/pull/10851))
+- [XO6/Pool] Add a host to a pool from its dashboard, either a host already in XO or a new one with its address and credentials (PR [#10865](https://github.com/vatesfr/xen-orchestra/pull/10865))
+- [Logs] The syslog transport (`[logs.transport.syslog]` in xo-server configuration) supports TLS (`tls://`), and the facility, application name and framing can be configured (PR [#10619](https://github.com/vatesfr/xen-orchestra/pull/10619))
+- [Logs] **Breaking:** logs are now sent to syslog as RFC 5424 messages, with their namespace as message ID, instead of RFC 3164 messages: set `format = 'rfc3164'` in `[logs.transport.syslog]` to keep the previous format (PR [#10619](https://github.com/vatesfr/xen-orchestra/pull/10619))
+- [Plugins/audit] Forward a copy of each new audit record, as JSON, to a remote syslog server (e.g. a SIEM) over UDP, TCP or TLS, configurable in the plugin settings (PR [#10618](https://github.com/vatesfr/xen-orchestra/pull/10618))
+- [VM/Host] Main actions (shutdown, reboot, start, migrate, snapshot, new VM) are shown as buttons in the VM and host headers and move one by one into "More actions" when space runs out; "More actions" groups them under "Change state" and "Actions" sections, and VMs without guest tools get force shutdown and force reboot instead (PR [#10815](https://github.com/vatesfr/xen-orchestra/pull/10815))
+- [REST API] `POST /rest/v0/hosts/:id/actions/move_management_ip` to move the management IP configuration of a host to another PIF (PR [#10669](https://github.com/vatesfr/xen-orchestra/pull/10669))
+- [Hosts] The host actions of the treeview (change state, restart toolstack, enable or disable, detach, forget, download bugtools archive) are also available in host tables and side panels (PR [#10821](https://github.com/vatesfr/xen-orchestra/pull/10821))
+- [Pool/Traffic rules] Edit the order of traffic rules within a network (PR [#10706](https://github.com/vatesfr/xen-orchestra/pull/10706))
+- [Pool/Traffic rules] Add a priority when creating a traffic rule (PR [#10750](https://github.com/vatesfr/xen-orchestra/pull/10750))
+- [Pool/Traffic rules] Show the network type and private network details in the side panel (PR [#10874](https://github.com/vatesfr/xen-orchestra/pull/10874))
+- [Modals/Menus] Keyboard navigation: Tab stays inside an open modal or drawer and the focus goes back where it was once it closes, and menus such as "Change state" open with Enter and are browsed with the arrow keys (PR [#10828](https://github.com/vatesfr/xen-orchestra/pull/10828))
+- [Menus] Submenus open when hovering their option and can be reached diagonally without opening the neighbouring ones, Escape closes them one level at a time, and menu buttons are announced to screen readers (PR [#10827](https://github.com/vatesfr/xen-orchestra/pull/10827))
+- [Modals] The confirm button of the modals asking to type a text is no longer disabled: confirming with a wrong text keeps the modal open and shows an error under the field (PR [#10826](https://github.com/vatesfr/xen-orchestra/pull/10826))
+- [xen-api] **Breaking:** `callAsync()`, `getResource()` and `putResource()` take an optional `AbortSignal` as first parameter instead of a promise-toolbox `CancelToken`, which is no longer supported (PR [#10740](https://github.com/vatesfr/xen-orchestra/pull/10740))
+- [REST API/SDN Controller] Global Private Networks can be created with `POST /rest/v0/plugins/sdn-controller/pools/actions/create_private_network`, which answers the ids of their networks (PR [#10708](https://github.com/vatesfr/xen-orchestra/pull/10708))
+- [Tables] Cells fit on one line: long names are cut in the middle, extra tags go under "+N" and long texts end with "…" (PR [#10850](https://github.com/vatesfr/xen-orchestra/pull/10850))
+- [Pool/Network] Add the possibility to create private networks (PR [#10820](https://github.com/vatesfr/xen-orchestra/pull/10820))
+- [REST API] `POST /rest/v0/srs/:id/actions/import_vdi_from_url` imports an ISO from an HTTP(S) URL into an ISO SR (PR [#10751](https://github.com/vatesfr/xen-orchestra/pull/10751))
+- [REST API] `sr: import:vdi` privilege is split into `import:vdi:upload` and `import:vdi:url`, existing `import:vdi` privileges cover both (PR [#10751](https://github.com/vatesfr/xen-orchestra/pull/10751))
+- [REST API] `POST /rest/v0/vdis` (create an empty VDI) now only requires the `vdi: create` privilege, `sr: import:vdi` is no longer needed (PR [#10751](https://github.com/vatesfr/xen-orchestra/pull/10751))
+- [Forms] Text fields have more contrasted borders, and can show a success state with a check icon when the value is valid (PR [#10861](https://github.com/vatesfr/xen-orchestra/pull/10861))
+- [RPU] Resume a failed or interrupted rolling pool update: only the hosts with remaining work are handled, and the VMs go back to their original host (PR [#10474](https://github.com/vatesfr/xen-orchestra/pull/10474))
+- [RPU] Resuming a rolling pool update restores the settings the failed or interrupted attempt left disabled: HA, auto power on, backup schedules, WLB and the load balancer (PR [#10562](https://github.com/vatesfr/xen-orchestra/pull/10562))
+- [RPU] A rolling pool update that could not move some VMs back to their original host keeps its recovery record, so a resume tries again. VMs stopped or deleted during the update are left alone, and listed with the VMs that could not be moved back on the pool's Patches tab until the update is finalized (PR [#10634](https://github.com/vatesfr/xen-orchestra/pull/10634))
+- [RPU] Resuming a rolling pool update also installs the patches released since it started, including on hosts it had already updated, and lists these hosts on the pool's Patches tab (PR [#10684](https://github.com/vatesfr/xen-orchestra/pull/10684))
+- [RPU] A rolling pool update interrupted by a restart of XO resumes on its own once the pool is connected again. This happens only once: if this automatic resume is refused or interrupted in turn, the update waits for a manual resume (PR [#10722](https://github.com/vatesfr/xen-orchestra/pull/10722))
+- [RPU] Resuming a rolling pool update stops when HA, auto power on, WLB or a backup schedule was enabled again since the failed or interrupted attempt, or when a host, a VM, a backup schedule or an HA heartbeat SR of the update is gone. The changes are listed on the pool's Patches tab, and the update resumes only once they are accepted as they are (PR [#10670](https://github.com/vatesfr/xen-orchestra/pull/10670))
+- [RPU] Finalizing an incomplete rolling pool update first restores what it left: disabled hosts are enabled, VMs are migrated back to their original host or started again, and HA, auto power on, WLB, the load balancer and backup schedules are enabled again. VMs that could not be moved back do not prevent it. It is refused if something else could not be restored, if a host was updated but not rebooted, or while a backup is running and VMs have to be moved back (PR [#10770](https://github.com/vatesfr/xen-orchestra/pull/10770))
+- [RPU] On a pool with XOSTOR, a rolling pool update is refused when the storage is not healthy or when its controller runs on several hosts, and waits for the storage to be healthy again after restarting its services and after each host reboot, before moving the VMs of the next host. The controller is now stopped only on the host running it (PR [#10775](https://github.com/vatesfr/xen-orchestra/pull/10775))
+- [Forms] Multi-line text fields have more contrasted borders (PR [#10862](https://github.com/vatesfr/xen-orchestra/pull/10862))
+- [Forms] Dropdown lists can show a success state with a check icon (PR [#10882](https://github.com/vatesfr/xen-orchestra/pull/10882))
+- [XO6/SR] Add SR creation form on Host/Pool Storage tabs for LVM, EXT, SMB, local ISO, SMB ISO types (PR [#10251](https://github.com/vatesfr/xen-orchestra/pull/10251))
+- [XO5/Licenses] On an airgap XOA, upload an airgap data pack to register the appliance and install or renew its licenses, and export the licenses database to send it back to Vates (PR [#10254](https://github.com/vatesfr/xen-orchestra/pull/10254))
+- [REST API] Check that a proxy can be reached: `GET /rest/v0/proxies/:id/health` (PR [#10752](https://github.com/vatesfr/xen-orchestra/pull/10752))
+- [Pool/Network] Creating a network, a bonded network or an internal network now happens in a drawer instead of a dedicated page (PR [#10876](https://github.com/vatesfr/xen-orchestra/pull/10876))
+- [VM/Network] Creating a VIF now happens in a drawer instead of a dedicated page (PR [#10877](https://github.com/vatesfr/xen-orchestra/pull/10877))
+- [VM/VDIs] Creating or attaching a VDI now happens in a drawer instead of a dedicated page (PR [#10878](https://github.com/vatesfr/xen-orchestra/pull/10878))
+- [XO6/Tasks] Add a "My tasks" sidebar (PR [#10805](https://github.com/vatesfr/xen-orchestra/pull/10805))
+- [Pools] Connecting a pool now happens in a drawer, which closes as soon as the connection starts, instead of a dedicated page (PR [#10881](https://github.com/vatesfr/xen-orchestra/pull/10881))
+- [Pool/Traffic rules] Creating a traffic rule now happens in a drawer instead of a dedicated page (PR [#10880](https://github.com/vatesfr/xen-orchestra/pull/10880))
+- [Backup jobs] Display the query and the matching objects of dynamic selections (VMs, backup repositories, storage repositories) in the backup job side panel (PR [#10757](https://github.com/vatesfr/xen-orchestra/pull/10757))
 
 ### Bug fixes
 
@@ -77,9 +136,17 @@
 
 <!--packages-start-->
 
-- @vates/types minor
-- @xen-orchestra/backups minor
-- @xen-orchestra/qa-test patch
+- @vates/obfuscate minor
+- @vates/syslog minor
+- @vates/types major
+- @xen-orchestra/acl minor
+- @xen-orchestra/autopilot-docking minor
+- @xen-orchestra/backups major
+- @xen-orchestra/fs minor
+- @xen-orchestra/log major
+- @xen-orchestra/mixins minor
+- @xen-orchestra/proxy minor
+- @xen-orchestra/qa-test minor
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/vmware-explorer minor
 - @xen-orchestra/web minor

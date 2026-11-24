@@ -8,23 +8,24 @@ import type {
 import type { FrontXoVm, useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { createVm } from '@/test/create-vm.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
+import { mockModule } from '@/test/spy-on-module.ts'
 import { VM_POWER_STATE } from '@vates/types'
 import { ref } from 'vue'
 
-const { backupArchives, areBackupArchivesReady, getVmById } = vi.hoisted(() => ({
+const { backupArchives, areBackupArchivesReady, getVmById } = {
   backupArchives: { value: [] as unknown[] },
   areBackupArchivesReady: { value: true },
   getVmById: vi.fn(),
-}))
+}
 
-vi.mock(import('@/modules/vm/remote-resources/use-xo-vm-backup-archive-collection.ts'), () => ({
+mockModule(import('@/modules/vm/remote-resources/use-xo-vm-backup-archive-collection.ts'), () => ({
   useXoVmBackupArchiveCollection: (() => ({
     backupArchives: ref(backupArchives.value),
     areBackupArchivesReady: ref(areBackupArchivesReady.value),
   })) as unknown as typeof useXoVmBackupArchiveCollection,
 }))
 
-vi.mock(import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'), () => ({
+mockModule(import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'), () => ({
   useXoVmCollection: (() => ({ getVmById })) as unknown as typeof useXoVmCollection,
 }))
 

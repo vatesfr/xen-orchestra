@@ -11,27 +11,28 @@ import type {
 import type { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { createSr } from '@/test/create-sr.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
+import { mockModule } from '@/test/spy-on-module.ts'
 import { reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const SR_ID = 'sr-1' as FrontXoSr['id']
 
-vi.mock(import('@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'), () => ({
+mockModule(import('@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'), () => ({
   useXoSrCollection: (() => ({ srs: ref([createSr({ id: SR_ID })]) })) as unknown as typeof useXoSrCollection,
 }))
 
-vi.mock(import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'), () => ({
+mockModule(import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'), () => ({
   useXoVmCollection: (() => ({ vms: ref([]) })) as unknown as typeof useXoVmCollection,
 }))
 
-vi.mock(import('@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'), () => ({
+mockModule(import('@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'), () => ({
   useXoPbdCollection: (() => ({
     getPbdsByIds: () => [],
     pbdsBySr: ref(new Map()),
   })) as unknown as typeof useXoPbdCollection,
 }))
 
-vi.mock(import('@/modules/host/remote-resources/use-xo-host-collection.ts'), () => ({
+mockModule(import('@/modules/host/remote-resources/use-xo-host-collection.ts'), () => ({
   useXoHostCollection: (() => ({ getHostById: () => undefined })) as unknown as typeof useXoHostCollection,
 }))
 

@@ -1,7 +1,7 @@
 <template>
   <div class="schedule-cron-editor">
     <VtsInputWrapper :label="t('timezone')">
-      <VtsSelect :id="timezoneSelectId" accent="brand" />
+      <VtsSelect :id="timezoneSelectId" accent="neutral" />
     </VtsInputWrapper>
 
     <div class="cards">
@@ -60,7 +60,7 @@
     <div class="summary">
       <div class="expression">
         <UiLabel accent="neutral">{{ t('resulting-expression') }}</UiLabel>
-        <UiInput :model-value="cron" accent="brand" disabled />
+        <UiInput :model-value="cron" accent="neutral" disabled />
       </div>
       <ScheduleNextRuns :cron :timezone />
     </div>

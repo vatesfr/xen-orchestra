@@ -68,26 +68,6 @@ export type BackupJobFormDataSet = {
   planning: BackupJobPlanningFormData
 }
 
-export const ALL_EXPRESSION = '*'
-
-export const BACKUP_REPOSITORY_EXPRESSION_KEY = 'backupRepository'
-
-export const STORAGE_REPOSITORY_EXPRESSION_KEY = 'sr'
-
-function toContextExpression(key: string, query: string): string {
-  return `${key}:(${query})`
-}
-
-export function formatContextExpressionQuery(key: string, expression: string): string {
-  const prefix = `${key}:(`
-
-  if (!expression.startsWith(prefix) || !expression.endsWith(')')) {
-    return expression
-  }
-
-  return expression.slice(prefix.length, -1)
-}
-
 function toIdsPattern(ids: string[]): BackupJobPattern {
   return { id: { __or: ids } }
 }

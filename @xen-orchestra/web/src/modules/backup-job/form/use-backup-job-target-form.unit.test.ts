@@ -12,40 +12,41 @@ import type { useXoProxyCollection } from '@/modules/proxy/remote-resources/use-
 import type { useXoSrCollection } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import type { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
+import { mockModule } from '@/test/spy-on-module.ts'
 import { reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-vi.mock(import('@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'), () => ({
+mockModule(import('@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'), () => ({
   useXoProxyCollection: (() => ({ proxies: ref([]) })) as unknown as typeof useXoProxyCollection,
 }))
 
-vi.mock(import('@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'), () => ({
+mockModule(import('@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'), () => ({
   useXoBackupRepositoryCollection: (() => ({
     backupRepositories: ref([]),
     areBackupRepositoriesReady: ref(true),
   })) as unknown as typeof useXoBackupRepositoryCollection,
 }))
 
-vi.mock(import('@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'), () => ({
+mockModule(import('@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'), () => ({
   useXoPbdCollection: (() => ({
     getPbdsByIds: () => [],
     pbdsBySr: ref(new Map()),
   })) as unknown as typeof useXoPbdCollection,
 }))
 
-vi.mock(import('@/modules/host/remote-resources/use-xo-host-collection.ts'), () => ({
+mockModule(import('@/modules/host/remote-resources/use-xo-host-collection.ts'), () => ({
   useXoHostCollection: (() => ({ getHostById: () => undefined })) as unknown as typeof useXoHostCollection,
 }))
 
-vi.mock(import('@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'), () => ({
+mockModule(import('@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'), () => ({
   useXoSrCollection: (() => ({ srs: ref([]), areSrsReady: ref(true) })) as unknown as typeof useXoSrCollection,
 }))
 
-vi.mock(import('@/modules/pool/remote-resources/use-xo-pool-collection.ts'), () => ({
+mockModule(import('@/modules/pool/remote-resources/use-xo-pool-collection.ts'), () => ({
   useXoPoolCollection: (() => ({ getPoolById: () => undefined })) as unknown as typeof useXoPoolCollection,
 }))
 
-vi.mock(import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'), () => ({
+mockModule(import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'), () => ({
   useXoVmCollection: (() => ({ vms: ref([]) })) as unknown as typeof useXoVmCollection,
 }))
 

@@ -4,6 +4,7 @@ import type {
   useXoBackupJobCreateJob,
 } from '@/modules/backup-job/jobs/xo-backup-job-create.job.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
+import { mockModule } from '@/test/spy-on-module.ts'
 import type { useOverlay } from '@core/packages/overlay/use-overlay.ts'
 import { KEEP_OVERLAY_OPEN } from '@core/packages/overlay/symbols.ts'
 import type { Ref } from 'vue'
@@ -15,18 +16,18 @@ type OverlayOptions = {
   }
 }
 
-const { useCreateJob, run, useOverlayMock, open } = vi.hoisted(() => ({
+const { useCreateJob, run, useOverlayMock, open } = {
   useCreateJob: vi.fn(),
   run: vi.fn(),
   useOverlayMock: vi.fn(),
   open: vi.fn(),
-}))
+}
 
-vi.mock(import('@/modules/backup-job/jobs/xo-backup-job-create.job.ts'), () => ({
+mockModule(import('@/modules/backup-job/jobs/xo-backup-job-create.job.ts'), () => ({
   useXoBackupJobCreateJob: useCreateJob as unknown as typeof useXoBackupJobCreateJob,
 }))
 
-vi.mock(import('@core/packages/overlay/use-overlay.ts'), () => ({
+mockModule(import('@core/packages/overlay/use-overlay.ts'), () => ({
   useOverlay: useOverlayMock as unknown as typeof useOverlay,
 }))
 

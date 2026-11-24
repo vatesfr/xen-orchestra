@@ -23,7 +23,7 @@ function renderHeadCheckbox(model: Ref<boolean | undefined>) {
   })
 }
 
-function renderBodyCheckbox({ selected, onToggle, disabled }: CheckboxCellBindings) {
+function renderBodyCheckbox({ selected, disabled, onToggle }: CheckboxCellBindings) {
   return h(UiCheckbox, {
     accent: 'brand',
     disabled,

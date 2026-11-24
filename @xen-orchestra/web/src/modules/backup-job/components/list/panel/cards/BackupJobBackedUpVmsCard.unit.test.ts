@@ -1,9 +1,7 @@
 import BackupJobBackedUpVmsCard from '@/modules/backup-job/components/list/panel/cards/BackupJobBackedUpVmsCard.vue'
 import type { FrontXoVmBackupJob } from '@/modules/backup-job/remote-resources/use-xo-backup-job-collection.ts'
-import type { FrontXoPool, useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
-import type { useXoVbdCollection } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
-import type { useXoVdiCollection } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
-import type { FrontXoVm, useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
+import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
+import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { createPool } from '@/test/create-pool.ts'
 import { createVm } from '@/test/create-vm.ts'
 import { findCardLabelledValues } from '@/test/find-rendered-values.ts'
@@ -21,27 +19,7 @@ mockXoVmCollection()
 
 mockXoCollections('pool')
 
-  return {
-    useXoVmCollection: (() => ({
-      vms: ref(vms),
-      getVmsByIds: (ids: FrontXoVm['id'][]) => vms.filter(vm => ids.includes(vm.id)),
-    })) as unknown as typeof useXoVmCollection,
-  }
-})
-
-vi.mock(import('@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'), () => ({
-  useXoVbdCollection: (() => ({ getVbdsByIds: () => [] })) as unknown as typeof useXoVbdCollection,
-}))
-
-vi.mock(import('@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'), () => ({
-  useXoVdiCollection: (() => ({ getVdiById: () => undefined })) as unknown as typeof useXoVdiCollection,
-}))
-
-vi.mock(import('@/modules/pool/remote-resources/use-xo-pool-collection.ts'), () => ({
-  useXoPoolCollection: (() => ({
-    getPoolsByIds: (ids: FrontXoPool['id'][] = []) => pools.filter(pool => ids.includes(pool.id)),
-  })) as unknown as typeof useXoPoolCollection,
-}))
+mockXoVmDeviceCollections('vbd', 'vdi')
 
 const firstPool = createPool({ id: 'pool-1' as FrontXoPool['id'], name_label: 'First pool' })
 const secondPool = createPool({ id: 'pool-2' as FrontXoPool['id'], name_label: 'Second pool' })
@@ -113,7 +91,7 @@ it('shows the query of a dynamic selection with the VMs it matches', () => {
   expect(wrapper.text()).toContain(t('dynamic-selection-query'))
   expect(wrapper.text()).toContain('name_label:"VM 1"')
   expect(wrapper.text()).not.toContain('vm:(')
-  expect(findVmLinks(wrapper).map(link => link.text())).toEqual(['VM 1'])
+  expect(findVmLinks(wrapper)).toEqual([['VM 1', '/vm/vm-1/dashboard']])
 })
 
 it('says that every VM is backed up by a smart mode without criteria', () => {

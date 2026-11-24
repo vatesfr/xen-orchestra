@@ -9,10 +9,11 @@ import {
 import type { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
+import { mockModule } from '@/test/spy-on-module.ts'
 import { mount, type VueWrapper } from '@vue/test-utils'
 import { defineComponent, h, reactive, ref } from 'vue'
 
-vi.mock(import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'), () => ({
+mockModule(import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'), () => ({
   useXoVmCollection: (() => ({ vms: ref([]) })) as unknown as typeof useXoVmCollection,
 }))
 

@@ -4,11 +4,12 @@ import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/us
 import { createPool } from '@/test/create-pool.ts'
 import { createSr } from '@/test/create-sr.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
+import { mockModule } from '@/test/spy-on-module.ts'
 
 const MAIN_POOL = createPool({ id: 'pool-main' as FrontXoPool['id'], name_label: 'Main pool' })
 const TEST_POOL = createPool({ id: 'pool-test' as FrontXoPool['id'], name_label: 'Test pool' })
 
-vi.mock(import('@/modules/pool/remote-resources/use-xo-pool-collection.ts'), () => ({
+mockModule(import('@/modules/pool/remote-resources/use-xo-pool-collection.ts'), () => ({
   useXoPoolCollection: (() => ({
     getPoolById: (id: FrontXoPool['id']) => [MAIN_POOL, TEST_POOL].find(pool => pool.id === id),
   })) as unknown as typeof useXoPoolCollection,

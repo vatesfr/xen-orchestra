@@ -77,7 +77,7 @@ it('shows the query of a dynamic selection with the targets it matches', () => {
 
   expect(wrapper.text()).toContain(t('dynamic-selection-query'))
   expect(wrapper.text()).toContain('name:Backup')
-  expect(wrapper.findAllComponents(UiLink).map(link => link.text())).toEqual(['Backup BR'])
+  expect(findLinks(wrapper).map(([text]) => text)).toEqual(['Backup BR'])
 })
 
 it('shows the storage repositories of a dynamic selection that matches none', () => {

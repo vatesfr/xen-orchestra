@@ -6,14 +6,15 @@ import { useVmLastBackupDates } from '@/modules/vm/composables/use-vm-last-backu
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { createBackupLog, createBackupLogSrTask, createBackupLogVmTask } from '@/test/create-backup-log.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
+import { mockModule } from '@/test/spy-on-module.ts'
 import { ref } from 'vue'
 
-const { backupLogs, areBackupLogsReady } = vi.hoisted(() => ({
+const { backupLogs, areBackupLogsReady } = {
   backupLogs: { value: [] as FrontXoBackupLog[] },
   areBackupLogsReady: { value: true },
-}))
+}
 
-vi.mock(import('@/modules/backup-log/remote-resources/use-xo-backup-log-collection.ts'), () => ({
+mockModule(import('@/modules/backup-log/remote-resources/use-xo-backup-log-collection.ts'), () => ({
   useXoBackupLogCollection: (() => ({
     backupLogs: ref(backupLogs.value),
     areBackupLogsReady: ref(areBackupLogsReady.value),

@@ -12,7 +12,7 @@
         </template>
         <template #keep>
           <span class="keep">
-            <VtsSelect :id="keepSelectId" accent="brand" />
+            <VtsSelect :id="keepSelectId" accent="neutral" />
           </span>
         </template>
       </I18nT>

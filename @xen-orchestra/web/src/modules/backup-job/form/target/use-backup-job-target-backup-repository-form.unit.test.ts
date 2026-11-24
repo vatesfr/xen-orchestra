@@ -9,6 +9,7 @@ import type {
 import type { FrontXoProxy, useXoProxyCollection } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
 import { createBr } from '@/test/create-br.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
+import { mockModule } from '@/test/spy-on-module.ts'
 import { flushPromises } from '@vue/test-utils'
 import { reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -19,13 +20,13 @@ const NFS_BR = createBr({ id: 'br-nfs' as FrontXoBackupRepository['id'], url: 'n
 const LOCAL_BR = createBr({ id: 'br-local' as FrontXoBackupRepository['id'], url: 'file:///var/backups' })
 const PROXY_BR = createBr({ id: 'br-proxy' as FrontXoBackupRepository['id'], proxy: PROXY_ID })
 
-vi.mock(import('@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'), () => ({
+mockModule(import('@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'), () => ({
   useXoProxyCollection: (() => ({
     proxies: ref([{ id: PROXY_ID, name: 'Proxy 1' }]),
   })) as unknown as typeof useXoProxyCollection,
 }))
 
-vi.mock(import('@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'), () => ({
+mockModule(import('@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'), () => ({
   useXoBackupRepositoryCollection: (() => ({
     backupRepositories: ref([NFS_BR, LOCAL_BR, PROXY_BR]),
     areBackupRepositoriesReady: ref(true),

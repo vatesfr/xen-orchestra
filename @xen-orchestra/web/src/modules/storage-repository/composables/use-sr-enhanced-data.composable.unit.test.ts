@@ -3,12 +3,13 @@ import { useSrEnhancedData } from '@/modules/storage-repository/composables/use-
 import { createPool } from '@/test/create-pool.ts'
 import { createSr } from '@/test/create-sr.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
+import { mockModule } from '@/test/spy-on-module.ts'
 
-const { getPoolById } = vi.hoisted(() => ({
+const { getPoolById } = {
   getPoolById: vi.fn(),
-}))
+}
 
-vi.mock(import('@/modules/pool/remote-resources/use-xo-pool-collection.ts'), () => ({
+mockModule(import('@/modules/pool/remote-resources/use-xo-pool-collection.ts'), () => ({
   useXoPoolCollection: (() => ({ getPoolById })) as unknown as typeof useXoPoolCollection,
 }))
 

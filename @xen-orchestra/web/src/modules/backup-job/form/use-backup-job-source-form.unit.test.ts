@@ -21,6 +21,7 @@ import { createBr } from '@/test/create-br.ts'
 import { createPool } from '@/test/create-pool.ts'
 import { createVm } from '@/test/create-vm.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
+import { mockModule } from '@/test/spy-on-module.ts'
 import { VM_POWER_STATE } from '@vates/types'
 import { flushPromises } from '@vue/test-utils'
 import { reactive, ref } from 'vue'
@@ -62,19 +63,19 @@ const ARCHIVES = [
   createArchive(DB_VM, 'full', 2000),
 ]
 
-vi.mock(import('@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'), () => ({
+mockModule(import('@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'), () => ({
   useXoProxyCollection: (() => ({
     proxies: ref([{ id: PROXY_ID, name: 'Proxy 1' }]),
   })) as unknown as typeof useXoProxyCollection,
 }))
 
-vi.mock(import('@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'), () => ({
+mockModule(import('@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'), () => ({
   useXoBackupRepositoryCollection: (() => ({
     backupRepositories: ref([SOURCE_BR, PROXY_BR]),
   })) as unknown as typeof useXoBackupRepositoryCollection,
 }))
 
-vi.mock(import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'), () => ({
+mockModule(import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'), () => ({
   useXoVmCollection: (() => ({
     vms: ref([WEB_VM, DB_VM]),
     areVmsReady: ref(true),
@@ -82,22 +83,22 @@ vi.mock(import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'), () => (
   })) as unknown as typeof useXoVmCollection,
 }))
 
-vi.mock(import('@/modules/pool/remote-resources/use-xo-pool-collection.ts'), () => ({
+mockModule(import('@/modules/pool/remote-resources/use-xo-pool-collection.ts'), () => ({
   useXoPoolCollection: (() => ({
     pools: ref([MAIN_POOL, TEST_POOL]),
     arePoolsReady: ref(true),
   })) as unknown as typeof useXoPoolCollection,
 }))
 
-vi.mock(import('@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'), () => ({
+mockModule(import('@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'), () => ({
   useXoVbdCollection: (() => ({ getVbdsByIds: () => [] })) as unknown as typeof useXoVbdCollection,
 }))
 
-vi.mock(import('@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'), () => ({
+mockModule(import('@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'), () => ({
   useXoVdiCollection: (() => ({ getVdiById: () => undefined })) as unknown as typeof useXoVdiCollection,
 }))
 
-vi.mock(import('@/modules/vm/remote-resources/use-xo-vm-backup-archive-collection.ts'), () => ({
+mockModule(import('@/modules/vm/remote-resources/use-xo-vm-backup-archive-collection.ts'), () => ({
   useXoVmBackupArchiveCollection: (() => ({
     backupArchives: ref(ARCHIVES),
     areBackupArchivesReady: ref(true),

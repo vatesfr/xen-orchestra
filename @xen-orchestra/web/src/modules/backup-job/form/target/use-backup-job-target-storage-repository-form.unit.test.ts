@@ -12,6 +12,7 @@ import type {
 import { createPool } from '@/test/create-pool.ts'
 import { createSr } from '@/test/create-sr.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
+import { mockModule } from '@/test/spy-on-module.ts'
 import { reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -21,28 +22,28 @@ const LOCAL_SR = createSr({ id: 'sr-local' as FrontXoSr['id'], name_label: 'Loca
 const NFS_SR = createSr({ id: 'sr-nfs' as FrontXoSr['id'], name_label: 'NFS storage', SR_type: 'nfs' })
 const ISO_SR = createSr({ id: 'sr-iso' as FrontXoSr['id'], name_label: 'ISO library', content_type: 'iso' })
 
-vi.mock(import('@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'), () => ({
+mockModule(import('@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'), () => ({
   useXoSrCollection: (() => ({
     srs: ref([LOCAL_SR, NFS_SR, ISO_SR]),
     areSrsReady: ref(true),
   })) as unknown as typeof useXoSrCollection,
 }))
 
-vi.mock(import('@/modules/pool/remote-resources/use-xo-pool-collection.ts'), () => ({
+mockModule(import('@/modules/pool/remote-resources/use-xo-pool-collection.ts'), () => ({
   useXoPoolCollection: (() => ({
     getPoolById: (id: FrontXoPool['id']) =>
       id === POOL_ID ? createPool({ id: POOL_ID, name_label: 'Main pool' }) : undefined,
   })) as unknown as typeof useXoPoolCollection,
 }))
 
-vi.mock(import('@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'), () => ({
+mockModule(import('@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'), () => ({
   useXoPbdCollection: (() => ({
     getPbdsByIds: () => [],
     pbdsBySr: ref(new Map()),
   })) as unknown as typeof useXoPbdCollection,
 }))
 
-vi.mock(import('@/modules/host/remote-resources/use-xo-host-collection.ts'), () => ({
+mockModule(import('@/modules/host/remote-resources/use-xo-host-collection.ts'), () => ({
   useXoHostCollection: (() => ({ getHostById: () => undefined })) as unknown as typeof useXoHostCollection,
 }))
 
