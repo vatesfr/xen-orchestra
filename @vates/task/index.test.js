@@ -368,6 +368,93 @@ describe('Task', function () {
     })
   })
 
+  describe('#abortCleanup()', function () {
+    it('aborts the cleanup signal with an AbortError when called without a reason', async function () {
+      const task = createTask()
+
+      await task.run(() => {
+        const signal = Task.cleanupSignal
+        task.abortCleanup()
+
+        assert.equal(signal.aborted, true)
+        assert.equal(signal.reason.name, 'AbortError')
+      })
+    })
+
+    it('aborts the cleanup signal with the given reason', async function () {
+      const task = createTask()
+      const reason = {}
+
+      await task.run(() => {
+        task.abortCleanup(reason)
+        assert.equal(Task.cleanupSignal.reason, reason)
+      })
+    })
+
+    it('does not abort the task itself', async function () {
+      const task = createTask()
+
+      await task.run(() => {
+        task.abortCleanup()
+        assert.equal(Task.abortSignal.aborted, false)
+      })
+      assert.equal(task.status, 'success')
+    })
+
+    it('reaches the cleanup signal of the subtasks', async function () {
+      const task = createTask()
+
+      await task.run(() =>
+        Task.run(() => {
+          const signal = Task.cleanupSignal
+          assert.equal(signal.aborted, false)
+
+          task.abortCleanup()
+
+          assert.equal(signal.aborted, true)
+        })
+      )
+    })
+
+    it('aborts the abort signal of a running cleanup subtask', async function () {
+      const task = createTask()
+
+      await task.run(() =>
+        Task.run({ cleanup: true }, () => {
+          const signal = Task.abortSignal
+          assert.equal(signal.aborted, false)
+
+          task.abortCleanup()
+
+          assert.equal(signal.aborted, true)
+          assert.equal(signal.reason.name, 'AbortError')
+        })
+      )
+    })
+
+    it('leaves a subtask that is not a cleanup subtask following the abort only', async function () {
+      const task = createTask()
+
+      await task.run(() =>
+        Task.run(() => {
+          task.abortCleanup()
+          assert.equal(Task.abortSignal.aborted, false)
+        })
+      )
+    })
+
+    it('is idempotent', async function () {
+      const task = createTask()
+      const reason = {}
+
+      await task.run(() => {
+        task.abortCleanup(reason)
+        task.abortCleanup({})
+        assert.equal(Task.cleanupSignal.reason, reason)
+      })
+    })
+  })
+
   describe('without abort', function () {
     it('emits the same events for a task and its subtasks', async function () {
       const task = createTask()
