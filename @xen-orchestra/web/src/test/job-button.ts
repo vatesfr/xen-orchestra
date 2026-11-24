@@ -28,14 +28,17 @@ type JobButtonCase<TTarget> = {
   toJobTarget?: ((target: TTarget) => unknown) | null
   // Given, the disabled button also shows it as its hint
   errorMessage?: string
+  // `false` for a button opening a drawer whose job only gets its payload once the drawer is confirmed: the button then
+  // stays enabled when the job cannot run
+  disabledWhenCannotRun?: boolean
   expectBusy?: (button: ButtonWrapper) => void
 }
 
 /**
  * Registers the tests every button running a job (a `createJobStub`) shares: what it offers, the job running on the
- * target of the button, on click, and the button following its state, disabled when it cannot run, busy while it
- * runs. Resets the job before each test. Returns the mount of the button, on a new target by default, for the tests
- * of the file.
+ * target of the button, on click, and the button following its state, disabled when it cannot run (enabled when
+ * `disabledWhenCannotRun` is `false`), busy while it runs. Resets the job before each test. Returns the mount of the
+ * button, on a new target by default, for the tests of the file.
  */
 export function itRunsJobFromButton<TTarget>(
   component: Component,
@@ -47,6 +50,7 @@ export function itRunsJobFromButton<TTarget>(
     offer,
     toJobTarget = target => [target],
     errorMessage,
+    disabledWhenCannotRun = true,
     expectBusy = button => expect(button.props('busy')).toBe(true),
   }: JobButtonCase<TTarget>
 ) {
@@ -88,17 +92,25 @@ export function itRunsJobFromButton<TTarget>(
     expect(job.run).toHaveBeenCalledOnce()
   })
 
-  it('disables the button when the job cannot run', () => {
-    job.setState({ canRun: false, errorMessage })
+  if (disabledWhenCannotRun) {
+    it('disables the button when the job cannot run', () => {
+      job.setState({ canRun: false, errorMessage })
 
-    const button = getButton(mountButton())
+      const button = getButton(mountButton())
 
-    expect(button.props('disabled')).toBe(true)
+      expect(button.props('disabled')).toBe(true)
 
-    if (errorMessage !== undefined) {
-      expect(button.props('hint')).toBe(errorMessage)
-    }
-  })
+      if (errorMessage !== undefined) {
+        expect(button.props('hint')).toBe(errorMessage)
+      }
+    })
+  } else {
+    it('keeps the button enabled when the job cannot run yet', () => {
+      job.setState({ canRun: false })
+
+      expect(getButton(mountButton()).props('disabled')).toBeFalsy()
+    })
+  }
 
   it('shows the button as busy while the job runs', () => {
     job.setState({ isRunning: true })
