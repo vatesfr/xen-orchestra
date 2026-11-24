@@ -12,13 +12,12 @@ import { createVbd } from '@/test/create-vbd.ts'
 import { createVdi } from '@/test/create-vdi.ts'
 import { createVif } from '@/test/create-vif.ts'
 import { createVmTemplate } from '@/test/create-vm-template.ts'
-import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { discardChangesModalMock, mockDiscardChangesModal } from '@/test/mock-discard-changes-modal.ts'
 import { mockXoCollections, xoCollectionsMock } from '@/test/mock-xo-collections.ts'
 import { mockXoVmDeviceCollections, vmDeviceCollectionsMock } from '@/test/mock-xo-vm-device-collections.ts'
 import type { MountComposableOptions } from '@/test/mount-composable.ts'
-import { mount } from '@vue/test-utils'
-import { type Component, defineComponent, h, nextTick, type ShallowUnwrapRef } from 'vue'
+import { mountComposableUnderSetup, mountWithSetupResult } from '@/test/mount-with-setup.ts'
+import { type Component, h, nextTick, proxyRefs } from 'vue'
 
 const GIB = 1024 ** 3
 
@@ -140,22 +139,10 @@ export async function chooseNewVmTemplate(form: Pick<NewVmForm, 'vmState'>, temp
 }
 
 export function mountUnderNewVmForm(child: Component, options: MountComposableOptions = {}) {
-  let form: NewVmForm | undefined
-
-  const wrapper = mount(
-    defineComponent({
-      setup() {
-        form = provideNewVmForm()
-
-        return () => h(child)
-      },
-    }),
-    { global: createGlobalTestConfig(options) }
+  const { wrapper, result: form } = mountWithSetupResult(
+    () => ({ result: provideNewVmForm(), render: () => h(child) }),
+    options
   )
-
-  if (form === undefined) {
-    throw new Error('The new VM form was not provided')
-  }
 
   return { wrapper, form }
 }
@@ -164,11 +151,10 @@ export function mountComposableUnderNewVmForm<TResult extends Record<string, unk
   composable: () => TResult,
   options: MountComposableOptions = {}
 ) {
-  const Child = defineComponent({ setup: () => composable(), render: () => null })
+  const { provided: form, result } = mountComposableUnderSetup(provideNewVmForm, composable, options)
 
-  const { wrapper, form } = mountUnderNewVmForm(Child, options)
-
-  return { form, vm: wrapper.findComponent(Child).vm as unknown as ShallowUnwrapRef<TResult> }
+  // Unwrapped, as a component exposes it
+  return { form, vm: proxyRefs(result) }
 }
 
 export function createNewVmState(overrides: Partial<VmState> = {}): VmState {
