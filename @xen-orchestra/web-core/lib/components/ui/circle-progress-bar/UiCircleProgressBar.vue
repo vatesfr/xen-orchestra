@@ -90,7 +90,8 @@ const dashOffset = computed(() => {
   return circumference.value * (1 - valuePercent.value / 100)
 })
 
-const percentValue = computed(() => n(valuePercent.value / 100, 'percent'))
+// Floor (not round) so an unfinished value never displays as "100 %"
+const percentValue = computed(() => n(Math.floor(valuePercent.value) / 100, 'percent'))
 
 const icon = computed<IconName>(() => (accent === 'warning' || accent === 'danger' ? 'fa:exclamation' : 'fa:check'))
 
