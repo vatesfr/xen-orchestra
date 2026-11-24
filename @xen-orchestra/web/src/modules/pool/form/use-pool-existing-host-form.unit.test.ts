@@ -3,15 +3,12 @@ import { usePoolExistingHostForm } from '@/modules/pool/form/use-pool-existing-h
 import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import FormSelect from '@/shared/components/form/FormSelect.vue'
 import { createHost } from '@/test/create-host.ts'
-import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
+import { mockXoCollections, xoCollectionsMock } from '@/test/mock-xo-collections.ts'
 import { mountWithSelect } from '@/test/mount-with-select.ts'
 import { findSelectOptionLabels, openSelect, pickSelectOption } from '@/test/select.ts'
 import { h } from 'vue'
 
-vi.mock(
-  import('@/modules/host/remote-resources/use-xo-host-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
+mockXoCollections('host')
 
 beforeEach(() => {
   xoCollectionsMock.reset()

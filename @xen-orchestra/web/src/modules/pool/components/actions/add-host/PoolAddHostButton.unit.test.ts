@@ -1,34 +1,27 @@
 import PoolAddExistingHostButton from '@/modules/pool/components/actions/add-host/PoolAddExistingHostButton.vue'
 import PoolAddHostButton from '@/modules/pool/components/actions/add-host/PoolAddHostButton.vue'
 import PoolAddNewHostButton from '@/modules/pool/components/actions/add-host/PoolAddNewHostButton.vue'
-import type { usePoolExistingHost } from '@/modules/pool/composables/use-pool-existing-host.composable.ts'
-import type { usePoolNewHost } from '@/modules/pool/composables/use-pool-new-host.composable.ts'
+import { usePoolExistingHost } from '@/modules/pool/composables/use-pool-existing-host.composable.ts'
+import { usePoolNewHost } from '@/modules/pool/composables/use-pool-new-host.composable.ts'
 import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
+import { createJobStub, toJobComposableResult } from '@/test/create-job-result.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import MenuItem from '@core/components/menu/MenuItem.vue'
 import UiDropdownButton from '@core/components/ui/dropdown-button/UiDropdownButton.vue'
 import { IK_IN_MENU } from '@core/utils/injection-keys.util.ts'
 import { mount } from '@vue/test-utils'
-import { computed, nextTick } from 'vue'
+import { nextTick } from 'vue'
 
-vi.mock(import('@/modules/pool/composables/use-pool-new-host.composable.ts'), () => ({
-  usePoolNewHost: (() => ({
-    addNewHost: vi.fn(),
-    isAddingNewHost: computed(() => false),
-    canAddNewHost: computed(() => true),
-    addNewHostErrorMessage: computed(() => undefined),
-  })) as unknown as typeof usePoolNewHost,
-}))
+const newHost = createJobStub(usePoolNewHost, result => toJobComposableResult(result, 'addNewHost', 'isAddingNewHost'))
+const existingHost = createJobStub(usePoolExistingHost, result =>
+  toJobComposableResult(result, 'addExistingHost', 'isAddingExistingHost')
+)
 
-vi.mock(import('@/modules/pool/composables/use-pool-existing-host.composable.ts'), () => ({
-  usePoolExistingHost: (() => ({
-    addExistingHost: vi.fn(),
-    isAddingExistingHost: computed(() => false),
-    canAddExistingHost: computed(() => true),
-    addExistingHostErrorMessage: computed(() => undefined),
-  })) as unknown as typeof usePoolExistingHost,
-}))
+beforeEach(() => {
+  newHost.reset()
+  existingHost.reset()
+})
 
 const POOL_ID = 'pool-1' as FrontXoPool['id']
 

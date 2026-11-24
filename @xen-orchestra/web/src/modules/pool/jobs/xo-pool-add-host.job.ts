@@ -10,8 +10,9 @@ export type PoolAddHostPayload = {
   hostId: FrontXoHost['id']
 }
 
-const poolIdArg = defineJobArg<FrontXoPool['id']>({
-  identify: true,
+// The job identifies its arguments before validating them: a missing pool must not throw here
+const poolArg = defineJobArg<FrontXoPool>({
+  identify: (pool: FrontXoPool | undefined) => pool?.id,
   toArray: false,
 })
 
@@ -20,21 +21,21 @@ const payloadArg = defineJobArg<PoolAddHostPayload>({
   toArray: false,
 })
 
-export const useXoPoolAddHostJob = defineJob('pool.add-host', [poolIdArg, payloadArg], () => {
+export const useXoPoolAddHostJob = defineJob('pool.add-host', [poolArg, payloadArg], () => {
   const { t } = useI18n()
   const { monitorTask } = useXoTaskUtils()
 
   return {
-    async run(poolId: FrontXoPool['id'], { hostId }: PoolAddHostPayload) {
-      const { taskId } = await fetchPost<{ taskId: XoTask['id'] }>(`pools/${poolId}/actions/add_host`, {
+    async run(pool: FrontXoPool, { hostId }: PoolAddHostPayload) {
+      const { taskId } = await fetchPost<{ taskId: XoTask['id'] }>(`pools/${pool.id}/actions/add_host`, {
         host: hostId,
         force: true,
       })
 
       await monitorTask(taskId)
     },
-    validate(isRunning, poolId: FrontXoPool['id'] | undefined, payload: PoolAddHostPayload | undefined) {
-      if (poolId === undefined) {
+    validate(isRunning, pool: FrontXoPool | undefined, payload: PoolAddHostPayload | undefined) {
+      if (pool === undefined) {
         throw new JobError(t('job:arg:pool-id-required'))
       }
 

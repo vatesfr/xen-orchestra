@@ -1,7 +1,7 @@
 import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import { type PoolNewHostFormData, usePoolNewHostForm } from '@/modules/pool/form/use-pool-new-host-form.ts'
 import { type PoolAddHostPayload, useXoPoolAddHostJob } from '@/modules/pool/jobs/xo-pool-add-host.job.ts'
-import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
+import { type FrontXoPool, useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import { useServerCreateAndConnect } from '@/modules/server/composables/use-server-create-and-connect.composable.ts'
 import type { FrontXoServer } from '@/modules/server/remote-resources/use-xo-server-collection.ts'
 import { fetchGet } from '@/shared/utils/fetch.util.ts'
@@ -10,10 +10,14 @@ import { useOverlay } from '@core/packages/overlay/use-overlay.ts'
 import { toComputed } from '@core/utils/to-computed.util.ts'
 import type { XoServer } from '@vates/types'
 import { reactiveComputed } from '@vueuse/core'
-import { type MaybeRefOrGetter, ref } from 'vue'
+import { computed, type MaybeRefOrGetter, ref } from 'vue'
 
 export function usePoolNewHost(rawPoolId: MaybeRefOrGetter<FrontXoPool['id']>) {
   const poolId = toComputed(rawPoolId)
+
+  const { getPoolById } = useXoPoolCollection()
+
+  const pool = computed(() => getPoolById(poolId.value))
 
   const {
     hostInputBindings,
@@ -33,7 +37,7 @@ export function usePoolNewHost(rawPoolId: MaybeRefOrGetter<FrontXoPool['id']>) {
     isRunning: isAddingNewHost,
     canRun: canAddNewHost,
     errorMessage: addNewHostErrorMessage,
-  } = useXoPoolAddHostJob(poolId, addHostPayload)
+  } = useXoPoolAddHostJob(pool, addHostPayload)
 
   async function getServerMaster(id: XoServer['id']): Promise<FrontXoHost['id']> {
     const { master } = await fetchGet<FrontXoServer>(`servers/${id}`)

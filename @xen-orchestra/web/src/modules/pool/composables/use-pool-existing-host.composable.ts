@@ -1,6 +1,6 @@
 import { type FrontXoHost, useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import { type PoolAddHostPayload, useXoPoolAddHostJob } from '@/modules/pool/jobs/xo-pool-add-host.job.ts'
-import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
+import { type FrontXoPool, useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import { useXoServerForgetJob } from '@/modules/server/jobs/xo-server-forget.job.ts'
 import { useXoServerCollection } from '@/modules/server/remote-resources/use-xo-server-collection.ts'
 import { KEEP_OVERLAY_OPEN } from '@core/packages/overlay/symbols.ts'
@@ -8,10 +8,14 @@ import { useOverlay } from '@core/packages/overlay/use-overlay.ts'
 import { toComputed } from '@core/utils/to-computed.util.ts'
 import type { XoServer } from '@vates/types'
 import { reactiveComputed } from '@vueuse/core'
-import { type MaybeRefOrGetter, ref } from 'vue'
+import { computed, type MaybeRefOrGetter, ref } from 'vue'
 
 export function usePoolExistingHost(rawPoolId: MaybeRefOrGetter<FrontXoPool['id']>) {
   const poolId = toComputed(rawPoolId)
+
+  const { getPoolById } = useXoPoolCollection()
+
+  const pool = computed(() => getPoolById(poolId.value))
 
   const { getHostById } = useXoHostCollection()
   const { serverByPool } = useXoServerCollection()
@@ -25,7 +29,7 @@ export function usePoolExistingHost(rawPoolId: MaybeRefOrGetter<FrontXoPool['id'
     isRunning: isAddingExistingHost,
     canRun: canAddExistingHost,
     errorMessage: addExistingHostErrorMessage,
-  } = useXoPoolAddHostJob(poolId, addHostPayload)
+  } = useXoPoolAddHostJob(pool, addHostPayload)
 
   const { open } = useOverlay({
     component: () => import('@/modules/pool/components/drawer/PoolExistingHostDrawer.vue'),

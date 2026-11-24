@@ -1,12 +1,16 @@
 import { usePoolNewHost } from '@/modules/pool/composables/use-pool-new-host.composable.ts'
-import type { useXoPoolAddHostJob } from '@/modules/pool/jobs/xo-pool-add-host.job.ts'
+import { useXoPoolAddHostJob } from '@/modules/pool/jobs/xo-pool-add-host.job.ts'
 import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
-import type { useServerCreateAndConnect } from '@/modules/server/composables/use-server-create-and-connect.composable.ts'
-import type { fetchGet } from '@/shared/utils/fetch.util.ts'
+import { useServerCreateAndConnect } from '@/modules/server/composables/use-server-create-and-connect.composable.ts'
+import { fetchGet } from '@/shared/utils/fetch.util.ts'
+import { createJobStub } from '@/test/create-job-result.ts'
+import { createPool } from '@/test/create-pool.ts'
 import { createServer } from '@/test/create-server.ts'
-import { overlayMock } from '@/test/mock-overlay.ts'
+import { mockOverlay, overlayMock } from '@/test/mock-overlay.ts'
+import { mockXoCollections, xoCollectionsMock } from '@/test/mock-xo-collections.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
 import { silenceConsoleError } from '@/test/silence-console-error.ts'
+import { mockedExport } from '@/test/spy-on-module.ts'
 import type { ModelBinding } from '@core/packages/validated-form'
 import { KEEP_OVERLAY_OPEN } from '@core/packages/overlay/symbols.ts'
 import { flushPromises } from '@vue/test-utils'
@@ -25,35 +29,19 @@ type NewHostDrawerProps = {
   allowUnauthorizedCheckboxBindings: ModelBinding<boolean>
 }
 
-const { createAndConnectServer, forgetServer, addHostRun, get, jobArgs } = vi.hoisted(() => ({
-  createAndConnectServer: vi.fn(),
-  forgetServer: vi.fn(),
-  addHostRun: vi.fn(),
-  get: vi.fn(),
-  jobArgs: {} as Record<'serverPayload' | 'addHost', unknown>,
-}))
+const createAndConnectServer = vi.fn()
+const forgetServer = vi.fn()
 
-vi.mock(import('@/modules/server/composables/use-server-create-and-connect.composable.ts'), () => ({
-  useServerCreateAndConnect: ((payload: MaybeRefOrGetter<unknown>) => {
-    jobArgs.serverPayload = payload
-    return { createAndConnectServer, forgetServer }
-  }) as unknown as typeof useServerCreateAndConnect,
-}))
+const useCreateAndConnect = mockedExport(useServerCreateAndConnect)
+const get = mockedExport(fetchGet)
 
-vi.mock(import('@/modules/pool/jobs/xo-pool-add-host.job.ts'), () => ({
-  useXoPoolAddHostJob: ((...args: JobArgs) => {
-    jobArgs.addHost = args
-    return { run: addHostRun }
-  }) as unknown as typeof useXoPoolAddHostJob,
-}))
+const addHostJob = createJobStub(useXoPoolAddHostJob)
 
-vi.mock(import('@/shared/utils/fetch.util.ts'), () => ({
-  fetchGet: get as unknown as typeof fetchGet,
-}))
+mockXoCollections('pool')
 
-vi.mock(import('@core/packages/overlay/use-overlay.ts'), () => import('@/test/mock-overlay.ts'))
+mockOverlay()
 
-const POOL_ID = 'pool-1' as FrontXoPool['id']
+const POOL = createPool({ id: 'pool-1' as FrontXoPool['id'] })
 
 const SERVER = createServer({ id: 'server-1' as ReturnType<typeof createServer>['id'] })
 
@@ -62,14 +50,18 @@ const PAYLOAD = { host: '192.168.1.10', username: 'root', password: 'secret', al
 beforeEach(() => {
   vi.restoreAllMocks()
   overlayMock.reset()
+  xoCollectionsMock.reset()
+  xoCollectionsMock.pools.value = [POOL]
+  addHostJob.reset()
   createAndConnectServer.mockReset().mockResolvedValue(SERVER.id)
   forgetServer.mockReset().mockResolvedValue(undefined)
-  addHostRun.mockReset().mockResolvedValue(undefined)
-  get.mockReset().mockResolvedValue(SERVER)
+  useCreateAndConnect.mockReturnValue({ createAndConnectServer, forgetServer })
+  addHostJob.run.mockResolvedValue(undefined)
+  get.mockResolvedValue(SERVER)
 })
 
 function mountNewHost() {
-  const result = mountComposable(() => usePoolNewHost(POOL_ID)).wrapper.vm
+  const result = mountComposable(() => usePoolNewHost(POOL.id)).wrapper.vm
   const drawer = overlayMock.getOverlay<NewHostDrawerOptions>()
 
   return { result, drawer }
@@ -127,19 +119,19 @@ describe('on confirm', () => {
 
     expect(await confirm(drawer)).toBeUndefined()
 
-    expect(toValue(jobArgs.serverPayload as MaybeRefOrGetter<unknown>)).toEqual(PAYLOAD)
+    expect(toValue(useCreateAndConnect.mock.lastCall?.[0] as MaybeRefOrGetter<unknown>)).toEqual(PAYLOAD)
     expect(get).toHaveBeenCalledWith(`servers/${SERVER.id}`)
-    expect((jobArgs.addHost as JobArgs).map(arg => toValue(arg))).toEqual([POOL_ID, { hostId: SERVER.master }])
+    expect((addHostJob.use.mock.lastCall as JobArgs).map(arg => toValue(arg))).toEqual([POOL, { hostId: SERVER.master }])
     expect(forgetServer).toHaveBeenCalledWith(SERVER.id)
 
-    const callOrder = [createAndConnectServer, addHostRun, forgetServer].map(run => run.mock.invocationCallOrder[0])
+    const callOrder = [createAndConnectServer, addHostJob.run, forgetServer].map(run => run.mock.invocationCallOrder[0])
 
     expect(callOrder).toEqual([...callOrder].sort((a, b) => a - b))
   })
 
   it('forgets the server when adding the host to the pool failed', async () => {
     silenceConsoleError()
-    addHostRun.mockRejectedValue(new Error('Host is not compatible'))
+    addHostJob.run.mockRejectedValue(new Error('Host is not compatible'))
     const { drawer, props } = openDrawer()
     fillForm(props)
 
@@ -156,7 +148,7 @@ describe('on confirm', () => {
 
     await confirm(drawer)
 
-    expect(addHostRun).not.toHaveBeenCalled()
+    expect(addHostJob.run).not.toHaveBeenCalled()
     expect(forgetServer).not.toHaveBeenCalled()
   })
 })
