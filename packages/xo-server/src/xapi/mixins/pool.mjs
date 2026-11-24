@@ -5,6 +5,7 @@ import { decorateObject } from '@vates/decorate-with'
 import { defer as deferrable } from 'golike-defer'
 import { incorrectState } from 'xo-common/api-errors.js'
 import { isHostRunning } from '../utils.mjs'
+import { rpuCheck } from '../../_rpuPrecheck.mjs'
 import { isRpuHostAwaitingReboot, noopRpuRecorder, noRpuResume, restoreRpuSetting } from '../../_rpuRecovery.mjs'
 import { parseDateTime } from '@xen-orchestra/xapi'
 import { Task } from '@xen-orchestra/mixins/Tasks.mjs'
@@ -478,6 +479,43 @@ const methods = {
     setProgress(parentTask, 100)
   },
 
+  // What `rollingPoolReboot` checks before it touches a host, as the checks of
+  // the precheck of a rolling pool update. Changes nothing
+  //
+  // HA is not disabled here: while it is enabled, XAPI reports every
+  // non-protected VM as an evacuation blocker, the VMs which cannot migrate
+  // cannot be told apart and are only informative. A pinned VM may be among
+  // them under another error code: with such VMs and no VM known as pinned,
+  // the pinned VMs are not checked and their check is absent
+  async getRollingRebootPrecheck() {
+    const hosts = filter(this.objects.all, { $type: 'host' })
+    const runningHosts = hosts.filter(isHostRunning)
+    const haEnabled = this.pool.ha_enabled
+    const toObject = host => ({ type: 'host', id: host.uuid })
+
+    const pinnedVms = []
+    const otherVms = []
+    await Promise.all(
+      runningHosts.map(async host => {
+        const blockedVms = await host.$call('get_vms_which_prevent_evacuation')
+        for (const [vmRef, [errorCode]] of Object.entries(blockedVms)) {
+          const vms = PINNED_VM_ERROR_CODES.has(errorCode) ? pinnedVms : otherVms
+          vms.push({ type: 'VM', id: this.getObject(vmRef, undefined)?.uuid ?? vmRef, reason: errorCode })
+        }
+      })
+    )
+
+    return [
+      rpuCheck('hostsRunning', 'blocking', hosts.filter(host => !isHostRunning(host)).map(toObject)),
+      rpuCheck('hostsEnabled', 'info', runningHosts.filter(host => !host.enabled).map(toObject)),
+      ...(haEnabled && pinnedVms.length === 0 && otherVms.length > 0
+        ? []
+        : [rpuCheck('pinnedVms', 'blocking', pinnedVms, 'shutdownPinnedVms')]),
+      rpuCheck('vmsNotMigratable', haEnabled ? 'info' : 'blocking', otherVms),
+      rpuCheck('pausedHa', 'info', haEnabled ? [{ type: 'pool', id: this.pool.uuid }] : []),
+    ]
+  },
+
   // HA as the run found it: `ha` holds the uuids of its heartbeat SRs and its
   // configuration. Never throws
   _restoreRpuHa(recorder, ha) {
@@ -509,6 +547,7 @@ const methods = {
         }
       } catch (error) {
         log.warn('failed to restart a pinned VM shut down by a rolling pool reboot', { vmRef, error })
+        Task.warning(`failed to restart a pinned VM shut down by the rolling pool update: ${error.message}`, { vmRef })
       }
     }
   },

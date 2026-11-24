@@ -1,5 +1,6 @@
 import { createLogger } from '@xen-orchestra/log'
 import { RPU_RECOVERY_STEP_NAMES } from '@vates/types/common'
+import { Task } from '@vates/task'
 import { randomUUID } from 'node:crypto'
 import stringify from 'json-stringify-safe'
 import { incorrectState, noSuchObject } from 'xo-common/api-errors.js'
@@ -74,7 +75,10 @@ export function createRpuRecoveryRecord({ poolId, options }) {
 // reported as `interrupted`
 function deriveHostStatus(steps, isRunLive) {
   const inProgress = isRunLive ? 'running' : 'interrupted'
-  const statuses = RPU_RECOVERY_STEP_NAMES.map(name => steps[name]?.status ?? 'pending')
+  // the update of the LINSTOR packages is a step of the pool: it tells nothing
+  // of the host
+  const names = RPU_RECOVERY_STEP_NAMES.filter(name => name !== 'linstor')
+  const statuses = names.map(name => steps[name]?.status ?? 'pending')
   if (statuses.includes('failed')) {
     return 'failed'
   }
@@ -87,7 +91,10 @@ function deriveHostStatus(steps, isRunLive) {
   if (statuses.every(status => status === 'observed-succeeded' || status === 'not-needed')) {
     return 'succeeded'
   }
-  if (statuses.every(status => status === 'pending')) {
+  // not started: on a pool without XOSTOR, the wait for LINSTOR is not needed
+  if (
+    statuses.every((status, i) => status === 'pending' || (status === 'not-needed' && names[i] === 'linstorHealth'))
+  ) {
     return 'pending'
   }
   // partially done then stopped in between steps
@@ -119,9 +126,18 @@ export function buildRpuRecoveryView(record) {
   }
 
   const isRunLive = LIVE_RUN_STATUSES.has(record.status)
+  // only the run of a pool with XOSTOR records the update of the LINSTOR
+  // packages: without it, as in a record written before the LINSTOR steps
+  // existed, they are not needed
+  const notNeeded = { status: 'not-needed' }
   const hosts = {}
   for (const hostId of record.hostOrder ?? Object.keys(record.hosts ?? {})) {
-    const { steps = {}, lastError } = record.hosts?.[hostId] ?? {}
+    const { steps: hostSteps, lastError } = record.hosts?.[hostId] ?? {}
+    const steps = {
+      ...(record.linstor === undefined && { linstorHealth: notNeeded }),
+      ...hostSteps,
+      linstor: record.linstor ?? notNeeded,
+    }
     const viewSteps = {}
     for (const name of RPU_RECOVERY_STEP_NAMES) {
       const { status = 'pending', startedAt, finishedAt } = steps[name] ?? {}
@@ -172,11 +188,17 @@ export function unreadableRpuRecoveryView(poolId) {
 /**
  * Reads the record of a pool and projects it onto its public view.
  *
+ * With `getLive`, the view of a readable record gets `unrestoredItems`: what
+ * the run left unrestored, see `listUnrestoredItemsForView`. Nothing while the
+ * run is live: it restores what it changed itself. Left out when the live
+ * state cannot be read.
+ *
  * @param {object} store - LevelDB sublevel, keyed by pool id
  * @param {string} poolId
+ * @param {(record: object) => Promise<object>} [getLive] - Reads the live state of the pool, see `listUnrestoredItems`
  * @returns {Promise<object | undefined>} `undefined` when the pool has no record
  */
-export async function readRpuRecoveryView(store, poolId) {
+export async function readRpuRecoveryView(store, poolId, getLive) {
   let record
   try {
     record = await store.get(poolId)
@@ -188,7 +210,20 @@ export async function readRpuRecoveryView(store, poolId) {
     log.warn('unreadable RPU recovery record', { error, poolId })
     return unreadableRpuRecoveryView(poolId)
   }
-  return buildRpuRecoveryView(record)
+  const view = buildRpuRecoveryView(record)
+  if (getLive !== undefined && view.status !== 'blocked') {
+    if (LIVE_RUN_STATUSES.has(record.status)) {
+      view.unrestoredItems = []
+    } else {
+      // the state of the run is still worth showing without it
+      try {
+        view.unrestoredItems = listUnrestoredItemsForView(record, await getLive(record))
+      } catch (error) {
+        log.warn('cannot list what the rolling pool update left unrestored', { error, poolId })
+      }
+    }
+  }
+  return view
 }
 
 /**
@@ -302,6 +337,42 @@ export function listUnrestoredItems(record, { pool, loadBalancerLoaded, getHost,
   }
 
   return items
+}
+
+/**
+ * The items of `listUnrestoredItems`, with whether a restore is possible now,
+ * as the finalize does it (see `restoreRpuLeftovers`).
+ *
+ * Not restorable: a host the run updated without seeing it reboot, which stays
+ * disabled until a resume finishes it, the VMs to bring back to or to start on
+ * such a host, a VM to start on a host which left the pool, and HA recorded
+ * without its heartbeat SRs.
+ *
+ * @param {object} record - Record of the run
+ * @param {object} live - See `listUnrestoredItems`
+ * @returns {Array<{ type: string, id: string, name?: string, restorable: boolean }> | null} `null` when the record
+ *   cannot be read
+ */
+export function listUnrestoredItemsForView(record, live) {
+  const isAwaitingReboot = hostId =>
+    isRpuHostAwaitingReboot(record, hostId, live.getHost(hostId)?.other_config?.boot_time)
+  const isRestorable = ({ type, id }) => {
+    switch (type) {
+      case 'ha':
+        return record.changedByRun.ha.srs !== undefined
+      case 'host':
+        return !isAwaitingReboot(id)
+      case 'vm':
+        return !isAwaitingReboot(record.vmHomeById[id])
+      case 'haltedPinnedVm': {
+        const hostId = record.haltedPinnedVms[id]
+        return live.getHost(hostId) !== undefined && !isAwaitingReboot(hostId)
+      }
+      default:
+        return true
+    }
+  }
+  return listUnrestoredItems(record, live)?.map(item => ({ ...item, restorable: isRestorable(item) })) ?? null
 }
 
 /**
@@ -428,6 +499,7 @@ export const noopRpuRecorder = Object.freeze({
   setPatchInventory: noop,
   reopenHost: noop,
   setPlan: noop,
+  linstorStep: noop,
   hostStarting: noop,
   hostSkipped: noop,
   hostFailed: noop,
@@ -449,7 +521,8 @@ export const noopRpuRecorder = Object.freeze({
 /**
  * Restores a setting the run changed, meant to be deferred: the setting is
  * recorded as restored only once the restore succeeded. Never throws, a failed
- * restore is logged with the setting and leaves it in the record.
+ * restore is logged with the setting, reported as a warning of the current
+ * task and leaves it in the record.
  *
  * @param {object} recorder
  * @param {'ha' | 'autoPowerOn' | 'wlb' | 'loadBalancer' | 'schedules'} name
@@ -462,6 +535,10 @@ export async function restoreRpuSetting(recorder, name, restore, id) {
     await restore()
   } catch (error) {
     log.warn('failed to restore a setting changed by the rolling pool update', { error, setting: name, id })
+    Task.warning(`failed to restore a setting changed by the rolling pool update: ${error.message}`, {
+      setting: name,
+      id,
+    })
     return
   }
   recorder.settingRestored(name, id)
@@ -613,6 +690,23 @@ export function createRpuRecoveryRecorder({ store, record }) {
     hostSkipped(hostId) {
       for (const name of RPU_RECOVERY_STEP_NAMES) {
         setStep(hostId, name, { status: 'not-needed' })
+      }
+      write()
+    },
+    // the update of the LINSTOR packages of a pool with XOSTOR: done once for
+    // the whole pool before its first host, it is not a step of a host
+    linstorStep(status) {
+      const now = new Date().toISOString()
+      if (status === 'running') {
+        record.linstor = { status, startedAt: now }
+      } else if (status === 'not-needed') {
+        // not needed by this attempt: what a previous one observed stays
+        if (record.linstor?.status === 'observed-succeeded') {
+          return
+        }
+        record.linstor = { status }
+      } else {
+        record.linstor = { ...record.linstor, status, finishedAt: now }
       }
       write()
     },
@@ -833,11 +927,13 @@ export function isRpuHostAwaitingReboot(record, hostId, bootTime) {
  * (`updateStarted`, kept by resumeRpuRecoveryRun), counts as patched.
  *
  * @param {object} record - Readable record
- * @returns {{ doneHostIds: Set<string>, unfinishedHosts: object, patchedHostIds: Set<string>, hostsStarted: boolean,
+ * @returns {{ doneHostIds: Set<string>, unfinishedHosts: object, patchedHostIds: Set<string>,
+ *   linstorUnverifiedHostIds: string[], hostsStarted: boolean,
  *   hostOrder: string[], vmHomeById: object, haltedPinnedVms: object, changedByRun: object,
  *   patchInventory: object | undefined }} `unfinishedHosts` maps
  *   the id of each unfinished host to its `agentStartedAtBeforeUpdate`, its `enabledBeforeUpdate` and whether the
  *   previous attempt was rebooting it (`rebooting`), `patchedHostIds` are the hosts whose update started,
+ *   `linstorUnverifiedHostIds` the rebooted hosts after which LINSTOR was not seen healthy,
  *   `hostsStarted` when a host was handled by a previous attempt, `patchInventory` is the patch inventory of the
  *   first attempt, the other fields come from the record
  */
@@ -845,11 +941,15 @@ export function planRpuResume(record) {
   const doneHostIds = new Set()
   const unfinishedHosts = {}
   const patchedHostIds = new Set()
+  const linstorUnverifiedHostIds = []
   for (const hostId of record.hostOrder ?? []) {
     const { steps = {}, agentStartedAtBeforeUpdate, enabledBeforeUpdate, updateStarted } = record.hosts[hostId] ?? {}
     const status = name => steps[name]?.status ?? 'pending'
     if (updateStarted || isStepStarted(status('update'))) {
       patchedHostIds.add(hostId)
+    }
+    if (status('reboot') === 'observed-succeeded' && !isStepOver(status('linstorHealth'))) {
+      linstorUnverifiedHostIds.push(hostId)
     }
     if (status('evacuate') === 'observed-succeeded' && STEPS_AFTER_EVACUATE.every(name => isStepOver(status(name)))) {
       doneHostIds.add(hostId)
@@ -865,6 +965,7 @@ export function planRpuResume(record) {
     doneHostIds,
     unfinishedHosts,
     patchedHostIds,
+    linstorUnverifiedHostIds,
     hostsStarted: Object.keys(record.hosts).length > 0,
     hostOrder: record.hostOrder ?? [],
     vmHomeById: record.vmHomeById ?? {},
@@ -882,6 +983,7 @@ export const noRpuResume = Object.freeze({
   doneHostIds: new Set(),
   unfinishedHosts: {},
   patchedHostIds: new Set(),
+  linstorUnverifiedHostIds: [],
   hostsStarted: false,
   hostOrder: [],
   vmHomeById: {},
@@ -983,10 +1085,15 @@ export async function resumeRpuRecoveryRun({ store, poolId, live, acceptOperator
   // running or failed
   const plan = planRpuResume(record)
 
+  const isUnfinished = step => step?.status === 'failed' || step?.status === 'running'
+  // not updated to the end: the plan has no host started, the resume updates
+  // the LINSTOR packages again
+  if (isUnfinished(record.linstor)) {
+    record.linstor = { status: 'pending' }
+  }
   for (const [hostId, host] of Object.entries(record.hosts)) {
     for (const name of RPU_RECOVERY_STEP_NAMES) {
-      const status = host.steps[name]?.status
-      if (status === 'failed' || status === 'running') {
+      if (isUnfinished(host.steps[name])) {
         host.steps[name] = { status: 'pending' }
       }
     }

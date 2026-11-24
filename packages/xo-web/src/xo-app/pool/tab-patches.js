@@ -153,7 +153,7 @@ const RPU_RECOVERY_MESSAGES = {
   succeeded: 'rpuRecoverySucceeded',
 }
 
-const RPU_RECOVERY_STEP_NAMES = ['evacuate', 'update', 'reboot', 'enable', 'restoreVms']
+const RPU_RECOVERY_STEP_NAMES = ['evacuate', 'update', 'reboot', 'enable', 'linstorHealth', 'restoreVms']
 const isRpuStepOver = step => step?.status === 'observed-succeeded' || step?.status === 'not-needed'
 
 const RPU_VM_CONFLICT_MESSAGES = {

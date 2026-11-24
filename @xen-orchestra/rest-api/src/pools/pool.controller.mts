@@ -42,6 +42,7 @@ import {
 import type { SendObjects } from '../helpers/helper.type.mjs'
 import { XapiXoController } from '../abstract-classes/xapi-xo-controller.mjs'
 import type {
+  PoolRollingUpdatePrecheck,
   PoolRollingUpdateRecovery,
   XapiPoolStats,
   XapiStatsGranularity,
@@ -73,6 +74,7 @@ import {
   poolDashboard,
   poolIds,
   poolMissingPatches,
+  poolRollingUpdatePrecheck,
   poolRollingUpdateRecovery,
   poolStats,
 } from '../open-api/oa-examples/pool.oa-example.mjs'
@@ -84,6 +86,7 @@ import type {
   CreateVmParams,
   FinalizeRollingUpdateBody,
   PoolDashboard,
+  RestoreRollingUpdateItemBody,
   ResumeRollingUpdateBody,
   RollingPoolActionBody,
   RollingPoolUpdateBody,
@@ -827,6 +830,32 @@ export class PoolController extends XapiXoController<XoPool> {
   }
 
   /**
+   * Returns every check a rolling pool update of the pool would go through,
+   * without changing anything: hosts running and enabled, running backup
+   * jobs, VMs which cannot migrate, pool partially updated, health and pending
+   * packages of XOSTOR, and what the update pauses (HA, load balancer, backup
+   * schedules). A check is `blocking` when the start would refuse the pool:
+   * `liftedBy` then names the option of the start which lifts it, if any.
+   * `info` checks do not block. A check which does not apply to the pool is
+   * absent.
+   *
+   * Required privilege:
+   * - resource: pool, action: rolling-update
+   *
+   * @example id "355ee47d-ff4c-4924-3db2-fd86ae629676"
+   */
+  @Example(poolRollingUpdatePrecheck)
+  @Extension('x-mcp-exposure', 'allow')
+  @Get('{id}/rolling_update_precheck')
+  @Middlewares(acl({ resource: 'pool', action: 'rolling-update', objectId: 'params.id' }))
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  async getRollingUpdatePrecheck(@Path() id: string): Promise<PoolRollingUpdatePrecheck[]> {
+    const pool = this.getObject(id as XoPool['id'])
+    return this.restApi.xoApp.getRollingUpdatePrecheck(pool.id)
+  }
+
+  /**
    * Close the record of an incomplete rolling pool update.
    *
    * What the update changed and did not restore is restored first, best effort: disabled hosts are enabled, halted
@@ -873,6 +902,52 @@ export class PoolController extends XapiXoController<XoPool> {
       statusCode: noContentResp.status,
       taskProperties: {
         name: 'finalize rolling pool update',
+        objectId: poolId,
+        params: body,
+        progress: 0,
+      },
+    })
+  }
+
+  /**
+   * Restore a single item a rolling pool update left unrestored, one of the `unrestoredItems` of its recovery: a
+   * host enabled, a pinned VM started, a VM migrated back to its home host, a setting enabled again. The other
+   * items are left as they are and the record of the update is kept: finalize the update to close it.
+   *
+   * Refused while the update runs, if it did not leave the item unrestored, or if the item cannot be restored now
+   * (`restorable` is false). The task fails if the item is still unrestored afterwards.
+   *
+   * Required privilege:
+   * - resource: pool, action: rolling-update
+   *
+   * @example id "355ee47d-ff4c-4924-3db2-fd86ae629676"
+   * @example body { "type": "host", "id": "b61a5c92-700e-4966-a13b-00633f03eea8" }
+   */
+  @Example(taskLocation)
+  @Extension('x-mcp-exposure', 'confirm')
+  @Post('{id}/actions/restore_rolling_update_item')
+  @Middlewares([json(), acl({ resource: 'pool', action: 'rolling-update', objectId: 'params.id' })])
+  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
+  @Response(noContentResp.status, noContentResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(incorrectStateResp.status, incorrectStateResp.description)
+  restoreRollingUpdateItem(
+    @Path() id: string,
+    @Body() body: RestoreRollingUpdateItemBody,
+    @Query() sync?: boolean
+  ): CreateActionReturnType<void> {
+    const poolId = id as XoPool['id']
+    const action = async (task: VatesTask) => {
+      const pool = this.getObject(poolId)
+      await this.restApi.xoApp.restoreRollingUpdateItem(pool, { ...body, parentTask: task })
+    }
+
+    return this.createAction<void>(action, {
+      sync,
+      statusCode: noContentResp.status,
+      taskProperties: {
+        name: 'restore rolling pool update item',
         objectId: poolId,
         params: body,
         progress: 0,

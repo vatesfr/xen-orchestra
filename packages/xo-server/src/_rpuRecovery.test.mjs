@@ -2,6 +2,7 @@ import assert from 'assert/strict'
 import test from 'node:test'
 import { Readable } from 'node:stream'
 import { incorrectState, noSuchObject } from 'xo-common/api-errors.js'
+import { Task } from '@vates/task'
 
 import {
   buildRpuRecoveryView,
@@ -201,6 +202,60 @@ describe('buildRpuRecoveryView()', () => {
     assert.equal(view.hosts.skipped.status, 'not-needed')
     assert.equal(view.hosts.done.status, 'succeeded')
     assert.equal(view.hosts.half.status, 'running')
+  })
+
+  it('reports the XOSTOR steps as not-needed on a pool without XOSTOR, or in a record written before they existed', () => {
+    const record = createRpuRecoveryRecord({ poolId: 'pool1', options: OPTIONS })
+    record.hostOrder = ['done', 'half', 'noVms', 'pending']
+    const done = Object.fromEntries(
+      ['evacuate', 'update', 'reboot', 'enable', 'restoreVms'].map(name => [name, { status: 'observed-succeeded' }])
+    )
+    record.hosts.done = { steps: done }
+    record.hosts.half = { steps: { evacuate: { status: 'observed-succeeded' } } }
+    record.hosts.noVms = { steps: { restoreVms: { status: 'not-needed' } } }
+
+    const { hosts } = buildRpuRecoveryView(record)
+
+    for (const hostId of record.hostOrder) {
+      assert.deepEqual(hosts[hostId].steps.linstor, {
+        status: 'not-needed',
+        startedAt: undefined,
+        finishedAt: undefined,
+      })
+      assert.equal(hosts[hostId].steps.linstorHealth.status, 'not-needed')
+    }
+    // same host statuses as before
+    assert.equal(hosts.done.status, 'succeeded')
+    assert.equal(hosts.half.status, 'running')
+    assert.equal(hosts.noVms.status, 'running')
+    assert.equal(hosts.pending.status, 'pending')
+  })
+
+  it('reports the XOSTOR steps of a pool with XOSTOR', () => {
+    const record = createRpuRecoveryRecord({ poolId: 'pool1', options: OPTIONS })
+    record.hostOrder = ['done', 'waiting', 'pending']
+    record.linstor = { status: 'observed-succeeded', startedAt: 'T1', finishedAt: 'T2' }
+    const done = Object.fromEntries(
+      ['evacuate', 'update', 'reboot', 'enable', 'restoreVms'].map(name => [name, { status: 'observed-succeeded' }])
+    )
+    record.hosts.done = { steps: { ...done, linstorHealth: { status: 'observed-succeeded' } } }
+    record.hosts.waiting = {
+      steps: { ...done, restoreVms: { status: 'pending' }, linstorHealth: { status: 'running' } },
+    }
+
+    const { hosts } = buildRpuRecoveryView(record)
+
+    // the packages of LINSTOR are updated once, for the whole pool
+    for (const hostId of record.hostOrder) {
+      assert.deepEqual(hosts[hostId].steps.linstor, { status: 'observed-succeeded', startedAt: 'T1', finishedAt: 'T2' })
+    }
+    assert.equal(hosts.done.steps.linstorHealth.status, 'observed-succeeded')
+    assert.equal(hosts.done.status, 'succeeded')
+    assert.equal(hosts.waiting.steps.linstorHealth.status, 'running')
+    assert.equal(hosts.waiting.status, 'running')
+    // the update of the packages is not the start of a host
+    assert.equal(hosts.pending.steps.linstorHealth.status, 'pending')
+    assert.equal(hosts.pending.status, 'pending')
   })
 
   it('reports a host left in progress by a run that is over as interrupted', () => {
@@ -408,6 +463,146 @@ describe('listUnrestoredItems()', () => {
     assert.equal(listUnrestoredItems(undefined, makeLive()), null)
     assert.equal(listUnrestoredItems(null, makeLive()), null)
     assert.equal(listUnrestoredItems({ schemaVersion: 42, poolId: 'pool1' }, makeLive()), null)
+  })
+
+  describe('in the view of readRpuRecoveryView()', () => {
+    async function readView(record, live) {
+      const store = makeFakeStore()
+      await store.put('pool1', record)
+      return readRpuRecoveryView(store, 'pool1', async () => live)
+    }
+
+    it('lists what a run which is over left unrestored, as restorable', async () => {
+      const record = makeRecord({
+        status: 'failed',
+        changedByRun: { ha: { srs: ['sr1'] }, autoPowerOn: true, schedules: ['s1'] },
+        hostOrder: ['h1'],
+        hosts: { h1: { enabledBeforeUpdate: true, steps: { evacuate: { status: 'failed' } } } },
+        vmHomeById: { vm1: 'h1' },
+        haltedPinnedVms: { vm2: 'h1' },
+      })
+      const live = makeLive({
+        pool: { ha_enabled: false, other_config: { auto_poweron: 'false' } },
+        schedules: { s1: { enabled: false, name: 'nightly' } },
+        hosts: { h1: host('host 1', false), h2: host('host 2', true) },
+        vms: { vm1: vm('vm 1', 'Running', 'h2'), vm2: vm('vm 2', 'Halted') },
+      })
+
+      const { unrestoredItems } = await readView(record, live)
+
+      assert.deepEqual(
+        unrestoredItems,
+        listUnrestoredItems(record, live).map(item => ({ ...item, restorable: true }))
+      )
+      assert.deepEqual(
+        unrestoredItems.map(({ type }) => type),
+        ['ha', 'autoPowerOn', 'schedule', 'host', 'vm', 'haltedPinnedVm']
+      )
+    })
+
+    it('no longer lists an item restored by hand since the run', async () => {
+      const record = makeRecord({ changedByRun: { ha: { srs: ['sr1'] }, autoPowerOn: true } })
+      const live = makeLive({ pool: { ha_enabled: false } })
+
+      assert.deepEqual((await readView(record, live)).unrestoredItems, [{ type: 'ha', id: 'pool1', restorable: true }])
+    })
+
+    it('lists a host awaiting its reboot, and the VMs to bring back to it, as not restorable', async () => {
+      const record = makeRecord({
+        hostOrder: ['h1', 'h2'],
+        hosts: {
+          h1: {
+            enabledBeforeUpdate: true,
+            steps: { evacuate: { status: 'observed-succeeded' }, update: { status: 'failed' } },
+          },
+          h2: { enabledBeforeUpdate: true, steps: { evacuate: { status: 'failed' } } },
+        },
+        vmHomeById: { vm1: 'h1', vm3: 'h2' },
+        haltedPinnedVms: { vm2: 'h1' },
+      })
+      const live = makeLive({
+        hosts: { h1: host('host 1', false), h2: host('host 2', false), h3: host('host 3', true) },
+        vms: { vm1: vm('vm 1', 'Running', 'h3'), vm2: vm('vm 2', 'Halted'), vm3: vm('vm 3', 'Running', 'h3') },
+      })
+
+      assert.deepEqual((await readView(record, live)).unrestoredItems, [
+        { type: 'host', id: 'h1', name: 'host 1', restorable: false },
+        { type: 'host', id: 'h2', name: 'host 2', restorable: true },
+        { type: 'vm', id: 'vm1', name: 'vm 1', restorable: false },
+        { type: 'vm', id: 'vm3', name: 'vm 3', restorable: true },
+        { type: 'haltedPinnedVm', id: 'vm2', name: 'vm 2', restorable: false },
+      ])
+    })
+
+    it('lists a host which rebooted out of the sight of the run as restorable', async () => {
+      const finishedAt = '2026-08-31T14:07:12.000Z'
+      const record = makeRecord({
+        hostOrder: ['h1'],
+        hosts: {
+          h1: {
+            enabledBeforeUpdate: true,
+            steps: {
+              evacuate: { status: 'observed-succeeded' },
+              update: { status: 'observed-succeeded', finishedAt },
+              reboot: { status: 'running' },
+            },
+          },
+        },
+      })
+      const bootTime = String(Date.parse(finishedAt) / 1e3 + 60)
+      const live = makeLive({ hosts: { h1: { ...host('host 1', false), other_config: { boot_time: bootTime } } } })
+
+      assert.deepEqual((await readView(record, live)).unrestoredItems, [
+        { type: 'host', id: 'h1', name: 'host 1', restorable: true },
+      ])
+    })
+
+    it('lists HA recorded without its heartbeat SRs as not restorable', async () => {
+      const record = makeRecord({ changedByRun: { ha: true } })
+      const live = makeLive({ pool: { ha_enabled: false } })
+
+      assert.deepEqual((await readView(record, live)).unrestoredItems, [{ type: 'ha', id: 'pool1', restorable: false }])
+    })
+
+    it('lists a pinned VM to start on a host which left the pool as not restorable', async () => {
+      const record = makeRecord({ haltedPinnedVms: { vm2: 'h1' } })
+      const live = makeLive({ vms: { vm2: vm('vm 2', 'Halted') } })
+
+      assert.deepEqual((await readView(record, live)).unrestoredItems, [
+        { type: 'haltedPinnedVm', id: 'vm2', name: 'vm 2', restorable: false },
+      ])
+    })
+
+    it('is left out, with the rest of the view, when the state of the pool cannot be read', async () => {
+      const store = makeFakeStore()
+      await store.put('pool1', makeRecord({ status: 'failed' }))
+
+      const view = await readRpuRecoveryView(store, 'pool1', async () => {
+        throw new Error('no connection')
+      })
+
+      assert.equal(view.status, 'failed')
+      assert.equal('unrestoredItems' in view, false)
+    })
+
+    it('is empty while the run is live, without reading the state of the pool', async () => {
+      for (const status of ['preparing', 'running', 'resuming', 'cleaning']) {
+        const record = makeRecord({ status, changedByRun: { autoPowerOn: true } })
+        const store = makeFakeStore()
+        await store.put('pool1', record)
+
+        const view = await readRpuRecoveryView(store, 'pool1', () => assert.fail('live state read'))
+
+        assert.deepEqual(view.unrestoredItems, [], status)
+      }
+    })
+
+    it('is absent from a blocked record', async () => {
+      const view = await readView({ schemaVersion: 42, poolId: 'pool1' }, makeLive())
+
+      assert.equal(view.status, 'blocked')
+      assert.equal('unrestoredItems' in view, false)
+    })
   })
 })
 
@@ -737,9 +932,50 @@ describe('createRpuRecoveryRecorder()', () => {
     await recorder.recordHaltedPinnedVm('vm1', 'h1')
 
     const steps = stored().hosts.h1.steps
-    for (const name of ['evacuate', 'update', 'reboot', 'enable', 'restoreVms']) {
+    for (const name of ['linstor', 'evacuate', 'update', 'reboot', 'enable', 'linstorHealth', 'restoreVms']) {
       assert.equal(steps[name].status, 'not-needed')
     }
+  })
+
+  it('linstorStep tracks the update of the LINSTOR packages without handling a host', async () => {
+    const { store, recorder, stored } = await makeRecorder()
+
+    recorder.linstorStep('running')
+    await recorder.flush()
+    assert.equal(stored().linstor.status, 'running')
+    assert.equal(typeof stored().linstor.startedAt, 'string')
+
+    recorder.linstorStep('observed-succeeded')
+    await recorder.flush()
+    assert.equal(stored().linstor.status, 'observed-succeeded')
+    assert.equal(typeof stored().linstor.finishedAt, 'string')
+
+    // a later attempt with nothing left to update keeps what this one observed
+    const observed = stored().linstor
+    recorder.linstorStep('not-needed')
+    await recorder.flush()
+    assert.deepEqual(stored().linstor, observed)
+    assert.deepEqual(stored().hosts, {})
+
+    // no host handled: nothing to recover
+    await recorder.fail(new Error('pinned VMs'))
+    await recorder.dropIfNothingToRecover()
+    assert.equal(store.data.has('pool1'), false)
+  })
+
+  it('hostFailed marks the LINSTOR health step failed when LINSTOR does not recover after a host', async () => {
+    const { recorder, stored } = await makeRecorder()
+
+    recorder.stepRunning('h1', 'linstorHealth')
+    const error = new Error(
+      'LINSTOR is not healthy after 600 seconds: volume 0 of resource xcp-volume-1 on node host-B is Outdated'
+    )
+    recorder.hostFailed('h1', error)
+    await recorder.fail(error)
+
+    const host = stored().hosts.h1
+    assert.equal(host.steps.linstorHealth.status, 'failed')
+    assert.match(host.lastError.message, /resource xcp-volume-1 on node host-B/)
   })
 
   it('hostFailed marks the running step failed and records the filtered error', async () => {
@@ -1221,6 +1457,40 @@ describe('resumeRpuRecoveryRun()', () => {
     assert.deepEqual([...again.plan.patchedHostIds], ['h1', 'h3'])
   })
 
+  it('leaves the wait for LINSTOR after a finished host to the run when it failed', async () => {
+    const { store } = await storeWith({
+      hostOrder: ['h1', 'h2'],
+      linstor: { status: 'observed-succeeded' },
+      hosts: {
+        h1: { steps: { ...allSteps('observed-succeeded'), linstorHealth: { status: 'failed' } } },
+        h2: { steps: {} },
+      },
+    })
+
+    const { plan } = await resumeRpuRecoveryRun({ store, poolId: 'pool1' })
+
+    // the XOSTOR steps are observations: h1 is done
+    assert.deepEqual([...plan.doneHostIds], ['h1'])
+    // the run settles it once it waited for LINSTOR, before it handles any host
+    assert.deepEqual(plan.linstorUnverifiedHostIds, ['h1'])
+    const stored = store.data.get('pool1')
+    assert.equal(stored.hosts.h1.steps.linstorHealth.status, 'pending')
+    assert.equal(stored.linstor.status, 'observed-succeeded')
+    // not succeeded as long as LINSTOR was not seen healthy after it
+    const view = buildRpuRecoveryView({ ...stored, status: 'failed' })
+    assert.equal(view.hosts.h1.status, 'interrupted')
+    assert.equal(view.hosts.h2.status, 'pending')
+  })
+
+  it('re-arms an update of the LINSTOR packages the previous attempt did not finish', async () => {
+    const { store } = await storeWith({ linstor: { status: 'failed', startedAt: 'T1', finishedAt: 'T2' } })
+
+    const { plan } = await resumeRpuRecoveryRun({ store, poolId: 'pool1' })
+
+    assert.equal(plan.hostsStarted, false)
+    assert.deepEqual(store.data.get('pool1').linstor, { status: 'pending' })
+  })
+
   it('rejects when the resuming status cannot be written', async () => {
     const { store } = await storeWith()
     store.put = async () => {
@@ -1506,5 +1776,30 @@ describe('restoreRpuSetting()', () => {
     })
 
     assert.deepEqual(restored, [['schedules', 'schedule-1']])
+  })
+
+  it('reports a failed restore in the task it runs in', async () => {
+    const warnings = []
+    const onProgress = event => {
+      if (event.type === 'warning') {
+        warnings.push([event.message, event.data])
+      }
+    }
+    await new Task({ onProgress }).run(() =>
+      restoreRpuSetting(
+        noopRpuRecorder,
+        'schedules',
+        async () => {
+          throw new Error('schedule store unavailable')
+        },
+        'schedule-1'
+      )
+    )
+    assert.deepEqual(warnings, [
+      [
+        'failed to restore a setting changed by the rolling pool update: schedule store unavailable',
+        { setting: 'schedules', id: 'schedule-1' },
+      ],
+    ])
   })
 })

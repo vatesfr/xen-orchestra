@@ -524,6 +524,36 @@ export const poolMissingPatches = [
   },
 ]
 
+export const poolRollingUpdatePrecheck = [
+  { id: 'license', result: 'passed', objects: [] },
+  { id: 'runningRollingOperation', result: 'passed', objects: [] },
+  { id: 'rollingUpdateRecovery', result: 'passed', objects: [] },
+  {
+    id: 'runningBackups',
+    result: 'blocking',
+    liftedBy: 'bypassBackupCheck',
+    objects: [{ type: 'job', id: '1a4bd0b5-5e6c-4b1f-9b0e-3a2a1f1c2d3e', reason: 'running' }],
+  },
+  { id: 'hostsRunning', result: 'passed', objects: [] },
+  { id: 'hostsEnabled', result: 'passed', objects: [] },
+  {
+    id: 'pinnedVms',
+    result: 'blocking',
+    liftedBy: 'shutdownPinnedVms',
+    objects: [{ type: 'VM', id: '613f541c-4bed-fc77-7ca8-2db6b68f079c', reason: 'VM_HAS_PCI_ATTACHED' }],
+  },
+  { id: 'vmsNotMigratable', result: 'passed', objects: [] },
+  { id: 'pausedHa', result: 'passed', objects: [] },
+  { id: 'missingPatchesListing', result: 'passed', objects: [] },
+  { id: 'partiallyUpdatedPool', result: 'passed', objects: [] },
+  {
+    id: 'pausedLoadBalancer',
+    result: 'info',
+    objects: [{ type: 'pool', id: '355ee47d-ff4c-4924-3db2-fd86ae629676' }],
+  },
+  { id: 'pausedSchedules', result: 'passed', objects: [] },
+]
+
 export const poolRollingUpdateRecovery = {
   runId: '5cea4373-05a7-47ff-9bd8-fea54a37dd63',
   poolId: '355ee47d-ff4c-4924-3db2-fd86ae629676',
@@ -540,6 +570,11 @@ export const poolRollingUpdateRecovery = {
     'b61a5c92-700e-4966-a13b-00633f03eea8': {
       status: 'interrupted',
       steps: {
+        linstor: {
+          status: 'observed-succeeded',
+          startedAt: '2026-08-31T14:02:12.000Z',
+          finishedAt: '2026-08-31T14:02:19.000Z',
+        },
         evacuate: {
           status: 'observed-succeeded',
           startedAt: '2026-08-31T14:02:20.000Z',
@@ -556,6 +591,11 @@ export const poolRollingUpdateRecovery = {
           finishedAt: '2026-08-31T14:12:44.000Z',
         },
         enable: { status: 'observed-succeeded', finishedAt: '2026-08-31T14:12:44.000Z' },
+        linstorHealth: {
+          status: 'observed-succeeded',
+          startedAt: '2026-08-31T14:12:44.000Z',
+          finishedAt: '2026-08-31T14:12:49.000Z',
+        },
         restoreVms: { status: 'pending' },
       },
       lastError: null,
@@ -563,10 +603,16 @@ export const poolRollingUpdateRecovery = {
     '46522969-d891-4c48-a839-316b767b7b7b': {
       status: 'interrupted',
       steps: {
+        linstor: {
+          status: 'observed-succeeded',
+          startedAt: '2026-08-31T14:02:12.000Z',
+          finishedAt: '2026-08-31T14:02:19.000Z',
+        },
         evacuate: { status: 'running', startedAt: '2026-08-31T14:12:50.000Z' },
         update: { status: 'pending' },
         reboot: { status: 'pending' },
         enable: { status: 'pending' },
+        linstorHealth: { status: 'pending' },
         restoreVms: { status: 'pending' },
       },
       lastError: null,
@@ -589,4 +635,10 @@ export const poolRollingUpdateRecovery = {
     attempt: 2,
     addedHostIds: ['b61a5c92-700e-4966-a13b-00633f03eea8'],
   },
+  unrestoredItems: [
+    { type: 'ha', id: '355ee47d-ff4c-4924-3db2-fd86ae629676', restorable: true },
+    { type: 'schedule', id: '2f2e4a2b-9f0c-4d5c-8a0e-4c7f2a1f9b11', name: 'Nightly backup', restorable: true },
+    { type: 'host', id: '46522969-d891-4c48-a839-316b767b7b7b', name: 'xcp-ng-host-2', restorable: true },
+    { type: 'haltedPinnedVm', id: '883b6265-6d54-c48b-6a24-4b0e6d88801f', name: 'Firewall', restorable: true },
+  ],
 }

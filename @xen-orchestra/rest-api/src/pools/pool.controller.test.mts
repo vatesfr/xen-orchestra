@@ -22,6 +22,10 @@ function createController({ v2vService = {} }: { v2vService?: object } = {}) {
     tasks: { create: (properties: unknown) => ({ id: 'task-1', properties, run: (fn: () => unknown) => fn() }) },
     xoApp: {
       finalizeRollingUpdate: record('finalizeRollingUpdate'),
+      getRollingUpdatePrecheck: async (poolId: XoPool['id']) => [
+        { id: 'hostsRunning', result: 'passed', objects: [{ type: 'pool', id: poolId }] },
+      ],
+      restoreRollingUpdateItem: record('restoreRollingUpdateItem'),
       resumeRollingPoolUpdate: record('resumeRollingPoolUpdate'),
       rollingPoolReboot: record('rollingPoolReboot'),
       rollingPoolUpdate: record('rollingPoolUpdate'),
@@ -86,6 +90,30 @@ describe('PoolController.finalizeRollingUpdate', () => {
       { orchestrator: 'finalizeRollingUpdate', parentTask: 'task-1' },
       { orchestrator: 'finalizeRollingUpdate', parentTask: 'task-1', force: true },
     ])
+  })
+})
+
+describe('PoolController.restoreRollingUpdateItem', () => {
+  it('forwards the item of the body to the orchestrator', async () => {
+    const { calls, controller } = createController()
+
+    await controller.restoreRollingUpdateItem('pool-1', { type: 'host', id: 'host-1' }, true)
+
+    assert.deepEqual(calls, [
+      { orchestrator: 'restoreRollingUpdateItem', parentTask: 'task-1', type: 'host', id: 'host-1' },
+    ])
+  })
+})
+
+describe('PoolController.getRollingUpdatePrecheck', () => {
+  it('returns the checks of the pool', async () => {
+    const { calls, controller } = createController()
+
+    assert.deepEqual(await controller.getRollingUpdatePrecheck('pool-1'), [
+      { id: 'hostsRunning', result: 'passed', objects: [{ type: 'pool', id: 'pool-1' }] },
+    ])
+    // read only: no task, no orchestrator
+    assert.deepEqual(calls, [])
   })
 })
 

@@ -34,6 +34,9 @@ class FakeXapi {
         enabled: true,
         other_config: { boot_time: '1000', agent_start_time: '1100' },
         live: true,
+        get $metrics() {
+          return { live: this.live }
+        },
         // what is left of the reboot in progress of a host which is not live:
         // `reboot` until XAPI reports it live, then `startAgent` until it
         // refreshes boot_time and agent_start_time
@@ -89,6 +92,11 @@ class FakeXapi {
     // XenServer 8.4+ only: host or VM uuid -> level of each of its pending
     // guidances checks
     this.guardLevels = {}
+
+    // XenServer 8.4+ only: the hosts the updates endpoint lists with their
+    // guidances, and host or VM uuid -> its pending guidances
+    this.xsUpdatesHosts = []
+    this.pendingGuidances = {}
 
     this._restartHostTimeout = 60e3
   }
@@ -178,14 +186,19 @@ class FakeXapi {
     }
   }
 
-  // XenServer 8.4+ only: no update guidance, no pending guidance
+  // XenServer 8.4+ only: no update guidance, no pending guidance by default
   async _fetchXsUpdatesEndpoint(host) {
     this.updatesEndpointCalls.push(host === REMOVE_CACHE_ENTRY ? 'remove' : 'fetch')
-    return { hash: 'hash', hosts: [] }
+    return { hash: 'hash', hosts: this.xsUpdatesHosts }
+  }
+
+  async _getPendingGuidances(object) {
+    return this.pendingGuidances[object.uuid] ?? []
   }
 
   async _pendingGuidancesGuard(object, level) {
     ;(this.guardLevels[object.uuid] ??= []).push(level)
+    return patchingMethods._pendingGuidancesGuard.call(this, object, level)
   }
 }
 
@@ -350,6 +363,115 @@ describe('rollingPoolUpdate', function () {
       assert.deepEqual(xapi.linstorEvents, ['check', 'update', 'reboot host-A', 'wait', 'reboot host-B', 'wait'])
     })
 
+    describe('recorded steps', function () {
+      // what the run records of LINSTOR, among the steps of its hosts
+      const record = (xapi, options) => {
+        const calls = []
+        const recorder = {
+          ...noopRpuRecorder,
+          linstorStep: status => calls.push(`linstor ${status}`),
+          stepRunning: (hostId, name) => calls.push(`${hostId} ${name} running`),
+          stepObserved: (hostId, name) => calls.push(`${hostId} ${name} observed`),
+          stepNotNeeded: (hostId, name) => calls.push(`${hostId} ${name} not-needed`),
+        }
+        return rollingPoolUpdate(xapi, { ...options, recorder }).then(error => ({
+          error,
+          calls: calls.filter(call => /linstor/i.test(call)),
+        }))
+      }
+
+      it('records the update of the LINSTOR packages, and the wait for LINSTOR after each host', async function () {
+        const { error, calls } = await record(new FakeXapi([1, 2, 0], { linstor: true }))
+
+        assert.equal(error, undefined)
+        assert.deepEqual(calls, [
+          'linstor running',
+          'linstor observed-succeeded',
+          'host-A linstorHealth running',
+          'host-A linstorHealth observed',
+          'host-B linstorHealth running',
+          'host-B linstorHealth observed',
+        ])
+      })
+
+      it('records a failed update of the LINSTOR packages', async function () {
+        const xapi = new FakeXapi([1, 2, 0], { linstor: true })
+        xapi._updateLinstorPackages = async () => {
+          throw new Error('yum failed')
+        }
+
+        const { error, calls } = await record(xapi)
+
+        assert.equal(error?.message, 'yum failed')
+        assert.deepEqual(calls, ['linstor running', 'linstor failed'])
+      })
+
+      // the failure itself is recorded by the reboot, with the one of the host
+      it('leaves the wait for LINSTOR running when LINSTOR does not recover', async function () {
+        const xapi = new FakeXapi([1, 2, 0], { linstor: true })
+        xapi._waitLinstorHealthy = async () => {
+          throw new Error('LINSTOR is not healthy after 600 seconds')
+        }
+
+        const { error, calls } = await record(xapi)
+
+        assert.match(error?.message, /LINSTOR is not healthy/)
+        assert.deepEqual(calls.slice(2), ['host-A linstorHealth running'])
+      })
+
+      it('records nothing on a pool without LINSTOR', async function () {
+        const { error, calls } = await record(new FakeXapi([1, 2, 0]))
+
+        assert.equal(error, undefined)
+        assert.deepEqual(calls, [])
+      })
+
+      it('does not update again the LINSTOR packages once a host started', async function () {
+        const xapi = new FakeXapi([0, 0], { linstor: true })
+
+        const { error, calls } = await record(xapi, {
+          acceptCurrentStateAsBaseline: true,
+          resume: {
+            doneHostIds: new Set(['host-A']),
+            // host-B rebooted since the previous attempt: nothing left to do on it
+            unfinishedHosts: { 'host-B': { agentStartedAtBeforeUpdate: '0', enabledBeforeUpdate: true } },
+            patchedHostIds: new Set(['host-A', 'host-B']),
+            linstorUnverifiedHostIds: [],
+            hostsStarted: true,
+            hostOrder: ['host-A', 'host-B'],
+            vmHomeById: {},
+            haltedPinnedVms: {},
+          },
+        })
+
+        assert.equal(error, undefined)
+        assert.deepEqual(calls, ['linstor not-needed', 'host-B linstorHealth not-needed'])
+      })
+
+      it('records LINSTOR as healthy after the hosts of a previous attempt once it waited for it', async function () {
+        // host-B is left to update: the resume waits for LINSTOR before it
+        const xapi = new FakeXapi([0, 1], { linstor: true })
+
+        const { error, calls } = await record(xapi, {
+          acceptCurrentStateAsBaseline: true,
+          resume: {
+            doneHostIds: new Set(['host-A']),
+            unfinishedHosts: {},
+            patchedHostIds: new Set(['host-A']),
+            // LINSTOR did not recover in time after the reboot of host-A
+            linstorUnverifiedHostIds: ['host-A'],
+            hostsStarted: true,
+            hostOrder: ['host-A', 'host-B'],
+            vmHomeById: {},
+            haltedPinnedVms: {},
+          },
+        })
+
+        assert.equal(error, undefined)
+        assert.deepEqual(calls.slice(0, 2), ['host-A linstorHealth observed', 'linstor not-needed'])
+      })
+    })
+
     it('does not refuse a pool whose plugin is too old to check LINSTOR', async function () {
       const xapi = new FakeXapi([1, 2, 0], { linstor: true })
       xapi.linstorHealth = Object.assign(new Error('UNKNOWN_XENAPI_PLUGIN_FUNCTION(healthCheck)'), {
@@ -398,6 +520,7 @@ describe('rollingPoolUpdate', function () {
       doneHostIds: new Set(hostsStarted ? ['host-A'] : []),
       unfinishedHosts,
       patchedHostIds: new Set(hostsStarted ? ['host-A', ...Object.keys(unfinishedHosts)] : []),
+      linstorUnverifiedHostIds: [],
       hostsStarted,
       hostOrder: ['host-A', 'host-B'],
       vmHomeById: {},
@@ -1057,4 +1180,233 @@ describe('supportsRpuRecovery()', function () {
       assert.equal(supportsRpuRecovery(host), expected)
     })
   }
+})
+
+describe('getRollingUpdatePrecheck()', function () {
+  const UNHEALTHY = {
+    nodes: { 'host-B': 'OFFLINE' },
+    resources: {},
+    errors: [{ code: 0x1020000, name: 'host-B', status: 'OFFLINE' }],
+  }
+
+  // the checks of the update alone, by id: the ones of the reboot are stubbed
+  const precheck = async xapi => {
+    xapi.getRollingRebootPrecheck = async () => [{ id: 'hostsRunning', result: 'passed', objects: [] }]
+    return Object.fromEntries((await xapi.getRollingUpdatePrecheck()).map(check => [check.id, check]))
+  }
+
+  it('reports the checks of the reboot first, then its own', async function () {
+    const xapi = new FakeXapi([1, 2, 0], { linstor: true })
+
+    const checks = await precheck(xapi)
+
+    assert.deepEqual(Object.keys(checks), [
+      'hostsRunning',
+      'missingPatchesListing',
+      'partiallyUpdatedPool',
+      'linstorHealth',
+      'linstorPackages',
+    ])
+    assert.deepEqual(
+      Object.values(checks).map(check => check.result),
+      ['passed', 'passed', 'passed', 'passed', 'passed']
+    )
+    assert.deepEqual(xapi.steps, [])
+    assert.deepEqual(xapi.installs, [])
+  })
+
+  it('reports a partially updated pool as blocking and names the option which lifts it, as the start refuses it', async function () {
+    const xapi = new FakeXapi([0, 2, 0])
+
+    assert.deepEqual((await precheck(xapi)).partiallyUpdatedPool, {
+      id: 'partiallyUpdatedPool',
+      result: 'blocking',
+      liftedBy: 'acceptCurrentStateAsBaseline',
+      // the members left outdated, as in the error of the start
+      objects: [{ type: 'host', id: 'host-B' }],
+    })
+    const error = await rollingPoolUpdate(xapi)
+    assert.ok(incorrectState.is(error, { property: 'partiallyUpdatedPool' }), error)
+    assert.deepEqual(error.data.actual, ['host-B'])
+  })
+
+  it('reports a host whose patches cannot be listed as blocking, with the other checks, as the start fails on it', async function () {
+    const xapi = new FakeXapi([0, 2, 0], { linstor: true })
+    const { listMissingPatches } = xapi
+    xapi.listMissingPatches = async function (hostUuid) {
+      if (hostUuid === 'host-A') {
+        throw new Error('updater unreachable')
+      }
+      return listMissingPatches.call(this, hostUuid)
+    }
+
+    const checks = await precheck(xapi)
+
+    assert.deepEqual(checks.missingPatchesListing, {
+      id: 'missingPatchesListing',
+      result: 'blocking',
+      objects: [{ type: 'host', id: 'host-A', reason: 'updater unreachable' }],
+    })
+    // not checked without the patches of the master
+    assert.equal(checks.partiallyUpdatedPool, undefined)
+    assert.equal(checks.linstorPackages.result, 'passed')
+    assert.equal((await rollingPoolUpdate(xapi)).message, 'updater unreachable')
+  })
+
+  it('has no guidance check on a pool which is not XenServer 8.4+', async function () {
+    const checks = await precheck(new FakeXapi([1, 2, 0]))
+
+    assert.equal(checks.vmRestartGuidances, undefined)
+    assert.equal(checks.pendingGuidances, undefined)
+  })
+
+  it('reports on XenServer 8.4+ the updates which restart VMs as blocking and names the option which lifts it, as the start refuses them', async function () {
+    const xapi = new FakeXapi([1, 2, 0], { softwareVersion: XS_CDN })
+    xapi.xsUpdatesHosts = [
+      { uuid: 'host-A', guidance: { full: [], mandatory: ['RestartToolstack'], recommended: [] } },
+      { uuid: 'host-B', guidance: { full: ['RestartVM'], mandatory: [], recommended: ['RebootHost'] } },
+    ]
+
+    const checks = await precheck(xapi)
+
+    assert.deepEqual(checks.vmRestartGuidances, {
+      id: 'vmRestartGuidances',
+      result: 'blocking',
+      liftedBy: 'rebootVm',
+      objects: [{ type: 'host', id: 'host-B' }],
+    })
+    assert.equal(checks.pendingGuidances.result, 'passed')
+    const error = await rollingPoolUpdate(xapi)
+    assert.ok(incorrectState.is(error, { property: 'guidance', object: 'host-B' }), error)
+    assert.equal(await rollingPoolUpdate(xapi, { rebootVm: true }), undefined)
+  })
+
+  it('reports on XenServer 8.4+ the pending guidances of a host as blocking, as the start refuses them', async function () {
+    const xapi = new FakeXapi([1, 2, 0], { softwareVersion: XS_CDN })
+    xapi.pendingGuidances = { 'host-C': ['RebootHost', 'RestartToolstack'] }
+
+    const checks = await precheck(xapi)
+
+    assert.deepEqual(checks.pendingGuidances, {
+      id: 'pendingGuidances',
+      result: 'blocking',
+      objects: [{ type: 'host', id: 'host-C', reason: 'RebootHost, RestartToolstack' }],
+    })
+    assert.equal(checks.vmRestartGuidances.result, 'passed')
+    const error = await rollingPoolUpdate(xapi)
+    assert.ok(incorrectState.is(error, { property: 'pending_guidances(_recommended|_full)', object: 'host-C' }), error)
+  })
+
+  it('does not report a pool whose master is outdated as partially updated', async function () {
+    const xapi = new FakeXapi([1, 2, 0])
+
+    assert.deepEqual((await precheck(xapi)).partiallyUpdatedPool, {
+      id: 'partiallyUpdatedPool',
+      result: 'passed',
+      objects: [],
+    })
+  })
+
+  it('does not list the patches of a host which is not live', async function () {
+    const xapi = new FakeXapi([0, 2, 0])
+    xapi.hosts[1].live = false
+    const listMissingPatches = xapi.listMissingPatches
+    xapi.listMissingPatches = function (hostUuid) {
+      assert.notEqual(hostUuid, 'host-B')
+      return listMissingPatches.call(this, hostUuid)
+    }
+
+    assert.equal((await precheck(xapi)).partiallyUpdatedPool.result, 'passed')
+  })
+
+  for (const softwareVersion of LEGACY_VERSIONS) {
+    it(`has no partially updated pool check on ${softwareVersion.product_brand} ${softwareVersion.product_version}`, async function () {
+      const xapi = new FakeXapi([0, 2, 0], { softwareVersion })
+
+      assert.equal((await precheck(xapi)).partiallyUpdatedPool, undefined)
+    })
+  }
+
+  it('has no LINSTOR check on a pool without LINSTOR', async function () {
+    const checks = await precheck(new FakeXapi([1, 2, 0]))
+
+    assert.equal(checks.linstorHealth, undefined)
+    assert.equal(checks.linstorPackages, undefined)
+  })
+
+  it('reports an unhealthy LINSTOR as blocking, as the start refuses it', async function () {
+    const xapi = new FakeXapi([1, 2, 0], { linstor: true })
+    xapi.linstorHealth = UNHEALTHY
+
+    assert.deepEqual((await precheck(xapi)).linstorHealth, {
+      id: 'linstorHealth',
+      result: 'blocking',
+      objects: [{ type: 'pool', id: 'pool-1', reason: 'node host-B is OFFLINE' }],
+    })
+    xapi.linstorEvents = []
+    const error = await rollingPoolUpdate(xapi)
+    assert.ok(incorrectState.is(error, { property: 'linstorHealth' }), error)
+  })
+
+  it('reports a LINSTOR which cannot be checked as blocking, as the start refuses it', async function () {
+    const xapi = new FakeXapi([1, 2, 0], { linstor: true })
+    xapi.linstorHealth = new Error('XENAPI_PLUGIN_FAILURE')
+
+    assert.deepEqual((await precheck(xapi)).linstorHealth, {
+      id: 'linstorHealth',
+      result: 'blocking',
+      objects: [{ type: 'pool', id: 'pool-1', reason: 'XENAPI_PLUGIN_FAILURE' }],
+    })
+  })
+
+  it('does not wait 5 minutes for a LINSTOR which does not answer', async function (t) {
+    t.mock.timers.enable({ apis: ['setTimeout'] })
+    const xapi = new FakeXapi([1, 2, 0], { linstor: true })
+    xapi.call = () => new Promise(() => {})
+
+    const checks = precheck(xapi)
+    const ticker = setInterval(() => t.mock.timers.tick(30e3), 1)
+    try {
+      assert.deepEqual((await checks).linstorHealth.objects, [
+        {
+          type: 'pool',
+          id: 'pool-1',
+          reason: 'LINSTOR health check of group linstor_group/thin_device did not answer in 30 seconds',
+        },
+      ])
+    } finally {
+      clearInterval(ticker)
+    }
+  })
+
+  it('passes the LINSTOR health when the plugin is too old to check it, as the start does', async function () {
+    const xapi = new FakeXapi([1, 2, 0], { linstor: true })
+    xapi.linstorHealth = Object.assign(new Error('UNKNOWN_XENAPI_PLUGIN_FUNCTION(healthCheck)'), {
+      code: 'UNKNOWN_XENAPI_PLUGIN_FUNCTION',
+    })
+
+    assert.equal((await precheck(xapi)).linstorHealth.result, 'passed')
+    assert.equal(await rollingPoolUpdate(xapi), undefined)
+  })
+
+  it('does not check the health of LINSTOR on a pool which is up to date, as the start does not', async function () {
+    const xapi = new FakeXapi([0, 0, 0], { linstor: true })
+    xapi.linstorHealth = UNHEALTHY
+
+    assert.equal((await precheck(xapi)).linstorHealth.result, 'passed')
+    assert.deepEqual(xapi.linstorEvents, [])
+    assert.equal(await rollingPoolUpdate(xapi), undefined)
+  })
+
+  it('reports the hosts with LINSTOR packages to update as informative', async function () {
+    const xapi = new FakeXapi([1, 1, 0], { linstor: true })
+    xapi.listMissingPatches = async hostUuid =>
+      hostUuid === 'host-B' ? [{ name: 'kernel' }, { name: 'linstor-satellite' }] : [{ name: 'kernel' }]
+
+    assert.deepEqual((await precheck(xapi)).linstorPackages, {
+      id: 'linstorPackages',
+      result: 'info',
+      objects: [{ type: 'host', id: 'host-B' }],
+    })
+  })
 })

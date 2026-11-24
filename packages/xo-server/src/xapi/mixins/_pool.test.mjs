@@ -1,6 +1,7 @@
 import assert from 'assert/strict'
 import test from 'node:test'
 import { Task } from '@xen-orchestra/mixins/Tasks.mjs'
+import { incorrectState } from 'xo-common/api-errors.js'
 
 import poolMethods from './pool.mjs'
 import { noopRpuRecorder } from '../../_rpuRecovery.mjs'
@@ -976,8 +977,8 @@ describe('restoreRpuLeftovers', function () {
       { type: 'vm', id: 'vm-a1' },
       { type: 'haltedPinnedVm', id: 'vm-p' },
     ]
-    const restore = (items, patch) =>
-      Task.run({ properties: { name: 'finalize' } }, () =>
+    const restore = (items, patch, onProgress) =>
+      new Task({ properties: { name: 'finalize' }, onProgress }).run(() =>
         xapi.restoreRpuLeftovers({ record: { ...record, ...patch }, items, recorder })
       )
     return { events, items, recorder, restore, xapi }
@@ -1141,6 +1142,49 @@ describe('restoreRpuLeftovers', function () {
     ])
   })
 
+  it('restores a single item alone', async function () {
+    const expected = {
+      ha: [
+        ['call', 'pool.enable_ha', ['OpaqueRef:sr-1'], {}],
+        ['restored', 'ha'],
+      ],
+      autoPowerOn: [
+        ['other_config', 'auto_poweron', 'true'],
+        ['restored', 'autoPowerOn'],
+      ],
+      host: [['enableHost', 'host-A']],
+      vm: [['migrateVm', 'vm-a1', 'host-A']],
+      haltedPinnedVm: [
+        ['callAsync', 'VM.start_on', 'OpaqueRef:vm-p', 'OpaqueRef:host-A', false, false],
+        ['forgetHaltedPinnedVm', 'vm-p'],
+      ],
+    }
+    for (const item of setup().items) {
+      const { events, restore } = setup()
+      await restore([item])
+      assert.deepEqual(events, expected[item.type], item.type)
+    }
+  })
+
+  it('reports a pinned VM which did not start in the task', async function () {
+    const { items, restore, xapi } = setup()
+    xapi.callAsync = async () => {
+      throw new Error('HOST_NOT_ENOUGH_FREE_MEMORY')
+    }
+    const warnings = []
+    await restore([items[4]], undefined, event => {
+      if (event.type === 'warning') {
+        warnings.push([event.message, event.data])
+      }
+    })
+    assert.deepEqual(warnings, [
+      [
+        'failed to restart a pinned VM shut down by the rolling pool update: HOST_NOT_ENOUGH_FREE_MEMORY',
+        { vmRef: 'OpaqueRef:vm-p' },
+      ],
+    ])
+  })
+
   it('only restores what is listed, and leaves HA recorded without its heartbeat SRs to the operator', async function () {
     const { events, restore } = setup()
     await restore([{ type: 'ha', id: 'pool-1' }], { changedByRun: { ha: true } })
@@ -1149,5 +1193,140 @@ describe('restoreRpuLeftovers', function () {
     // restored by hand since the run: still in the record, not listed
     await restore([])
     assert.deepEqual(events, [])
+  })
+})
+
+describe('getRollingRebootPrecheck', function () {
+  const precheck = async xapi =>
+    Object.fromEntries((await xapi.getRollingRebootPrecheck()).map(check => [check.id, check]))
+
+  // what XAPI answers about the evacuation of host A
+  const blockHostA = (xapi, blockedVms) => {
+    xapi.hosts[0].$call = async method => {
+      if (method === 'get_vms_which_prevent_evacuation') {
+        return blockedVms
+      }
+      throw Object.assign(new Error('CANNOT_EVACUATE_HOST'), { code: 'CANNOT_EVACUATE_HOST' })
+    }
+  }
+
+  it('reports every check as passed on a pool ready to reboot', async function () {
+    const xapi = new FakeXapi([[10], [10]])
+
+    assert.deepEqual(await xapi.getRollingRebootPrecheck(), [
+      { id: 'hostsRunning', result: 'passed', objects: [] },
+      { id: 'hostsEnabled', result: 'passed', objects: [] },
+      { id: 'pinnedVms', result: 'passed', objects: [] },
+      { id: 'vmsNotMigratable', result: 'passed', objects: [] },
+      { id: 'pausedHa', result: 'passed', objects: [] },
+    ])
+  })
+
+  it('only asks XAPI which VMs prevent an evacuation, and not to a host which is not running', async function () {
+    const xapi = new FakeXapi([[10], [10]])
+    xapi.hosts[1].$metrics.live = false
+    xapi.pool.update_other_config = async () => {
+      throw new Error('the precheck must not change the pool')
+    }
+    const calls = []
+    for (const host of xapi.hosts) {
+      host.$call = async method => {
+        calls.push([method, host.uuid])
+        return {}
+      }
+    }
+
+    await xapi.getRollingRebootPrecheck()
+
+    assert.deepEqual(calls, [['get_vms_which_prevent_evacuation', 'host-A']])
+  })
+
+  it('reports a host which is not running as blocking, as the start refuses it', async function () {
+    const xapi = new FakeXapi([[10], [10]])
+    xapi.hosts[1].$metrics.live = false
+
+    assert.deepEqual((await precheck(xapi)).hostsRunning, {
+      id: 'hostsRunning',
+      result: 'blocking',
+      objects: [{ type: 'host', id: 'host-B' }],
+    })
+    const { error } = await rollingPoolReboot(xapi, {})
+    assert.ok(incorrectState.is(error, { property: 'power_state', object: 'host-B' }), error)
+  })
+
+  it('reports a disabled host as informative', async function () {
+    const xapi = new FakeXapi([[10], [10]])
+    xapi.hosts[1].enabled = false
+
+    assert.deepEqual((await precheck(xapi)).hostsEnabled, {
+      id: 'hostsEnabled',
+      result: 'info',
+      objects: [{ type: 'host', id: 'host-B' }],
+    })
+  })
+
+  it('reports a pinned VM as blocking and names the option which lifts it, as the start refuses it', async function () {
+    const xapi = new FakeXapi([[10], [10]])
+    blockHostA(xapi, { 'OpaqueRef:vm-a1': ['VM_HAS_PCI_ATTACHED', 'OpaqueRef:vm-a1'] })
+
+    const checks = await precheck(xapi)
+    assert.deepEqual(checks.pinnedVms, {
+      id: 'pinnedVms',
+      result: 'blocking',
+      liftedBy: 'shutdownPinnedVms',
+      objects: [{ type: 'VM', id: 'vm-a1', reason: 'VM_HAS_PCI_ATTACHED' }],
+    })
+    assert.equal(checks.vmsNotMigratable.result, 'passed')
+    const { error } = await rollingPoolReboot(xapi, {})
+    assert.ok(incorrectState.is(error, { property: 'pinnedVms' }), error)
+    assert.deepEqual(error.data.actual, ['vm-a1'])
+  })
+
+  it('reports a VM which cannot migrate as blocking without an option, as the start refuses it', async function () {
+    const xapi = new FakeXapi([[10], [10]])
+    blockHostA(xapi, { 'OpaqueRef:vm-a1': ['HOST_NOT_ENOUGH_FREE_MEMORY'] })
+
+    const checks = await precheck(xapi)
+    assert.deepEqual(checks.vmsNotMigratable, {
+      id: 'vmsNotMigratable',
+      result: 'blocking',
+      objects: [{ type: 'VM', id: 'vm-a1', reason: 'HOST_NOT_ENOUGH_FREE_MEMORY' }],
+    })
+    assert.equal(checks.pinnedVms.result, 'passed')
+    const { error } = await rollingPoolReboot(xapi, {})
+    assert.equal(error.code, 'CANNOT_EVACUATE_HOST')
+  })
+
+  it('reports HA as paused by the run, and the VMs XAPI blocks under HA as not checked', async function () {
+    const xapi = new FakeXapi([[10], [10]])
+    xapi.pool.ha_enabled = true
+    blockHostA(xapi, { 'OpaqueRef:vm-a1': ['HA_OPERATION_WOULD_BREAK_FAILOVER_PLAN'] })
+
+    const checks = await precheck(xapi)
+    assert.deepEqual(checks.pausedHa, {
+      id: 'pausedHa',
+      result: 'info',
+      objects: [{ type: 'pool', id: 'pool-1' }],
+    })
+    assert.equal(checks.vmsNotMigratable.result, 'info')
+    // a pinned VM may hide behind the error code of HA
+    assert.equal(checks.pinnedVms, undefined)
+  })
+
+  it('still reports under HA a VM XAPI knows as pinned', async function () {
+    const xapi = new FakeXapi([[10], [10]])
+    xapi.pool.ha_enabled = true
+    blockHostA(xapi, { 'OpaqueRef:vm-a1': ['VM_HAS_PCI_ATTACHED', 'OpaqueRef:vm-a1'] })
+
+    assert.equal((await precheck(xapi)).pinnedVms.result, 'blocking')
+  })
+
+  it('reports a blocking VM which is not in the cache yet by its ref', async function () {
+    const xapi = new FakeXapi([[10], [10]])
+    blockHostA(xapi, { 'OpaqueRef:vm-new': ['HOST_NOT_ENOUGH_FREE_MEMORY'] })
+
+    assert.deepEqual((await precheck(xapi)).vmsNotMigratable.objects, [
+      { type: 'VM', id: 'OpaqueRef:vm-new', reason: 'HOST_NOT_ENOUGH_FREE_MEMORY' },
+    ])
   })
 })

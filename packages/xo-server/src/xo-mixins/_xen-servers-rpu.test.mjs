@@ -7,6 +7,7 @@ import { forbiddenOperation, incorrectState } from 'xo-common/api-errors.js'
 import { Task } from '@vates/task'
 
 import XenServers from './xen-servers.mjs'
+import { acquireRpuGuard } from '../_rpuGuard.mjs'
 import { noRpuResume } from '../_rpuRecovery.mjs'
 
 const pool = { id: 'pool-1', name_label: 'pool 1', _xapiRef: 'OpaqueRef:pool-1' }
@@ -24,6 +25,7 @@ function createXenServers({
   loadBalancerLoaded = false,
   operatorChanges,
   recordRefused = false,
+  recoveryView,
   resumeHostsStarted = true,
   softwareVersion = { product_brand: 'XCP-ng', product_version: '8.3.0' },
   scheduleDisableRefused,
@@ -85,6 +87,12 @@ function createXenServers({
       if (licenseRefused) {
         throw new Error('not licensed')
       }
+    },
+    async hasFeatureAuthorization() {
+      return !licenseRefused
+    },
+    async getRollingUpdateRecovery() {
+      return recoveryView
     },
     async backupGuard(poolId, opts) {
       calls.push(['backupGuard', poolId, opts])
@@ -663,5 +671,168 @@ describe('XenServers.restoreRpuLeftovers', function () {
     const { calls, recorder, xenServers } = setup()
     await xenServers.restoreRpuLeftovers(pool, { record: makeRecord(false), items: [], recorder })
     assert.deepEqual(calls, [['xapi.restoreRpuLeftovers', []]])
+  })
+
+  it('restores a single item alone', async function () {
+    const expected = {
+      wlb: [
+        ['xapi.call', 'pool.set_wlb_enabled', true],
+        ['recorder.settingRestored', 'wlb', undefined],
+      ],
+      loadBalancer: [
+        ['loadPlugin', 'load-balancer'],
+        ['recorder.settingRestored', 'loadBalancer', undefined],
+      ],
+      schedule: [
+        ['updateSchedule', 'schedule-1', true],
+        ['recorder.settingRestored', 'schedules', 'schedule-1'],
+      ],
+    }
+    for (const item of items) {
+      const { calls, recorder, xenServers } = setup()
+      await xenServers.restoreRpuLeftovers(pool, { record: makeRecord(false), items: [item], recorder })
+      assert.deepEqual(calls, [['xapi.restoreRpuLeftovers', [item]], ...expected[item.type]], item.type)
+    }
+  })
+
+  it('reports in the task what could not be restored', async function () {
+    const { recorder, xenServers } = setup()
+    xenServers.getXapi = () => undefined
+    xenServers._app.getAllSchedules = async () => {
+      throw new Error('schedule store unavailable')
+    }
+    const warnings = []
+    const onProgress = event => {
+      if (event.type === 'warning') {
+        warnings.push(event.message)
+      }
+    }
+    await new Task({ onProgress }).run(() =>
+      xenServers.restoreRpuLeftovers(pool, { record: makeRecord(false), items, recorder })
+    )
+    assert.equal(warnings.length, 3)
+    assert.match(warnings[0], /^failed to restore what the rolling pool update left changed in the pool: /)
+    assert.match(warnings[1], /^failed to restore a setting changed by the rolling pool update: /)
+    assert.equal(
+      warnings[2],
+      'failed to restore the backup schedules the rolling pool update left disabled: schedule store unavailable'
+    )
+  })
+})
+
+describe('XenServers.getRollingUpdatePrecheck', function () {
+  const XAPI_CHECKS = [{ id: 'hostsRunning', result: 'passed', objects: [] }]
+  const find = (checks, id) => checks.find(check => check.id === id)
+
+  // the pool has one running backup job and one enabled schedule when asked
+  const setup = ({ backupRunning = false, ...options } = {}) => {
+    const { calls, taskNames, xenServers } = createXenServers(options)
+    const xapi = xenServers.getXapi()
+    xapi.getRollingUpdatePrecheck = async () => XAPI_CHECKS
+    xenServers.getXapi = () => xapi
+    const app = xenServers._app
+    const getAllJobs = app.getAllJobs
+    app.getAllJobs = async () => [
+      ...(await getAllJobs()),
+      ...(backupRunning ? [{ id: 'job-running', runId: 'run-1', vms: { id: 'vm-1' } }] : []),
+    ]
+    app.hasObject = () => true
+    app.getObject = () => ({ $pool: pool.id })
+    return { calls, taskNames, xenServers }
+  }
+
+  it('reports the checks of the pool between its own, all passed on a pool ready to update', async function () {
+    const { calls, taskNames, xenServers } = setup()
+
+    assert.deepEqual(await xenServers.getRollingUpdatePrecheck(pool.id), [
+      { id: 'license', result: 'passed', objects: [] },
+      { id: 'runningRollingOperation', result: 'passed', objects: [] },
+      { id: 'rollingUpdateRecovery', result: 'passed', objects: [] },
+      { id: 'runningBackups', result: 'passed', objects: [] },
+      ...XAPI_CHECKS,
+      { id: 'pausedLoadBalancer', result: 'passed', objects: [] },
+      { id: 'pausedSchedules', result: 'passed', objects: [] },
+    ])
+    // nothing changed, no task
+    assert.deepEqual(calls, [['getAllJobs']])
+    assert.deepEqual(taskNames, [])
+  })
+
+  it('reports a running backup job as blocking and names the option which lifts it', async function () {
+    const { xenServers } = setup({ backupRunning: true })
+
+    const checks = await xenServers.getRollingUpdatePrecheck(pool.id)
+
+    assert.deepEqual(find(checks, 'runningBackups'), {
+      id: 'runningBackups',
+      result: 'blocking',
+      liftedBy: 'bypassBackupCheck',
+      objects: [{ type: 'job', id: 'job-running', reason: 'running' }],
+    })
+  })
+
+  it('reports the load balancer and the schedules the update pauses as informative', async function () {
+    const { xenServers } = setup({
+      loadBalancerLoaded: true,
+      schedules: [
+        { id: 'schedule-1', jobId: 'job-1', enabled: true },
+        { id: 'schedule-2', jobId: 'job-1', enabled: false },
+      ],
+    })
+
+    const checks = await xenServers.getRollingUpdatePrecheck(pool.id)
+
+    assert.deepEqual(checks.slice(-2), [
+      { id: 'pausedLoadBalancer', result: 'info', objects: [{ type: 'pool', id: pool.id }] },
+      { id: 'pausedSchedules', result: 'info', objects: [{ type: 'schedule', id: 'schedule-1' }] },
+    ])
+  })
+
+  it('reports a missing license as blocking, as the start refuses it', async function () {
+    const { xenServers } = setup({ licenseRefused: true })
+
+    assert.deepEqual(find(await xenServers.getRollingUpdatePrecheck(pool.id), 'license'), {
+      id: 'license',
+      result: 'blocking',
+      objects: [{ type: 'pool', id: pool.id }],
+    })
+    await assert.rejects(xenServers.rollingPoolUpdate(pool), { message: 'not licensed' })
+  })
+
+  it('reports the record a previous run left as blocking, as the start refuses it', async function () {
+    const { xenServers } = setup({ recoveryView: { status: 'failed' }, recordRefused: true })
+
+    assert.deepEqual(find(await xenServers.getRollingUpdatePrecheck(pool.id), 'rollingUpdateRecovery'), {
+      id: 'rollingUpdateRecovery',
+      result: 'blocking',
+      objects: [{ type: 'pool', id: pool.id, reason: 'failed' }],
+    })
+    await assert.rejects(xenServers.rollingPoolUpdate(pool), error =>
+      incorrectState.is(error, { property: 'rollingUpdateRecovery' })
+    )
+  })
+
+  it('has no record check on a pool without recovery', async function () {
+    const { xenServers } = setup({
+      recoveryView: { status: 'failed' },
+      softwareVersion: { product_brand: 'XenServer', product_version: '8.2.1' },
+    })
+
+    assert.equal(find(await xenServers.getRollingUpdatePrecheck(pool.id), 'rollingUpdateRecovery'), undefined)
+  })
+
+  it('reports a rolling pool update or reboot which runs on the pool as blocking, as the start refuses it', async function () {
+    const { xenServers } = setup()
+    const release = acquireRpuGuard(pool.id, 'rollingPoolReboot')
+    try {
+      assert.deepEqual(find(await xenServers.getRollingUpdatePrecheck(pool.id), 'runningRollingOperation'), {
+        id: 'runningRollingOperation',
+        result: 'blocking',
+        objects: [{ type: 'pool', id: pool.id }],
+      })
+      await assert.rejects(xenServers.rollingPoolUpdate(pool), error => forbiddenOperation.is(error))
+    } finally {
+      release()
+    }
   })
 })

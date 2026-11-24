@@ -1,5 +1,6 @@
 import type {
   BOND_MODE,
+  PoolRollingUpdateRecoveryUnrestoredItem,
   Xapi,
   XcpPatches,
   XoAlarm,
@@ -156,6 +157,9 @@ export type FinalizeRollingUpdateBody = {
    */
   force?: boolean
 }
+
+/** The item to restore, as listed in `unrestoredItems` by the recovery of the rolling pool update. */
+export type RestoreRollingUpdateItemBody = Pick<PoolRollingUpdateRecoveryUnrestoredItem, 'type' | 'id'>
 
 export type ResumeRollingUpdateBody = {
   /**

@@ -230,6 +230,19 @@ describe('getLinstorIssues()', function () {
       message: 'LINSTOR health check of group linstor_group/thin_device did not answer in 300 seconds',
     })
   })
+
+  it('gives up sooner when asked to', async function (t) {
+    t.mock.timers.enable({ apis: ['setTimeout'] })
+    const xapi = fakeXapi([healthCheck()])
+    xapi.call = () => new Promise(() => {})
+
+    const issues = getLinstorIssues(xapi, { timeout: 30e3 })
+    t.mock.timers.tick(30e3)
+
+    await assert.rejects(issues, {
+      message: 'LINSTOR health check of group linstor_group/thin_device did not answer in 30 seconds',
+    })
+  })
 })
 
 describe('truncateLinstorIssues()', function () {

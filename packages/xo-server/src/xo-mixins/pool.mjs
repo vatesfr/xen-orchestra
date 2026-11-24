@@ -11,13 +11,14 @@ import { createLogger } from '@xen-orchestra/log'
 import { decorateMethodsWith } from '@vates/decorate-with'
 import { defer } from 'golike-defer'
 import { Task } from '@vates/task'
-import { incorrectState } from 'xo-common/api-errors.js'
+import { incorrectState, noSuchObject } from 'xo-common/api-errors.js'
 
 import { acquireRpuGuard } from '../_rpuGuard.mjs'
 import { gcRpuTraces, getRpuTracesConfig, openRpuTrace, reconcileRpuTraces } from '../_rpuObservability.mjs'
 import {
   createRpuRecoveryRecorder,
   listUnrestoredItems,
+  listUnrestoredItemsForView,
   readClosableRpuRecoveryRecord,
   readRpuRecoveryView,
   reconcileRpuRecoveryAtBoot,
@@ -165,25 +166,44 @@ export default class Pools {
   }
 
   getRollingUpdateRecovery(poolId) {
-    return readRpuRecoveryView(this._rpuRecoveryStore, poolId)
+    return readRpuRecoveryView(this._rpuRecoveryStore, poolId, record => this._getRpuLiveState(poolId, record))
   }
 
-  // compared with the live state: what the operator restored by hand is not listed
-  async _listUnrestoredRpuItems(pool, record) {
+  // the live state `listUnrestoredItems` compares a record with
+  async _getRpuLiveState(pool, record) {
     const xapi = this._app.getXapi(pool)
-    const [plugin, schedules] = await Promise.all([
+    if (xapi === undefined) {
+      incorrectState({ actual: 'disconnected', expected: 'connected', object: pool.id ?? pool, property: 'xapi' })
+    }
+    const [plugin, ...schedules] = await Promise.all([
       this._app.getOptionalPlugin('load-balancer'),
-      this._app.getAllSchedules(),
+      // only the schedules of the record, which may be unreadable: the view is polled
+      ...(record?.changedByRun?.schedules ?? []).map(scheduleId =>
+        this._app.getSchedule(scheduleId).catch(error => {
+          // deleted since the run: nothing left to restore
+          if (!noSuchObject.is(error)) {
+            throw error
+          }
+        })
+      ),
     ])
-    const scheduleById = keyBy(schedules, 'id')
-    return listUnrestoredItems(record, {
+    const scheduleById = keyBy(
+      schedules.filter(schedule => schedule !== undefined),
+      'id'
+    )
+    return {
       pool: xapi.pool,
       // unloaded but waiting for xo-server to load it again is not left changed
       loadBalancerLoaded: plugin?.loaded === true || this._app.isRpuLoadBalancerReEnablePending(),
       getHost: hostId => xapi.getObjectByUuid(hostId, undefined),
       getVm: vmId => xapi.getObjectByUuid(vmId, undefined),
       getSchedule: scheduleId => scheduleById[scheduleId],
-    })
+    }
+  }
+
+  // compared with the live state: what the operator restored by hand is not listed
+  async _listUnrestoredRpuItems(pool, record) {
+    return listUnrestoredItems(record, await this._getRpuLiveState(pool, record))
   }
 
   /**
@@ -305,6 +325,118 @@ export default class Pools {
       } finally {
         trace?.stop()
       }
+    } finally {
+      releaseGuard()
+    }
+  }
+
+  /**
+   * Restores a single item a previous rolling pool update left unrestored, as
+   * the finalize does it (see `restoreRpuLeftovers`). The record is never
+   * closed: that is the finalize.
+   *
+   * @param {object} pool - XO pool object
+   * @param {object} opts
+   * @param {string} opts.type - Type of the item, as listed by `getRollingUpdateRecovery`
+   * @param {string} opts.id - Id of the item
+   * @param {Task} [opts.parentTask] - Run as a subtask of this task instead of as a new root task
+   * @returns {Promise<void>}
+   * @throws {Error} `noSuchObject` if the pool has no record
+   * @throws {Error} `forbiddenOperation` if a rolling pool update or reboot is running on the pool, or if a backup
+   *   runs or may run on it while the item is a VM to migrate back
+   * @throws {Error} `incorrectState` (property `status`) if the record belongs to a live run
+   * @throws {Error} `incorrectState` (property `unrestoredItems`, `actual` the item, `undefined` when it is not
+   *   listed) if the run did not leave the item unrestored or if it cannot be restored now
+   * @throws {Error} `incorrectState` (property `unrestoredItems`) if the item is a VM whose host is itself left
+   *   disabled: the host is restored first
+   * @throws {Error} `incorrectState` (property `xapi`) if the pool is not connected
+   * @throws {Error} if the item is still unrestored afterwards, the warnings and the subtasks of the task tell why,
+   *   or if the pool disconnected meanwhile
+   */
+  async restoreRollingUpdateItem(pool, { type, id, parentTask }) {
+    const { _app } = this
+    const poolId = pool.id
+    const store = this._rpuRecoveryStore
+    const releaseGuard = acquireRpuGuard(poolId, 'restoreRollingUpdateItem')
+    try {
+      const record = await readClosableRpuRecoveryRecord(store, poolId)
+
+      const items = listUnrestoredItemsForView(record, await this._getRpuLiveState(pool, record))
+      const isItem = item => item.type === type && item.id === id
+      const item = items?.find(isItem)
+      if (item?.restorable !== true) {
+        try {
+          incorrectState({
+            actual: item,
+            expected: { type, id, restorable: true },
+            object: poolId,
+            property: 'unrestoredItems',
+          })
+        } catch (error) {
+          // the answer itself tells the way out, for the callers of the API
+          error.message +=
+            items === null
+              ? ': the record of the rolling pool update cannot be read, nothing can be restored from it'
+              : item === undefined
+                ? `: ${type} ${id} is not left unrestored by the rolling pool update`
+                : `: ${type} ${id} cannot be restored now, resume the rolling pool update to finish a host updated but not rebooted, or restore it by hand`
+          throw error
+        }
+      }
+      // a VM is not brought back to, nor started on, a host still disabled
+      const hostId = { vm: record.vmHomeById, haltedPinnedVm: record.haltedPinnedVms }[type]?.[id]
+      if (items.some(item => item.type === 'host' && item.id === hostId)) {
+        try {
+          incorrectState({
+            actual: item,
+            expected: { type: 'host', id: hostId, restored: true },
+            object: poolId,
+            property: 'unrestoredItems',
+          })
+        } catch (error) {
+          error.message += `: ${type} ${id} cannot be restored before its host, restore host ${hostId} first`
+          throw error
+        }
+      }
+      // only the migration of a VM back can conflict with a backup
+      if (type === 'vm') {
+        await _app.backupGuard(poolId, { operation: 'restoreRollingUpdateItem' })
+      }
+
+      const properties = {
+        name: 'Restore rolling pool update item',
+        objectId: poolId,
+        poolId,
+        poolName: pool.name_label,
+        type: 'pool.rolling_update_restore_item',
+        runId: record.runId,
+        item: { type, id },
+      }
+      const task = parentTask === undefined ? _app.tasks.create(properties) : new Task({ properties })
+      await task.run(async () => {
+        const recorder = createRpuRecoveryRecorder({ store, record })
+        await _app.restoreRpuLeftovers(pool, {
+          // an item `vm` migrates back every VM of the record
+          record: type === 'vm' ? { ...record, vmHomeById: { [id]: record.vmHomeById[id] } } : record,
+          items: [{ type, id }],
+          recorder,
+        })
+        await recorder.flush()
+        // what is left is read from the cache of the XAPI objects, the pool
+        // may have disconnected meanwhile
+        const xapi = _app.getXapi(pool)
+        if (xapi === undefined) {
+          throw new Error(
+            `the pool disconnected while ${type} ${id} was restored, what the rolling pool update left unrestored cannot be read: check it once the pool is connected again`
+          )
+        }
+        await xapi.barrier()
+        if ((await this._listUnrestoredRpuItems(pool, record)).some(isItem)) {
+          throw new Error(
+            `could not restore ${type} ${id}, it is still left unrestored by the rolling pool update: see the warnings and the subtasks of this task`
+          )
+        }
+      })
     } finally {
       releaseGuard()
     }
