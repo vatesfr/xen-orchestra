@@ -104,6 +104,7 @@
 - [VM] In the VM creation form, a template without network interface now gets one by default, like in XO 5: one on each automatic network of the pool, or on its management network (PR [#10863](https://github.com/vatesfr/xen-orchestra/pull/10863))
 - [VDIs] The storage link of a VDI, in its side panel and on its page, opens the storage repository page of XO 6 instead of XO 5 (PR [#10864](https://github.com/vatesfr/xen-orchestra/pull/10864))
 - [Side panels] Closing a side panel in one browser tab no longer closes it in the other tabs, where the eye buttons stopped working (PR [#10869](https://github.com/vatesfr/xen-orchestra/pull/10869))
+- [Backups] Fix `Body Timeout Error` on incremental backups and replications of VMs with several large disks: the number of disks transferred in parallel per VM now also limits the number of exports opened on the host, and it can be set in the advanced settings of the job (PR [#10687](https://github.com/vatesfr/xen-orchestra/pull/10687))
 
 ### Packages to release
 
@@ -127,6 +128,7 @@
 - @xen-orchestra/acl minor
 - @xen-orchestra/autopilot-docking minor
 - @xen-orchestra/backups major
+- @xen-orchestra/disk-transform minor
 - @xen-orchestra/fs minor
 - @xen-orchestra/log major
 - @xen-orchestra/mixins minor
