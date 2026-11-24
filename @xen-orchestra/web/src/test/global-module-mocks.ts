@@ -49,6 +49,7 @@ vi.mock(import('@/modules/plugin/jobs/xo-plugin-autoload.job.ts'), spyOnOriginal
 vi.mock(import('@/modules/plugin/jobs/xo-plugin-change-state.job.ts'), spyOnOriginal)
 vi.mock(import('@/modules/plugin/jobs/xo-plugin-delete-configuration.job.ts'), spyOnOriginal)
 vi.mock(import('@/modules/plugin/remote-resources/use-xo-plugin-collection.ts'), spyOnOriginal)
+vi.mock(import('@/modules/pool/composables/use-pool-connection.composable.ts'), spyOnOriginal)
 vi.mock(import('@/modules/pool/composables/use-pool-existing-host.composable.ts'), spyOnOriginal)
 vi.mock(import('@/modules/pool/composables/use-pool-new-host.composable.ts'), spyOnOriginal)
 vi.mock(import('@/modules/pool/jobs/xo-pool-add-host.job.ts'), spyOnOriginal)

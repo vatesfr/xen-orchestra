@@ -1,16 +1,21 @@
 <template>
-  <MenuItem accent="neutral" icon="action:connect" class="typo-body-bold-small" @click="goToConnectPool()">
+  <MenuItem
+    :busy="isConnectingPool"
+    accent="neutral"
+    icon="action:connect"
+    class="typo-body-bold-small"
+    @click="openPoolConnectionDrawer()"
+  >
     {{ t('action:connect-pool') }}
   </MenuItem>
 </template>
 
 <script lang="ts" setup>
+import { usePoolConnection } from '@/modules/pool/composables/use-pool-connection.composable.ts'
 import MenuItem from '@core/components/menu/MenuItem.vue'
 import { useI18n } from 'vue-i18n'
-import { useRouter } from 'vue-router'
 
 const { t } = useI18n()
-const router = useRouter()
 
-const goToConnectPool = () => router.push({ name: '/pool/connect' })
+const { openPoolConnectionDrawer, isConnectingPool } = usePoolConnection()
 </script>
