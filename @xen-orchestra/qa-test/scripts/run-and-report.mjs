@@ -37,12 +37,38 @@ function getBranchName() {
   }
 }
 
+function getCommitHash() {
+  try {
+    return execSync('git rev-parse --short HEAD', { encoding: 'utf8', cwd: ROOT }).trim()
+  } catch {
+    return 'unknown'
+  }
+}
+
 function formatDatetime(date) {
-  // "2026-05-20 08:42 UTC"
-  return date
-    .toISOString()
-    .replace('T', ' ')
-    .replace(/:\d{2}\.\d+Z$/, ' UTC')
+  // "19/11/2026 13:43 (Paris)"
+  return `${date.toLocaleString('fr-FR', {
+    timeZone: 'Europe/Paris',
+    dateStyle: 'short',
+    timeStyle: 'short',
+  })} (Paris)`
+}
+
+function formatDuration(ms) {
+  const hours = Math.floor(ms / 3600000)
+  const minutes = Math.floor((ms / 60000) % 60)
+    .toString()
+    .padStart(2, '0')
+  return `${hours}h${minutes}`
+}
+
+function getCount(output, label) {
+  const match = output.match(new RegExp(`ℹ ${label} (\\d+)`))
+  if (match === null) {
+    return '?'
+  } else {
+    return match[1]
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -123,14 +149,27 @@ if (process.argv.includes('--smtp-test')) {
 // ---------------------------------------------------------------------------
 
 const branch = getBranchName()
+const commitHash = getCommitHash()
 const startedAt = new Date()
 
 process.stderr.write(`[run-and-report] branch=${branch}\n`)
 
 const { success, output, logFilePath } = await runTests()
+const runtimeInMs = Date.now() - startedAt.getTime()
 
+const emoji = success ? '✅' : '❌'
 const status = success ? 'success' : 'failure'
-const subject = `test run ${formatDatetime(startedAt)} ${branch} ${status}`
+const successTests = getCount(output, 'pass')
+const totalTests = getCount(output, 'tests')
+const failedTests = getCount(output, 'fail')
+const cancelledTests = getCount(output, 'cancelled')
+const skippedTests = getCount(output, 'skipped')
+
+const subject = `${emoji} ${status} ${successTests}/${totalTests} passed ${formatDatetime(startedAt)} on ${branch}@${commitHash}`
+const summary = `Result: ${emoji} ${status}
+Commit: ${branch}@${commitHash}
+Tests: ${successTests}/${totalTests} passed, ${failedTests} failed, ${cancelledTests} cancelled, ${skippedTests} skipped
+Duration: ${formatDuration(runtimeInMs)}`
 
 // Attach the full structured debug log if we found its path
 const attachments = []
@@ -149,7 +188,9 @@ await transport.sendMail({
   from: process.env.SMTP_FROM ?? process.env.SMTP_USER,
   to: process.env.SMTP_TO,
   subject,
-  text: output,
+  text: `${summary}
+----------------------------------------
+${output}`,
   attachments,
 })
 

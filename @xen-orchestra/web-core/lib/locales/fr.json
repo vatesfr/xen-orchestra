@@ -803,6 +803,7 @@
   "job:pif-management-reconfigure:bad-power-state": "L'hôte n'est pas lancé",
   "job:pif-management-reconfigure:current-pif": "PIF actuel",
   "job:pif-management-reconfigure:in-progress": "Reconfiguration de l'interface de gestion en cours…",
+  "job:pif-management-reconfigure:invalid-mtu": "Le MTU doit être de {mtu}",
   "job:pif-management-reconfigure:missing-ip": "Le PIF cible n'a pas d'adresse IP configurée",
   "job:plugin-autoload:missing-plugin": "@:plugin-missing",
   "job:plugin-change-state:already-loaded": "Plugin déjà chargé",

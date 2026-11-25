@@ -3,6 +3,15 @@
  * Default theme is defined in web-core/_colors.pcss
  */
 
+/* Data colors are tuned for the default theme only: themed charts keep each theme's own accent colors */
+:root:is(.theme-nord, .theme-solarized, .theme-dracula, .theme-monokai) {
+  --color-brand-data: var(--color-brand-item-base);
+  --color-info-data: var(--color-info-item-base);
+  --color-success-data: var(--color-success-item-base);
+  --color-warning-data: var(--color-warning-item-base);
+  --color-danger-data: var(--color-danger-item-base);
+}
+
 /*
  * Nord Theme - Light Mode
  * An arctic, north-bluish color palette
@@ -14,8 +23,6 @@
  * Aurora: #bf616a (red), #d08770 (orange), #ebcb8b (yellow), #a3be8c (green), #b48ead (purple)
  */
 :root.theme-nord {
-  --color-logo: #5e81ac;
-
   /* NEUTRALS */
   --color-neutral-txt-primary: #2e3440;
   --color-neutral-txt-secondary: #4c566a;
@@ -109,8 +116,6 @@
  * Nord Theme - Dark Mode
  */
 :root.dark.theme-nord {
-  --color-logo: #88c0d0;
-
   /* NEUTRALS */
   --color-neutral-txt-primary: #eceff4;
   --color-neutral-txt-secondary: #d8dee9;
@@ -210,8 +215,6 @@
  *          violet #6c71c4, blue #268bd2, cyan #2aa198, green #859900
  */
 :root.theme-solarized {
-  --color-logo: #268bd2;
-
   /* NEUTRALS */
   --color-neutral-txt-primary: #657b83;
   --color-neutral-txt-secondary: #93a1a1;
@@ -305,8 +308,6 @@
  * Solarized Theme - Dark Mode
  */
 :root.dark.theme-solarized {
-  --color-logo: #268bd2;
-
   /* NEUTRALS */
   --color-neutral-txt-primary: #839496;
   --color-neutral-txt-secondary: #586e75;
@@ -406,8 +407,6 @@
  * Purple: #bd93f9, Red: #ff5555, Yellow: #f1fa8c
  */
 :root.theme-dracula {
-  --color-logo: #bd93f9;
-
   /* NEUTRALS */
   --color-neutral-txt-primary: #282a36;
   --color-neutral-txt-secondary: #44475a;
@@ -501,8 +500,6 @@
  * Dracula Theme - Dark Mode
  */
 :root.dark.theme-dracula {
-  --color-logo: #bd93f9;
-
   /* NEUTRALS */
   --color-neutral-txt-primary: #f8f8f2;
   --color-neutral-txt-secondary: #6272a4;
@@ -601,8 +598,6 @@
  * Pink: #f92672, Green: #a6e22e, Blue: #66d9ef, Orange: #fd971f, Purple: #ae81ff
  */
 :root.theme-monokai {
-  --color-logo: #f92672;
-
   /* NEUTRALS */
   --color-neutral-txt-primary: #272822;
   --color-neutral-txt-secondary: #75715e;
@@ -696,8 +691,6 @@
  * Monokai Theme - Dark Mode
  */
 :root.dark.theme-monokai {
-  --color-logo: #f92672;
-
   /* NEUTRALS */
   --color-neutral-txt-primary: #f8f8f2;
   --color-neutral-txt-secondary: #a8a8a0;

@@ -35,6 +35,7 @@
 
 <script setup lang="ts">
 import type { XenApiVm } from '@/libs/xen-api/xen-api.types.ts'
+import { getVmDomainType } from '@/modules/vm/utils/vm.util.ts'
 import { useHostStore } from '@/stores/xen-api/host.store.ts'
 import { usePoolStore } from '@/stores/xen-api/pool.store.ts'
 import { useVtpmStore } from '@/stores/xen-api/vtpm.store.ts'
@@ -55,16 +56,7 @@ const { pool } = usePoolStore().subscribe()
 const { getByOpaqueRef: getHostOpaqueRef } = useHostStore().subscribe()
 const { getByOpaqueRef: getVtpmOpaqueRef } = useVtpmStore().subscribe()
 
-/**
- * @see `packages/xo-server/src/xapi/utils.mjs`:57
- **/
-const virtualizationMode = computed(() =>
-  vm.domain_type !== undefined && vm.domain_type !== 'unspecified'
-    ? vm.domain_type
-    : vm.HVM_boot_policy === ''
-      ? 'pv'
-      : 'hvm'
-)
+const virtualizationMode = computed(() => getVmDomainType(vm))
 
 const isNestedVirtualizationEnabled = computed(() => {
   const poolMaster = pool.value !== undefined ? getHostOpaqueRef(pool.value.master) : undefined

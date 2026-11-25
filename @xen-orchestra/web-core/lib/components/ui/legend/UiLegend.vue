@@ -72,7 +72,7 @@ const classNames = computed(() => toVariants({ accent }))
 
   &.accent--info {
     .circle-icon {
-      color: var(--color-info-item-base);
+      color: var(--color-info-data);
     }
   }
 
@@ -84,19 +84,19 @@ const classNames = computed(() => toVariants({ accent }))
 
   &.accent--success {
     .circle-icon {
-      color: var(--color-success-item-base);
+      color: var(--color-success-data);
     }
   }
 
   &.accent--warning {
     .circle-icon {
-      color: var(--color-warning-item-base);
+      color: var(--color-warning-data);
     }
   }
 
   &.accent--danger {
     .circle-icon {
-      color: var(--color-danger-item-base);
+      color: var(--color-danger-data);
     }
   }
 

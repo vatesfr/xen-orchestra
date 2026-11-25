@@ -82,7 +82,7 @@ const { HeadCells, BodyCells } = useVmMigrateVdiColumns({
       },
     })
 
-    const usedSpace = formatSizeRaw(row.vdi.usage, 2)
+    const usedSpace = formatSizeRaw(row.vdi.chainPhysicalUsage, 2)
     const sourceSrName = row.sourceSr?.name_label ?? ''
 
     return {
