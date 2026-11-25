@@ -52,14 +52,14 @@ services:
     #  - "/dev/loop0:/dev/loop0"
 
     # quick and dirty way to reuse the "running" XO docker container for development.
-    command: /bin/sh -c 'apt-get install -y git && yarn run build && /run.sh'
+    command: /bin/sh -c 'apt-get install -y git && yarn && yarn run build && /run.sh'
     depends_on:
       - pg
     networks:
       - private_net
 
   pg:
-    image: postgres:18
+    image: postgres:17
     restart: unless-stopped
     ports:
       - target: *PG_PORT

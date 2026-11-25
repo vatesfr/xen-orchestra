@@ -12,6 +12,8 @@ The code generates three PostgreSQL schemas:
 
 Some entities are not stored in the normal tables: `event` (not individually exposed), `user` (deprecated)
 
+The code is written against **PostgreSQL 17**.
+
 ## Tables and Views
 
 The generated views resemble the XAPI as much as possible.
