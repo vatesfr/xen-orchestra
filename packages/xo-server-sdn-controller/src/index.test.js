@@ -378,6 +378,84 @@ describe('a host joining a pool with private networks', () => {
   })
 })
 
+describe('a host ejected from a pool with private networks', () => {
+  function makeEjectContext() {
+    const controller = createFakeController()
+    const xapi = createFakeXapi()
+    xapi.objects = new EventEmitter()
+    xapi.objects.indexes = { type: {} }
+
+    const poolUuid = 'pool-uuid-1'
+    const host = {
+      $type: 'host',
+      $ref: 'host-ref-1',
+      $id: 'host-id-1',
+      $xapi: xapi,
+      name_label: 'ejected-host',
+      enabled: true,
+      PIFs: [],
+      $pool: { uuid: poolUuid, $ref: 'pool-ref-1', $id: 'pool-id-1', name_label: 'pool' },
+    }
+
+    const network = {
+      $ref: 'network-ref-1',
+      $id: 'network-id-1',
+      $pool: { uuid: poolUuid, $ref: 'pool-ref-1', $id: 'pool-id-1', $xapi: xapi },
+      name_label: 'test-network',
+    }
+
+    const addNetwork = mock.fn(async () => undefined)
+    controller.privateNetworks = {
+      // the network of the pool of the removed host
+      'private-network-uuid-1': {
+        uuid: 'private-network-uuid-1',
+        networks: { [poolUuid]: network },
+        center: { $ref: 'host-ref-2' },
+        addNetwork,
+      },
+      // a network of another pool must not be touched
+      'private-network-uuid-2': {
+        uuid: 'private-network-uuid-2',
+        networks: { 'pool-uuid-2': { $ref: 'network-ref-2' } },
+        center: { $ref: 'host-ref-3' },
+        addNetwork: mock.fn(async () => undefined),
+      },
+    }
+
+    // a client of the removed host, to check it is dropped
+    const ovsdbClient = { host }
+    controller.ovsdbClients = { [host.$ref]: ovsdbClient }
+    controller.ofChannels = { [host.$ref]: { host } }
+
+    return { controller, xapi, host, network, addNetwork }
+  }
+
+  it('rewires the private networks of the host pool', async () => {
+    const { controller, xapi, host, network, addNetwork } = makeEjectContext()
+
+    controller._objectsRemoved(xapi, { 'host-id-1': host })
+    await new Promise(resolve => setImmediate(resolve))
+
+    // the client and channel of the removed host are dropped
+    assert.equal(controller.ovsdbClients[host.$ref], undefined)
+    assert.equal(controller.ofChannels[host.$ref], undefined)
+
+    // the network of the host's pool is re-registered: this is what removes
+    // the stale tunnel legs (resetForNetwork) on the remaining hosts
+    assert.equal(addNetwork.mock.calls.length, 1)
+    assert.equal(addNetwork.mock.calls[0].arguments[0], network)
+  })
+
+  it('does not rewire for a non-host object removal', async () => {
+    const { controller, xapi, addNetwork } = makeEjectContext()
+
+    controller._objectsRemoved(xapi, { 'pif-id-1': { $type: 'PIF', $ref: 'pif-ref-1', $id: 'pif-id-1' } })
+    await new Promise(resolve => setImmediate(resolve))
+
+    assert.equal(addNetwork.mock.calls.length, 0)
+  })
+})
+
 describe('VIF traffic rules', () => {
   // a VIF on a host where the XAPI plugin fails to apply (or remove) the rule
   function controllerWithFailingPlugin() {
