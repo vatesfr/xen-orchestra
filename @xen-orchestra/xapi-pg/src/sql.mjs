@@ -358,9 +358,11 @@ export async function withClient(poolOrClient, task) {
 const MAX_RETRIES = 3
 
 /**
+ * @template T
  * @param {*} dbClient
- * @param {(function(Client): Promise<void>)|*} work
+ * @param {function(Client): Promise<Awaited<T>>} work
  * @param {(function(Client): Promise<void>)|*} beforeRetry
+ * @return {Promise<Awaited<T>>}
  */
 export async function executeSerialized(dbClient, work, beforeRetry = async () => {}) {
   for (let retry = 0; ; retry++) {

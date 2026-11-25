@@ -68,6 +68,27 @@ suite('simple tests', function () {
     assert.deepStrictEqual(references, new Set())
   })
 
+  test('collectRefsFromRecords returns a new Set and appends to a supplied Set', function () {
+    const source = createClass('clz', {
+      reference: { name: 'reference', type: 'cls ref' },
+      references: { name: 'references', type: 'cls ref set' },
+    })
+    source.convertRefFieldsToDBModel({ cls: createClass('cls') })
+    const records = [
+      { reference: 'ref-1', references: ['ref-2', 'ref-1'] },
+      { reference: 'ref-1', references: ['ref-3'] },
+    ]
+
+    const collected = source.collectRefsFromRecords(records)
+    const collectedAgain = source.collectRefsFromRecords(records)
+    assert.deepStrictEqual(collected, new Set(['ref-1', 'ref-2', 'ref-3']))
+    assert.notStrictEqual(collected, collectedAgain)
+
+    const collector = new Set(['existing-ref', 'ref-2'])
+    assert.strictEqual(source.collectRefsFromRecords(records, collector), collector)
+    assert.deepStrictEqual(collector, new Set(['existing-ref', 'ref-1', 'ref-2', 'ref-3']))
+  })
+
   test('xapi2DbField returns undefined and logs an error for an unsupported field type', function () {
     const actual = xapi2DbField('clz', 'field', 'unsupported', 'desc')
     assert.strictEqual(actual, undefined)

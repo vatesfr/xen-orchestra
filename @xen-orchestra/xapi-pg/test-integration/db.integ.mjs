@@ -101,7 +101,7 @@ suite('live DB tests', async function () {
     const { newRecords: nonref } = xapiDbClass.nonRefXapi2Db([xapiRecord])
     assert.deepEqual(nonref, [{ uuid: '#uuidRef1' }])
     await dbClient.query(`INSERT INTO ${xapiDbClass.getTableNameEsc()} (uuid)VALUES ('#uuidRef1')`)
-    const refs = xapiDbClass.getRefsFromRecords([xapiRecord])
+    const refs = xapiDbClass.collectRefsFromRecords([xapiRecord])
     assert.deepEqual(refs, new Set(['#uuidRef2']))
     const refRecords = xapiDbClass.refXapi2Db([xapiRecord], ident)
     assert.deepEqual(refRecords, {

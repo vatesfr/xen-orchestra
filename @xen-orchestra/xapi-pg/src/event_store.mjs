@@ -60,13 +60,12 @@ export class EventStore {
       Object.entries(survivingEventsByClass).map(([cl, evts]) => [cl, evts.map(e => e.snapshot)])
     )
     const preparedNonRefByClass = {}
+    const linkedReferences = new Set()
     for (const [className, records] of Object.entries(survivingObjectsByClass)) {
+      this.classesDict[className].collectRefsFromRecords(records, linkedReferences)
       const prepared = this.classesDict[className].prepareNonRefRecords(records)
       if (prepared) preparedNonRefByClass[className] = prepared
     }
-    const linkedReferences = Object.entries(survivingObjectsByClass).flatMap(([className, records]) =>
-      this.classesDict[className].getRefsFromRecords(records)
-    )
     const eventContent = JSON.stringify({ ...eventBatch, events: [] })
     const notifData = JSON.stringify({ token: currentToken, sessionId, poolRef: this.refLifetimeRef })
     // can't call NOTIFY with a bound string
@@ -220,7 +219,7 @@ export class EventStore {
     const uuidToSearch = []
     for (const batch of changesPerClass) {
       uuidToSearch.push(...batch.delUuids)
-      uuidToSearch.push(...batch.class.getRefsFromRecords(batch.records))
+      uuidToSearch.push(...batch.class.collectRefsFromRecords(batch.records))
       uuidToSearch.push(...batch.records.map(r => r.uuid))
     }
     const refs = await this.refStore.bulkSearchRef(dbClient, uuidToSearch)
@@ -274,7 +273,7 @@ export class EventStore {
     const uuidToSearch = []
     for (const [className, records] of Object.entries(batchPerClass)) {
       const cls = this.classesDict[className]
-      uuidToSearch.push(...cls.getRefsFromRecords(records))
+      uuidToSearch.push(...cls.collectRefsFromRecords(records))
       uuidToSearch.push(...records.map(r => r.uuid))
     }
     const refs = await this.refStore.bulkSearchRef(dbClient, uuidToSearch)

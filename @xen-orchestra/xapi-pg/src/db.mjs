@@ -161,16 +161,17 @@ export class XapiDBClass {
    * Second, get all the references to be translated to UUID.
    * (this method works to extract uuids from db rows too)
    * @param records
+   * @param {Set<string>} collectorSet optional set to collect the references in.
    * @returns {Set<string>}
    */
-  getRefsFromRecords(records) {
-    const refs = new Set()
+  collectRefsFromRecords(records, collectorSet = undefined) {
+    if (collectorSet === undefined) collectorSet = new Set()
     for (const record of records) {
       for (const field of this.refFields) {
-        field.getRefsFromRecord(record).forEach(ref => refs.add(ref))
+        field.getRefsFromRecord(record).forEach(ref => collectorSet.add(ref))
       }
     }
-    return refs
+    return collectorSet
   }
 
   /**
@@ -238,7 +239,7 @@ export class XapiDBClass {
   async persistNonRefRecordsToDB(dbClient, records) {
     const prepared = this.prepareNonRefRecords(records)
     if (prepared) await dbClient.query(prepared.sql, prepared.bind)
-    return this.getRefsFromRecords(records)
+    return this.collectRefsFromRecords(records)
   }
 
   /**

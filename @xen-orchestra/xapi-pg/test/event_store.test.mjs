@@ -13,7 +13,7 @@ const tableNames = {
 function makeIngestFixture({
   onQuery = () => ({ rowCount: 0, rows: [] }),
   prepareNonRefRecords = () => ({ references: [] }),
-  getRefsFromRecords = () => [],
+  collectRefsFromRecords = (_, collector) => collector || new Set(),
   persistRefRecordsToDB = async () => {},
   refStore = {
     bulkRecordUuid: async () => {},
@@ -54,7 +54,7 @@ function makeIngestFixture({
         actions.push('prepare non-reference records')
         return prepareNonRefRecords(records)
       },
-      getRefsFromRecords,
+      collectRefsFromRecords,
       persistRefRecordsToDB,
     },
   }
@@ -85,7 +85,7 @@ suite('EventStore.ingestEvents', function () {
         preparationCount++
         return { sql: 'PREPARED NON-REFERENCE INSERT', bind: [] }
       },
-      getRefsFromRecords: () => ['reference-1'],
+      collectRefsFromRecords: (_, collector) => collector.add('reference-1'),
       persistRefRecordsToDB: async (_dbClient, _records, ref2uuid) => {
         referencePersistenceAttempts++
         ref2uuid('reference-1')
@@ -93,8 +93,9 @@ suite('EventStore.ingestEvents', function () {
       refStore: {
         bulkRecordUuid: async () => {},
         bulkSearchUuid: async refs => {
-          refSearches.push([...refs])
-          return refs.length && refSearches.filter(search => search.length > 0).length === 2
+          const searchedRefs = [...refs]
+          refSearches.push(searchedRefs)
+          return searchedRefs.length && refSearches.filter(search => search.length > 0).length === 2
             ? new Map([['reference-1', 'uuid-1']])
             : new Map()
         },
@@ -210,7 +211,7 @@ suite('EventStore.ingestEvents', function () {
       refStore: {
         bulkRecordUuid: async () => {},
         bulkSearchUuid: async refs => {
-          if (refs.length === 0) return new Map()
+          if ([...refs].length === 0) return new Map()
           return deleteSearches++ === 0 ? new Map([['ref-del', 'uuid-del']]) : new Map()
         },
         clearCache: () => {},
