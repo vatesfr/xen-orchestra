@@ -368,9 +368,17 @@ class BackupReportsXoPlugin {
     const nVmTasks = nSuccesses + nFailures + nSkipped + nInterrupted
 
     const context = {
-      // who requested the abort of the run: xo-server adds one info with the id of the user, the other infos of the run
-      // are not shown in the report
-      abortInfos: log.infos?.filter(info => info.data?.userId !== undefined) ?? [],
+      // who requested the abort of the run: xo-server adds an info with the type `abortRequested` and the id of the
+      // user, the other infos of the run are not shown in the report
+      abortInfos: await Promise.all(
+        (log.infos ?? [])
+          .filter(info => info.data?.type === 'abortRequested')
+          .map(async ({ data: { userId } }) => {
+            // the user may have been deleted since
+            const user = await xo.getUser(userId).catch(() => undefined)
+            return { message: `abort requested by ${user?.email ?? userId}` }
+          })
+      ),
       jobName,
       log,
       customSubject: this._customSubject,
