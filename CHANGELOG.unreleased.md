@@ -14,6 +14,8 @@
 > Users must be able to say: "I had this issue, happy to know it's fixed"
 
 - [Backups/Merge] The background merge no longer crashes with `ENAMETOOLONG` when a VM's backups are locked by another job: it waits 5 minutes before trying again instead of retrying in a loop (PR [#10866](https://github.com/vatesfr/xen-orchestra/pull/10866))
+- [SDN Controller] A host that joins a pool with private networks is now wired into them as soon as the host is enabled
+- [SDN Controller] When a host is ejected from a pool, the tunnels to it are now removed from the remaining hosts (including the star-center host), so no stale tunnel is left on the pool after a host leaves a pool with private networks
 - [V2V] When the import of a disk fails before its transfer starts, the task shows the reason given by the migration engine (e.g. `could not connect: timed out`) instead of `stream has ended without data, was looking for 8 bytes` (PR [#10842](https://github.com/vatesfr/xen-orchestra/pull/10842))
 - [XO6] A VM converted into a template no longer stays in the VM list and treeview, contribution by [@pcbeingused333](https://github.com/pcbeingused333), fixes issue [#10717](https://github.com/vatesfr/xen-orchestra/issues/10717) (PR [#10884](https://github.com/vatesfr/xen-orchestra/pull/10884))
 
@@ -36,5 +38,6 @@
 - @vates/nbd-client patch
 - @xen-orchestra/backups patch
 - xo-collection patch
+- xo-server-sdn-controller patch
 
 <!--packages-end-->
