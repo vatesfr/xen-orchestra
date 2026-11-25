@@ -49,3 +49,21 @@ describe('ProxyController.getProxyHealth', () => {
     await assert.rejects(controller.getProxyHealth(proxyId), error => error === unrelatedError)
   })
 })
+
+describe('ProxyController.deleteProxy', () => {
+  it('forwards the id to destroyProxy', async () => {
+    const calls: unknown[] = []
+    const restApi = {
+      xoApp: {
+        destroyProxy: async (id: string) => {
+          calls.push(['destroyProxy', id])
+        },
+      },
+    } as unknown as RestApi
+    const controller = new ProxyController(restApi)
+
+    await controller.deleteProxy(proxyId)
+
+    assert.deepEqual(calls, [['destroyProxy', proxyId]])
+  })
+})

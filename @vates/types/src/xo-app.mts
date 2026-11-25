@@ -466,6 +466,8 @@ export type XoApp = EventEmitter & {
     opts?: { bypassAuthorization?: boolean; fromGroup?: boolean; fromUser?: boolean }
   ): Promise<XoAclRole[]>
   getAllGroups(): Promise<XoGroup[]>
+  /** Also destroys the VM of the proxy, if any */
+  destroyProxy(id: XoProxy['id']): Promise<void>
   getAllProxies(): Promise<XoProxy[]>
   getAllJobs<T extends AnyXoJob['type']>(type: T): Promise<Extract<AnyXoJob, { type: T }>[]>
   getAllJobs(type?: string): Promise<AnyXoJob[]>
@@ -503,10 +505,7 @@ export type XoApp = EventEmitter & {
    * `assertBrowserMediaInsertable` reports the predictable failures synchronously, e.g. before
    * starting a task.
    */
-  insertBrowserMedia(params: {
-    id: XoBrowserMediaSession['id']
-    vmId: XoVm['id']
-  }): Promise<{ vdiId: XoVdi['id'] }>
+  insertBrowserMedia(params: { id: XoBrowserMediaSession['id']; vmId: XoVm['id'] }): Promise<{ vdiId: XoVdi['id'] }>
   assertBrowserMediaInsertable(params: { id: XoBrowserMediaSession['id']; vmId: XoVm['id'] }): void
   /** Eject the ISO of a browser media session, release its storage, and disconnect the browser */
   ejectBrowserMedia(id: XoBrowserMediaSession['id']): Promise<void>

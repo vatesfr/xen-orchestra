@@ -1,4 +1,5 @@
 import {
+  Delete,
   Example,
   Extension,
   Get,
@@ -23,6 +24,7 @@ import {
   badRequestResp,
   forbiddenOperationResp,
   internalServerErrorResp,
+  noContentResp,
   notFoundResp,
   proxyUnreachableResp,
   unauthorizedResp,
@@ -145,5 +147,33 @@ export class ProxyController extends XoController<XoProxy> {
     await callProxy(this.restApi.xoApp.checkProxyHealth(id as XoProxy['id']))
 
     return { success: true }
+  }
+
+  /**
+   * Deletes a proxy
+   *
+   * Destroys the VM of the proxy, if it has one, then removes the proxy from Xen Orchestra.
+   *
+   * Required privilege:
+   * - resource: proxy, action: delete
+   *
+   * @example id "e625ea0c-a876-405a-b838-109d762efe88"
+   */
+  @Extension('x-mcp-exposure', 'confirm')
+  @Delete('{id}')
+  @Middlewares(
+    acl({
+      resource: 'proxy',
+      action: 'delete',
+      objectId: 'params.id',
+      getObject: ({ restApi }) => restApi.xoApp.getProxy,
+    })
+  )
+  @SuccessResponse(noContentResp.status, noContentResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(internalServerErrorResp.status, internalServerErrorResp.description)
+  async deleteProxy(@Path() id: string): Promise<void> {
+    await this.restApi.xoApp.destroyProxy(id as XoProxy['id'])
   }
 }
