@@ -13,6 +13,8 @@
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
 
+- [V2V] When the import of a disk fails before its transfer starts, the task shows the reason given by the migration engine (e.g. `could not connect: timed out`) instead of `stream has ended without data, was looking for 8 bytes` (PR [#10842](https://github.com/vatesfr/xen-orchestra/pull/10842))
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
@@ -28,5 +30,7 @@
 > Keep this list alphabetically ordered to avoid merge conflicts
 
 <!--packages-start-->
+
+- @vates/nbd-client patch
 
 <!--packages-end-->
