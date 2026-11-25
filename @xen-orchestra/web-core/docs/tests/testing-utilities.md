@@ -2,7 +2,7 @@
 
 Utility functions (`*.util.ts`) are pure — import and call them directly, and assert `input → output`. No mounting, no mocks.
 
-Cases that differ only by their values share one `it.each` ([File layout and structure](./file-structure.md)); the [reference util test](./design-test-file.md#reference-test-files) shows the shape.
+Put cases that differ only by their values in one `it.each` ([File layout and structure](./file-structure.md)). The [reference util test](./design-test-file.md#reference-test-files) shows how.
 
 Cover the meaningful edge cases: empty input, missing samples (`NaN` propagation), `null` data, and boundary rounding.
 

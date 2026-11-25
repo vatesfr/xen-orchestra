@@ -75,4 +75,4 @@ Rules:
 - Type fixtures from the real source types so they drift with production. For a shape local to one test, derive it — e.g. `type StorageUsage = NonNullable<NonNullable<XoPoolDashboard['srs']>['topFiveUsage']>[number]` — and write a small local `createStorageUsage` helper.
 - Cast branded ids with the honest type (`'host-1' as XoHost['id']`), never `as never`.
 
-Every other `src/test/` helper — mounts, readers, user actions, mocks, test case registrars, module fixtures — is listed by need in [Shared helpers by need](./helpers.md).
+All other `src/test/` helpers (mounts, readers, user actions, mocks, registrars, module fixtures) are listed in [Shared helpers by need](./helpers.md).

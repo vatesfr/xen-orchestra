@@ -80,7 +80,7 @@ The same goes for `mock-xo-v2v-vm-rows-collections.ts`, the VM, task and VM snap
 
 `mock-xo-plugin-actions.ts` stands for `useXoPluginActions`, which runs the plugin jobs: `pluginActionsMock.useXoPluginActions` is the spy to read the plugin it was asked for, `pluginActionsMock.setActions(overrides?)` makes it return the `createPluginActions(overrides)` actions and returns them, and `pluginActionsMock.reset()` (back to the default actions) goes in `beforeEach`.
 
-A job a single test file mocks needs no shared module and no `mockModule`: stub it with `createJobStub` ([Mock and stub](./helpers.md#mock-and-stub)).
+A job that only one test file mocks needs no shared module and no `mockModule`: stub it with `createJobStub` ([Mock and stub](./helpers.md#mock-and-stub)).
 
 `mock-xo-routes.ts` stands for `useXoRoutes`, the XO 5 routes the app fetches: an XO 5 link reads `https://xo5.example.com/#<path>`.
 
