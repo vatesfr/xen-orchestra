@@ -11,4 +11,4 @@ export type HostBranch = Branch<FrontXoHost, VmLeaf, 'host'>
 
 export type PoolBranch = Branch<FrontXoPool, HostBranch | VmLeaf, 'pool'>
 
-export type SiteBranch = Branch<XoSite, PoolBranch, 'site'>
+export type SiteBranch = Branch<XoSite, PoolBranch | HostBranch | VmLeaf, 'site'>
