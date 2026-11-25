@@ -7,8 +7,8 @@ import UiDropdown from '@core/components/ui/dropdown/UiDropdown.vue'
 import UiLoader from '@core/components/ui/loader/UiLoader.vue'
 import { createGlobalTestConfig } from '@core-test/create-global-test-config.ts'
 import { t } from '@core-test/i18n.ts'
+import { setViewportWidth } from '@core-test/set-viewport-width.ts'
 import { flushPromises, mount, type VueWrapper } from '@vue/test-utils'
-import type { Window as HappyDomWindow } from 'happy-dom'
 
 const SUGGESTIONS: TagSelectSuggestion[] = [
   { tag: 'analytics', info: '1 VM' },
@@ -126,10 +126,6 @@ function isDropdownOpen(wrapper: VueWrapper) {
 }
 
 const DEFAULT_VIEWPORT_WIDTH = 1024
-
-function setViewportWidth(width: number) {
-  ;(window as unknown as HappyDomWindow).happyDOM.setViewport({ width })
-}
 
 describe('trigger', () => {
   it('offers to add tags when there are none', () => {

@@ -31,7 +31,7 @@ A web-core component is tested for its **contract with its consumers**: what eac
 
 - A variant is asserted through the class `toVariants` gives it, since that class is the contract the CSS reads — never through a style.
 - A child web-core component is asserted through its props (`getComponent(UiAlert).props('accent')`), not the DOM it renders: that child has its own test.
-- A responsive state is driven with `(window as unknown as HappyDomWindow).happyDOM.setViewport({ width })` before mounting (`import type { Window as HappyDomWindow } from 'happy-dom'`).
+- A responsive state is driven with `setViewportWidth(width)` (`@core-test/set-viewport-width.ts`) before mounting.
 
 ## Keep components thin
 

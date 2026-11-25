@@ -21,6 +21,7 @@ An XO 6 test covers what the app decides, never what `@xen-orchestra/web-core` d
 ## Shared conventions (web-core docs)
 
 - [Assert behavior, not implementation](../../web-core/docs/tests/assert-behavior.md)
+- [Design the test file first](../../web-core/docs/tests/design-test-file.md) — before the first `it`; the reference file of each kind
 - [File layout and structure](../../web-core/docs/tests/file-structure.md)
 - [Shared test helpers](../../web-core/docs/tests.md#shared-test-helpers) — generic helpers in `web-core/test/` (`@core-test`), domain-aware ones in `src/test/`
 
