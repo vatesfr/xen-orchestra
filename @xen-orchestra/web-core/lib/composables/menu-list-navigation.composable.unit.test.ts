@@ -86,68 +86,47 @@ describe('focusFirstItem', () => {
 })
 
 describe('keyboard navigation', () => {
-  it('moves the focus to the next item with ArrowDown and wraps around after the last one', async () => {
-    await mountMenuListNavigation()
+  it.each([
+    { label: 'to the next item with ArrowDown', key: 'ArrowDown', from: 'Two', to: 'Three' },
+    {
+      label: 'back to the first item after the last one, skipping a nested menu',
+      key: 'ArrowDown',
+      from: 'Three',
+      to: 'One',
+    },
+    { label: 'to the previous item with ArrowUp', key: 'ArrowUp', from: 'Two', to: 'One' },
+    { label: 'to the last item before the first one', key: 'ArrowUp', from: 'One', to: 'Three' },
+    { label: 'to the last item with End', key: 'End', from: 'Two', to: 'Three' },
+    { label: 'to the first item with Home', key: 'Home', from: 'Three', to: 'One' },
+    {
+      label: 'to the next item with ArrowRight in a horizontal menu',
+      isHorizontal: true,
+      key: 'ArrowRight',
+      from: 'One',
+      to: 'Two',
+    },
+    {
+      label: 'to the previous item with ArrowLeft in a horizontal menu',
+      isHorizontal: true,
+      key: 'ArrowLeft',
+      from: 'Two',
+      to: 'One',
+    },
+  ])('moves the focus $label', async ({ isHorizontal, key, from, to }) => {
+    await mountMenuListNavigation({ isHorizontal })
 
-    getItem('Two').focus()
+    getItem(from).focus()
 
-    expect(press('ArrowDown').defaultPrevented).toBe(true)
-    expect(getFocusedLabel()).toBe('Three')
-
-    press('ArrowDown')
-
-    expect(getFocusedLabel()).toBe('One')
+    expect(press(key).defaultPrevented).toBe(true)
+    expect(getFocusedLabel()).toBe(to)
   })
 
-  it('moves the focus to the previous item with ArrowUp and wraps around before the first one', async () => {
-    await mountMenuListNavigation()
-
-    getItem('Two').focus()
-    press('ArrowUp')
-
-    expect(getFocusedLabel()).toBe('One')
-
-    press('ArrowUp')
-
-    expect(getFocusedLabel()).toBe('Three')
-  })
-
-  it('moves the focus to the first item with Home and to the last one with End', async () => {
-    await mountMenuListNavigation()
-
-    getItem('Two').focus()
-    press('End')
-
-    expect(getFocusedLabel()).toBe('Three')
-
-    press('Home')
-
-    expect(getFocusedLabel()).toBe('One')
-  })
-
-  it('skips the items of a nested menu', async () => {
-    await mountMenuListNavigation()
-
-    getItem('Three').focus()
-    press('ArrowDown')
-
-    expect(getFocusedLabel()).toBe('One')
-  })
-
-  it('moves the focus with ArrowLeft and ArrowRight in a horizontal menu', async () => {
+  it('keeps the focus on ArrowDown in a horizontal menu', async () => {
     await mountMenuListNavigation({ isHorizontal: true })
 
     getItem('One').focus()
 
     expect(press('ArrowDown').defaultPrevented).toBe(false)
-    expect(getFocusedLabel()).toBe('One')
-
-    press('ArrowRight')
-
-    expect(getFocusedLabel()).toBe('Two')
-
-    press('ArrowLeft')
-
     expect(getFocusedLabel()).toBe('One')
   })
 
@@ -178,22 +157,16 @@ describe('keyboard navigation', () => {
     expect(onClose).toHaveBeenCalledOnce()
   })
 
-  it('does not close the menu with ArrowLeft unless allowed', async () => {
-    const { onClose } = await mountMenuListNavigation()
+  it.each([
+    { label: 'does not close the menu with ArrowLeft unless allowed', canCloseWithArrowLeft: false, closeCount: 0 },
+    { label: 'closes the menu with ArrowLeft when allowed', canCloseWithArrowLeft: true, closeCount: 1 },
+  ])('$label', async ({ canCloseWithArrowLeft, closeCount }) => {
+    const { onClose } = await mountMenuListNavigation({ canCloseWithArrowLeft })
 
     getItem('Two').focus()
     press('ArrowLeft')
 
-    expect(onClose).not.toHaveBeenCalled()
-  })
-
-  it('closes the menu with ArrowLeft when allowed', async () => {
-    const { onClose } = await mountMenuListNavigation({ canCloseWithArrowLeft: true })
-
-    getItem('Two').focus()
-    press('ArrowLeft')
-
-    expect(onClose).toHaveBeenCalledOnce()
+    expect(onClose).toHaveBeenCalledTimes(closeCount)
   })
 
   it('leaves the menu with Tab without preventing the focus from moving', async () => {

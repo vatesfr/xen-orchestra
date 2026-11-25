@@ -15,12 +15,18 @@ function hover(level: MountedLevel, itemId: string, { hasSubmenu = true, x = 0, 
   level.hoverItem({ itemId, hasSubmenu }, pointer(x, y))
 }
 
-function registerSubmenuOnTheRight(level: MountedLevel) {
+// Item `a` is open, and the pointer leaves it towards its submenu, on the right
+function mountLevelLeavingTowardsSubmenu() {
+  const level = mountLevel()
   const submenu = document.createElement('ul')
 
   submenu.dataset.placement = 'right-start'
   vi.spyOn(submenu, 'getBoundingClientRect').mockReturnValue(new DOMRect(200, 0, 100, 200))
+  level.openItem('a')
   level.registerSubmenu(submenu)
+  level.leaveItem('a', pointer(150, 40))
+
+  return level
 }
 
 beforeEach(() => {
@@ -136,11 +142,8 @@ describe('useMenuLevel', () => {
   })
 
   it('ignores the sibling items crossed inside the safe area towards the open submenu', () => {
-    const level = mountLevel()
+    const level = mountLevelLeavingTowardsSubmenu()
 
-    level.openItem('a')
-    registerSubmenuOnTheRight(level)
-    level.leaveItem('a', pointer(150, 40))
     hover(level, 'b', { x: 170, y: 60 })
     vi.advanceTimersByTime(200)
     hover(level, 'b', { x: 190, y: 70 })
@@ -153,11 +156,8 @@ describe('useMenuLevel', () => {
   })
 
   it('switches when a sibling item is hovered outside the safe area', () => {
-    const level = mountLevel()
+    const level = mountLevelLeavingTowardsSubmenu()
 
-    level.openItem('a')
-    registerSubmenuOnTheRight(level)
-    level.leaveItem('a', pointer(150, 40))
     hover(level, 'b', { x: 150, y: 120 })
     vi.advanceTimersByTime(300)
 
@@ -165,11 +165,8 @@ describe('useMenuLevel', () => {
   })
 
   it('evaluates the hovered sibling item once the pointer rests in the safe area for 300 ms', () => {
-    const level = mountLevel()
+    const level = mountLevelLeavingTowardsSubmenu()
 
-    level.openItem('a')
-    registerSubmenuOnTheRight(level)
-    level.leaveItem('a', pointer(150, 40))
     hover(level, 'b', { x: 170, y: 60 })
     vi.advanceTimersByTime(599)
 
