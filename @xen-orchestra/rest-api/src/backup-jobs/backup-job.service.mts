@@ -15,6 +15,8 @@ import type {
 import type { RestApi } from '../rest-api/rest-api.mjs'
 import { assertValidCron, vmContainsNoBakTag } from '../helpers/utils.helper.mjs'
 import type { CreateBackupJobBody, CreateBackupJobSchedule, UpdateBackupJobBody } from './backup-job.type.mjs'
+import { compileExpression, isExpression } from '@xen-orchestra/backups/_expressionPredicate.mjs'
+import { buildRunContext, buildVmContext } from '@xen-orchestra/backups/_buildContext.mjs'
 
 export class BackupJobService {
   #backupJobTypes = ['backup', 'metadataBackup', 'mirrorBackup']
@@ -69,12 +71,24 @@ export class BackupJobService {
    */
   assertJobHasValidExpressions(type: AnyXoBackupJob['type'], job: UpdateBackupJobBody): void {
     if (type === 'backup') {
-      const { srs, remotes, settings } = job as Extract<UpdateBackupJobBody, { srs?: unknown }>
+      const { srs, remotes, vms, settings } = job as Extract<UpdateBackupJobBody, { srs?: unknown }>
       assertValidExpression('srs', srs)
       assertValidExpression('remotes', remotes)
+      assertValidExpression('vms', vms)
       assertValidSettingsExpression(settings, ['healthCheckVmsWithTags', 'fullInterval'])
     } else if (type === 'mirrorBackup') {
-      assertValidSettingsExpression(job.settings, ['healthCheckVmsWithTags', 'vmFilter'])
+      const { filter, remotes, settings } = job as Extract<UpdateBackupJobBody, { sourceRemote?: unknown }>
+      assertValidSettingsExpression(settings, ['healthCheckVmsWithTags', 'vmFilter'])
+      assertValidExpression('remotes', remotes)
+      if (filter != null && filter.vm.uuid.__or.length === 0) {
+        throw invalidParameters('filter must contain at least one VM', [
+          { instancePath: '/filter/vm/uuid/__or', message: 'must NOT have fewer than 1 items' },
+        ])
+      }
+    } else if (type === 'metadataBackup') {
+      const { remotes, pools } = job as Extract<UpdateBackupJobBody, { pools?: unknown }>
+      assertValidExpression('remotes', remotes)
+      assertValidExpression('pools', pools)
     }
   }
 
@@ -90,14 +104,45 @@ export class BackupJobService {
       return false
     }
 
+    const isVmInJob = await this.getBackupJobVmMatcher(backupJob)
+    return isVmInJob(vm)
+  }
+
+  /**
+   * Returns a function telling whether a VM is selected by the `vms` of the job,
+   * whether it is a list of IDs, an object pattern or an expression
+   */
+  async getBackupJobVmMatcher(backupJob: XoVmBackupJob): Promise<(vm: XoVm) => boolean> {
     try {
-      const vmIds: XoVm['id'][] = extractIdsFromSimplePattern(backupJob.vms)
-      return vmIds.some(id => id === vm.id)
+      const vmIds = new Set<XoVm['id']>(extractIdsFromSimplePattern(backupJob.vms))
+      return vm => vmIds.has(vm.id)
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (_) {
-      const predicate = createPredicate(backupJob.vms)
-      return predicate(vm)
+      if (!isExpression(backupJob.vms)) {
+        return createPredicate(backupJob.vms)
+      }
+
+      // `run:` clauses depend on the timezone, which is resolved per schedule like the executor does,
+      // so the VM is in the job if it matches for at least one of its schedules
+      const predicate = compileExpression(backupJob.vms)
+      const now = new Date()
+      const runContexts = (await this.#getScheduleTimezones(backupJob)).map(timezone => buildRunContext(now, timezone))
+      return vm => runContexts.some(runContext => predicate(buildVmContext(vm, runContext)))
     }
+  }
+
+  async #getScheduleTimezones(backupJob: XoVmBackupJob): Promise<(string | undefined)[]> {
+    const schedules = (await this.#restApi.xoApp.getAllSchedules()).filter(schedule => schedule.jobId === backupJob.id)
+    if (schedules.length === 0) {
+      return [backupJob.settings['']?.timezone]
+    }
+
+    return schedules.map(schedule => {
+      const scheduleTimezone = backupJob.settings[schedule.id]?.timezone
+      return typeof scheduleTimezone === 'string'
+        ? scheduleTimezone
+        : (backupJob.settings['']?.timezone ?? schedule.timezone)
+    })
   }
 
   async backupJobHasAtLeastOneScheduleEnabled(id: XoVmBackupJob['id']): Promise<boolean> {
