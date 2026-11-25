@@ -51,6 +51,43 @@ export function getXapiTypeGroup(type: string): SupportBundleGroup | undefined {
 
 type ConfigItem = Record<string, unknown>
 
+export const ANONYMIZED_VALUE = '[redacted]'
+
+// keys of the fields written by humans, in XAPI records, tasks and RPU traces
+const FREE_TEXT_KEYS = new Set([
+  'body', // XAPI messages
+  'email',
+  'hostname',
+  'name_description',
+  'name_label',
+  'poolName',
+  'reportRecipients',
+  'tags',
+  'username',
+])
+// `name` is only free text in the XO configuration: the `name` of a XAPI message is a code (e.g. `VM_STARTED`)
+const CONFIG_FREE_TEXT_KEYS = new Set([...FREE_TEXT_KEYS, 'label', 'name'])
+
+/**
+ * replaces the non-empty strings under the given keys, at any depth, keeping arrays and objects as they are
+ *
+ * not a leak search: a name copied in another field (e.g. an error message) is kept
+ */
+export function anonymizeFreeText<T>(value: T, keys: ReadonlySet<string> = FREE_TEXT_KEYS, inside = false): T {
+  if (typeof value === 'string') {
+    return (inside && value !== '' ? ANONYMIZED_VALUE : value) as T
+  }
+  if (Array.isArray(value)) {
+    return value.map(item => anonymizeFreeText(item, keys, inside)) as T
+  }
+  if (typeof value === 'object' && value !== null) {
+    return Object.fromEntries(
+      Object.entries(value).map(([key, item]) => [key, anonymizeFreeText(item, keys, inside || keys.has(key))])
+    ) as T
+  }
+  return value
+}
+
 function redactRemote(remote: ConfigItem): ConfigItem {
   const { url, options } = remote
   const redacted = redact(remote)
@@ -83,22 +120,39 @@ const CONFIG_ITEM_REDACTORS: Record<string, (item: ConfigItem) => ConfigItem> = 
   xenServers: redactWholeField('httpProxy'),
 }
 
-export function redactConfigEntry(entry: string, data: unknown): unknown {
+export function redactConfigEntry(entry: string, data: unknown, anonymize = false): unknown {
   const redactItem = CONFIG_ITEM_REDACTORS[entry]
-  if (redactItem === undefined || !Array.isArray(data)) {
-    return redact(data)
+  const redacted = redactItem === undefined || !Array.isArray(data) ? redact(data) : data.map(redactItem)
+  if (!anonymize) {
+    return redacted
   }
-  return data.map(redactItem)
+  // the `id` of a tag is its name
+  return anonymizeFreeText(
+    redacted,
+    entry === 'tags' ? new Set([...CONFIG_FREE_TEXT_KEYS, 'id']) : CONFIG_FREE_TEXT_KEYS
+  )
 }
 
-export function redactXapiRecord(type: string, record: Record<string, unknown>): Record<string, unknown> {
+export function redactXapiRecord(
+  type: string,
+  record: Record<string, unknown>,
+  anonymize = false
+): Record<string, unknown> {
+  const lcType = type.toLowerCase()
   const redacted = redact(record)
   // free-form, may contain cloud-init secrets or XO's own configuration
   const xenstoreData = record.xenstore_data
-  if (type.toLowerCase() === 'vm' && typeof xenstoreData === 'object' && xenstoreData !== null) {
+  if (lcType === 'vm' && typeof xenstoreData === 'object' && xenstoreData !== null) {
     redacted.xenstore_data = Object.fromEntries(Object.keys(xenstoreData).map(key => [key, OBFUSCATED_VALUE]))
   }
-  return redacted
+  if (!anonymize) {
+    return redacted
+  }
+  // the `other_config` of a subject holds the name, display name and UPN of the AD/LDAP user
+  return anonymizeFreeText(
+    redacted,
+    lcType === 'subject' ? new Set([...FREE_TEXT_KEYS, 'other_config']) : FREE_TEXT_KEYS
+  )
 }
 
 function addSecret(secrets: Set<string>, value: unknown): void {
@@ -157,12 +211,13 @@ export function getRpuTracePoolId(fileName: string): string | undefined {
 export type RpuTraceLine = { data: unknown } | { raw: string }
 
 /** a line of a trace file, kept as text when it is not valid JSON, like the last line of a trace cut by a crash */
-export function parseRpuTraceLine(text: string): RpuTraceLine {
+export function parseRpuTraceLine(text: string, anonymize = false): RpuTraceLine {
   let data: unknown
   try {
     data = JSON.parse(text)
   } catch {
     return { raw: text }
   }
-  return { data: redact(data) }
+  const redacted = redact(data)
+  return { data: anonymize ? anonymizeFreeText(redacted) : redacted }
 }

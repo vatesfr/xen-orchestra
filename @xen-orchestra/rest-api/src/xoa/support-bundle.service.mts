@@ -14,6 +14,7 @@ import type { SupportBundleParams, SupportBundleGroup } from './support-bundle.t
 
 import {
   CONFIG_ENTRIES_BY_GROUP,
+  anonymizeFreeText,
   SECRET_SOURCE_CONFIG_ENTRIES,
   collectConfigSecrets,
   collectXapiSecrets,
@@ -134,7 +135,15 @@ export class SupportBundleService {
     return JSON.parse(Buffer.from(data as Uint8Array).toString())
   }
 
-  async *#generateLines({ config, poolXapis, pools, secrets, selectedGroups, tasksSince }: PreparedExport) {
+  async *#generateLines({
+    anonymize = false,
+    config,
+    poolXapis,
+    pools,
+    secrets,
+    selectedGroups,
+    tasksSince,
+  }: PreparedExport) {
     const counts: Record<string, number> = {}
     const checked = <T extends { group: SupportBundleGroup }>(line: T): T => {
       const leaks = findLeaks(line, secrets)
@@ -155,7 +164,7 @@ export class SupportBundleService {
             .map(server => ({ ...server, poolId: poolIdsByServer.get(server.id) }))
             .filter(server => pools === undefined || (server.poolId !== undefined && pools.includes(server.poolId)))
         }
-        yield checked({ kind: 'config', group, entry, data: redactConfigEntry(entry, data) })
+        yield checked({ kind: 'config', group, entry, data: redactConfigEntry(entry, data, anonymize) })
       }
     }
 
@@ -176,7 +185,7 @@ export class SupportBundleService {
             poolId,
             type,
             ref: record.$ref,
-            record: redactXapiRecord(type, { ...record }),
+            record: redactXapiRecord(type, { ...record }, anonymize),
           })
         }
       }
@@ -190,10 +199,17 @@ export class SupportBundleService {
           if (tasksSince !== undefined && !(typeof timestamp === 'number' && timestamp >= tasksSince)) {
             continue
           }
-          yield checked({ kind: 'task', group: 'tasks', store, key, value: redact(value) })
+          const redacted = redact(value)
+          yield checked({
+            kind: 'task',
+            group: 'tasks',
+            store,
+            key,
+            value: anonymize ? anonymizeFreeText(redacted) : redacted,
+          })
         }
       }
-      for await (const line of this.#generateRpuTraceLines({ pools, tasksSince })) {
+      for await (const line of this.#generateRpuTraceLines({ anonymize, pools, tasksSince })) {
         yield checked(line)
       }
     }
@@ -206,13 +222,18 @@ export class SupportBundleService {
       groups: [...selectedGroups],
       pools,
       tasksSince,
+      anonymized: anonymize,
       counts,
       checkedSecrets: secrets.size,
     }
   }
 
   /** RPU/RPR trace and heartbeat files, one line per line of file, a trace is kept if modified after `tasksSince` */
-  async *#generateRpuTraceLines({ pools, tasksSince }: Pick<SupportBundleParams, 'pools' | 'tasksSince'>) {
+  async *#generateRpuTraceLines({
+    anonymize,
+    pools,
+    tasksSince,
+  }: Pick<SupportBundleParams, 'anonymize' | 'pools' | 'tasksSince'>) {
     const { config } = this.#restApi.xoApp
     // same as `getRpuTracesConfig()` in xo-server/src/_rpuObservability.mjs
     const dir = config.getOptional<string>('rpu.tracesDir') ?? join(config.get<string>('datadir'), 'rpu-traces')
@@ -247,7 +268,7 @@ export class SupportBundleService {
           // streamed since a trace holds every event of a run
           for await (const text of handle.readLines({ autoClose: false })) {
             if (text !== '') {
-              yield { kind: 'rpuTrace', group: 'tasks' as const, poolId, file, ...parseRpuTraceLine(text) }
+              yield { kind: 'rpuTrace', group: 'tasks' as const, poolId, file, ...parseRpuTraceLine(text, anonymize) }
             }
           }
         }

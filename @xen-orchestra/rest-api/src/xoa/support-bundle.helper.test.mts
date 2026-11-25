@@ -3,6 +3,8 @@ import { describe, it } from 'node:test'
 import { findLeaks, OBFUSCATED_VALUE } from '@vates/obfuscate'
 
 import {
+  ANONYMIZED_VALUE,
+  anonymizeFreeText,
   collectConfigSecrets,
   collectXapiSecrets,
   getRpuTracePoolId,
@@ -119,5 +121,78 @@ describe('RPU traces', () => {
       data: { type: 'property', name: 'x', value: { password: OBFUSCATED_VALUE } },
     })
     assert.deepEqual(parseRpuTraceLine('{"type":"info","mess'), { raw: '{"type":"info","mess' })
+  })
+})
+
+describe('anonymization', () => {
+  it('replaces the strings under free-text keys at any depth, keeping the structure and empty strings', () => {
+    const job = {
+      id: 'j1',
+      name: 'nightly',
+      vms: { tags: { __or: ['prod', ''] }, id: { __or: ['vm-1'] } },
+      settings: { '': { reportRecipients: ['alice@example.org'] } },
+    }
+
+    assert.deepEqual(anonymizeFreeText(job, new Set(['name', 'tags', 'reportRecipients'])), {
+      id: 'j1',
+      name: ANONYMIZED_VALUE,
+      vms: { tags: { __or: [ANONYMIZED_VALUE, ''] }, id: { __or: ['vm-1'] } },
+      settings: { '': { reportRecipients: [ANONYMIZED_VALUE] } },
+    })
+  })
+
+  it('anonymizes config entries, including the ids of tags and the labels of servers', () => {
+    assert.deepEqual(redactConfigEntry('tags', [{ id: 'prod', color: '#fff' }], true), [
+      { id: ANONYMIZED_VALUE, color: '#fff' },
+    ])
+    const [server] = redactConfigEntry(
+      'xenServers',
+      [{ id: 's1', host: '10.0.0.1', label: 'lab', username: 'root', password: 'pass' }],
+      true
+    ) as Record<string, string>[]
+    assert.equal(server.label, ANONYMIZED_VALUE)
+    assert.equal(server.host, '10.0.0.1')
+    assert.equal(server.password, OBFUSCATED_VALUE)
+    assert.deepEqual(redactConfigEntry('users', [{ id: 'u', email: 'alice@example.org', pw_hash: 'h' }], true), [
+      { id: 'u', email: ANONYMIZED_VALUE, pw_hash: OBFUSCATED_VALUE },
+    ])
+  })
+
+  it('anonymizes XAPI records but not their identifiers, codes and XO settings', () => {
+    assert.deepEqual(
+      redactXapiRecord(
+        'VM',
+        {
+          uuid: 'u',
+          name_label: 'prod-db',
+          name_description: '',
+          tags: ['prod'],
+          other_config: { 'xo:backup:vm': 'x' },
+        },
+        true
+      ),
+      {
+        uuid: 'u',
+        name_label: ANONYMIZED_VALUE,
+        name_description: '',
+        tags: [ANONYMIZED_VALUE],
+        other_config: { 'xo:backup:vm': 'x' },
+      }
+    )
+    assert.deepEqual(redactXapiRecord('message', { name: 'VM_STARTED', body: 'VM prod-db started' }, true), {
+      name: 'VM_STARTED',
+      body: ANONYMIZED_VALUE,
+    })
+    assert.deepEqual(
+      redactXapiRecord('subject', { subject_identifier: 'S-1', other_config: { 'subject-name': 'alice' } }, true),
+      { subject_identifier: 'S-1', other_config: { 'subject-name': ANONYMIZED_VALUE } }
+    )
+    assert.equal(redactXapiRecord('VM', { name_label: 'prod-db' }).name_label, 'prod-db')
+  })
+
+  it('anonymizes the RPU trace lines', () => {
+    assert.deepEqual(parseRpuTraceLine('{"properties":{"name":"Rolling pool update","poolName":"lab"}}', true), {
+      data: { properties: { name: 'Rolling pool update', poolName: ANONYMIZED_VALUE } },
+    })
   })
 })

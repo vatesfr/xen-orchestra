@@ -84,6 +84,10 @@ export class XoaController extends Controller {
    * Secrets (credentials, tokens, encryption keys, mount options…) are replaced by a placeholder,
    * and the whole export is encrypted (OpenPGP) with the provided passphrase.
    *
+   * With `anonymize`, the fields written by humans (names, descriptions, tags, emails…) are replaced too, objects are
+   * then only identified by their UUIDs. Unlike secrets, these values are not searched in the other fields: a name
+   * copied in an error message is exported as is.
+   *
    * The result is gzipped NDJSON once decrypted, the last line is a manifest: an export without it is incomplete,
    * for instance because a secret has been found in an exported value.
    */
