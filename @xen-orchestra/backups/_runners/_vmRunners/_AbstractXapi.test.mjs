@@ -711,3 +711,66 @@ describe('_fetchJobSnapshots() diskless VM snapshot detection', () => {
     assert.deepEqual(trackedSnapshotRefs(runner), [], 'an unknown VBD may be a disk')
   })
 })
+
+describe('_removeUnusedSnapshots() applies one retention across VDI-reached and diskless snapshots', () => {
+  // A VM that switched between "no backed up disk" and "at least one disk"
+  // has snapshots of both kinds: the retention must apply to their union, not
+  // keep `snapshotRetention` snapshots of each kind.
+  const OLD_DATETIME = '20240101T00:00:00Z'
+  const NEW_DATETIME = '20240102T00:00:00Z'
+
+  const makeSwitchedRunner = ({ oldIsDiskless }) => {
+    const destroyed = []
+
+    const disklessSnapshot = datetime => ({
+      $ref: 'vm-diskless',
+      other_config: { [DATETIME]: datetime, [SCHEDULE_ID]: 'schedule-1' },
+    })
+    const snapshotVm = { $ref: 'vm-with-disk', is_control_domain: false, $snapshot_of: 'live-vm-ref', other_config: {} }
+    const vdiSnapshot = datetime => ({
+      $ref: 'vdi-with-disk',
+      other_config: { [DATETIME]: datetime, [SCHEDULE_ID]: 'schedule-1' },
+      $VBDs: [{ $VM: snapshotVm }],
+    })
+
+    const vm = disklessSnapshot(oldIsDiskless ? OLD_DATETIME : NEW_DATETIME)
+    const vdi = vdiSnapshot(oldIsDiskless ? NEW_DATETIME : OLD_DATETIME)
+    const registry = { [vm.$ref]: vm, [vdi.$ref]: vdi }
+
+    const runner = makeRunner({
+      _vm: { uuid: 'live-uuid', $snapshots: [] },
+      _baseSettings: { snapshotRetention: 1 },
+      _jobSnapshotVdis: [vdi],
+      _disklessJobSnapshotVms: [vm],
+      job: { mode: 'full', settings: {} },
+      _xapi: {
+        barrier: async () => {},
+        getObject: ref => registry[ref],
+        VM_destroy: async ref => {
+          destroyed.push(ref)
+        },
+        VDI_destroy: async ref => {
+          destroyed.push(ref)
+        },
+      },
+    })
+
+    return { runner, destroyed }
+  }
+
+  it('removes the older diskless snapshot once a disk was added', async () => {
+    const { runner, destroyed } = makeSwitchedRunner({ oldIsDiskless: true })
+
+    await runner._removeUnusedSnapshots()
+
+    assert.deepEqual(destroyed, ['vm-diskless'], 'only the older, diskless, snapshot should be removed')
+  })
+
+  it('removes the older snapshot with a disk once the VM became diskless', async () => {
+    const { runner, destroyed } = makeSwitchedRunner({ oldIsDiskless: false })
+
+    await runner._removeUnusedSnapshots()
+
+    assert.deepEqual(destroyed, ['vm-with-disk'], 'only the older snapshot, reached through its VDI, should be removed')
+  })
+})

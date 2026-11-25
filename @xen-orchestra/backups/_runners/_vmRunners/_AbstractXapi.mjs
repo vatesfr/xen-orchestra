@@ -451,7 +451,13 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
       .pop()
 
     // remove older snapshot schedule per schedule
-    const snapshotsPerSchedule = groupBy(this._jobSnapshotVdis, _ => _.other_config[SCHEDULE_ID])
+    // a VM snapshot without any disk is not reachable via its VDIs: both kinds
+    // share the same retention, so they are grouped by datetime together
+    const jobSnapshots = [
+      ...this._jobSnapshotVdis.map(vdi => ({ other_config: vdi.other_config, vdi })),
+      ...disklessVmSnapshots.map(vm => ({ other_config: vm.other_config, vm })),
+    ]
+    const snapshotsPerSchedule = groupBy(jobSnapshots, _ => _.other_config[SCHEDULE_ID])
     await asyncMap(Object.entries(snapshotsPerSchedule), async ([scheduleId, snapshots]) => {
       const snapshotPerDatetime = groupBy(snapshots, _ => _.other_config[DATETIME])
 
@@ -474,7 +480,18 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
         ) {
           return
         }
-        const vdis = snapshotPerDatetime[datetime]
+        const entries = snapshotPerDatetime[datetime]
+        await asyncEach(
+          // VM snapshots without any disk: nothing to resolve, destroy them directly
+          entries.filter(({ vm }) => vm !== undefined),
+          async ({ vm: { $ref } }) => {
+            this._forgetExportedVm($ref)
+            await xapi.VM_destroy($ref)
+          }
+        )
+        // snapshots reached through their VDIs: resolve the VM snapshot via the
+        // VBDs, or destroy the VDIs alone when no VM is attached (CBT, orphans)
+        const vdis = entries.filter(({ vdi }) => vdi !== undefined).map(({ vdi }) => vdi)
         let vm
         // if there is an attached VM => destroy the VM (Non CBT backups)
         for (const vdi of vdis) {
@@ -527,34 +544,6 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
         }
       })
     })
-
-    // Retention for VMs with no disks: VM snapshots are not reachable via VDIs
-    if (disklessVmSnapshots.length > 0) {
-      const snapshotsPerSchedule = groupBy(disklessVmSnapshots, _ => _.other_config[SCHEDULE_ID])
-      await asyncEach(Object.entries(snapshotsPerSchedule), async ([scheduleId, snapshots]) => {
-        // we only have one snapshot per date time since it's at the VM level
-        const snapshotPerDatetime = Object.fromEntries(snapshots.map(s => [s.other_config[DATETIME], s.$ref]))
-        const datetimes = Object.keys(snapshotPerDatetime).sort()
-        const settings = {
-          ...baseSettings,
-          ...allSettings[scheduleId],
-          ...allSettings[this._vm.uuid],
-        }
-        const retention = settings.snapshotRetention ?? 0
-        await asyncEach(getOldEntries(retention, datetimes), async datetime => {
-          if (
-            this.job.mode === 'delta' &&
-            lastExportedSnapshotDateTime !== undefined &&
-            datetime === lastExportedSnapshotDateTime
-          ) {
-            return
-          }
-
-          this._forgetExportedVm(snapshotPerDatetime[datetime])
-          await xapi.VM_destroy(snapshotPerDatetime[datetime])
-        })
-      })
-    }
 
     // list and remove the snapshot were the jobs failed between
     // makesnapshot and update_other_config
