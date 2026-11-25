@@ -248,7 +248,7 @@ always an `AbortError`, and it changes the task log above as follows:
 
 ```
 job.start(data: { mode: Mode, reportWhen: ReportWhen })
-├─ task.info(message: 'abort requested by <email>', data: { userId: string })   // when requested by a user
+├─ task.info(message: 'abort requested', data: { type: 'abortRequested', userId: string }) // when requested by a user
 ├─ task.abortionRequested(reason: AbortError)
 ├─ task.start(data: { type: 'VM', id: string, name_label?: string })            // VM being backed up
 │  ├─ task.abortionRequested(reason: AbortError)
@@ -263,14 +263,15 @@ job.start(data: { mode: Mode, reportWhen: ReportWhen })
 └─ job.end(status: 'failure', result: AbortError)
 ```
 
-- A step started as a subtask once the run is aborted fails right away, without running.
+- A step started as a subtask once the run is aborted fails right away, without running (the root task of the run
+  is created with `skipSubtasksAfterAbort: true` in `@vates/task`).
 - The cleanup still runs: snapshot retention, removal of the snapshot data, restore of the VM's blocked operations,
   and the writers' `afterBackup()`. `clean-vm` (and the merge it runs) is a cleanup subtask (`cleanup: true` in
   `@vates/task`), which the abort does not stop.
 - The metadata of an incremental backup is not written, so the aborted backup is never listed as restorable; its disks
   are removed by `clean-vm`.
-- In the backup logs and reports, a task that failed with an `AbortError` has the status `interrupted`, and does not
-  make its parent `failure`.
+- In the backup logs and reports, a task that failed after an abort was requested on it (`abortionRequested`) has the
+  status `interrupted`, and does not make its parent `failure`.
 
 ### During restoration
 
