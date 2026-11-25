@@ -34,7 +34,7 @@ function createController(result: () => Promise<unknown>) {
 
 for (const [method, xoAppMethod, xoAppResult, expected] of [
   ['getProxyHealth', 'checkProxyHealth', undefined, { success: true }],
-  ['getProxyUpdaterState', 'getProxyApplianceUpdaterState', updaterState, updaterState],
+  ['getProxyApplianceUpdaterState', 'getProxyApplianceUpdaterState', updaterState, updaterState],
 ] as const) {
   describe(`ProxyController.${method}`, () => {
     it(`forwards the id to ${xoAppMethod} and returns the result`, async () => {

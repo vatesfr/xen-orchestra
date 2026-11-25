@@ -289,6 +289,10 @@ export default class Proxy {
       // ensure the updater is using the expected channel otherwise the state will not be correct
       await this.callProxyMethod(id, 'appliance.updater.configure', { channel: await this._getChannel() })
     } catch (error) {
+      // getState would fail the same way, after waiting for another timeout
+      if (error.code === PROXY_UNREACHABLE) {
+        throw error
+      }
       log.warn('failed to set proxy updater channel', { error })
     }
 

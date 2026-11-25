@@ -28,7 +28,7 @@ export const proxy = {
 
 export const proxyHealth = { success: true }
 
-export const proxyUpdaterState = {
+export const proxyApplianceUpdaterState = {
   level: 'info',
   message: 'All up to date',
   state: 'xoa-up-to-date',

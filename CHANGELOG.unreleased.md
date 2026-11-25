@@ -38,7 +38,9 @@
 <!--packages-start-->
 
 - @vates/nbd-client patch
+- @vates/types minor
 - @xen-orchestra/backups patch
+- @xen-orchestra/rest-api minor
 - @xen-orchestra/web patch
 - @xen-orchestra/web-core patch
 - xo-collection patch

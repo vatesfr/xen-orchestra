@@ -33,7 +33,7 @@ import {
   proxy,
   proxyHealth,
   proxyIds,
-  proxyUpdaterState,
+  proxyApplianceUpdaterState,
 } from '../open-api/oa-examples/proxy.oa-example.mjs'
 import type { SendObjects } from '../helpers/helper.type.mjs'
 import { XoController } from '../abstract-classes/xo-controller.mjs'
@@ -156,12 +156,15 @@ export class ProxyController extends XoController<XoProxy> {
   /**
    * Returns the state of the proxy appliance updater (e.g. `xoa-up-to-date`, or a state ending with `-upgrade-needed`)
    *
+   * Before reading the state, sets the updater channel to the one expected by Xen Orchestra.
+   * A successful result is cached for 60 seconds per proxy, errors are not cached.
+   *
    * Required privilege:
    * - resource: proxy, action: read
    *
    * @example id "e625ea0c-a876-405a-b838-109d762efe88"
    */
-  @Example(proxyUpdaterState)
+  @Example(proxyApplianceUpdaterState)
   @Extension('x-mcp-exposure', 'allow')
   @Get('{id}/appliance_updater_state')
   @Middlewares(
@@ -177,7 +180,7 @@ export class ProxyController extends XoController<XoProxy> {
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
   @Response(proxyUnreachableResp.status, proxyUnreachableResp.description)
-  getProxyUpdaterState(@Path() id: string): ReturnType<XoApp['getProxyApplianceUpdaterState']> {
+  getProxyApplianceUpdaterState(@Path() id: string): ReturnType<XoApp['getProxyApplianceUpdaterState']> {
     return callProxy(this.restApi.xoApp.getProxyApplianceUpdaterState(id as XoProxy['id']))
   }
 }
