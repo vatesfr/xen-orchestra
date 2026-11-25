@@ -1,8 +1,16 @@
-import type { XenApiHost, XenApiNetwork, XenApiSr, XenApiVdi, XenApiVm } from '@/libs/xen-api/xen-api.types.ts'
+import type {
+  XenApiHost,
+  XenApiNetwork,
+  XenApiSr,
+  XenApiVbd,
+  XenApiVdi,
+  XenApiVm,
+} from '@/libs/xen-api/xen-api.types.ts'
 import { type OPAQUE_REF_NULL, type VDI_TYPE } from '@vates/types/common'
 
 export interface Vdi {
   id?: XenApiVdi['$ref'] | undefined
+  userdevice?: XenApiVbd['userdevice']
   name_label: string
   name_description: string
   size: number
