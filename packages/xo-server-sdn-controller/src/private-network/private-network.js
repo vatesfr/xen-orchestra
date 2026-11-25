@@ -87,9 +87,10 @@ export class PrivateNetwork {
       host: this.center.name_label,
     })
 
-    let bridgeName
+    let hostResult
+    let centerResult
     try {
-      ;[bridgeName] = await Promise.all([
+      ;[hostResult, centerResult] = await Promise.all([
         hostClient.addInterfaceAndPort(network, centerPif.IP, encapsulation, vni, password, this.uuid),
         centerClient.addInterfaceAndPort(centerNetwork, hostPif.IP, encapsulation, vni, password, this.uuid),
       ])
@@ -103,14 +104,22 @@ export class PrivateNetwork {
       })
       return
     }
-    log.info('Host added', {
-      privateNetwork: this.uuid,
-      network: network.name_label,
-      host: host.name_label,
-      pool: host.$pool.name_label,
-    })
+    if (hostResult === undefined) {
+      return
+    }
 
-    return bridgeName
+    // The reconcile re-runs on every host metrics event: log only when the
+    // host or the center side has actually been (re)wired
+    if (hostResult.added || centerResult?.added) {
+      log.info('Host added', {
+        privateNetwork: this.uuid,
+        network: network.name_label,
+        host: host.name_label,
+        pool: host.$pool.name_label,
+      })
+    }
+
+    return hostResult.name
   }
 
   addNetwork(network) {

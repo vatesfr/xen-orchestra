@@ -100,7 +100,8 @@ export class OvsdbClient {
       if (password === undefined) {
         socket.destroy()
         this._adding = this._adding.filter(elem => elem.id !== network.uuid || elem.addr !== remoteAddress)
-        return bridge.name
+        // The port already exists: nothing has been added
+        return { name: bridge.name, added: false }
       }
 
       // Remove port and interface to recreate it with new password
@@ -199,7 +200,7 @@ export class OvsdbClient {
       host: this.host.name_label,
     })
     socket.destroy()
-    return bridge.name
+    return { name: bridge.name, added: true }
   }
 
   async resetForNetwork(network, privateNetworkUuid) {
@@ -354,9 +355,16 @@ export class OvsdbClient {
       const where = [['target', '==', TARGET]]
       const selectResult = await this._select('Controller', ['_uuid'], where, socket)
 
+      // The Controller row is created by setBridgeController(), which may not have
+      // run yet on a host that just joined the pool: don't crash, it will be set
+      // later (next PIF event or the join flow).
+      if (selectResult === undefined) {
+        socket.destroy()
+        return
+      }
+
       this._controllerUuid = selectResult._uuid[1]
     }
-    assert.notStrictEqual(this._controllerUuid, undefined)
 
     const bridge = await this._getBridgeForNetwork(network, socket)
     if (bridge.uuid === undefined) {

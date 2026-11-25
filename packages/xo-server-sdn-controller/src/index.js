@@ -1254,6 +1254,20 @@ class SDNController extends EventEmitter {
           return
         }
 
+        // The tunnel legs of a removed host on the remaining hosts (in
+        // particular on the star center) are not cleaned up by XAPI: re-run
+        // the network registration of its pool, as on plugin load, to remove
+        // them and rewire the remaining hosts
+        const poolUuid = object?.$type === 'host' ? object.$pool.uuid : undefined
+        if (poolUuid !== undefined) {
+          await Promise.all(
+            map(
+              filter(this.privateNetworks, privateNetwork => privateNetwork.networks[poolUuid] !== undefined),
+              privateNetwork => privateNetwork.addNetwork(privateNetwork.networks[poolUuid])
+            )
+          )
+        }
+
         // If a network is removed, clean this.privateNetworks from it
         const networkRef = this._networks.get(id)
         if (networkRef !== undefined) {
@@ -1330,6 +1344,10 @@ class SDNController extends EventEmitter {
     }
 
     this._newHosts.splice(i, 1)
+
+    // The OVSDB client can not have been created when the host was added, as it
+    // was not enabled yet: create it now that the host is up.
+    this._getOrCreateOvsdbClient(host)
 
     log.debug('Sync pool certificates', {
       newHost: host.name_label,
@@ -1556,7 +1574,7 @@ class SDNController extends EventEmitter {
   async _addHostToPrivateNetworks(host) {
     const xapi = host.$xapi
 
-    const tunnels = Object.values(xapi.objects.indexes.type.SDN_tunnel ?? {})
+    const tunnels = Object.values(xapi.objects.indexes.type.tunnel ?? {})
     for (const tunnel of tunnels) {
       const accessPif = xapi.getObjectByRef(tunnel.access_PIF)
       if (accessPif.host !== host.$ref) {

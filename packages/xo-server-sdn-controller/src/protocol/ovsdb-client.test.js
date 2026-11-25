@@ -74,3 +74,25 @@ describe('a bridge XO already controls', () => {
     assert.equal(transactions[0].length, 2)
   })
 })
+
+describe('a network bridge on a host without a controller yet', () => {
+  // a client on a host that just joined the pool: the Controller row is not
+  // created yet (setBridgeController has not run), so the select finds nothing
+  function makeClient() {
+    const client = new OvsdbClient({ name_label: 'host', $PIFs: [{ $network: { uuid: 'net', name_label: 'net' } }] })
+    const transactions = []
+    client._connect = async () => ({ destroy() {} })
+    client._select = async () => undefined
+    client._sendOvsdbTransaction = async params => {
+      transactions.push(params)
+      return [{ error: null, result: [{ uuid: ['uuid', 'controller'] }] }]
+    }
+    return { client, transactions }
+  }
+
+  it('does not throw and sends no transaction when the Controller row is missing', async () => {
+    const { client, transactions } = makeClient()
+    await client.setBridgeControllerForNetwork({ uuid: 'net', name_label: 'net' })
+    assert.deepEqual(transactions, [])
+  })
+})
