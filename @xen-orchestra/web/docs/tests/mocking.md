@@ -72,6 +72,8 @@ The same goes for `mock-xo-v2v-vm-rows-collections.ts`, the VM, task and VM snap
 
 `mock-xo-proxy-collection.ts` stands for the proxy collection: `proxyCollectionMock.proxies` holds the proxies (`createProxy`), which its `getProxyById` / `useGetProxyById` answer from.
 
+`mock-backup-job-form-collections.ts` stands for every collection the backup job form reads: `mockBackupJobFormCollections()` points the pool, host, PBD and SR collections to `mock-xo-collections.ts`, the VM, VBD, VDI and proxy collections to their own shared mocks, and mocks the backup repository and VM backup archive collections. `backupJobFormCollectionsMock` holds `backupRepositories` and `areBackupRepositoriesReady` (true after a reset; set it to false to hold the backup repositories as still loading), and its `reset()`, in `beforeEach`, resets all of them.
+
 `mock-route-query.ts` stands for `useRouteQuery`: every call answers the one ref `routeQueryMock.query` (`''` after a reset), whatever the query name; a test sets it before mounting and reads it after.
 
 `mock-backup-repository-benchmark-job.ts` stands for the backup repository benchmark job, which subscribes to server events: `benchmarkJobMock` is a `createJobStub(useXoBackupRepositoryBenchmarkJob)` (`create-job-result.ts`), so importing it is enough, without `mockModule`: `benchmarkJobMock.use` is the spy to read the repositories it was given, `benchmarkJobMock.run` the one the caller runs, `benchmarkJobMock.setState({ canRun, isRunning, errorMessage })` sets its state, and `benchmarkJobMock.reset()` goes in `beforeEach`.

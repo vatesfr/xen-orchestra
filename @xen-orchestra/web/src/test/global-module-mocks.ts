@@ -6,10 +6,12 @@ import { resetModuleSpies } from '@/test/spy-on-module.ts'
 const { spyOnOriginal } = await vi.hoisted(() => import('@/test/spy-on-module.ts'))
 
 vi.mock(import('@/modules/backup-job/composables/use-backup-job-delete.composable.ts'), spyOnOriginal)
+vi.mock(import('@/modules/backup-job/composables/use-edit-backup-job.composable.ts'), spyOnOriginal)
 vi.mock(import('@/modules/backup-job/jobs/xo-backup-job-change-state.job.ts'), spyOnOriginal)
 vi.mock(import('@/modules/backup-job/jobs/xo-backup-job-create.job.ts'), spyOnOriginal)
 vi.mock(import('@/modules/backup-job/jobs/xo-backup-job-delete.job.ts'), spyOnOriginal)
 vi.mock(import('@/modules/backup-job/jobs/xo-backup-job-duplicate.job.ts'), spyOnOriginal)
+vi.mock(import('@/modules/backup-job/jobs/xo-backup-job-edit.job.ts'), spyOnOriginal)
 vi.mock(import('@/modules/backup-job/jobs/xo-backup-job-run.job.ts'), spyOnOriginal)
 vi.mock(import('@/modules/backup-job/remote-resources/use-xo-backup-job-collection.ts'), spyOnOriginal)
 vi.mock(import('@/modules/backup-log/composables/use-xo-backup-log-task-name.composable.ts'), spyOnOriginal)

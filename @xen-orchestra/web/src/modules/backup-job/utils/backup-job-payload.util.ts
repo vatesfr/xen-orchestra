@@ -15,8 +15,9 @@ import {
 } from '@/modules/backup-job/utils/backup-job-expression-context.util.ts'
 import {
   LONG_TERM_RETENTION_FIELDS,
-  type LongTermRetentionPeriod,
+  toLongTermRetentionKeepSettings,
 } from '@/modules/backup-job/utils/backup-job-long-term-retention.util.ts'
+import { mapValues } from 'lodash-es'
 
 const SCHEDULE_KEY = 'schedule'
 
@@ -143,15 +144,6 @@ function getSynchronizedSnapshot(transfer: BackupJobTransferFormData): boolean |
   return transfer.snapshotSync === 'smart' ? transfer.snapshotSyncTag : true
 }
 
-export const DAYS_BEFORE_MONTH = [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334]
-
-const LONG_TERM_RETENTION_KEEP_SETTINGS: Record<LongTermRetentionPeriod, (keep: number) => BackupJobSettings> = {
-  daily: hour => ({ firstHourOfTheDay: hour }),
-  weekly: weekDay => ({ firstDayOfWeek: weekDay }),
-  monthly: monthDay => ({ firstDayOfMonth: monthDay - 1 }),
-  yearly: month => ({ firstDayOfYear: DAYS_BEFORE_MONTH[month] }),
-}
-
 function getRetentionSettings(backupRepository: BackupJobTargetBackupRepositoryFormData): BackupJobSettings {
   const longTermRetention = Object.fromEntries(
     LONG_TERM_RETENTION_FIELDS.map(
@@ -160,7 +152,7 @@ function getRetentionSettings(backupRepository: BackupJobTargetBackupRepositoryF
       .filter(([, retention]) => retention !== undefined && retention > 0)
       .map(([period, retention, keep]) => [
         period,
-        { retention, settings: keep === undefined ? {} : LONG_TERM_RETENTION_KEEP_SETTINGS[period](keep) },
+        { retention, settings: toLongTermRetentionKeepSettings(period, keep) },
       ])
   )
 
@@ -224,10 +216,11 @@ function getBackupRepositoryPattern(
 
 function getSchedules(
   source: BackupJobSourceFormData,
-  planning: BackupJobPlanningFormData
+  planning: BackupJobPlanningFormData,
+  scheduleKey: string
 ): Record<string, BackupJobSchedule> {
   return {
-    [SCHEDULE_KEY]: {
+    [scheduleKey]: {
       cron: planning.cron,
       timezone: planning.timezone,
       enabled: source.enabled,
@@ -251,7 +244,10 @@ function getMirrorVmFilter(source: BackupJobSourceFormData): string | undefined 
   return toContextExpression(VM_EXPRESSION_KEY, source.vmFilter)
 }
 
-function toVmBackupJobPayload({ source, transfer, target, planning }: BackupJobFormDataSet): VmBackupJobPayload {
+function toVmBackupJobPayload(
+  { source, transfer, target, planning }: BackupJobFormDataSet,
+  scheduleKey: string
+): VmBackupJobPayload {
   const isIncremental = source.mode === 'delta'
   const hasBackupRepository = target.storageTargets.includes('backup-repository')
   const hasStorageRepository = target.storageTargets.includes('storage-repository')
@@ -274,7 +270,7 @@ function toVmBackupJobPayload({ source, transfer, target, planning }: BackupJobF
           ALL_EXPRESSION
         )
       : undefined,
-    schedules: getSchedules(source, planning),
+    schedules: getSchedules(source, planning, scheduleKey),
     settings: {
       '': {
         ...getTransferSettings(transfer),
@@ -293,7 +289,7 @@ function toVmBackupJobPayload({ source, transfer, target, planning }: BackupJobF
         ...getReportSettings(planning),
         ...healthCheck.global,
       },
-      [SCHEDULE_KEY]: {
+      [scheduleKey]: {
         exportRetention: hasBackupRepository ? target.backupRepository.exportRetention : undefined,
         copyRetention: hasStorageRepository ? target.storageRepository.copyRetention : undefined,
         snapshotRetention,
@@ -304,12 +300,10 @@ function toVmBackupJobPayload({ source, transfer, target, planning }: BackupJobF
   }
 }
 
-function toMirrorBackupJobPayload({
-  source,
-  transfer,
-  target,
-  planning,
-}: BackupJobFormDataSet): MirrorBackupJobPayload {
+function toMirrorBackupJobPayload(
+  { source, transfer, target, planning }: BackupJobFormDataSet,
+  scheduleKey: string
+): MirrorBackupJobPayload {
   const healthCheck = getHealthCheck(target.healthCheck)
 
   return {
@@ -320,7 +314,7 @@ function toMirrorBackupJobPayload({
     sourceRemote: source.sourceBackupRepository,
     filter: getMirrorFilter(source),
     remotes: getBackupRepositoryPattern(target.backupRepository, ALL_EXPRESSION),
-    schedules: getSchedules(source, planning),
+    schedules: getSchedules(source, planning, scheduleKey),
     settings: {
       '': {
         ...getTransferSettings(transfer),
@@ -330,7 +324,7 @@ function toMirrorBackupJobPayload({
         ...getReportSettings(planning),
         ...healthCheck.global,
       },
-      [SCHEDULE_KEY]: {
+      [scheduleKey]: {
         exportRetention: target.backupRepository.exportRetention,
         vmFilter: getMirrorVmFilter(source),
         ...healthCheck.schedule,
@@ -339,7 +333,10 @@ function toMirrorBackupJobPayload({
   }
 }
 
-function toMetadataBackupJobPayload({ source, target, planning }: BackupJobFormDataSet): MetadataBackupJobPayload {
+function toMetadataBackupJobPayload(
+  { source, target, planning }: BackupJobFormDataSet,
+  scheduleKey: string
+): MetadataBackupJobPayload {
   return {
     type: 'metadataBackup',
     name: source.name,
@@ -354,10 +351,10 @@ function toMetadataBackupJobPayload({ source, target, planning }: BackupJobFormD
         )
       : undefined,
     remotes: getBackupRepositoryPattern(target.backupRepository, ALL_EXPRESSION),
-    schedules: getSchedules(source, planning),
+    schedules: getSchedules(source, planning, scheduleKey),
     settings: {
       '': getReportSettings(planning),
-      [SCHEDULE_KEY]: {
+      [scheduleKey]: {
         retentionXoMetadata: source.saveXoConfig ? target.backupRepository.exportRetention : undefined,
         retentionPoolMetadata: source.savePoolsMetadata ? target.backupRepository.exportRetention : undefined,
       },
@@ -365,13 +362,26 @@ function toMetadataBackupJobPayload({ source, target, planning }: BackupJobFormD
   }
 }
 
-export function toBackupJobPayload(formDataSet: BackupJobFormDataSet): BackupJobPayload {
+export function mergeBackupJobSettings(
+  currentSettings: Record<string, BackupJobSettings | undefined>,
+  settings: Record<string, BackupJobSettings>
+): Record<string, BackupJobSettings | undefined> {
+  return {
+    ...currentSettings,
+    ...mapValues(settings, (value, key) => ({ ...currentSettings[key], ...value })),
+  }
+}
+
+export function toBackupJobPayload(
+  formDataSet: BackupJobFormDataSet,
+  scheduleKey: string = SCHEDULE_KEY
+): BackupJobPayload {
   switch (formDataSet.source.dataSource) {
     case 'mirror':
-      return toMirrorBackupJobPayload(formDataSet)
+      return toMirrorBackupJobPayload(formDataSet, scheduleKey)
     case 'metadata':
-      return toMetadataBackupJobPayload(formDataSet)
+      return toMetadataBackupJobPayload(formDataSet, scheduleKey)
     default:
-      return toVmBackupJobPayload(formDataSet)
+      return toVmBackupJobPayload(formDataSet, scheduleKey)
   }
 }

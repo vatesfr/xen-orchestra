@@ -1,10 +1,11 @@
-import {
-  createPlanningFormData,
-  createSourceFormData,
-  createTargetFormData,
-  createTransferFormData,
-} from '@/modules/backup-job/form/new/use-new-backup-job-form.ts'
 import type { BackupJobTargetHealthCheckFormData } from '@/modules/backup-job/form/target/use-backup-job-target-health-check-form.ts'
+import {
+  createBackupJobFormDataSet,
+  createPlanningFormData,
+  createTargetBackupRepositoryFormData,
+  createTargetHealthCheckFormData,
+  createTransferFormData,
+} from '@/modules/backup-job/form/use-backup-job-form-base.ts'
 import type { BackupJobStorageTarget } from '@/modules/backup-job/form/use-backup-job-target-form.ts'
 import type { BackupJobTransferFormData } from '@/modules/backup-job/form/use-backup-job-transfer-form.ts'
 import type {
@@ -23,10 +24,11 @@ import {
   VM_EXPRESSION_KEY,
 } from '@/modules/backup-job/utils/backup-job-expression-context.util.ts'
 import {
+  DAYS_BEFORE_MONTH,
   LONG_TERM_RETENTION_FIELDS,
   type LongTermRetentionPeriod,
 } from '@/modules/backup-job/utils/backup-job-long-term-retention.util.ts'
-import { type BackupJobFormDataSet, DAYS_BEFORE_MONTH } from '@/modules/backup-job/utils/backup-job-payload.util.ts'
+import type { BackupJobFormDataSet } from '@/modules/backup-job/utils/backup-job-payload.util.ts'
 import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
 import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import type { FrontXoSchedule } from '@/modules/schedule/remote-resources/use-xo-schedule-collection.ts'
@@ -126,12 +128,7 @@ function getRunSelection(node: Node | undefined): RunSelection {
 
 function collectTags(node: Node, tags: string[]): string[] {
   if (node instanceof RegExpNode) {
-    tags.push(
-      node.re.source
-        .replace(/^\^/, '')
-        .replace(/\$$/, '')
-        .replace(/\\(.)/g, '$1')
-    )
+    tags.push(node.re.source.replace(/^\^/, '').replace(/\$$/, '').replace(/\\(.)/g, '$1'))
 
     return tags
   }
@@ -168,7 +165,7 @@ function getHealthCheckTimeout(timeout: unknown): number | undefined {
 }
 
 function getHealthCheck(general: Settings, schedule: Settings): BackupJobTargetHealthCheckFormData {
-  const healthCheck = createTargetFormData().healthCheck
+  const healthCheck = createTargetHealthCheckFormData()
   const vmsWithTags = schedule.healthCheckVmsWithTags
 
   if (vmsWithTags === undefined) {
@@ -220,7 +217,7 @@ function getBackupRepositoryTarget(
   general: Settings,
   schedule: Settings
 ): BackupJobFormDataSet['target']['backupRepository'] {
-  const backupRepository = createTargetFormData().backupRepository
+  const backupRepository = createTargetBackupRepositoryFormData()
   const scope = toScope<FrontXoBackupRepository['id']>(backupJob.remotes, BACKUP_REPOSITORY_EXPRESSION_KEY)
   const longTermRetention = (general.longTermRetention ?? {}) as Record<
     string,
@@ -404,12 +401,10 @@ export function getBackupJobFormInitialData(
   const general: Settings = backupJob.settings[''] ?? {}
   const scheduleSettings: Settings = backupJob.settings[schedule.id] ?? {}
 
-  const formDataSet: BackupJobFormDataSet = {
-    source: { ...createSourceFormData(), name: backupJob.name ?? '', enabled: schedule.enabled },
-    transfer: createTransferFormData(),
-    target: createTargetFormData(),
-    planning: getPlanning(general, schedule),
-  }
+  const formDataSet = createBackupJobFormDataSet()
+
+  Object.assign(formDataSet.source, { name: backupJob.name ?? '', enabled: schedule.enabled })
+  formDataSet.planning = getPlanning(general, schedule)
 
   switch (backupJob.type) {
     case 'mirrorBackup':

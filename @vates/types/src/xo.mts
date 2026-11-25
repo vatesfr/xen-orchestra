@@ -694,6 +694,7 @@ export type XoMirrorBackupJob = BaseXoJob & {
   type: 'mirrorBackup'
   mode: 'full' | 'delta'
   sourceRemote: XoBackupRepository['id']
+  filter?: { vm: { uuid: { __or: XoVm['id'][] } } }
   remotes: CMType.IdOr<XoBackupRepository['id']>
   proxy?: XoProxy['id']
   filter?: { vm: { uuid: { __or: XoVm['id'][] } } } | null

@@ -1,152 +1,31 @@
-import type { BackupJobTargetBackupRepositoryFormData } from '@/modules/backup-job/form/target/use-backup-job-target-backup-repository-form.ts'
-import type { BackupJobTargetHealthCheckFormData } from '@/modules/backup-job/form/target/use-backup-job-target-health-check-form.ts'
-import type { BackupJobTargetStorageRepositoryFormData } from '@/modules/backup-job/form/target/use-backup-job-target-storage-repository-form.ts'
 import {
-  type BackupJobPlanningFormData,
-  useBackupJobPlanningForm,
-} from '@/modules/backup-job/form/use-backup-job-planning-form.ts'
-import {
-  type BackupJobSourceFormData,
-  useBackupJobSourceForm,
-} from '@/modules/backup-job/form/use-backup-job-source-form.ts'
-import {
-  type BackupJobTargetFormData,
-  useBackupJobTargetForm,
-} from '@/modules/backup-job/form/use-backup-job-target-form.ts'
-import {
-  type BackupJobTransferFormData,
-  useBackupJobTransferForm,
-} from '@/modules/backup-job/form/use-backup-job-transfer-form.ts'
-import { type BackupJobPayload, toBackupJobPayload } from '@/modules/backup-job/utils/backup-job-payload.util.ts'
-import { DEFAULT_CRON } from '@/modules/schedule/utils/cron.util.ts'
+  createBackupJobFormDataSet,
+  createPlanningFormData,
+  createSourceFormData,
+  createTargetBackupRepositoryFormData,
+  createTargetHealthCheckFormData,
+  createTargetStorageRepositoryFormData,
+  createTransferFormData,
+  useBackupJobFormBase,
+} from '@/modules/backup-job/form/use-backup-job-form-base.ts'
+import type { BackupJobFormStep } from '@/modules/backup-job/types/backup-job-form.type.ts'
 import type { StepDefinition } from '@core/components/ui/stepper/UiStepper.vue'
-import { computed, reactive, ref, watch } from 'vue'
-import { useI18n } from 'vue-i18n'
-
-const STEPS = ['source', 'transfer', 'target', 'planning', 'review'] as const
-type Step = (typeof STEPS)[number]
-
-const METADATA_STEPS: Step[] = ['source', 'target', 'planning', 'review']
-
-export function createSourceFormData(): BackupJobSourceFormData {
-  return {
-    name: '',
-    enabled: true,
-    dataSource: 'vm',
-    mode: 'delta',
-    saveXoConfig: false,
-    savePoolsMetadata: true,
-    proxy: undefined,
-    sourceBackupRepository: undefined,
-    scopeType: 'all',
-    vmIds: [],
-    vmFilter: '',
-    poolIds: [],
-    poolFilter: '',
-  }
-}
-
-export function createTransferFormData(): BackupJobTransferFormData {
-  return {
-    maxExportRate: undefined,
-    concurrency: 2,
-    compression: '',
-    keyBackup: 'never',
-    keyBackupMonthDays: [],
-    keyBackupWeekDays: [],
-    keyBackupHours: [],
-    preferNbd: true,
-    nbdConcurrency: 1,
-    offlineBackup: false,
-    snapshotMode: 'default',
-    snapshotSync: 'none',
-    snapshotSyncTag: undefined,
-    snapshotRetention: 1,
-  }
-}
-
-function createTargetBackupRepositoryFormData(): BackupJobTargetBackupRepositoryFormData {
-  return {
-    targetProxy: undefined,
-    backupRepositoryScopeType: 'all',
-    backupRepositoryIds: [],
-    backupRepositoryFilter: '',
-    backupDistribution: 'every',
-    exportRetention: undefined,
-    ltrDailyRetention: 0,
-    ltrDailyKeep: undefined,
-    ltrWeeklyRetention: 0,
-    ltrWeeklyKeep: undefined,
-    ltrMonthlyRetention: 0,
-    ltrMonthlyKeep: undefined,
-    ltrYearlyRetention: 0,
-    ltrYearlyKeep: undefined,
-    strictGfs: false,
-    mergeBackupsSynchronously: false,
-  }
-}
-
-function createTargetStorageRepositoryFormData(): BackupJobTargetStorageRepositoryFormData {
-  return {
-    storageRepositoryScopeType: 'all',
-    storageRepositoryIds: [],
-    storageRepositoryFilter: '',
-    replicaDistribution: 'every',
-    copyRetention: undefined,
-  }
-}
-
-function createTargetHealthCheckFormData(): BackupJobTargetHealthCheckFormData {
-  return {
-    healthCheckEnabled: false,
-    healthCheckSr: undefined,
-    healthCheckVmTags: [],
-    healthCheckTimeout: 10,
-    healthCheckSchedule: 'always',
-    healthCheckMonthDays: [],
-    healthCheckWeekDays: [],
-    healthCheckHours: [],
-  }
-}
-
-export function createTargetFormData(): BackupJobTargetFormData {
-  return {
-    storageTargets: [],
-    backupRepository: createTargetBackupRepositoryFormData(),
-    storageRepository: createTargetStorageRepositoryFormData(),
-    healthCheck: createTargetHealthCheckFormData(),
-  }
-}
-
-export function createPlanningFormData(): BackupJobPlanningFormData {
-  return {
-    cron: DEFAULT_CRON,
-    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-    timeout: undefined,
-    nRetriesVmBackupFailures: undefined,
-    reportWhen: 'failure',
-    reportRecipients: [],
-    hideSuccessfulItems: false,
-  }
-}
+import { computed, ref, watch } from 'vue'
 
 export function useNewBackupJobForm() {
-  const { t } = useI18n()
-
-  const source = useBackupJobSourceForm(reactive(createSourceFormData()))
-
-  const { isIncremental, isMirror, isMetadata } = source
-
-  const transfer = useBackupJobTransferForm(reactive(createTransferFormData()), isIncremental, isMirror)
-
-  const target = useBackupJobTargetForm(
-    reactive(createTargetFormData()),
-    () => source.formData.dataSource,
-    () => source.formData.sourceBackupRepository,
-    () => source.formData.proxy
-  )
-
-  const planning = useBackupJobPlanningForm(reactive(createPlanningFormData()))
+  const {
+    source,
+    transfer,
+    target,
+    planning,
+    isIncremental,
+    isMirror,
+    isMetadata,
+    steps: stepKeys,
+    stepLabels,
+    validateStep,
+    validateAndBuildPayload,
+  } = useBackupJobFormBase(createBackupJobFormDataSet())
 
   watch(
     () => source.formData.dataSource,
@@ -173,36 +52,15 @@ export function useNewBackupJobForm() {
 
   const currentStepIndex = ref(0)
 
-  const stepKeys = computed<readonly Step[]>(() => (isMetadata.value ? METADATA_STEPS : STEPS))
-
   const currentStep = computed(() => stepKeys.value[currentStepIndex.value])
-
-  const stepLabels = computed<Record<Step, string>>(() => ({
-    source: t('source'),
-    transfer: t('transfer'),
-    target: t('target'),
-    planning: t('planning'),
-    review: t('review-and-confirm'),
-  }))
 
   const steps = computed<StepDefinition[]>(() => stepKeys.value.map(step => ({ label: stepLabels.value[step] })))
 
   async function validateCurrentStep(): Promise<boolean> {
-    switch (currentStep.value) {
-      case 'source':
-        return source.validate()
-      case 'transfer':
-        return transfer.validate()
-      case 'target':
-        return target.validate()
-      case 'planning':
-        return planning.validate()
-      default:
-        return true
-    }
+    return currentStep.value === 'review' ? true : validateStep(currentStep.value)
   }
 
-  function goToStep(step: Step): void {
+  function goToStep(step: BackupJobFormStep): void {
     currentStepIndex.value = stepKeys.value.indexOf(step)
   }
 
@@ -212,23 +70,6 @@ export function useNewBackupJobForm() {
     if (isValid && currentStepIndex.value < stepKeys.value.length - 1) {
       currentStepIndex.value++
     }
-  }
-
-  async function validateAndBuildPayload(): Promise<BackupJobPayload | undefined> {
-    const forms = isMetadata.value ? [source, target, planning] : [source, transfer, target, planning]
-
-    const results = await Promise.all(forms.map(form => form.validate()))
-
-    if (results.some(isValid => !isValid)) {
-      return undefined
-    }
-
-    return toBackupJobPayload({
-      source: source.formData,
-      transfer: transfer.formData,
-      target: target.formData,
-      planning: planning.formData,
-    })
   }
 
   function back(): void {

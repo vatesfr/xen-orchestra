@@ -1,50 +1,40 @@
 <template>
-  <UiDrawer class="edit-backup-job-drawer" @dismiss="emit('cancel')">
+  <UiDrawer @confirm="handleConfirm()" @dismiss="emit('cancel')">
     <template #title>
       {{ t('action:edit-backup-job') }}
     </template>
 
     <template #content>
-      <div class="section">
-        <UiTitle>{{ t('source') }}</UiTitle>
-        <BackupJobSourceStep :form="source" />
-      </div>
-      <div v-if="!isMetadata" class="section">
-        <UiTitle>{{ t('transfer') }}</UiTitle>
-        <BackupJobTransferStep :bindings="transfer.bindings" :is-incremental :is-mirror />
-      </div>
-      <div class="section">
-        <UiTitle>{{ t('target') }}</UiTitle>
-        <BackupJobTargetStep :form="target" />
-      </div>
-      <div class="section">
-        <UiTitle>{{ t('planning') }}</UiTitle>
-        <BackupJobPlanningStep :bindings="planning.bindings" :is-metadata />
-      </div>
+      <EditBackupJobForm
+        ref="form"
+        :key="currentStep"
+        :applied-form-data-set
+        :schedule-id="schedule.id"
+        :step="currentStep"
+        :has-removed-target-backup-repository
+        @edit="step => openStep(step)"
+      />
     </template>
 
     <template #buttons>
-      <VtsOverlayCancelButton @click="emit('cancel')" />
+      <VtsOverlayCancelButton @click="handleCancel()" />
       <VtsOverlayConfirmButton>
-        {{ t('action:save') }}
+        {{ currentStep === 'review' ? t('action:save') : t('action:apply') }}
       </VtsOverlayConfirmButton>
     </template>
   </UiDrawer>
 </template>
 
 <script lang="ts" setup>
-import BackupJobPlanningStep from '@/modules/backup-job/components/form/steps/BackupJobPlanningStep.vue'
-import BackupJobSourceStep from '@/modules/backup-job/components/form/steps/BackupJobSourceStep.vue'
-import BackupJobTargetStep from '@/modules/backup-job/components/form/steps/BackupJobTargetStep.vue'
-import BackupJobTransferStep from '@/modules/backup-job/components/form/steps/BackupJobTransferStep.vue'
-import { useEditBackupJobForm } from '@/modules/backup-job/form/edit/use-edit-backup-job-form.ts'
+import EditBackupJobForm from '@/modules/backup-job/components/form/edit/EditBackupJobForm.vue'
+import { useEditBackupJobSteps } from '@/modules/backup-job/form/edit/use-edit-backup-job-steps.ts'
 import type { EditBackupJobPayload } from '@/modules/backup-job/jobs/xo-backup-job-edit.job.ts'
 import type { FrontAnyXoBackupJob } from '@/modules/backup-job/remote-resources/use-xo-backup-job-collection.ts'
 import type { FrontXoSchedule } from '@/modules/schedule/remote-resources/use-xo-schedule-collection.ts'
 import VtsOverlayCancelButton from '@core/components/overlay/VtsOverlayCancelButton.vue'
 import VtsOverlayConfirmButton from '@core/components/overlay/VtsOverlayConfirmButton.vue'
 import UiDrawer from '@core/components/ui/drawer/UiDrawer.vue'
-import UiTitle from '@core/components/ui/title/UiTitle.vue'
+import { useTemplateRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { backupJob, schedule } = defineProps<{
@@ -59,23 +49,39 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 
-const { source, transfer, target, planning, isIncremental, isMirror, isMetadata } = useEditBackupJobForm(
-  backupJob,
-  schedule
-)
-</script>
+const { appliedFormDataSet, currentStep, hasRemovedTargetBackupRepository, openStep, cancelStep, applyStep } =
+  useEditBackupJobSteps(backupJob, schedule)
 
-<style lang="postcss" scoped>
-.edit-backup-job-drawer {
-  .section {
-    display: flex;
-    flex-direction: column;
-    gap: 1.6rem;
-    text-align: start;
+const form = useTemplateRef('form')
 
-    & + .section {
-      margin-block-start: 4.8rem;
+watch(currentStep, () => form.value?.$el.scrollIntoView(), { flush: 'post' })
+
+function handleCancel() {
+  if (currentStep.value === 'review') {
+    emit('cancel')
+    return
+  }
+
+  cancelStep()
+}
+
+async function handleConfirm() {
+  const step = currentStep.value
+
+  if (step !== 'review') {
+    const formDataSet = await form.value?.validateStepAndCopyFormDataSet(step)
+
+    if (formDataSet !== undefined) {
+      applyStep(formDataSet)
     }
+
+    return
+  }
+
+  const payload = await form.value?.validateAndBuildPayload()
+
+  if (payload !== undefined) {
+    emit('confirm', payload)
   }
 }
-</style>
+</script>

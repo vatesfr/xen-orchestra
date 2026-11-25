@@ -1,6 +1,7 @@
 import BackupJobReviewSection from '@/modules/backup-job/components/form/review/BackupJobReviewSection.vue'
 import BackupJobReviewStep from '@/modules/backup-job/components/form/steps/BackupJobReviewStep.vue'
 import { useNewBackupJobForm } from '@/modules/backup-job/form/new/use-new-backup-job-form.ts'
+import type { BackupJobFormDataStep } from '@/modules/backup-job/types/backup-job-form.type.ts'
 import type { useXoBackupRepositoryCollection } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
 import type { useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import type { useXoPbdCollection } from '@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'
@@ -82,7 +83,10 @@ mockModule(import('@/modules/vm/remote-resources/use-xo-vm-backup-archive-collec
   })) as unknown as typeof useXoVmBackupArchiveCollection,
 }))
 
-async function mountReviewStep({ isMetadata = false } = {}) {
+async function mountReviewStep({
+  isMetadata = false,
+  invalidSteps,
+}: { isMetadata?: boolean; invalidSteps?: BackupJobFormDataStep[] } = {}) {
   const wrapper = mount(
     defineComponent({
       emits: ['edit'],
@@ -99,6 +103,7 @@ async function mountReviewStep({ isMetadata = false } = {}) {
             transfer: source.isMetadata.value ? undefined : transfer,
             target,
             planning,
+            invalidSteps,
             onEdit: (step: string) => emit('edit', step),
           })
       },
@@ -135,4 +140,37 @@ it.each(['source', 'transfer', 'target', 'planning'])('goes back to the %s step 
   await section!.get('button').trigger('click')
 
   expect(wrapper.emitted('edit')).toEqual([[step]])
+})
+
+describe('invalid steps', () => {
+  function findSectionsWithError(wrapper: VueWrapper) {
+    return wrapper
+      .findAllComponents(BackupJobReviewSection)
+      .filter(section => section.props('hasError'))
+      .map(section => section.props('title'))
+  }
+
+  it('marks the sections of the invalid steps', async () => {
+    const wrapper = await mountReviewStep({ invalidSteps: ['source', 'target'] })
+
+    expect(findSectionsWithError(wrapper)).toEqual([t('source'), t('target')])
+  })
+
+  it('marks no section without invalid steps', async () => {
+    const wrapper = await mountReviewStep({ invalidSteps: [] })
+
+    expect(findSectionsWithError(wrapper)).toEqual([])
+  })
+
+  it('marks no section without the prop', async () => {
+    const wrapper = await mountReviewStep()
+
+    expect(findSectionsWithError(wrapper)).toEqual([])
+  })
+
+  it('does not mark the transfer of a metadata backup', async () => {
+    const wrapper = await mountReviewStep({ isMetadata: true, invalidSteps: ['transfer', 'planning'] })
+
+    expect(findSectionsWithError(wrapper)).toEqual([t('planning')])
+  })
 })
