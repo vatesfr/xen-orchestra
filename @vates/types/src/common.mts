@@ -824,7 +824,7 @@ export const COMMON_TAG = {
  *
  * Returned by `xoa-updater` as `upgradablePackages` at the end of an update check.
  */
-export interface XoaPackageUpdate {
+export type XoaPackageUpdate = {
   name: string
   /** version which will be installed */
   version: string
