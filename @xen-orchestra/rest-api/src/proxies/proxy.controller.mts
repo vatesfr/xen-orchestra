@@ -152,10 +152,12 @@ export class ProxyController extends XoController<XoProxy> {
   /**
    * Deletes a proxy
    *
-   * Destroys the VM of the proxy, if it has one, then removes the proxy from Xen Orchestra.
+   * Destroys the VM of the proxy, if it has one, with its disks and snapshots, then removes the proxy from Xen Orchestra.
    *
    * Required privilege:
    * - resource: proxy, action: delete
+   *
+   * This privilege is enough to destroy the VM of the proxy: no privilege on that VM is checked.
    *
    * @example id "e625ea0c-a876-405a-b838-109d762efe88"
    */
