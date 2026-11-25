@@ -44,5 +44,6 @@
 - @xen-orchestra/web patch
 - @xen-orchestra/web-core patch
 - xo-collection patch
+- xo-server patch
 
 <!--packages-end-->
