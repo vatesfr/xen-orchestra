@@ -1,6 +1,7 @@
 import BackupJobFormCalendarValuesCard from '@/modules/backup-job/components/form/inputs/BackupJobFormCalendarValuesCard.vue'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import type { InputWrapperMessage } from '@core/components/input-wrapper/VtsInputWrapper.vue'
+import { findInfoLabels } from '@core-test/find-accented-labels.ts'
 import { mount, type VueWrapper } from '@vue/test-utils'
 
 const WEEK_DAY_OPTIONS = [
@@ -55,13 +56,13 @@ it('removes a value from the selection', async () => {
 it('shows no error by default', () => {
   const wrapper = mountValuesCard([])
 
-  expect(wrapper.find('.ui-info').exists()).toBe(false)
+  expect(findInfoLabels(wrapper)).toEqual([])
   expect(wrapper.find('.schedule-values-card.error').exists()).toBe(false)
 })
 
 it('shows the error, and highlights the card', () => {
   const wrapper = mountValuesCard([], { content: 'Select at least one day.', accent: 'danger' })
 
-  expect(wrapper.get('.ui-info').text()).toBe('Select at least one day.')
+  expect(findInfoLabels(wrapper)).toEqual(['Select at least one day.'])
   expect(wrapper.find('.schedule-values-card.error').exists()).toBe(true)
 })

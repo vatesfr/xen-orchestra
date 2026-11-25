@@ -11,6 +11,7 @@ import { getNumberedItemLabel } from '@/test/json-schema-item-label.ts'
 import { xoCollectionsMock, mockXoCollections } from '@/test/mock-xo-collections.ts'
 import { vmCollectionMock, mockXoVmCollection } from '@/test/mock-xo-vm-collection.ts'
 import { mountJsonSchemaForm } from '@/test/mount-json-schema-form.ts'
+import VtsInputWrapper from '@core/components/input-wrapper/VtsInputWrapper.vue'
 import { setFieldValue } from '@core-test/field-events.ts'
 import { findInfoLabels } from '@core-test/find-accented-labels.ts'
 import { findSelectOptionLabels, findShownSelections, openSelect, pickSelectOption } from '@core-test/select.ts'
@@ -253,10 +254,7 @@ describe('validation', () => {
 
     await wrapper.get('input').trigger('focusout')
 
-    expect(wrapper.findAll('.vts-input-wrapper .ui-info').map(info => info.text())).toEqual([
-      'The LDAP URI',
-      t('form:error:required'),
-    ])
+    expect(findInfoLabels(wrapper.getComponent(VtsInputWrapper))).toEqual(['The LDAP URI', t('form:error:required')])
   })
 
   it('validates a filled form', () => {

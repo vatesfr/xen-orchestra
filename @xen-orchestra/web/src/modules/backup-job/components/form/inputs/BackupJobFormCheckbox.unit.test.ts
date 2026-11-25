@@ -1,7 +1,8 @@
 import BackupJobFormCheckbox from '@/modules/backup-job/components/form/inputs/BackupJobFormCheckbox.vue'
 import { getCheckbox } from '@/test/get-checkbox.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
-import { mount, type VueWrapper } from '@vue/test-utils'
+import { findInfoLabels } from '@core-test/find-accented-labels.ts'
+import { mount } from '@vue/test-utils'
 
 type CheckboxProps = InstanceType<typeof BackupJobFormCheckbox>['$props']
 
@@ -12,16 +13,12 @@ function mountCheckbox(props: Partial<CheckboxProps> = {}) {
   })
 }
 
-function findMessages(wrapper: VueWrapper) {
-  return wrapper.findAll('.ui-info').map(message => message.text())
-}
-
 it('shows its label', () => {
   expect(mountCheckbox().get('.checkbox-label').text()).toBe('Offline backup')
 })
 
 it('shows no message without info nor error', () => {
-  expect(findMessages(mountCheckbox())).toEqual([])
+  expect(findInfoLabels(mountCheckbox())).toEqual([])
 })
 
 it('shows the info, then the error', () => {
@@ -30,7 +27,7 @@ it('shows the info, then the error', () => {
     error: { content: 'Select at least one option', accent: 'danger' },
   })
 
-  expect(findMessages(wrapper)).toEqual(['The VMs will be shut down', 'Select at least one option'])
+  expect(findInfoLabels(wrapper)).toEqual(['The VMs will be shut down', 'Select at least one option'])
 })
 
 it('is checked according to its model', () => {
