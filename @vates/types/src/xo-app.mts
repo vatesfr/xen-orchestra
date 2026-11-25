@@ -7,6 +7,7 @@ import type {
   XapiXoRecord,
   XoAuthenticationToken,
   XoBackupRepository,
+  XoBrowserMediaSession,
   XoConfigBackupArchive,
   XoGroup,
   XoHost,
@@ -22,6 +23,7 @@ import type {
   XoSr,
   XoTask,
   XoUser,
+  XoVdi,
   XoVif,
   XoVm,
   XoVmBackupArchive,
@@ -153,26 +155,80 @@ export type PoolRollingUpdateRecoveryError = {
 }
 
 export type PoolRollingUpdateRecoveryHost = {
-  status: 'pending' | 'running' | 'succeeded' | 'failed' | 'not-needed'
+  /** `interrupted`: left in progress by a run that is over */
+  status: 'pending' | 'running' | 'interrupted' | 'succeeded' | 'failed' | 'not-needed'
   steps: Record<RPU_RECOVERY_STEP_NAME, PoolRollingUpdateRecoveryStep>
   lastError: PoolRollingUpdateRecoveryError | null
+}
+
+/** a VM the last migrate back of the run could not bring to its original host */
+export type PoolRollingUpdateRecoveryVmConflict = {
+  vmId: string
+  /** unknown for a VM deleted before the run could read it */
+  vmName?: string
+  /** UUID of the host the VM was running on before the run */
+  hostId: string
+  /** `stopped` and `deleted`: left to the operator; `migration-failed`: retried by a resume */
+  reason: 'stopped' | 'deleted' | 'migration-failed'
+  /** XAPI error of the last migration, `migration-failed` only */
+  message?: string
+}
+
+/** what an operator changed, since the run, on a setting the run left changed or on an object of the run */
+export type PoolRollingUpdateRecoveryOperatorChange = {
+  /** `haHeartbeatSr`: a heartbeat SR needed to enable HA again no longer exists */
+  type: 'ha' | 'autoPowerOn' | 'wlb' | 'schedule' | 'haHeartbeatSr' | 'host' | 'vm'
+  /** pool, schedule, SR, host or VM UUID */
+  id: string
+  /** schedules enabled again only */
+  name?: string
+  /** `disabled` as the run left it, `present` for a heartbeat SR, a host or a VM */
+  expected: 'disabled' | 'present'
+  /** `missing` for a deleted schedule, heartbeat SR, host or VM */
+  observed: 'enabled' | 'missing'
+}
+
+/** hosts resumes added to the plan of the run: patches released since it started, or hosts new to the pool */
+export type PoolRollingUpdateRecoveryPlanChange = {
+  /** the last resume which added hosts */
+  attempt: number
+  /** UUIDs of hosts the run did not plan to update, or had finished, added by any resume */
+  addedHostIds: string[]
 }
 
 export type PoolRollingUpdateRecoveryRun = {
   runId: string
   poolId: string
-  status: 'preparing' | 'running' | 'interrupted' | 'resuming' | 'failed' | 'cleaning' | 'succeeded'
+  /** `awaiting-acceptance`: a resume found operator changes and waits for them to be accepted */
+  status:
+    | 'preparing'
+    | 'running'
+    | 'interrupted'
+    | 'resuming'
+    | 'failed'
+    | 'cleaning'
+    | 'succeeded'
+    | 'awaiting-acceptance'
   startedAt: string
   updatedAt: string
   finishedAt?: string
   interruptedAt?: string
   taskId?: string
   variant?: 'xcp' | 'xs-cdn'
+  /** 1 for the first attempt, incremented by each resume of the run */
+  attempt?: number
+  /** whether a resume would be accepted: run failed, interrupted or awaiting the acceptance of operator changes */
+  resumable?: boolean
   hostOrder?: string[]
   hosts: Record<string, PoolRollingUpdateRecoveryHost>
   lastError: PoolRollingUpdateRecoveryError | null
   /** VM UUID -> UUID of the host it must be started on */
   haltedPinnedVms: Record<string, string>
+  vmConflicts: PoolRollingUpdateRecoveryVmConflict[]
+  /** found by the last resume, the run stays `awaiting-acceptance` until they are accepted */
+  operatorChanges: PoolRollingUpdateRecoveryOperatorChange[]
+  /** absent when no resume changed the plan */
+  planChange?: PoolRollingUpdateRecoveryPlanChange
 }
 
 /** record unreadable or of an unknown schema version: recovery needs a human */
@@ -301,6 +357,8 @@ export type XoApp = EventEmitter & {
   checkFeatureAuthorization(featureCode: FeatureCode): Promise<void>
   /* whether this machine can run the tools of an import from VMware */
   checkEsxiDependencies(): Promise<XoV2vStatus>
+  /* Throw if the proxy cannot be reached */
+  checkProxyHealth(id: XoProxy['id']): Promise<void>
   /* validate, apply and persist the configuration of a plugin */
   configurePlugin(id: string, configuration: unknown, mergeWithExisting?: boolean): Promise<void>
   /* connect a server (XCP-ng/XenServer) */
@@ -435,6 +493,23 @@ export type XoApp = EventEmitter & {
     >
   >
   getAllSchedules(): Promise<XoSchedule[]>
+  /** Every browser media session, whoever owns it; empty when the feature is disabled */
+  getAllBrowserMediaSessions(): XoBrowserMediaSession[]
+  getBrowserMediaSession(id: XoBrowserMediaSession['id']): XoBrowserMediaSession
+  /**
+   * Insert the ISO of a browser media session in the CD drive of a VM. Undone by `ejectBrowserMedia`,
+   * or when the browser disconnects.
+   *
+   * `assertBrowserMediaInsertable` reports the predictable failures synchronously, e.g. before
+   * starting a task.
+   */
+  insertBrowserMedia(params: {
+    id: XoBrowserMediaSession['id']
+    vmId: XoVm['id']
+  }): Promise<{ vdiId: XoVdi['id'] }>
+  assertBrowserMediaInsertable(params: { id: XoBrowserMediaSession['id']; vmId: XoVm['id'] }): void
+  /** Eject the ISO of a browser media session, release its storage, and disconnect the browser */
+  ejectBrowserMedia(id: XoBrowserMediaSession['id']): Promise<void>
   getAllUsers(opts?: { obfuscatePassword?: boolean }): Promise<XoUser[]>
   getAllXenServers(): Promise<XoServer[]>
   getAuthenticationTokensForUser(userId: XoUser['id']): Promise<XoAuthenticationToken[]>
@@ -537,6 +612,10 @@ export type XoApp = EventEmitter & {
       stopSource: boolean
       /** VMware moref of the VM */
       vm: string
+      /** dock the guest once the import is complete, off by default. A failed docking does not fail the import */
+      docking?: boolean
+      /** start the VM once the import is complete, following the first boot of a docked guest, off by default */
+      startVm?: boolean
     }
   ): Promise<XoVm['uuid']>
   /**
@@ -594,6 +673,10 @@ export type XoApp = EventEmitter & {
   ): Promise<void>
   getRollingUpdateRecovery(poolId: XoPool['id']): Promise<PoolRollingUpdateRecovery | undefined>
   finalizeRollingUpdate(pool: XoPool, opts?: { force?: boolean; parentTask?: VatesTask }): Promise<void>
+  resumeRollingPoolUpdate(
+    pool: XoPool,
+    opts?: { acceptOperatorChanges?: boolean; bypassBackupCheck?: boolean; parentTask?: VatesTask }
+  ): Promise<void>
   setVmResourceSet(vmId: XoVm['id'], resourceSetId: string | null, force?: boolean): Promise<void>
   shareVmResourceSet(vmId: XoVm['id']): Promise<void>
   removeUserFromGroup(userId: XoUser['id'], id: XoGroup['id']): Promise<void>

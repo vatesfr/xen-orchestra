@@ -1,6 +1,6 @@
 <!-- v1.0 -->
 <template>
-  <li :class="{ horizontal }" class="menu-separator" />
+  <li :class="{ horizontal }" class="menu-separator" role="separator" />
 </template>
 
 <script lang="ts" setup>

@@ -2,6 +2,7 @@ import { defineColumns } from '@core/packages/table/define-columns.ts'
 import { useActionColumn } from '@core/tables/column-definitions/action-column.ts'
 import { useAddressColumn } from '@core/tables/column-definitions/address-column.ts'
 import { useCheckboxColumn } from '@core/tables/column-definitions/checkbox-column.ts'
+import { useDateColumn } from '@core/tables/column-definitions/date-column.ts'
 import { useLinkColumn } from '@core/tables/column-definitions/link-column.ts'
 import { useNumberColumn } from '@core/tables/column-definitions/number-column.ts'
 import { useTagColumn } from '@core/tables/column-definitions/tag-column.ts'
@@ -11,12 +12,13 @@ export const useVmColumns = defineColumns(() => {
   const { t } = useI18n()
   return {
     checkbox: useCheckboxColumn(),
-    vm: useLinkColumn({ headerLabel: () => t('vm') }),
+    vm: useLinkColumn({ headerLabel: () => t('vm'), flexible: true }),
     ipAddresses: useAddressColumn({ headerLabel: () => t('ip-addresses') }),
     vcpus: useNumberColumn({ headerLabel: () => t('vcpus') }),
     ram: useNumberColumn({ headerLabel: () => t('ram') }),
     diskSpace: useNumberColumn({ headerLabel: () => t('disk-space') }),
     tags: useTagColumn({ headerLabel: () => t('tags') }),
+    lastBackupDate: useDateColumn({ headerLabel: () => t('last-backup-date') }),
     actions: useActionColumn({}),
   }
 })

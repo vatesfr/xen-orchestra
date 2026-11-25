@@ -1,6 +1,6 @@
-# Testing components
+# Components (XO 6)
 
-Components run in the same `unit` project as everything else: `@vue/test-utils` `mount` on `happy-dom`, **no browser needed**. Mount with `createGlobalTestConfig()` so the real `vue-i18n` instance and a fresh Pinia are installed, and give the repeated mount a helper (see [Setup](./setup-helpers.md)):
+The shared rules — keep components thin, extract under unchanged tests, assert what the user reads, never spell out a translation, what `happy-dom` cannot do — are in [Testing components](../../../web-core/docs/tests/testing-components.md). In XO 6, mount with `createGlobalTestConfig()` so the real `vue-i18n` instance, the app form validation messages (`RegleVuePlugin` with `formValidationConfig`, as in `main.ts`) and a fresh Pinia are installed:
 
 ```typescript
 import VmSystemGraphics from '@/modules/vm/components/system/VmSystemGraphics.vue'
@@ -23,51 +23,23 @@ it('shows VGA as enabled when the VM uses the "std" adapter', () => {
 })
 ```
 
-The test file sits next to the component, named `<ComponentName>.unit.test.ts` (no `.vue`). Group with `describe` only when the component has several distinct behaviors to separate; a small component reads better as flat `it`s.
+## Reading rendered values
 
-## Keep components thin
-
-A component should not carry much complex logic. Non-trivial computation (chart series, aggregation, formatting rules) belongs in a `*.util.ts` or a composable, tested directly — that is cheaper and covers more branches than mounting. A component that is awkward to test is telling you to **extract**, not to write a heavier component test, and never to skip the test.
-
-What is left to assert at the component level is what it renders: labels, formatted values, conditional rows, empty states.
-
-### Extracting from a tested component
-
-The extraction is a refactor, so the tests come **first** and are what proves it changed nothing:
-
-1. Write the tests against the component **as it stands**, and run them green.
-2. Extract.
-3. Re-run those tests **unchanged**.
-4. Move the ones the extraction made redundant down next to the new util/composable, and delete them from the component test.
-
-Step 3 is the gate. A test that has to be edited to pass is reporting a behavior change — say so, do not absorb it into the diff. Tests written only _after_ an extraction describe the new code and cannot catch what the extraction broke, which is the whole risk being taken.
-
-Step 4 is selective. A test that only exercised the logic now living in the util moves; a test asserting something the component alone does — rendering, conditional rows, empty states, feeding the util's output into the template — stays.
-
-## Assert what the user reads, not the markup
-
-`wrapper.text()` concatenates the whole subtree **with no separators**, so `'8 B'` and `'Disabled'` run together. It is fine for `toContain` on a single component, but it cannot express "this label has this value". Query instead:
-
-```typescript
-// every card title, in order
-expect(wrapper.findAll('.ui-title').map(title => title.text())).toEqual([t('graphics-display')])
-
-// a key/value row: the markup is semantic, so label and value are addressable
-const rows = wrapper.findAll('.vts-tabular-key-value-row')
-const labelledValues = Object.fromEntries(rows.map(row => [row.get('dt.label').text(), row.get('dd.value').text()]))
-
-expect(labelledValues).toEqual({ [t('vga')]: t('disabled'), [t('video-ram')]: '8 B' })
-```
-
-Prefer this shape: one assertion covering every row a user sees, and it fails loudly when a value lands under the wrong label. Assert against **class names and semantic elements**, never a positional chain of child indexes.
-
-`src/test/find-rendered-values.ts` does exactly that reduction, so a card test does not re-roll it:
+A label/value row is read through one query covering every row a user sees ([Assert what the user reads](../../../web-core/docs/tests/testing-components.md#assert-what-the-user-reads-not-the-markup)). `src/test/find-rendered-values.ts` does that reduction, so a card test does not re-roll it:
 
 | Helper                       | Reads                                                              |
 | ---------------------------- | ------------------------------------------------------------------ |
 | `findLabelledValues`         | every `VtsTabularKeyValueRow` / `VtsKeyValueRow` of a card         |
 | `findCardLabelledValues`     | every `VtsCardRowKeyValue` of a side-panel card                    |
 | `findCardLabelledValueLists` | every `VtsCardRowKeyValue`, each value of a multi-value row listed |
+| `findRowLabels`              | the label of every `VtsTabularKeyValueRow` / `VtsKeyValueRow`      |
+| `findCardRowLabels`          | the label of every `VtsCardRowKeyValue`, in order                  |
+| `findCardRows`               | every `VtsCardRowKeyValue` as `[label, value]` pairs, in order     |
+| `getCardRow`                 | the `VtsCardRowKeyValue` with that label, to query its link / copy |
+| `hasCardRowCopy`             | whether the `VtsCardRowKeyValue` with that label offers a copy     |
+| `getCardRowLink`             | the link of the `VtsCardRowKeyValue` with that label               |
+| `findCardRowElements`        | every `VtsCardRowKeyValue` as its key and value elements           |
+| `findCardRowLinks`           | every link of the `VtsCardRowKeyValue` rows, as `[text, href]`     |
 | `findCopiedValues`           | what each copyable key/value row copies, keyed by label            |
 | `findCardCopiedValues`       | what each copyable `VtsCardRowKeyValue` copies, in order           |
 
@@ -80,6 +52,8 @@ A row offers a copy button through its `copy` prop (copies its `value`) or its `
 ```typescript
 expect(findCopiedValues(wrapper)).toEqual({ [t('ip-address')]: '10.0.0.1', [t('uuid')]: 'vm-42' })
 ```
+
+`findCardRows` keeps rows sharing a label (one row per VM, labelled on the first one only), which `findCardLabelledValues` would collapse. A check on the row elements themselves (whether a button sits inside a row) uses the exported `CARD_KEY_VALUE_ROW_SELECTOR`, never the raw class.
 
 Both read one value per row. A `VtsCardRowKeyValue` given several `values` (an address list, report recipients) renders them all under a single label, so read it with `findCardLabelledValueLists` instead:
 
@@ -105,29 +79,28 @@ expect(findTableRows(wrapper)).toEqual([
 
 `findTableRows` reads cells rather than each row's whole text for the same reason the helpers above split label from value: `row.text()` concatenates the columns, so a patch named `XSAPATCH-1` at version `1.0` and one named `XSAPATCH-11` at version `.0` read identically.
 
-### Never spell out a translation
+### Translations
 
-A rendered label or a translated value is wording the component does not own, so [asserting behavior](./assert-behavior.md) means naming the **key**, not the English string. `src/test/i18n.ts` exposes the `t` of the very instance `createGlobalTestConfig()` installs:
+`src/test/i18n.ts` exposes the `t` and `n` of the very instance `createGlobalTestConfig()` installs: import them to build an expected label (see [Never spell out a translation](../../../web-core/docs/tests/testing-components.md#never-spell-out-a-translation)).
+
+## Tables
+
+A table is read **by header label**, never by column position: `src/test/find-table-cells.ts` looks the label up in `thead th`, so a column added, moved or hidden does not shift the assertions.
+
+| Helper                                                   | Reads                                                                 |
+| -------------------------------------------------------- | --------------------------------------------------------------------- |
+| `findTableHeaders(wrapper)`                              | the header labels, in order (`''` for a checkbox column)              |
+| `findTableColumn(wrapper, label)`                        | the text of each cell of that column, one per body row                |
+| `findTableColumnCells(wrapper, label)`                   | the cells of that column, to query a link, a tag or a checkbox inside |
+| `findTableRows(wrapper)`, from `find-rendered-values.ts` | the cell texts of each body row, for a table read row by row          |
 
 ```typescript
-// ✗ rewording the translation breaks the test although the component still picks the same key
-expect(findLabelledValues(wrapper)).toEqual({ 'Suspend storage repository': 'None' })
-
-// ✓ asserts the decision: the suspend-SR row, falling back to the "none" wording
-expect(findLabelledValues(wrapper)).toEqual({ [t('suspend-storage-repository')]: t('none') })
+expect(findTableHeaders(wrapper)).toEqual(['', t('vm'), t('size')])
+expect(findTableColumn(wrapper, t('size'))).toEqual(['80GiB', '120GiB'])
+expect(findTableColumnCells(wrapper, t('vm'))[0].getComponent(UiLink).attributes('href')).toBe('/vm/vm-42/dashboard')
 ```
 
-A mistyped key does not pass quietly — `t` returns a `⟨key⟩` marker for a key the locale has no entry for, which matches no rendered text.
-
-Where the line falls:
-
-| Value                                                      | Assert as                                                                          |
-| ---------------------------------------------------------- | ---------------------------------------------------------------------------------- |
-| a label, or a value that is itself a translation           | `t('key')` — including a plural, `t('n-vcpus', 2)`                                 |
-| a formatted date                                           | `formatDateTime(timestamp)` from `@core/utils/time.util.ts`, as the component does |
-| a string the component composes from several translations  | a template literal of those `t(…)` calls                                           |
-| data reaching the component (a name, an id, an IP, a tag)  | the literal — it is the test's own input                                           |
-| a number the component formats (`'8 B'`, `'4 GiB'`, `'2'`) | the literal — deriving it would copy the template                                  |
+A label missing from the header throws, naming the label, rather than reading an empty column.
 
 ## Chart cards
 
@@ -180,6 +153,7 @@ A donut card and a progress-bar card both render their values through `UiLegend`
 | `findLegends`                 | every `UiLegend`, as ordered `[label, value]` pairs    |
 | `findProgressBarGroupLegends` | the same, grouped per `VtsProgressBarGroup`            |
 | `findCardNumbers`             | every `UiCardNumbers` a card lays out beside its chart |
+| `findProgressBarFillStyle`    | the inline style of the fill of the `UiProgressBar`    |
 
 ```typescript
 expect(findLegends(wrapper)).toEqual([
@@ -201,7 +175,7 @@ Three things shape those assertions:
 `createGlobalTestConfig()` installs a router on **every** mount, built by `src/test/create-test-router.ts` over the **real generated routes** on an in-memory history. Two unrelated things need it:
 
 - A component rendering `RouterLink`. Without a router the link resolves to a plain element and its scoped slot (`isActive`, `href`) is never invoked, so the markup renders **empty instead of failing** — a tab bar silently becomes no tabs, and an assertion on it passes vacuously.
-- Anything reaching `useUiStore` (`VtsStateHero`, `VtsKeyValueRow`, `TabItem`…). That store calls `useRouter()`/`useRoute()` in its setup, so a router-less mount logs two `injection "Symbol(router)" not found` warnings, and reading `uiStore.hasUi` would throw on `route.query`.
+- Anything reaching `useUiStore` (`VtsStateHero`, `VtsKeyValueRow`, `UiTabItem`…). That store calls `useRouter()`/`useRoute()` in its setup, so a router-less mount logs two `injection "Symbol(router)" not found` warnings, and reading `uiStore.hasUi` would throw on `route.query`.
 
 Because the routes are the real ones, `href` assertions are real paths (`/vm/vm-42/system`) rather than a stub's echo of its own prop. Page components are swapped for an empty one: a test never renders a page, and installing a router runs an initial navigation that would otherwise import the whole page module graph.
 
@@ -215,24 +189,24 @@ const wrapper = mount(VmHeader, { props: { vm }, global: createGlobalTestConfig(
 
 expect(
   wrapper
-    .findAll('.tab-item')
-    .filter(tab => tab.classes('active'))
+    .findAllComponents(UiTabItem)
+    .filter(tab => tab.props('active'))
     .map(tab => tab.text())
 ).toEqual([t('system')])
 ```
 
 Pushing before mounting is what makes the active tab assertable; without a push the router sits at its start location and nothing is active.
 
-## What `happy-dom` cannot do
+## Selects
 
-There is no layout engine, and Vitest's `css` option is off, so component styles are never loaded. Out of reach:
+How `VtsSelect` renders and opens its options belongs to the web-core tests, never to an XO 6 one; XO 6's `FormSelect` wraps it:
 
-- `toBeVisible()` and anything depending on real visibility — assert presence/absence instead (`expect(wrapper.find('.foo').exists()).toBe(false)`)
-- `getComputedStyle` assertions on design tokens (color, padding, `flex-direction`)
-- real event dispatch — `trigger()` simulates events
-- canvas (ECharts), `ResizeObserver`, `IntersectionObserver` — for a chart card, stub the chart (see [Chart cards](#chart-cards))
+- A component that only passes select bindings on is mounted with `createGlobalTestConfig({ stubs: { FormSelect: true } })`, given `createSelectBindings`, and read with `findSelectStubLabels`.
+- The options a form builds (their labels, their custom properties) are read by mounting the form with `mountWithSetup` (`mountWithSetupResult` when the test reads the form too; it takes the `createGlobalTestConfig` options, as `mountUnderNewVmForm` does), rendering its select with `renderSelect(id)` (`@core-test/mount-with-select.ts`), then `openSelect` and `findSelectOptionLabels`; `findShownSelections` reads the selection each select shows. Those readers live in web-core (`@core-test/select.ts`), beside the `mountWithSetup` (`@core-test/mount-with-setup.ts`) that XO 6's wraps.
 
-`happy-dom` also **lacks some browser APIs entirely**. `EventSource` is one: mounting a component that reaches a remote-resource collection opens an SSE subscription and throws `ReferenceError: EventSource is not defined`. It surfaces as an _unhandled rejection_, so Vitest **exits non-zero while reporting every test as passed** — do not read a green test list as success. Mock the collection ([Mocking dependencies](./mocking.md)) so the subscription is never opened.
+## Remote-resource collections
+
+A remote-resource collection opens an SSE subscription, which `happy-dom` cannot ([What `happy-dom` cannot do](../../../web-core/docs/tests/testing-components.md#what-happy-dom-cannot-do)): mock it with its `src/test/` module ([Mocking](./mocking.md)).
 
 ## Pages
 

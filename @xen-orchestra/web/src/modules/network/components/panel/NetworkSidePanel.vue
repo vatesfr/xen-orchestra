@@ -56,6 +56,8 @@
             <template #key>{{ t('locking-mode-default') }}</template>
             <template #value>{{ networkDefaultLockingMode }}</template>
           </VtsCardRowKeyValue>
+          <!-- PRIVATE NETWORK -->
+          <NetworkPrivateCardItems :network />
         </VtsCardRowList>
       </UiPanelCard>
       <NetworkPifsInfoCard :network />
@@ -64,6 +66,7 @@
 </template>
 
 <script setup lang="ts">
+import NetworkPrivateCardItems from '@/modules/network/components/panel/card-items/NetworkPrivateCardItems.vue'
 import NetworkPifsInfoCard from '@/modules/network/components/panel/cards/NetworkPifsInfoCard.vue'
 import { useNetworkDelete } from '@/modules/network/composables/use-network-delete.composable.ts'
 import { useXoNetworkUtils } from '@/modules/network/composables/xo-network-utils.composable.ts'

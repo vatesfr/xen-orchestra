@@ -1,8 +1,8 @@
 <template>
-  <UiTableCell>
+  <UiTableCell :flexible>
     <div :class="{ 'with-extra-count': extraCount && extraCount > 0 }" class="content">
       <VtsIcon v-tooltip="leftIcon?.tooltip ?? false" :name="leftIcon?.icon" size="medium" />
-      <span><slot /></span>
+      <span v-tooltip class="text-ellipsis"><slot /></span>
       <VtsIcon v-tooltip="rightIcon?.tooltip ?? false" :name="rightIcon?.icon" size="medium" />
       <span v-if="extraCount && extraCount > 0" class="typo-body-regular-small extra-count">
         {{ t('plus-n', { n: extraCount }) }}
@@ -30,7 +30,7 @@ export type TextCellProps = {
   extraCount?: number
 }
 
-defineProps<TextCellProps>()
+defineProps<TextCellProps & { flexible?: boolean }>()
 
 const { t } = useI18n()
 </script>
@@ -40,6 +40,7 @@ const { t } = useI18n()
   display: inline-flex;
   align-items: center;
   gap: 0.8rem;
+  max-width: 100%;
 
   &.with-extra-count {
     display: flex;

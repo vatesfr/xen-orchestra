@@ -4,36 +4,26 @@
       <VdisTable :vdis="filteredVdisByNotCdVbd" :vm :busy="!areVmVdisReady" :error="hasVmVdiFetchError">
         <template #title-actions>
           <VtsResponsiveMenu :title="t('action:add')" placement="bottom-end">
-            <template #trigger="{ open }">
-              <UiDropdownButton variant="primary" size="medium" icon="action:add" @click="open($event)">
+            <template #trigger="{ open, bindings }">
+              <UiDropdownButton
+                v-bind="bindings"
+                variant="primary"
+                size="medium"
+                icon="action:add"
+                @click="open($event)"
+              >
                 {{ t('action:add') }}
               </UiDropdownButton>
             </template>
-            <MenuItem accent="neutral">
-              <UiLink
-                class="add-vdi-link"
-                :to="{ name: '/vdi/new', query: { vmid: vm.id } }"
-                icon="fa:plus"
-                size="small"
-              >
-                {{ t('action:create-vdi') }}
-              </UiLink>
-            </MenuItem>
-            <MenuItem accent="neutral">
-              <UiLink
-                class="add-vdi-link"
-                :to="{ name: '/vdi/attach', query: { vmid: vm.id } }"
-                icon="action:attach"
-                size="small"
-              >
-                {{ t('action:attach-vdi') }}
-              </UiLink>
-            </MenuItem>
+            <VmNewVdiButton :vm />
+            <VmAttachVdiButton :vm />
           </VtsResponsiveMenu>
         </template>
       </VdisTable>
     </UiCard>
-    <VdiSidePanel :vdi="selectedVdi" :vm @close="selectedVdi = undefined" />
+    <template #panel>
+      <VdiSidePanel :vdi="selectedVdi" :vm @close="selectedVdi = undefined" />
+    </template>
   </VtsContentSidePanel>
 </template>
 
@@ -41,15 +31,15 @@
 import VdiSidePanel from '@/modules/vdi/components/list/panel/VdiSidePanel.vue'
 import VdisTable from '@/modules/vdi/components/list/VdisTable.vue'
 import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
+import VmAttachVdiButton from '@/modules/vm/components/actions/attach-vdi/VmAttachVdiButton.vue'
+import VmNewVdiButton from '@/modules/vm/components/actions/new-vdi/VmNewVdiButton.vue'
 import { useXoVmVbdsUtils } from '@/modules/vm/composables/xo-vm-vbd-utils.composable.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { useXoVmVdisCollection } from '@/modules/vm/remote-resources/use-xo-vm-vdis-collection.ts'
 import VtsContentSidePanel from '@core/components/layout/VtsContentSidePanel.vue'
-import MenuItem from '@core/components/menu/MenuItem.vue'
 import VtsResponsiveMenu from '@core/components/menu/VtsResponsiveMenu.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiDropdownButton from '@core/components/ui/dropdown-button/UiDropdownButton.vue'
-import UiLink from '@core/components/ui/link/UiLink.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -81,14 +71,5 @@ const selectedVdi = useRouteQuery<FrontXoVdi | undefined>('id', {
     margin: 0.8rem;
     gap: 4rem;
   }
-}
-
-/* This selector can't be nested,
-* as the links in MenuItem are teleported and are not children of .vdis element.
-* This selector extends the clickable area of the links for better accessibility
-*/
-.add-vdi-link {
-  height: 100%;
-  width: 100%;
 }
 </style>

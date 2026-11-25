@@ -27,6 +27,7 @@ import {
   getProxyApplianceUpdaterState,
   snapshotXoa,
   subscribeBackupNgJobs,
+  subscribeCurrentUser,
   subscribeJobs,
 } from 'xo'
 
@@ -37,7 +38,13 @@ const COMMUNITY = getXoaPlan() === 'Community'
 const ansiUp = new AnsiUp()
 
 if (+process.env.XOA_PLAN < 5) {
-  xoaUpdater.start()
+  // the updater only accepts admin sessions: starting it for other users fails
+  // and the resulting error state would block their access to XOA
+  subscribeCurrentUser(user => {
+    if (user?.permission === 'admin') {
+      xoaUpdater.start()
+    }
+  })
 
   let updateSource
   const promptForReload = (source, force) => {

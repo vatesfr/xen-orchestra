@@ -12,7 +12,7 @@ export const useNetworkColumns = defineColumns(() => {
   const { t } = useI18n()
 
   return {
-    network: useLinkColumn({ headerLabel: () => t('name') }),
+    network: useLinkColumn({ headerLabel: () => t('name'), flexible: true }),
     description: useTruncatedTextColumn({ headerLabel: () => t('description') }),
     status: useStatusColumn({ headerLabel: () => t('status') }),
     vlan: useNumberColumn({ headerLabel: () => t('vlan') }),

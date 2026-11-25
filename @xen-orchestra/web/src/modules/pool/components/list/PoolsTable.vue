@@ -3,7 +3,7 @@
     <UiTitle>
       {{ t('pools') }}
     </UiTitle>
-    <VtsQueryBuilder :model-value="filter" :schema @search="filter = $event" />
+    <VtsQueryBuilder v-bind="searchBindings" :schema />
     <div class="container">
       <VtsTable :state :pagination-bindings sticky="right">
         <thead>
@@ -62,7 +62,7 @@ const selectedServerId = useRouteQuery('id')
 
 const { filterableServers, getDisplayData } = usePoolEnhancedData(() => rawServers)
 
-const { items: filteredServers, filter } = useQueryBuilderFilter<PoolFilterableData>(
+const { items: filteredServers, searchBindings } = useQueryBuilderFilter<PoolFilterableData>(
   'servers',
   () => filterableServers.value
 )

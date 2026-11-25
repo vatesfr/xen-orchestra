@@ -3,7 +3,7 @@
     v-slot="{ properties }"
     :params="[
       model().type('string | number').preset(''),
-      prop('accent').enum('brand', 'warning', 'danger').required().preset('brand').widget(),
+      prop('accent').enum('neutral', 'success', 'warning', 'danger').required().preset('neutral').widget(),
       prop('id').str().widget(),
       prop('required').bool().widget(),
       prop('selected').bool().widget(),
@@ -13,6 +13,7 @@
         choice({ label: 'Search', value: 'fa:magnifying-glass' }, { label: 'AngleDown', value: 'fa:angle-down' })
       ),
       prop('clearable').bool().widget(),
+      prop('busy').bool().widget(),
       prop('prefix').str().widget(),
       prop('suffix').str().widget(),
       prop('disabled').bool().widget(),

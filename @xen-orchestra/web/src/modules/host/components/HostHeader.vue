@@ -15,18 +15,10 @@
       <VtsIcon v-if="isMaster" v-tooltip="t('master')" name="status:primary-circle" size="medium" />
     </template>
     <template #actions>
-      <UiLink size="medium" :to="{ name: '/vm/new', query: { poolid: host.$pool } }" icon="fa:plus">
-        {{ t('new-vm') }}
-      </UiLink>
-      <VtsChangeStateMenu v-if="!uiStore.isSmall">
-        <HostPowerStateActions :host />
-      </VtsChangeStateMenu>
-      <VtsActionsMenu :label="t('more-actions')" size="medium">
-        <HostMoreActions :host :show-change-state="uiStore.isSmall" />
-      </VtsActionsMenu>
+      <HostHeaderActions :host />
     </template>
   </UiHeadBar>
-  <TabList>
+  <TabList :label="host.name_label">
     <RouterLink v-slot="{ isActive, href }" :to="{ name: '/host/[id]/dashboard', params: { id: host.id } }" custom>
       <UiTabItem :active="isActive" :href tag="a">
         {{ t('dashboard') }}
@@ -71,22 +63,18 @@
 </template>
 
 <script lang="ts" setup>
-import HostPowerStateActions from '@/modules/host/components/actions/HostPowerStateActions.vue'
-import HostMoreActions from '@/modules/host/components/HostMoreActions.vue'
+import HostHeaderActions from '@/modules/host/components/actions/HostHeaderActions.vue'
 import { useXoHostUtils } from '@/modules/host/composables/xo-host-utils.composable.ts'
 import { type FrontXoHost, useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import { getHostIcon } from '@/modules/host/utils/xo-host.util.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
-import VtsActionsMenu from '@core/components/menu/VtsActionsMenu.vue'
-import VtsChangeStateMenu from '@core/components/menu/VtsChangeStateMenu.vue'
 import TabList from '@core/components/tab-list/TabList.vue'
 import UiHeadBar from '@core/components/ui/head-bar/UiHeadBar.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiLoader from '@core/components/ui/loader/UiLoader.vue'
 import UiTabItem from '@core/components/ui/tab-item/UiTabItem.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
-import { useUiStore } from '@core/stores/ui.store.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -95,8 +83,6 @@ const { host } = defineProps<{
 }>()
 
 const { t } = useI18n()
-
-const uiStore = useUiStore()
 
 const { isChangingState, currentOperation, iconTooltip } = useXoHostUtils(() => host)
 

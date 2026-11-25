@@ -2,10 +2,10 @@
   <UiCard class="vts-query-builder-group" :class="[{ root, highlighted }, item.operator]">
     <div class="group">
       <div class="header">
-        <VtsSelect :id="groupOperatorSelectId" class="group-operator" accent="brand" />
+        <VtsSelect :id="groupOperatorSelectId" class="group-operator" accent="neutral" />
         <MenuList v-if="!root" placement="bottom-end">
-          <template #trigger="{ open }">
-            <UiButtonIcon size="medium" accent="brand" icon="fa:ellipsis" @click="open" />
+          <template #trigger="{ open, bindings }">
+            <UiButtonIcon v-bind="bindings" size="medium" accent="brand" icon="fa:ellipsis" @click="open" />
           </template>
           <MenuItem accent="neutral" @click="emit('duplicate')">{{ t('action:duplicate') }}</MenuItem>
           <MenuItem accent="neutral" @click="emit('remove', true)">

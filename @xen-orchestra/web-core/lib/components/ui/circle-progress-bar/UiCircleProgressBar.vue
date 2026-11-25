@@ -17,7 +17,7 @@
         :class="{ success: isCompleteWithSuccess }"
       />
     </svg>
-    <div v-if="size !== 'extra-small'" class="overlay">
+    <div v-if="size !== 'extra-small' && !noValue" class="overlay">
       <VtsIcon v-if="isComplete" class="icon" :name="icon" size="medium" />
       <span v-else>{{ percentValue }}</span>
     </div>
@@ -37,16 +37,18 @@ const {
   size,
   value: rawValue,
   maxValue = 100,
+  noValue = false,
 } = defineProps<{
   accent: CircleProgressBarAccent
   size: CircleProgressBarSize
   value: number
   maxValue?: number
+  noValue?: boolean
 }>()
 
 const { n } = useI18n()
 
-export type CircleProgressBarAccent = 'info' | 'warning' | 'danger'
+export type CircleProgressBarAccent = 'brand' | 'info' | 'warning' | 'danger'
 type CircleProgressBarSize = 'extra-small' | 'small' | 'medium' | 'large'
 
 const circleSizeMap = {
@@ -88,7 +90,8 @@ const dashOffset = computed(() => {
   return circumference.value * (1 - valuePercent.value / 100)
 })
 
-const percentValue = computed(() => n(valuePercent.value / 100, 'percent'))
+// Floor (not round) so an unfinished value never displays as "100 %"
+const percentValue = computed(() => n(Math.floor(valuePercent.value) / 100, 'percent'))
 
 const icon = computed<IconName>(() => (accent === 'warning' || accent === 'danger' ? 'fa:exclamation' : 'fa:check'))
 
@@ -109,6 +112,18 @@ const className = computed(() => [
   justify-content: center;
 
   /* ACCENT */
+
+  &.accent--brand {
+    color: var(--color-brand-item-base);
+
+    .fill {
+      stroke: var(--color-brand-item-base);
+    }
+
+    .background {
+      stroke: var(--color-brand-background-selected);
+    }
+  }
 
   &.accent--info {
     color: var(--color-info-item-base);

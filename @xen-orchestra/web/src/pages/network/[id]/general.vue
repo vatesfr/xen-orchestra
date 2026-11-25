@@ -1,9 +1,11 @@
 <template>
-  <VtsColumns :columns="1" extra-space-around>
-    <VtsColumn>
-      <NetworkGeneralInfoCard :network />
-    </VtsColumn>
-  </VtsColumns>
+  <div class="scroll-container">
+    <VtsColumns :columns="1" extra-space-around>
+      <VtsColumn>
+        <NetworkGeneralInfoCard :network />
+      </VtsColumn>
+    </VtsColumns>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -14,3 +16,11 @@ import VtsColumns from '@core/components/columns/VtsColumns.vue'
 
 defineProps<{ network: FrontXoNetwork }>()
 </script>
+
+<style lang="postcss" scoped>
+.scroll-container {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+</style>

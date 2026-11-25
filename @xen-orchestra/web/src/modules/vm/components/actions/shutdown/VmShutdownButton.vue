@@ -1,25 +1,27 @@
 <template>
-  <MenuItem
+  <VtsActionButton
     v-if="canDisplay"
-    accent="neutral"
+    variant="tertiary"
+    accent="brand"
     :disabled="!canShutdown"
     icon="action:shutdown"
     :busy="isRunning"
+    :hint="t('vm-tools-missing')"
     @click="openModal()"
   >
     {{ t('action:shutdown') }}
-    <i v-if="!canShutdown" class="em-dash-prefix">{{ t('vm-tools-missing') }}</i>
-  </MenuItem>
+  </VtsActionButton>
 </template>
 
 <script setup lang="ts">
-import { useXoVmUtils } from '@/modules/vm/composables/xo-vm-utils.composable.ts'
+import { useVmActionModal } from '@/modules/vm/composables/use-vm-action-modal.composable.ts'
+import { useXo5VmRoute } from '@/modules/vm/composables/xo-vm-route-xo5.composable.ts'
 import { useXoVmShutdownJob } from '@/modules/vm/jobs/xo-vm-shutdown.job.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
-import MenuItem from '@core/components/menu/MenuItem.vue'
-import { useActionModal } from '@core/composables/modals/use-action-modal.ts'
+import { isVmAllowingOperation, isVmMissingGuestToolsFor } from '@/modules/vm/utils/xo-vm.util.ts'
+import VtsActionButton from '@core/components/action-button/VtsActionButton.vue'
 import { useBlockedModal } from '@core/composables/modals/use-blocked-modal.ts'
-import { VM_POWER_STATE } from '@vates/types'
+import { VM_OPERATIONS } from '@vates/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -31,28 +33,21 @@ const { t } = useI18n()
 
 const { run: shutdown, canRun, isRunning } = useXoVmShutdownJob(() => [vm])
 
-const { hasGuestTools, xo5VmAdvancedHref } = useXoVmUtils(() => vm)
+const { xo5VmAdvancedHref } = useXo5VmRoute(() => vm)
 
-const canShutdown = computed(() => hasGuestTools(vm))
+const canShutdown = computed(() => !isVmMissingGuestToolsFor(vm, VM_OPERATIONS.CLEAN_SHUTDOWN))
 
-const canDisplay = computed(() => {
-  return canRun.value || vm.power_state === VM_POWER_STATE.RUNNING
-})
+const canDisplay = computed(() => canRun.value || isVmAllowingOperation(vm, VM_OPERATIONS.CLEAN_SHUTDOWN))
 
 const { open: openBlockedModal } = useBlockedModal()
 
-const { open: openShutdownModal } = useActionModal()
+const { openVmActionModal } = useVmActionModal()
 
 const openModal = () => {
   if (!canRun.value) {
     return openBlockedModal({ props: { blockedOperation: 'clean_shutdown', href: xo5VmAdvancedHref.value } })
   }
 
-  return openShutdownModal({
-    props: { accent: 'info', action: 'shutdown', object: 'vm', vmName: vm.name_label, icon: 'status:info-picto' },
-    events: {
-      onConfirm: () => shutdown({ detached: true }),
-    },
-  })
+  return openVmActionModal('shutdown', [vm], () => shutdown({ detached: true }))
 }
 </script>

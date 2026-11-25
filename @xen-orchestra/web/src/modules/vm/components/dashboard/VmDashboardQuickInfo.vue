@@ -1,5 +1,5 @@
 <template>
-  <VtsQuickInfoCard class="vm-dashboard-quick-info" :loading="!areVmsReady">
+  <VtsQuickInfoCard :loading="!areVmsReady" class="vm-dashboard-quick-info">
     <VtsKeyValueList>
       <VtsKeyValueRow :label="t('state')">
         <template #value>
@@ -21,8 +21,8 @@
           <UiLink
             v-if="pool"
             :to="{ name: '/pool/[id]/dashboard', params: { id: pool.id } }"
-            size="medium"
             icon="object:pool"
+            size="medium"
           >
             {{ pool.name_label }}
           </UiLink>
@@ -34,6 +34,25 @@
       <VtsKeyValueRow :label="t('host')">
         <template #value>
           <HostLink v-if="host" :host="host" size="medium" />
+          <template v-else>
+            {{ t('none') }}
+          </template>
+        </template>
+      </VtsKeyValueRow>
+      <VtsKeyValueRow :label="t('storage')">
+        <template #value>
+          <ul v-if="srs.length > 0" class="storage">
+            <li v-for="sr in displayedSrs" :key="sr.id">
+              <UiLink :to="{ name: '/sr/[id]/general', params: { id: sr.id } }" icon="object:sr" size="medium">
+                {{ sr.name_label }}
+              </UiLink>
+            </li>
+            <li v-if="hiddenSrsCount > 0" class="hidden-srs-count">
+              <UiLink :to="{ name: '/vm/[id]/vdis', params: { id: vm.id } }" size="medium">
+                {{ t('plus-n', { n: hiddenSrsCount }) }}
+              </UiLink>
+            </li>
+          </ul>
           <template v-else>
             {{ t('none') }}
           </template>
@@ -53,14 +72,10 @@
     <VtsKeyValueList>
       <VtsKeyValueRow :label="t('vcpus')" :value="String(vm.CPUs.number)" />
       <VtsKeyValueRow :label="t('ram')" :value="ram" />
-      <VtsKeyValueRow :label="t('tags')">
-        <template #value>
-          <UiTagsList v-if="vm.tags.length > 0">
-            <VtsTag v-for="tag in vm.tags" :key="tag" :value="tag" />
-          </UiTagsList>
-        </template>
-      </VtsKeyValueRow>
     </VtsKeyValueList>
+    <template #footer>
+      <VmTagsEditor :vm class="typo-body-regular" />
+    </template>
   </VtsQuickInfoCard>
 </template>
 
@@ -68,16 +83,16 @@
 import HostLink from '@/modules/host/components/HostLink.vue'
 import { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import { useXoUserResource } from '@/modules/user/remote-resources/use-xo-user.ts'
+import VmTagsEditor from '@/modules/vm/components/tags/VmTagsEditor.vue'
 import VmGuestToolsStatus from '@/modules/vm/components/VmGuestToolsStatus.vue'
+import { useXoVmDisksSrs } from '@/modules/vm/composables/xo-vm-disks-srs.composable.ts'
 import { useXoVmUtils } from '@/modules/vm/composables/xo-vm-utils.composable.ts'
 import { type FrontXoVm, useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsKeyValueList from '@core/components/key-value-list/VtsKeyValueList.vue'
 import VtsKeyValueRow from '@core/components/key-value-row/VtsKeyValueRow.vue'
 import VtsQuickInfoCard from '@core/components/quick-info-card/VtsQuickInfoCard.vue'
-import VtsTag from '@core/components/tag/VtsTag.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
-import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import { formatSize } from '@core/utils/size.util.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -107,10 +122,28 @@ const virtualizationType = computed(() =>
 )
 
 const host = computed(() => getVmHost(vm))
+
+const MAX_DISPLAYED_SRS = 1
+
+const { srs } = useXoVmDisksSrs(() => vm)
+
+const displayedSrs = computed(() => srs.value.slice(0, MAX_DISPLAYED_SRS))
+
+const hiddenSrsCount = computed(() => srs.value.length - displayedSrs.value.length)
 </script>
 
 <style lang="postcss" scoped>
 .vm-dashboard-quick-info {
+  .storage {
+    display: flex;
+    align-items: baseline;
+    gap: 0.8rem;
+  }
+
+  .hidden-srs-count {
+    flex-shrink: 0;
+  }
+
   .value {
     display: flex;
     align-items: center;

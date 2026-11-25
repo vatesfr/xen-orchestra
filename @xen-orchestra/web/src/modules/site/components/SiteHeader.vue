@@ -2,12 +2,19 @@
   <UiHeadBar icon="fa:satellite">
     {{ XOA_NAME }}
     <template #actions>
-      <UiLink :to="{ name: '/pool/connect' }" size="medium" icon="fa:plus">
+      <UiButton
+        :busy="isConnectingPool"
+        accent="brand"
+        left-icon="fa:plus"
+        size="medium"
+        variant="tertiary"
+        @click="openPoolConnectionDrawer()"
+      >
         {{ t('action:connect-pool') }}
-      </UiLink>
+      </UiButton>
     </template>
   </UiHeadBar>
-  <TabList>
+  <TabList :label="XOA_NAME">
     <RouterLink v-slot="{ isExactActive, href }" :to="{ name: '/(site)/dashboard' }" custom>
       <UiTabItem :active="isExactActive" :href tag="a">
         {{ t('dashboard') }}
@@ -31,12 +38,15 @@
 </template>
 
 <script lang="ts" setup>
+import { usePoolConnection } from '@/modules/pool/composables/use-pool-connection.composable.ts'
 import { XOA_NAME } from '@/shared/constants.ts'
 import TabList from '@core/components/tab-list/TabList.vue'
+import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiHeadBar from '@core/components/ui/head-bar/UiHeadBar.vue'
-import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTabItem from '@core/components/ui/tab-item/UiTabItem.vue'
 import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n()
+
+const { openPoolConnectionDrawer, isConnectingPool } = usePoolConnection()
 </script>

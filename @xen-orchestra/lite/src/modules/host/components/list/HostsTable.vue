@@ -3,7 +3,7 @@
     <UiTitle>
       {{ t('hosts') }}
     </UiTitle>
-    <UiQuerySearchBar @search="(value: string) => (searchQuery = value)" />
+    <UiQuerySearchBar v-bind="searchBindings" />
     <div class="container">
       <VtsTable :pagination-bindings :state sticky="right">
         <thead>
@@ -34,11 +34,12 @@ import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearch
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { usePagination } from '@core/composables/pagination.composable.ts'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
+import { useSearchFilter } from '@core/composables/search-filter.composable.ts'
 import { useTableState } from '@core/composables/table-state.composable.ts'
 import { icon } from '@core/icons'
 import { useHostColumns } from '@core/tables/column-sets/host-columns.ts'
 import { logicAnd, logicNot, logicOr } from '@vueuse/math'
-import { computed, ref } from 'vue'
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const {
@@ -63,19 +64,7 @@ const hasError = logicOr(() => error, hasPifError)
 
 const selectedHostId = useRouteQuery('id')
 
-const searchQuery = ref('')
-
-const filteredHosts = computed(() => {
-  const searchTerm = searchQuery.value.trim().toLocaleLowerCase()
-
-  if (!searchTerm) {
-    return rawHosts
-  }
-
-  return rawHosts.filter(host =>
-    Object.values(host).some(value => String(value).toLocaleLowerCase().includes(searchTerm))
-  )
-})
+const { items: filteredHosts, searchBindings } = useSearchFilter(() => rawHosts)
 
 const state = useTableState({
   busy: logicNot(isReady),
@@ -107,7 +96,7 @@ function getMasterIcon(host: XenApiHost) {
 }
 
 const { HeadCells, BodyCells } = useHostColumns({
-  exclude: ['checkbox', 'srStatus'],
+  exclude: ['checkbox', 'srStatus', 'actions'],
   body: (host: XenApiHost) => {
     const ipAddresses = computed(() => getHostIpAddresses(host.address, pifsByHost.value.get(host.$ref)))
     const hostIcon = computed(() => getHostIcon(host, getHostPowerState(host)))

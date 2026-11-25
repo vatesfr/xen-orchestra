@@ -1,13 +1,15 @@
 import type { FrontXoNetwork } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
 import {
   getNetworkRules,
+  getNewTrafficRulePriority,
   getOrdinalSuffix,
   getTrafficRulePriority,
+  getTrafficRulePriorityUpdates,
   getTrafficRuleProtocolLabel,
   rankTrafficRules,
 } from '@/modules/traffic-rules/utils/xo-traffic-rule.util.ts'
 import type { FrontXoVif } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
-import { createTrafficRule } from '@/test/create-traffic-rule.ts'
+import { createTrafficRule, getTrafficRuleIds } from '@/test/create-traffic-rule.ts'
 
 const EN_SUFFIXES = 'one:st, two:nd, few:rd, other:th'
 const FR_SUFFIXES = 'one:re, other:e'
@@ -23,6 +25,56 @@ describe('getTrafficRulePriority', () => {
 
   it('defaults to the OpenFlow priority when the rule has none', () => {
     expect(getTrafficRulePriority(createTrafficRule({ priority: undefined }))).toBe(32768)
+  })
+})
+
+describe('getNewTrafficRulePriority', () => {
+  it('goes below the OpenFlow default on a network without rules', () => {
+    expect(getNewTrafficRulePriority([])).toBe(32758)
+  })
+
+  it('goes below the rules without a priority', () => {
+    expect(getNewTrafficRulePriority([createTrafficRule({ priority: undefined })])).toBe(32758)
+  })
+
+  it('goes below the lowest priority of the network', () => {
+    const rules = [createTrafficRule({ priority: 120 }), createTrafficRule({ priority: 100 })]
+
+    expect(getNewTrafficRulePriority(rules)).toBe(90)
+  })
+
+  it('goes below the lowest priority even when it is above the OpenFlow default', () => {
+    expect(getNewTrafficRulePriority([createTrafficRule({ priority: 40000 })])).toBe(39990)
+  })
+
+  it('goes down to the lowest allowed priority', () => {
+    expect(getNewTrafficRulePriority([createTrafficRule({ priority: 11 })])).toBe(1)
+  })
+
+  it('goes below the lowest priority among rules with and without one', () => {
+    const rules = [
+      createTrafficRule({ priority: undefined }),
+      createTrafficRule({ priority: 40000 }),
+      createTrafficRule({ priority: 500 }),
+    ]
+
+    expect(getNewTrafficRulePriority(rules)).toBe(490)
+  })
+
+  it('steps down by one when there is no room for a step', () => {
+    expect(getNewTrafficRulePriority([createTrafficRule({ priority: 5 })])).toBe(4)
+  })
+
+  it('steps down by one to the lowest allowed priority', () => {
+    expect(getNewTrafficRulePriority([createTrafficRule({ priority: 2 })])).toBe(1)
+  })
+
+  it('returns undefined when a rule already has the lowest allowed priority', () => {
+    expect(getNewTrafficRulePriority([createTrafficRule({ priority: 1 })])).toBeUndefined()
+  })
+
+  it('returns undefined when a rule still has the priority 0 that XAPI reserves', () => {
+    expect(getNewTrafficRulePriority([createTrafficRule({ priority: 0 })])).toBeUndefined()
   })
 })
 
@@ -70,7 +122,7 @@ describe('rankTrafficRules', () => {
     const low = createTrafficRule({ id: 'low', priority: 100 })
     const high = createTrafficRule({ id: 'high', priority: 200 })
 
-    expect(rankTrafficRules([low, high], getNetworkLabel).map(rule => rule.id)).toEqual(['high', 'low'])
+    expect(getTrafficRuleIds(rankTrafficRules([low, high], getNetworkLabel))).toEqual(['high', 'low'])
   })
 
   it('places rules without priority at the default priority', () => {
@@ -78,7 +130,7 @@ describe('rankTrafficRules', () => {
     const none = createTrafficRule({ id: 'none', priority: undefined })
     const below = createTrafficRule({ id: 'below', priority: 100 })
 
-    expect(rankTrafficRules([below, none, above], getNetworkLabel).map(rule => rule.id)).toEqual([
+    expect(getTrafficRuleIds(rankTrafficRules([below, none, above], getNetworkLabel))).toEqual([
       'above',
       'none',
       'below',
@@ -90,7 +142,7 @@ describe('rankTrafficRules', () => {
     const vifRuleA = createTrafficRule({ id: 'vif-a', type: 'VIF', sourceId: 'vif-a' as FrontXoVif['id'] })
     const vifRuleB = createTrafficRule({ id: 'vif-b', type: 'VIF', sourceId: 'vif-b' as FrontXoVif['id'] })
 
-    expect(rankTrafficRules([networkRule, vifRuleA, vifRuleB], getNetworkLabel).map(rule => rule.id)).toEqual([
+    expect(getTrafficRuleIds(rankTrafficRules([networkRule, vifRuleA, vifRuleB], getNetworkLabel))).toEqual([
       'network',
       'vif-a',
       'vif-b',
@@ -120,7 +172,7 @@ describe('rankTrafficRules', () => {
       createTrafficRule({ id: 'n1-high', networkId: lanNetwork, priority: 200 }),
     ]
 
-    expect(rankTrafficRules(rules, getNetworkLabel).map(rule => rule.id)).toEqual(['n1-high', 'n1-low', 'n3-high'])
+    expect(getTrafficRuleIds(rankTrafficRules(rules, getNetworkLabel))).toEqual(['n1-high', 'n1-low', 'n3-high'])
   })
 
   it('does not mutate the input array', () => {
@@ -128,7 +180,77 @@ describe('rankTrafficRules', () => {
 
     rankTrafficRules(rules, getNetworkLabel)
 
-    expect(rules.map(rule => rule.id)).toEqual(['low', 'high'])
+    expect(getTrafficRuleIds(rules)).toEqual(['low', 'high'])
+  })
+})
+
+describe('getTrafficRulePriorityUpdates', () => {
+  const ruleA = createTrafficRule({ id: 'a', priority: 300 })
+  const ruleB = createTrafficRule({ id: 'b', priority: 200 })
+  const ruleC = createTrafficRule({ id: 'c', priority: 100 })
+  const ruleD = createTrafficRule({ id: 'd', priority: 50 })
+
+  const getUpdatedRuleIds = (updates: ReturnType<typeof getTrafficRulePriorityUpdates>) =>
+    updates?.map(update => update.rule.id)
+
+  it('updates nothing when the order is unchanged', () => {
+    expect(getTrafficRulePriorityUpdates([ruleA, ruleB, ruleC], [ruleA, ruleB, ruleC])).toEqual([])
+  })
+
+  it('only updates the moved rule, with a priority between its new neighbours', () => {
+    const updates = getTrafficRulePriorityUpdates([ruleA, ruleD, ruleB, ruleC], [ruleA, ruleB, ruleC, ruleD])
+
+    expect(getUpdatedRuleIds(updates)).toEqual(['d'])
+    expect(updates?.[0].priority).toBeLessThan(300)
+    expect(updates?.[0].priority).toBeGreaterThan(200)
+  })
+
+  it('never gives a priority a rule of the network missing from the order already has', () => {
+    // added on the network while the order was being edited
+    const addedRule = createTrafficRule({ id: 'x', priority: 250 })
+
+    const updates = getTrafficRulePriorityUpdates([ruleA, ruleD, ruleB, ruleC], [ruleA, ruleB, ruleC, ruleD, addedRule])
+
+    expect(getUpdatedRuleIds(updates)).toEqual(['d'])
+    expect(updates?.[0].priority).not.toBe(250)
+  })
+
+  // `priorities`: the rules of the network, in their new order
+  it.each([
+    {
+      name: 'never gives the default priority while a rule of the network has none',
+      priorities: [32770, 40000, 32767, undefined],
+      forbidden: 32768,
+    },
+    { name: 'never gives the priority 0, which XAPI reserves', priorities: [3, 10, 20], forbidden: 0 },
+  ])('$name', ({ priorities, forbidden }) => {
+    const rules = priorities.map((priority, index) => createTrafficRule({ id: `rule-${index}`, priority }))
+
+    const updates = getTrafficRulePriorityUpdates(rules, rules)
+
+    expect(updates?.map(update => update.priority)).not.toContain(forbidden)
+  })
+
+  // `order`: the new order of the first and second rules, as their indexes
+  it.each([
+    { name: 'gives a priority to the rules that have none', priorities: [undefined, undefined], order: [0, 1] },
+    { name: 'renumbers all the rules when there is no room between the kept ones', priorities: [1, 0], order: [1, 0] },
+  ])('$name', ({ priorities, order }) => {
+    const rules = priorities.map((priority, index) => createTrafficRule({ id: ['first', 'second'][index], priority }))
+    const orderedRules = order.map(index => rules[index])
+
+    const updates = getTrafficRulePriorityUpdates(orderedRules, rules)
+
+    expect(getUpdatedRuleIds(updates)).toEqual(getTrafficRuleIds(orderedRules))
+    expect(updates?.[0].priority).toBeGreaterThan(updates?.[1].priority ?? Infinity)
+  })
+
+  it('returns undefined when the network has no free priority left', () => {
+    const networkRules = Array.from({ length: 65536 }, (_, priority) =>
+      createTrafficRule({ id: `rule-${priority}`, priority })
+    )
+
+    expect(getTrafficRulePriorityUpdates([networkRules[0], networkRules[1]], networkRules)).toBeUndefined()
   })
 })
 

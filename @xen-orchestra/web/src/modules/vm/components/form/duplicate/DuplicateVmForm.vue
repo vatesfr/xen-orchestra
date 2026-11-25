@@ -1,6 +1,7 @@
 <template>
-  <VtsForm class="duplicate-vm-form" @submit="onSubmit()">
+  <div class="duplicate-vm-form">
     <UiTitle>{{ t('general-information') }}</UiTitle>
+    <VtsRequiredHint />
     <div class="row">
       <DuplicateVmFormTextInput class="field" v-bind="nameInputBindings" />
     </div>
@@ -32,32 +33,24 @@
         </div>
       </div>
     </div>
-    <DuplicateVmButtonSection :cancel-to="cancelTo" :submit-label="t('action:duplicate')" />
-  </VtsForm>
+  </div>
 </template>
 
 <script setup lang="ts">
-import DuplicateVmButtonSection from '@/modules/vm/components/form/duplicate/inputs/DuplicateVmButtonSection.vue'
 import DuplicateVmFormRadio from '@/modules/vm/components/form/duplicate/inputs/DuplicateVmFormRadio.vue'
 import DuplicateVmFormSelect from '@/modules/vm/components/form/duplicate/inputs/DuplicateVmFormSelect.vue'
 import DuplicateVmFormTextInput from '@/modules/vm/components/form/duplicate/inputs/DuplicateVmFormTextInput.vue'
 import { useDuplicateVmForm } from '@/modules/vm/form/use-duplicate-vm-form.ts'
-import type { DuplicateVmPayload } from '@/modules/vm/jobs/xo-vm-duplicate.job.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
-import VtsForm from '@core/components/form/VtsForm.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
+import VtsRequiredHint from '@core/components/required-hint/VtsRequiredHint.vue'
 import VtsOption from '@core/components/select/VtsOption.vue'
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import UiLabel from '@core/components/ui/label/UiLabel.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { useI18n } from 'vue-i18n'
-import type { RouteLocationRaw } from 'vue-router'
 
-const { vm } = defineProps<{ vm: FrontXoVm; cancelTo: RouteLocationRaw }>()
-
-const emit = defineEmits<{
-  duplicate: [payload: DuplicateVmPayload]
-}>()
+const { vm } = defineProps<{ vm: FrontXoVm }>()
 
 const { t } = useI18n()
 
@@ -73,13 +66,9 @@ const {
   validateAndBuildPayload,
 } = useDuplicateVmForm(() => vm)
 
-async function onSubmit() {
-  const payload = await validateAndBuildPayload()
-
-  if (payload !== undefined) {
-    emit('duplicate', payload)
-  }
-}
+defineExpose({
+  validate: validateAndBuildPayload,
+})
 </script>
 
 <style scoped lang="postcss">

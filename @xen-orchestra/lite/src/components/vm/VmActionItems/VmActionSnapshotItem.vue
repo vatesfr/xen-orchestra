@@ -1,13 +1,14 @@
 <template>
-  <MenuItem
-    accent="neutral"
+  <VtsActionButton
+    variant="tertiary"
+    accent="brand"
     :busy="areSomeVmsSnapshotting"
     :disabled="isDisabled"
     icon="fa:camera"
-    @click="handleSnapshot"
+    @click="handleSnapshot()"
   >
     {{ t('snapshot') }}
-  </MenuItem>
+  </VtsActionButton>
 </template>
 
 <script lang="ts" setup>
@@ -16,7 +17,7 @@ import { VM_OPERATION } from '@/libs/xen-api/xen-api.enums.ts'
 import type { XenApiVm } from '@/libs/xen-api/xen-api.types.ts'
 import { useVmStore } from '@/stores/xen-api/vm.store.ts'
 import { useXenApiStore } from '@/stores/xen-api.store.ts'
-import MenuItem from '@core/components/menu/MenuItem.vue'
+import VtsActionButton from '@core/components/action-button/VtsActionButton.vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 

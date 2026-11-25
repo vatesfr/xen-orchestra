@@ -4,8 +4,10 @@
       <PoolNetworksTable :networks="networksWithPifs" :busy="!isReady" :error="hasError">
         <template #title-actions>
           <VtsResponsiveMenu :title="t('new')" placement="bottom-end">
-            <template #trigger="{ open }">
-              <UiDropdownButton size="medium" variant="primary" @click="open($event)">{{ t('new') }}</UiDropdownButton>
+            <template #trigger="{ open, bindings }">
+              <UiDropdownButton v-bind="bindings" size="medium" variant="primary" @click="open($event)">
+                {{ t('new') }}
+              </UiDropdownButton>
             </template>
             <MenuItem accent="neutral">
               <UiLink class="new-network-link" :to="{ name: '/network/new' }" icon="fa:plus" size="medium">
@@ -28,7 +30,9 @@
         </template>
       </PoolHostInternalNetworksTable>
     </UiCard>
-    <PoolNetworkSidePanel :network="selectedNetwork" @close="selectedNetwork = undefined" />
+    <template #panel>
+      <PoolNetworkSidePanel :network="selectedNetwork" @close="selectedNetwork = undefined" />
+    </template>
   </VtsContentSidePanel>
 </template>
 
@@ -70,7 +74,7 @@ const selectedNetwork = useRouteQuery<XenApiNetwork | undefined>('id', {
 }
 
 .new-network-link {
-  height: 100%;
-  width: 100%;
+  flex-grow: 1;
+  padding-block: 1.2rem;
 }
 </style>

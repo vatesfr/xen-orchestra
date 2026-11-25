@@ -1,5 +1,5 @@
 <template>
-  <VtsForm class="new-vif-form" @submit="onSubmit()">
+  <div class="new-vif-form">
     <div class="row">
       <VifNetworkSelect v-bind="networkSelectBindings">
         <template #option="{ option }">
@@ -20,8 +20,7 @@
     <div class="tx-checksumming">
       <VifTxChecksummingCheckbox v-bind="txChecksummingCheckboxBindings" />
     </div>
-    <NewVifButtonsSection :cancel-to />
-  </VtsForm>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -31,23 +30,14 @@ import VifMacInput from '@/modules/vif/components/form/new/inputs/VifMacInput.vu
 import VifNetworkSelect from '@/modules/vif/components/form/new/inputs/VifNetworkSelect.vue'
 import VifRateLimitInput from '@/modules/vif/components/form/new/inputs/VifRateLimitInput.vue'
 import VifTxChecksummingCheckbox from '@/modules/vif/components/form/new/inputs/VifTxChecksummingCheckbox.vue'
-import NewVifButtonsSection from '@/modules/vif/components/form/new/NewVifButtonsSection.vue'
 import { useNewVifForm } from '@/modules/vif/form/new/use-new-vif-form.ts'
-import type { NewVifPayload } from '@/modules/vif/jobs/xo-vif-create.job.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
-import VtsForm from '@core/components/form/VtsForm.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsOption from '@core/components/select/VtsOption.vue'
-import type { RouteLocationRaw } from 'vue-router'
 
 const { vmId, poolId } = defineProps<{
   vmId: FrontXoVm['id']
   poolId: FrontXoPool['id']
-  cancelTo: RouteLocationRaw
-}>()
-
-const emit = defineEmits<{
-  create: [data: NewVifPayload]
 }>()
 
 const {
@@ -62,13 +52,9 @@ const {
   () => poolId
 )
 
-async function onSubmit() {
-  const payload = await validateAndBuildPayload()
-
-  if (payload !== undefined) {
-    emit('create', payload)
-  }
-}
+defineExpose({
+  validate: validateAndBuildPayload,
+})
 </script>
 
 <style lang="postcss" scoped>
@@ -92,8 +78,6 @@ async function onSubmit() {
 
     @media (--medium-or-large) {
       flex-direction: row;
-      gap: 8rem;
-      max-width: 88rem;
     }
 
     &:not(:first-child) {

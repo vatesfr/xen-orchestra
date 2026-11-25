@@ -3,7 +3,7 @@
     <UiTitle>
       {{ t('storage-repositories') }}
     </UiTitle>
-    <UiQuerySearchBar @search="value => (searchQuery = value)" />
+    <UiQuerySearchBar v-bind="searchBindings" />
     <div class="container">
       <VtsTable :state :pagination-bindings sticky="right">
         <thead>
@@ -33,12 +33,13 @@ import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearch
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { usePagination } from '@core/composables/pagination.composable.ts'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
+import { useSearchFilter } from '@core/composables/search-filter.composable.ts'
 import { useTableState } from '@core/composables/table-state.composable.ts'
 import { icon } from '@core/icons'
 import { useSrColumns } from '@core/tables/column-sets/sr-columns.ts'
 import { type SrScope } from '@core/types/storage-repository.type.ts'
 import { shouldShowTargetCount } from '@core/utils/sr.utils.ts'
-import { computed, ref } from 'vue'
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const {
@@ -61,17 +62,7 @@ const { isReady, hasError, isDefaultSr } = useSrStore().subscribe()
 
 const selectedSrId = useRouteQuery('id')
 
-const searchQuery = ref('')
-
-const filteredSrs = computed(() => {
-  const searchTerm = searchQuery.value.trim().toLocaleLowerCase()
-
-  if (!searchTerm) {
-    return rawSrs
-  }
-
-  return rawSrs.filter(sr => Object.values(sr).some(value => String(value).toLocaleLowerCase().includes(searchTerm)))
-})
+const { items: filteredSrs, searchBindings } = useSearchFilter(() => rawSrs)
 
 const state = useTableState({
   busy: () => busy ?? !isReady.value,

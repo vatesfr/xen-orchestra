@@ -1,7 +1,6 @@
 import _ from 'intl'
 import ActionButton from 'action-button'
 import addSubscriptions from 'add-subscriptions'
-import copy from 'copy-to-clipboard'
 import decorate from 'apply-decorators'
 import Icon from 'icon'
 import Link from 'link'
@@ -35,7 +34,6 @@ import Page from '../page'
 import deployProxy from './deploy-proxy'
 import { updateApplianceSettings } from './update-appliance-settings'
 
-import Tooltip from '../../common/tooltip'
 import { getXoaPlan, SOURCES } from '../../common/xoa-plans'
 
 const _editProxy = (value, { name, proxy }) => {
@@ -70,17 +68,6 @@ const ACTIONS = [
 ]
 
 const INDIVIDUAL_ACTIONS = [
-  {
-    collapsed: true,
-    disabled: ({ url }) => url === undefined,
-    handler: ({ url }) => copy(url),
-    icon: 'clipboard',
-    label: ({ url }) => (
-      <Tooltip content={url !== undefined ? _('copyValue', { value: url }) : _('urlNotFound')}>
-        {_('proxyCopyUrl')}
-      </Tooltip>
-    ),
-  },
   {
     collapsed: true,
     handler: (proxy, { deployProxy }) =>

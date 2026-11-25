@@ -84,7 +84,7 @@ export class V2vService {
     try {
       await asyncEach(
         plans,
-        async ({ id, name, sr, network, disks, nics, template, stopSource }) => {
+        async ({ id, name, sr, network, disks, nics, template, stopSource, docking, startVm }) => {
           await Task.run({ properties: { name: `importing VM ${name}`, sourceVmId: id } }, async () => {
             try {
               result[id] = await this.#restApi.xoApp.migrationfromEsxi({
@@ -96,6 +96,8 @@ export class V2vService {
                 nics,
                 template,
                 stopSource,
+                docking,
+                startVm,
               })
             } finally {
               done++

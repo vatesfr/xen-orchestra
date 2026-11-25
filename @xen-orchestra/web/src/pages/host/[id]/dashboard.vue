@@ -1,36 +1,38 @@
 <template>
-  <div class="dashboard" :class="{ mobile: uiStore.isSmall }">
-    <HostDashboardQuickInfo class="quick-info" :host />
-    <div v-if="!isHostRunning" class="offline-hero-container">
-      <VtsStateHero format="page" type="offline" size="large" horizontal>
-        <span>
-          {{ t('engines-off') }}
-        </span>
-        <span class="title typo-h1">{{ t('host-off') }}</span>
-        <div class="description typo-body-bold">
-          <span>{{ t('host-currently-shutdown') }}</span>
-          <span>{{ t('start-host') }}</span>
-        </div>
-      </VtsStateHero>
-    </div>
-    <template v-else>
-      <DashboardAlarms
-        class="alarms"
-        :alarms="hostAlarms"
-        :is-ready="areHostAlarmsReady"
-        :has-error="hasHostAlarmFetchError"
-      />
-      <HostDashboardPatches class="patches" :host />
-      <HostDashboardVmsStatus class="vms-status" :host />
-      <HostDashboardRamProvisioning class="ram-provisioning" :host />
-      <HostDashboardCpuProvisioning class="cpu-provisioning" :host />
-      <template v-if="data">
-        <HostDashboardCpuUsageChart class="cpu-usage-chart" :data :loading="isFetching" :error />
-        <HostDashboardRamUsageChart class="ram-usage-chart" :data :loading="isFetching" :error />
-        <HostDashboardNetworkUsageChart class="network-usage-chart" :data :loading="isFetching" :error />
-        <HostDashboardLoadAverageChart class="load-average-chart" :data :loading="isFetching" :error />
+  <div class="scroll-container">
+    <div class="dashboard" :class="{ mobile: uiStore.isSmall }">
+      <HostDashboardQuickInfo class="quick-info" :host />
+      <div v-if="!isHostRunning" class="offline-hero-container">
+        <VtsStateHero format="page" type="offline" size="large" horizontal>
+          <span>
+            {{ t('engines-off') }}
+          </span>
+          <span class="title typo-h1">{{ t('host-off') }}</span>
+          <div class="description typo-body-bold">
+            <span>{{ t('host-currently-shutdown') }}</span>
+            <span>{{ t('start-host') }}</span>
+          </div>
+        </VtsStateHero>
+      </div>
+      <template v-else>
+        <DashboardAlarms
+          class="alarms"
+          :alarms="hostAlarms"
+          :is-ready="areHostAlarmsReady"
+          :has-error="hasHostAlarmFetchError"
+        />
+        <HostDashboardPatches class="patches" :host />
+        <HostDashboardVmsStatus class="vms-status" :host />
+        <HostDashboardRamProvisioning class="ram-provisioning" :host />
+        <HostDashboardCpuProvisioning class="cpu-provisioning" :host />
+        <template v-if="data">
+          <HostDashboardCpuUsageChart class="cpu-usage-chart" :data :loading="isFetching" :error />
+          <HostDashboardRamUsageChart class="ram-usage-chart" :data :loading="isFetching" :error />
+          <HostDashboardNetworkUsageChart class="network-usage-chart" :data :loading="isFetching" :error />
+          <HostDashboardLoadAverageChart class="load-average-chart" :data :loading="isFetching" :error />
+        </template>
       </template>
-    </template>
+    </div>
   </div>
 </template>
 
@@ -71,6 +73,12 @@ const uiStore = useUiStore()
 </script>
 
 <style lang="postcss" scoped>
+.scroll-container {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
 .dashboard {
   display: grid;
   margin: 0.8rem;

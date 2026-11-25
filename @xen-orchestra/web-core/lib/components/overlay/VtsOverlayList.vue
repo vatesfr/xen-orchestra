@@ -1,7 +1,7 @@
 <template>
-  <div class="vts-overlay-list">
+  <div ref="root" class="vts-overlay-list">
     <Transition name="fade">
-      <div v-if="overlayStore.overlays.length > 0" class="backdrop" />
+      <div v-if="hasOverlays" class="backdrop" />
     </Transition>
 
     <TransitionGroup tag="div" name="overlay" class="overlays">
@@ -11,6 +11,7 @@
         class="overlay"
         :overlay
         :class="{ dimmed: !overlayStore.isCurrent(overlay.key) }"
+        :inert="!overlayStore.isCurrent(overlay.key)"
       />
     </TransitionGroup>
   </div>
@@ -19,8 +20,49 @@
 <script lang="ts" setup>
 import OverlayComponent from '@core/packages/overlay/OverlayComponent.vue'
 import { useOverlayStore } from '@core/packages/overlay/use-overlay-store.ts'
+import { computed, useTemplateRef, watch } from 'vue'
 
 const overlayStore = useOverlayStore()
+
+const hasOverlays = computed(() => overlayStore.overlays.length > 0)
+
+const rootElement = useTemplateRef('root')
+
+const inertElementsByOverlay = new Map<symbol, HTMLElement[]>()
+
+function makeOutsideInert(root: HTMLElement) {
+  const inertElements: HTMLElement[] = []
+
+  for (let element = root; element !== document.body && element.parentElement; element = element.parentElement) {
+    for (const sibling of element.parentElement.children) {
+      if (sibling !== element && sibling instanceof HTMLElement && !sibling.inert) {
+        sibling.inert = true
+        inertElements.push(sibling)
+      }
+    }
+  }
+
+  return inertElements
+}
+
+watch([rootElement, () => overlayStore.overlays.map(overlay => overlay.key)], ([root, keys]) => {
+  inertElementsByOverlay.forEach((elements, key) => {
+    if (!keys.includes(key)) {
+      elements.forEach(element => (element.inert = false))
+      inertElementsByOverlay.delete(key)
+    }
+  })
+
+  if (root === null) {
+    return
+  }
+
+  keys.forEach(key => {
+    if (!inertElementsByOverlay.has(key)) {
+      inertElementsByOverlay.set(key, makeOutsideInert(root))
+    }
+  })
+})
 </script>
 
 <style lang="postcss" scoped>

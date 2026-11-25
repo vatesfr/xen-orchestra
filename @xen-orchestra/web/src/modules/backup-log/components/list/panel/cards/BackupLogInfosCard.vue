@@ -1,6 +1,12 @@
 <template>
   <UiPanelCard>
-    <UiPanelCardTitle :id="backupLog.id" size="medium" :label="logName" :href="logHref" icon="object:backup-run" />
+    <UiPanelCardTitle
+      :id="backupLog.id"
+      size="medium"
+      :label="logName"
+      :to="{ name: '/admin/backup-log/[id]/general', params: { id: backupLog.id } }"
+      icon="object:backup-run"
+    />
     <VtsCardRowList>
       <VtsCardRowKeyValue>
         <template #key>{{ t('backup-date') }}</template>
@@ -136,13 +142,11 @@ const formattedStartDate = computed(() => getBackupLogDate(backupLog.start))
 
 const logName = computed(() => t('log-name', { date: formattedStartDate.value }))
 
-const duration = computed(() => getBackupLogDuration(backupLog))
+const duration = computed(() => getBackupLogDuration(backupLog.start, backupLog.end))
 
 const job = useGetBackupJobById(() => backupLog.jobId)
 
 const jobHref = computed(() => buildXo5Route('/settings/remotes'))
-
-const logHref = computed(() => buildXo5Route('/settings/remotes'))
 
 const vms = computed(() =>
   getBackupLogVmIds(backupLog).map(id => {

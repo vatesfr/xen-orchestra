@@ -1,64 +1,39 @@
-import type { useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
-import type { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
-import type { useXoUserResource } from '@/modules/user/remote-resources/use-xo-user.ts'
+import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import VmDashboardQuickInfo from '@/modules/vm/components/dashboard/VmDashboardQuickInfo.vue'
-import type { FrontXoVm, useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
-import type { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
+import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { createHost } from '@/test/create-host.ts'
 import { createPool } from '@/test/create-pool.ts'
+import { createSr } from '@/test/create-sr.ts'
 import { createVm } from '@/test/create-vm.ts'
-import { findCopiedValues, findLabelledValues, findTags } from '@/test/find-rendered-values.ts'
+import { itShowsDashboardQuickInfo } from '@/test/dashboard-quick-info.ts'
+import { findLabelledValues, findTags } from '@/test/find-rendered-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
-import type { XoUser } from '@vates/types'
+import { xoCollectionsMock, mockXoCollections } from '@/test/mock-xo-collections.ts'
+import { mockXoRoutes } from '@/test/mock-xo-routes.ts'
+import { userResourceMock, mockXoUser } from '@/test/mock-xo-user.ts'
+import { vmCollectionMock, mockXoVmCollection } from '@/test/mock-xo-vm-collection.ts'
+import { vmDeviceCollectionsMock, mockXoVmDeviceCollections } from '@/test/mock-xo-vm-device-collections.ts'
+import { seedVmDisks } from '@/test/seed-vm-disks.ts'
+import { itShowsVmCreator } from '@/test/vm-creator.ts'
 import { VM_POWER_STATE } from '@vates/types'
 import { mount } from '@vue/test-utils'
-import { computed, ref } from 'vue'
 
-const { useXoVmCollectionMock, useGetPoolById, getVmHost, isMasterHost, buildXo5Route, useXoUserResourceMock } =
-  vi.hoisted(() => ({
-    useXoVmCollectionMock: vi.fn(),
-    useGetPoolById: vi.fn(),
-    getVmHost: vi.fn(),
-    isMasterHost: vi.fn(),
-    buildXo5Route: vi.fn(),
-    useXoUserResourceMock: vi.fn(),
-  }))
+mockXoVmCollection()
 
-vi.mock(import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'), () => ({
-  useXoVmCollection: useXoVmCollectionMock as unknown as typeof useXoVmCollection,
-}))
+mockXoVmDeviceCollections('vbd', 'vdi')
 
-vi.mock(import('@/modules/pool/remote-resources/use-xo-pool-collection.ts'), () => ({
-  useXoPoolCollection: (() => ({ useGetPoolById })) as unknown as typeof useXoPoolCollection,
-}))
+mockXoCollections('host', 'pool', 'sr')
 
-vi.mock(import('@/modules/host/remote-resources/use-xo-host-collection.ts'), () => ({
-  useXoHostCollection: (() => ({ isMasterHost })) as unknown as typeof useXoHostCollection,
-}))
+mockXoUser()
 
-vi.mock(import('@/modules/user/remote-resources/use-xo-user.ts'), () => ({
-  useXoUserResource: useXoUserResourceMock as unknown as typeof useXoUserResource,
-}))
-
-vi.mock(import('@/shared/remote-resources/use-xo-routes.ts'), () => ({
-  useXoRoutes: (() => ({ buildXo5Route })) as unknown as typeof useXoRoutes,
-}))
+mockXoRoutes()
 
 beforeEach(() => {
-  useXoVmCollectionMock.mockReset()
-  useGetPoolById.mockReset()
-  getVmHost.mockReset()
-  isMasterHost.mockReset()
-  buildXo5Route.mockReset()
-  useXoUserResourceMock.mockReset()
-
-  useXoVmCollectionMock.mockReturnValue({ areVmsReady: ref(true), getVmHost })
-  useGetPoolById.mockReturnValue(computed(() => undefined))
-  getVmHost.mockReturnValue(undefined)
-  isMasterHost.mockReturnValue(false)
-  buildXo5Route.mockImplementation((path: string) => `https://xo5.example.com/#${path}`)
-  useXoUserResourceMock.mockReturnValue({ user: computed(() => undefined) })
+  vmCollectionMock.reset()
+  vmDeviceCollectionsMock.reset()
+  xoCollectionsMock.reset()
+  userResourceMock.reset()
 })
 
 function mountQuickInfo(vm: FrontXoVm = createVm()) {
@@ -68,18 +43,10 @@ function mountQuickInfo(vm: FrontXoVm = createVm()) {
   })
 }
 
-it('shows a busy state instead of the rows while the VMs are still loading', () => {
-  useXoVmCollectionMock.mockReturnValue({ areVmsReady: ref(false), getVmHost })
-
-  const wrapper = mountQuickInfo()
-
-  expect(findLabelledValues(wrapper)).toEqual({})
-})
-
-it('lists every row of the card, in order', () => {
-  const wrapper = mountQuickInfo()
-
-  expect(wrapper.findAll('.vts-key-value-row').map(row => row.get('dt.label').text())).toEqual([
+itShowsDashboardQuickInfo(mountQuickInfo, {
+  objectName: 'VM',
+  loadingCollection: 'VMs',
+  rows: [
     t('state'),
     t('ip-address'),
     t('created-on'),
@@ -88,14 +55,15 @@ it('lists every row of the card, in order', () => {
     t('uuid'),
     t('pool'),
     t('host'),
+    t('storage'),
     t('description'),
     t('os-name'),
     t('virtualization-type'),
     t('guest-tools'),
     t('vcpus'),
     t('ram'),
-    t('tags'),
-  ])
+  ],
+  createWithAddress: (uuid, mainIpAddress) => createVm({ id: uuid as FrontXoVm['id'], mainIpAddress }),
 })
 
 it('shows the identity, power state and resources of the VM', () => {
@@ -122,33 +90,35 @@ it('shows the identity, power state and resources of the VM', () => {
   })
 })
 
-it('offers to copy the IP address and the UUID of the VM', () => {
-  const wrapper = mountQuickInfo(createVm({ id: 'vm-42' as FrontXoVm['id'], mainIpAddress: '10.0.0.1' }))
+const VIRTUALIZATION_TYPE_CASES: { name: string; vm: Partial<FrontXoVm>; type: string }[] = [
+  {
+    name: 'reports an HVM guest running the PV drivers as pvhvm',
+    vm: { virtualizationMode: 'hvm', pvDriversDetected: true },
+    type: 'pvhvm',
+  },
+  {
+    name: 'reports the raw virtualization mode of an HVM guest without PV drivers',
+    vm: { virtualizationMode: 'hvm', pvDriversDetected: false },
+    type: 'hvm',
+  },
+  {
+    name: 'reports the raw virtualization mode of a paravirtualized guest',
+    vm: { virtualizationMode: 'pv', pvDriversDetected: true },
+    type: 'pv',
+  },
+]
 
-  expect(findCopiedValues(wrapper)).toEqual({ [t('ip-address')]: '10.0.0.1', [t('uuid')]: 'vm-42' })
-})
+for (const { name, vm, type } of VIRTUALIZATION_TYPE_CASES) {
+  it(name, () => {
+    const wrapper = mountQuickInfo(createVm(vm))
 
-it('reports an HVM guest running the PV drivers as pvhvm', () => {
-  const wrapper = mountQuickInfo(createVm({ virtualizationMode: 'hvm', pvDriversDetected: true }))
-
-  expect(findLabelledValues(wrapper)).toMatchObject({ [t('virtualization-type')]: 'pvhvm' })
-})
-
-it('reports the raw virtualization mode of an HVM guest without PV drivers', () => {
-  const wrapper = mountQuickInfo(createVm({ virtualizationMode: 'hvm', pvDriversDetected: false }))
-
-  expect(findLabelledValues(wrapper)).toMatchObject({ [t('virtualization-type')]: 'hvm' })
-})
-
-it('reports the raw virtualization mode of a paravirtualized guest', () => {
-  const wrapper = mountQuickInfo(createVm({ virtualizationMode: 'pv', pvDriversDetected: true }))
-
-  expect(findLabelledValues(wrapper)).toMatchObject({ [t('virtualization-type')]: 'pv' })
-})
+    expect(findLabelledValues(wrapper)).toMatchObject({ [t('virtualization-type')]: type })
+  })
+}
 
 it('shows the pool and the host of the VM', () => {
-  useGetPoolById.mockReturnValue(computed(() => createPool({ name_label: 'Production Pool' })))
-  getVmHost.mockReturnValue(createHost({ name_label: 'Primary Host' }))
+  xoCollectionsMock.pools.value = [createPool({ name_label: 'Production Pool' })]
+  xoCollectionsMock.hosts.value = [createHost({ name_label: 'Primary Host' })]
 
   expect(findLabelledValues(mountQuickInfo())).toMatchObject({
     [t('pool')]: 'Production Pool',
@@ -160,20 +130,80 @@ it('falls back to "None" when the VM has neither a known pool nor a host', () =>
   expect(findLabelledValues(mountQuickInfo())).toMatchObject({ [t('pool')]: t('none'), [t('host')]: t('none') })
 })
 
-it('shows the name of the user who created the VM', () => {
-  useXoUserResourceMock.mockReturnValue({
-    user: computed(() => ({ id: 'user-1', name: 'alice', email: 'alice@example.com' }) as XoUser),
+itShowsVmCreator(() => findLabelledValues(mountQuickInfo()))
+
+describe('storages', () => {
+  const srA = createSr({ id: 'sr-a' as FrontXoSr['id'], name_label: 'Local SR' })
+  const srB = createSr({ id: 'sr-b' as FrontXoSr['id'], name_label: 'Shared NFS' })
+  const srC = createSr({ id: 'sr-c' as FrontXoSr['id'], name_label: 'iSCSI' })
+  const srIso = createSr({ id: 'sr-iso' as FrontXoSr['id'], name_label: 'ISO library' })
+
+  beforeEach(() => {
+    xoCollectionsMock.srs.value = [srA, srB, srC, srIso]
   })
 
-  expect(findLabelledValues(mountQuickInfo())).toMatchObject({ [t('created-by')]: 'alice' })
+  function createVmWithDisksOn(srIds: FrontXoSr['id'][]) {
+    return createVm({ $VBDs: seedVmDisks(srIds.map(srId => ({ vdi: { $SR: srId } }))) })
+  }
+
+  it('links the displayed storage to its page', () => {
+    const hrefs = mountQuickInfo(createVmWithDisksOn([srA.id]))
+      .findAll('.storage li a')
+      .map(link => link.attributes('href'))
+
+    expect(hrefs).toEqual(['/sr/sr-a/general'])
+  })
+
+  it('shows the storage without a "+n" link when the disks of the VM are on a single storage', () => {
+    const wrapper = mountQuickInfo(createVmWithDisksOn([srA.id, srA.id]))
+
+    expect(wrapper.findAll('.storage li').map(li => li.text())).toEqual(['Local SR'])
+  })
+
+  it('shows the first storage followed by a "+n" link counting the others', () => {
+    const wrapper = mountQuickInfo(createVmWithDisksOn([srA.id, srB.id, srC.id]))
+
+    expect(wrapper.findAll('.storage li').map(li => li.text())).toEqual(['Local SR', t('plus-n', { n: 2 })])
+  })
+
+  it('links the "+n" to the disks of the VM', () => {
+    const href = mountQuickInfo(createVmWithDisksOn([srA.id, srB.id, srC.id]))
+      .get('.storage li:last-child a')
+      .attributes('href')
+
+    expect(href).toBe('/vm/vm-123/vdis')
+  })
+
+  it('lists each storage holding a disk of the VM once, even when it holds several disks', () => {
+    const $VBDs = seedVmDisks([{ vdi: { $SR: srA.id } }, { vdi: { $SR: srA.id } }, { vdi: { $SR: srB.id } }])
+
+    const wrapper = mountQuickInfo(createVm({ $VBDs }))
+
+    expect(wrapper.findAll('.storage li').map(li => li.text())).toEqual(['Local SR', t('plus-n', { n: 1 })])
+  })
+
+  it('ignores the ISO mounted in a CD drive', () => {
+    const $VBDs = seedVmDisks([{ vdi: { $SR: srA.id } }, { vbd: { is_cd_drive: true }, vdi: { $SR: srIso.id } }])
+
+    const wrapper = mountQuickInfo(createVm({ $VBDs }))
+
+    expect(wrapper.findAll('.storage li').map(li => li.text())).toEqual(['Local SR'])
+  })
+
+  it('falls back to "None" when the VM has no disk', () => {
+    expect(findLabelledValues(mountQuickInfo())).toMatchObject({ [t('storage')]: t('none') })
+  })
 })
 
-it('falls back to "Unknown" when the creator of the VM is not known', () => {
-  expect(findLabelledValues(mountQuickInfo())).toMatchObject({ [t('created-by')]: t('unknown') })
+it('renders the tags below their label', () => {
+  const wrapper = mountQuickInfo(createVm({ tags: ['production'] }))
+
+  expect(wrapper.get('.vm-tags-editor > .header .label').text()).toBe(t('tags'))
+  expect(wrapper.find('.vm-tags-editor > .ui-tags-list').exists()).toBe(true)
 })
 
-it('renders one tag per VM tag', () => {
+it('renders one tag per VM tag, in alphabetical order', () => {
   const wrapper = mountQuickInfo(createVm({ tags: ['production', 'billing'] }))
 
-  expect(findTags(wrapper)).toEqual(['production', 'billing'])
+  expect(findTags(wrapper)).toEqual(['billing', 'production'])
 })

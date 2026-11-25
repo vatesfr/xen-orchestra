@@ -1,31 +1,25 @@
 import { useXoPluginTestJob } from '@/modules/plugin/jobs/xo-plugin-test.job.ts'
 import type { FrontXoPlugin } from '@/modules/plugin/remote-resources/use-xo-plugin-collection.ts'
-import type { useXoTaskUtils } from '@/shared/composables/xo-task-utils.composable.ts'
-import type { fetchPost } from '@/shared/utils/fetch.util.ts'
+import { fetchPost } from '@/shared/utils/fetch.util.ts'
 import { createPlugin } from '@/test/create-plugin.ts'
 import { t } from '@/test/i18n.ts'
+import { itCanRun, itCannotRun, itRejectsWithRequestError } from '@/test/job-cases.ts'
+import { expectJobRunning } from '@/test/job-running.ts'
+import { answerPostsWithTask, taskUtilsMock, mockXoTaskUtils } from '@/test/mock-xo-task-utils.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
+import { mockedExport } from '@/test/spy-on-module.ts'
 
-const { post, monitorTask } = vi.hoisted(() => ({
-  post: vi.fn(),
-  monitorTask: vi.fn(),
-}))
+const post = mockedExport(fetchPost)
 
-vi.mock(import('@/shared/utils/fetch.util.ts'), () => ({
-  fetchPost: post as unknown as typeof fetchPost,
-}))
+const { monitorTask } = taskUtilsMock
 
 // The task collection would open an SSE subscription
-vi.mock(import('@/shared/composables/xo-task-utils.composable.ts'), () => ({
-  useXoTaskUtils: (() => ({ monitorTask })) as unknown as typeof useXoTaskUtils,
-}))
+mockXoTaskUtils()
 
 beforeEach(() => {
-  post.mockReset()
-  monitorTask.mockReset()
+  taskUtilsMock.reset()
 
-  post.mockResolvedValue({ taskId: 'task-1' })
-  monitorTask.mockResolvedValue(undefined)
+  answerPostsWithTask(post)
 })
 
 const testablePlugin = createPlugin({ loaded: true, testable: true })
@@ -41,53 +35,41 @@ describe('run', () => {
     expect(post).toHaveBeenCalledWith('plugins/transport-email/actions/test', {
       data: { to: 'admin@example.org' },
     })
-    expect(monitorTask).toHaveBeenCalledWith('task-1')
+    expect(monitorTask).toHaveBeenCalledWith('task-of-plugins/transport-email/actions/test')
   })
 
-  it('fails when the test task fails', async () => {
-    const error = new Error('email not sent')
-    monitorTask.mockRejectedValue(error)
-
-    await expect(mountTestJob(testablePlugin).run()).rejects.toBe(error)
+  itRejectsWithRequestError('fails when the test task fails', {
+    request: monitorTask,
+    errorMessage: 'email not sent',
+    run: () => mountTestJob(testablePlugin).run(),
   })
 })
 
 describe('validate', () => {
-  it('can run on a loaded testable plugin', () => {
-    const job = mountTestJob(testablePlugin)
+  itCanRun([{ name: 'can run on a loaded testable plugin', mountJob: () => mountTestJob(testablePlugin) }])
 
-    expect(job.canRun).toBe(true)
-    expect(job.errorMessage).toBeUndefined()
-  })
-
-  it('cannot run without plugin', () => {
-    const job = mountTestJob(undefined)
-
-    expect(job.canRun).toBe(false)
-    expect(job.errorMessage).toBe(t('job:plugin-test:missing-plugin'))
-  })
-
-  it('cannot run on a plugin which is not testable', () => {
-    const job = mountTestJob(createPlugin({ loaded: true, testable: false }))
-
-    expect(job.canRun).toBe(false)
-    expect(job.errorMessage).toBe(t('job:plugin-test:not-testable'))
-  })
-
-  it('cannot run on a plugin which is not loaded', () => {
-    const job = mountTestJob(createPlugin({ loaded: false, testable: true }))
-
-    expect(job.canRun).toBe(false)
-    expect(job.errorMessage).toBe(t('job:plugin-test:not-loaded'))
-  })
+  itCannotRun([
+    {
+      name: 'cannot run without plugin',
+      mountJob: () => mountTestJob(undefined),
+      errorMessage: t('job:plugin-test:missing-plugin'),
+    },
+    {
+      name: 'cannot run on a plugin which is not testable',
+      mountJob: () => mountTestJob(createPlugin({ loaded: true, testable: false })),
+      errorMessage: t('job:plugin-test:not-testable'),
+    },
+    {
+      name: 'cannot run on a plugin which is not loaded',
+      mountJob: () => mountTestJob(createPlugin({ loaded: false, testable: true })),
+      errorMessage: t('job:plugin-test:not-loaded'),
+    },
+  ])
 
   it('cannot run while the test is running', () => {
     post.mockReturnValue(new Promise(() => {}))
     const job = mountTestJob(testablePlugin)
 
-    void job.run()
-
-    expect(job.isRunning).toBe(true)
-    expect(job.errorMessage).toBe(t('job:plugin-test:in-progress'))
+    expectJobRunning(job, t('job:plugin-test:in-progress'))
   })
 })

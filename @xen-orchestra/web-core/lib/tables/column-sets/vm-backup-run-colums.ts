@@ -10,6 +10,6 @@ export const useBackupRunColumns = defineColumns(() => {
   return {
     date: useDateColumn({ headerLabel: () => t('date') }),
     backupArchiveStatus: useStatusColumn({ headerLabel: () => t('backup-archive-status') }),
-    backupJob: useLinkColumn({ headerLabel: () => t('backup-job') }),
+    backupJob: useLinkColumn({ headerLabel: () => t('backup-job'), flexible: true }),
   }
 })

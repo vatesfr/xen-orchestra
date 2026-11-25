@@ -6,6 +6,7 @@ import { getNetworkIcon } from '@/modules/network/utils/xo-network.util.ts'
 import { useXoPifCollection } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
 import { type FrontXoPool, useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import { useDirectionLabels } from '@/modules/traffic-rules/composables/direction-labels.composable.ts'
+import { useNewTrafficRulePriority } from '@/modules/traffic-rules/composables/use-new-traffic-rule-priority.composable.ts'
 import { vmToTargetOption } from '@/modules/traffic-rules/form/target-option.util.ts'
 import {
   type BaseTrafficRuleFormData,
@@ -93,6 +94,12 @@ export function useNewTrafficRuleForm(
     return parentNetwork ? parentNetwork.PIFs.length > 0 : false
   })
 
+  const { targetNetwork, newRulePriority, hasFreePriority } = useNewTrafficRulePriority(
+    () => formData.targetType,
+    () => formData.targetId,
+    canCreateNetworkRule
+  )
+
   const poolNetworks = computed(() =>
     networks.value.filter(network => network.$pool === poolId.value && network.PIFs.length > 0)
   )
@@ -137,6 +144,10 @@ export function useNewTrafficRuleForm(
       onSubmit: () => ({
         targetId: {
           required: withMessage(required, () => (isVifTarget.value ? t('vif-required') : t('network-required'))),
+          freePriority: withMessage(
+            () => hasFreePriority.value,
+            () => t('traffic-rules:no-free-priority', { network: targetNetwork.value?.name_label ?? '' })
+          ),
         },
         vmId: {
           requiredIf: withMessage(requiredIf(isVifTarget), () => t('vm-required')),
@@ -243,11 +254,17 @@ export function useNewTrafficRuleForm(
       return undefined
     }
 
-    return {
+    const payload: TrafficRulePayload = {
       ...buildBaseRulePayload(),
       targetType: formData.targetType,
       targetId: formData.targetId,
     }
+
+    if (newRulePriority.value !== undefined) {
+      payload.priority = newRulePriority.value
+    }
+
+    return payload
   }
 
   return {

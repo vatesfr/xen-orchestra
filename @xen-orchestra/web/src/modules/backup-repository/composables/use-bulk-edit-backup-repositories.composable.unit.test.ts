@@ -1,63 +1,36 @@
 import { useBulkEditBackupRepositories } from '@/modules/backup-repository/composables/use-bulk-edit-backup-repositories.composable.ts'
-import type {
-  BulkEditBackupRepositoryPayloads,
+import {
+  type BulkEditBackupRepositoryPayloads,
   useXoBackupRepositoryBulkEditJob,
 } from '@/modules/backup-repository/jobs/xo-backup-repository-bulk-edit.job.ts'
 import type { EditBackupRepositoryPayload } from '@/modules/backup-repository/jobs/xo-backup-repository-edit.job.ts'
 import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
-import { createBr } from '@/test/create-br.ts'
+import { createTwoBrs } from '@/test/create-br.ts'
+import { createJobStub } from '@/test/create-job-result.ts'
+import { overlayMock, mockOverlay } from '@/test/mock-overlay.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
-import type { useOverlay } from '@core/packages/overlay/use-overlay.ts'
+import { silenceConsoleError } from '@/test/silence-console-error.ts'
 import { KEEP_OVERLAY_OPEN } from '@core/packages/overlay/symbols.ts'
-import { ref, toValue } from 'vue'
+import { toValue } from 'vue'
 
 type MockedOverlay = {
   open: ReturnType<typeof vi.fn>
   events: { onConfirm: (payload: never) => Promise<unknown> }
 }
 
-const { overlays, useBulkEditJob, run } = vi.hoisted(() => ({
-  overlays: [] as MockedOverlay[],
-  useBulkEditJob: vi.fn(),
-  run: vi.fn(),
-}))
-
 // The job patches the repositories through the REST API
-vi.mock(import('@/modules/backup-repository/jobs/xo-backup-repository-bulk-edit.job.ts'), () => ({
-  useXoBackupRepositoryBulkEditJob: useBulkEditJob as unknown as typeof useXoBackupRepositoryBulkEditJob,
-}))
+const bulkEditJob = createJobStub(useXoBackupRepositoryBulkEditJob)
 
-vi.mock(import('@core/packages/overlay/use-overlay.ts'), () => ({
-  useOverlay: (({ events }: Pick<MockedOverlay, 'events'>) => {
-    const overlay = { open: vi.fn(), events }
-
-    overlays.push(overlay)
-
-    return { open: overlay.open }
-  }) as unknown as typeof useOverlay,
-}))
+mockOverlay()
 
 beforeEach(() => {
   vi.restoreAllMocks()
-  overlays.length = 0
-  useBulkEditJob.mockReset()
-  run.mockReset()
-
-  mockBulkEditJob()
-  run.mockResolvedValue([{ status: 'fulfilled', value: undefined }])
+  overlayMock.reset()
+  bulkEditJob.reset()
+  bulkEditJob.run.mockResolvedValue([{ status: 'fulfilled', value: undefined }])
 })
 
-function mockBulkEditJob({ canRun = true, isRunning = false }: { canRun?: boolean; isRunning?: boolean } = {}) {
-  useBulkEditJob.mockReturnValue({
-    run,
-    canRun: ref(canRun),
-    isRunning: ref(isRunning),
-    errorMessage: ref(canRun ? undefined : 'Backup repositories edition in progress…'),
-  })
-}
-
-const firstBr = createBr({ id: 'backup-repository-1' as FrontXoBackupRepository['id'] })
-const secondBr = createBr({ id: 'backup-repository-2' as FrontXoBackupRepository['id'] })
+const [firstBr, secondBr] = createTwoBrs()
 
 const PAYLOAD: EditBackupRepositoryPayload = {
   name: 'My repository',
@@ -70,14 +43,14 @@ function mountBulkEdit(brs: FrontXoBackupRepository[]) {
   const result = mountComposable(() => useBulkEditBackupRepositories(() => brs)).wrapper.vm
 
   // The composable declares the edit drawer of a single repository first, then the bulk edit one
-  const [editDrawer, bulkEditDrawer] = overlays
+  const [editDrawer, bulkEditDrawer] = overlayMock.getOverlays<MockedOverlay>()
 
   return { result, editDrawer, bulkEditDrawer }
 }
 
 // The job receives the payloads as a ref, filled when a drawer is confirmed
 function findJobPayloads(): BulkEditBackupRepositoryPayloads | undefined {
-  return toValue(useBulkEditJob.mock.lastCall?.[1])
+  return toValue(bulkEditJob.use.mock.lastCall?.[1])
 }
 
 describe('editBackupRepositories', () => {
@@ -107,7 +80,7 @@ describe('on confirm', () => {
     await editDrawer.events.onConfirm(PAYLOAD as never)
 
     expect(findJobPayloads()).toEqual(new Map([[firstBr.id, PAYLOAD]]))
-    expect(run).toHaveBeenCalledOnce()
+    expect(bulkEditJob.run).toHaveBeenCalledOnce()
   })
 
   it('runs the job with the payloads of the bulk edit drawer', async () => {
@@ -120,7 +93,7 @@ describe('on confirm', () => {
     await bulkEditDrawer.events.onConfirm(payloads as never)
 
     expect(findJobPayloads()).toEqual(payloads)
-    expect(run).toHaveBeenCalledOnce()
+    expect(bulkEditJob.run).toHaveBeenCalledOnce()
   })
 
   it('closes the drawer once every repository is edited', async () => {
@@ -130,7 +103,7 @@ describe('on confirm', () => {
   })
 
   it('keeps the drawer open when a repository could not be edited', async () => {
-    run.mockResolvedValue([
+    bulkEditJob.run.mockResolvedValue([
       { status: 'fulfilled', value: undefined },
       { status: 'rejected', reason: new Error('Backup repository unreachable') },
     ])
@@ -140,8 +113,8 @@ describe('on confirm', () => {
   })
 
   it('keeps the drawer open when the job fails', async () => {
-    vi.spyOn(console, 'error').mockImplementation(() => {})
-    run.mockRejectedValue(new Error('Missing changes for a backup repository'))
+    silenceConsoleError()
+    bulkEditJob.run.mockRejectedValue(new Error('Missing changes for a backup repository'))
     const { editDrawer } = mountBulkEdit([firstBr])
 
     expect(await editDrawer.events.onConfirm(PAYLOAD as never)).toBe(KEEP_OVERLAY_OPEN)
@@ -150,7 +123,7 @@ describe('on confirm', () => {
 
 describe('job state', () => {
   it('exposes whether the repositories can be edited, and why not', () => {
-    mockBulkEditJob({ canRun: false, isRunning: true })
+    bulkEditJob.setState({ canRun: false, isRunning: true, errorMessage: 'Backup repositories edition in progress…' })
 
     const { result } = mountBulkEdit([firstBr, secondBr])
 

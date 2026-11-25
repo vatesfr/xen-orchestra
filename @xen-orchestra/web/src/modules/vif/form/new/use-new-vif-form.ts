@@ -13,11 +13,12 @@ import {
 import type { NewVifPayload } from '@/modules/vif/jobs/xo-vif-create.job.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { objectIcon } from '@core/icons'
-import { mergeValidationConfigs, required } from '@core/packages/form-validation'
+import { mergeValidationConfigs, required, withMessage } from '@core/packages/form-validation'
 import { useValidatedForm } from '@core/packages/validated-form'
 import { toComputed } from '@core/utils/to-computed.util.ts'
 import { useArrayFilter } from '@vueuse/shared'
 import { type MaybeRefOrGetter, reactive, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 export type NewVifFormData = BaseVifFormData & {
   network: FrontXoNetwork['id'] | undefined
@@ -29,6 +30,8 @@ export function useNewVifForm(
 ) {
   const vmId = toComputed(rawVmId)
   const poolId = toComputed(rawPoolId)
+
+  const { t } = useI18n()
 
   const { networks } = useXoNetworkCollection()
   const { getPifsByIds } = useXoPifCollection()
@@ -48,7 +51,7 @@ export function useNewVifForm(
     mergeValidationConfigs<BaseVifFormData, NewVifFormData>(useVifFormBaseValidation(), {
       errors: {
         onSubmit: () => ({
-          network: { required },
+          network: { required: withMessage(required, () => t('network-required')) },
         }),
       },
     })

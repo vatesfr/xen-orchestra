@@ -99,7 +99,25 @@ For methods that could take some time (doing an action, etc.), use `callAsync(me
 const snapshotRef = await xapi.callAsync('VM.snapshot', vmRef, 'My snapshot')
 ```
 
-Both `call()` and `callAsync()` accepts an optional `Map`-like object as a first parameter to use as a cache:
+`callAsync()` accepts an optional [`AbortSignal`](https://developer.mozilla.org/en-US/docs/Web/API/AbortSignal) as a first parameter, to cancel the task:
+
+```js
+const controller = new AbortController()
+
+const promise = xapi.callAsync(controller.signal, 'VM.snapshot', vmRef, 'My snapshot')
+
+// cancels the task: once it has ended, `promise` rejects with `controller.signal.reason`
+controller.abort()
+```
+
+- if the signal is already aborted, the call rejects right away and no task is created;
+- if the task completes before being cancelled, the call resolves with its result.
+
+`getResource()` and `putResource()` accept the same optional first parameter: on abort, the HTTP request is closed and the task of the transfer is cancelled.
+
+> Note: these methods used to accept a promise-toolbox `CancelToken` instead, which is no longer supported: passing one rejects with a `TypeError`.
+
+Both `call()` and `callAsync()` accept an optional `Map`-like object as a first parameter to use as a cache (for `callAsync()`, after the optional signal: `callAsync(signal, cache, method, ...args)`):
 
 ```js
 // to avoid leaking memory, make sure to not keep entries forever
@@ -116,6 +134,8 @@ console.log(await xapi.call(cache, 'VM.get_name_label', vmRef))
 console.log(await xapi.call(cache, 'VM.get_name_label', vmRef))
 
 // to delete the entry from the cache, simply compute the key
+//
+// the signal of `callAsync()` is not part of the key
 const key = xapi.computeCacheKey('VM.get_name_label', vmRef)
 cache.delete(key)
 ```

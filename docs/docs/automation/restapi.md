@@ -1,10 +1,10 @@
 ---
-sidebar_position: 1
+sidebar_position: 7
 ---
 
 # REST API
 
-The Xen Orchestra REST API is the modern, public way to automate your infrastructure. We built it from scratch, next to [our historical JSON-RPC API](../getting-started/architecture.md#apis), to be [REST-like](https://en.wikipedia.org/wiki/Representational_state_transfer) and usable with a plain `curl` command. It is now almost complete: nearly all of Xen Orchestra's capabilities are exposed through it, and it is ready to be used in production. It is also the API we are building the future of Xen Orchestra on, so it is the right choice for any new automation.
+The Xen Orchestra REST API is the modern, public way to automate your infrastructure. We built it from scratch, next to [our historical JSON-RPC API](../core-concepts/architecture.md#apis), to be [REST-like](https://en.wikipedia.org/wiki/Representational_state_transfer) and usable with a plain `curl` command. It is now almost complete: nearly all of Xen Orchestra's capabilities are exposed through it, and it is ready to be used in production. It is also the API we are building the future of Xen Orchestra on, so it is the right choice for any new automation.
 
 This page teaches the principles: how to authenticate, then how each HTTP verb behaves, with one example per pattern. For the complete, always up-to-date list of endpoints, use the [built-in Swagger UI](#openapiswagger) shipped with your Xen Orchestra: it documents every route and lets you try them from your browser.
 
@@ -22,7 +22,7 @@ Endpoints require authentication. Two forms are accepted, and you must pick exac
 An invalid token or invalid credentials get a `401 Unauthorized` response.
 
 :::tip
-Admin users have access to all REST API endpoints. Non-admin users can use the REST API according to the [RBAC](../users-and-access/rbac.md) permissions defined on their account.
+Admin users have access to all REST API endpoints. Non-admin users can use the REST API according to the [RBAC](../security/user-management/rbac.md) permissions defined on their account.
 :::
 
 For scripts and integrations, prefer a token: it does not expose your password and it can be revoked at any time.

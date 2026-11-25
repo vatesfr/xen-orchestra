@@ -7,6 +7,7 @@ import { cancelDrawer, findDrawerButtonLabels, submitDrawer } from '@/test/drawe
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import VtsFormErrorSummary from '@core/components/form-error-summary/VtsFormErrorSummary.vue'
+import { findInfoLabels } from '@core-test/find-accented-labels.ts'
 import { mount } from '@vue/test-utils'
 
 const TEST_SCHEMA = {
@@ -29,7 +30,7 @@ function mountDrawer(plugin: FrontXoPlugin = createPlugin({ testable: true, test
 }
 
 it('explains what the test does', () => {
-  expect(mountDrawer().get('.ui-info').text()).toBe(t('plugin:test-info'))
+  expect(findInfoLabels(mountDrawer())).toEqual([t('plugin:test-info')])
 })
 
 it('displays a required form for the data of the test', () => {

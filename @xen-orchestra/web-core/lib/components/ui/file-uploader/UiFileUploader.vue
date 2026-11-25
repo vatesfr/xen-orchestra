@@ -4,6 +4,7 @@
     <button
       :id="wrapperController?.id"
       ref="dropZoneRef"
+      :aria-describedby="wrapperController?.describedBy"
       type="button"
       class="dropzone"
       :class="{ 'is-over-dropzone': isOverDropZone }"
@@ -65,6 +66,7 @@ const { t } = useI18n()
 
 const { wrapperController, accent } = useInputWrapperController({
   accent: () => rawAccent,
+  accents: ['neutral', 'warning', 'danger'],
   required: () => required,
 })
 

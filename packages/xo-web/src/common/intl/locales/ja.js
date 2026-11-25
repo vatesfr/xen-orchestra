@@ -7185,17 +7185,11 @@ export default {
   // Original text: 'Update appliance settings'
   updateProxyApplianceSettings: undefined,
 
-  // Original text: 'URL not found'
-  urlNotFound: undefined,
-
   // Original text: 'Authentication token'
   proxyAuthToken: undefined,
 
   // Original text: 'Unable to connect to this proxy. Do you want to forget it?'
   proxyConnectionFailedAfterRegistrationMessage: undefined,
-
-  // Original text: 'Copy proxy URL'
-  proxyCopyUrl: undefined,
 
   // Original text: 'Proxy error'
   proxyError: undefined,
