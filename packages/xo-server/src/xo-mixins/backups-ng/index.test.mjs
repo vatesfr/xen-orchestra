@@ -5,6 +5,7 @@ import test from 'node:test'
 import TimeoutError from 'promise-toolbox/TimeoutError'
 import { formatJournalEvents, formatVmBackups } from '@xen-orchestra/backups/formatVmBackups.mjs'
 import { makeOnProgress } from '@vates/task/combineEvents'
+import { Task } from '@vates/task'
 
 import BackupNg, { backupsListingRetryDelay } from './index.mjs'
 import { filenameOf, journalEntryPath, metadataOf, VM } from './_vmBackupsFixtures.mjs'
@@ -1006,5 +1007,67 @@ describe('the backup-archive collection', () => {
 
     assert.equal(repository.nListings, 2)
     assert.deepEqual(events, [])
+  })
+})
+
+describe('the backup executor in the main thread (backups.disableWorkers)', () => {
+  it('aborts the run when the job run is cancelled, as job.cancel does', async () => {
+    const logs = []
+    const app = {
+      config: { get: key => (key === 'backups' ? { disableWorkers: true } : {}), getDuration },
+      // the repository only answers once the backup is aborted: the run ends only if the cancellation reaches it
+      getRemoteWithCredentials: () =>
+        new Promise((resolve, reject) => {
+          const signal = Task.abortSignal
+          signal.addEventListener('abort', () => reject(signal.reason), { once: true })
+        }),
+      hooks: new EventEmitter(),
+      jobExecutors: {},
+      registerJobExecutor(type, executor) {
+        this.jobExecutors[type] = executor
+      },
+      tasks: {
+        createExternalProgressHandler: ({ onRootTaskStart, onTaskUpdate }) =>
+          makeOnProgress({
+            onRootTaskStart(log, event) {
+              logs.push(log)
+              onRootTaskStart?.(log, event)
+            },
+            onTaskUpdate,
+          }),
+      },
+    }
+    const backupNg = new BackupNg(app)
+    backupNg._checkAuthorizations = async () => {}
+    app.hooks.emit('start')
+
+    // the signal `jobs.executeJobRun()` gives to the executor, aborted by `jobs.cancelJobRun()`
+    const controller = new AbortController()
+    const pRun = app.jobExecutors.backup({
+      job: {
+        id: 'job',
+        mode: 'full',
+        name: 'job',
+        remotes: { id: REMOTE_ID },
+        settings: { '': {}, schedule: {} },
+        srs: { id: { __or: [] } },
+        type: 'backup',
+        vms: { id: VM },
+      },
+      jobData: {},
+      jobUpdateFct: async () => {},
+      logger: {},
+      runJobId: 'run',
+      schedule: { id: 'schedule' },
+      signal: controller.signal,
+    })
+    await new Promise(resolve => setImmediate(resolve))
+    controller.abort()
+
+    await assert.rejects(pRun, { name: 'AbortError' })
+    assert.equal(logs[0].status, 'interrupted')
+    assert.equal(logs[0].result.name, 'AbortError')
+
+    app.hooks.emit('stop')
   })
 })

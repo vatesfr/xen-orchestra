@@ -116,8 +116,7 @@ async function attachDockingDisks(xapi, vmRef, context) {
   )
 
   return new Disposable(() =>
-    // a cleanup subtask: it must run when the import is aborted, which is when the ISO is most needed to be released
-    Task.run({ properties: { name: 'releasing the docking ISO' }, cleanup: true }, async () => {
+    Task.run({ properties: { name: 'releasing the docking ISO' } }, async () => {
       // the VM is imported anyway: failing to release these is not worth failing it
       await (isCreated ? xapi.VBD_destroy(cdDriveRef) : xapi.callAsync('VBD.eject', cdDriveRef)).catch(error => {
         warn('failed to release the docking ISO', { ...context, error })

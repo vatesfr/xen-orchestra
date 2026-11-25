@@ -94,7 +94,7 @@ describe('runInMainThread()', () => {
     assert.equal(app.logs[0].result.name, 'AbortError')
   })
 
-  it('records who requested the abort', async () => {
+  it('records who requested the abort, by the id of the user only', async () => {
     const app = createApp()
     const user = { id: 'user-id', email: 'admin@admin.net' }
     const pRun = runInMainThread({
@@ -108,7 +108,7 @@ describe('runInMainThread()', () => {
     const [log] = app.logs
     assert.deepEqual(
       log.infos.map(({ message, data }) => ({ message, data })),
-      [{ message: 'abort requested by admin@admin.net', data: { userId: 'user-id' } }]
+      [{ message: 'abort requested', data: { type: 'abortRequested', userId: 'user-id' } }]
     )
   })
 
@@ -143,7 +143,69 @@ describe('runInMainThread()', () => {
     const [log] = app.logs
     assert.equal(log.status, 'failure')
     assert.equal(log.result.name, 'AbortError')
-    assert.equal(log.infos[0].message, 'abort requested by admin@admin.net')
+    assert.deepEqual(log.infos[0].data, { type: 'abortRequested', userId: 'user-id' })
+  })
+
+  it('is aborted by the signal of the job run, as jobs.cancelJobRun()', async () => {
+    const app = createApp()
+    const user = { id: 'user-id', email: 'admin@admin.net' }
+    const controller = new AbortController()
+
+    const pRun = runInMainThread({
+      app,
+      fn: backupUntilAborted,
+      onRootTaskStart: () => setImmediate(() => asUser(app, user, () => controller.abort())),
+      properties,
+      signal: controller.signal,
+    })
+
+    await assert.rejects(pRun, { name: 'AbortError' })
+    const [log] = app.logs
+    assert.equal(log.status, 'failure')
+    assert.equal(log.tasks[0].status, 'failure', 'the step started after the abort is skipped')
+    assert.deepEqual(log.infos[0].data, { type: 'abortRequested', userId: 'user-id' })
+  })
+
+  it('records a single abort request when aborted by several ways', async () => {
+    const app = createApp()
+    const user = { id: 'user-id', email: 'admin@admin.net' }
+    const controller = new AbortController()
+
+    const pRun = runInMainThread({
+      app,
+      fn: backupUntilAborted,
+      onRootTaskStart: log =>
+        setImmediate(() =>
+          asUser(app, user, () => {
+            controller.abort()
+            app.tasks.abort(log.id)
+          })
+        ),
+      properties,
+      signal: controller.signal,
+    })
+
+    await assert.rejects(pRun, { name: 'AbortError' })
+    assert.equal(app.logs[0].infos.length, 1)
+  })
+
+  it('does not run the backup when the job run is already cancelled', async () => {
+    const app = createApp()
+    let called = false
+
+    await assert.rejects(
+      runInMainThread({
+        app,
+        fn: () => {
+          called = true
+        },
+        properties,
+        signal: AbortSignal.abort(),
+      }),
+      { name: 'AbortError' }
+    )
+
+    assert.equal(called, false)
   })
 
   it('does not run the backup when the task it is called from is already aborted', async () => {

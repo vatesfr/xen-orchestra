@@ -15,8 +15,23 @@ const isSkippedError = error =>
 // the error of a task stopped by `AbortController#abort()`, serialized or not
 const isAbortError = error => error?.name === 'AbortError'
 
-const getStatus = (error, status) =>
-  status === 'failure' ? (isAbortError(error) ? 'interrupted' : isSkippedError(error) ? 'skipped' : status) : status
+// a failed task is interrupted when an abort was requested on it (`abortionRequested` event), whatever its error:
+// an `AbortError` alone may come from a pipeline or a timeout
+//
+// the log of a job run (`job.end` of the jobs logger) has no abort events: it fails with the abort of the backup
+// task it wraps
+const isInterrupted = task =>
+  task.abortionRequestedAt !== undefined ||
+  (isAbortError(task.result) && task.tasks?.some(subtask => subtask.status === 'interrupted') === true)
+
+const getStatus = task =>
+  task.status === 'failure'
+    ? isInterrupted(task)
+      ? 'interrupted'
+      : isSkippedError(task.result)
+        ? 'skipped'
+        : task.status
+    : task.status
 
 // the status a subtask gives to its parent when it is worse than the parent's own one: a real failure wins over an
 // abort, which wins over a skipped VM
@@ -34,7 +49,7 @@ const isSupersededByRetry = (subtask, siblings) =>
   )
 
 export const computeStatusAndSortSubtasks = task => {
-  let status = getStatus(task.result, task.status)
+  let status = getStatus(task)
 
   if (status === 'failure' || task.tasks === undefined) {
     return status

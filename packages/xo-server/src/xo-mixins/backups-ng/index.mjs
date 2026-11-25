@@ -365,6 +365,8 @@ export default class BackupNg {
               },
               onTaskUpdate,
               properties: { name: 'backup run', ...jobData },
+              // the cancellation of the job run (`jobs.cancelJobRun()`)
+              signal,
             })
           }
 

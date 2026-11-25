@@ -7,22 +7,54 @@ import { handleBackupLog } from '../_handleBackupLog.mjs'
 // the result of a task aborted with `AbortController#abort()`, as serialized in the logs
 const ABORT_ERROR = { name: 'AbortError', message: 'This operation was aborted', code: 20 }
 
-const task = (status, { result, tasks, warnings } = {}) => ({ status, result, tasks, warnings, start: 0, end: 1 })
+const task = (status, { abortionRequestedAt, result, tasks, warnings } = {}) => ({
+  abortionRequestedAt,
+  status,
+  result,
+  tasks,
+  warnings,
+  start: 0,
+  end: 1,
+})
+
+// a task on which an abort was requested, as logged from its `abortionRequested` event
+const aborted = (status, opts) => task(status, { abortionRequestedAt: 0, ...opts })
 
 describe('computeStatusAndSortSubtasks()', () => {
   it('gives the status interrupted to an aborted run', () => {
-    assert.equal(computeStatusAndSortSubtasks(task('failure', { result: ABORT_ERROR })), 'interrupted')
+    assert.equal(computeStatusAndSortSubtasks(aborted('failure', { result: ABORT_ERROR })), 'interrupted')
+  })
+
+  it('gives the status interrupted to an aborted task whatever its error', () => {
+    assert.equal(
+      computeStatusAndSortSubtasks(aborted('failure', { result: new Error('premature close') })),
+      'interrupted'
+    )
+  })
+
+  it('gives the status failure to an AbortError when no abort was requested, e.g. from a pipeline or a timeout', () => {
+    assert.equal(computeStatusAndSortSubtasks(task('failure', { result: ABORT_ERROR })), 'failure')
+  })
+
+  it('gives the status interrupted to the log of a job run that wraps an aborted backup task', () => {
+    const backupTask = aborted('failure', { result: ABORT_ERROR })
+    backupTask.status = computeStatusAndSortSubtasks(backupTask)
+
+    assert.equal(
+      computeStatusAndSortSubtasks(task('failure', { result: ABORT_ERROR, tasks: [backupTask] })),
+      'interrupted'
+    )
   })
 
   it('gives the status interrupted to an aborted VM, without failing its run', () => {
-    const transfer = task('failure', { result: ABORT_ERROR })
+    const transfer = aborted('failure', { result: ABORT_ERROR })
     transfer.status = computeStatusAndSortSubtasks(transfer)
-    const vm = task('failure', { result: ABORT_ERROR, tasks: [transfer] })
+    const vm = aborted('failure', { result: ABORT_ERROR, tasks: [transfer] })
     vm.status = computeStatusAndSortSubtasks(vm)
 
     assert.equal(transfer.status, 'interrupted')
     assert.equal(vm.status, 'interrupted')
-    assert.equal(computeStatusAndSortSubtasks(task('failure', { result: ABORT_ERROR, tasks: [vm] })), 'interrupted')
+    assert.equal(computeStatusAndSortSubtasks(aborted('failure', { result: ABORT_ERROR, tasks: [vm] })), 'interrupted')
   })
 
   it('gives the status interrupted to a successful run with an interrupted VM', () => {
@@ -44,7 +76,7 @@ describe('computeStatusAndSortSubtasks()', () => {
     const abortedVm = task('interrupted')
 
     assert.equal(
-      computeStatusAndSortSubtasks(task('failure', { result: ABORT_ERROR, tasks: [failedVm, abortedVm] })),
+      computeStatusAndSortSubtasks(aborted('failure', { result: ABORT_ERROR, tasks: [failedVm, abortedVm] })),
       'failure'
     )
   })
@@ -64,7 +96,7 @@ describe('computeStatusAndSortSubtasks()', () => {
 
 describe('handleBackupLog()', () => {
   it('writes the status interrupted on the log of an aborted task, as persisted by the tasks mixin', () => {
-    const log = task('failure', { result: ABORT_ERROR })
+    const log = aborted('failure', { result: ABORT_ERROR })
 
     handleBackupLog(log, { type: 'end' })
 
