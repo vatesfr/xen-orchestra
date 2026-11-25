@@ -512,6 +512,7 @@ const getExistingVdis = (template: XenApiVm) => {
 
     acc.push({
       id: vdi.$ref,
+      userdevice: vbd.userdevice,
       name_label: vdi.name_label,
       name_description: vdi.name_description,
       size: bytesToGiB(vdi.virtual_size),
@@ -698,6 +699,7 @@ const _createVm = defer(async ($defer: Defer) => {
       const vdiRef = await xapi.getField<XenApiVdi['$ref']>('VBD', vbdRef, 'VDI')
       const type = await xapi.getField<VBD_TYPE>('VBD', vbdRef, 'type')
       const bootable = await xapi.getField<boolean>('VBD', vbdRef, 'bootable')
+      const userdevice = await xapi.getField<XenApiVbd['userdevice']>('VBD', vbdRef, 'userdevice')
 
       if (!hasBootableDisk) {
         hasBootableDisk = bootable
@@ -707,45 +709,49 @@ const _createVm = defer(async ($defer: Defer) => {
         continue
       }
 
-      for (const vdi of existingVdis) {
-        const srRef = await xapi.getField<XenApiSr['$ref']>('VDI', vdiRef, 'SR')
-        const vbdRefs = await xapi.getField<XenApiVbd['$ref'][]>('VDI', vdiRef, 'VBDs')
+      const vdi = existingVdis.find(vdi => vdi.userdevice === userdevice)
 
-        await xapi.vdi.setNameLabel(vdiRef, vdi.name_label)
-        await xapi.vdi.setNameDescription(vdiRef, vdi.name_description)
+      if (vdi === undefined) {
+        continue
+      }
 
-        // EDIT SR: Migrate VDI or create new one
-        if (vdi.SR !== srRef) {
-          try {
-            await xapi.vdi.poolMigrate(vdiRef, vdi.SR)
-          } catch (error) {
-            if (!(error instanceof Error)) {
-              throw error
-            }
+      const srRef = await xapi.getField<XenApiSr['$ref']>('VDI', vdiRef, 'SR')
+      const vbdRefs = await xapi.getField<XenApiVbd['$ref'][]>('VDI', vdiRef, 'VBDs')
 
-            const { message } = error
+      await xapi.vdi.setNameLabel(vdiRef, vdi.name_label)
+      await xapi.vdi.setNameDescription(vdiRef, vdi.name_description)
 
-            if (
-              message !== 'NO_HOSTS_AVAILABLE' &&
-              message !== 'LICENCE_RESTRICTION' &&
-              message !== 'VDI_NEEDS_VM_FOR_MIGRATE'
-            ) {
-              throw error
-            }
-
-            const newVdiRef = await xapi.vdi.copy(vdiRef, vdi.SR)
-
-            if (vbdRefs) {
-              for (const vbdRef of vbdRefs) {
-                const vbd = await xapi.getField<XenApiVbd>('VBD', vbdRef, 'record')
-
-                await xapi.vbd.delete(vbdRef)
-                await xapi.vbd.create({ ...vbd, vmRefs, vdiRef: newVdiRef[0] })
-              }
-            }
-
-            await xapi.vdi.delete(vdiRef)
+      // EDIT SR: Migrate VDI or create new one
+      if (vdi.SR !== srRef) {
+        try {
+          await xapi.vdi.poolMigrate(vdiRef, vdi.SR)
+        } catch (error) {
+          if (!(error instanceof Error)) {
+            throw error
           }
+
+          const { message } = error
+
+          if (
+            message !== 'NO_HOSTS_AVAILABLE' &&
+            message !== 'LICENCE_RESTRICTION' &&
+            message !== 'VDI_NEEDS_VM_FOR_MIGRATE'
+          ) {
+            throw error
+          }
+
+          const newVdiRef = await xapi.vdi.copy(vdiRef, vdi.SR)
+
+          if (vbdRefs) {
+            for (const vbdRef of vbdRefs) {
+              const vbd = await xapi.getField<XenApiVbd>('VBD', vbdRef, 'record')
+
+              await xapi.vbd.delete(vbdRef)
+              await xapi.vbd.create({ ...vbd, vmRefs, vdiRef: newVdiRef[0] })
+            }
+          }
+
+          await xapi.vdi.delete(vdiRef)
         }
       }
     }

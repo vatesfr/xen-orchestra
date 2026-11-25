@@ -16,6 +16,7 @@ export const vdiFields = [
   '$pool',
   'type',
   'usage',
+  'chainPhysicalUsage',
   'tags',
   'uuid',
   'cbt_enabled',
