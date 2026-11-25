@@ -3,7 +3,7 @@ sidebar_label: VMware migration (V2V)
 sidebar_position: 1
 ---
 
-# VMware migration (V2V)
+# VMware migration (V2V) — NEW
 
 ## Introduction {#-introduction}
 
@@ -54,7 +54,7 @@ This guide walks you through the entire migration process:
 You will also find troubleshooting advice and best practices to maximize speed and minimize downtime.
 
 :::note
-Since XO 6.11, the V2V import is available in the XO 6 interface, in **Administration → V2V → Migrate VMs**. This guide describes the XO 6 interface. The XO 5 import form remains available: see [Using XO 5](#-using-xo-5).
+Since XO 6.11, the V2V import is available in the XO 6 interface, in **Administration → V2V → Migrate VMs**. This guide describes the XO 6 interface. The XO 5 import form remains available: see [Using XO 5 (legacy)](#-using-xo-5).
 :::
 
 ## Benefits {#-benefits}
@@ -307,7 +307,7 @@ Click **Launch \{n\} VMs** to start the migration. The migration runs in a task:
 - The **Start the VM on XCP-ng** and **Automatically clean up the VM** options are not supported yet.
 - Do not launch the migration of the same VM twice at the same time: both imports would use the same partial import.
 
-### Using XO 5 {#-using-xo-5}
+### Using XO 5 (legacy) {#-using-xo-5}
 
 Go to the **Import → VM → From VMware** section. Once the check passes, a **transfer form** appears:
 
