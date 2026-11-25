@@ -891,6 +891,13 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/story/web-core/ui/group-subcategory/ui-group-subcategory': RouteRecordInfo<
+      '/story/web-core/ui/group-subcategory/ui-group-subcategory',
+      '/story/web-core/ui/group-subcategory/ui-group-subcategory',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
     '/story/web-core/ui/head-bar/ui-head-bar': RouteRecordInfo<
       '/story/web-core/ui/head-bar/ui-head-bar',
       '/story/web-core/ui/head-bar/ui-head-bar',
@@ -2035,6 +2042,12 @@ declare module 'vue-router/auto-routes' {
     'src/stories/web-core/ui/file-uploader/ui-file-uploader.story.vue': {
       routes:
         | '/story/web-core/ui/file-uploader/ui-file-uploader'
+      views:
+        | never
+    }
+    'src/stories/web-core/ui/group-subcategory/ui-group-subcategory.story.vue': {
+      routes:
+        | '/story/web-core/ui/group-subcategory/ui-group-subcategory'
       views:
         | never
     }
