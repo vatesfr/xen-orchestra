@@ -11,26 +11,24 @@ function mountTypeToConfirmModal() {
   })
 }
 
-describe('VtsTypeToConfirmModal', () => {
-  it('keeps the confirm button enabled', () => {
-    expect(mountTypeToConfirmModal().get('button[type="submit"]').attributes('disabled')).toBeUndefined()
+it('keeps the confirm button enabled', () => {
+  expect(mountTypeToConfirmModal().get('button[type="submit"]').attributes('disabled')).toBeUndefined()
+})
+
+it.each([
+  { label: 'an empty text', text: '' },
+  { label: 'a wrong text', text: '2 VM' },
+])('does not confirm with $label and shows the error', async ({ text }) => {
+  const wrapper = mountTypeToConfirmModal()
+
+  expect(await submitConfirmationText(wrapper, text)).toEqual({
+    isConfirmed: false,
+    errors: [t('form:error:must-match', { text: '2 VMs' })],
   })
+})
 
-  it.each([
-    { label: 'an empty text', text: '' },
-    { label: 'a wrong text', text: '2 VM' },
-  ])('does not confirm with $label and shows the error', async ({ text }) => {
-    const wrapper = mountTypeToConfirmModal()
+it('confirms with the confirmation text', async () => {
+  const wrapper = mountTypeToConfirmModal()
 
-    expect(await submitConfirmationText(wrapper, text)).toEqual({
-      isConfirmed: false,
-      errors: [t('form:error:must-match', { text: '2 VMs' })],
-    })
-  })
-
-  it('confirms with the confirmation text', async () => {
-    const wrapper = mountTypeToConfirmModal()
-
-    expect(await submitConfirmationText(wrapper, '2 VMs')).toEqual({ isConfirmed: true, errors: [] })
-  })
+  expect(await submitConfirmationText(wrapper, '2 VMs')).toEqual({ isConfirmed: true, errors: [] })
 })

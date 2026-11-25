@@ -18,29 +18,27 @@ function mountActionModal(confirmationText?: string) {
   })
 }
 
-describe('VtsActionModal', () => {
-  it('confirms directly when no confirmation text is asked', async () => {
-    const wrapper = mountActionModal()
+it('confirms directly when no confirmation text is asked', async () => {
+  const wrapper = mountActionModal()
 
-    expect(wrapper.find('input').exists()).toBe(false)
+  expect(wrapper.find('input').exists()).toBe(false)
 
-    await wrapper.get('form').trigger('submit')
+  await wrapper.get('form').trigger('submit')
 
-    expect(wrapper.emitted('confirm')).toHaveLength(1)
+  expect(wrapper.emitted('confirm')).toHaveLength(1)
+})
+
+it('does not confirm with a wrong text and shows the error', async () => {
+  const wrapper = mountActionModal('2 VMs')
+
+  expect(await submitConfirmationText(wrapper, '2 VM')).toEqual({
+    isConfirmed: false,
+    errors: [t('form:error:must-match', { text: '2 VMs' })],
   })
+})
 
-  it('does not confirm with a wrong text and shows the error', async () => {
-    const wrapper = mountActionModal('2 VMs')
+it('confirms with the confirmation text', async () => {
+  const wrapper = mountActionModal('2 VMs')
 
-    expect(await submitConfirmationText(wrapper, '2 VM')).toEqual({
-      isConfirmed: false,
-      errors: [t('form:error:must-match', { text: '2 VMs' })],
-    })
-  })
-
-  it('confirms with the confirmation text', async () => {
-    const wrapper = mountActionModal('2 VMs')
-
-    expect(await submitConfirmationText(wrapper, '2 VMs')).toEqual({ isConfirmed: true, errors: [] })
-  })
+  expect(await submitConfirmationText(wrapper, '2 VMs')).toEqual({ isConfirmed: true, errors: [] })
 })

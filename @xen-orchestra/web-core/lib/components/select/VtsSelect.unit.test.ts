@@ -21,123 +21,121 @@ function findTriggerIconNames(wrapper: VueWrapper) {
     .map(icon => icon.props('name'))
 }
 
-describe('VtsSelect', () => {
-  it.each(['neutral', 'success', 'warning', 'danger'] as const)('applies the %s accent to the trigger', accent => {
-    const wrapper = mountSelect({ accent })
+it.each(['neutral', 'success', 'warning', 'danger'] as const)('applies the %s accent to the trigger', accent => {
+  const wrapper = mountSelect({ accent })
 
-    expect(wrapper.getComponent(VtsSelect).classes()).toContain(`accent--${accent}`)
-    expect(wrapper.getComponent(UiInput).props('accent')).toBe(accent)
+  expect(wrapper.getComponent(VtsSelect).classes()).toContain(`accent--${accent}`)
+  expect(wrapper.getComponent(UiInput).props('accent')).toBe(accent)
+})
+
+it('shows the success icon before the chevron with the success accent', () => {
+  expect(findTriggerIconNames(mountSelect({ accent: 'success' }))).toEqual([SUCCESS_ICON, CHEVRON_ICON])
+})
+
+it('shows the success icon with a success message from its wrapper', () => {
+  const wrapper = mountSelect({ message: { content: 'Valid', accent: 'success' } })
+
+  expect(findTriggerIconNames(wrapper)).toEqual([SUCCESS_ICON, CHEVRON_ICON])
+})
+
+it.each([
+  { label: 'the neutral accent', options: { accent: 'neutral' } },
+  { label: 'the warning accent', options: { accent: 'warning' } },
+  { label: 'the danger accent', options: { accent: 'danger' } },
+  { label: 'disabled', options: { accent: 'success', config: { disabled: true } } },
+] as const)('shows the chevron alone with $label', ({ options }) => {
+  expect(findTriggerIconNames(mountSelect(options))).toEqual([CHEVRON_ICON])
+})
+
+it.each(['disabled', 'required'] as const)('forwards the %s state to the trigger', state => {
+  expect(readForwardedFlag(config => mountSelect({ config }), UiInput, state)).toEqual([true, false])
+})
+
+it('renders a readonly trigger', () => {
+  expect(mountSelect().getComponent(UiInput).props('readonly')).toBe(true)
+})
+
+it('shows the label of the selected option', () => {
+  const wrapper = mountSelect({ sources: ['First', 'Second'], config: { model: ref('Second') } })
+
+  expect(findShownSelections(wrapper)).toEqual(['Second'])
+})
+
+it('shows the placeholder without selection', () => {
+  const wrapper = mountSelect({ config: { placeholder: 'Choose an option' } })
+
+  expect(wrapper.getComponent(UiInput).text()).toBe('Choose an option')
+})
+
+it('renders no option while closed', () => {
+  expect(findSelectOptionLabels(mountSelect())).toEqual([])
+})
+
+it('renders the options once open', async () => {
+  const wrapper = mountSelect({ sources: ['First', 'Second'] })
+
+  await openSelect(wrapper)
+
+  expect(findSelectOptionLabels(wrapper)).toEqual(['First', 'Second'])
+})
+
+it('renders each option through the default slot', async () => {
+  const wrapper = mountSelect({
+    sources: ['First', 'Second'],
+    option: option => h('span', { class: 'custom-option' }, option.properties.label),
   })
 
-  it('shows the success icon before the chevron with the success accent', () => {
-    expect(findTriggerIconNames(mountSelect({ accent: 'success' }))).toEqual([SUCCESS_ICON, CHEVRON_ICON])
-  })
+  await openSelect(wrapper)
 
-  it('shows the success icon with a success message from its wrapper', () => {
-    const wrapper = mountSelect({ message: { content: 'Valid', accent: 'success' } })
+  expect(wrapper.findAll('.custom-option').map(option => option.text())).toEqual(['First', 'Second'])
+})
 
-    expect(findTriggerIconNames(wrapper)).toEqual([SUCCESS_ICON, CHEVRON_ICON])
-  })
+it.each([
+  { label: 'a loading message alone', sources: [], loading: true, expected: [t('loading')] },
+  {
+    label: 'a loading message before the options',
+    sources: ['First'],
+    loading: true,
+    expected: [t('loading'), 'First'],
+  },
+  { label: 'a no result message without option', sources: [], loading: false, expected: [t('no-result')] },
+])('renders $label', async ({ sources, loading, expected }) => {
+  const wrapper = mountSelect({ sources, config: { loading } })
 
-  it.each([
-    { label: 'the neutral accent', options: { accent: 'neutral' } },
-    { label: 'the warning accent', options: { accent: 'warning' } },
-    { label: 'the danger accent', options: { accent: 'danger' } },
-    { label: 'disabled', options: { accent: 'success', config: { disabled: true } } },
-  ] as const)('shows the chevron alone with $label', ({ options }) => {
-    expect(findTriggerIconNames(mountSelect(options))).toEqual([CHEVRON_ICON])
-  })
+  await openSelect(wrapper)
 
-  it.each(['disabled', 'required'] as const)('forwards the %s state to the trigger', state => {
-    expect(readForwardedFlag(config => mountSelect({ config }), UiInput, state)).toEqual([true, false])
-  })
+  expect(findSelectOptionLabels(wrapper)).toEqual(expected)
+})
 
-  it('renders a readonly trigger', () => {
-    expect(mountSelect().getComponent(UiInput).props('readonly')).toBe(true)
-  })
+it('renders a search input with its placeholder when searchable', async () => {
+  const wrapper = mountSelect({ config: { searchable: true, searchPlaceholder: 'Search' } })
 
-  it('shows the label of the selected option', () => {
-    const wrapper = mountSelect({ sources: ['First', 'Second'], config: { model: ref('Second') } })
+  await openSelect(wrapper)
 
-    expect(findShownSelections(wrapper)).toEqual(['Second'])
-  })
+  expect(wrapper.get('.dropdown-list input').attributes('placeholder')).toBe('Search')
+})
 
-  it('shows the placeholder without selection', () => {
-    const wrapper = mountSelect({ config: { placeholder: 'Choose an option' } })
+it('renders no search input when not searchable', async () => {
+  const wrapper = mountSelect()
 
-    expect(wrapper.getComponent(UiInput).text()).toBe('Choose an option')
-  })
+  await openSelect(wrapper)
 
-  it('renders no option while closed', () => {
-    expect(findSelectOptionLabels(mountSelect())).toEqual([])
-  })
+  expect(wrapper.find('.dropdown-list input').exists()).toBe(false)
+})
 
-  it('renders the options once open', async () => {
-    const wrapper = mountSelect({ sources: ['First', 'Second'] })
+it('throws when no select is defined for its id', () => {
+  expect(() => mountWithSetup(() => () => renderSelect(Symbol('unknown')))).toThrow()
+})
 
-    await openSelect(wrapper)
-
-    expect(findSelectOptionLabels(wrapper)).toEqual(['First', 'Second'])
-  })
-
-  it('renders each option through the default slot', async () => {
-    const wrapper = mountSelect({
-      sources: ['First', 'Second'],
-      option: option => h('span', { class: 'custom-option' }, option.properties.label),
-    })
-
-    await openSelect(wrapper)
-
-    expect(wrapper.findAll('.custom-option').map(option => option.text())).toEqual(['First', 'Second'])
-  })
-
-  it.each([
-    { label: 'a loading message alone', sources: [], loading: true, expected: [t('loading')] },
-    {
-      label: 'a loading message before the options',
-      sources: ['First'],
-      loading: true,
-      expected: [t('loading'), 'First'],
+it('exposes focus', () => {
+  let focusSelect = () => {}
+  const wrapper = mountSelect({
+    selectRef: select => {
+      focusSelect = select.focus
     },
-    { label: 'a no result message without option', sources: [], loading: false, expected: [t('no-result')] },
-  ])('renders $label', async ({ sources, loading, expected }) => {
-    const wrapper = mountSelect({ sources, config: { loading } })
-
-    await openSelect(wrapper)
-
-    expect(findSelectOptionLabels(wrapper)).toEqual(expected)
   })
 
-  it('renders a search input with its placeholder when searchable', async () => {
-    const wrapper = mountSelect({ config: { searchable: true, searchPlaceholder: 'Search' } })
+  focusSelect()
 
-    await openSelect(wrapper)
-
-    expect(wrapper.get('.dropdown-list input').attributes('placeholder')).toBe('Search')
-  })
-
-  it('renders no search input when not searchable', async () => {
-    const wrapper = mountSelect()
-
-    await openSelect(wrapper)
-
-    expect(wrapper.find('.dropdown-list input').exists()).toBe(false)
-  })
-
-  it('throws when no select is defined for its id', () => {
-    expect(() => mountWithSetup(() => () => renderSelect(Symbol('unknown')))).toThrow()
-  })
-
-  it('exposes focus', () => {
-    let focusSelect = () => {}
-    const wrapper = mountSelect({
-      selectRef: select => {
-        focusSelect = select.focus
-      },
-    })
-
-    focusSelect()
-
-    expect(document.activeElement).toBe(wrapper.getComponent(UiInput).get('input').element)
-  })
+  expect(document.activeElement).toBe(wrapper.getComponent(UiInput).get('input').element)
 })
