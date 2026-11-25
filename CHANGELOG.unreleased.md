@@ -9,7 +9,7 @@
 
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
-- [REST API] Delete a proxy: `DELETE /rest/v0/proxies/:id` (PR [#](https://github.com/vatesfr/xen-orchestra/pull/))
+- [REST API] Delete a proxy: `DELETE /rest/v0/proxies/:id` (PR [#10900](https://github.com/vatesfr/xen-orchestra/pull/10900))
 
 ### Bug fixes
 
