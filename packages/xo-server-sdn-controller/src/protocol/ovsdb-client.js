@@ -100,7 +100,8 @@ export class OvsdbClient {
       if (password === undefined) {
         socket.destroy()
         this._adding = this._adding.filter(elem => elem.id !== network.uuid || elem.addr !== remoteAddress)
-        return bridge.name
+        // The port already exists: nothing has been added
+        return { name: bridge.name, added: false }
       }
 
       // Remove port and interface to recreate it with new password
@@ -199,7 +200,7 @@ export class OvsdbClient {
       host: this.host.name_label,
     })
     socket.destroy()
-    return bridge.name
+    return { name: bridge.name, added: true }
   }
 
   async resetForNetwork(network, privateNetworkUuid) {
