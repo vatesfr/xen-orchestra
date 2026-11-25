@@ -569,7 +569,7 @@ XCP-ng is a type 1 hypervisor, similar to VMware ESXi.
 
 You can migrate your VM from VMware vSphere to a Vates environment (Xen Orchestra and XCP-ng), directly from Xen Orchestra. For this, we use V2V ("VMware to Vates").
 
-To know more on using V2V in Xen Orchestra to migrate your environment from VMware, refer to the [XO V2V section in the XCP-ng documentation](https://docs.xcp-ng.org/installation/migrate-to-xcp-ng/#xo-v2v).
+Since XO 6.11, the migration is driven from XO 6, in **Administration → V2V → Migrate VMs**. To know more on using V2V in Xen Orchestra to migrate your environment from VMware, refer to the [VMware migration (V2V) guide](../migrate-from-vmware/v2v-migration-guide.md).
 
 ## Hosts management
 

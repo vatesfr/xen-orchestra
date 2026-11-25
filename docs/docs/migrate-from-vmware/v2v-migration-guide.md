@@ -3,13 +3,13 @@ sidebar_label: VMware migration (V2V)
 sidebar_position: 1
 ---
 
-# VMware migration (V2V)
+# VMware migration (V2V) — NEW
 
 ## Introduction {#-introduction}
 
 Xen Orchestra 5.110 introduced a new migration backend for moving virtual machines from VMware to XCP-ng (V2V). It replaces the old NFS-based method with `vectura`, a standalone reader of VMware's NFC protocol, delivering better performance and reliability without any VMware-provided library.
 
-The whole process is driven from Xen Orchestra, in **Import → VM → From VMware**. XO connects to your vCenter or ESXi host, reads the VM disks directly, and imports them into an XCP-ng storage repository:
+The whole process is driven from Xen Orchestra, in **Administration → V2V → Migrate VMs**. XO connects to your vCenter or ESXi host, reads the VM disks directly, and imports them into an XCP-ng storage repository:
 
 <Schema label="XO reads the VM disks from ESXi through vectura, and imports them into an XCP-ng pool. The source VM keeps running during most of the transfer" legend={[["#5ac8c8", "VMware"], ["#8e83fe", "XCP-ng"], ["#6aabf0", "XO"]]} maxWidth="640px">
 <svg viewBox="0 0 640 240" role="img" aria-label="A VM running on an ESXi host inside a VMware infrastructure is exported by Xen Orchestra using vectura, then imported into an XCP-ng host in the destination pool, where the migrated VM is ready to boot; the source VM keeps running during the warm phase of the transfer">
@@ -46,6 +46,7 @@ This guide walks you through the entire migration process:
 
 - Preparing your Xen Orchestra environment
 - Preparing your VMware environment
+- Running the migration wizard
 - Running a test migration
 - Executing the final cutover
 - Preparing the guest to boot on XCP-ng with the [Autopilot docking](#-autopilot-docking)
@@ -53,7 +54,7 @@ This guide walks you through the entire migration process:
 You will also find troubleshooting advice and best practices to maximize speed and minimize downtime.
 
 :::note
-The V2V import is currently available in the XO 5 interface. The new XO 6 web UI does not expose it yet: even if you use XO 6 daily, switch to the XO 5 interface for the migration itself.
+Since XO 6.11, the V2V import is available in the XO 6 interface, in **Administration → V2V → Migrate VMs**. This guide describes the XO 6 interface. The XO 5 import form remains available: see [Using XO 5 (legacy)](#-using-xo-5).
 :::
 
 ## Benefits {#-benefits}
@@ -80,6 +81,8 @@ Additionally, UEFI VMs are no longer forced into Secure Boot mode, which resolve
 
 Recent releases keep improving the workflow: since XO 6.6, a CD-ROM drive present on the source is recreated on the destination VM, and a two-step transfer (a first warm pass followed by a final run) tells you upfront whether the next run will be a full or a delta transfer.
 
+Since XO 6.11, the XO 6 interface brings a migration wizard: you can migrate several VMs at once, choose a storage repository for each disk and a network for each network adapter, and resume a partial import from its last sync. Migration lists are saved in your browser, one per source and destination pool.
+
 #### Performance gains
 
 Performance gains can be significant, though results depend on the environment:
@@ -94,7 +97,9 @@ Performance gains can be significant, though results depend on the environment:
 
 Make sure your Xen Orchestra instance is up to date. The import page includes an automatic check that verifies that `vectura`, shipped with your Xen Orchestra, runs on this system. Errors must be resolved before the migration can start.
 
-<UiDetail src="/img/xo5/v2v-prerequisite-check.png" alt="The prerequisite check on the import page, showing the status of vectura" width={232} />
+<UiDetail src="/img/xo6/v2v-prerequisite-check.png" alt="The prerequisite check on the Source step of the migration wizard, showing the status of vectura" width={340} />
+
+<UiDetail src="/img/xo5/v2v-prerequisite-check.png" alt="The prerequisite check on the XO 5 import page, showing the status of vectura" width={232} />
 
 ### Dependencies
 
@@ -103,15 +108,7 @@ is shipped with Xen Orchestra and runs from there: there is nothing to install, 
 from VMware or Broadcom, and nothing to compile. It needs a Linux x86-64 system with glibc 2.31 or
 later, such as Debian 11 or Ubuntu 20.04.
 
-Go to the **Import → VM → From VMware** section. Once the check passes, a **transfer form** appears:
-
-<UiDetail src="/img/xo5/v2v-transfer-form.png" alt="The transfer form used to connect to VMware and import a VM into Xen Orchestra" width={620} />
-
-:::warning
-Filling in this form and clicking the **Connect** button will start the VM import. Make sure your VMware environment is ready first!
-
-Read [Preparing the VMware environment](#-preparing-the-vmware-environment) to know more.
-:::
+Go to **Administration → V2V → Migrate VMs**. The prerequisite check is shown at the top of the **Connect a new VMware source** card. Until it passes, VMs cannot be migrated.
 
 ## Preparing the VMware environment {#-preparing-the-vmware-environment}
 
@@ -148,7 +145,7 @@ A snapshot taken before CBT was enabled cannot be used to compute a delta. Remov
 
 Keep the VMware Tools (or open-vm-tools) installed and running on the source VMs. XO uses them to:
 
-- shut the guest down cleanly when the `Stop source` option is enabled, instead of powering it off;
+- shut the guest down cleanly when the **Stop the source VM** option is enabled, instead of powering it off;
 - read the IP addresses of each network card, which the [Autopilot docking](#-autopilot-docking) needs for Windows VMs with several network cards in static addressing.
 
 With the Autopilot docking, there is no need to remove the VMware Tools before the migration: the docking disables them on the migrated VM.
@@ -188,7 +185,7 @@ Here is the "surefire method" to prepare your VMware environment.
 It involves a lot of manual steps, but it lets you detect and fix issues without impacting production.
 
 :::tip
-There is also a "fire-and-forget" approach: launch the migration with the `Stop source` option enabled, then start the VM once the migration is complete.
+There is also a "fire-and-forget" approach: launch the migration with the **Stop the source VM** option enabled, then start the VM once the migration is complete.
 
 This method is only recommended for non-critical VMs, and only after the first few migrations have gone smoothly.
 :::
@@ -215,6 +212,115 @@ Without the Autopilot docking, take another snapshot named `vm without tools`.
 
 This snapshot captures the state of the VM without VMware-specific components, and will be used for the initial migration.
 
+## Running the migration wizard {#-running-the-migration-wizard}
+
+The wizard has five steps: **Source**, **Destination**, **VMs**, **Mapping** and **Review**. Only administrators can migrate VMs.
+
+### Source
+
+Fill in the **Connect a new VMware source** form with the address of your vCenter or ESXi host (**Host** and **Port**, 443 by default), your VMware **Username** and **Password**, then click **Connect**.
+
+<UiShot light="/img/xo6/v2v-source-light.png" dark="/img/xo6/v2v-source-dark.png" alt="The Source step of the migration wizard, with the remembered connections and the connection form" url="https://your-xo/v6/#/admin/v2v/migrate" />
+
+- **Skip SSL check (self-signed certificate)** is enabled by default: the server certificate is not verified.
+- **Remember connection in this browser** keeps the connection, password included, in this browser only. Xen Orchestra never stores your VMware credentials. Make sure this complies with your security guidelines.
+
+Remembered connections are listed in the **Remembered connections** card, with the number of VMs and their migration status. Click **Connect** to reuse one. The connection remembered by the XO 5 import form is added to this list.
+
+### Destination
+
+Choose the **Destination pool**, then the global defaults applied to every VM:
+
+- **Default storage repository**: prefilled with the pool default SR.
+- **Default network**: prefilled with the management network of the pool master.
+- **Default template**.
+
+<UiShot light="/img/xo6/v2v-destination-light.png" dark="/img/xo6/v2v-destination-dark.png" alt="The Destination step of the migration wizard, with the destination pool and the global defaults" url="https://your-xo/v6/#/admin/v2v/migrate?step=destination" />
+
+Each VM can override these defaults in the **Mapping** step.
+
+Each source and destination pool pair has its own migration list, saved in your browser. If a list already exists for this pair, click **Continue with existing list** to reopen it, with the current migration state of every VM.
+
+### VMs
+
+The table lists the VMs of the source, with their power state, datastores, size, migration status and last sync. Filter them with the presets (**All**, **Not migrated**, **Not ready**, **In progress**, **Warm synced**, **Cutover done**), with the query builder, or by clicking a datastore.
+
+<UiShot light="/img/xo6/v2v-vms-light.png" dark="/img/xo6/v2v-vms-dark.png" alt="The VMs step of the migration wizard, with the VMs of the source and the Selected VMs side panel" url="https://your-xo/v6/#/admin/v2v/migrate?step=vms" />
+
+Select the VMs to migrate, then click **Add to migration list**. VMs with an [unsupported disk](#-unsupported) cannot be selected.
+
+The **Selected VMs** side panel shows the migration list. Removing a VM from the list does not delete anything, neither on the source nor in XO.
+
+### Mapping
+
+The table shows every VM of the migration list, with its type:
+
+- **New**: the VM is imported for the first time.
+- **Resume**: a partial import of the VM exists on the destination pool. The import resumes from the last sync, with the mapping of the first run.
+
+<UiShot light="/img/xo6/v2v-mapping-light.png" dark="/img/xo6/v2v-mapping-dark.png" alt="The Mapping step of the migration wizard, with the details of a VM in the side panel" url="https://your-xo/v6/#/admin/v2v/migrate?step=mapping" />
+
+Click a VM to open its details in the side panel, then click **Edit settings** to choose:
+
+- a **Target SR** for each disk,
+- a **Target network** for each network adapter,
+- the **Template**.
+
+Each value shows whether it comes from the **Global default** or is **Overridden**. Click **Reset to default** to go back to the global default.
+
+The mapping of a resumed VM is locked. To start over with a new mapping, click **Delete** in its side panel: the partial import is deleted, and the VM is imported as a new VM.
+
+The **Checks** column tells whether each VM is ready. A VM with one of these checks is not migrated:
+
+- **Not found in the source**
+- An [unsupported disk](#-unsupported)
+- **Import in progress**
+- **Partial import on pool \{pool\}**: the partial import of the VM exists on another pool.
+- **Mapping incomplete**: a chosen SR, network or template is no longer available on the pool.
+
+A VM with the **Already migrated, confirmation at launch** check is only migrated again after your confirmation, in the **Review** step.
+
+### Review
+
+Set the **Default options** of the launch:
+
+- **Stop the source VM**: enabled by default. The source VM is stopped before the last delta transfer. This is needed to fully transfer a running VM.
+- **Stop on error**: enabled by default. The migration stops on the first error when importing VMs.
+- **Concurrent VMs**: the number of VMs imported at the same time, 2 by default (from 1 to 8).
+
+<UiShot light="/img/xo6/v2v-review-light.png" dark="/img/xo6/v2v-review-dark.png" alt="The Review step of the migration wizard, with the default options and the per-VM options" url="https://your-xo/v6/#/admin/v2v/migrate?step=review" />
+
+In the **Per-VM options** table, you can override the **Stop source** option for each VM.
+
+Before the launch, VMs are grouped as follows:
+
+- **Excluded**: VMs with a blocking check. They are not migrated.
+- **Already fully migrated**: tick **Create a second copy of \{name\}** to migrate the VM again. A second VM is created on the destination pool.
+- **Resumed**: VMs resumed from their last sync.
+- **New**: VMs imported for the first time.
+
+Click **Launch \{n\} VMs** to start the migration. The migration runs in a task: click **See the task** to follow its progress.
+
+### Limitations {#-limitations}
+
+- The **Tags** and **Keep MAC addresses** options of the **Mapping** step are not applied yet.
+- The **Start the VM on XCP-ng** and **Automatically clean up the VM** options are not supported yet.
+- Do not launch the migration of the same VM twice at the same time: both imports would use the same partial import.
+
+### Using XO 5 (legacy) {#-using-xo-5}
+
+Go to the **Import → VM → From VMware** section. Once the check passes, a **transfer form** appears:
+
+<UiDetail src="/img/xo5/v2v-transfer-form.png" alt="The transfer form used to connect to VMware and import a VM into Xen Orchestra" width={620} />
+
+:::warning
+Filling in this form and clicking the **Connect** button will start the VM import. Make sure your VMware environment is ready first!
+
+Read [Preparing the VMware environment](#-preparing-the-vmware-environment) to know more.
+:::
+
+In XO 5, the `Stop source` option matches the **Stop the source VM** option of the XO 6 wizard.
+
 ## Initial test migration {#-initial-test-migration}
 
 Before making the final switch, **run a test migration first**. This lets you catch any issues before moving to production.
@@ -224,23 +330,23 @@ Before making the final switch, **run a test migration first**. This lets you ca
 Understanding the warm migration mechanism helps you follow the progress:
 
 1. If the source VM is running and has no snapshot, XO automatically takes one, named `[V2V] migration to XCP-ng`.
-2. XO creates the destination VM (its name ends with `importing...` while the transfer runs) and imports the read-only snapshot chain while the source VM keeps running in production.
+2. XO creates the destination VM (its name starts with `[Importing...]` while the transfer runs) and imports the read-only snapshot chain while the source VM keeps running in production.
 3. A snapshot of the destination VM is taken after this first pass, so the process can be resumed safely without creating duplicate VMs.
-4. If the `Stop source` option is enabled, XO then shuts the source VM down through its VMware Tools, transfers only the final delta (the blocks written since the snapshot), and takes a final `complete import from V2V` snapshot. When the VMware Tools do not run, or the guest does not shut down within 10 minutes, the VM is powered off instead, and the task reports it.
+4. If the **Stop the source VM** option is enabled, XO then shuts the source VM down through its VMware Tools, transfers only the final delta (the blocks written since the snapshot), and takes a final `complete import from V2V` snapshot. When the VMware Tools do not run, or the guest does not shut down within 10 minutes, the VM is powered off instead, and the task reports it.
 5. If the [Autopilot docking](#-autopilot-docking) is enabled and the import is complete, XO boots the destination VM on the docking ISO, which prepares the guest to run on XCP-ng.
 
 As long as the import is partial (the source VM is still live), XO blocks the destination VM from starting normally, to prevent both copies from running at once.
 
 ### Perform the first migration attempt
 
-1. **Start the V2V migration** in Xen Orchestra, without enabling the `Stop source` option.\
+1. **Start the V2V migration** in Xen Orchestra, with the **Stop the source VM** option disabled (it is enabled by default).\
    This will transfer the VM data up to the snapshot named `vm without tools`.
    :::tip
    You can safely close your browser while the migration runs.
    :::
 2. **Monitor the migration progress** using one of these methods:
-   - Check the VM status in Xen Orchestra (its name should show `importing...`).
-   - Follow the disk transfer progress indicators.
+   - Check the VM status in Xen Orchestra (its name should show `[Importing...]`).
+   - Follow the migration task: click **See the task** once the migration is launched.
 
 ### Testing the migrated VM
 
@@ -271,7 +377,7 @@ Once you have finished your checks and taken notes, delete the test VM. This wil
 When you're ready for the final migration:
 
 - Shut down the source VM completely.
-- Start the V2V migration in Xen Orchestra with the `Stop source` option enabled.\
+- Start the V2V migration in Xen Orchestra with the **Stop the source VM** option enabled.\
   This ensures the final sync happens while the VM is powered off, and prevents any inconsistencies.
 
 ### Post-migration tasks
@@ -384,6 +490,9 @@ If you encounter problems during migration, try these steps to diagnose and reso
 
 - **Test network connectivity**\
   Ensure stable network connectivity between the VMware environment, Xen Orchestra, and XCP-ng hosts.
+
+- **Check the launch errors**\
+  When the migration cannot be started, the **Review** step lists the problem of each VM. VMs with a blocking check are listed in the **Excluded** group, with the reason.
 
 - **Retry with cold migration**\
   If warm migration fails, power off the VM, remove all snapshots, and try again.
