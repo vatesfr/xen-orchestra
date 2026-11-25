@@ -9,6 +9,8 @@
 
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
+- [REST API] Get the state of a proxy appliance updater: `GET /rest/v0/proxies/:id/appliance_updater_state` (PR [#10773](https://github.com/vatesfr/xen-orchestra/pull/10773))
+
 ### Bug fixes
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
@@ -36,9 +38,12 @@
 <!--packages-start-->
 
 - @vates/nbd-client patch
+- @vates/types minor
 - @xen-orchestra/backups patch
+- @xen-orchestra/rest-api minor
 - @xen-orchestra/web patch
 - @xen-orchestra/web-core patch
 - xo-collection patch
+- xo-server patch
 
 <!--packages-end-->
