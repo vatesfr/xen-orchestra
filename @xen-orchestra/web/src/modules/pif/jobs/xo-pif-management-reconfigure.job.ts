@@ -1,4 +1,5 @@
 import { useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
+import { useXoNetworkCollection } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
 import { xoPifArg } from '@/modules/pif/jobs/xo-pif-args.ts'
 import type { FrontXoPif } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
 import { useXoTaskUtils } from '@/shared/composables/xo-task-utils.composable.ts'
@@ -13,6 +14,8 @@ import {
 } from '@vates/types'
 import { useI18n } from 'vue-i18n'
 
+const MANAGEMENT_MTU = 1500
+
 function hasIpConfiguration(pif: FrontXoPif) {
   return pif.primaryAddressType === PRIMARY_ADDRESS_TYPE.IPV6
     ? pif.ipv6Mode !== IPV6_CONFIGURATION_MODE.NONE
@@ -23,6 +26,7 @@ export const useXoPifManagementReconfigureJob = defineJob('pif.management-reconf
   const { t } = useI18n()
   const { monitorTask } = useXoTaskUtils()
   const { getHostById } = useXoHostCollection()
+  const { getNetworkById } = useXoNetworkCollection()
 
   return {
     async run(pif: FrontXoPif) {
@@ -51,6 +55,12 @@ export const useXoPifManagementReconfigureJob = defineJob('pif.management-reconf
 
       if (pif.management) {
         throw new JobError(t('job:pif-management-reconfigure:current-pif'))
+      }
+
+      const network = getNetworkById(pif.$network)
+
+      if (network?.MTU !== MANAGEMENT_MTU) {
+        throw new JobError(t('job:pif-management-reconfigure:invalid-mtu', { mtu: MANAGEMENT_MTU }))
       }
 
       if (!hasIpConfiguration(pif)) {
