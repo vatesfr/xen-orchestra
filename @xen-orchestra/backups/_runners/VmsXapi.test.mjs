@@ -47,7 +47,7 @@ function createRunner({ backups, settings = {} }) {
 // runs the runner inside a root task, aborted once the first VM backup has started
 async function runAndAbort(runner, calls) {
   const events = []
-  const root = new Task({ onProgress: event => events.push(event) })
+  const root = new Task({ skipSubtasksAfterAbort: true, onProgress: event => events.push(event) })
   const pRun = root.run(() => runner.run())
 
   while (calls.vm1 === 0) {

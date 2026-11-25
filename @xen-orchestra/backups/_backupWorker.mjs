@@ -178,6 +178,8 @@ process.on('message', async message => {
         ? await Task.run(
             {
               properties: { name: 'backup run', ...message.data.jobData },
+              // the steps of an aborted backup are skipped, as when the backup runs in the main thread
+              skipSubtasksAfterAbort: true,
               onProgress: data =>
                 emitMessage({
                   data,

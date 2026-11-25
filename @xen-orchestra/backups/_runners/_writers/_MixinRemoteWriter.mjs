@@ -75,9 +75,13 @@ export const MixinRemoteWriter = (BaseClass = Object) =>
       const { handler } = this._adapter
       const synchronousMerge = this._settings.mergeBackupsSynchronously
       const willMergeInWorker = !synchronousMerge && !disableMergeWorker && typeof handler.getRealPath === 'function'
-      // part of the cleanup of the backup: it also runs after an abort, merge included (skipping it is a level 2 abort)
-      const { merge } = await this._cleanVm({ cleanup: true, remove: true, merge: !willMergeInWorker })
-      await this.#lock.dispose()
+      let merge
+      try {
+        // part of the cleanup: it also runs after an abort, merge included (skipping it is a level 2 abort)
+        ;({ merge } = await this._cleanVm({ cleanup: true, remove: true, merge: !willMergeInWorker }))
+      } finally {
+        await this.#lock.dispose()
+      }
 
       if (merge && willMergeInWorker) {
         const taskFile =

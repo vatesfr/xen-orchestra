@@ -32,7 +32,7 @@ describe('HealthCheckVmBackup#run() after an abort', () => {
       xapi,
     })
 
-    const vmTask = new Task({ onProgress() {} })
+    const vmTask = new Task({ skipSubtasksAfterAbort: true, onProgress() {} })
     const result = await vmTask
       .run(async () => {
         const pRun = healthCheck.run()

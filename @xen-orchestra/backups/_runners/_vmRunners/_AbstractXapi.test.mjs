@@ -660,10 +660,8 @@ describe('run() purges the snapshot data only while the snapshot exists', () => 
 })
 
 describe('after an abort', () => {
-  // runs `fn` inside a task, as the VM runners are run inside their VM task
-  const runInTask = fn => new Task({ onProgress() {} }).run(fn)
-
   it('_snapshot() passes the abort signal to the snapshot', async () => {
+    const vmTask = new Task({ skipSubtasksAfterAbort: true, onProgress() {} })
     let received
     const runner = makeRunner({
       _settings: { bypassVdiChainsCheck: true },
@@ -672,6 +670,8 @@ describe('after an abort', () => {
         uuid: 'vm-uuid',
         $snapshot: async opts => {
           received = opts
+          // the backup is aborted while the snapshot is being taken
+          vmTask.abort()
           throw new Error('stop after the snapshot call')
         },
       },
@@ -679,19 +679,15 @@ describe('after an abort', () => {
       _mustDoSnapshot: async () => true,
     })
 
-    let vmTask
-    await runInTask(async () => {
-      vmTask = Task.abortSignal
-      await assert.rejects(runner._snapshot(), /stop after the snapshot call/)
-    })
+    await vmTask.run(() => assert.rejects(runner._snapshot(), /stop after the snapshot call/)).catch(() => {})
 
     assert.ok(received.signal instanceof AbortSignal, 'the snapshot gets a signal')
-    assert.equal(received.signal.aborted, vmTask.aborted)
+    assert.equal(received.signal.aborted, true, 'the snapshot gets the abort signal of the backup')
   })
 
   it('run() still applies the retention and restores the blocked operations, but skips the health check', async () => {
     const calls = []
-    const vmTask = new Task({ onProgress() {} })
+    const vmTask = new Task({ skipSubtasksAfterAbort: true, onProgress() {} })
     const runner = makeRunner({
       _settings: { offlineBackup: false, snapshotRetention: 0 },
       _vm: {

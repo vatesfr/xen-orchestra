@@ -150,14 +150,10 @@ export const VmsRemote = class RemoteVmsBackupRunner extends Abstract {
                 nbVmsDone++
                 return task.success(result)
               }
-              if (signal?.aborted) {
-                // the VM backup failed because of the abort, whatever the error it reports
+              // once aborted, the VM backup is not retried: it failed because of the abort, whatever its error
+              if (isLastRun || signal?.aborted) {
                 nbVmsDone++
-                return task.failure(signal.reason)
-              }
-              if (isLastRun) {
-                nbVmsDone++
-                return task.failure(taskError)
+                return task.failure(signal?.aborted ? signal.reason : taskError)
               }
               Task.set('progress', Math.round((nbVmsDone * 100) / nbVms))
               // don't end the task
@@ -174,7 +170,7 @@ export const VmsRemote = class RemoteVmsBackupRunner extends Abstract {
         const { concurrency } = settings
         const _handleVm = !concurrency ? handleVm : limitConcurrency(concurrency)(handleVm)
 
-        while (queue.size > 0 && !signal?.aborted) {
+        while (queue.size > 0) {
           const vmIds = Array.from(queue)
           queue.clear()
 

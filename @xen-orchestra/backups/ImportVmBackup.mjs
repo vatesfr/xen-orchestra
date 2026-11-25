@@ -3,6 +3,7 @@ import assert from 'node:assert'
 import { formatFilenameDate } from './_filenameDate.mjs'
 import { importIncrementalVm } from './_incrementalVm.mjs'
 import { liveMountXapiLabels } from './liveMountXapiLabels.mjs'
+import { destroyOnAbort } from './_destroyOnAbort.mjs'
 import { watchStreamSize } from './_watchStreamSize.mjs'
 import { decorateClass } from '@vates/decorate-with'
 import { Task } from '@vates/task'
@@ -16,8 +17,6 @@ import { openDiskChain } from '@xen-orchestra/backup-archive/disks'
 import { resetVmOtherConfig } from './_otherConfig.mjs'
 
 const { debug, info, warn } = createLogger('xo:backups:importVmBackup')
-
-const noop = Function.prototype
 async function resolveUuid(xapi, cache, uuid, type) {
   if (uuid == null) {
     return uuid
@@ -433,16 +432,7 @@ export class ImportVmBackup {
       //
       // set up as soon as the stream exists, so that an abort landing before the import starts, or leaving the transfer
       // subtask unable to run, still closes it (a file handle or an S3 request)
-      const signal = Task.abortSignal
-      // nothing may be listening yet when it is destroyed: an error event without listener would crash the process
-      backup.on('error', noop)
-      const onAbort = () => backup.destroy(signal.reason)
-      if (signal?.aborted) {
-        onAbort()
-      } else {
-        signal?.addEventListener('abort', onAbort, { once: true })
-        $defer(() => signal.removeEventListener('abort', onAbort))
-      }
+      $defer(destroyOnAbort(backup, Task.abortSignal))
     } else {
       assert.strictEqual(metadata.mode, 'delta')
 

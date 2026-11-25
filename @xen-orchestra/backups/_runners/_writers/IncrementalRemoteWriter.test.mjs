@@ -49,7 +49,7 @@ function createWriter() {
 // the steps of a VM backup for this writer, in the order `_AbstractXapi#run()` calls them
 async function runSteps(writer, { abort }) {
   const events = []
-  const vmTask = new Task({ onProgress: event => events.push(event) })
+  const vmTask = new Task({ skipSubtasksAfterAbort: true, onProgress: event => events.push(event) })
   let afterBackupError
 
   await vmTask
@@ -102,6 +102,20 @@ describe('IncrementalRemoteWriter#afterBackup()', () => {
     const lastCleanVmEnd = events.find(_ => _.type === 'end' && _.id === cleanVmIds[1])
     assert.equal(lastCleanVmEnd.status, 'success')
   })
+
+  it('releases the lock when the clean-vm after the backup fails', async () => {
+    const { calls, writer } = createWriter()
+    writer.transfer = async () => {}
+    const cleanVm = writer._cleanVm
+    writer._cleanVm = function (options) {
+      return options.cleanup ? Promise.reject(new Error('clean-vm failed')) : cleanVm.call(this, options)
+    }
+
+    const { afterBackupError } = await runSteps(writer, { abort: () => {} })
+
+    assert.equal(afterBackupError?.message, 'clean-vm failed')
+    assert.equal(calls.lockDisposed, true)
+  })
 })
 
 describe('IncrementalRemoteWriter clean-vm and abort', () => {
@@ -130,7 +144,7 @@ describe('IncrementalRemoteWriter clean-vm and abort', () => {
 
   it('aborts the clean-vm made before the transfer with the backup', async () => {
     const { calls, writer } = createWriter()
-    const vmTask = new Task({ onProgress() {} })
+    const vmTask = new Task({ skipSubtasksAfterAbort: true, onProgress() {} })
     let signal
     writer._adapter.cleanVm = async () => {
       signal = Task.abortSignal
@@ -149,7 +163,7 @@ describe('IncrementalRemoteWriter#transfer() after an abort', () => {
   it('stops writing the disks and writes no metadata', async () => {
     const writes = []
     let metadataWritten = false
-    const vmTask = new Task({ onProgress() {} })
+    const vmTask = new Task({ skipSubtasksAfterAbort: true, onProgress() {} })
     const writer = new IncrementalRemoteWriter({
       adapter: {
         getVhdFileName: basename => `${basename}.vhd`,

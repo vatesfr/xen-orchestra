@@ -49,7 +49,7 @@ describe('FullXapi#_copy() after an abort', () => {
       ]),
     })
 
-    const vmTask = new Task({ onProgress() {} })
+    const vmTask = new Task({ skipSubtasksAfterAbort: true, onProgress() {} })
     let copyRejectedAt
     await vmTask
       .run(async () => {

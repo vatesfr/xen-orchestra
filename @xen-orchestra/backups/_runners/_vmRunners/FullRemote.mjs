@@ -3,6 +3,7 @@ import { createLogger } from '@xen-orchestra/log'
 import { AbstractRemote } from './_AbstractRemote.mjs'
 import { FullRemoteWriter } from '../_writers/FullRemoteWriter.mjs'
 import { forkStreamUnpipe } from '../_forkStreamUnpipe.mjs'
+import { destroyOnAbort } from '../../_destroyOnAbort.mjs'
 import { watchStreamSize } from '../../_watchStreamSize.mjs'
 import { AggregatedFullRemoteWriter } from '../_writers/AggregatedFullRemoteWriter.mjs'
 import { Task } from '@vates/task'
@@ -38,14 +39,7 @@ export const FullRemote = class FullRemoteVmBackupRunner extends AbstractRemote 
       const isForked = this._writers.size > 1
 
       // the source is a plain stream: destroying it stops the reading and makes the writers fail
-      const signal = Task.abortSignal
-      const onAbort = () => stream.destroy(signal.reason)
-      // the abort may have been requested while the source was being opened
-      if (signal?.aborted) {
-        onAbort()
-      } else {
-        signal?.addEventListener('abort', onAbort, { once: true })
-      }
+      const stopDestroyOnAbort = destroyOnAbort(stream, Task.abortSignal)
 
       // @todo shouldn't transfer backup if it will be deleted by retention policy (higher retention on source than destination)
       await this._callWriters(
@@ -62,7 +56,7 @@ export const FullRemote = class FullRemoteVmBackupRunner extends AbstractRemote 
             sizeContainer,
           }),
         'writer.run()'
-      ).finally(() => signal?.removeEventListener('abort', onAbort))
+      ).finally(stopDestroyOnAbort)
       // for healthcheck
       this._vm = metadata.vm
       nbTransferredVms++

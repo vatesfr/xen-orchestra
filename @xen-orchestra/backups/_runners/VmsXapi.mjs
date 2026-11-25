@@ -217,12 +217,9 @@ export const VmsXapi = class VmsXapiBackupRunner extends Abstract {
           }
 
           const vmBackupFailed = async (error, task) => {
-            if (signal?.aborted) {
-              // the VM backup failed because of the abort, whatever the error it reports
-              return task.failure(signal.reason)
-            }
-            if (isLastRun) {
-              return task.failure(error)
+            // once aborted, the VM backup is not retried: it failed because of the abort, whatever its error
+            if (isLastRun || signal?.aborted) {
+              return task.failure(signal?.aborted ? signal.reason : error)
             } else {
               // don't end the task
               task.warning(`Retry the VM backup due to an error`, {
@@ -299,7 +296,7 @@ export const VmsXapi = class VmsXapiBackupRunner extends Abstract {
         const { concurrency } = settings
         const _handleVm = concurrency === 0 ? handleVm : limitConcurrency(concurrency)(handleVm)
 
-        while (queue.size > 0 && !signal?.aborted) {
+        while (queue.size > 0) {
           const vmIds = Array.from(queue)
           queue.clear()
 

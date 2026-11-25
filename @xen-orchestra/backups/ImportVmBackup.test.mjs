@@ -358,7 +358,7 @@ describe('ImportVmBackup#run() after an abort', () => {
     const { Task } = await import('@vates/task')
     const { importer, state } = await makeFullRestore()
 
-    const vmTask = new Task({ onProgress() {} })
+    const vmTask = new Task({ skipSubtasksAfterAbort: true, onProgress() {} })
     const result = await vmTask
       .run(async () => {
         const pRun = importer.run()
@@ -373,7 +373,7 @@ describe('ImportVmBackup#run() after an abort', () => {
 
   it('stops a full restore aborted before its import has started, and destroys its stream', async () => {
     const { Task } = await import('@vates/task')
-    const vmTask = new Task({ onProgress() {} })
+    const vmTask = new Task({ skipSubtasksAfterAbort: true, onProgress() {} })
     // the abort lands during the lookup of the SR, after the transfer subtask started
     const { importer, xva } = await makeFullRestore({ onSrLookup: () => vmTask.abort() })
 
@@ -385,7 +385,7 @@ describe('ImportVmBackup#run() after an abort', () => {
 
   it('destroys the stream of a full backup when the abort lands while it is opened', async () => {
     const { Task } = await import('@vates/task')
-    const vmTask = new Task({ onProgress() {} })
+    const vmTask = new Task({ skipSubtasksAfterAbort: true, onProgress() {} })
     // the transfer subtask is then created under an aborted task: it fails without running
     const { importer, state, xva } = await makeFullRestore({ onOpen: () => vmTask.abort() })
 
@@ -394,5 +394,23 @@ describe('ImportVmBackup#run() after an abort', () => {
     assert.equal(result, 'AbortError')
     assert.equal(state.imported, false)
     assert.equal(xva.destroyed, true, 'the stream (a file handle or an S3 request) is not left open')
+  })
+
+  it('restores a full backup outside a task, as the proxy does', async t => {
+    // `golike-defer` logs the errors of the deferred functions instead of rejecting with them
+    const logError = t.mock.method(console, 'error', () => {})
+    const { importer, xva } = await makeFullRestore()
+    importer._xapi.VM_import = async stream => {
+      stream.resume()
+      throw new Error('stop after the import')
+    }
+    xva.end()
+
+    // the error of the import, not one of the abort handling, which has no signal to listen to
+    await assert.rejects(importer.run(), { message: 'stop after the import' })
+    assert.deepEqual(
+      logError.mock.calls.map(call => String(call.arguments[0])),
+      []
+    )
   })
 })

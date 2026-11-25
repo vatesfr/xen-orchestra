@@ -39,7 +39,7 @@ describe('FullRemote#_run() after an abort', () => {
       ]),
     })
 
-    const vmTask = new Task({ onProgress() {} })
+    const vmTask = new Task({ skipSubtasksAfterAbort: true, onProgress() {} })
     const result = await vmTask
       .run(async () => {
         const pRun = runner._run()
@@ -59,11 +59,10 @@ describe('FullRemote#_run() after an abort', () => {
   })
 
   it('destroys the source stream when the abort came while the source was being opened', async () => {
+    // nothing listens to its errors: destroying it must not crash the process
     const source = new PassThrough()
-    // as the writers do, which fail on the error of their input
-    source.on('error', () => {})
     let written = false
-    const vmTask = new Task({ onProgress() {} })
+    const vmTask = new Task({ skipSubtasksAfterAbort: true, onProgress() {} })
     const runner = makeRunner({
       _computeTransferList: async () => [{ timestamp: 0, vm: {}, vmSnapshot: {} }],
       _sourceRemoteAdapter: {
@@ -92,7 +91,7 @@ describe('FullRemote#_run() after an abort', () => {
   })
 
   it('does not open the source of the next backup once aborted', async () => {
-    const vmTask = new Task({ onProgress() {} })
+    const vmTask = new Task({ skipSubtasksAfterAbort: true, onProgress() {} })
     let opened = 0
     const runner = makeRunner({
       _computeTransferList: async () => [
@@ -102,8 +101,8 @@ describe('FullRemote#_run() after an abort', () => {
       _sourceRemoteAdapter: {
         readFullVmBackup: async () => {
           ++opened
-          // as the writers do, which fail on the error of their input
-          return new PassThrough().on('error', () => {})
+          // nothing listens to its errors: destroying it must not crash the process
+          return new PassThrough()
         },
         readFullVmBackupChecksum: async () => 'checksum',
       },
