@@ -120,7 +120,8 @@ export async function upgradePackages({
     if (!isValidPackageName(packageName)) {
       throw new Error(`invalid package name: ${packageName}`)
     }
-    args.push('install', '--only-upgrade', packageName)
+    // unlike `upgrade`, `install` can remove a conflicting package: abort instead
+    args.push('install', '--only-upgrade', '--no-remove', packageName)
   }
 
   // the full output is already logged by apt in /var/log/apt/term.log
