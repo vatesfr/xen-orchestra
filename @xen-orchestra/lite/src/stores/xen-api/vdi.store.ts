@@ -4,43 +4,34 @@ import { createSubscribableStoreContext } from '@core/utils/create-subscribable-
 import { defineStore } from 'pinia'
 
 export const useVdiStore = defineStore('xen-api-vdi', () => {
-  let getVdiByOpaqueRef: ((ref: XenApiVdi['$ref']) => XenApiVdi | undefined) | null = null
+  const { context: baseContext, ...configRest } = createXapiStoreConfig('vdi')
 
-  const calculateVdiChainPhysicalUsage = (vdi: XenApiVdi): number => {
-    let chainTotalUsage = +(vdi.physical_utilisation ?? 0)
+  const getChainPhysicalUsage = (vdi: XenApiVdi) => {
+    if (vdi.is_a_snapshot || !vdi.managed) {
+      return vdi.physical_utilisation
+    }
 
-    let parentUuid = vdi.sm_config?.['vhd-parent'] as XenApiVdi['$ref'] | undefined
+    let total = vdi.physical_utilisation
+    let parentUuid = vdi.sm_config['vhd-parent'] as XenApiVdi['uuid'] | undefined
 
     while (parentUuid !== undefined) {
-      const parentVdi = getVdiByOpaqueRef?.(parentUuid)
+      const parent = baseContext.getByUuid(parentUuid)
 
-      if (parentVdi === undefined) {
+      if (parent === undefined) {
         break
       }
 
-      chainTotalUsage += +(parentVdi.physical_utilisation ?? 0)
-
-      parentUuid = parentVdi.sm_config?.['vhd-parent'] as XenApiVdi['$ref'] | undefined
+      total += parent.physical_utilisation
+      parentUuid = parent.sm_config['vhd-parent'] as XenApiVdi['uuid'] | undefined
     }
 
-    return chainTotalUsage
+    return total
   }
 
-  const config = createXapiStoreConfig('vdi', {
-    beforeAdd: vdi => {
-      const chainPhysicalUsage =
-        vdi.is_a_snapshot || vdi.snapshot_of !== undefined || !vdi.managed ? 0 : calculateVdiChainPhysicalUsage(vdi)
+  const context = {
+    ...baseContext,
+    getChainPhysicalUsage,
+  }
 
-      return {
-        ...vdi,
-        chainPhysicalUsage,
-      }
-    },
-  })
-
-  const context = createSubscribableStoreContext(config, {})
-
-  getVdiByOpaqueRef = context.getContext().getByOpaqueRef
-
-  return context
+  return createSubscribableStoreContext({ context, ...configRest }, {})
 })

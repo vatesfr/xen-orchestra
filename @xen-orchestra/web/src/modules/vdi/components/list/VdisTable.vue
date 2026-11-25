@@ -86,6 +86,7 @@ const { HeadCells, BodyCells } = useVdiColumns({
 
     const vbd = computed(() => vbds.value.find(vbd => vbd.VM === vm.id))
 
+    const usedSpace = computed(() => formatSizeRaw(vdi.chainPhysicalUsage, 2))
     const size = computed(() => formatSizeRaw(vdi.size, 2))
     const format = computed(() => getVdiFormat(vdi.image_format))
 
@@ -182,7 +183,7 @@ const { HeadCells, BodyCells } = useVdiColumns({
           busyTooltip: busyMessage.value,
         }),
       description: r => r(vdi.name_description),
-      usedSpace: r => r(vdi.usage, vdi.size),
+      usedSpace: r => r(usedSpace.value.value, usedSpace.value.prefix),
       size: r => r(size.value.value, size.value.prefix),
       format: r => r(format.value),
       actions: r =>
