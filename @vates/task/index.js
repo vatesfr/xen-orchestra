@@ -65,14 +65,6 @@ class Task {
     }
   }
 
-  // signal of the current task that stops its cleanup, see the `cleanup` option of the constructor
-  static get cleanupSignal() {
-    const task = getTask()
-    if (task !== undefined) {
-      return task._cleanupController?.signal
-    }
-  }
-
   static run(...args) {
     let opts = args[0]
     let fn
@@ -105,12 +97,12 @@ class Task {
     }
   }
 
-  // These two properties should not be used outside the class
+  // These properties should not be used outside the class
   //
   // To ensure compatibility between multiple versions of this lib, they are kept public for now
   _abortController = new AbortController()
-  _cleanupController = new AbortController()
   _onProgress
+  _skipSubtasksAfterAbort = false
 
   get id() {
     // Use a compact, sortable, string representation of the creation date,
@@ -130,25 +122,26 @@ class Task {
     return this.#status
   }
 
-  // A cleanup subtask (`cleanup: true`) does not follow the abort of its parent: it follows its parent's cleanup
-  // signal instead, so that the cleanup still runs after an abort, until the cleanup itself is stopped.
-  constructor({ properties, onProgress, cleanup = false } = {}) {
+  // `skipSubtasksAfterAbort` (root task only, inherited by its subtasks): a subtask created after the abort is
+  // aborted right away, so the steps of an aborted task are skipped.
+  //
+  // `cleanup`: this subtask does not follow the abort of its parent, so that it still runs after an abort.
+  constructor({ properties, onProgress, cleanup = false, skipSubtasksAfterAbort = false } = {}) {
     this.#startData = { properties }
 
     // the parent signal this task's abort follows, once its own listener is registered
     let parentSignal
     if (onProgress !== undefined) {
       this._onProgress = onProgress
+      this._skipSubtasksAfterAbort = skipSubtasksAfterAbort
     } else {
       const parent = getTask()
       if (parent !== undefined) {
-        // `_cleanupController` may be missing on a task created by an older version of this library
-        const parentCleanupSignal = parent._cleanupController?.signal
-        if (parentCleanupSignal !== undefined) {
-          followSignal(parentCleanupSignal, this._cleanupController)
+        // `_skipSubtasksAfterAbort` is missing on a task created by an older version of this library
+        this._skipSubtasksAfterAbort = parent._skipSubtasksAfterAbort === true
+        if (!cleanup) {
+          parentSignal = parent._abortController.signal
         }
-
-        parentSignal = cleanup ? parentCleanupSignal : parent._abortController.signal
 
         this._onProgress = parent._onProgress
         this.#startData.parentId = parent.id
@@ -171,10 +164,16 @@ class Task {
       }
     })
 
-    // after the listener above: a task created under an aborted parent is aborted, and ended, right away (its
-    // `run()` then rejects without calling its function), as if its parent had been aborted just after its creation
     if (parentSignal !== undefined) {
-      followSignal(parentSignal, this._abortController)
+      if (this._skipSubtasksAfterAbort) {
+        // after the listener above: a task created under an aborted parent is aborted, and ended, right away (its
+        // `run()` then rejects without calling its function), as if its parent had been aborted just after its creation
+        followSignal(parentSignal, this._abortController)
+      } else {
+        parentSignal.addEventListener('abort', () => {
+          this._abortController.abort(parentSignal.reason)
+        })
+      }
     }
   }
 
