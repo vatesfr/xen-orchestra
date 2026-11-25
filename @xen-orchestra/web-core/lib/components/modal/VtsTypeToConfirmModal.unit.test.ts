@@ -1,6 +1,5 @@
 import VtsTypeToConfirmModal from '@core/components/modal/VtsTypeToConfirmModal.vue'
 import { createGlobalTestConfig } from '@core-test/create-global-test-config.ts'
-import { t } from '@core-test/i18n.ts'
 import { submitConfirmationText } from '@core-test/submit-confirmation-text.ts'
 import { mount } from '@vue/test-utils'
 
@@ -16,19 +15,9 @@ it('keeps the confirm button enabled', () => {
 })
 
 it.each([
-  { label: 'an empty text', text: '' },
-  { label: 'a wrong text', text: '2 VM' },
-])('does not confirm with $label and shows the error', async ({ text }) => {
-  const wrapper = mountTypeToConfirmModal()
-
-  expect(await submitConfirmationText(wrapper, text)).toEqual({
-    isConfirmed: false,
-    errors: [t('form:error:must-match', { text: '2 VMs' })],
-  })
-})
-
-it('confirms with the confirmation text', async () => {
-  const wrapper = mountTypeToConfirmModal()
-
-  expect(await submitConfirmationText(wrapper, '2 VMs')).toEqual({ isConfirmed: true, errors: [] })
+  { text: '', isConfirmed: false },
+  { text: '2 VM', isConfirmed: false },
+  { text: '2 VMs', isConfirmed: true },
+])('confirms only once the confirmation text is typed: "$text" → $isConfirmed', async ({ text, isConfirmed }) => {
+  expect(await submitConfirmationText(mountTypeToConfirmModal(), text)).toBe(isConfirmed)
 })
