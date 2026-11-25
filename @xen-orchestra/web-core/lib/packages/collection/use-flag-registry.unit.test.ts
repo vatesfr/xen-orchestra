@@ -9,17 +9,36 @@ function spyOnWrites(ids: Ref<string[]>) {
   return onWrite
 }
 
+const IDS = ['vm-1', 'vm-2', 'vm-3']
+
+function findFlaggedIds<TFlag extends string>(registry: { isFlagged(id: string, flag: TFlag): boolean }, flag: TFlag) {
+  return IDS.filter(id => registry.isFlagged(id, flag))
+}
+
+describe('a flag not in the config', () => {
+  it.each([
+    { member: 'assertFlag', use: registry => registry.assertFlag('active') },
+    { member: 'isFlagged', use: registry => registry.isFlagged('vm-1', 'active') },
+    { member: 'toggleFlag', use: registry => registry.toggleFlag('vm-1', 'active') },
+    { member: 'toggleFlags', use: registry => registry.toggleFlags(['vm-1'], 'active', true) },
+    { member: 'clearFlag', use: registry => registry.clearFlag('active') },
+    { member: 'isMultipleAllowed', use: registry => registry.isMultipleAllowed('active') },
+  ] satisfies { member: string; use: (registry: ReturnType<typeof useFlagRegistry<string, string>>) => unknown }[])(
+    'makes $member throw',
+    ({ use }) => {
+      const registry = useFlagRegistry<string, string>({ selected: true })
+
+      expect(() => use(registry)).toThrow('Flag "active" is not defined.')
+    }
+  )
+})
+
 describe('isFlagDefined', () => {
-  it('is true for a flag of the config', () => {
-    const registry = useFlagRegistry<string, string>({ selected: true })
-
-    expect(registry.isFlagDefined('selected')).toBe(true)
-  })
-
-  it('is false for any other flag', () => {
-    const registry = useFlagRegistry<string, string>({ selected: true })
-
-    expect(registry.isFlagDefined('active')).toBe(false)
+  it.each([
+    { label: 'is true for a flag of the config', flag: 'selected', expected: true },
+    { label: 'is false for any other flag', flag: 'active', expected: false },
+  ])('$label', ({ flag, expected }) => {
+    expect(useFlagRegistry<string, string>({ selected: true }).isFlagDefined(flag)).toBe(expected)
   })
 })
 
@@ -29,95 +48,45 @@ describe('assertFlag', () => {
 
     expect(() => registry.assertFlag('selected')).not.toThrow()
   })
-
-  it('throws for any other flag', () => {
-    const registry = useFlagRegistry<string, string>({ selected: true })
-
-    expect(() => registry.assertFlag('active')).toThrow('Flag "active" is not defined.')
-  })
 })
 
 describe('isFlagged', () => {
   it('is false for an id that was never flagged', () => {
-    const registry = useFlagRegistry({ selected: true })
-
-    expect(registry.isFlagged('vm-1', 'selected')).toBe(false)
-  })
-
-  it('throws for a flag that is not in the config', () => {
-    const registry = useFlagRegistry<string, string>({ selected: true })
-
-    expect(() => registry.isFlagged('vm-1', 'active')).toThrow('Flag "active" is not defined.')
+    expect(findFlaggedIds(useFlagRegistry({ selected: true }), 'selected')).toEqual([])
   })
 })
 
 describe('toggleFlag', () => {
-  it('flags an unflagged id', () => {
-    const registry = useFlagRegistry({ selected: true })
+  it.each([
+    { label: 'flags an unflagged id', toggles: [['vm-1']], expected: ['vm-1'] },
+    { label: 'unflags a flagged id', toggles: [['vm-1'], ['vm-1']], expected: [] },
+    {
+      label: 'keeps an id flagged when asked to flag it again',
+      toggles: [
+        ['vm-1', true],
+        ['vm-1', true],
+      ],
+      expected: ['vm-1'],
+    },
+    { label: 'keeps an id unflagged when asked to unflag it', toggles: [['vm-1', false]], expected: [] },
+    { label: 'keeps the other ids flagged', toggles: [['vm-1'], ['vm-2']], expected: ['vm-1', 'vm-2'] },
+  ] satisfies { label: string; toggles: [string, boolean?][]; expected: string[] }[])(
+    '$label',
+    ({ toggles, expected }) => {
+      const registry = useFlagRegistry({ selected: true })
 
-    registry.toggleFlag('vm-1', 'selected')
+      toggles.forEach(([id, value]) => registry.toggleFlag(id, 'selected', value))
 
-    expect(registry.isFlagged('vm-1', 'selected')).toBe(true)
-  })
-
-  it('unflags a flagged id', () => {
-    const registry = useFlagRegistry({ selected: true })
-
-    registry.toggleFlag('vm-1', 'selected')
-    registry.toggleFlag('vm-1', 'selected')
-
-    expect(registry.isFlagged('vm-1', 'selected')).toBe(false)
-  })
-
-  it('keeps an id flagged when asked to flag it again', () => {
-    const registry = useFlagRegistry({ selected: true })
-
-    registry.toggleFlag('vm-1', 'selected', true)
-    registry.toggleFlag('vm-1', 'selected', true)
-
-    expect(registry.isFlagged('vm-1', 'selected')).toBe(true)
-  })
-
-  it('keeps an id unflagged when asked to unflag it', () => {
-    const registry = useFlagRegistry({ selected: true })
-
-    registry.toggleFlag('vm-1', 'selected', false)
-
-    expect(registry.isFlagged('vm-1', 'selected')).toBe(false)
-  })
-
-  it('keeps the other ids flagged', () => {
-    const registry = useFlagRegistry({ selected: true })
-
-    registry.toggleFlag('vm-1', 'selected')
-    registry.toggleFlag('vm-2', 'selected')
-
-    expect(registry.isFlagged('vm-1', 'selected')).toBe(true)
-    expect(registry.isFlagged('vm-2', 'selected')).toBe(true)
-  })
+      expect(findFlaggedIds(registry, 'selected')).toEqual(expected)
+    }
+  )
 
   it('leaves the other flags of the id untouched', () => {
     const registry = useFlagRegistry({ selected: true, active: true })
 
     registry.toggleFlag('vm-1', 'selected')
 
-    expect(registry.isFlagged('vm-1', 'active')).toBe(false)
-  })
-
-  it('replaces the flagged id when `multiple` is false', () => {
-    const registry = useFlagRegistry({ active: { multiple: false } })
-
-    registry.toggleFlag('vm-1', 'active')
-    registry.toggleFlag('vm-2', 'active')
-
-    expect(registry.isFlagged('vm-1', 'active')).toBe(false)
-    expect(registry.isFlagged('vm-2', 'active')).toBe(true)
-  })
-
-  it('throws for a flag that is not in the config', () => {
-    const registry = useFlagRegistry<string, string>({ selected: true })
-
-    expect(() => registry.toggleFlag('vm-1', 'active')).toThrow('Flag "active" is not defined.')
+    expect(findFlaggedIds(registry, 'active')).toEqual([])
   })
 })
 
@@ -127,36 +96,16 @@ describe('toggleFlags', () => {
 
     registry.toggleFlags(['vm-1', 'vm-2'], 'selected', true)
 
-    expect(registry.isFlagged('vm-1', 'selected')).toBe(true)
-    expect(registry.isFlagged('vm-2', 'selected')).toBe(true)
+    expect(findFlaggedIds(registry, 'selected')).toEqual(['vm-1', 'vm-2'])
   })
 
   it('unflags the given ids only', () => {
     const registry = useFlagRegistry({ selected: true })
 
-    registry.toggleFlags(['vm-1', 'vm-2', 'vm-3'], 'selected', true)
+    registry.toggleFlags(IDS, 'selected', true)
     registry.toggleFlags(['vm-1', 'vm-2'], 'selected', false)
 
-    expect(registry.isFlagged('vm-1', 'selected')).toBe(false)
-    expect(registry.isFlagged('vm-2', 'selected')).toBe(false)
-    expect(registry.isFlagged('vm-3', 'selected')).toBe(true)
-  })
-
-  it('keeps the last given id only when `multiple` is false', () => {
-    const registry = useFlagRegistry({ active: { multiple: false } })
-
-    registry.toggleFlag('vm-1', 'active')
-    registry.toggleFlags(['vm-2', 'vm-3'], 'active', true)
-
-    expect(registry.isFlagged('vm-1', 'active')).toBe(false)
-    expect(registry.isFlagged('vm-2', 'active')).toBe(false)
-    expect(registry.isFlagged('vm-3', 'active')).toBe(true)
-  })
-
-  it('throws for a flag that is not in the config', () => {
-    const registry = useFlagRegistry<string, string>({ selected: true })
-
-    expect(() => registry.toggleFlags(['vm-1'], 'active', true)).toThrow('Flag "active" is not defined.')
+    expect(findFlaggedIds(registry, 'selected')).toEqual(['vm-3'])
   })
 })
 
@@ -167,8 +116,7 @@ describe('clearFlag', () => {
     registry.toggleFlags(['vm-1', 'vm-2'], 'selected', true)
     registry.clearFlag('selected')
 
-    expect(registry.isFlagged('vm-1', 'selected')).toBe(false)
-    expect(registry.isFlagged('vm-2', 'selected')).toBe(false)
+    expect(findFlaggedIds(registry, 'selected')).toEqual([])
   })
 
   it('leaves the other flags untouched', () => {
@@ -177,13 +125,7 @@ describe('clearFlag', () => {
     registry.toggleFlag('vm-1', 'active')
     registry.clearFlag('selected')
 
-    expect(registry.isFlagged('vm-1', 'active')).toBe(true)
-  })
-
-  it('throws for a flag that is not in the config', () => {
-    const registry = useFlagRegistry<string, string>({ selected: true })
-
-    expect(() => registry.clearFlag('active')).toThrow('Flag "active" is not defined.')
+    expect(findFlaggedIds(registry, 'active')).toEqual(['vm-1'])
   })
 })
 
@@ -209,15 +151,30 @@ describe('isMultipleAllowed', () => {
 
     expect(registry.isMultipleAllowed('selected')).toBe(false)
   })
-
-  it('throws for a flag that is not in the config', () => {
-    const registry = useFlagRegistry<string, string>({ selected: true })
-
-    expect(() => registry.isMultipleAllowed('active')).toThrow('Flag "active" is not defined.')
-  })
 })
 
 describe('`multiple` option', () => {
+  it.each([
+    {
+      label: 'replaces the flagged id with the one `toggleFlag` flags when false',
+      flag: (registry: ReturnType<typeof useFlagRegistry<'active', string>>) => registry.toggleFlag('vm-2', 'active'),
+      expected: ['vm-2'],
+    },
+    {
+      label: 'keeps the last id `toggleFlags` flags only when false',
+      flag: (registry: ReturnType<typeof useFlagRegistry<'active', string>>) =>
+        registry.toggleFlags(['vm-2', 'vm-3'], 'active', true),
+      expected: ['vm-3'],
+    },
+  ])('$label', ({ flag, expected }) => {
+    const registry = useFlagRegistry<'active', string>({ active: { multiple: false } })
+
+    registry.toggleFlag('vm-1', 'active')
+    flag(registry)
+
+    expect(findFlaggedIds(registry, 'active')).toEqual(expected)
+  })
+
   it('clears the flag when the ref changes', async () => {
     const multiple = ref(true)
     const registry = useFlagRegistry({ selected: { multiple } })
@@ -226,8 +183,7 @@ describe('`multiple` option', () => {
     multiple.value = false
     await nextTick()
 
-    expect(registry.isFlagged('vm-1', 'selected')).toBe(false)
-    expect(registry.isFlagged('vm-2', 'selected')).toBe(false)
+    expect(findFlaggedIds(registry, 'selected')).toEqual([])
   })
 })
 
@@ -236,8 +192,7 @@ describe('`ids` option', () => {
     const ids = ref(['vm-1'])
     const registry = useFlagRegistry({ selected: { ids } })
 
-    expect(registry.isFlagged('vm-1', 'selected')).toBe(true)
-    expect(registry.isFlagged('vm-2', 'selected')).toBe(false)
+    expect(findFlaggedIds(registry, 'selected')).toEqual(['vm-1'])
   })
 
   it('follows the ids set on the ref from outside', () => {
@@ -246,8 +201,7 @@ describe('`ids` option', () => {
 
     ids.value = ['vm-2']
 
-    expect(registry.isFlagged('vm-1', 'selected')).toBe(false)
-    expect(registry.isFlagged('vm-2', 'selected')).toBe(true)
+    expect(findFlaggedIds(registry, 'selected')).toEqual(['vm-2'])
   })
 
   it('holds the flagged ids, in the order they were flagged', () => {
