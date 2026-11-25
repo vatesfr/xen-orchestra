@@ -1,5 +1,9 @@
 import { isSrWritable } from '../../utils.mjs'
-import { buildSrContext, buildBackupRepositoryContext } from '@xen-orchestra/backups/_buildContext.mjs'
+import {
+  buildSrContext,
+  buildBackupRepositoryContext,
+  buildPoolContext,
+} from '@xen-orchestra/backups/_buildContext.mjs'
 import { compileExpression } from '@xen-orchestra/backups/_expressionPredicate.mjs'
 
 export function resolveBackupSrs(job, srs, runContext) {
@@ -39,4 +43,17 @@ export function resolveBackupRepositories(job, backupRepositories, runContext) {
   })
 
   return { backupRepositoryIds, proxySkippedIds, invalidUrlIds }
+}
+
+export function resolveBackupPools(job, pools, runContext) {
+  const predicate = compileExpression(job.pools)
+
+  const poolUuids = []
+  pools.forEach(pool => {
+    if (predicate(buildPoolContext(pool, runContext))) {
+      poolUuids.push(pool.uuid)
+    }
+  })
+
+  return poolUuids
 }

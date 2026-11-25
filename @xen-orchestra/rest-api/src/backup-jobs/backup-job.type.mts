@@ -6,15 +6,19 @@ import type {
   XoMetadataBackupJobGeneralSettings,
   XoMetadataBackupJobScheduleSettings,
   XoMirrorBackupGeneralSettings,
+  XoVm,
 } from '@vates/types'
 import { Unbrand } from '../open-api/common/response.common.mjs'
 import type * as CMType from '@vates/types/lib/complex-matcher'
 
-// Manual copy because with Unbrand<>, tsoa emits an empty schema. If XoVmBackupJobScheduleSettings changes
-// in @vates/types, you have to update this copy too.
-type UnbrandedXoVmBackupJobScheduleSettings = {
+/**
+ * Copy of XoVmBackupJobScheduleSettings without the brand:
+ * tsoa empties any mapped type (Unbrand, Pick, Omit…) nested under Unbrand<UnbrandedXoVmBackupJob>,
+ * which dropped every schedule setting from the request bodies
+ */
+type VmBackupJobScheduleSettings = {
   exportRetention?: number
-  healthCheckVmsWithTags?: string[] | string
+  healthCheckVmsWithTags?: XoVm['tags'] | string
   fullInterval?: number | string
   copyRetention?: number
   snapshotRetention?: number
@@ -25,17 +29,17 @@ type UnbrandedXoVmBackupJobScheduleSettings = {
 
 type UnbrandedXoVmBackupJob = Omit<XoVmBackupJob, 'settings' | 'remotes' | 'vms' | 'srs'> & {
   remotes?: CMType.IdOr<string> | string
-  vms: CMType.IdOr<string> | Record<string, unknown>
+  vms: CMType.IdOr<string> | Record<string, unknown> | string
   srs?: CMType.IdOr<string> | string
   settings: {
     '': XoVmBackupJobGeneralSettings
-    [scheduleId: string]: UnbrandedXoVmBackupJobScheduleSettings | undefined
+    [scheduleId: string]: VmBackupJobScheduleSettings | undefined
   }
 }
 export type UnbrandXoVmBackupJob = Unbrand<UnbrandedXoVmBackupJob>
 
 type UnbrandedXoMetadataBackupJob = Omit<XoMetadataBackupJob, 'settings' | 'pools' | 'remotes'> & {
-  pools?: CMType.IdOr<string>
+  pools?: CMType.IdOr<string> | string
   remotes: CMType.IdOr<string>
   settings: {
     ''?: XoMetadataBackupJobGeneralSettings
@@ -44,21 +48,23 @@ type UnbrandedXoMetadataBackupJob = Omit<XoMetadataBackupJob, 'settings' | 'pool
 }
 export type UnbrandXoMetadataBackupJob = Unbrand<UnbrandedXoMetadataBackupJob>
 
-// Manual copy because with Unbrand<>, tsoa emits an empty schema. If XoMirrorBackupScheduleSettings changes
-// in @vates/types, you have to update this copy too.
-type UnbrandedXoMirrorBackupScheduleSettings = {
+/**
+ * Same as VmBackupJobScheduleSettings
+ */
+type MirrorBackupJobScheduleSettings = {
   exportRetention?: number
-  healthCheckVmsWithTags?: string[] | string
+  healthCheckVmsWithTags?: XoVm['tags'] | string
   vmFilter?: string
   healthCheckSr?: string
   [key: string]: unknown
 }
 
-type UnbrandedXoMirrorBackupJob = Omit<XoMirrorBackupJob, 'settings' | 'remotes'> & {
+type UnbrandedXoMirrorBackupJob = Omit<XoMirrorBackupJob, 'settings' | 'remotes' | 'filter'> & {
   remotes: CMType.IdOr<string>
+  filter?: { vm: { uuid: { __or: string[] } } } | null
   settings: {
     '': XoMirrorBackupGeneralSettings
-    [scheduleId: string]: UnbrandedXoMirrorBackupScheduleSettings | undefined
+    [scheduleId: string]: MirrorBackupJobScheduleSettings | undefined
   }
 }
 export type UnbrandXoMirrorBackupJob = Unbrand<UnbrandedXoMirrorBackupJob>
