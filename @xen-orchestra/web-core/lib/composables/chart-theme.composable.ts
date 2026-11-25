@@ -12,8 +12,8 @@ export const useChartTheme = (pinia?: Pinia) => {
     background: style.getPropertyValue('--color-neutral-background-primary'),
     text: style.getPropertyValue('--color-neutral-txt-secondary'),
     splitLine: style.getPropertyValue('--color-neutral-border'),
-    primary: style.getPropertyValue('--color-brand-item-base'),
-    secondary: style.getPropertyValue('--color-warning-item-base'),
+    primary: style.getPropertyValue('--color-brand-data'),
+    secondary: style.getPropertyValue('--color-warning-data'),
   })
 
   const colors = ref(getColors())

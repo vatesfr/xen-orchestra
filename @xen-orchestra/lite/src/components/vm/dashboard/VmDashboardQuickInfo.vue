@@ -57,6 +57,7 @@
 import type { XenApiVm } from '@/libs/xen-api/xen-api.types.ts'
 import { getHostIcon } from '@/modules/host/utils/host.util.ts'
 import { useVmUtils } from '@/modules/vm/composables/vm-utils.composable.ts'
+import { getVmDomainType } from '@/modules/vm/utils/vm.util.ts'
 import { useHostMetricsStore } from '@/stores/xen-api/host-metrics.store.ts'
 import { usePoolStore } from '@/stores/xen-api/pool.store.ts'
 import { useVmGuestMetricsStore } from '@/stores/xen-api/vm-guest-metrics.store.ts'
@@ -133,16 +134,7 @@ const ram = computed(() => formatSizeRaw(vm.memory_dynamic_max, 0))
 
 const osVersion = computed(() => guestMetrics.value?.os_version.name)
 
-const domainType = computed(() => {
-  if (
-    vm.domain_type !== undefined && // XS < 7.5
-    vm.domain_type !== 'unspecified' // detection failed
-  ) {
-    return vm.domain_type
-  }
-
-  return vm.HVM_boot_policy === '' ? 'pv' : 'hvm'
-})
+const domainType = computed(() => getVmDomainType(vm))
 
 const virtualizationType = computed(() =>
   domainType.value === 'hvm' && guestMetrics.value?.PV_drivers_detected ? 'pvhvm' : domainType.value

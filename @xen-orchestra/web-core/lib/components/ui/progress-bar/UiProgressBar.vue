@@ -57,19 +57,19 @@ const className = computed(() => toVariants({ accent }))
   /* ACCENT */
   &.accent--info {
     .fill {
-      background-color: var(--color-info-item-base);
+      background-color: var(--color-info-data);
     }
   }
 
   &.accent--warning {
     .fill {
-      background-color: var(--color-warning-item-base);
+      background-color: var(--color-warning-data);
     }
   }
 
   &.accent--danger {
     .fill {
-      background-color: var(--color-danger-item-base);
+      background-color: var(--color-danger-data);
     }
   }
 }

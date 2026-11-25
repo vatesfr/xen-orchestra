@@ -80,7 +80,7 @@ const computedSegments = computed(() => {
     fill: transparent;
 
     &.accent--info {
-      stroke: var(--color-info-item-base);
+      stroke: var(--color-info-data);
     }
 
     &.accent--secondary {
@@ -88,15 +88,15 @@ const computedSegments = computed(() => {
     }
 
     &.accent--success {
-      stroke: var(--color-success-item-base);
+      stroke: var(--color-success-data);
     }
 
     &.accent--warning {
-      stroke: var(--color-warning-item-base);
+      stroke: var(--color-warning-data);
     }
 
     &.accent--danger {
-      stroke: var(--color-danger-item-base);
+      stroke: var(--color-danger-data);
     }
 
     &.accent--muted {

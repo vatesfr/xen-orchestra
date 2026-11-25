@@ -2,6 +2,7 @@
 
 ## **next**
 
+- [VDIs] The used space of a VDI now includes its whole snapshot chain instead of only its last layer, which showed almost 0% for disks with snapshots. It is shown as a size, without usage bar or free space (PR [#10116](https://github.com/vatesfr/xen-orchestra/pull/10116))
 - [Web-Core/UiCircleProgressBar] Add a brand accent and an option to hide the value (PR [#10849](https://github.com/vatesfr/xen-orchestra/pull/10849))
 - [Tables] Cells fit on one line: long names are cut in the middle, extra tags go under "+N" and long texts end with "…" (PR [#10850](https://github.com/vatesfr/xen-orchestra/pull/10850))
 - [Pages] The page header and tabs now stay in place on every page: dashboards, System tabs, consoles, tasks, settings and creation forms scroll under them instead of scrolling with them (PR [#10822](https://github.com/vatesfr/xen-orchestra/pull/10822))
@@ -16,6 +17,8 @@
 - [Side panels] Fix the double scrollbar when the side panel content is taller than the screen: the page header now stays in place, and the list and the side panel each scroll on their own. All scrollbars are now thin, like the side panel one (PR [#10807](https://github.com/vatesfr/xen-orchestra/pull/10807))
 - [Mobile] Searchable dropdown lists no longer overflow the screen (PR [#10854](https://github.com/vatesfr/xen-orchestra/pull/10854))
 - [New/VM] Fix the storage table overflowing horizontally, which hid part of the delete button (PR [#10851](https://github.com/vatesfr/xen-orchestra/pull/10851))
+- [New/VM] Fix template disk settings being applied to every disk of the new VM: each disk now keeps its own name, description and SR (PR [#10898](https://github.com/vatesfr/xen-orchestra/pull/10898))
+- [VM/System] Display the default 4 MiB video RAM for HVM VMs that don't define it, as XO 6 does (PR [#10901](https://github.com/vatesfr/xen-orchestra/pull/10901))
 
 ## **0.27.0** (2026-10-29)
 

@@ -68,11 +68,11 @@ const hasError = computed(() => hostStoreHasError.value || vmStoreHasError.value
 <style lang="postcss" scoped>
 .progress-item {
   --progress-bar-height: 1.2rem;
-  --progress-bar-color: var(--color-brand-item-base);
+  --progress-bar-color: var(--color-brand-data);
   --progress-bar-background-color: var(--color-neutral-background-disabled);
 
   &.warning {
-    --progress-bar-color: var(--color-warning-item-base);
+    --progress-bar-color: var(--color-warning-data);
     --footer-value-color: var(--color-warning-item-base);
   }
 
