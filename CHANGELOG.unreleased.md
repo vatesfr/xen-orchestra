@@ -33,7 +33,8 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/xapi-pg major
+- xen-api minor
 - xo-web minor
-
 
 <!--packages-end-->
