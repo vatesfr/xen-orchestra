@@ -10,8 +10,7 @@ import { t } from '@/test/i18n.ts'
 import { xoCollectionsMock, mockXoCollections } from '@/test/mock-xo-collections.ts'
 import { vmCollectionMock, mockXoVmCollection } from '@/test/mock-xo-vm-collection.ts'
 import { vmDeviceCollectionsMock, mockXoVmDeviceCollections } from '@/test/mock-xo-vm-device-collections.ts'
-import VtsDetailedOption from '@core/components/select/VtsDetailedOption.vue'
-import { chooseSelectOption, openSelect } from '@core-test/select.ts'
+import { chooseSelectOption, findDetailedOptions, openSelect } from '@core-test/select.ts'
 import { SDN_CONTROLLER_OF_METHOD_KEY, VM_OPERATIONS } from '@vates/types'
 import { mount } from '@vue/test-utils'
 
@@ -52,21 +51,13 @@ function getFormSelect(wrapper: Form, label: string) {
   return select
 }
 
-function findDetailedOptions(wrapper: Form) {
-  return wrapper.findAllComponents(VtsDetailedOption).map(option => ({
-    label: option.props('option').properties.label,
-    iconTooltip: option.props('iconTooltip'),
-    details: option.props('details'),
-  }))
-}
-
 describe('object', () => {
   it('explains that a network rule requires the XAPI plugin mode', async () => {
     const wrapper = mountForm(OPENFLOW_POOL)
 
     await openSelect(getFormSelect(wrapper, t('object')))
 
-    expect(findDetailedOptions(wrapper)).toEqual([
+    expect(findDetailedOptions(wrapper)).toMatchObject([
       { label: t('network'), iconTooltip: undefined, details: t('traffic-rules:xapi-plugin-required') },
       { label: t('vif'), iconTooltip: undefined, details: undefined },
     ])
@@ -103,7 +94,7 @@ describe('from VM', () => {
     await chooseSelectOption(wrapper, t('vif'), { container: getFormSelect(wrapper, t('object')) })
     await openSelect(getFormSelect(wrapper, t('from-vm')))
 
-    expect(findDetailedOptions(wrapper)).toEqual([
+    expect(findDetailedOptions(wrapper)).toMatchObject([
       {
         label: 'VM with VIF',
         iconTooltip: t('operation-in-progress', { operation: t('operation:start') }),

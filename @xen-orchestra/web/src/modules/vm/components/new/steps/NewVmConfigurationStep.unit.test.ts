@@ -24,13 +24,12 @@ import {
   resetNewVmCollections,
   seedNewVmCollections,
 } from '@/test/new-vm-fixtures.ts'
-import VtsDetailedOption from '@core/components/select/VtsDetailedOption.vue'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import UiInput from '@core/components/ui/input/UiInput.vue'
 import { objectIcon } from '@core/icons'
 import { CONNECTION_STATUS } from '@core/types/connection.ts'
 import { findAccentedInfos } from '@core-test/find-accented-labels.ts'
-import { findSelectOptionLabels, findShownSelections, openSelect } from '@core-test/select.ts'
+import { findDetailedOptions, findSelectOptionLabels, findShownSelections, openSelect } from '@core-test/select.ts'
 import { nextTick } from 'vue'
 
 mockNewVmCollections()
@@ -126,7 +125,7 @@ it('offers a network interface the networks of the pool with their status', asyn
   await openSelect(table)
 
   expect(findSelectOptionLabels(table)).toEqual(['Connected', 'Without PIF'])
-  expect(table.findAllComponents(VtsDetailedOption).map(option => option.props('icon'))).toEqual([
+  expect(findDetailedOptions(table).map(({ icon }) => icon)).toEqual([
     objectIcon('network', CONNECTION_STATUS.CONNECTED),
     objectIcon('network', CONNECTION_STATUS.DISCONNECTED),
   ])
@@ -154,7 +153,7 @@ it('offers a disk the SRs of the pool with where they are, their free space and 
     `Pool SR - ${t('n-gb-left', { n: 9 })} (Host of the pool)`,
     `Other SR - ${t('n-gb-left', { n: 9 })} (Host of the pool)`,
   ])
-  expect(table.findAllComponents(VtsDetailedOption).map(option => option.props('icon'))).toEqual([
+  expect(findDetailedOptions(table).map(({ icon }) => icon)).toEqual([
     objectIcon('sr', CONNECTION_STATUS.CONNECTED),
     objectIcon('sr', CONNECTION_STATUS.DISCONNECTED),
   ])
