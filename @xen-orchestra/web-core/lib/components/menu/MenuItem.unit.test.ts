@@ -77,6 +77,15 @@ function mountMenuItem({
   return { wrapper, level, trigger: getMenuTrigger(wrapper) }
 }
 
+// A MenuItem with no menu around it: no menu level and no close function provided
+function mountStandaloneMenuItem({ submenu = false, ...props }: Pick<MenuItemCase, 'onClick' | 'submenu'> = {}) {
+  return mount(MenuItem, {
+    props: { accent: 'brand', ...props },
+    slots: { default: () => 'Item', ...(submenu && { submenu: () => 'Submenu' }) },
+    global: createGlobalTestConfig(),
+  })
+}
+
 // An action still running until the test settles it
 function deferAction() {
   const settle: { resolve?: () => void; reject?: (error: Error) => void } = {}
@@ -172,7 +181,7 @@ it('is busy while its action runs, and ignores another click meanwhile', async (
 
 it('runs its action outside of a menu, with no menu to close', async () => {
   const onClick = vi.fn()
-  const wrapper = mount(MenuItem, { props: { accent: 'brand', onClick }, global: createGlobalTestConfig() })
+  const wrapper = mountStandaloneMenuItem({ onClick })
   const errorHandler = spyOnErrorHandler(wrapper)
 
   await clickMenuItem(wrapper)
@@ -252,11 +261,7 @@ describe('submenu', () => {
   })
 
   it('opens its submenu on a menu level of its own outside of a menu', async () => {
-    const wrapper = mount(MenuItem, {
-      props: { accent: 'brand' },
-      slots: { default: () => 'Item', submenu: () => 'Submenu' },
-      global: createGlobalTestConfig(),
-    })
+    const wrapper = mountStandaloneMenuItem({ submenu: true })
 
     await clickMenuItem(wrapper)
 
