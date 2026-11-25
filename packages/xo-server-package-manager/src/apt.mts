@@ -1,4 +1,5 @@
 import type { UpgradablePackage } from '@vates/types'
+import { createLogger } from '@xen-orchestra/log'
 import { execFile, spawn } from 'node:child_process'
 import { access } from 'node:fs/promises'
 import { promisify } from 'node:util'
@@ -9,6 +10,8 @@ import {
   parseStatusFdLine,
   parseUpgradableList,
 } from './parse.mjs'
+
+const log = createLogger('xo:xo-server-package-manager:apt')
 
 const execFileAsync = promisify(execFile)
 
@@ -56,8 +59,11 @@ export async function isRebootRequired(): Promise<boolean> {
   try {
     await access(REBOOT_REQUIRED_PATH)
     return true
-  } catch {
+  } catch (error) {
     // dpkg creates this file when an upgraded package needs a reboot
+    if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
+      log.warn('failed to check whether a reboot is required', { error, path: REBOOT_REQUIRED_PATH })
+    }
     return false
   }
 }
