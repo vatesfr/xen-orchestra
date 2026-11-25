@@ -69,6 +69,8 @@ vi.mock(import('@/modules/storage-repository/remote-resources/use-xo-sr-collecti
 vi.mock(import('@/modules/task/remote-resources/use-xo-task-collection.ts'), spyOnOriginal)
 vi.mock(import('@/modules/traffic-rules/composables/use-new-traffic-rule.composable.ts'), spyOnOriginal)
 vi.mock(import('@/modules/traffic-rules/jobs/xo-traffic-rule-create.job.ts'), spyOnOriginal)
+vi.mock(import('@/modules/user/remote-resources/use-xo-current-user-privilege-collection.ts'), spyOnOriginal)
+vi.mock(import('@/modules/user/remote-resources/use-xo-current-user.ts'), spyOnOriginal)
 vi.mock(import('@/modules/user/remote-resources/use-xo-user.ts'), spyOnOriginal)
 vi.mock(import('@/modules/v2v/composables/use-v2v-destination-step.composable.ts'), spyOnOriginal)
 vi.mock(import('@/modules/v2v/composables/use-v2v-source-step.composable.ts'), spyOnOriginal)

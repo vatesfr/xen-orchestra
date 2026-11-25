@@ -1,30 +1,15 @@
 import { useCurrentUserPrivileges } from '@/modules/user/composables/use-current-user-privileges.composable.ts'
-import type { useXoCurrentUserPrivilegeCollection } from '@/modules/user/remote-resources/use-xo-current-user-privilege-collection.ts'
-import type { useXoCurrentUser } from '@/modules/user/remote-resources/use-xo-current-user.ts'
+import { useXoCurrentUserPrivilegeCollection } from '@/modules/user/remote-resources/use-xo-current-user-privilege-collection.ts'
+import { useXoCurrentUser } from '@/modules/user/remote-resources/use-xo-current-user.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { createVm } from '@/test/create-vm.ts'
+import { mockedExport } from '@/test/spy-on-module.ts'
 import type { XoUser } from '@vates/types'
 import type { AnyPrivilege, Privilege } from '@xen-orchestra/acl'
 import { ref } from 'vue'
 
-const { useXoCurrentUserMock, useXoCurrentUserPrivilegeCollectionMock } = vi.hoisted(() => ({
-  useXoCurrentUserMock: vi.fn(),
-  useXoCurrentUserPrivilegeCollectionMock: vi.fn(),
-}))
-
-vi.mock(import('@/modules/user/remote-resources/use-xo-current-user.ts'), () => ({
-  useXoCurrentUser: useXoCurrentUserMock as unknown as typeof useXoCurrentUser,
-}))
-
-vi.mock(import('@/modules/user/remote-resources/use-xo-current-user-privilege-collection.ts'), () => ({
-  useXoCurrentUserPrivilegeCollection:
-    useXoCurrentUserPrivilegeCollectionMock as unknown as typeof useXoCurrentUserPrivilegeCollection,
-}))
-
-beforeEach(() => {
-  useXoCurrentUserMock.mockReset()
-  useXoCurrentUserPrivilegeCollectionMock.mockReset()
-})
+const useXoCurrentUserMock = mockedExport(useXoCurrentUser)
+const useXoCurrentUserPrivilegeCollectionMock = mockedExport(useXoCurrentUserPrivilegeCollection)
 
 afterEach(() => {
   vi.restoreAllMocks()

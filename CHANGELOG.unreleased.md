@@ -59,5 +59,7 @@
 <!--packages-start-->
 
 - @vates/nbd-client patch
+- @xen-orchestra/web minor
+- @xen-orchestra/web-core minor
 
 <!--packages-end-->

@@ -81,7 +81,7 @@ const { pageSelectionModel, isSelected, toggleSelection, selectionBindings } = u
 })
 
 const { HeadCells, BodyCells } = useVmColumns({
-  exclude: ['actions'],
+  exclude: ['lastBackupDate', 'actions'],
   head: () => ({
     checkbox: r => (readonly ? r() : r(pageSelectionModel)),
   }),
