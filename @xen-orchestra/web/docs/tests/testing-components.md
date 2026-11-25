@@ -27,21 +27,20 @@ it('shows VGA as enabled when the VM uses the "std" adapter', () => {
 
 A label/value row is read through one query covering every row a user sees ([Assert what the user reads](../../../web-core/docs/tests/testing-components.md#assert-what-the-user-reads-not-the-markup)). `src/test/find-rendered-values.ts` does that reduction, so a card test does not re-roll it:
 
-| Helper                       | Reads                                                              |
-| ---------------------------- | ------------------------------------------------------------------ |
-| `findLabelledValues`         | every `VtsTabularKeyValueRow` / `VtsKeyValueRow` of a card         |
-| `findCardLabelledValues`     | every `VtsCardRowKeyValue` of a side-panel card                    |
-| `findCardLabelledValueLists` | every `VtsCardRowKeyValue`, each value of a multi-value row listed |
-| `findRowLabels`              | the label of every `VtsTabularKeyValueRow` / `VtsKeyValueRow`      |
-| `findCardRowLabels`          | the label of every `VtsCardRowKeyValue`, in order                  |
-| `findCardRows`               | every `VtsCardRowKeyValue` as `[label, value]` pairs, in order     |
-| `getCardRow`                 | the `VtsCardRowKeyValue` with that label, to query its link / copy |
-| `hasCardRowCopy`             | whether the `VtsCardRowKeyValue` with that label offers a copy     |
-| `getCardRowLink`             | the link of the `VtsCardRowKeyValue` with that label               |
-| `findCardRowElements`        | every `VtsCardRowKeyValue` as its key and value elements           |
-| `findCardRowLinks`           | every link of the `VtsCardRowKeyValue` rows, as `[text, href]`     |
-| `findCopiedValues`           | what each copyable key/value row copies, keyed by label            |
-| `findCardCopiedValues`       | what each copyable `VtsCardRowKeyValue` copies, in order           |
+| Helper                       | Reads                                                                        |
+| ---------------------------- | ---------------------------------------------------------------------------- |
+| `findLabelledValues`         | every `VtsTabularKeyValueRow` / `VtsKeyValueRow` of a card                   |
+| `findCardLabelledValues`     | every `VtsCardRowKeyValue` of a side-panel card                              |
+| `findCardLabelledValueLists` | every `VtsCardRowKeyValue`, each value of a multi-value row listed           |
+| `findRowLabels`              | the label of every `VtsTabularKeyValueRow` / `VtsKeyValueRow`                |
+| `findCardRowLabels`          | the label of every `VtsCardRowKeyValue`, in order                            |
+| `findCardRows`               | every `VtsCardRowKeyValue` as `[label, value]` pairs, in order               |
+| `hasCardRowCopy`             | whether the `VtsCardRowKeyValue` with that label offers a copy               |
+| `findCardRowLink`            | the link of the `VtsCardRowKeyValue` with that label, as `findLink` reads it |
+| `findCardRowElements`        | every `VtsCardRowKeyValue` as its key and value elements                     |
+| `findCardRowLinks`           | every link of the `VtsCardRowKeyValue` rows, as `[text, href]`               |
+| `findCopiedValues`           | what each copyable key/value row copies, keyed by label                      |
+| `findCardCopiedValues`       | what each copyable `VtsCardRowKeyValue` copies, in order                     |
 
 ```typescript
 expect(findLabelledValues(wrapper)).toEqual({ [t('vga')]: t('disabled'), [t('video-ram')]: '8 B' })

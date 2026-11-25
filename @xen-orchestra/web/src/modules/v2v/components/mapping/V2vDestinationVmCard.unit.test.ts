@@ -6,8 +6,8 @@ import { findInlineParts } from '@/test/find-parts.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { V2V_RESUMED_IMPORT_VM } from '@/test/v2v-mapping-fixtures.ts'
-import UiLink from '@core/components/ui/link/UiLink.vue'
 import { objectIcon } from '@core/icons'
+import { findLink } from '@core-test/find-links.ts'
 import { mount } from '@vue/test-utils'
 
 const VM: V2vDestinationVm = {
@@ -29,13 +29,11 @@ it('shows its title', () => {
 })
 
 it('links the VM to its page, with the icon of its power state', () => {
-  const link = mountCard().getComponent(UiLink)
-
-  expect([link.text(), link.attributes('href'), link.props('icon')]).toEqual([
-    'app-03',
-    `/vm/${V2V_RESUMED_IMPORT_VM.id}/dashboard`,
-    objectIcon('vm', 'halted'),
-  ])
+  expect(findLink(mountCard())).toEqual({
+    text: 'app-03',
+    href: `/vm/${V2V_RESUMED_IMPORT_VM.id}/dashboard`,
+    icon: objectIcon('vm', 'halted'),
+  })
 })
 
 it('lays out the pool of the VM, its power state and its blocked start', () => {

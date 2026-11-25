@@ -1,6 +1,7 @@
 import PluginInfosCard from '@/modules/plugin/components/list/panel/cards/PluginInfosCard.vue'
 import type { FrontXoPlugin } from '@/modules/plugin/remote-resources/use-xo-plugin-collection.ts'
 import { createPlugin, PLUGIN_CONFIGURATION_SCHEMA } from '@/test/create-plugin.ts'
+import { findPanelCardTitleLink } from '@/test/find-card-title.ts'
 import { findCardCopiedValues, findCardLabelledValues } from '@/test/find-rendered-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
@@ -72,7 +73,7 @@ it('shows that a plugin without configuration schema is not configurable', () =>
 it('links the title to the page of the plugin', () => {
   const wrapper = mountCard(createPlugin())
 
-  expect(wrapper.get('.ui-panel-card-title a').attributes('href')).toBe('/admin/plugin/transport-email')
+  expect(findPanelCardTitleLink(wrapper)?.href).toBe('/admin/plugin/transport-email')
 })
 
 it('shows no warning for a configured plugin', () => {

@@ -5,8 +5,8 @@ import { mockXoTaskCollection, taskCollectionMock } from '@/test/mock-xo-task-co
 import MenuItem from '@core/components/menu/MenuItem.vue'
 import VtsTaskList from '@core/components/task/VtsTaskList.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
-import UiLink from '@core/components/ui/link/UiLink.vue'
 import { createTaskItem } from '@core-test/create-task-item.ts'
+import { findLink } from '@core-test/find-links.ts'
 import { mount } from '@vue/test-utils'
 
 mockXoTaskCollection()
@@ -33,7 +33,7 @@ it('shows the link to all tasks next to the title', () => {
   const title = mountSidebar().get('.header .title')
 
   expect(title.text()).toBe(`${t('tasks:my-tasks')}${t('tasks:see-all')}`)
-  expect(title.getComponent(UiLink).attributes('href')).toBe('/tasks')
+  expect(findLink(title)?.href).toBe('/tasks')
 })
 
 it('offers to mark all tasks as read', async () => {

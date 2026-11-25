@@ -11,6 +11,7 @@ import { xoCollectionsMock, mockXoCollections } from '@/test/mock-xo-collections
 import { mockXoRoutes } from '@/test/mock-xo-routes.ts'
 import { taskCollectionMock, mockXoTaskCollection } from '@/test/mock-xo-task-collection.ts'
 import { objectIcon } from '@core/icons'
+import { findLink } from '@core-test/find-links.ts'
 import { VM_OPERATIONS, VM_POWER_STATE } from '@vates/types'
 import { mount } from '@vue/test-utils'
 
@@ -89,7 +90,7 @@ it('sends the stats tab to XO 5 rather than to an in-app page', async () => {
   const statsTab = findTabs(wrapper).find(tab => tab.text() === t('stats'))!
 
   expect(statsTab.element.tagName).not.toBe('A')
-  expect(statsTab.get('a').attributes('href')).toBe('https://xo5.example.com/#/vms/vm-42/stats')
+  expect(findLink(statsTab)?.href).toBe('https://xo5.example.com/#/vms/vm-42/stats')
 })
 
 it('marks the tab of the current route as the active one', async () => {

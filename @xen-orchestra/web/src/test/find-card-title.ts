@@ -1,3 +1,4 @@
+import { findLink } from '@core-test/find-links.ts'
 import type { VueWrapper } from '@vue/test-utils'
 
 // The two card titles, the whole title (label, info, description, id to copy…) or its label alone
@@ -22,6 +23,11 @@ export function findPanelCardTitle(wrapper: VueWrapper) {
 
 export function findPanelCardTitleLabel(wrapper: VueWrapper) {
   return readTitleLabel(wrapper, PANEL_CARD_TITLE)
+}
+
+// The link of a panel card title, `undefined` without one
+export function findPanelCardTitleLink(wrapper: VueWrapper) {
+  return findLink(wrapper.get(PANEL_CARD_TITLE))
 }
 
 // Every panel card title label of a card, its sub-titles included, in order

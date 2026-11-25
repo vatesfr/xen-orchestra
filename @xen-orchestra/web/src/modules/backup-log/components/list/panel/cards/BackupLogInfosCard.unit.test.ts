@@ -6,13 +6,13 @@ import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collecti
 import { createBackupLog, createBackupLogSrTask, createBackupLogVmTask } from '@/test/create-backup-log.ts'
 import { createSr } from '@/test/create-sr.ts'
 import { createVm } from '@/test/create-vm.ts'
-import { findPanelCardTitle } from '@/test/find-card-title.ts'
+import { findPanelCardTitle, findPanelCardTitleLink } from '@/test/find-card-title.ts'
 import {
   findCardCopiedValues,
   findCardLabelledValues,
   findCardRowLabels,
   findCardRows,
-  getCardRowLink,
+  findCardRowLink,
   hasCardRowCopy,
 } from '@/test/find-rendered-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
@@ -21,7 +21,6 @@ import { xoCollectionsMock, mockXoCollections } from '@/test/mock-xo-collections
 import { mockXoRoutes } from '@/test/mock-xo-routes.ts'
 import { vmCollectionMock, mockXoVmCollection } from '@/test/mock-xo-vm-collection.ts'
 import { mockModule } from '@/test/spy-on-module.ts'
-import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
 import { objectIcon } from '@core/icons'
 import { formatDateTime } from '@core/utils/time.util.ts'
@@ -72,9 +71,7 @@ describe('title', () => {
   it('links to the detail page of the log', () => {
     const wrapper = mountCard(createBackupLog({ id: 'backup-log-42' as FrontXoBackupLog['id'] }))
 
-    expect(wrapper.findComponent(UiPanelCardTitle).findComponent(UiLink).attributes('href')).toBe(
-      '/admin/backup-log/backup-log-42/general'
-    )
+    expect(findPanelCardTitleLink(wrapper)?.href).toBe('/admin/backup-log/backup-log-42/general')
   })
 
   it('shows the backup log icon', () => {
@@ -143,10 +140,12 @@ describe('VM', () => {
   it('links a VM to its dashboard, with the icon of its power state', () => {
     vmCollectionMock.vms.value = [createVm({ id: 'vm-1' as FrontXoVm['id'] })]
 
-    const vmLink = getCardRowLink(mountCard(createBackupLog({ tasks: [createBackupLogVmTask('vm-1')] })), t('vm'))
-
-    expect(vmLink.attributes('href')).toBe('/vm/vm-1/dashboard')
-    expect(vmLink.props('icon')).toBe(objectIcon('vm', 'running'))
+    expect(
+      findCardRowLink(mountCard(createBackupLog({ tasks: [createBackupLogVmTask('vm-1')] })), t('vm'))
+    ).toMatchObject({
+      href: '/vm/vm-1/dashboard',
+      icon: objectIcon('vm', 'running'),
+    })
   })
 
   it('leaves the VM empty and not copyable for a log of a job without VM', () => {
@@ -194,7 +193,7 @@ describe('SR', () => {
       createBackupLog({ tasks: [createBackupLogVmTask('vm-1', [createBackupLogSrTask('sr-1')])] })
     )
 
-    expect(getCardRowLink(wrapper, t('sr')).attributes('href')).toBe('/sr/sr-1/general')
+    expect(findCardRowLink(wrapper, t('sr'))?.href).toBe('/sr/sr-1/general')
   })
 
   it('leaves the SR empty and not copyable for a log without SR', () => {
@@ -209,7 +208,7 @@ describe('job', () => {
   it('links the job to the backup repositories settings of XO 5', () => {
     const wrapper = mountCard()
 
-    expect(getCardRowLink(wrapper, t('job')).props('href')).toBe('https://xo5.example.com/#/settings/remotes')
+    expect(findCardRowLink(wrapper, t('job'))?.href).toBe('https://xo5.example.com/#/settings/remotes')
   })
 
   it('shows an unknown job as untitled, without copy', () => {

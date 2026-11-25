@@ -8,9 +8,9 @@ import { t } from '@/test/i18n.ts'
 import { mockXoRoutes } from '@/test/mock-xo-routes.ts'
 import VtsDivider from '@core/components/divider/VtsDivider.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
-import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
 import { formatDateTime } from '@core/utils/time.util.ts'
+import { findLink } from '@core-test/find-links.ts'
 import { mount, type VueWrapper } from '@vue/test-utils'
 
 mockXoRoutes()
@@ -45,10 +45,10 @@ it('shows the name, id, cron pattern and next run of a single schedule, without 
 })
 
 it('links the schedule to the XO 5 backup overview', () => {
-  const link = mountSchedulesCard([createSchedule()]).getComponent(UiLink)
-
-  expect(link.attributes('href')).toBe('https://xo5.example.com/#/backup/overview')
-  expect(link.props('icon')).toBe('object:backup-schedule')
+  expect(findLink(mountSchedulesCard([createSchedule()]))).toMatchObject({
+    href: 'https://xo5.example.com/#/backup/overview',
+    icon: 'object:backup-schedule',
+  })
 })
 
 it('names a schedule without name as untitled', () => {

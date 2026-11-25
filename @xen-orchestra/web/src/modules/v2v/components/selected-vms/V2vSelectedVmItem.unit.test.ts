@@ -6,8 +6,8 @@ import { findParts } from '@/test/find-parts.ts'
 import { getButton } from '@/test/get-button.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
-import UiLink from '@core/components/ui/link/UiLink.vue'
 import { findAccentedInfos, findAccentedTags } from '@core-test/find-accented-labels.ts'
+import { findLink } from '@core-test/find-links.ts'
 import { mount } from '@vue/test-utils'
 
 const ITEM = createV2vSelectedVm()
@@ -19,10 +19,10 @@ async function mountItem(item: V2vSelectedVm = ITEM) {
 }
 
 it('links the name of the VM to its mapping', async () => {
-  const link = (await mountItem()).getComponent(UiLink)
-
-  expect(link.text()).toBe(ITEM.name)
-  expect(link.attributes('href')).toBe(`/admin/v2v/migrate?step=mapping&vm=${ITEM.id}`)
+  expect(findLink(await mountItem())).toMatchObject({
+    text: ITEM.name,
+    href: `/admin/v2v/migrate?step=mapping&vm=${ITEM.id}`,
+  })
 })
 
 it('tags the VM with its kind', async () => {

@@ -3,14 +3,14 @@ import type { FrontXoBackupLog } from '@/modules/backup-log/remote-resources/use
 import type { FrontXoSchedule } from '@/modules/schedule/remote-resources/use-xo-schedule-collection.ts'
 import { createBackupLog, createBackupLogTask } from '@/test/create-backup-log.ts'
 import { createSchedule } from '@/test/create-schedule.ts'
-import { findCardLabelledValues, getCardRow, getCardRowLink } from '@/test/find-rendered-values.ts'
+import { findCardLabelledValues, findCardRowLink } from '@/test/find-rendered-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { mockXoRoutes } from '@/test/mock-xo-routes.ts'
 import { scheduleCollectionMock, mockXoScheduleCollection } from '@/test/mock-xo-schedule-collection.ts'
-import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiLogEntryViewer from '@core/components/ui/log-entry-viewer/UiLogEntryViewer.vue'
 import { formatDateTime } from '@core/utils/time.util.ts'
+import { findLink } from '@core-test/find-links.ts'
 import { mount } from '@vue/test-utils'
 
 mockXoRoutes()
@@ -34,7 +34,7 @@ it('links the run to its log in the administration and dates it by its end', () 
   const backupRun = createBackupLog({ start: 1_700_000_000_000, end: 1_700_000_014_000 })
   const wrapper = mountRun(backupRun)
 
-  expect(wrapper.getComponent(UiLink).attributes('href')).toBe(`/admin/backup-and-replication/logs?id=${backupRun.id}`)
+  expect(findLink(wrapper)?.href).toBe(`/admin/backup-and-replication/logs?id=${backupRun.id}`)
   expect(findCardLabelledValues(wrapper)).toMatchObject({
     [t('run')]: backupRun.id,
     [t('date')]: formatDateTime(1_700_000_014_000),
@@ -51,10 +51,10 @@ it('dates a run still in progress by its start', () => {
 
 describe('schedule', () => {
   it('links the schedule of the run to the XO 5 backup overview', () => {
-    const scheduleLink = getCardRowLink(mountRun(createBackupLog()), t('schedule'))
-
-    expect(scheduleLink.text()).toBe('Nightly')
-    expect(scheduleLink.attributes('href')).toBe('https://xo5.example.com/#/backup/overview')
+    expect(findCardRowLink(mountRun(createBackupLog()), t('schedule'))).toMatchObject({
+      text: 'Nightly',
+      href: 'https://xo5.example.com/#/backup/overview',
+    })
   })
 
   it('names a schedule without name as untitled', () => {
@@ -69,7 +69,7 @@ describe('schedule', () => {
     const wrapper = mountRun(createBackupLog())
 
     expect(findCardLabelledValues(wrapper)[t('schedule')]).toBe('schedule-789')
-    expect(getCardRow(wrapper, t('schedule')).findComponent(UiLink).exists()).toBe(false)
+    expect(findCardRowLink(wrapper, t('schedule'))).toBeUndefined()
   })
 })
 
