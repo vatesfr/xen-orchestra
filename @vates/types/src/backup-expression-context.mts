@@ -22,6 +22,11 @@ export const BACKUP_EXPRESSION_CONTEXT = {
     tags: { type: 'string[]' },
     power_state: { type: 'string' },
   },
+  pool: {
+    name_label: { type: 'string' },
+    description: { type: 'string' },
+    tags: { type: 'string[]' },
+  },
   chainLength: { type: 'number' },
 } as const
 
@@ -33,6 +38,8 @@ export const BACKUP_SETTING_CONTEXT = {
   vmFilter: ['vm', 'run'],
   srs: ['sr', 'run'],
   remotes: ['backupRepository', 'run'],
+  vms: ['vm', 'run'],
+  pools: ['pool', 'run'],
 } as const
 
 export type BACKUP_SETTING_CONTEXT = (typeof BACKUP_SETTING_CONTEXT)[keyof typeof BACKUP_SETTING_CONTEXT]
