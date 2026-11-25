@@ -29,7 +29,8 @@ An XO 6 test covers what the app decides, never what `@xen-orchestra/web-core` d
 
 - [Test runner](./tests/running-tests.md) — Vitest setup and the commands to run a suite
 - [Setup helpers](./tests/setup-helpers.md) — local storage, the shared `use<X>EnhancedData` helpers
-- [Test data factories](./tests/factories.md) — the `src/test/create*` factories and helpers
+- [Test data factories](./tests/factories.md) — the `src/test/create*` factories of the XO objects
+- [Shared helpers by need](./tests/helpers.md) — every `src/test/` helper, under what a test needs it for
 - [Utilities](./tests/testing-utilities.md) — where XO 6 keeps shared utils
 - [Composables](./tests/testing-composables.md) — `mountComposable`, `mountComposableWithI18n`
 - [Components](./tests/testing-components.md) — the `src/test/` readers, tables, charts, legends, routing, selects, pages
