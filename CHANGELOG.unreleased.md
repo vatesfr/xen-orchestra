@@ -79,7 +79,7 @@
 - [XO5/Licenses] On an airgap XOA, upload an airgap data pack to register the appliance and install or renew its licenses, and export the licenses database to send it back to Vates (PR [#10254](https://github.com/vatesfr/xen-orchestra/pull/10254))
 - [REST API] Check that a proxy can be reached: `GET /rest/v0/proxies/:id/health` (PR [#10752](https://github.com/vatesfr/xen-orchestra/pull/10752))
 - [Backups] A backup job running in the xo-server process (`backups.disableWorkers`) can be aborted from its task (tasks view, REST API, or the "run schedule" action): the reads and writes stop, the partial backups are removed and the VMs are reported as interrupted (PR [#10875](https://github.com/vatesfr/xen-orchestra/pull/10875))
-- [@vates/task] A subtask created under an aborted task now fails without running, unless it is created with `cleanup: true`, which is meant for the cleanup steps of an aborted task (PR [#10875](https://github.com/vatesfr/xen-orchestra/pull/10875))
+- [@vates/task] With the new `skipSubtasksAfterAbort` option of a root task, a subtask created after the abort fails without running, unless it is created with `cleanup: true`, which is meant for the cleanup steps of an aborted task (PR [#10875](https://github.com/vatesfr/xen-orchestra/pull/10875))
 
 ### Bug fixes
 
@@ -129,7 +129,7 @@
 
 - @vates/obfuscate minor
 - @vates/syslog minor
-- @vates/task major
+- @vates/task minor
 - @vates/types major
 - @xen-orchestra/acl minor
 - @xen-orchestra/autopilot-docking minor
