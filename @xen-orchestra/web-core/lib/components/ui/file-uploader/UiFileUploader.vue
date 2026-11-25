@@ -66,6 +66,7 @@ const { t } = useI18n()
 
 const { wrapperController, accent } = useInputWrapperController({
   accent: () => rawAccent,
+  accents: ['neutral', 'warning', 'danger'],
   required: () => required,
 })
 

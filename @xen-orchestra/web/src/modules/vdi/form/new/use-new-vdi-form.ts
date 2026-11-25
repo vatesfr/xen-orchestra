@@ -2,7 +2,7 @@ import { type BaseVdiFormData, useVdiFormBase } from '@/modules/vdi/form/use-vdi
 import type { NewVdiPayload, VdiSource } from '@/modules/vdi/jobs/xo-vdi-create.job.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { ONE_GB, VDI_SOURCE } from '@/shared/constants.ts'
-import { minValue, required } from '@core/packages/form-validation'
+import { minValue, required, withMessage } from '@core/packages/form-validation'
 import { toComputed } from '@core/utils/to-computed.util.ts'
 import { DOMAIN_TYPE } from '@vates/types'
 import { computed, type MaybeRefOrGetter, reactive, toRefs } from 'vue'
@@ -35,8 +35,11 @@ export function useNewVdiForm(rawVm: MaybeRefOrGetter<FrontXoVm>) {
   const { useField, validate, srSelectBindings } = useVdiFormBase(vm, formData, {
     errors: {
       onSubmit: () => ({
-        name_label: { required },
-        allocatedSpace: { required, minValue: minValue(1) },
+        name_label: { required: withMessage(required, () => t('name-required')) },
+        allocatedSpace: {
+          required: withMessage(required, () => t('allocated-space-required')),
+          minValue: withMessage(minValue(1), () => t('form:error:minimum', { min: 1 })),
+        },
       }),
     },
   })

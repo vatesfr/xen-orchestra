@@ -25,3 +25,5 @@ export const proxy = {
   url: 'proxy.url is no longer exposed by Xen Orchestra because it contained the proxy authentication token, see the Xen Orchestra changelog',
   version: '0.29.29',
 }
+
+export const proxyHealth = { success: true }

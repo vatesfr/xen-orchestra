@@ -1,6 +1,6 @@
 <template>
   <VtsInputWrapper :label :message="messages" wrap-message>
-    <VtsSelect :id accent="brand">
+    <VtsSelect :id accent="neutral">
       <template v-if="slots.option" #default="slotProps">
         <slot name="option" v-bind="slotProps" />
       </template>
@@ -16,9 +16,10 @@ import VtsSelect from '@core/components/select/VtsSelect.vue'
 import { mergeInputWrapperMessages } from '@core/utils/input-wrapper-message.util.ts'
 import { computed } from 'vue'
 
-const { error, warning } = defineProps<{
+const { info, error, warning } = defineProps<{
   id: TSelectId
   label: string
+  info?: string
   error?: InputWrapperMessage
   warning?: InputWrapperMessage
 }>()
@@ -27,5 +28,5 @@ const slots = defineSlots<{
   option?(props: { option: FormSelectIdToOption<TSelectId> }): any
 }>()
 
-const messages = computed(() => mergeInputWrapperMessages(error, warning))
+const messages = computed(() => mergeInputWrapperMessages(info, error, warning))
 </script>

@@ -135,6 +135,55 @@ describe('Index', function () {
     })
   })
 
+  it('emits remove on the previous type when an item changes type', function () {
+    const removed = []
+    const updated = []
+    byGroup.getEventEmitterByType('foo').on('remove', (_, prev) => removed.push(prev))
+    byGroup.getEventEmitterByType('foo').on('update', value => updated.push(value))
+
+    const item1bis = {
+      id: item1.id,
+      group: 'bar',
+    }
+    col.update(item1bis)
+
+    return waitTicks().then(() => {
+      assert.deepEqual(removed, [item1])
+      assert.deepEqual(updated, [])
+    })
+  })
+
+  it('emits remove on the previous type when an item no longer has a type', function () {
+    const removed = []
+    byGroup.getEventEmitterByType('foo').on('remove', (_, prev) => removed.push(prev))
+
+    col.update({ id: item1.id })
+
+    return waitTicks().then(() => {
+      assert.deepEqual(removed, [item1])
+    })
+  })
+
+  it('emits update, not remove, when an item keeps the same type', function () {
+    const removed = []
+    const updated = []
+    const ee = byGroup.getEventEmitterByType('foo')
+    ee.on('remove', (_, prev) => removed.push(prev))
+    ee.on('update', (value, prev) => updated.push([value, prev]))
+
+    const item1bis = {
+      id: item1.id,
+      group: 'foo',
+      newProp: true,
+    }
+    col.update(item1bis)
+
+    return waitTicks().then(() => {
+      assert.deepEqual(removed, [])
+      assert.deepEqual(updated, [[item1bis, item1]])
+    })
+  })
+
   it('correctly updates the value even if the same object has the same hash', function () {
     const item1bis = {
       id: item1.id,

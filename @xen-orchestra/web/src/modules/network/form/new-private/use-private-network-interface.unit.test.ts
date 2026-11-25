@@ -8,9 +8,9 @@ import { createPif } from '@/test/create-pif.ts'
 import { createPool, OTHER_POOL_ID } from '@/test/create-pool.ts'
 import { findAllGenericComponents } from '@/test/find-generic-components.ts'
 import { xoCollectionsMock, mockXoCollections } from '@/test/mock-xo-collections.ts'
-import { mountWithSelect } from '@/test/mount-with-select.ts'
-import { findSelectOptionLabels, openSelect, pickSelectOption } from '@/test/select.ts'
-import VtsSelect from '@core/components/select/VtsSelect.vue'
+import { mountWithSetup } from '@/test/mount-with-setup.ts'
+import { renderSelect } from '@core-test/mount-with-select.ts'
+import { chooseSelectOption, findSelectOptionLabels, openSelect } from '@core-test/select.ts'
 import { h, nextTick, reactive, ref } from 'vue'
 
 mockXoCollections('pool', 'pif', 'network')
@@ -43,13 +43,13 @@ function createInterface(pool?: FrontXoPool['id']): PrivateNetworkInterface {
 
 // The pool and the PIF of the interface are only chosen through their select, rendered here
 function mountInterface(networkInterface: PrivateNetworkInterface, excludedPoolIds = ref<FrontXoPool['id'][]>([])) {
-  return mountWithSelect(() => {
+  return mountWithSetup(() => {
     const { poolSelectId, pifSelectId } = usePrivateNetworkInterface(networkInterface, excludedPoolIds)
 
     return () =>
       h('div', [
-        h('div', { class: 'pool' }, [h(VtsSelect, { id: poolSelectId, accent: 'brand' })]),
-        h('div', { class: 'pif' }, [h(VtsSelect, { id: pifSelectId, accent: 'brand' })]),
+        h('div', { class: 'pool' }, [renderSelect(poolSelectId)]),
+        h('div', { class: 'pif' }, [renderSelect(pifSelectId)]),
       ])
   })
 }
@@ -67,8 +67,7 @@ describe('poolSelectId', () => {
     const networkInterface = createInterface()
     const wrapper = mountInterface(networkInterface)
 
-    await openSelect(wrapper.get('.pool'))
-    await pickSelectOption(wrapper, OTHER_POOL.name_label)
+    await chooseSelectOption(wrapper, OTHER_POOL.name_label, { container: wrapper.get('.pool') })
 
     expect(networkInterface.pool).toBe(OTHER_POOL_ID)
   })
@@ -111,8 +110,7 @@ describe('pifSelectId', () => {
     const networkInterface = createInterface(POOL.id)
     const wrapper = mountInterface(networkInterface)
 
-    await openSelect(wrapper.get('.pif'))
-    await pickSelectOption(wrapper, VLAN_PIF.device)
+    await chooseSelectOption(wrapper, VLAN_PIF.device, { container: wrapper.get('.pif') })
 
     expect(networkInterface.pif).toBe(VLAN_PIF.id)
   })

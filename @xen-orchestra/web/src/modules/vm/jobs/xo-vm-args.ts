@@ -1,5 +1,6 @@
 import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
+import type { TagSelectChanges } from '@core/components/tag-select/VtsTagSelect.vue'
 import { defineJobArg } from '@core/packages/job'
 
 export const xoVmsArg = defineJobArg({
@@ -14,5 +15,10 @@ export const xoVmArg = defineJobArg({
 
 export const xoVmHostArg = defineJobArg({
   identify: (host: FrontXoHost | undefined) => host?.id,
+  toArray: false,
+})
+
+export const xoVmTagChangesArg = defineJobArg<TagSelectChanges>({
+  identify: false,
   toArray: false,
 })

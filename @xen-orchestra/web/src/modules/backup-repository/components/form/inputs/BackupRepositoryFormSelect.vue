@@ -1,6 +1,6 @@
 <template>
   <VtsInputWrapper :label :message="error" :learn-more-url="learnMoreUrl">
-    <VtsSelect :id accent="brand">
+    <VtsSelect :id accent="neutral">
       <template v-if="slots.option" #default="slotProps">
         <slot name="option" v-bind="slotProps" />
       </template>

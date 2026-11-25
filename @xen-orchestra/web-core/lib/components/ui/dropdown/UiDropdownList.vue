@@ -4,8 +4,17 @@
     <div class="container">
       <slot />
     </div>
+    <slot name="after" />
   </div>
 </template>
+
+<script lang="ts" setup>
+defineSlots<{
+  default(): any
+  before?(): any
+  after?(): any
+}>()
+</script>
 
 <style lang="postcss" scoped>
 .ui-dropdown-list {

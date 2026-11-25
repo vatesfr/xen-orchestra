@@ -7,6 +7,7 @@ import { getButton } from '@/test/get-button.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { proxyCollectionMock, mockXoProxyCollection } from '@/test/mock-xo-proxy-collection.ts'
+import { chooseSelectOption } from '@core-test/select.ts'
 import { flushPromises, mount, type VueWrapper } from '@vue/test-utils'
 
 mockXoProxyCollection()
@@ -46,20 +47,6 @@ async function fill(wrapper: VueWrapper, label: string, value: string) {
   await getField(wrapper, label).get('input').setValue(value)
 }
 
-async function select(wrapper: VueWrapper, label: string, optionLabel: string) {
-  await getField(wrapper, label).get('.vts-select .ui-input').trigger('click')
-  await flushPromises()
-
-  const option = wrapper.findAll('.ui-dropdown').find(option => option.text().startsWith(optionLabel))
-
-  if (option === undefined) {
-    throw new Error(`No option "${optionLabel}" in the select labelled "${label}"`)
-  }
-
-  await option.trigger('click')
-  await flushPromises()
-}
-
 async function clickButton(wrapper: VueWrapper, label: string) {
   await getButton(wrapper, label).trigger('click')
   await flushPromises()
@@ -68,8 +55,8 @@ async function clickButton(wrapper: VueWrapper, label: string) {
 async function mountDrawerAtDetailsStep() {
   const wrapper = await mountDrawer()
   await fill(wrapper, t('name'), 'My repository')
-  await select(wrapper, t('type'), t('nfs'))
-  await select(wrapper, t('backup-format'), t('vhd-file'))
+  await chooseSelectOption(wrapper, t('nfs'), { container: getField(wrapper, t('type')) })
+  await chooseSelectOption(wrapper, t('vhd-file'), { container: getField(wrapper, t('backup-format')), detailed: true })
   await submitDrawer(wrapper)
 
   return wrapper

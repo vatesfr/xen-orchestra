@@ -1,23 +1,29 @@
+import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import VmDashboardQuickInfo from '@/modules/vm/components/dashboard/VmDashboardQuickInfo.vue'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { createHost } from '@/test/create-host.ts'
 import { createPool } from '@/test/create-pool.ts'
+import { createSr } from '@/test/create-sr.ts'
 import { createVm } from '@/test/create-vm.ts'
 import { itShowsDashboardQuickInfo } from '@/test/dashboard-quick-info.ts'
-import { findLabelledValues } from '@/test/find-rendered-values.ts'
+import { findLabelledValues, findTags } from '@/test/find-rendered-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { xoCollectionsMock, mockXoCollections } from '@/test/mock-xo-collections.ts'
 import { mockXoRoutes } from '@/test/mock-xo-routes.ts'
 import { userResourceMock, mockXoUser } from '@/test/mock-xo-user.ts'
 import { vmCollectionMock, mockXoVmCollection } from '@/test/mock-xo-vm-collection.ts'
+import { vmDeviceCollectionsMock, mockXoVmDeviceCollections } from '@/test/mock-xo-vm-device-collections.ts'
+import { seedVmDisks } from '@/test/seed-vm-disks.ts'
 import { itShowsVmCreator } from '@/test/vm-creator.ts'
 import { VM_POWER_STATE } from '@vates/types'
 import { mount } from '@vue/test-utils'
 
 mockXoVmCollection()
 
-mockXoCollections('host', 'pool')
+mockXoVmDeviceCollections('vbd', 'vdi')
+
+mockXoCollections('host', 'pool', 'sr')
 
 mockXoUser()
 
@@ -25,6 +31,7 @@ mockXoRoutes()
 
 beforeEach(() => {
   vmCollectionMock.reset()
+  vmDeviceCollectionsMock.reset()
   xoCollectionsMock.reset()
   userResourceMock.reset()
 })
@@ -48,16 +55,15 @@ itShowsDashboardQuickInfo(mountQuickInfo, {
     t('uuid'),
     t('pool'),
     t('host'),
+    t('storage'),
     t('description'),
     t('os-name'),
     t('virtualization-type'),
     t('guest-tools'),
     t('vcpus'),
     t('ram'),
-    t('tags'),
   ],
   createWithAddress: (uuid, mainIpAddress) => createVm({ id: uuid as FrontXoVm['id'], mainIpAddress }),
-  createWithTags: tags => createVm({ tags }),
 })
 
 it('shows the identity, power state and resources of the VM', () => {
@@ -125,3 +131,79 @@ it('falls back to "None" when the VM has neither a known pool nor a host', () =>
 })
 
 itShowsVmCreator(() => findLabelledValues(mountQuickInfo()))
+
+describe('storages', () => {
+  const srA = createSr({ id: 'sr-a' as FrontXoSr['id'], name_label: 'Local SR' })
+  const srB = createSr({ id: 'sr-b' as FrontXoSr['id'], name_label: 'Shared NFS' })
+  const srC = createSr({ id: 'sr-c' as FrontXoSr['id'], name_label: 'iSCSI' })
+  const srIso = createSr({ id: 'sr-iso' as FrontXoSr['id'], name_label: 'ISO library' })
+
+  beforeEach(() => {
+    xoCollectionsMock.srs.value = [srA, srB, srC, srIso]
+  })
+
+  function createVmWithDisksOn(srIds: FrontXoSr['id'][]) {
+    return createVm({ $VBDs: seedVmDisks(srIds.map(srId => ({ vdi: { $SR: srId } }))) })
+  }
+
+  it('links the displayed storage to its page', () => {
+    const hrefs = mountQuickInfo(createVmWithDisksOn([srA.id]))
+      .findAll('.storage li a')
+      .map(link => link.attributes('href'))
+
+    expect(hrefs).toEqual(['/sr/sr-a/general'])
+  })
+
+  it('shows the storage without a "+n" link when the disks of the VM are on a single storage', () => {
+    const wrapper = mountQuickInfo(createVmWithDisksOn([srA.id, srA.id]))
+
+    expect(wrapper.findAll('.storage li').map(li => li.text())).toEqual(['Local SR'])
+  })
+
+  it('shows the first storage followed by a "+n" link counting the others', () => {
+    const wrapper = mountQuickInfo(createVmWithDisksOn([srA.id, srB.id, srC.id]))
+
+    expect(wrapper.findAll('.storage li').map(li => li.text())).toEqual(['Local SR', t('plus-n', { n: 2 })])
+  })
+
+  it('links the "+n" to the disks of the VM', () => {
+    const href = mountQuickInfo(createVmWithDisksOn([srA.id, srB.id, srC.id]))
+      .get('.storage li:last-child a')
+      .attributes('href')
+
+    expect(href).toBe('/vm/vm-123/vdis')
+  })
+
+  it('lists each storage holding a disk of the VM once, even when it holds several disks', () => {
+    const $VBDs = seedVmDisks([{ vdi: { $SR: srA.id } }, { vdi: { $SR: srA.id } }, { vdi: { $SR: srB.id } }])
+
+    const wrapper = mountQuickInfo(createVm({ $VBDs }))
+
+    expect(wrapper.findAll('.storage li').map(li => li.text())).toEqual(['Local SR', t('plus-n', { n: 1 })])
+  })
+
+  it('ignores the ISO mounted in a CD drive', () => {
+    const $VBDs = seedVmDisks([{ vdi: { $SR: srA.id } }, { vbd: { is_cd_drive: true }, vdi: { $SR: srIso.id } }])
+
+    const wrapper = mountQuickInfo(createVm({ $VBDs }))
+
+    expect(wrapper.findAll('.storage li').map(li => li.text())).toEqual(['Local SR'])
+  })
+
+  it('falls back to "None" when the VM has no disk', () => {
+    expect(findLabelledValues(mountQuickInfo())).toMatchObject({ [t('storage')]: t('none') })
+  })
+})
+
+it('renders the tags below their label', () => {
+  const wrapper = mountQuickInfo(createVm({ tags: ['production'] }))
+
+  expect(wrapper.get('.vm-tags-editor > .header .label').text()).toBe(t('tags'))
+  expect(wrapper.find('.vm-tags-editor > .ui-tags-list').exists()).toBe(true)
+})
+
+it('renders one tag per VM tag, in alphabetical order', () => {
+  const wrapper = mountQuickInfo(createVm({ tags: ['production', 'billing'] }))
+
+  expect(findTags(wrapper)).toEqual(['billing', 'production'])
+})

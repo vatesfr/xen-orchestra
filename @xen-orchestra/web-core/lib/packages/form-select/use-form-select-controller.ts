@@ -1,11 +1,17 @@
 import { ifElse } from '@core/utils/if-else.utils.ts'
-import { autoUpdate, flip, type MaybeElement, shift, size, useFloating } from '@floating-ui/vue'
+import { autoUpdate, flip, type MaybeElement, type Placement, shift, size, useFloating } from '@floating-ui/vue'
 import { clamp, onClickOutside, useEventListener, whenever } from '@vueuse/core'
-import { computed, provide, reactive, ref, watch } from 'vue'
+import { computed, type MaybeRefOrGetter, provide, reactive, ref, toValue, watch } from 'vue'
 import { type FormOptionIndex, type FormSelect, IK_FORM_SELECT_CONTROLLER } from './types.ts'
 import { useFormSelectKeyboardNavigation } from './use-form-select-keyboard-navigation.ts'
 
-export function useFormSelectController(select: FormSelect) {
+export type UseFormSelectControllerOptions = {
+  fullscreen?: MaybeRefOrGetter<boolean>
+  // Keeps the dropdown on the side of the trigger it opened on, for a dropdown whose height changes while open
+  lockPlacement?: boolean
+}
+
+export function useFormSelectController(select: FormSelect, options: UseFormSelectControllerOptions = {}) {
   const rootRef = ref<HTMLElement>()
 
   const activeOption = computed(() => select.options.value.find(option => option.flags.active))
@@ -53,22 +59,37 @@ export function useFormSelectController(select: FormSelect) {
 
   /* DROPDOWN PLACEMENT */
 
-  const { floatingStyles } = useFloating(triggerRef, dropdownRef, {
+  const lockedPlacement = ref<Placement>()
+
+  const sizeMiddleware = size({
+    apply: ({ availableHeight, availableWidth, elements }) => {
+      const isFullscreen = toValue(options.fullscreen)
+      elements.floating.style.maxWidth = isFullscreen ? '' : `${availableWidth}px`
+      elements.floating.style.maxHeight = isFullscreen ? '' : `${Math.min(500, availableHeight)}px`
+    },
+  })
+
+  const {
+    floatingStyles: rawFloatingStyles,
+    placement,
+    isPositioned,
+  } = useFloating(triggerRef, dropdownRef, {
     whileElementsMounted: autoUpdate,
-    middleware: [
-      shift(),
-      flip(),
-      size({
-        apply: ({ availableHeight, availableWidth, elements }) => {
-          elements.floating.style.maxWidth = `${availableWidth}px`
-          elements.floating.style.maxHeight = `${Math.min(500, availableHeight)}px`
-        },
-      }),
-    ],
-    placement: 'bottom-start',
+    middleware: () => [shift(), ...(lockedPlacement.value === undefined ? [flip()] : []), sizeMiddleware],
+    placement: () => lockedPlacement.value ?? 'bottom-start',
     open: isOpen,
     strategy: 'fixed',
   })
+
+  // Flipping again as the height changes would make the dropdown jump to the other side of the trigger, and the
+  // `max-height` set by `size` for that side would keep it there
+  if (options.lockPlacement) {
+    watch(isPositioned, positioned => {
+      lockedPlacement.value = positioned ? placement.value : undefined
+    })
+  }
+
+  const floatingStyles = computed(() => (toValue(options.fullscreen) ? undefined : rawFloatingStyles.value))
 
   /* SEARCH */
 

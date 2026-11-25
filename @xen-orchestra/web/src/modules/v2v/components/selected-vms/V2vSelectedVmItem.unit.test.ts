@@ -2,12 +2,12 @@ import V2vSelectedVmItem from '@/modules/v2v/components/selected-vms/V2vSelected
 import type { V2vSelectedVm } from '@/modules/v2v/types/v2v-selected-vm.type.ts'
 import { createV2vSelectedVm } from '@/test/create-v2v-selected-vms.ts'
 import { createV2vWizardRouter } from '@/test/create-v2v-wizard-router.ts'
-import { findAccentedInfos, findAccentedTags } from '@/test/find-accented-labels.ts'
 import { findParts } from '@/test/find-parts.ts'
 import { getButton } from '@/test/get-button.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import UiLink from '@core/components/ui/link/UiLink.vue'
+import { findAccentedInfos, findAccentedTags } from '@core-test/find-accented-labels.ts'
 import { mount } from '@vue/test-utils'
 
 const ITEM = createV2vSelectedVm()

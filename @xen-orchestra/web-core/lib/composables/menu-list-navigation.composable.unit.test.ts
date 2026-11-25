@@ -1,6 +1,6 @@
 import { useMenuListNavigation } from '@core/composables/menu-list-navigation.composable.ts'
-import { mount } from '@vue/test-utils'
-import { defineComponent, h, nextTick, ref } from 'vue'
+import { mountWithSetupResult } from '@core-test/mount-with-setup.ts'
+import { h, nextTick, ref } from 'vue'
 
 async function mountMenuListNavigation({
   isHorizontal = false,
@@ -16,22 +16,21 @@ async function mountMenuListNavigation({
   const onItemClick = vi.fn()
   const onButtonClick = vi.fn()
 
-  let focusFirstItem = () => {}
+  const {
+    result: { focusFirstItem },
+  } = mountWithSetupResult(
+    () => {
+      const menu = ref<HTMLElement>()
 
-  mount(
-    defineComponent({
-      setup() {
-        const menu = ref<HTMLElement>()
-
-        focusFirstItem = useMenuListNavigation({
+      return {
+        result: useMenuListNavigation({
           target: () => (hasTarget ? menu.value : undefined),
           isHorizontal,
           canCloseWithArrowLeft,
           onClose,
           onLeave,
-        }).focusFirstItem
-
-        return () =>
+        }),
+        render: () =>
           h('ul', { ref: menu, class: 'menu-list' }, [
             h('li', [h('div', { class: 'menu-trigger', tabindex: -1, onClick: onItemClick }, 'One')]),
             h('li', [
@@ -41,9 +40,9 @@ async function mountMenuListNavigation({
               h('div', { class: 'menu-trigger', tabindex: -1 }, 'Three'),
               h('ul', { class: 'menu-list' }, [h('li', [h('div', { class: 'menu-trigger', tabindex: -1 }, 'Nested')])]),
             ]),
-          ])
-      },
-    }),
+          ]),
+      }
+    },
     { attachTo: document.body }
   )
 

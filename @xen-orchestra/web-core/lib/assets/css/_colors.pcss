@@ -1,6 +1,4 @@
 :root {
-  --color-logo: #282467;
-
   /* NEUTRALS */
 
   --color-neutral-txt-primary: #1a1b38;
@@ -31,6 +29,7 @@
   --color-brand-item-hover: color-mix(in srgb, #ffffff 20%, var(--color-brand-item-base));
   --color-brand-item-active: color-mix(in srgb, #ffffff 40%, var(--color-brand-item-base));
   --color-brand-item-disabled: #d2ceff;
+  --color-brand-data: #8a80ff;
 
   /* INFO */
 
@@ -47,6 +46,7 @@
   --color-info-item-hover: color-mix(in srgb, #ffffff 20%, var(--color-info-item-base));
   --color-info-item-active: color-mix(in srgb, #ffffff 40%, var(--color-info-item-base));
   --color-info-item-disabled: #abdafa;
+  --color-info-data: #1498f0;
 
   /* SUCCESS */
 
@@ -63,6 +63,7 @@
   --color-success-item-hover: color-mix(in srgb, #ffffff 20%, var(--color-success-item-base));
   --color-success-item-active: color-mix(in srgb, #ffffff 40%, var(--color-success-item-base));
   --color-success-item-disabled: #abdcc9;
+  --color-success-data: #2ca577;
 
   /* WARNING */
 
@@ -79,6 +80,7 @@
   --color-warning-item-hover: color-mix(in srgb, #ffffff 20%, var(--color-warning-item-base));
   --color-warning-item-active: color-mix(in srgb, #ffffff 40%, var(--color-warning-item-base));
   --color-warning-item-disabled: #f9cca3;
+  --color-warning-data: #e07410;
 
   /* DANGER */
 
@@ -86,20 +88,20 @@
   --color-danger-txt-hover: color-mix(in srgb, #000000 20%, var(--color-danger-txt-base));
   --color-danger-txt-active: color-mix(in srgb, #000000 40%, var(--color-danger-txt-base));
 
-  --color-danger-background-selected: color-mix(in srgb, #ffffff 90%, var(--color-danger-item-base));
-  --color-danger-background-hover: color-mix(in srgb, #ffffff 80%, var(--color-danger-item-base));
-  --color-danger-background-active: color-mix(in srgb, #ffffff 70%, var(--color-danger-item-base));
+  --color-danger-background-base: #e73642;
+  --color-danger-background-selected: color-mix(in srgb, #ffffff 90%, var(--color-danger-background-base));
+  --color-danger-background-hover: color-mix(in srgb, #ffffff 80%, var(--color-danger-background-base));
+  --color-danger-background-active: color-mix(in srgb, #ffffff 70%, var(--color-danger-background-base));
 
   --color-danger-txt-item: #fff0f1;
   --color-danger-item-base: #be1621;
   --color-danger-item-hover: color-mix(in srgb, #000000 20%, var(--color-danger-item-base));
   --color-danger-item-active: color-mix(in srgb, #000000 40%, var(--color-danger-item-base));
   --color-danger-item-disabled: #e5a2a6;
+  --color-danger-data: #be1621;
 }
 
 :root.dark {
-  --color-logo: #e5e5e7;
-
   /* NEUTRALS */
 
   --color-neutral-txt-primary: #f8f8f8;
@@ -130,6 +132,7 @@
   --color-brand-item-hover: color-mix(in srgb, #ffffff 20%, var(--color-brand-item-base));
   --color-brand-item-active: color-mix(in srgb, #ffffff 40%, var(--color-brand-item-base));
   --color-brand-item-disabled: #393566;
+  --color-brand-data: #8f84ff;
 
   /* INFO */
 
@@ -146,6 +149,7 @@
   --color-info-item-hover: color-mix(in srgb, #ffffff 20%, var(--color-info-item-base));
   --color-info-item-active: color-mix(in srgb, #ffffff 40%, var(--color-info-item-base));
   --color-info-item-disabled: #124161;
+  --color-info-data: #2ca3f2;
 
   /* SUCCESS */
 
@@ -153,15 +157,16 @@
   --color-success-txt-hover: color-mix(in srgb, #ffffff 20%, var(--color-success-txt-base));
   --color-success-txt-active: color-mix(in srgb, #ffffff 40%, var(--color-success-txt-base));
 
-  --color-success-background-selected: color-mix(in srgb, #000000 70%, var(--color-success-txt-base));
-  --color-success-background-hover: color-mix(in srgb, #000000 60%, var(--color-success-txt-base));
-  --color-success-background-active: color-mix(in srgb, #000000 50%, var(--color-success-txt-base));
+  --color-success-background-selected: color-mix(in srgb, #000000 70%, var(--color-success-item-base));
+  --color-success-background-hover: color-mix(in srgb, #000000 60%, var(--color-success-item-base));
+  --color-success-background-active: color-mix(in srgb, #000000 50%, var(--color-success-item-base));
 
   --color-success-txt-item: #092017;
   --color-success-item-base: #2ca878;
   --color-success-item-hover: color-mix(in srgb, #ffffff 20%, var(--color-success-item-base));
   --color-success-item-active: color-mix(in srgb, #ffffff 40%, var(--color-success-item-base));
   --color-success-item-disabled: #124330;
+  --color-success-data: #2ca878;
 
   /* WARNING */
 
@@ -169,15 +174,16 @@
   --color-warning-txt-hover: color-mix(in srgb, #ffffff 20%, var(--color-warning-txt-base));
   --color-warning-txt-active: color-mix(in srgb, #ffffff 40%, var(--color-warning-txt-base));
 
-  --color-warning-background-selected: color-mix(in srgb, #000000 70%, var(--color-warning-txt-base));
-  --color-warning-background-hover: color-mix(in srgb, #000000 60%, var(--color-warning-txt-base));
-  --color-warning-background-active: color-mix(in srgb, #000000 50%, var(--color-warning-txt-base));
+  --color-warning-background-selected: color-mix(in srgb, #000000 70%, var(--color-warning-item-base));
+  --color-warning-background-hover: color-mix(in srgb, #000000 60%, var(--color-warning-item-base));
+  --color-warning-background-active: color-mix(in srgb, #000000 50%, var(--color-warning-item-base));
 
   --color-warning-txt-item: #261403;
   --color-warning-item-base: #ef7f18;
   --color-warning-item-hover: color-mix(in srgb, #ffffff 20%, var(--color-warning-item-base));
   --color-warning-item-active: color-mix(in srgb, #ffffff 40%, var(--color-warning-item-base));
   --color-warning-item-disabled: #60330a;
+  --color-warning-data: #ef7f18;
 
   /* DANGER */
 
@@ -185,13 +191,15 @@
   --color-danger-txt-hover: color-mix(in srgb, #ffffff 20%, var(--color-danger-txt-base));
   --color-danger-txt-active: color-mix(in srgb, #ffffff 40%, var(--color-danger-txt-base));
 
-  --color-danger-background-selected: color-mix(in srgb, #000000 70%, var(--color-danger-txt-base));
-  --color-danger-background-hover: color-mix(in srgb, #000000 60%, var(--color-danger-txt-base));
-  --color-danger-background-active: color-mix(in srgb, #000000 50%, var(--color-danger-txt-base));
+  --color-danger-background-base: #e73642;
+  --color-danger-background-selected: color-mix(in srgb, #000000 70%, var(--color-danger-background-base));
+  --color-danger-background-hover: color-mix(in srgb, #000000 60%, var(--color-danger-background-base));
+  --color-danger-background-active: color-mix(in srgb, #000000 50%, var(--color-danger-background-base));
 
   --color-danger-txt-item: #fff0f1;
   --color-danger-item-base: #be1621;
   --color-danger-item-hover: color-mix(in srgb, #000000 20%, var(--color-danger-item-base));
   --color-danger-item-active: color-mix(in srgb, #000000 40%, var(--color-danger-item-base));
   --color-danger-item-disabled: #4c090d;
+  --color-danger-data: #c41723;
 }

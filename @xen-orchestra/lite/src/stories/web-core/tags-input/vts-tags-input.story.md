@@ -9,6 +9,6 @@ The label comes from the surrounding `VtsInputWrapper`.
 
 ```vue-template
 <VtsInputWrapper label="Values">
-  <VtsTagsInput v-model="values" accent="brand" placeholder="Add a value" />
+  <VtsTagsInput v-model="values" accent="neutral" placeholder="Add a value" />
 </VtsInputWrapper>
 ```

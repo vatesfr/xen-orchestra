@@ -1,5 +1,5 @@
 <template>
-  <form class="new-internal-network-form" @submit.prevent="onSubmit()">
+  <div class="new-internal-network-form">
     <NetworkFormSelect v-bind="poolSelectBindings" class="pool" />
     <div class="row">
       <div class="column">
@@ -11,8 +11,7 @@
     <div class="nbd">
       <NewNetworkNbdRadio v-bind="nbdRadioBindings" />
     </div>
-    <NewNetworkButtonsSection :cancel-to :submit-label="t('action:create-internal-network')" />
-  </form>
+  </div>
 </template>
 
 <script lang="ts" setup>
@@ -20,24 +19,13 @@ import NetworkFormSelect from '@/modules/network/components/form/new/inputs/Netw
 import NetworkFormTextInput from '@/modules/network/components/form/new/inputs/NetworkFormTextInput.vue'
 import NewNetworkDescriptionTextarea from '@/modules/network/components/form/new/inputs/NewNetworkDescriptionTextarea.vue'
 import NewNetworkNbdRadio from '@/modules/network/components/form/new/inputs/NewNetworkNbdRadio.vue'
-import NewNetworkButtonsSection from '@/modules/network/components/form/new/NewNetworkButtonsSection.vue'
 import { useNewInternalNetworkForm } from '@/modules/network/form/new-internal/use-new-internal-network-form.ts'
-import type { NewInternalNetworkPayload } from '@/modules/network/jobs/xo-internal-network-create.job.ts'
 import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import VtsNumberInput from '@core/components/number-input/VtsNumberInput.vue'
-import { useI18n } from 'vue-i18n'
-import type { RouteLocationRaw } from 'vue-router'
 
-const { poolId, cancelTo } = defineProps<{
+const { poolId } = defineProps<{
   poolId?: FrontXoPool['id']
-  cancelTo: RouteLocationRaw
 }>()
-
-const emit = defineEmits<{
-  create: [data: NewInternalNetworkPayload]
-}>()
-
-const { t } = useI18n()
 
 const {
   poolSelectBindings,
@@ -48,13 +36,9 @@ const {
   validateAndBuildPayload,
 } = useNewInternalNetworkForm(() => poolId)
 
-async function onSubmit() {
-  const payload = await validateAndBuildPayload()
-
-  if (payload !== undefined) {
-    emit('create', payload)
-  }
-}
+defineExpose({
+  validate: validateAndBuildPayload,
+})
 </script>
 
 <style lang="postcss" scoped>
@@ -72,8 +56,6 @@ async function onSubmit() {
 
     @media (--medium-or-large) {
       flex-direction: row;
-      gap: 8rem;
-      max-width: 88rem;
     }
 
     &:not(:first-child) {

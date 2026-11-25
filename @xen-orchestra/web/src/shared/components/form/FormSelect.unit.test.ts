@@ -1,16 +1,16 @@
 import FormSelect from '@/shared/components/form/FormSelect.vue'
 import { findInputLabels } from '@/test/find-input-labels.ts'
-import { findInputMessages } from '@/test/find-input-messages.ts'
 import { dangerMessage } from '@/test/form-messages.ts'
-import { mountWithSelect } from '@/test/mount-with-select.ts'
+import { mountWithSetup } from '@/test/mount-with-setup.ts'
 import type { InputWrapperMessage } from '@core/components/input-wrapper/VtsInputWrapper.vue'
 import { useFormSelect } from '@core/packages/form-select'
+import { findInfoLabels } from '@core-test/find-accented-labels.ts'
 import { h } from 'vue'
 
 const WARNING = { content: 'Slow storage', accent: 'warning' } as const
 
-function mountSelect(messages: { error?: InputWrapperMessage; warning?: InputWrapperMessage } = {}) {
-  return mountWithSelect(() => {
+function mountSelect(messages: { info?: string; error?: InputWrapperMessage; warning?: InputWrapperMessage } = {}) {
+  return mountWithSetup(() => {
     const { id } = useFormSelect([{ id: 'sr-1', label: 'Local storage' }], { option: { label: 'label' } })
 
     return () => h(FormSelect, { id, label: 'Storage', ...messages })
@@ -22,11 +22,25 @@ it('renders its label', () => {
 })
 
 it('shows no message without error nor warning', () => {
-  expect(findInputMessages(mountSelect())).toEqual([])
+  expect(findInfoLabels(mountSelect())).toEqual([])
 })
 
 it('shows its error and its warning', () => {
   const wrapper = mountSelect({ error: dangerMessage('Storage is required.'), warning: WARNING })
 
-  expect(findInputMessages(wrapper).sort()).toEqual(['Slow storage', 'Storage is required.'])
+  expect(findInfoLabels(wrapper).sort()).toEqual(['Slow storage', 'Storage is required.'])
+})
+
+it('shows its info beside its error and its warning', () => {
+  const wrapper = mountSelect({
+    info: 'Where the disks are stored.',
+    error: dangerMessage('Storage is required.'),
+    warning: WARNING,
+  })
+
+  expect(findInfoLabels(wrapper).sort()).toEqual([
+    'Slow storage',
+    'Storage is required.',
+    'Where the disks are stored.',
+  ])
 })

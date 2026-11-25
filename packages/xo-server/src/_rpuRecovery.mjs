@@ -6,6 +6,8 @@ import { incorrectState, noSuchObject } from 'xo-common/api-errors.js'
 
 import { replacer } from './_rpuObservability.mjs'
 
+/** @typedef {import('@vates/types').PoolRollingUpdateRecoveryRun} PoolRollingUpdateRecoveryRun */
+
 const log = createLogger('xo:rpu-recovery')
 
 export const RPU_RECOVERY_SCHEMA_VERSION = 1
@@ -68,13 +70,16 @@ export function createRpuRecoveryRecord({ poolId, options }) {
   }
 }
 
-function deriveHostStatus(steps) {
+// a run that is over cannot have a host running: what it left in progress is
+// reported as `interrupted`
+function deriveHostStatus(steps, isRunLive) {
+  const inProgress = isRunLive ? 'running' : 'interrupted'
   const statuses = RPU_RECOVERY_STEP_NAMES.map(name => steps[name]?.status ?? 'pending')
   if (statuses.includes('failed')) {
     return 'failed'
   }
   if (statuses.includes('running')) {
-    return 'running'
+    return inProgress
   }
   if (statuses.every(status => status === 'not-needed')) {
     return 'not-needed'
@@ -86,13 +91,13 @@ function deriveHostStatus(steps) {
     return 'pending'
   }
   // partially done then stopped in between steps
-  return 'running'
+  return inProgress
 }
 
 /**
  * Projects a readable record onto its public view: run identity and status,
- * dates, current task, per-host steps, last filtered error and halted pinned
- * VMs.
+ * dates, current task, per-host steps, last filtered error, halted pinned VMs
+ * and the VMs the run could not bring home.
  *
  * Never exposes the raw intent: options, initial VM placement and agent times
  * stay in the record.
@@ -113,6 +118,7 @@ export function buildRpuRecoveryView(record) {
     }
   }
 
+  const isRunLive = LIVE_RUN_STATUSES.has(record.status)
   const hosts = {}
   for (const hostId of record.hostOrder ?? Object.keys(record.hosts ?? {})) {
     const { steps = {}, lastError } = record.hosts?.[hostId] ?? {}
@@ -122,7 +128,7 @@ export function buildRpuRecoveryView(record) {
       viewSteps[name] = { status, startedAt, finishedAt }
     }
     hosts[hostId] = {
-      status: deriveHostStatus(steps),
+      status: deriveHostStatus(steps, isRunLive),
       steps: viewSteps,
       lastError: lastError ?? null,
     }
@@ -138,10 +144,17 @@ export function buildRpuRecoveryView(record) {
     interruptedAt: record.interruptedAt,
     taskId: record.taskId,
     variant: record.variant,
+    attempt: record.attempt ?? 1,
+    resumable: RESUMABLE_STATUSES.includes(record.status),
     hostOrder: record.hostOrder,
     hosts,
     lastError: record.lastError ?? null,
     haltedPinnedVms: record.haltedPinnedVms ?? {},
+    vmConflicts: record.vmConflicts ?? [],
+    operatorChanges: record.operatorChanges ?? [],
+    ...(record.recomputedPlan?.addedHostIds?.length > 0 && {
+      planChange: { attempt: record.recomputedPlan.attempt, addedHostIds: record.recomputedPlan.addedHostIds },
+    }),
   }
 }
 
@@ -201,7 +214,7 @@ export async function readClosableRpuRecoveryRecord(store, poolId) {
   if (record?.schemaVersion === RPU_RECOVERY_SCHEMA_VERSION && LIVE_RUN_STATUSES.has(record.status)) {
     throw incorrectState({
       actual: record.status,
-      expected: ['interrupted', 'failed', 'succeeded'],
+      expected: ['interrupted', 'failed', 'awaiting-acceptance', 'succeeded'],
       object: poolId,
       property: 'status',
     })
@@ -214,7 +227,7 @@ export async function readClosableRpuRecoveryRecord(store, poolId) {
  * and the live state of the pool: an item is listed only when the record says
  * the run changed it and the pool still shows it changed.
  *
- * Flat list, in restore order: pool settings (HA, auto power-on, WLB, load
+ * Flat list: pool settings (HA, auto power-on, WLB, load
  * balancer), backup schedules, disabled hosts, running VMs away from their
  * home host, pinned VMs shut down by the run. Objects that no longer exist are
  * skipped: there is nothing left to restore. Displaced VMs are not listed when
@@ -270,7 +283,13 @@ export function listUnrestoredItems(record, { pool, loadBalancerLoaded, getHost,
   if (pool.other_config?.['xo:rpuMigrateVmsBack'] !== 'false') {
     for (const [vmId, homeHostId] of Object.entries(record.vmHomeById ?? {})) {
       const vm = getVm(vmId)
-      if (vm !== undefined && vm.power_state === 'Running' && vm.$resident_on?.$id !== homeHostId) {
+      // nowhere to bring it back once its home host left the pool
+      if (
+        vm !== undefined &&
+        vm.power_state === 'Running' &&
+        vm.$resident_on?.$id !== homeHostId &&
+        getHost(homeHostId) !== undefined
+      ) {
         items.push({ type: 'vm', id: vmId, name: vm.name_label })
       }
     }
@@ -286,15 +305,128 @@ export function listUnrestoredItems(record, { pool, loadBalancerLoaded, getHost,
 }
 
 /**
+ * Lists what an operator changed, since the run, on what the run left changed
+ * or works on: a resume would otherwise silently override the operator, or
+ * skip what is gone without a word.
+ *
+ * Settings enabled again by hand (HA, auto power-on, WLB, backup schedules),
+ * deleted backup schedules, HA heartbeat SRs which no longer exist, so HA
+ * cannot be restored as it was, and hosts or VMs of the run which no longer
+ * exist. The HA configuration is never exposed.
+ *
+ * @param {object | undefined} record
+ * @param {object} live
+ * @param {object} live.pool - XAPI pool object
+ * @param {(id: string) => object | undefined} live.getHost
+ * @param {(id: string) => object | undefined} live.getSchedule
+ * @param {(id: string) => object | undefined} live.getSr
+ * @param {(id: string) => object | undefined} live.getVm
+ * @returns {Array<{ type: string, id: string, name?: string, expected: string, observed: string }> | null} `null` when the record cannot be read
+ */
+export function listOperatorChanges(record, { pool, getHost, getSchedule, getSr, getVm }) {
+  if (record === null || typeof record !== 'object' || record.schemaVersion !== RPU_RECOVERY_SCHEMA_VERSION) {
+    return null
+  }
+  const { poolId, changedByRun = {} } = record
+  const enabledAgain = (type, id, name) => ({ type, id, name, expected: 'disabled', observed: 'enabled' })
+  const missing = (type, id) => ({ type, id, expected: 'present', observed: 'missing' })
+  const changes = []
+
+  if (changedByRun.ha && pool.ha_enabled) {
+    changes.push(enabledAgain('ha', poolId))
+  }
+  if (changedByRun.autoPowerOn && pool.other_config?.auto_poweron === 'true') {
+    changes.push(enabledAgain('autoPowerOn', poolId))
+  }
+  if (changedByRun.wlb && pool.wlb_enabled) {
+    changes.push(enabledAgain('wlb', poolId))
+  }
+  for (const scheduleId of changedByRun.schedules ?? []) {
+    const schedule = getSchedule(scheduleId)
+    if (schedule === undefined) {
+      changes.push({ type: 'schedule', id: scheduleId, expected: 'disabled', observed: 'missing' })
+    } else if (schedule.enabled === true) {
+      changes.push(enabledAgain('schedule', scheduleId, schedule.name))
+    }
+  }
+  if (changedByRun.ha && !pool.ha_enabled) {
+    for (const srId of changedByRun.ha.srs ?? []) {
+      if (getSr(srId) === undefined) {
+        changes.push(missing('haHeartbeatSr', srId))
+      }
+    }
+  }
+  for (const hostId of new Set([...(record.hostOrder ?? []), ...Object.keys(record.hosts ?? {})])) {
+    if (getHost(hostId) === undefined) {
+      changes.push(missing('host', hostId))
+    }
+  }
+  // the VMs to migrate back home or to start again, but the ones the run
+  // already reported as deleted: they stay listed until Finalize
+  const reportedDeleted = new Set((record.vmConflicts ?? []).filter(_ => _.reason === 'deleted').map(_ => _.vmId))
+  for (const vmId of new Set([...Object.keys(record.vmHomeById ?? {}), ...Object.keys(record.haltedPinnedVms ?? {})])) {
+    if (getVm(vmId) === undefined && !reportedDeleted.has(vmId)) {
+      changes.push(missing('vm', vmId))
+    }
+  }
+
+  // JSON round trip of the store drops the undefined names
+  return JSON.parse(JSON.stringify(changes))
+}
+
+const withoutHost = (byId, hostId) => Object.fromEntries(Object.entries(byId ?? {}).filter(([, _]) => _ !== hostId))
+
+/**
+ * Takes the operator's state as the new baseline: the run no longer restores
+ * the settings listed in `changes` from the record, it handles them as a new
+ * run would, and forgets the hosts and VMs which no longer exist.
+ *
+ * @param {object} record - mutated
+ * @param {object[]} changes - see listOperatorChanges
+ */
+function adoptOperatorChanges(record, changes) {
+  const { changedByRun = {} } = record
+  for (const { type, id } of changes) {
+    if (type === 'host') {
+      if (record.hostOrder !== undefined) {
+        record.hostOrder = record.hostOrder.filter(_ => _ !== id)
+      }
+      delete record.hosts?.[id]
+      delete record.hasMissingPatchesByHost?.[id]
+      // a resume may have added it to the plan
+      const { recomputedPlan } = record
+      if (recomputedPlan !== undefined) {
+        delete recomputedPlan.hasMissingPatchesByHost[id]
+        recomputedPlan.addedHostIds = recomputedPlan.addedHostIds.filter(_ => _ !== id)
+      }
+      // the VMs of a host which no longer exists stay where they are
+      record.vmHomeById = withoutHost(record.vmHomeById, id)
+      record.haltedPinnedVms = withoutHost(record.haltedPinnedVms, id)
+    } else if (type === 'vm') {
+      delete record.vmHomeById?.[id]
+      delete record.haltedPinnedVms?.[id]
+    } else if (type === 'ha' || type === 'haHeartbeatSr') {
+      delete changedByRun.ha
+    } else if (type === 'schedule') {
+      changedByRun.schedules = changedByRun.schedules.filter(_ => _ !== id)
+    } else {
+      delete changedByRun[type]
+    }
+  }
+}
+
+/**
  * Recorder used when a run does not track recovery (rolling pool reboot,
  * rolling pool update on a pool without recovery, see supportsRpuRecovery):
  * every method is a no-op.
  */
 export const noopRpuRecorder = Object.freeze({
   markRunning: noop,
+  flush: noop,
   setTaskId: noop,
   setVariant: noop,
   setPatchInventory: noop,
+  reopenHost: noop,
   setPlan: noop,
   hostStarting: noop,
   hostSkipped: noop,
@@ -304,12 +436,36 @@ export const noopRpuRecorder = Object.freeze({
   stepNotNeeded: noop,
   stepFailed: noop,
   settingChangedByRun: asyncNoop,
+  settingRestored: noop,
   recordHaltedPinnedVm: asyncNoop,
   forgetHaltedPinnedVm: noop,
   fail: asyncNoop,
   dropIfNothingToRecover: asyncNoop,
-  delete: asyncNoop,
+  complete: asyncNoop,
+  setVmConflicts: noop,
+  getVmConflicts: () => [],
 })
+
+/**
+ * Restores a setting the run changed, meant to be deferred: the setting is
+ * recorded as restored only once the restore succeeded. Never throws, a failed
+ * restore is logged with the setting and leaves it in the record.
+ *
+ * @param {object} recorder
+ * @param {'ha' | 'autoPowerOn' | 'wlb' | 'loadBalancer' | 'schedules'} name
+ * @param {() => Promise<void>} restore
+ * @param {string} [id] - The schedule for `schedules`
+ * @returns {Promise<void>}
+ */
+export async function restoreRpuSetting(recorder, name, restore, id) {
+  try {
+    await restore()
+  } catch (error) {
+    log.warn('failed to restore a setting changed by the rolling pool update', { error, setting: name, id })
+    return
+  }
+  recorder.settingRestored(name, id)
+}
 
 /**
  * Creates the recorder tracking one RPU run into its recovery record.
@@ -347,20 +503,34 @@ export function createRpuRecoveryRecorder({ store, record }) {
     await chain
     await store.del(record.poolId)
   }
-  // a record that survives a successful run must not be reported as
-  // interrupted at the next restart: it is stamped `succeeded` (best effort)
-  // before the delete failure is rethrown
+  // best effort: a record that survives a successful run must not be
+  // reported as interrupted at the next restart
+  const markSucceeded = async () => {
+    record.status = 'succeeded'
+    // the error of a previous attempt is not current anymore
+    record.lastError = null
+    record.finishedAt = new Date().toISOString()
+    await enqueueWrite().catch(warnOnce)
+  }
+  // the record is stamped `succeeded` before the delete failure is rethrown
   const deleteOrSucceed = async () => {
     try {
       await deleteRecord()
     } catch (error) {
-      record.status = 'succeeded'
-      record.finishedAt = new Date().toISOString()
-      await enqueueWrite().catch(warnOnce)
+      await markSucceeded()
       throw error
     }
   }
+  const fail = async error => {
+    record.status = 'failed'
+    record.lastError = filterError(error)
+    record.finishedAt = new Date().toISOString()
+    await enqueueWrite().catch(warnOnce)
+  }
+  const settingsLeftChanged = () => Object.keys(record.changedByRun ?? {})
   const hostEntry = hostId => (record.hosts[hostId] ??= { steps: {} })
+  // finished hosts to handle again, see reopenHost
+  const reopenedHostIds = new Set()
   // `failed` is sticky: the first failure of a step is never downgraded
   const setStep = (hostId, name, patch) => {
     const steps = hostEntry(hostId).steps
@@ -377,11 +547,14 @@ export function createRpuRecoveryRecorder({ store, record }) {
 
   return {
     runId: record.runId,
+    attempt: record.attempt ?? 1,
 
     markRunning() {
       record.status = 'running'
       write()
     },
+    // resolves once the writes requested so far reached the store, or failed
+    flush: () => chain,
     setTaskId(taskId) {
       if (taskId !== undefined) {
         record.taskId = taskId
@@ -392,9 +565,31 @@ export function createRpuRecoveryRecorder({ store, record }) {
       record.variant = variant
       write()
     },
-    setPatchInventory(hasMissingPatchesByHost) {
-      record.hasMissingPatchesByHost = hasMissingPatchesByHost
+    // on resume, the updated hosts have no missing patches anymore: the
+    // inventory of the first attempt stays the reference, the one of the
+    // resume is kept next to it with the hosts added to the plan, see
+    // listRpuPlanChange. Hosts an earlier resume added stay listed: a resume
+    // which finds nothing new does not hide why they are updated
+    setPatchInventory(hasMissingPatchesByHost, addedHostIds = []) {
+      if (record.hasMissingPatchesByHost === undefined) {
+        record.hasMissingPatchesByHost = hasMissingPatchesByHost
+      } else {
+        const previous = record.recomputedPlan
+        record.recomputedPlan = {
+          attempt: addedHostIds.length > 0 || previous === undefined ? (record.attempt ?? 1) : previous.attempt,
+          hasMissingPatchesByHost,
+          addedHostIds: [...new Set([...(previous?.addedHostIds ?? []), ...addedHostIds])],
+        }
+      }
       write()
+    },
+    // a host a previous attempt finished, which patches released since bring
+    // back into the plan, is handled as if the run had not touched it yet.
+    // Its entry is reset only once this attempt starts it: an attempt which
+    // fails before must leave it done, with the VMs still to bring back to it.
+    // Whether the operator had it enabled before the run stays
+    reopenHost(hostId) {
+      reopenedHostIds.add(hostId)
     },
     // one write for the biggest part of the record, right before the first
     // host is handled
@@ -404,11 +599,15 @@ export function createRpuRecoveryRecorder({ store, record }) {
       write()
     },
     // `enabled` before the run touches the host: a host the operator had
-    // already disabled is not a change of the run
+    // already disabled is not a change of the run. A resumed host keeps the
+    // values of the first attempt, the interrupted one may have disabled it
     hostStarting(hostId, agentStartTime, enabled) {
+      if (reopenedHostIds.delete(hostId)) {
+        record.hosts[hostId] = { steps: {}, enabledBeforeUpdate: record.hosts[hostId]?.enabledBeforeUpdate }
+      }
       const entry = hostEntry(hostId)
-      entry.agentStartedAtBeforeUpdate = agentStartTime
-      entry.enabledBeforeUpdate = enabled
+      entry.agentStartedAtBeforeUpdate ??= agentStartTime
+      entry.enabledBeforeUpdate ??= enabled
       write()
     },
     hostSkipped(hostId) {
@@ -450,12 +649,43 @@ export function createRpuRecoveryRecorder({ store, record }) {
      * change, otherwise a crash would leave it changed and nothing would know.
      *
      * @param {'ha' | 'autoPowerOn' | 'wlb' | 'loadBalancer' | 'schedules'} name
-     * @param {boolean | string[]} [value=true] - Ids of the disabled schedules for `schedules`
+     * @param {boolean | object | string[]} [value=true] - What restoring the setting needs: `{ srs, configuration }`
+     *   for `ha` (uuids of the heartbeat SRs), `{ autoload }` for `loadBalancer`, ids of the disabled schedules
+     *   for `schedules`, added to the ones of the previous attempts
      * @returns {Promise<void>}
      */
     async settingChangedByRun(name, value = true) {
-      ;(record.changedByRun ??= {})[name] = value
-      await enqueueWrite()
+      const changedByRun = (record.changedByRun ??= {})
+      const previous = changedByRun[name]
+      changedByRun[name] =
+        Array.isArray(previous) && Array.isArray(value) ? [...new Set([...previous, ...value])] : value
+      try {
+        await enqueueWrite()
+      } catch (error) {
+        // the run does not change a setting it could not record: a later
+        // write must not persist it
+        if (previous === undefined) {
+          delete changedByRun[name]
+        } else {
+          changedByRun[name] = previous
+        }
+        throw error
+      }
+    },
+    // a setting back to its value from before the run is no longer work left
+    // by the run: `id` is the schedule for `schedules`
+    settingRestored(name, id) {
+      const changedByRun = record.changedByRun ?? {}
+      if (changedByRun[name] === undefined) {
+        return
+      }
+      const ids = id === undefined ? [] : (changedByRun[name] ?? []).filter(_ => _ !== id)
+      if (ids.length === 0) {
+        delete changedByRun[name]
+      } else {
+        changedByRun[name] = ids
+      }
+      write()
     },
     // strict: the entry must be on disk before the VM is shut down, otherwise
     // a crash would leave a halted VM nothing knows about
@@ -469,28 +699,56 @@ export function createRpuRecoveryRecorder({ store, record }) {
     },
     // persists the failure before the caller rethrows; never throws so the
     // original error is not masked
-    async fail(error) {
-      record.status = 'failed'
-      record.lastError = filterError(error)
-      record.finishedAt = new Date().toISOString()
-      await enqueueWrite().catch(warnOnce)
-    },
+    fail,
     // A failure before the first host was handled leaves nothing to recover
     // once the orchestrator has restored what it changed (schedules, load
     // balancer, WLB): such a record is dropped, otherwise a refused
     // precondition (a guidance to accept, a pinned VM to shut down...) would
     // block the retry with the option the operator just consented to. Meant
-    // to run after those restorations, so that a record still on disk means
-    // some of them may not have happened; never throws, the record then
-    // simply stays `failed`
+    // to run after those restorations: one that failed keeps the record. Never
+    // throws, the record then simply stays `failed`. Never on resume: the
+    // record keeps what the previous attempts changed
     async dropIfNothingToRecover() {
-      if (Object.keys(record.hosts).length === 0) {
+      if (
+        record.attempt === undefined &&
+        Object.keys(record.hosts).length === 0 &&
+        settingsLeftChanged().length === 0
+      ) {
         await deleteRecord().catch(warnOnce)
       }
     },
+    // the VMs the last migrate back could not bring home, and why: each
+    // migrate back replaces them
+    setVmConflicts(vmConflicts) {
+      record.vmConflicts = vmConflicts
+      write()
+    },
+    getVmConflicts() {
+      return record.vmConflicts ?? []
+    },
     // a successful run leaves no record behind: strict, a record left on disk
-    // would report the run as interrupted at the next restart
-    delete: deleteOrSucceed,
+    // would report the run as interrupted at the next restart. Meant to run
+    // after the restorations of the settings: one that failed keeps the record
+    // `failed` with what is left, a resume restores it again. VMs left away
+    // from their host keep it failed too: a resume migrates them back. VMs
+    // stopped or deleted during the run keep it succeeded: the operator
+    // reviews them, then finalizes
+    async complete() {
+      const vmConflicts = record.vmConflicts ?? []
+      const strandedVms = vmConflicts.filter(_ => _.reason === 'migration-failed')
+      const left = settingsLeftChanged()
+      if (strandedVms.length > 0) {
+        await fail(
+          new Error(`could not migrate VMs back to their host: ${strandedVms.map(_ => _.vmName ?? _.vmId).join(', ')}`)
+        )
+      } else if (left.length > 0) {
+        await fail(new Error(`settings changed by the rolling pool update not restored: ${left.join(', ')}`))
+      } else if (vmConflicts.length > 0) {
+        await markSucceeded()
+      } else {
+        await deleteOrSucceed()
+      }
+    },
   }
 }
 
@@ -525,6 +783,235 @@ export async function startRpuRecoveryRun({ store, poolId, options }) {
   return createRpuRecoveryRecorder({ store, record })
 }
 
+/** @type {PoolRollingUpdateRecoveryRun['status'][]} */
+const RESUMABLE_STATUSES = ['failed', 'interrupted', 'awaiting-acceptance']
+
+const STEPS_AFTER_EVACUATE = ['update', 'reboot', 'enable']
+
+const isStepOver = status => status === 'observed-succeeded' || status === 'not-needed'
+const isStepStarted = status => status !== 'pending' && status !== 'not-needed'
+
+/**
+ * Whether the run started to update a host and did not see it reboot: its
+ * patches are not all effective yet, only a resume finishes it.
+ *
+ * A host which booted after the run saw its update end rebooted out of the
+ * sight of the run, e.g. while xo-server restarted: its patches are effective.
+ * Not when the update did not end, the host may only have part of them.
+ *
+ * @param {object} record - Readable record
+ * @param {string} hostId
+ * @param {string} [bootTime] - Live `other_config.boot_time` of the host, in seconds
+ * @returns {boolean}
+ */
+export function isRpuHostAwaitingReboot(record, hostId, bootTime) {
+  const { steps = {}, updateStarted } = record.hosts?.[hostId] ?? {}
+  if (!(updateStarted === true || isStepStarted(steps.update?.status ?? 'pending'))) {
+    return false
+  }
+  if (isStepOver(steps.reboot?.status ?? 'pending')) {
+    return false
+  }
+  const { status, finishedAt } = steps.update ?? {}
+  // the end of the update of this attempt: agentStartedAtBeforeUpdate is the one of the first attempt
+  return !(status === 'observed-succeeded' && finishedAt !== undefined && +bootTime > Date.parse(finishedAt) / 1e3)
+}
+
+/**
+ * Decides, from the record of a failed or interrupted run, what a resume does
+ * with each host:
+ *
+ * - done: evacuated, and every later step succeeded or was not needed, it is
+ *   neither evacuated nor rebooted again;
+ * - unfinished: a step started and the host is not done, only the live state
+ *   tells what is left (missing patches, reboot since the run touched it), see
+ *   rollingPoolUpdate;
+ * - not started yet, or left alone by the run (every step `not-needed`):
+ *   handled as on a first attempt.
+ *
+ * A host whose update started, possibly in an attempt before the last one
+ * (`updateStarted`, kept by resumeRpuRecoveryRun), counts as patched.
+ *
+ * @param {object} record - Readable record
+ * @returns {{ doneHostIds: Set<string>, unfinishedHosts: object, patchedHostIds: Set<string>, hostsStarted: boolean,
+ *   hostOrder: string[], vmHomeById: object, haltedPinnedVms: object, changedByRun: object,
+ *   patchInventory: object | undefined }} `unfinishedHosts` maps
+ *   the id of each unfinished host to its `agentStartedAtBeforeUpdate`, its `enabledBeforeUpdate` and whether the
+ *   previous attempt was rebooting it (`rebooting`), `patchedHostIds` are the hosts whose update started,
+ *   `hostsStarted` when a host was handled by a previous attempt, `patchInventory` is the patch inventory of the
+ *   first attempt, the other fields come from the record
+ */
+export function planRpuResume(record) {
+  const doneHostIds = new Set()
+  const unfinishedHosts = {}
+  const patchedHostIds = new Set()
+  for (const hostId of record.hostOrder ?? []) {
+    const { steps = {}, agentStartedAtBeforeUpdate, enabledBeforeUpdate, updateStarted } = record.hosts[hostId] ?? {}
+    const status = name => steps[name]?.status ?? 'pending'
+    if (updateStarted || isStepStarted(status('update'))) {
+      patchedHostIds.add(hostId)
+    }
+    if (status('evacuate') === 'observed-succeeded' && STEPS_AFTER_EVACUATE.every(name => isStepOver(status(name)))) {
+      doneHostIds.add(hostId)
+    } else if (['evacuate', ...STEPS_AFTER_EVACUATE].some(name => isStepStarted(status(name)))) {
+      unfinishedHosts[hostId] = {
+        agentStartedAtBeforeUpdate,
+        enabledBeforeUpdate,
+        rebooting: status('reboot') === 'running',
+      }
+    }
+  }
+  return {
+    doneHostIds,
+    unfinishedHosts,
+    patchedHostIds,
+    hostsStarted: Object.keys(record.hosts).length > 0,
+    hostOrder: record.hostOrder ?? [],
+    vmHomeById: record.vmHomeById ?? {},
+    haltedPinnedVms: record.haltedPinnedVms ?? {},
+    changedByRun: record.changedByRun ?? {},
+    patchInventory: record.hasMissingPatchesByHost,
+  }
+}
+
+/**
+ * Plan of a run that continues no previous attempt, see planRpuResume: no
+ * host done, no order nor VM placement to follow, no setting left changed.
+ */
+export const noRpuResume = Object.freeze({
+  doneHostIds: new Set(),
+  unfinishedHosts: {},
+  patchedHostIds: new Set(),
+  hostsStarted: false,
+  hostOrder: [],
+  vmHomeById: {},
+  haltedPinnedVms: {},
+  changedByRun: {},
+  patchInventory: undefined,
+})
+
+/**
+ * Lists the hosts a resume adds to the plan of its run: hosts with missing
+ * patches which the first attempt did not plan to update (current at the time,
+ * or not in the pool yet), or which a previous attempt finished. Patches
+ * released since the run started are the usual reason, a host which joined
+ * the pool since is the other one.
+ *
+ * A host the first attempt planned to update and did not finish is not a
+ * change: it is updated with whatever it is missing now.
+ *
+ * @param {object} params
+ * @param {Record<string, boolean> | undefined} params.patchInventory - Inventory of the first attempt, none when it
+ *   stopped before listing the missing patches
+ * @param {Record<string, boolean>} params.hasMissingPatchesByHost - Inventory of the resume
+ * @param {Set<string>} params.doneHostIds - Hosts a previous attempt finished
+ * @returns {string[]}
+ */
+export function listRpuPlanChange({ patchInventory, hasMissingPatchesByHost, doneHostIds }) {
+  if (patchInventory === undefined) {
+    return []
+  }
+  return Object.keys(hasMissingPatchesByHost).filter(
+    hostId => hasMissingPatchesByHost[hostId] && (patchInventory[hostId] !== true || doneHostIds.has(hostId))
+  )
+}
+
+/**
+ * Continues the failed or interrupted run of a pool: same `runId`, next
+ * attempt.
+ *
+ * The steps that failed or were running in the previous attempt are set back
+ * to `pending`: `failed` is sticky within an attempt, not across attempts.
+ *
+ * What an operator changed since the run (see listOperatorChanges) holds the
+ * record until acknowledged with `acceptOperatorChanges`: the current state is
+ * then the baseline, as for a new run. A setting enabled now is disabled while
+ * the run goes on and enabled again at its end, a setting still disabled stays
+ * so, and the hosts and VMs which no longer exist are forgotten. The
+ * `awaiting-acceptance` status is written best-effort, the resume is refused
+ * either way. Not to be confused with `blocked`, a record which cannot be read
+ * and which no resume accepts.
+ *
+ * Strict write of the `resuming` status: a failure rejects and must abort the
+ * resume before any side effect. The caller holds the RPU guard of the pool.
+ *
+ * @param {object} params
+ * @param {object} params.store - LevelDB sublevel, keyed by pool id
+ * @param {string} params.poolId
+ * @param {object} [params.live] - see listOperatorChanges, no detection when missing
+ * @param {boolean} [params.acceptOperatorChanges]
+ * @param {boolean} [params.automatic] - Whether xo-server started this attempt after a restart, without the operator
+ * @returns {Promise<{ recorder: object, record: object, plan: object, acceptedOperatorChanges: object[] }>} see planRpuResume for `plan`
+ * @throws {Error} `noSuchObject` when the pool has no record
+ * @throws {Error} `incorrectState` (property `status`) when the record is not failed, interrupted nor awaiting acceptance
+ * @throws {Error} `incorrectState` (property `operatorChanges`) when an operator changed a setting, or removed a host, VM or schedule of the run, and it was not acknowledged
+ */
+export async function resumeRpuRecoveryRun({ store, poolId, live, acceptOperatorChanges = false, automatic = false }) {
+  let record
+  try {
+    record = await store.get(poolId)
+  } catch (error) {
+    if (error.notFound) {
+      throw noSuchObject(poolId, 'rollingUpdateRecovery')
+    }
+    log.warn('unreadable RPU recovery record', { error, poolId })
+  }
+  if (record?.schemaVersion !== RPU_RECOVERY_SCHEMA_VERSION) {
+    throw incorrectState({ actual: 'blocked', expected: RESUMABLE_STATUSES, object: poolId, property: 'status' })
+  }
+  if (!RESUMABLE_STATUSES.includes(record.status)) {
+    throw incorrectState({ actual: record.status, expected: RESUMABLE_STATUSES, object: poolId, property: 'status' })
+  }
+
+  const operatorChanges = live === undefined ? [] : listOperatorChanges(record, live)
+  if (operatorChanges.length > 0 && !acceptOperatorChanges) {
+    record.status = 'awaiting-acceptance'
+    record.operatorChanges = operatorChanges
+    record.updatedAt = new Date().toISOString()
+    try {
+      await store.put(poolId, record)
+    } catch (error) {
+      log.warn('could not write the awaiting-acceptance RPU recovery record', { error, poolId })
+    }
+    throw incorrectState({ actual: operatorChanges, expected: [], object: poolId, property: 'operatorChanges' })
+  }
+  // before planRpuResume, which shares changedByRun with the record
+  adoptOperatorChanges(record, operatorChanges)
+  delete record.operatorChanges
+
+  // before the reset below, which forgets the steps the previous attempt left
+  // running or failed
+  const plan = planRpuResume(record)
+
+  for (const [hostId, host] of Object.entries(record.hosts)) {
+    for (const name of RPU_RECOVERY_STEP_NAMES) {
+      const status = host.steps[name]?.status
+      if (status === 'failed' || status === 'running') {
+        host.steps[name] = { status: 'pending' }
+      }
+    }
+    // an update reset to pending is still installed: the next resume must
+    // know it if this attempt fails before reaching the host
+    if (plan.patchedHostIds.has(hostId)) {
+      host.updateStarted = true
+    }
+  }
+  record.status = 'resuming'
+  record.attempt = (record.attempt ?? 1) + 1
+  // bounds the automatic resumes, see reconcileRpuRecoveryAtBoot
+  record.resumedAutomatically = automatic
+  record.updatedAt = new Date().toISOString()
+  delete record.finishedAt
+  await store.put(poolId, record)
+
+  return {
+    recorder: createRpuRecoveryRecorder({ store, record }),
+    record,
+    plan,
+    acceptedOperatorChanges: operatorChanges,
+  }
+}
+
 /**
  * Boot reconciliation: a record left in a live status on disk cannot belong to
  * a running operation anymore since xo-server just started, flip it to
@@ -537,9 +1024,12 @@ export async function startRpuRecoveryRun({ store, poolId, options }) {
  * processed.
  *
  * @param {object} store - LevelDB sublevel, keyed by pool id
- * @returns {Promise<void>}
+ * @returns {Promise<string[]>} the pools whose run this restart interrupted, to resume automatically. A run a
+ *   previous restart interrupted is not: its automatic resume was refused or never came, it waits for the operator.
+ *   Neither is an automatic resume interrupted in turn: at most one automatic attempt follows the operator's one
  */
 export async function reconcileRpuRecoveryAtBoot(store) {
+  const interruptedPoolIds = []
   try {
     // one read per key rather than createReadStream(): a value that fails to
     // decode would error the whole stream, here it only skips that record
@@ -560,6 +1050,9 @@ export async function reconcileRpuRecoveryAtBoot(store) {
             startedAt,
             interruptedAt: record.interruptedAt,
           })
+          if (!record.resumedAutomatically) {
+            interruptedPoolIds.push(poolId)
+          }
         }
       } catch (error) {
         log.warn('could not reconcile an RPU recovery record, it will be reported as blocked', { error, poolId })
@@ -568,4 +1061,5 @@ export async function reconcileRpuRecoveryAtBoot(store) {
   } catch (error) {
     log.warn('could not list the RPU recovery records for reconciliation', { error })
   }
+  return interruptedPoolIds
 }

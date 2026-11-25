@@ -1,5 +1,5 @@
 <template>
-  <VtsSelect :id accent="brand" />
+  <VtsSelect :id accent="neutral" />
 </template>
 
 <script lang="ts" setup>

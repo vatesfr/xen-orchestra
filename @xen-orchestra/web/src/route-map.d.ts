@@ -311,27 +311,6 @@ declare module 'vue-router/auto-routes' {
       { id: ParamValue<false> },
       | never
     >,
-    '/network/new': RouteRecordInfo<
-      '/network/new',
-      '/network/new',
-      Record<never, never>,
-      Record<never, never>,
-      | never
-    >,
-    '/network/new-bonded': RouteRecordInfo<
-      '/network/new-bonded',
-      '/network/new-bonded',
-      Record<never, never>,
-      Record<never, never>,
-      | never
-    >,
-    '/network/new-internal': RouteRecordInfo<
-      '/network/new-internal',
-      '/network/new-internal',
-      Record<never, never>,
-      Record<never, never>,
-      | never
-    >,
     '/pool/[id]': RouteRecordInfo<
       '/pool/[id]',
       '/pool/:id',
@@ -402,13 +381,6 @@ declare module 'vue-router/auto-routes' {
       { id: ParamValue<false> },
       | never
     >,
-    '/pool/connect': RouteRecordInfo<
-      '/pool/connect',
-      '/pool/connect',
-      Record<never, never>,
-      Record<never, never>,
-      | never
-    >,
     '/settings': RouteRecordInfo<
       '/settings',
       '/settings',
@@ -438,13 +410,6 @@ declare module 'vue-router/auto-routes' {
       { id: ParamValue<false> },
       | never
     >,
-    '/traffic-rule/new': RouteRecordInfo<
-      '/traffic-rule/new',
-      '/traffic-rule/new',
-      Record<never, never>,
-      Record<never, never>,
-      | never
-    >,
     '/vdi/[id]': RouteRecordInfo<
       '/vdi/[id]',
       '/vdi/:id',
@@ -457,20 +422,6 @@ declare module 'vue-router/auto-routes' {
       '/vdi/:id/general',
       { id: ParamValue<true> },
       { id: ParamValue<false> },
-      | never
-    >,
-    '/vdi/attach': RouteRecordInfo<
-      '/vdi/attach',
-      '/vdi/attach',
-      Record<never, never>,
-      Record<never, never>,
-      | never
-    >,
-    '/vdi/new': RouteRecordInfo<
-      '/vdi/new',
-      '/vdi/new',
-      Record<never, never>,
-      Record<never, never>,
       | never
     >,
     '/vif/[id]': RouteRecordInfo<
@@ -493,13 +444,6 @@ declare module 'vue-router/auto-routes' {
       '/vif/:id/traffic-rules',
       { id: ParamValue<true> },
       { id: ParamValue<false> },
-      | never
-    >,
-    '/vif/new': RouteRecordInfo<
-      '/vif/new',
-      '/vif/new',
-      Record<never, never>,
-      Record<never, never>,
       | never
     >,
     '/vm/[id]': RouteRecordInfo<
@@ -570,13 +514,6 @@ declare module 'vue-router/auto-routes' {
       '/vm/:id/vdis',
       { id: ParamValue<true> },
       { id: ParamValue<false> },
-      | never
-    >,
-    '/vm/duplicate': RouteRecordInfo<
-      '/vm/duplicate',
-      '/vm/duplicate',
-      Record<never, never>,
-      Record<never, never>,
       | never
     >,
     '/vm/new': RouteRecordInfo<
@@ -849,24 +786,6 @@ declare module 'vue-router/auto-routes' {
       views:
         | never
     }
-    'src/pages/network/new.vue': {
-      routes:
-        | '/network/new'
-      views:
-        | never
-    }
-    'src/pages/network/new-bonded.vue': {
-      routes:
-        | '/network/new-bonded'
-      views:
-        | never
-    }
-    'src/pages/network/new-internal.vue': {
-      routes:
-        | '/network/new-internal'
-      views:
-        | never
-    }
     'src/pages/pool/[id].vue': {
       routes:
         | '/pool/[id]'
@@ -929,12 +848,6 @@ declare module 'vue-router/auto-routes' {
       views:
         | never
     }
-    'src/pages/pool/connect.vue': {
-      routes:
-        | '/pool/connect'
-      views:
-        | never
-    }
     'src/pages/settings.vue': {
       routes:
         | '/settings'
@@ -961,12 +874,6 @@ declare module 'vue-router/auto-routes' {
       views:
         | never
     }
-    'src/pages/traffic-rule/new.vue': {
-      routes:
-        | '/traffic-rule/new'
-      views:
-        | never
-    }
     'src/pages/vdi/[id].vue': {
       routes:
         | '/vdi/[id]'
@@ -977,18 +884,6 @@ declare module 'vue-router/auto-routes' {
     'src/pages/vdi/[id]/general.vue': {
       routes:
         | '/vdi/[id]/general'
-      views:
-        | never
-    }
-    'src/pages/vdi/attach.vue': {
-      routes:
-        | '/vdi/attach'
-      views:
-        | never
-    }
-    'src/pages/vdi/new.vue': {
-      routes:
-        | '/vdi/new'
       views:
         | never
     }
@@ -1009,12 +904,6 @@ declare module 'vue-router/auto-routes' {
     'src/pages/vif/[id]/traffic-rules.vue': {
       routes:
         | '/vif/[id]/traffic-rules'
-      views:
-        | never
-    }
-    'src/pages/vif/new.vue': {
-      routes:
-        | '/vif/new'
       views:
         | never
     }
@@ -1077,12 +966,6 @@ declare module 'vue-router/auto-routes' {
     'src/pages/vm/[id]/vdis.vue': {
       routes:
         | '/vm/[id]/vdis'
-      views:
-        | never
-    }
-    'src/pages/vm/duplicate.vue': {
-      routes:
-        | '/vm/duplicate'
       views:
         | never
     }

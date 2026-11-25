@@ -10,7 +10,8 @@ type DashboardQuickInfoCase<TObject> = {
   loadingCollection: keyof typeof HOLD_LOADING
   rows: string[]
   createWithAddress: (uuid: string, ipAddress: string) => TObject
-  createWithTags: (tags: string[]) => TObject
+  // Omit it when the card renders its tags in its own way (e.g. an editable tags list) and test them separately
+  createWithTags?: (tags: string[]) => TObject
 }
 
 /**
@@ -43,9 +44,11 @@ export function itShowsDashboardQuickInfo<TObject>(
     expect(findCopiedValues(wrapper)).toEqual({ [t('ip-address')]: '10.0.0.1', [t('uuid')]: uuid })
   })
 
-  it(`renders one tag per ${objectName} tag`, () => {
-    const wrapper = mountQuickInfo(createWithTags(['production', 'billing']))
+  if (createWithTags !== undefined) {
+    it(`renders one tag per ${objectName} tag`, () => {
+      const wrapper = mountQuickInfo(createWithTags(['production', 'billing']))
 
-    expect(findTags(wrapper)).toEqual(['production', 'billing'])
-  })
+      expect(findTags(wrapper)).toEqual(['production', 'billing'])
+    })
+  }
 }

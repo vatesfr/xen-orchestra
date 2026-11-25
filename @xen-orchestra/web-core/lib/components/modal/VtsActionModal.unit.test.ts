@@ -1,6 +1,7 @@
 import VtsActionModal from '@core/components/modal/VtsActionModal.vue'
 import { createGlobalTestConfig } from '@core-test/create-global-test-config.ts'
 import { t } from '@core-test/i18n.ts'
+import { submitConfirmationText } from '@core-test/submit-confirmation-text.ts'
 import { mount } from '@vue/test-utils'
 
 function mountActionModal(confirmationText?: string) {
@@ -31,19 +32,15 @@ describe('VtsActionModal', () => {
   it('does not confirm with a wrong text and shows the error', async () => {
     const wrapper = mountActionModal('2 VMs')
 
-    await wrapper.get('input').setValue('2 VM')
-    await wrapper.get('form').trigger('submit')
-
-    expect(wrapper.emitted('confirm')).toBeUndefined()
-    expect(wrapper.get('.ui-info').text()).toBe(t('form:error:must-match', { text: '2 VMs' }))
+    expect(await submitConfirmationText(wrapper, '2 VM')).toEqual({
+      isConfirmed: false,
+      errors: [t('form:error:must-match', { text: '2 VMs' })],
+    })
   })
 
   it('confirms with the confirmation text', async () => {
     const wrapper = mountActionModal('2 VMs')
 
-    await wrapper.get('input').setValue('2 VMs')
-    await wrapper.get('form').trigger('submit')
-
-    expect(wrapper.emitted('confirm')).toHaveLength(1)
+    expect(await submitConfirmationText(wrapper, '2 VMs')).toEqual({ isConfirmed: true, errors: [] })
   })
 })

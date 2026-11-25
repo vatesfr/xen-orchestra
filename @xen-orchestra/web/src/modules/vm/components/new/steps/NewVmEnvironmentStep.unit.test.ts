@@ -1,5 +1,4 @@
 import NewVmEnvironmentStep from '@/modules/vm/components/new/steps/NewVmEnvironmentStep.vue'
-import { findAccentedInfos } from '@/test/find-accented-labels.ts'
 import { findInputLabels } from '@/test/find-input-labels.ts'
 import { t } from '@/test/i18n.ts'
 import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
@@ -12,7 +11,8 @@ import {
   resetNewVmCollections,
   seedNewVmCollections,
 } from '@/test/new-vm-fixtures.ts'
-import { findShownSelections } from '@/test/select.ts'
+import { findAccentedInfos } from '@core-test/find-accented-labels.ts'
+import { findShownSelections } from '@core-test/select.ts'
 import { flushPromises } from '@vue/test-utils'
 import { defineComponent, h, nextTick, ref } from 'vue'
 

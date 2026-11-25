@@ -127,7 +127,7 @@
           <VtsColumn :class="{ 'mobile-language': uiStore.isSmall }">
             <div class="language">
               <VtsInputWrapper :label="t('language')">
-                <VtsSelect :id="localeSelectId" accent="brand" />
+                <VtsSelect :id="localeSelectId" accent="neutral" />
                 <UiInfo accent="info" wrap>{{ t('untranslated-text-helper') }}</UiInfo>
               </VtsInputWrapper>
             </div>

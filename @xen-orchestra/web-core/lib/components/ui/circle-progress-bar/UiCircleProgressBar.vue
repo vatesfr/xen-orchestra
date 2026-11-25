@@ -90,7 +90,8 @@ const dashOffset = computed(() => {
   return circumference.value * (1 - valuePercent.value / 100)
 })
 
-const percentValue = computed(() => n(valuePercent.value / 100, 'percent'))
+// Floor (not round) so an unfinished value never displays as "100 %"
+const percentValue = computed(() => n(Math.floor(valuePercent.value) / 100, 'percent'))
 
 const icon = computed<IconName>(() => (accent === 'warning' || accent === 'danger' ? 'fa:exclamation' : 'fa:check'))
 
@@ -116,7 +117,7 @@ const className = computed(() => [
     color: var(--color-brand-item-base);
 
     .fill {
-      stroke: var(--color-brand-item-base);
+      stroke: var(--color-brand-data);
     }
 
     .background {
@@ -128,7 +129,7 @@ const className = computed(() => [
     color: var(--color-info-item-base);
 
     .fill {
-      stroke: var(--color-info-item-base);
+      stroke: var(--color-info-data);
     }
 
     .background {
@@ -136,7 +137,7 @@ const className = computed(() => [
     }
 
     .success {
-      stroke: var(--color-success-item-base);
+      stroke: var(--color-success-data);
     }
 
     .icon {
@@ -148,7 +149,7 @@ const className = computed(() => [
     color: var(--color-warning-item-base);
 
     .fill {
-      stroke: var(--color-warning-item-base);
+      stroke: var(--color-warning-data);
     }
 
     .background {
@@ -160,7 +161,7 @@ const className = computed(() => [
     color: var(--color-danger-item-base);
 
     .fill {
-      stroke: var(--color-danger-item-base);
+      stroke: var(--color-danger-data);
     }
 
     .background {

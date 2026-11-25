@@ -1,10 +1,10 @@
 <template>
   <div class="new-vm-environment-step" :class="{ mobile: uiStore.isSmall }">
     <VtsInputWrapper :id="fieldIds.pool" :label="t('pool')" :message="errorMessages.pool">
-      <VtsSelect :id="poolSelectId" :accent="errors.pool === undefined ? 'brand' : 'danger'" />
+      <VtsSelect :id="poolSelectId" :accent="errors.pool === undefined ? 'neutral' : 'danger'" />
     </VtsInputWrapper>
     <VtsInputWrapper :id="fieldIds.template" :label="t('template')" :message="errorMessages.template">
-      <VtsSelect :id="templateSelectId" :accent="errors.template === undefined ? 'brand' : 'danger'" />
+      <VtsSelect :id="templateSelectId" :accent="errors.template === undefined ? 'neutral' : 'danger'" />
     </VtsInputWrapper>
   </div>
 </template>

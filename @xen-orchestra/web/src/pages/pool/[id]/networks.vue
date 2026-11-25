@@ -9,26 +9,8 @@
                 {{ t('new') }}
               </UiDropdownButton>
             </template>
-            <MenuItem accent="neutral">
-              <UiLink
-                :to="{ name: '/network/new', query: { poolid: pool.id } }"
-                class="new-network-link"
-                icon="fa:plus"
-                size="small"
-              >
-                {{ t('action:create-network') }}
-              </UiLink>
-            </MenuItem>
-            <MenuItem accent="neutral">
-              <UiLink
-                :to="{ name: '/network/new-bonded', query: { poolid: pool.id } }"
-                class="new-network-link"
-                icon="fa:plus"
-                size="small"
-              >
-                {{ t('action:create-bonded-network') }}
-              </UiLink>
-            </MenuItem>
+            <PoolNewNetworkButton :pool />
+            <PoolNewBondedNetworkButton :pool />
           </VtsResponsiveMenu>
         </template>
       </NetworksTable>
@@ -44,9 +26,7 @@
         type="internal"
       >
         <template #title-actions>
-          <UiLink :to="{ name: '/network/new-internal', query: { poolid: pool.id } }" icon="fa:plus" size="medium">
-            {{ t('new') }}
-          </UiLink>
+          <PoolNewInternalNetworkButton :pool />
         </template>
       </NetworksTable>
     </UiCard>
@@ -63,14 +43,15 @@ import {
   type FrontXoNetwork,
   useXoNetworkCollection,
 } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
+import PoolNewBondedNetworkButton from '@/modules/pool/components/actions/new-bonded-network/PoolNewBondedNetworkButton.vue'
+import PoolNewInternalNetworkButton from '@/modules/pool/components/actions/new-internal-network/PoolNewInternalNetworkButton.vue'
+import PoolNewNetworkButton from '@/modules/pool/components/actions/new-network/PoolNewNetworkButton.vue'
 import PoolNewPrivateNetworkButton from '@/modules/pool/components/actions/new-private-network/PoolNewPrivateNetworkButton.vue'
 import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import VtsContentSidePanel from '@core/components/layout/VtsContentSidePanel.vue'
-import MenuItem from '@core/components/menu/MenuItem.vue'
 import VtsResponsiveMenu from '@core/components/menu/VtsResponsiveMenu.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiDropdownButton from '@core/components/ui/dropdown-button/UiDropdownButton.vue'
-import UiLink from '@core/components/ui/link/UiLink.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -109,14 +90,5 @@ const selectedNetwork = useRouteQuery<FrontXoNetwork | undefined>('id', {
     margin: 0.8rem;
     gap: 4rem;
   }
-}
-
-/* This selector can't be nested,
-* as the links in MenuItem are teleported and are not children of .networks element.
-* This selector extends the clickable area of the links for better accessibility
-*/
-.new-network-link {
-  flex-grow: 1;
-  padding-block: 1.2rem;
 }
 </style>

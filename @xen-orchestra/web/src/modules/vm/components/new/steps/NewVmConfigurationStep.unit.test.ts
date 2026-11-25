@@ -6,7 +6,6 @@ import type { Vif } from '@/modules/vm/types/new-xo-vm.type.ts'
 import { createNetwork } from '@/test/create-network.ts'
 import { createPbd } from '@/test/create-pbd.ts'
 import { createPif } from '@/test/create-pif.ts'
-import { findAccentedInfos } from '@/test/find-accented-labels.ts'
 import { findLabelledValues } from '@/test/find-rendered-values.ts'
 import { findTableColumn } from '@/test/find-table-cells.ts'
 import { findTitles } from '@/test/find-titles.ts'
@@ -25,12 +24,13 @@ import {
   resetNewVmCollections,
   seedNewVmCollections,
 } from '@/test/new-vm-fixtures.ts'
-import { findSelectOptionLabels, findShownSelections, openSelect } from '@/test/select.ts'
 import VtsDetailedOption from '@core/components/select/VtsDetailedOption.vue'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import UiInput from '@core/components/ui/input/UiInput.vue'
 import { objectIcon } from '@core/icons'
 import { CONNECTION_STATUS } from '@core/types/connection.ts'
+import { findAccentedInfos } from '@core-test/find-accented-labels.ts'
+import { findSelectOptionLabels, findShownSelections, openSelect } from '@core-test/select.ts'
 import { nextTick } from 'vue'
 
 mockNewVmCollections()

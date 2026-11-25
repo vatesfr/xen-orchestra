@@ -1,11 +1,13 @@
 <template>
   <PoolNewVmButton :pool-id="pool.id" />
+  <PoolAddHostButton :pool-id="pool.id" />
   <PoolDisconnectButton :pool-id="pool.id" />
   <VtsDivider type="stretch" />
   <PoolDownloadButton :pool-id="pool.id" />
 </template>
 
 <script setup lang="ts">
+import PoolAddHostButton from '@/modules/pool/components/actions/add-host/PoolAddHostButton.vue'
 import PoolDisconnectButton from '@/modules/pool/components/actions/disconnect/PoolDisconnectButton.vue'
 import PoolDownloadButton from '@/modules/pool/components/actions/download/PoolDownloadButton.vue'
 import PoolNewVmButton from '@/modules/pool/components/actions/new-vm/PoolNewVmButton.vue'

@@ -2,8 +2,8 @@
   <UiModal accent="info" @dismiss="emit('cancel')" @confirm="handleSubmit()">
     <template #content>
       <div class="form-selects">
-        <VtsSelect :id="sortPropertySelectId" accent="brand" />
-        <VtsSelect :id="isAscendingSelectId" accent="brand" />
+        <VtsSelect :id="sortPropertySelectId" accent="neutral" />
+        <VtsSelect :id="isAscendingSelectId" accent="neutral" />
       </div>
     </template>
 

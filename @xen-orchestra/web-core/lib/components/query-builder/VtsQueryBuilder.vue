@@ -7,7 +7,7 @@
       <UiInput
         :id
         v-model="filter"
-        :accent="isUsable ? 'brand' : 'danger'"
+        :accent="isUsable ? 'neutral' : 'danger'"
         :busy
         :aria-label="uiStore.isSmall ? t('query-builder:label') : undefined"
         :placeholder="t('query-builder:placeholder')"

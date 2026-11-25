@@ -2,14 +2,14 @@
   <NewVmSection :title="t('resource-management')" class="new-vm-resource-management-section">
     <div class="fields" :class="{ mobile: uiStore.isSmall }">
       <VtsInputWrapper :label="t('vcpus')">
-        <UiInput v-model.number="vmState.vCPU" type="number" accent="brand" />
+        <UiInput v-model.number="vmState.vCPU" type="number" accent="neutral" />
       </VtsInputWrapper>
       <!-- TODO remove (GB) when we can use new selector -->
       <VtsInputWrapper :label="`${t('ram')} (GB)`">
-        <UiInput v-model.number="ramInGiB" type="number" accent="brand" />
+        <UiInput v-model.number="ramInGiB" type="number" accent="neutral" />
       </VtsInputWrapper>
       <VtsInputWrapper :label="t('topology')">
-        <UiInput v-model.trim="vmState.topology" accent="brand" disabled />
+        <UiInput v-model.trim="vmState.topology" accent="neutral" disabled />
       </VtsInputWrapper>
     </div>
   </NewVmSection>

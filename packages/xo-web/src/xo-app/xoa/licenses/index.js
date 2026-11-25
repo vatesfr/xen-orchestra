@@ -15,9 +15,17 @@ import { Container, Row, Col } from 'grid'
 import { createSelector } from 'selectors'
 import { forEach, groupBy } from 'lodash'
 import { get } from '@xen-orchestra/defined'
-import { getLicenses, selfBindLicense, subscribePlugins, subscribeProxies, subscribeSelfLicenses } from 'xo'
+import {
+  getIsAirgap,
+  getLicenses,
+  selfBindLicense,
+  subscribePlugins,
+  subscribeProxies,
+  subscribeSelfLicenses,
+} from 'xo'
 
 import Proxies from './proxies'
+import Airgap from './airgap'
 import Xostor from './xostor'
 
 // -----------------------------------------------------------------------------
@@ -169,8 +177,20 @@ export default class Licenses extends Component {
   constructor() {
     super()
 
-    this.componentDidMount = this._updateLicenses
+    this.componentDidMount = () => {
+      this._updateIsAirgap()
+      return this._updateLicenses()
+    }
   }
+
+  _updateIsAirgap = () =>
+    getIsAirgap().then(
+      isAirgap => this.setState({ isAirgap }),
+      () => this.setState({ isAirgap: false })
+    )
+
+  // the first import makes the appliance airgap
+  _updateAfterAirgapDataPackUpload = () => Promise.all([this._updateIsAirgap(), this._updateLicenses()])
 
   _updateLicenses = () => {
     this.setState({ licenseError: undefined })
@@ -292,11 +312,26 @@ export default class Licenses extends Component {
   )
 
   render() {
+    const { isAirgap } = this.state
+    // always displayed, whatever the registration and airgap
+    // states so that a data pack can always be imported.
+    const airgapDataPack = (
+      <Row className='mt-3'>
+        <Col>
+          <Airgap canExport={isAirgap} updateLicenses={this._updateAfterAirgapDataPackUpload} />
+        </Col>
+      </Row>
+    )
+
+    // an airgap XOA is delivered unregistered: it is registered by the first data pack import
     if (get(() => this.props.xoaRegistration.state) !== 'registered') {
       return (
-        <span>
-          <em>{_('licensesUnregisteredDisclaimer')}</em> <Link to='xoa/update'>{_('registerNow')}</Link>
-        </span>
+        <Container>
+          <span>
+            <em>{_('licensesUnregisteredDisclaimer')}</em> <Link to='xoa/update'>{_('registerNow')}</Link>
+          </span>
+          {airgapDataPack}
+        </Container>
       )
     }
 
@@ -305,8 +340,15 @@ export default class Licenses extends Component {
       return <em>{missingXoaPlugin}</em>
     }
 
+    // in airgap, licenses can't be fetched until a data pack is installed on the local
+    // license server so the upload must be displayed to get out of this state
     if (this.state.licenseError !== undefined) {
-      return <span className='text-danger'>{_('getLicensesError')}</span>
+      return (
+        <Container>
+          <span className='text-danger'>{_('getLicensesError')}</span>
+          {airgapDataPack}
+        </Container>
+      )
     }
 
     if (this.state.licenses === undefined) {
@@ -363,6 +405,7 @@ export default class Licenses extends Component {
             </Link>
           </Col>
         </Row>
+        {airgapDataPack}
       </Container>
     )
   }

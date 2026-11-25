@@ -103,7 +103,7 @@
       <VtsKeyValueList>
         <VtsKeyValueRow>
           <template #label>
-            <VtsSelect :id="localeSelectId" accent="brand" />
+            <VtsSelect :id="localeSelectId" accent="neutral" />
           </template>
           <template #value>
             <UiLink size="medium" href="https://translate.vates.tech/engage/xen-orchestra/">

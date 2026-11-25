@@ -7,7 +7,7 @@
       right-icon="fa:magnifying-glass"
       :placeholder="label"
       :aria-keyshortcuts="TREE_SEARCH_ARIA_KEY_SHORTCUTS"
-      accent="brand"
+      accent="neutral"
       clearable
     />
   </div>

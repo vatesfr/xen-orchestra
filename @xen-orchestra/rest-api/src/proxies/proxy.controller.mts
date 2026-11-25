@@ -1,21 +1,52 @@
-import { Example, Extension, Get, Middlewares, Path, Query, Request, Response, Route, Security, Tags } from 'tsoa'
+import {
+  Example,
+  Extension,
+  Get,
+  Middlewares,
+  Path,
+  Query,
+  Request,
+  Response,
+  Route,
+  Security,
+  SuccessResponse,
+  Tags,
+} from 'tsoa'
 import { inject } from 'inversify'
 import { provide } from 'inversify-binding-decorators'
 import type { Request as ExRequest } from 'express'
 import type { XoProxy } from '@vates/types'
 
 import { acl } from '../middlewares/acl.middleware.mjs'
+import { ApiError } from '../helpers/error.helper.mjs'
 import {
   badRequestResp,
   forbiddenOperationResp,
+  internalServerErrorResp,
   notFoundResp,
+  proxyUnreachableResp,
   unauthorizedResp,
   type Unbrand,
 } from '../open-api/common/response.common.mjs'
-import { partialProxies, proxy, proxyIds } from '../open-api/oa-examples/proxy.oa-example.mjs'
+import { partialProxies, proxy, proxyHealth, proxyIds } from '../open-api/oa-examples/proxy.oa-example.mjs'
 import type { SendObjects } from '../helpers/helper.type.mjs'
 import { XoController } from '../abstract-classes/xo-controller.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
+
+function isProxyUnreachable(error: unknown): boolean {
+  return error instanceof Error && 'code' in error && error.code === 'PROXY_UNREACHABLE'
+}
+
+async function callProxy<T>(call: Promise<T>): Promise<T> {
+  try {
+    return await call
+  } catch (error) {
+    if (isProxyUnreachable(error)) {
+      throw new ApiError(proxyUnreachableResp.description, proxyUnreachableResp.status)
+    }
+    throw error
+  }
+}
 
 @Route('proxies')
 @Security('*')
@@ -84,5 +115,35 @@ export class ProxyController extends XoController<XoProxy> {
   @Response(notFoundResp.status, notFoundResp.description)
   getProxy(@Path() id: string): Promise<Unbrand<XoProxy>> {
     return this.getObject(id as XoProxy['id'])
+  }
+
+  /**
+   * Checks that the proxy can be reached
+   *
+   * Required privilege:
+   * - resource: proxy, action: read
+   *
+   * @example id "e625ea0c-a876-405a-b838-109d762efe88"
+   */
+  @Example(proxyHealth)
+  @Extension('x-mcp-exposure', 'allow')
+  @Get('{id}/health')
+  @Middlewares(
+    acl({
+      resource: 'proxy',
+      action: 'read',
+      objectId: 'params.id',
+      getObject: ({ restApi }) => restApi.xoApp.getProxy,
+    })
+  )
+  @SuccessResponse(200, 'OK')
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(internalServerErrorResp.status, internalServerErrorResp.description)
+  @Response(proxyUnreachableResp.status, proxyUnreachableResp.description)
+  async getProxyHealth(@Path() id: string): Promise<{ success: true }> {
+    await callProxy(this.restApi.xoApp.checkProxyHealth(id as XoProxy['id']))
+
+    return { success: true }
   }
 }

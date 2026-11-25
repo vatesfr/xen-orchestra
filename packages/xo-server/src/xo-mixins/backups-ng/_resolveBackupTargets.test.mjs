@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import { describe, it } from 'node:test'
 import { buildRunContext } from '@xen-orchestra/backups/_buildContext.mjs'
 
-import { resolveBackupRepositories, resolveBackupSrs } from './_resolveBackupTargets.mjs'
+import { resolveBackupRepositories, resolveBackupSrs, resolveBackupPools } from './_resolveBackupTargets.mjs'
 
 // a Monday, at 22:00 UTC
 const RUN_CONTEXT = buildRunContext(new Date('2026-11-02T22:00:00Z'), 'UTC')
@@ -23,6 +23,13 @@ const backupRepository = ({ id, name = id, url = 'nfs://nas:/backups', enabled =
   url,
   enabled,
   proxy,
+})
+
+const pool = ({ uuid, name_label = uuid, tags = [] }) => ({
+  uuid,
+  name_label,
+  name_description: '',
+  tags,
 })
 
 describe('resolveBackupSrs()', () => {
@@ -146,5 +153,26 @@ describe('resolveBackupRepositories()', () => {
         invalidUrlIds: [],
       }
     )
+  })
+})
+
+describe('resolveBackupPools()', () => {
+  it('returns the pools matching the expression', () => {
+    const pools = [pool({ uuid: 'pool1' }), pool({ uuid: 'pool2' })]
+
+    assert.deepEqual(resolveBackupPools({ pools: 'pool:name_label:pool1' }, pools, RUN_CONTEXT), ['pool1'])
+  })
+
+  it('evaluates the run context', () => {
+    const pools = [pool({ uuid: 'pool1' })]
+
+    assert.deepEqual(resolveBackupPools({ pools: 'run:hour:22' }, pools, RUN_CONTEXT), ['pool1'])
+    assert.deepEqual(resolveBackupPools({ pools: 'run:hour:23' }, pools, RUN_CONTEXT), [])
+  })
+
+  it('returns an empty array when nothing matches', () => {
+    const pools = [pool({ uuid: 'pool1' })]
+
+    assert.deepEqual(resolveBackupPools({ pools: 'pool:name_label:missing' }, pools, RUN_CONTEXT), [])
   })
 })

@@ -54,19 +54,19 @@ useResizeObserver(ellipsisElement, ([entry]) => {
   /* ACCENT VARIANTS */
 
   &.accent--info {
-    background-color: var(--color-info-item-base);
+    background-color: var(--color-info-data);
   }
 
   &.accent--success {
-    background-color: var(--color-success-item-base);
+    background-color: var(--color-success-data);
   }
 
   &.accent--warning {
-    background-color: var(--color-warning-item-base);
+    background-color: var(--color-warning-data);
   }
 
   &.accent--danger {
-    background-color: var(--color-danger-item-base);
+    background-color: var(--color-danger-data);
   }
 }
 </style>
