@@ -72,7 +72,7 @@ const totalSpace = computed(() => ({
 }))
 
 const freeSpace = computed(() => {
-  const rawFreeSpace = Math.max(total - used, 0)
+  const rawFreeSpace = total - used
 
   return {
     formattedValue: formatSize(rawFreeSpace, 2),

@@ -5,7 +5,6 @@
     </UiTitle>
     <VtsTabularKeyValueList v-if="displayedVdi">
       <VtsTabularKeyValueRow :label="t('used-space-on-sr')" :value="formatSizeSpace(usedSpace)" />
-      <VtsTabularKeyValueRow :label="t('free-space-on-sr')" :value="formatSizeSpace(freeSpace)" />
       <VtsTabularKeyValueRow :label="t('allocated-space')" :value="formatSizeSpace(displayedVdi.size)" />
     </VtsTabularKeyValueList>
   </UiCard>
@@ -29,8 +28,6 @@ const { t } = useI18n()
 const displayedVdi = computed(() => vdi ?? vdiSnapshot)
 
 const usedSpace = computed(() => vdi?.chainPhysicalUsage ?? vdiSnapshot?.usage ?? 0)
-
-const freeSpace = computed(() => Math.max((displayedVdi.value?.size ?? 0) - usedSpace.value, 0))
 
 const formatSizeSpace = (bytes: number) => formatSize(bytes, 2)
 </script>
