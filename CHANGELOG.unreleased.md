@@ -33,8 +33,11 @@
 
 <!--packages-start-->
 
+- @vates/nbd-client patch
+- @xen-orchestra/backups patch
 - @xen-orchestra/xapi-pg major
 - xen-api minor
+- xo-collection patch
 - xo-web minor
 
 <!--packages-end-->
