@@ -3,51 +3,20 @@ import { usePoolNewHost } from '@/modules/pool/composables/use-pool-new-host.com
 import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import { createJobStub, toJobComposableResult } from '@/test/create-job-result.ts'
 import { findTooltipContent } from '@/test/find-tooltip-content.ts'
-import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
-import MenuItem from '@core/components/menu/MenuItem.vue'
-import { mount } from '@vue/test-utils'
-import { toValue } from 'vue'
+import { itRunsJobFromButton } from '@/test/job-button.ts'
+import MenuTrigger from '@core/components/menu/MenuTrigger.vue'
 
 const newHost = createJobStub(usePoolNewHost, result => toJobComposableResult(result, 'addNewHost', 'isAddingNewHost'))
 
-beforeEach(() => {
-  newHost.reset()
-})
-
-const POOL_ID = 'pool-1' as FrontXoPool['id']
-
-function mountButton() {
-  return mount(PoolAddNewHostButton, {
-    props: { poolId: POOL_ID },
-    global: createGlobalTestConfig(),
-  })
-}
-
-it('adds a new host to the pool', async () => {
-  const wrapper = mountButton()
-
-  await wrapper.get('.menu-trigger').trigger('click')
-
-  expect(wrapper.text()).toBe(t('new-host'))
-  expect(toValue(newHost.use.mock.lastCall?.[0])).toBe(POOL_ID)
-  expect(newHost.run).toHaveBeenCalledOnce()
-})
-
-it('is busy while a host is being added to the pool', () => {
-  newHost.setState({ isRunning: true })
-
-  expect(mountButton().getComponent(MenuItem).props('busy')).toBe(true)
-})
-
-it('is disabled with the reason when no host can be added to the pool', async () => {
-  newHost.setState({ canRun: false, errorMessage: t('job:arg:pool-id-required') })
-
-  const wrapper = mountButton()
-
-  await wrapper.get('.menu-trigger').trigger('click')
-
-  expect(wrapper.getComponent(MenuItem).props('disabled')).toBe(true)
-  expect(await findTooltipContent(wrapper.getComponent(MenuItem).element)).toBe(t('job:arg:pool-id-required'))
-  expect(newHost.run).not.toHaveBeenCalled()
+itRunsJobFromButton(PoolAddNewHostButton, {
+  targetProp: 'poolId',
+  createTarget: () => 'pool-1' as FrontXoPool['id'],
+  getButton: wrapper => wrapper.getComponent(MenuTrigger),
+  job: newHost,
+  offer: { label: t('new-host'), icon: 'action:add' },
+  // The composable receives the pool id as a getter
+  toJobTarget: poolId => poolId,
+  errorMessage: t('job:arg:pool-id-required'),
+  readHint: wrapper => findTooltipContent(wrapper.element),
 })

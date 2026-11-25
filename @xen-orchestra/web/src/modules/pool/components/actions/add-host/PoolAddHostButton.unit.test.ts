@@ -10,6 +10,7 @@ import { t } from '@/test/i18n.ts'
 import MenuItem from '@core/components/menu/MenuItem.vue'
 import UiDropdownButton from '@core/components/ui/dropdown-button/UiDropdownButton.vue'
 import { IK_IN_MENU } from '@core/utils/injection-keys.util.ts'
+import { clickMenuItem } from '@core-test/menu.ts'
 import { mount } from '@vue/test-utils'
 import { nextTick } from 'vue'
 
@@ -72,8 +73,7 @@ describe('in a menu', () => {
   it('offers a new host or an existing host of the pool in its submenu', async () => {
     const wrapper = mountButton({ isInMenu: true })
 
-    await wrapper.get('.menu-trigger').trigger('click')
-    await nextTick()
+    await clickMenuItem(wrapper)
 
     expectHostChoices(wrapper)
   })

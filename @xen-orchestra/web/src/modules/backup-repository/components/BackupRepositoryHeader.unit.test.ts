@@ -20,8 +20,8 @@ import { t } from '@/test/i18n.ts'
 import { benchmarkJobMock } from '@/test/mock-backup-repository-benchmark-job.ts'
 import { mockModule } from '@/test/spy-on-module.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
-import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import { objectIcon } from '@core/icons'
+import { openMoreActions } from '@core-test/menu.ts'
 import { mount } from '@vue/test-utils'
 
 // The action jobs subscribe to server events, unavailable in tests
@@ -87,11 +87,7 @@ it('offers to edit, to test the speed and to forget the repository in the more a
   const wrapper = mountHeader()
   const moreActions = [BackupRepositoryEditButton, BackupRepositoryTestSpeedButton, BackupRepositoryForgetButton]
 
-  const moreActionsButton = wrapper
-    .findAllComponents(UiButtonIcon)
-    .find(button => button.props('icon') === 'action:more-actions')
-
-  await moreActionsButton?.trigger('click')
+  await openMoreActions(wrapper)
 
   expect(findShownComponents(wrapper, moreActions)).toEqual(moreActions)
 })

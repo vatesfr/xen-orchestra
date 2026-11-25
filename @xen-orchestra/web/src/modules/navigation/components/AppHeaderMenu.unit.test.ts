@@ -5,6 +5,7 @@ import { mockXoRoutes } from '@/test/mock-xo-routes.ts'
 import { vmCollectionMock, mockXoVmCollection } from '@/test/mock-xo-vm-collection.ts'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { findLinks } from '@core-test/find-links.ts'
+import { clickMenuItem, openMoreActions } from '@core-test/menu.ts'
 import { mount, type VueWrapper } from '@vue/test-utils'
 import { nextTick } from 'vue'
 
@@ -19,8 +20,7 @@ beforeEach(() => {
 async function mountOpenedMenu() {
   const wrapper = mount(AppHeaderMenu, { global: createGlobalTestConfig() })
 
-  await wrapper.get('button.ui-button-icon').trigger('click')
-  await nextTick()
+  await openMoreActions(wrapper)
 
   return wrapper
 }
@@ -52,12 +52,7 @@ async function pressEscape() {
 }
 
 async function openThirdParties(wrapper: VueWrapper) {
-  const thirdPartiesItem = findPanel(wrapper)
-    .findAll('.menu-trigger')
-    .find(trigger => trigger.text() === t('third-parties'))
-
-  await thirdPartiesItem?.trigger('click')
-  await nextTick()
+  await clickMenuItem(findPanel(wrapper), t('third-parties'))
 }
 
 it('stays closed until the more actions button is clicked', () => {

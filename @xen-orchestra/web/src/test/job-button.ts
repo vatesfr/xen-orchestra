@@ -28,6 +28,8 @@ type JobButtonCase<TTarget> = {
   toJobTarget?: ((target: TTarget) => unknown) | null
   // Given, the disabled button also shows it as its hint
   errorMessage?: string
+  // Reads that hint from the mounted button: the `hint` prop of the button by default
+  readHint?: (wrapper: VueWrapper) => unknown
   // `false` for a button opening a drawer whose job only gets its payload once the drawer is confirmed: the button then
   // stays enabled when the job cannot run
   disabledWhenCannotRun?: boolean
@@ -50,6 +52,7 @@ export function itRunsJobFromButton<TTarget>(
     offer,
     toJobTarget = target => [target],
     errorMessage,
+    readHint = wrapper => getButton(wrapper).props('hint'),
     disabledWhenCannotRun = true,
     expectBusy = button => expect(button.props('busy')).toBe(true),
   }: JobButtonCase<TTarget>
@@ -93,15 +96,15 @@ export function itRunsJobFromButton<TTarget>(
   })
 
   if (disabledWhenCannotRun) {
-    it('disables the button when the job cannot run', () => {
+    it('disables the button when the job cannot run', async () => {
       job.setState({ canRun: false, errorMessage })
 
-      const button = getButton(mountButton())
+      const wrapper = mountButton()
 
-      expect(button.props('disabled')).toBe(true)
+      expect(getButton(wrapper).props('disabled')).toBe(true)
 
       if (errorMessage !== undefined) {
-        expect(button.props('hint')).toBe(errorMessage)
+        expect(await readHint(wrapper)).toBe(errorMessage)
       }
     })
   } else {

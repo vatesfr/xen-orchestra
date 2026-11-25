@@ -1,9 +1,9 @@
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
-import { openMoreActions } from '@/test/head-bar-actions.ts'
 import { t } from '@/test/i18n.ts'
 import MenuItem from '@core/components/menu/MenuItem.vue'
 import UiDropdownButton from '@core/components/ui/dropdown-button/UiDropdownButton.vue'
 import { IK_PANEL_ACTIONS_COMPACT } from '@core/utils/injection-keys.util.ts'
+import { openMoreActions } from '@core-test/menu.ts'
 import { mount, type VueWrapper } from '@vue/test-utils'
 import { type Component, computed } from 'vue'
 

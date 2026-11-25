@@ -4,6 +4,7 @@ import { createJobStub } from '@/test/create-job-result.ts'
 import { t } from '@/test/i18n.ts'
 import { mountWithProps } from '@/test/mount-with-props.ts'
 import MenuItem from '@core/components/menu/MenuItem.vue'
+import { clickMenuItem } from '@core-test/menu.ts'
 
 const poolConnection = createJobStub(usePoolConnection, result => ({
   openPoolConnectionDrawer: result.run,
@@ -26,7 +27,7 @@ it('offers to connect a pool', () => {
 })
 
 it('opens the pool connection drawer when clicking it', async () => {
-  await mountButton().get('.menu-trigger').trigger('click')
+  await clickMenuItem(mountButton())
 
   expect(poolConnection.run).toHaveBeenCalledOnce()
 })
