@@ -12,12 +12,12 @@ A test file is designed before its first `it`, in `@xen-orchestra/web-core` and 
 
 ## Which shape removes a repetition
 
-| Repetition                                         | Shape                                                                                              |
-| -------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
-| The same setup, in one file                        | a local helper at the top of the file ([Setup](./setup-helpers.md))                                |
-| The same test, only the values differ, in one file | `it.each`, one row per case                                                                        |
-| The same query or fixture, in 2 files              | a shared reader or fixture in the package's test directory; each file keeps its own explicit `it`s |
-| The same tests, in 3 files or more                 | a registrar in the package's test directory, called once per file with what differs                |
+| Repetition                                         | Shape                                                                                                      |
+| -------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| The same setup, in one file                        | a local helper at the top of the file ([Setup](./setup-helpers.md))                                        |
+| The same test, only the values differ, in one file | `it.each`, one row per case                                                                                |
+| The same setup, query or fixture, in 2 files       | a shared helper, reader or fixture in the package's test directory; each file keeps its own explicit `it`s |
+| The same tests, in 3 files or more                 | a registrar in the package's test directory, called once per file with what differs                        |
 
 A registrar is a function declaring the tests of one behavior: `it<Behavior>(…)` declares its `it`s where it is called, `describe<Behavior>(…)` wraps them in a `describe`. It is called at the top level of a test file (or in a `describe`), named after the behavior it asserts (`itCannotRun`, `describeV2vTargetCells`), and takes what differs between its callers: the mount, the expected values. XO 6 lists its own in [Shared test cases](../../../web/docs/tests/helpers.md#shared-test-cases).
 

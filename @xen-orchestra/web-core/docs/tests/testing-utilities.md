@@ -2,16 +2,7 @@
 
 Utility functions (`*.util.ts`) are pure — import and call them directly, and assert `input → output`. No mounting, no mocks.
 
-```typescript
-describe('toVariants', () => {
-  it.each([
-    { label: 'renders a `true` value as the bare key', variants: { disabled: true }, expected: ['disabled'] },
-    { label: 'drops falsy values', variants: { accent: undefined, disabled: false, size: '' }, expected: [] },
-  ])('$label', ({ variants, expected }) => {
-    expect(toVariants(variants)).toEqual(expected)
-  })
-})
-```
+Cases that differ only by their values share one `it.each` ([File layout and structure](./file-structure.md)); the [reference util test](./design-test-file.md#reference-test-files) shows the shape.
 
 Cover the meaningful edge cases: empty input, missing samples (`NaN` propagation), `null` data, and boundary rounding.
 
