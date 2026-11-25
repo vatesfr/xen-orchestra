@@ -13,6 +13,7 @@
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
 
+- [Backups/Merge] The background merge no longer crashes with `ENAMETOOLONG` when a VM's backups are locked by another job: it waits 5 minutes before trying again instead of retrying in a loop (PR [#10866](https://github.com/vatesfr/xen-orchestra/pull/10866))
 - [V2V] When the import of a disk fails before its transfer starts, the task shows the reason given by the migration engine (e.g. `could not connect: timed out`) instead of `stream has ended without data, was looking for 8 bytes` (PR [#10842](https://github.com/vatesfr/xen-orchestra/pull/10842))
 
 ### Packages to release
@@ -32,5 +33,6 @@
 <!--packages-start-->
 
 - @vates/nbd-client patch
+- @xen-orchestra/backups patch
 
 <!--packages-end-->

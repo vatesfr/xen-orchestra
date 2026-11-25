@@ -83,6 +83,7 @@ const main = Disposable.wrap(async function* main(args) {
           handler.unlink(taskFile).catch(error => warn('deleting task failure', { error }))
         } catch (error) {
           warn('failure handling task', { error })
+          if (error.code === 'ELOCKED') await new Promise(resolve => setTimeout(resolve, 5 * 60e3))
         }
       },
       { concurrency }
