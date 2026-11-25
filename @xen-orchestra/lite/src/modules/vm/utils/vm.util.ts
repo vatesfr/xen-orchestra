@@ -43,6 +43,20 @@ export function areVmToolsDetected(guestMetrics: XenApiVmGuestMetrics | undefine
   return managementAgentDetected && pvDriversDetected
 }
 
+/**
+ * @see `packages/xo-server/src/xapi/utils.mjs`:57
+ **/
+export function getVmDomainType(vm: XenApiVm) {
+  if (
+    vm.domain_type !== undefined && // XS < 7.5
+    vm.domain_type !== 'unspecified' // detection failed
+  ) {
+    return vm.domain_type
+  }
+
+  return vm.HVM_boot_policy === '' ? 'pv' : 'hvm'
+}
+
 export type VmPowerStateAction =
   | 'start'
   | 'pause'
