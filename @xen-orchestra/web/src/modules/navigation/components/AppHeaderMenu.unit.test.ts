@@ -5,6 +5,7 @@ import { mockXoRoutes } from '@/test/mock-xo-routes.ts'
 import { vmCollectionMock, mockXoVmCollection } from '@/test/mock-xo-vm-collection.ts'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { findLinks } from '@core-test/find-links.ts'
+import { press } from '@core-test/keyboard.ts'
 import { clickMenuItem, openMoreActions } from '@core-test/menu.ts'
 import { mount, type VueWrapper } from '@vue/test-utils'
 import { nextTick } from 'vue'
@@ -47,7 +48,7 @@ async function goBack(wrapper: VueWrapper) {
 }
 
 async function pressEscape() {
-  window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }))
+  press('Escape', { target: window })
   await nextTick()
 }
 

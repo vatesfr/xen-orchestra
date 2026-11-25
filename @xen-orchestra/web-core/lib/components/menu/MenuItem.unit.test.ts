@@ -1,5 +1,4 @@
 import MenuItem from '@core/components/menu/MenuItem.vue'
-import MenuTrigger from '@core/components/menu/MenuTrigger.vue'
 import type { MobileMenuController } from '@core/components/menu/VtsMobileMenu.vue'
 import { useMenuLevel } from '@core/composables/menu-level.composable.ts'
 import {
@@ -9,9 +8,12 @@ import {
   IK_MENU_LEVEL,
   IK_MOBILE_MENU,
 } from '@core/utils/injection-keys.util.ts'
+import { createGlobalTestConfig } from '@core-test/create-global-test-config.ts'
 import { findIconNames } from '@core-test/find-icon-names.ts'
+import { getFocusedLabel, press } from '@core-test/keyboard.ts'
+import { clickMenuItem, getMenuTrigger } from '@core-test/menu.ts'
 import { mountWithSetupResult } from '@core-test/mount-with-setup.ts'
-import { flushPromises, mount } from '@vue/test-utils'
+import { flushPromises, mount, type VueWrapper } from '@vue/test-utils'
 import { computed, h, provide, type VNodeChild } from 'vue'
 
 type MenuItemCase = {
@@ -64,12 +66,15 @@ function mountMenuItem({
         h(
           MenuItem,
           { accent: 'brand', icon: 'action:add', ...props },
-          { default: () => 'Item', ...(submenu && { submenu: () => 'Submenu' }) }
+          {
+            default: () => 'Item',
+            ...(submenu && { submenu: () => h(MenuItem, { accent: 'brand' }, () => 'Submenu') }),
+          }
         ),
     }
   })
 
-  return { wrapper, level, trigger: wrapper.getComponent(MenuTrigger) }
+  return { wrapper, level, trigger: getMenuTrigger(wrapper) }
 }
 
 // An action still running until the test settles it
@@ -84,6 +89,13 @@ function deferAction() {
   )
 
   return { onClick, settle }
+}
+
+function spyOnErrorHandler(wrapper: VueWrapper) {
+  const errorHandler = vi.fn()
+  wrapper.vm.$.appContext.config.errorHandler = errorHandler
+
+  return errorHandler
 }
 
 function renderSlot(slot: () => VNodeChild) {
@@ -112,7 +124,7 @@ it('shows as busy and active when it is busy', () => {
 it('runs its action, then closes the menu', async () => {
   const onClick = vi.fn()
 
-  await mountMenuItem({ onClick }).trigger.trigger('click')
+  await clickMenuItem(mountMenuItem({ onClick }).wrapper)
   await flushPromises()
 
   expect(onClick).toHaveBeenCalledOnce()
@@ -120,7 +132,7 @@ it('runs its action, then closes the menu', async () => {
 })
 
 it('closes the menu when it has no action', async () => {
-  await mountMenuItem().trigger.trigger('click')
+  await clickMenuItem(mountMenuItem().wrapper)
   await flushPromises()
 
   expect(closeMenu).toHaveBeenCalledOnce()
@@ -133,7 +145,7 @@ it.each([
 ])('neither runs its action nor closes the menu when $label', async item => {
   const onClick = vi.fn()
 
-  await mountMenuItem({ ...item, onClick }).trigger.trigger('click')
+  await clickMenuItem(mountMenuItem({ ...item, onClick }).wrapper)
   await flushPromises()
 
   expect(onClick).not.toHaveBeenCalled()
@@ -142,10 +154,10 @@ it.each([
 
 it('is busy while its action runs, and ignores another click meanwhile', async () => {
   const { onClick, settle } = deferAction()
-  const { trigger } = mountMenuItem({ onClick })
+  const { wrapper, trigger } = mountMenuItem({ onClick })
 
-  await trigger.trigger('click')
-  await trigger.trigger('click')
+  await clickMenuItem(wrapper)
+  await clickMenuItem(wrapper)
 
   expect(trigger.props()).toMatchObject({ busy: true, active: true })
   expect(closeMenu).not.toHaveBeenCalled()
@@ -158,13 +170,24 @@ it('is busy while its action runs, and ignores another click meanwhile', async (
   expect(closeMenu).toHaveBeenCalledOnce()
 })
 
+it('runs its action outside of a menu, with no menu to close', async () => {
+  const onClick = vi.fn()
+  const wrapper = mount(MenuItem, { props: { accent: 'brand', onClick }, global: createGlobalTestConfig() })
+  const errorHandler = spyOnErrorHandler(wrapper)
+
+  await clickMenuItem(wrapper)
+  await flushPromises()
+
+  expect(onClick).toHaveBeenCalledOnce()
+  expect(errorHandler).not.toHaveBeenCalled()
+})
+
 it('is no longer busy, and keeps the menu open, when its action fails', async () => {
   const { onClick, settle } = deferAction()
   const { wrapper, trigger } = mountMenuItem({ onClick })
-  const errorHandler = vi.fn()
-  wrapper.vm.$.appContext.config.errorHandler = errorHandler
+  const errorHandler = spyOnErrorHandler(wrapper)
 
-  await trigger.trigger('click')
+  await clickMenuItem(wrapper)
   settle.reject?.(new Error('Failed'))
   await flushPromises()
 
@@ -176,9 +199,9 @@ it('is no longer busy, and keeps the menu open, when its action fails', async ()
 describe('submenu in a mobile menu', () => {
   it('opens the submenu in the mobile menu, titled by its label, without closing the menu', async () => {
     const openSubmenu = vi.fn()
-    const { trigger } = mountMenuItem({ submenu: true, mobileMenu: { openSubmenu } })
+    const { wrapper } = mountMenuItem({ submenu: true, mobileMenu: { openSubmenu } })
 
-    await trigger.trigger('click')
+    await clickMenuItem(wrapper)
 
     const [{ title, content }] = openSubmenu.mock.lastCall!
 
@@ -202,16 +225,48 @@ describe('submenu', () => {
   it('opens its submenu on click, and selects its trigger', async () => {
     const item = mountMenuItem({ submenu: true })
 
-    await item.trigger.trigger('click')
+    await clickMenuItem(item.wrapper)
 
     expect(isSubmenuOpen(item)).toBe(true)
     expect(document.body.querySelector('.menu-list')?.textContent).toBe('Submenu')
   })
 
+  it('focuses the first item of its submenu once open', async () => {
+    const item = mountMenuItem({ submenu: true })
+
+    await clickMenuItem(item.wrapper)
+    await flushPromises()
+
+    expect(getFocusedLabel()).toBe('Submenu')
+  })
+
+  it('closes its submenu on Escape', async () => {
+    const item = mountMenuItem({ submenu: true })
+
+    await clickMenuItem(item.wrapper)
+    await flushPromises()
+    press('Escape')
+    await flushPromises()
+
+    expect(isSubmenuOpen(item)).toBe(false)
+  })
+
+  it('opens its submenu on a menu level of its own outside of a menu', async () => {
+    const wrapper = mount(MenuItem, {
+      props: { accent: 'brand' },
+      slots: { default: () => 'Item', submenu: () => 'Submenu' },
+      global: createGlobalTestConfig(),
+    })
+
+    await clickMenuItem(wrapper)
+
+    expect(getMenuTrigger(wrapper).props('selected')).toBe(true)
+  })
+
   it('does not open its submenu when disabled', async () => {
     const item = mountMenuItem({ submenu: true, disabled: true })
 
-    await item.trigger.trigger('click')
+    await clickMenuItem(item.wrapper)
 
     expect(isSubmenuOpen(item)).toBe(false)
   })
@@ -230,9 +285,7 @@ describe('submenu', () => {
     { direction: 'horizontal', horizontal: true, key: 'ArrowRight', opens: false },
   ])('opens its submenu on $key in a $direction menu: $opens', async ({ horizontal, key, opens }) => {
     const item = mountMenuItem({ submenu: true, horizontal })
-    const event = new KeyboardEvent('keydown', { key, cancelable: true })
-
-    item.trigger.element.dispatchEvent(event)
+    const event = press(key, { target: item.trigger.element })
     await flushPromises()
 
     expect(isSubmenuOpen(item)).toBe(opens)

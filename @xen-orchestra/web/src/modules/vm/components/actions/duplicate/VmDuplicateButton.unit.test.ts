@@ -4,7 +4,7 @@ import { createJobStub } from '@/test/create-job-result.ts'
 import { createVm } from '@/test/create-vm.ts'
 import { t } from '@/test/i18n.ts'
 import { itRunsJobFromButton } from '@/test/job-button.ts'
-import MenuTrigger from '@core/components/menu/MenuTrigger.vue'
+import { getMenuTrigger } from '@core-test/menu.ts'
 
 // The composable runs the duplication job, which calls the REST API
 const vmDuplicate = createJobStub(useVmDuplicate, result => ({
@@ -16,7 +16,7 @@ const vmDuplicate = createJobStub(useVmDuplicate, result => ({
 const mountButton = itRunsJobFromButton(VmDuplicateButton, {
   targetProp: 'vm',
   createTarget: createVm,
-  getButton: wrapper => wrapper.getComponent(MenuTrigger),
+  getButton: getMenuTrigger,
   job: vmDuplicate,
   offer: { label: t('action:duplicate'), icon: 'action:duplicate' },
   // The composable receives the VM as a getter
@@ -26,7 +26,7 @@ const mountButton = itRunsJobFromButton(VmDuplicateButton, {
 it('is busy, not disabled, while the VM is being duplicated', () => {
   vmDuplicate.setState({ canRun: false, isRunning: true })
 
-  const button = mountButton().getComponent(MenuTrigger)
+  const button = getMenuTrigger(mountButton())
 
   expect(button.props('busy')).toBe(true)
   expect(button.props('disabled')).toBe(false)

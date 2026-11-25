@@ -4,14 +4,9 @@ import UiInput from '@core/components/ui/input/UiInput.vue'
 import UiLoader from '@core/components/ui/loader/UiLoader.vue'
 import type { IconName } from '@core/icons'
 import { setFieldValue } from '@core-test/field-events.ts'
+import { findIconNames } from '@core-test/find-icon-names.ts'
 import { isPlaceholderShown } from '@core-test/is-placeholder-shown.ts'
 import { mountField } from '@core-test/mount-field.ts'
-import type { VueWrapper } from '@vue/test-utils'
-
-function findIcon(wrapper: VueWrapper, name: IconName) {
-  return wrapper.findAllComponents(VtsIcon).find(icon => icon.props('name') === name)
-}
-
 const SUCCESS_ICON: IconName = 'status:success-circle'
 
 it.each(['neutral', 'warning', 'danger', 'success'] as const)('applies the %s accent', accent => {
@@ -62,7 +57,7 @@ it('clears the value, emits clear and focuses the input on the clear button', as
 
 it('shows the success icon after the clear button with the success accent', () => {
   const wrapper = mountField(UiInput, { accent: 'success', clearable: true })
-  const successIcon = findIcon(wrapper, SUCCESS_ICON)
+  const successIcon = wrapper.findAllComponents(VtsIcon).find(icon => icon.props('name') === SUCCESS_ICON)
 
   expect(successIcon?.element.previousElementSibling).toBe(wrapper.getComponent(UiButtonIcon).element)
 })
@@ -73,7 +68,7 @@ it.each([
   { label: 'busy', props: { accent: 'success', busy: true } },
   { label: 'readonly', props: { accent: 'success', readonly: true } },
 ] as const)('hides the success icon when $label', ({ props }) => {
-  expect(findIcon(mountField(UiInput, props), SUCCESS_ICON)).toBeUndefined()
+  expect(findIconNames(mountField(UiInput, props))).not.toContain(SUCCESS_ICON)
 })
 
 it.each([
@@ -174,7 +169,7 @@ describe.each(['prefix', 'suffix'] as const)('%s', part => {
 })
 
 it('renders the right icon prop', () => {
-  expect(findIcon(mountField(UiInput, { rightIcon: 'status:info-circle' }), 'status:info-circle')).toBeDefined()
+  expect(findIconNames(mountField(UiInput, { rightIcon: 'status:info-circle' }))).toEqual(['status:info-circle'])
 })
 
 it('renders the right-icon slot instead of the icon', () => {
@@ -185,11 +180,11 @@ it('renders the right-icon slot instead of the icon', () => {
   )
 
   expect(wrapper.find('.custom').exists()).toBe(true)
-  expect(findIcon(wrapper, 'status:info-circle')).toBeUndefined()
+  expect(findIconNames(wrapper)).toEqual([])
 })
 
 it('renders no icon without right icon, clear button or success', () => {
-  expect(mountField(UiInput).findAllComponents(VtsIcon)).toHaveLength(0)
+  expect(findIconNames(mountField(UiInput))).toEqual([])
 })
 
 it('focuses the input on a click on the field', async () => {

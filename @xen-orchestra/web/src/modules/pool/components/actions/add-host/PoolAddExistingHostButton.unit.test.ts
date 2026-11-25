@@ -5,7 +5,7 @@ import { createJobStub, toJobComposableResult } from '@/test/create-job-result.t
 import { findTooltipContent } from '@/test/find-tooltip-content.ts'
 import { t } from '@/test/i18n.ts'
 import { itRunsJobFromButton } from '@/test/job-button.ts'
-import MenuTrigger from '@core/components/menu/MenuTrigger.vue'
+import { getMenuTrigger } from '@core-test/menu.ts'
 
 const existingHost = createJobStub(usePoolExistingHost, result =>
   toJobComposableResult(result, 'addExistingHost', 'isAddingExistingHost')
@@ -14,7 +14,7 @@ const existingHost = createJobStub(usePoolExistingHost, result =>
 itRunsJobFromButton(PoolAddExistingHostButton, {
   targetProp: 'poolId',
   createTarget: () => 'pool-1' as FrontXoPool['id'],
-  getButton: wrapper => wrapper.getComponent(MenuTrigger),
+  getButton: getMenuTrigger,
   job: existingHost,
   offer: { label: t('existing-host'), icon: 'action:attach' },
   // The composable receives the pool id as a getter

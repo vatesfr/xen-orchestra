@@ -1,4 +1,5 @@
 import { useMenuListNavigation } from '@core/composables/menu-list-navigation.composable.ts'
+import { getFocusedLabel, press } from '@core-test/keyboard.ts'
 import { mountWithSetupResult } from '@core-test/mount-with-setup.ts'
 import { h, nextTick, ref } from 'vue'
 
@@ -61,18 +62,6 @@ function getItem(label: string) {
   }
 
   return item
-}
-
-function getFocusedLabel() {
-  return document.activeElement?.textContent
-}
-
-function press(key: string) {
-  const event = new KeyboardEvent('keydown', { key, bubbles: true, cancelable: true })
-
-  document.activeElement?.dispatchEvent(event)
-
-  return event
 }
 
 describe('focusFirstItem', () => {

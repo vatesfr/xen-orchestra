@@ -29,7 +29,8 @@ it('shows the host name label and links to its dashboard', () => {
 
   const wrapper = mountHostLink(host)
 
-  expect(findLink(wrapper)).toMatchObject({ text: 'Primary Host', href: '/host/host-1/dashboard' })
+  expect(wrapper.text()).toBe('Primary Host')
+  expect(findLink(wrapper)?.href).toBe('/host/host-1/dashboard')
 })
 
 it('links to the given route in place of the dashboard', () => {

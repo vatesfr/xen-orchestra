@@ -94,7 +94,7 @@ it('is busy, not disabled, while the VM is being migrated', async () => {
   await clickMenuItem(wrapper)
 
   expect(getMenuTrigger(wrapper).props('disabled')).toBe(false)
-  expect(getMenuTrigger(wrapper).props('active')).toBe(true)
+  expect(getMenuTrigger(wrapper).props('busy')).toBe(true)
   expect(wrapper.find('.em-dash-prefix').exists()).toBe(false)
   expect(migrateVm).not.toHaveBeenCalled()
 })

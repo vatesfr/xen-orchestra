@@ -12,7 +12,7 @@ import { mockXoRoutes } from '@/test/mock-xo-routes.ts'
 import { vmCollectionMock, mockXoVmCollection } from '@/test/mock-xo-vm-collection.ts'
 import { mockModule } from '@/test/spy-on-module.ts'
 import { objectIcon } from '@core/icons'
-import { findLink } from '@core-test/find-links.ts'
+import { findLink, findLinks } from '@core-test/find-links.ts'
 import { mount } from '@vue/test-utils'
 
 const getBackupJobById = vi.fn()
@@ -77,7 +77,7 @@ describe('VM', () => {
     const vmCell = findVmCell(mountTable(createBackupLog({ tasks })))
 
     expect(vmCell.text()).toBe(t('vm-not-found'))
-    expect(findLink(vmCell)).toBeUndefined()
+    expect(findLinks(vmCell, 'a')).toEqual([])
   })
 
   it('leaves the VM empty for a log of a job without VM', () => {

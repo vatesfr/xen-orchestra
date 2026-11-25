@@ -96,7 +96,7 @@ A table is read **by header label**, never by column position: `src/test/find-ta
 ```typescript
 expect(findTableHeaders(wrapper)).toEqual(['', t('vm'), t('size')])
 expect(findTableColumn(wrapper, t('size'))).toEqual(['80GiB', '120GiB'])
-expect(findTableColumnCells(wrapper, t('vm'))[0].getComponent(UiLink).attributes('href')).toBe('/vm/vm-42/dashboard')
+expect(findLink(findTableColumnCells(wrapper, t('vm'))[0])?.href).toBe('/vm/vm-42/dashboard')
 ```
 
 A label missing from the header throws, naming the label, rather than reading an empty column.
