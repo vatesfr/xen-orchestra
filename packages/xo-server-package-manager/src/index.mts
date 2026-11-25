@@ -43,6 +43,12 @@ function upgradeInTask(task: VatesTask, packageName?: string): Promise<void> {
   })
 }
 
+const UPGRADE_STARTED_RESPONSE = {
+  status: 202,
+  description: 'Upgrade started, follow it with the returned task',
+  schema: { taskId: { type: 'string', example: '0mhx2k3qf7a' } },
+} satisfies NonNullable<PluginRestRouteDefinition['responses']>[number]
+
 // routes without `acl` middleware are restricted to administrators
 const REST_ROUTES: PluginRestRouteDefinition[] = [
   {
@@ -50,6 +56,28 @@ const REST_ROUTES: PluginRestRouteDefinition[] = [
     endpoint: 'plugins/package-manager/updates',
     description: 'List the upgradable packages of the XO appliance, from the local package indexes',
     tags: ['package-manager'],
+    responses: [
+      {
+        status: 200,
+        description: 'The upgradable packages, and whether an already upgraded package needs a reboot',
+        schema: {
+          packages: {
+            type: 'array',
+            items: {
+              type: 'object',
+              fields: {
+                name: { type: 'string', example: 'curl' },
+                version: { type: 'string', example: '7.88.1-10+deb12u14' },
+                installedVersion: { type: 'string', example: '7.88.1-10+deb12u12' },
+                release: { type: 'string', example: 'stable-security' },
+                description: { type: 'string', example: 'command line tool for transferring data with URL syntax' },
+              },
+            },
+          },
+          isRebootRequired: { type: 'boolean', example: false },
+        },
+      },
+    ],
     callback: getUpdates,
   },
   {
@@ -57,6 +85,7 @@ const REST_ROUTES: PluginRestRouteDefinition[] = [
     endpoint: 'plugins/package-manager/updates/actions/refresh',
     description: 'Refresh the package indexes (`apt-get update`)',
     tags: ['package-manager'],
+    responses: [{ status: 204, description: 'Package indexes refreshed' }],
     callback: async () => {
       await refreshPackageIndexes()
     },
@@ -66,6 +95,7 @@ const REST_ROUTES: PluginRestRouteDefinition[] = [
     endpoint: 'plugins/package-manager/updates/actions/upgrade',
     description: 'Upgrade all packages. Returns 202 with a task ID',
     tags: ['package-manager'],
+    responses: [UPGRADE_STARTED_RESPONSE],
     callback: ({ createAction }) =>
       createAction(task => upgradeInTask(task), { taskProperties: { name: 'upgrade packages' } }),
   },
@@ -75,6 +105,7 @@ const REST_ROUTES: PluginRestRouteDefinition[] = [
     description: 'Upgrade one package. Returns 202 with a task ID',
     tags: ['package-manager'],
     params: { name: { type: 'string', example: 'curl' } },
+    responses: [UPGRADE_STARTED_RESPONSE, { status: 422, description: 'Invalid package name' }],
     callback: ({ req, createAction }) => {
       const packageName = req.params.name
       if (typeof packageName !== 'string' || !isValidPackageName(packageName)) {
