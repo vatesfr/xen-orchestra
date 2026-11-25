@@ -4,8 +4,8 @@
     <label :class="classNames" class="checkbox-label" v-bind="wrapperAttrs">
       <input
         v-model="checkboxModel"
-        :class="{ indeterminate: isIndeterminate }"
         :disabled="isDisabled"
+        :indeterminate="isIndeterminate"
         class="input"
         type="checkbox"
         v-bind="attrs"
@@ -104,7 +104,7 @@ const attrs = useAttrs()
       pointer-events: none;
       opacity: 0;
 
-      &.indeterminate + .fake-checkbox > .icon {
+      &:indeterminate + .fake-checkbox > .icon {
         opacity: 1;
         color: var(--color-neutral-background-primary);
       }
@@ -137,7 +137,7 @@ const attrs = useAttrs()
           border-color: var(--color-brand-txt-base);
         }
 
-        &.indeterminate + .fake-checkbox {
+        &:indeterminate + .fake-checkbox {
           background-color: var(--color-brand-txt-base);
 
           &:hover {
@@ -150,7 +150,7 @@ const attrs = useAttrs()
           }
         }
 
-        &.indeterminate:hover + .fake-checkbox {
+        &:indeterminate:hover + .fake-checkbox {
           border-color: transparent;
           background-color: var(--color-brand-txt-hover);
         }
@@ -188,7 +188,7 @@ const attrs = useAttrs()
           border-color: var(--color-warning-txt-base);
         }
 
-        &.indeterminate + .fake-checkbox {
+        &:indeterminate + .fake-checkbox {
           background-color: var(--color-warning-txt-base);
 
           &:hover {
@@ -201,7 +201,7 @@ const attrs = useAttrs()
           }
         }
 
-        &.indeterminate:hover + .fake-checkbox {
+        &:indeterminate:hover + .fake-checkbox {
           border-color: transparent;
           background-color: var(--color-warning-txt-hover);
         }
@@ -243,7 +243,7 @@ const attrs = useAttrs()
           }
         }
 
-        &.indeterminate + .fake-checkbox {
+        &:indeterminate + .fake-checkbox {
           background-color: var(--color-danger-txt-base);
 
           &:hover {
@@ -256,7 +256,7 @@ const attrs = useAttrs()
           }
         }
 
-        &.indeterminate:hover + .fake-checkbox {
+        &:indeterminate:hover + .fake-checkbox {
           border-color: transparent;
           background-color: var(--color-danger-txt-hover);
         }
@@ -299,7 +299,7 @@ const attrs = useAttrs()
       }
 
       &:checked + .fake-checkbox,
-      &.indeterminate + .fake-checkbox {
+      &:indeterminate + .fake-checkbox {
         border-color: transparent;
         background-color: var(--color-neutral-txt-secondary);
       }

@@ -1066,6 +1066,20 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/story/web-core/ui/rich-checkbox/ui-rich-checkbox': RouteRecordInfo<
+      '/story/web-core/ui/rich-checkbox/ui-rich-checkbox',
+      '/story/web-core/ui/rich-checkbox/ui-rich-checkbox',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/story/web-core/ui/rich-checkbox-group/ui-rich-checkbox-group': RouteRecordInfo<
+      '/story/web-core/ui/rich-checkbox-group/ui-rich-checkbox-group',
+      '/story/web-core/ui/rich-checkbox-group/ui-rich-checkbox-group',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
     '/story/web-core/ui/rich-radio-button/ui-rich-radio-button': RouteRecordInfo<
       '/story/web-core/ui/rich-radio-button/ui-rich-radio-button',
       '/story/web-core/ui/rich-radio-button/ui-rich-radio-button',
@@ -2206,6 +2220,18 @@ declare module 'vue-router/auto-routes' {
     'src/stories/web-core/ui/radio-button-group/ui-radio-button-group.story.vue': {
       routes:
         | '/story/web-core/ui/radio-button-group/ui-radio-button-group'
+      views:
+        | never
+    }
+    'src/stories/web-core/ui/rich-checkbox/ui-rich-checkbox.story.vue': {
+      routes:
+        | '/story/web-core/ui/rich-checkbox/ui-rich-checkbox'
+      views:
+        | never
+    }
+    'src/stories/web-core/ui/rich-checkbox-group/ui-rich-checkbox-group.story.vue': {
+      routes:
+        | '/story/web-core/ui/rich-checkbox-group/ui-rich-checkbox-group'
       views:
         | never
     }
