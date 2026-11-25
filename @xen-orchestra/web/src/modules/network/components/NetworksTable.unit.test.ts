@@ -2,13 +2,11 @@ import NetworksTable from '@/modules/network/components/NetworksTable.vue'
 import { findTitles } from '@/test/find-titles.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
+import { mockXoCollections } from '@/test/mock-xo-collections.ts'
 import UiAlert from '@core/components/ui/alert/UiAlert.vue'
 import { mount } from '@vue/test-utils'
 
-vi.mock(
-  import('@/modules/pif/remote-resources/use-xo-pif-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
+mockXoCollections('pif')
 
 function mountTable(type?: 'internal' | 'private') {
   return mount(NetworksTable, { props: { networks: [], type }, global: createGlobalTestConfig() })

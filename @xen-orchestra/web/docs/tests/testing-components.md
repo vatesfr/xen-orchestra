@@ -32,6 +32,14 @@ A label/value row is read through one query covering every row a user sees ([Ass
 | `findLabelledValues`         | every `VtsTabularKeyValueRow` / `VtsKeyValueRow` of a card         |
 | `findCardLabelledValues`     | every `VtsCardRowKeyValue` of a side-panel card                    |
 | `findCardLabelledValueLists` | every `VtsCardRowKeyValue`, each value of a multi-value row listed |
+| `findRowLabels`              | the label of every `VtsTabularKeyValueRow` / `VtsKeyValueRow`      |
+| `findCardRowLabels`          | the label of every `VtsCardRowKeyValue`, in order                  |
+| `findCardRows`               | every `VtsCardRowKeyValue` as `[label, value]` pairs, in order     |
+| `getCardRow`                 | the `VtsCardRowKeyValue` with that label, to query its link / copy |
+| `hasCardRowCopy`             | whether the `VtsCardRowKeyValue` with that label offers a copy     |
+| `getCardRowLink`             | the link of the `VtsCardRowKeyValue` with that label               |
+| `findCardRowElements`        | every `VtsCardRowKeyValue` as its key and value elements           |
+| `findCardRowLinks`           | every link of the `VtsCardRowKeyValue` rows, as `[text, href]`     |
 | `findCopiedValues`           | what each copyable key/value row copies, keyed by label            |
 | `findCardCopiedValues`       | what each copyable `VtsCardRowKeyValue` copies, in order           |
 
@@ -44,6 +52,8 @@ A row offers a copy button through its `copy` prop (copies its `value`) or its `
 ```typescript
 expect(findCopiedValues(wrapper)).toEqual({ [t('ip-address')]: '10.0.0.1', [t('uuid')]: 'vm-42' })
 ```
+
+`findCardRows` keeps rows sharing a label (one row per VM, labelled on the first one only), which `findCardLabelledValues` would collapse. A check on the row elements themselves (whether a button sits inside a row) uses the exported `CARD_KEY_VALUE_ROW_SELECTOR`, never the raw class.
 
 Both read one value per row. A `VtsCardRowKeyValue` given several `values` (an address list, report recipients) renders them all under a single label, so read it with `findCardLabelledValueLists` instead:
 
@@ -143,6 +153,7 @@ A donut card and a progress-bar card both render their values through `UiLegend`
 | `findLegends`                 | every `UiLegend`, as ordered `[label, value]` pairs    |
 | `findProgressBarGroupLegends` | the same, grouped per `VtsProgressBarGroup`            |
 | `findCardNumbers`             | every `UiCardNumbers` a card lays out beside its chart |
+| `findProgressBarFillStyle`    | the inline style of the fill of the `UiProgressBar`    |
 
 ```typescript
 expect(findLegends(wrapper)).toEqual([
@@ -191,7 +202,7 @@ Pushing before mounting is what makes the active tab assertable; without a push 
 How `VtsSelect` renders and opens its options belongs to the web-core tests, never to an XO 6 one; XO 6's `FormSelect` wraps it:
 
 - A component that only passes select bindings on is mounted with `createGlobalTestConfig({ stubs: { FormSelect: true } })`, given `createSelectBindings`, and read with `findSelectStubLabels`.
-- The options a form builds (their labels, their custom properties) are read by mounting the form with `mountWithSelect`, rendering a `VtsSelect` for its select, then `openSelect` and `findSelectOptionLabels`; `findShownSelections` reads the selection each select shows.
+- The options a form builds (their labels, their custom properties) are read by mounting the form with `mountWithSetup` (`mountWithSetupResult` when the test reads the form too; it takes the `createGlobalTestConfig` options, as `mountUnderNewVmForm` does), rendering its select with `renderSelect(id)` (`@core-test/mount-with-select.ts`), then `openSelect` and `findSelectOptionLabels`; `findShownSelections` reads the selection each select shows. Those readers live in web-core (`@core-test/select.ts`), beside the `mountWithSetup` (`@core-test/mount-with-setup.ts`) that XO 6's wraps.
 
 ## Remote-resource collections
 

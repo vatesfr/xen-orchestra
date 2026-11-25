@@ -1,10 +1,10 @@
 import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import type { FrontXoVmTemplate } from '@/modules/vm/remote-resources/use-xo-vm-template-collection.ts'
-import type { XoHost, XoNetwork, XoSr, XoVdi, XoVif } from '@vates/types'
+import type { XoHost, XoNetwork, XoSr, XoVdi, XoVdiSnapshot, XoVif } from '@vates/types'
 
 export interface Vdi {
   key: string
-  id?: XoVdi['id']
+  id?: XoVdi['id'] | XoVdiSnapshot['id']
   name_label: string
   name_description: string
   size: number
@@ -13,6 +13,7 @@ export interface Vdi {
 }
 
 export interface Vif {
+  key: string
   id?: XoVif['id']
   network: XoNetwork['id']
   mac: string

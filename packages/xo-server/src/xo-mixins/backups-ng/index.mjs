@@ -22,8 +22,8 @@ import { serializeError, unboxIdsFromPattern } from '../../utils.mjs'
 import { journalPurgeHorizon, serveVmBackups, VmBackupsCache } from './_vmBackupsCache.mjs'
 import { VmBackupsSource } from './_vmBackupsSource.mjs'
 import { waitAll } from '../../_waitAll.mjs'
-import { isExpression } from '@xen-orchestra/backups/_expressionPredicate.mjs'
-import { buildRunContext } from '@xen-orchestra/backups/_buildContext.mjs'
+import { compileExpression, isExpression } from '@xen-orchestra/backups/_expressionPredicate.mjs'
+import { buildRunContext, buildVmContext } from '@xen-orchestra/backups/_buildContext.mjs'
 import { resolveBackupSrs, resolveBackupRepositories } from './_resolveBackupTargets.mjs'
 
 const logger = createLogger('xo:xo-mixins:backups-ng')
@@ -214,46 +214,46 @@ export default class BackupNg {
 
         job = { ...job, runContext }
 
+        const remotesExpression = isExpression(job.remotes) ? job.remotes : undefined
+        if (remotesExpression !== undefined) {
+          const {
+            backupRepositoryIds: remoteIds,
+            proxySkippedIds,
+            invalidUrlIds,
+          } = resolveBackupRepositories(job, await app.getAllRemotes(), runContext)
+
+          if (proxySkippedIds.length > 0) {
+            jobsLogger.warning(
+              'some backup repositories matched the expression but are not linked to the proxy of this job, they are skipped',
+              {
+                event: 'task.warning',
+                taskId: runJobId,
+                data: { backupRepositories: proxySkippedIds, proxy: job.proxy },
+              }
+            )
+          }
+
+          if (invalidUrlIds.length > 0) {
+            jobsLogger.warning(
+              'some backup repositories matched the expression but have an invalid URL, they are skipped',
+              {
+                event: 'task.warning',
+                taskId: runJobId,
+                data: { backupRepositories: invalidUrlIds },
+              }
+            )
+          }
+
+          job.remotes = { id: { __or: remoteIds } }
+        }
+
         if (job.type === 'backup') {
           const srsExpression = isExpression(job.srs) ? job.srs : undefined
-          const remotesExpression = isExpression(job.remotes) ? job.remotes : undefined
 
           if (isExpression(job.srs)) {
             const srUuids = resolveBackupSrs(job, Object.values(app.getObjectsByType('SR')), runContext)
 
             job.srs = { id: { __or: srUuids } }
-          }
-
-          if (isExpression(job.remotes)) {
-            const {
-              backupRepositoryIds: remoteIds,
-              proxySkippedIds,
-              invalidUrlIds,
-            } = resolveBackupRepositories(job, await app.getAllRemotes(), runContext)
-
-            if (proxySkippedIds.length > 0) {
-              jobsLogger.warning(
-                'some backup repositories matched the expression but are not linked to the proxy of this job, they are skipped',
-                {
-                  event: 'task.warning',
-                  taskId: runJobId,
-                  data: { backupRepositories: proxySkippedIds, proxy: job.proxy },
-                }
-              )
-            }
-
-            if (invalidUrlIds.length > 0) {
-              jobsLogger.warning(
-                'some backup repositories matched the expression but have an invalid URL, they are skipped',
-                {
-                  event: 'task.warning',
-                  taskId: runJobId,
-                  data: { backupRepositories: invalidUrlIds },
-                }
-              )
-            }
-
-            job.remotes = { id: { __or: remoteIds } }
           }
 
           if (
@@ -313,10 +313,16 @@ export default class BackupNg {
             vmIds = Object.keys(
               app.getObjects({
                 filter: (() => {
-                  const isMatchingVm = createPredicate({
-                    type: 'VM',
-                    ...vmsPattern,
-                  })
+                  let isMatchingVm
+                  if (isExpression(vmsPattern)) {
+                    const predicate = compileExpression(vmsPattern)
+                    isMatchingVm = obj => obj.type === 'VM' && predicate(buildVmContext(obj, runContext))
+                  } else {
+                    isMatchingVm = createPredicate({
+                      type: 'VM',
+                      ...vmsPattern,
+                    })
+                  }
 
                   return obj =>
                     isMatchingVm(obj) &&

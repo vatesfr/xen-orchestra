@@ -27,6 +27,8 @@ import { debounceWithKey, REMOVE_CACHE_ENTRY } from '../_pDebounceWithKey.mjs'
 import { extractIpFromVmNetworks } from '../_extractIpFromVmNetworks.mjs'
 import { generateToken } from '../utils.mjs'
 
+const PROXY_UNREACHABLE = 'PROXY_UNREACHABLE'
+
 const DEBOUNCE_TIME_PROXY_STATE = 60000
 const DEBOUNCE_TIME_PROXY_LICENSE = 24 * 60 * 60 * 1000
 
@@ -34,29 +36,16 @@ const synchronizedWrite = synchronized()
 
 const log = createLogger('xo:proxy')
 
-function addProxyUrl(proxy) {
-  const url = new URL('https://localhost')
-  url.username = proxy.authenticationToken
+// the url embedded the authentication token, it is no longer exposed
+//
+// the field is kept as a message that doesn't parse as a URL: a script still using it as one fails, and the message
+// points to the cause
+const PROXY_URL_REMOVED_MESSAGE =
+  'proxy.url is no longer exposed by Xen Orchestra because it contained the proxy authentication token, see the Xen Orchestra changelog'
 
-  const { address } = proxy
-  if (address !== undefined) {
-    url.host = address
-  } else {
-    try {
-      const vm = this._app.getXapiObject(proxy.vmUuid, 'VM')
-      const hostname = extractIpFromVmNetworks(vm.$guest_metrics?.networks)
-      if (hostname === undefined) {
-        return
-      }
-      url.hostname = hostname
-    } catch (error) {
-      log.warn('addProxyUrl', { error, proxy })
-      return
-    }
-  }
-
+function deprecatedAddProxyUrl(proxy) {
   delete proxy.authenticationToken
-  proxy.url = url.href
+  proxy.url = PROXY_URL_REMOVED_MESSAGE
 }
 
 async function addProxyVersion(proxy) {
@@ -78,7 +67,7 @@ async function addProxyLicense(proxy) {
 }
 
 async function populateProxy(proxy) {
-  addProxyUrl.call(this, proxy)
+  deprecatedAddProxyUrl(proxy)
   await addProxyVersion.call(this, proxy)
   await addProxyLicense.call(this, proxy)
   return proxy
@@ -527,6 +516,7 @@ export default class Proxy {
       const address = extractIpFromVmNetworks(vm.$guest_metrics?.networks)
       if (address === undefined) {
         const error = new Error('cannot get the proxy address')
+        error.code = PROXY_UNREACHABLE
         error.proxy = omit(proxy, 'authenticationToken')
         throw error
       }
@@ -534,7 +524,13 @@ export default class Proxy {
       url.hostname = address.includes(':') ? `[${address}]` : address
     }
 
-    const response = await fetch(url, request)
+    let response
+    try {
+      response = await fetch(url, request)
+    } catch (error) {
+      error.code = PROXY_UNREACHABLE
+      throw error
+    }
     if (!response.ok) {
       await response.body?.cancel() // free the socket
       throw new Error(`${response.status} ${response.statusText}`)

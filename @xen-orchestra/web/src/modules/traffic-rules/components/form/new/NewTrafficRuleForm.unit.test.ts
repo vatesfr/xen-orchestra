@@ -7,34 +7,19 @@ import { createPool } from '@/test/create-pool.ts'
 import { createVm } from '@/test/create-vm.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
-import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
-import { vmCollectionMock } from '@/test/mock-xo-vm-collection.ts'
-import { vmDeviceCollectionsMock } from '@/test/mock-xo-vm-device-collections.ts'
-import { openSelect, pickSelectOption } from '@/test/select.ts'
+import { xoCollectionsMock, mockXoCollections } from '@/test/mock-xo-collections.ts'
+import { vmCollectionMock, mockXoVmCollection } from '@/test/mock-xo-vm-collection.ts'
+import { vmDeviceCollectionsMock, mockXoVmDeviceCollections } from '@/test/mock-xo-vm-device-collections.ts'
 import VtsDetailedOption from '@core/components/select/VtsDetailedOption.vue'
+import { chooseSelectOption, openSelect } from '@core-test/select.ts'
 import { SDN_CONTROLLER_OF_METHOD_KEY, VM_OPERATIONS } from '@vates/types'
 import { mount } from '@vue/test-utils'
 
-vi.mock(
-  import('@/modules/pool/remote-resources/use-xo-pool-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
-vi.mock(
-  import('@/modules/network/remote-resources/use-xo-network-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
-vi.mock(
-  import('@/modules/pif/remote-resources/use-xo-pif-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
-vi.mock(
-  import('@/modules/vif/remote-resources/use-xo-vif-collection.ts'),
-  () => import('@/test/mock-xo-vm-device-collections.ts')
-)
-vi.mock(
-  import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'),
-  () => import('@/test/mock-xo-vm-collection.ts')
-)
+mockXoCollections('pool', 'network', 'pif')
+
+mockXoVmDeviceCollections('vif')
+
+mockXoVmCollection()
 
 const XAPI_PLUGIN_POOL = createPool({ otherConfig: { [SDN_CONTROLLER_OF_METHOD_KEY]: 'xapi-plugin' } })
 
@@ -50,21 +35,21 @@ function mountForm(pool: FrontXoPool) {
   xoCollectionsMock.pools.value = [pool]
 
   return mount(NewTrafficRuleForm, {
-    props: { poolId: pool.id, cancelTo: '/' },
-    global: createGlobalTestConfig({ stubs: { NewTrafficRuleButtonsSection: true } }),
+    props: { poolId: pool.id },
+    global: createGlobalTestConfig(),
   })
 }
 
 type Form = ReturnType<typeof mountForm>
 
-async function openFormSelect(wrapper: Form, label: string) {
+function getFormSelect(wrapper: Form, label: string) {
   const select = wrapper.findAllComponents(TrafficRuleFormSelect).find(select => select.props('label') === label)
 
   if (select === undefined) {
     throw new Error(`No select labelled "${label}"`)
   }
 
-  await openSelect(select)
+  return select
 }
 
 function findDetailedOptions(wrapper: Form) {
@@ -79,7 +64,7 @@ describe('object', () => {
   it('explains that a network rule requires the XAPI plugin mode', async () => {
     const wrapper = mountForm(OPENFLOW_POOL)
 
-    await openFormSelect(wrapper, t('object'))
+    await openSelect(getFormSelect(wrapper, t('object')))
 
     expect(findDetailedOptions(wrapper)).toEqual([
       { label: t('network'), iconTooltip: undefined, details: t('traffic-rules:xapi-plugin-required') },
@@ -90,7 +75,7 @@ describe('object', () => {
   it('details no option when the pool supports network rules', async () => {
     const wrapper = mountForm(XAPI_PLUGIN_POOL)
 
-    await openFormSelect(wrapper, t('object'))
+    await openSelect(getFormSelect(wrapper, t('object')))
 
     expect(findDetailedOptions(wrapper).map(option => option.details)).toEqual([undefined, undefined])
   })
@@ -115,9 +100,8 @@ describe('from VM', () => {
     ]
     const wrapper = mountForm(XAPI_PLUGIN_POOL)
 
-    await openFormSelect(wrapper, t('object'))
-    await pickSelectOption(wrapper, t('vif'))
-    await openFormSelect(wrapper, t('from-vm'))
+    await chooseSelectOption(wrapper, t('vif'), { container: getFormSelect(wrapper, t('object')) })
+    await openSelect(getFormSelect(wrapper, t('from-vm')))
 
     expect(findDetailedOptions(wrapper)).toEqual([
       {

@@ -10,6 +10,7 @@ import {
   V2V_START_TASK_ID,
 } from '@/test/create-v2v-launch.ts'
 import { hasRequested } from '@/test/fetch-requests.ts'
+import { itCannotRun, itCanRun } from '@/test/job-cases.ts'
 import { expectJobRunning } from '@/test/job-running.ts'
 import { mountComposableWithI18n } from '@/test/mount-composable.ts'
 import type { XoV2vStartPayload } from '@vates/types'
@@ -45,20 +46,17 @@ describe('errorMessage', () => {
     expectJobRunning(job, job.t('job:v2v-start:in-progress'))
   })
 
-  it.each([
-    { case: 'a missing pool', pool: undefined, payload: PAYLOAD, key: 'job:arg:pool-id-required' },
-    { case: 'a missing payload', pool: POOL, payload: undefined, key: 'job:arg:missing-payload' },
-    { case: 'a payload without VMs', pool: POOL, payload: { ...PAYLOAD, vms: [] }, key: 'job:v2v-start:missing-vm' },
-  ])('reports $case', ({ pool, payload, key }) => {
-    const job = mountStartJob(pool, payload)
+  itCannotRun(
+    [
+      { case: 'a missing pool', pool: undefined, payload: PAYLOAD, key: 'job:arg:pool-id-required' },
+      { case: 'a missing payload', pool: POOL, payload: undefined, key: 'job:arg:missing-payload' },
+      { case: 'a payload without VMs', pool: POOL, payload: { ...PAYLOAD, vms: [] }, key: 'job:v2v-start:missing-vm' },
+    ].map(({ case: name, pool, payload, key }) => ({
+      name: `reports ${name}`,
+      mountJob: () => mountStartJob(pool, payload),
+      errorMessage: (job: ReturnType<typeof mountStartJob>) => job.t(key),
+    }))
+  )
 
-    expect(job.canRun).toBe(false)
-    expect(job.errorMessage).toBe(job.t(key))
-  })
-
-  it('can run with a pool and a payload of one VM', () => {
-    const job = mountStartJob(POOL, PAYLOAD)
-
-    expect(job.canRun).toBe(true)
-  })
+  itCanRun([{ name: 'can run with a pool and a payload of one VM', mountJob: () => mountStartJob(POOL, PAYLOAD) }])
 })

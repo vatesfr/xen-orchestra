@@ -579,6 +579,9 @@ export type XoBrowserMediaSession = {
 
 export type XoProxy = {
   id: Branded<'proxy'>
+  /**
+   * @deprecated no replacement for this field
+   */
   url: string
   version?: string
   name: string
@@ -643,7 +646,7 @@ export type XoVmBackupJob = BaseXoJob & {
   proxy?: XoProxy['id']
   mode: 'full' | 'delta'
   remotes?: CMType.IdOr<XoBackupRepository['id']> | string
-  vms: CMType.IdOr<XoVm['id']> | Record<string, unknown>
+  vms: CMType.IdOr<XoVm['id']> | Record<string, unknown> | string
   srs?: CMType.IdOr<XoSr['id']> | string
   type: 'backup'
   settings: {
@@ -660,7 +663,7 @@ export type XoMetadataBackupJobScheduleSettings = {
 }
 export type XoMetadataBackupJob = BaseXoJob & {
   type: 'metadataBackup'
-  pools?: CMType.IdOr<XoPool['id']>
+  pools?: CMType.IdOr<XoPool['id']> | string
   remotes: CMType.IdOr<XoBackupRepository['id']>
   settings: {
     ''?: XoMetadataBackupJobGeneralSettings
@@ -693,6 +696,7 @@ export type XoMirrorBackupJob = BaseXoJob & {
   sourceRemote: XoBackupRepository['id']
   remotes: CMType.IdOr<XoBackupRepository['id']>
   proxy?: XoProxy['id']
+  filter?: { vm: { uuid: { __or: XoVm['id'][] } } } | null
   settings: {
     '': XoMirrorBackupGeneralSettings
     [scheduleId: XoSchedule['id']]: XoMirrorBackupScheduleSettings | undefined

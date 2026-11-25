@@ -116,7 +116,7 @@ export function useXoSrUtils(
   function getSrSelectLabel(sr: FrontXoSr): string {
     const gbLeft = Math.floor(Math.max(sr.size - sr.physical_usage, 0) / ONE_GB)
 
-    return `${sr.name_label} (${getSrLocation(sr)}) - ${t('n-gb-left', { n: gbLeft })}`
+    return `${sr.name_label} - ${t('n-gb-left', { n: gbLeft })} (${getSrLocation(sr)})`
   }
 
   function getSrAccessModeLabel(sr: FrontXoSr): string {

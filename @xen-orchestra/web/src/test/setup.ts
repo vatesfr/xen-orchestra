@@ -1,4 +1,4 @@
-import { enableAutoUnmount } from '@vue/test-utils'
+import { disableAutoUnmount, enableAutoUnmount } from '@vue/test-utils'
 
 // Composables that rely on remote resources (e.g. `useXoRoutes`) call `fetch`
 // as soon as they are used. In unit tests we never want to hit the network, so
@@ -19,4 +19,7 @@ beforeEach(() => {
   localStorage.clear()
 })
 
+// Without test isolation this file runs once per test file in the same module context, and VTU refuses a
+// second registration
+disableAutoUnmount()
 enableAutoUnmount(afterEach)

@@ -1,11 +1,11 @@
 import V2vNextRunCard from '@/modules/v2v/components/mapping/V2vNextRunCard.vue'
 import V2vSourceSnapshotChangedInfo from '@/modules/v2v/components/mapping/V2vSourceSnapshotChangedInfo.vue'
-import { findAccentedInfos } from '@/test/find-accented-labels.ts'
-import { findPanelCardTitle } from '@/test/find-card-title.ts'
+import { findPanelCardTitleLabel } from '@/test/find-card-title.ts'
 import { findCardLabelledValues } from '@/test/find-rendered-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { formatDateTime } from '@core/utils/time.util.ts'
+import { findAccentedInfos } from '@core-test/find-accented-labels.ts'
 import { mount } from '@vue/test-utils'
 
 const LAST_SYNC_AT = Date.UTC(2026, 9, 2, 14, 40)
@@ -19,7 +19,7 @@ function mountCard(props: { lastSyncAt?: number } = {}) {
 }
 
 it('shows its title', () => {
-  expect(findPanelCardTitle(mountCard())).toBe(t('next-run'))
+  expect(findPanelCardTitleLabel(mountCard())).toBe(t('next-run'))
 })
 
 it('tells when the VM was last synced', () => {

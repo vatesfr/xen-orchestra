@@ -18,7 +18,11 @@ export default defineConfig(({ mode }) => {
       }),
       vue(),
       vueI18n({
-        include: fileURLToPath(new URL('../web-core/lib/locales/**', import.meta.url)),
+        // The tests run in English only: loading the 22 other locales in each worker costs about 30 % of the run time
+        // and memory
+        include: fileURLToPath(
+          new URL(mode === 'test' ? '../web-core/lib/locales/en.json' : '../web-core/lib/locales/**', import.meta.url)
+        ),
       }),
     ] as PluginOption[],
     resolve: {
@@ -43,7 +47,13 @@ export default defineConfig(({ mode }) => {
     },
     test: {
       globals: true,
-      setupFiles: ['./src/test/setup.ts'],
+      // The test files share their modules (see docs/tests/mocking.md): about 7x faster than isolating each file. In a
+      // random order, so that a test leaking state into another file fails instead of passing by luck
+      isolate: false,
+      sequence: { shuffle: { files: true } },
+      // More workers are not faster, and each one keeps every module it loaded
+      maxWorkers: 4,
+      setupFiles: ['./src/test/global-module-mocks.ts', './src/test/setup.ts'],
       alias: {
         '@core-test': fileURLToPath(new URL('../web-core/test', import.meta.url)),
         // `placement.js` only declares a `module` entry, which the Node-style resolution used by Vitest ignores

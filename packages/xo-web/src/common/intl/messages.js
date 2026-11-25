@@ -1290,19 +1290,31 @@ const messages = {
   rpuRecoveryInterrupted:
     'The last rolling pool update was interrupted by an xo-server restart. Some hosts may not be updated and some VMs may not be on their original host.',
   rpuRecoveryFailed:
-    'The last rolling pool update failed before completing. Some hosts may not be updated and some VMs may not be on their original host.',
+    'The last rolling pool update failed, or completed without restoring some of the settings it disabled. Some hosts may not be updated, some VMs may not be on their original host and some settings may still be disabled.',
+  rpuRecoveryVmsNotBack:
+    'The last rolling pool update updated every host but could not migrate some VMs back to their original host. A resume tries again.',
   rpuRecoveryBlocked: 'The state of the last rolling pool update could not be read. Manual review is required.',
   rpuRecoveryLastError: 'Last error:',
   rpuRecoveryHaltedPinnedVms: 'VMs shut down for the update and not started again yet:',
+  rpuRecoveryVmConflicts: 'VMs not migrated back to their original host:',
+  rpuRecoveryVmStopped: 'stopped during the update',
+  rpuRecoveryVmDeleted: 'deleted during the update',
+  rpuRecoveryVmMigrationFailed: 'could not be migrated',
   rpuRecoveryRecordExists:
     'A rolling pool update is in progress or was left incomplete. It must be resolved before a new one can start.',
   rpuRecoverySucceeded:
-    'The last rolling pool update completed but its record could not be removed. A new one cannot start until it is finalized.',
+    'The last rolling pool update completed but its record was kept: it could not be removed, or some VMs were stopped or deleted during the update. A new one cannot start until it is finalized.',
+  rpuRecoveryAttempt: 'Attempt {attempt}',
+  rpuRecoveryPlanChanged:
+    'Hosts added to the update after it started, because of patches released since or because they joined the pool:',
+  rpuRecoveryResume: 'Resume',
+  rpuRecoveryResumeConfirm:
+    'Resume the rolling pool update: the hosts with remaining work are handled, and a host already finished is updated and rebooted again if patches were released since. Then the VMs are migrated back to their original host. The settings it left disabled (HA, auto power on, backup schedules, WLB, load balancer) stay disabled until the end, then are restored.',
   rpuRecoveryFinalize: 'Finalize',
   rpuRecoveryFinalizeConfirm:
-    'Finalize the last rolling pool update? Its record will be removed and a new rolling pool update will be allowed. This is refused if the update changed something it did not restore.',
+    'Finalize the last rolling pool update? What it changed and did not restore is restored first: disabled hosts are enabled, VMs are migrated back to their original host or started again, and the settings it disabled are enabled again. A host updated but not rebooted stays disabled: resume the update to finish it. Its record is then removed and a new rolling pool update is allowed. This is refused if something could not be restored.',
   rpuRecoveryForceFinalizeConfirm:
-    'The update changed the following and did not restore them. Finalize anyway? Nothing will be restored: these items are abandoned and listed in the task.',
+    'The following, changed by the update, is not restored: either it could not be, or it is a host updated but not rebooted, left disabled until the update is resumed. Finalize anyway? Nothing more will be restored: these items are abandoned and listed in the task.',
   rpuRecoveryForceFinalizeUnknownConfirm:
     'The record of the update could not be read, so what it changed and did not restore is unknown. Finalize anyway? Nothing will be restored: whatever the update left is abandoned, and the task records that the list is unknown.',
   rpuUnrestoredHa: 'High Availability disabled',
@@ -1314,6 +1326,19 @@ const messages = {
   rpuUnrestoredHost: 'Host disabled',
   rpuUnrestoredVm: 'VM away from its original host',
   rpuUnrestoredHaltedPinnedVm: 'VM shut down for the update and not started again',
+  rpuRecoveryOperatorChanges:
+    'The resume of the last rolling pool update was stopped: some settings it left disabled, or some of its hosts, VMs or backup schedules, were changed since. Resume again to keep these changes.',
+  rpuRecoveryOperatorChangesList: 'Changed since the update:',
+  rpuRecoveryAcceptOperatorChangesConfirm:
+    'The following changes were made since the update stopped. Resume anyway? The update then starts from the pool as it is now, like a new update: what is enabled now is disabled while it runs and enabled again at its end, what was deleted is left out.',
+  rpuOperatorChangeHa: 'High Availability enabled again',
+  rpuOperatorChangeAutoPowerOn: 'Auto power on enabled again',
+  rpuOperatorChangeWlb: 'Workload Balancing enabled again',
+  rpuOperatorChangeSchedule: 'Backup schedule enabled again',
+  rpuOperatorChangeScheduleDeleted: 'Backup schedule deleted',
+  rpuOperatorChangeHaHeartbeatSr: 'HA heartbeat SR deleted, HA will not be enabled again',
+  rpuOperatorChangeHost: 'Host no longer in the pool',
+  rpuOperatorChangeVm: 'VM no longer in the pool',
   poolNeedsDefaultSr: 'The pool needs a default SR to install the patches.',
   vmsHaveCds: '{nVms, number} VM{nVms, plural, one {} other {s}} {nVms, plural, one {has} other {have}} CDs',
   ejectCds: 'Eject CDs',
@@ -2885,6 +2910,22 @@ const messages = {
   licensesManage: 'Manage the licenses',
   newLicense: 'New license',
   refreshLicenses: 'Refresh',
+  uploadAirgapDataPack: 'Upload',
+  uploadAirgapDataPackSuccess: 'Airgap data pack successfully uploaded',
+  uploadAirgapDataPackConfirmTitle: 'Upload airgap data pack',
+  uploadAirgapDataPackConfirmButton: 'Continue',
+  uploadAirgapDataPackFirstImportConfirmMessage:
+    'This appliance will switch to airgap mode: it will no longer contact Vates servers for its licenses and updates, but the license server embedded in this appliance. This cannot be undone from Xen Orchestra.',
+  uploadAirgapDataPackReimportConfirmMessage:
+    'This data pack will replace the license database of this appliance. Licenses activated since your last export will be lost: export your licenses and send them to Vates before continuing.',
+  dropFileHere: 'Drop your data file here',
+  airgapDataPackFileRejected: 'File {name} is not a valid airgap data pack (expected a .tar.xz archive)',
+  airgapDataPack: 'Airgap data pack',
+  airgapDataPackDescription:
+    'On an airgapped appliance, import the airgap data pack you received to register the appliance and update your licenses.',
+  removeAirgapDataPack: 'Remove this file',
+  exportAirgapLicenses: 'Export',
+  exportAirgapLicensesDescription: 'Export your current licenses and their bindings to send them back to Vates.',
   getLicensesError: 'Could not fetch licenses',
   licenseHasExpired: 'License has expired.',
   licenseBoundToOtherXoa: 'License bound to another XOA',
@@ -2932,10 +2973,8 @@ const messages = {
   noProxiesAvailable: 'No proxies available',
   checkProxyHealth: 'Test your proxy',
   updateProxyApplianceSettings: 'Update appliance settings',
-  urlNotFound: 'URL not found',
   proxyAuthToken: 'Authentication token',
   proxyConnectionFailedAfterRegistrationMessage: 'Unable to connect to this proxy. Do you want to forget it?',
-  proxyCopyUrl: 'Copy proxy URL',
   proxyError: 'Proxy error',
   proxyOptionalVmUuid: 'VM UUID is optional but recommended.',
   proxyTestSuccess: 'Test passed for {name}',

@@ -1,5 +1,5 @@
 import V2vMappingCardSection from '@/modules/v2v/components/mapping/V2vMappingCardSection.vue'
-import { findPanelCardTitles } from '@/test/find-card-title.ts'
+import { findPanelCardTitleLabels } from '@/test/find-card-title.ts'
 import { findCardLabelledValues } from '@/test/find-rendered-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { countDividers } from '@/test/v2v-mapping-card.ts'
@@ -24,7 +24,7 @@ function mountSection(rows = ROWS) {
 it('sets itself apart, under its title', () => {
   const wrapper = mountSection()
 
-  expect([countDividers(wrapper), findPanelCardTitles(wrapper)]).toEqual([1, ['Disks']])
+  expect([countDividers(wrapper), findPanelCardTitleLabels(wrapper)]).toEqual([1, ['Disks']])
 })
 
 it('shows each row as the key and the value it renders', () => {

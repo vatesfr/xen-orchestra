@@ -1,4 +1,5 @@
 import type { useVmDelete as realUseVmDelete } from '@/modules/vm/composables/use-vm-delete.composable.ts'
+import { mockModule } from '@/test/spy-on-module.ts'
 import { computed, ref } from 'vue'
 
 // `useVmDelete` calls the REST API and opens modals: a test of one of its callers gets this fake instead. Reset it in
@@ -31,5 +32,10 @@ export const vmDeleteMock = {
   },
 }
 
-// Use as `vi.mock(import('@/modules/vm/composables/use-vm-delete.composable.ts'), () => import('@/test/mock-vm-delete.ts'))`
+// Mocked with `mockVmDelete()`
 export const useVmDelete = vmDeleteMock.useVmDelete as unknown as typeof realUseVmDelete
+
+// Replaces the module in every test of the file: call it at the top level of the test file
+export function mockVmDelete() {
+  mockModule(import('@/modules/vm/composables/use-vm-delete.composable.ts'), () => import('@/test/mock-vm-delete.ts'))
+}

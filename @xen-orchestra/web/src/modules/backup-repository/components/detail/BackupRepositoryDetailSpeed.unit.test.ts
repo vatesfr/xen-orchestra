@@ -1,61 +1,29 @@
 import BackupRepositoryDetailSpeed from '@/modules/backup-repository/components/detail/BackupRepositoryDetailSpeed.vue'
-import type { useXoBackupRepositoryBenchmarkJob } from '@/modules/backup-repository/jobs/xo-backup-repository-benchmark.job.ts'
-import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
+import { createTwiceBenchmarkedBr, LATEST_BR_BENCHMARK_RATES } from '@/test/create-br-benchmark.ts'
 import { createBr } from '@/test/create-br.ts'
+import { findTitleLabel } from '@/test/find-card-title.ts'
 import { findLabelledValues } from '@/test/find-rendered-values.ts'
-import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
+import { itRunsJobFromButton } from '@/test/job-button.ts'
+import { benchmarkJobMock } from '@/test/mock-backup-repository-benchmark-job.ts'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import { formatSpeed } from '@core/utils/speed.util.ts'
-import type { XoBackupRepositoryBenchmark } from '@vates/types'
-import { mount } from '@vue/test-utils'
-import { ref } from 'vue'
 
-const { useBenchmarkJob, run } = vi.hoisted(() => ({
-  useBenchmarkJob: vi.fn(),
-  run: vi.fn(),
-}))
-
-// The job monitors a task through a remote-resource collection, which would open an SSE subscription
-vi.mock(import('@/modules/backup-repository/jobs/xo-backup-repository-benchmark.job.ts'), () => ({
-  useXoBackupRepositoryBenchmarkJob: useBenchmarkJob as unknown as typeof useXoBackupRepositoryBenchmarkJob,
-}))
-
-beforeEach(() => {
-  useBenchmarkJob.mockReset()
-  run.mockReset()
-
-  mockBenchmarkJob()
+// The benchmark button of the card
+const mountCard = itRunsJobFromButton(BackupRepositoryDetailSpeed, {
+  targetProp: 'br',
+  createTarget: createBr,
+  getButton: wrapper => wrapper.getComponent(UiButtonIcon),
+  job: benchmarkJobMock,
+  toJobTarget: null,
+  // A spinner shows it busy
+  expectBusy: button => expect(button.props('icon')).toBe('fa:spinner'),
 })
-
-function mockBenchmarkJob({ canRun = true, isRunning = false }: { canRun?: boolean; isRunning?: boolean } = {}) {
-  useBenchmarkJob.mockReturnValue({
-    run,
-    canRun: ref(canRun),
-    isRunning: ref(isRunning),
-    errorMessage: ref(canRun ? undefined : 'Backup repository disabled'),
-  })
-}
-
-function createBenchmark(overrides: Partial<XoBackupRepositoryBenchmark> = {}): XoBackupRepositoryBenchmark {
-  return { readRate: 200_000_000, writeRate: 100_000_000, timestamp: 1_700_000_000_000, ...overrides }
-}
-
-function mountCard(br: FrontXoBackupRepository = createBr()) {
-  return mount(BackupRepositoryDetailSpeed, {
-    props: { br },
-    global: createGlobalTestConfig(),
-  })
-}
-
-function findBenchmarkButton(wrapper: ReturnType<typeof mountCard>) {
-  return wrapper.getComponent(UiButtonIcon)
-}
 
 it('renders the card title', () => {
   const wrapper = mountCard()
 
-  expect(wrapper.get('.ui-title .label').text()).toBe(t('speed'))
+  expect(findTitleLabel(wrapper)).toBe(t('speed'))
 })
 
 it('leaves the speeds empty when the repository was never benchmarked', () => {
@@ -65,39 +33,10 @@ it('leaves the speeds empty when the repository was never benchmarked', () => {
 })
 
 it('shows the speeds of the latest stored benchmark', () => {
-  const wrapper = mountCard(
-    createBr({
-      benchmarks: [
-        createBenchmark({ writeRate: 1_000_000, readRate: 2_000_000 }),
-        createBenchmark({ writeRate: 100_000_000, readRate: 200_000_000 }),
-      ],
-    })
-  )
+  const wrapper = mountCard(createTwiceBenchmarkedBr())
 
   expect(findLabelledValues(wrapper)).toEqual({
-    [t('writing-speed')]: formatSpeed(100_000_000),
-    [t('reading-speed')]: formatSpeed(200_000_000),
+    [t('writing-speed')]: formatSpeed(LATEST_BR_BENCHMARK_RATES.write),
+    [t('reading-speed')]: formatSpeed(LATEST_BR_BENCHMARK_RATES.read),
   })
-})
-
-it('runs the benchmark job when clicking the benchmark button', async () => {
-  const wrapper = mountCard()
-
-  await findBenchmarkButton(wrapper).trigger('click')
-
-  expect(run).toHaveBeenCalledOnce()
-})
-
-it('disables the benchmark button when the job cannot run', () => {
-  mockBenchmarkJob({ canRun: false })
-  const wrapper = mountCard()
-
-  expect(findBenchmarkButton(wrapper).props('disabled')).toBe(true)
-})
-
-it('shows a spinner on the benchmark button while the benchmark runs', () => {
-  mockBenchmarkJob({ isRunning: true })
-  const wrapper = mountCard()
-
-  expect(findBenchmarkButton(wrapper).props('icon')).toBe('fa:spinner')
 })

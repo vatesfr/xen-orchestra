@@ -1,6 +1,6 @@
 <template>
-  <UiTableCell>
-    <div :class="{ expanded: isExpanded }" class="content">
+  <UiTableCell :class="{ expanded: isExpanded }" class="vts-truncated-text-cell">
+    <div class="content">
       <span ref="text" v-tooltip class="text text-ellipsis">
         {{ content }}
       </span>
@@ -55,32 +55,34 @@ watch(
 </script>
 
 <style lang="postcss" scoped>
-.content {
-  display: flex;
-  align-items: center;
-  gap: 0.8rem;
+.vts-truncated-text-cell {
   max-width: 30rem;
 
+  .content {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+  }
+
+  .text {
+    overflow-wrap: anywhere;
+  }
+
+  .button {
+    flex-shrink: 0;
+    margin-inline-start: auto;
+  }
+
   &.expanded {
-    display: block;
+    min-width: 30rem;
+
+    .content {
+      align-items: baseline;
+    }
 
     .text {
       white-space: normal;
     }
-
-    .button {
-      float: right;
-      margin-top: -0.25rem;
-    }
   }
-}
-
-.text {
-  overflow-wrap: anywhere;
-}
-
-.button {
-  flex-shrink: 0;
-  margin-inline-start: auto;
 }
 </style>

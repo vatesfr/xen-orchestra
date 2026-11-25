@@ -1,76 +1,56 @@
 import { useNetworkDelete } from '@/modules/network/composables/use-network-delete.composable.ts'
-import type { useXoNetworkDeleteJob } from '@/modules/network/jobs/xo-network-delete.job.ts'
+import { useXoNetworkDeleteJob } from '@/modules/network/jobs/xo-network-delete.job.ts'
 import type { FrontXoNetwork } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
-import type { FrontXoPif } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
-import { createJobResult } from '@/test/create-job-result.ts'
-import { createNetwork } from '@/test/create-network.ts'
+import { createJobStub } from '@/test/create-job-result.ts'
+import { BONDED_NETWORK, INTERNAL_NETWORK, PHYSICAL_NETWORK, PRIVATE_NETWORK } from '@/test/create-network.ts'
 import { t } from '@/test/i18n.ts'
+import { deleteModalMock, mockDeleteModal } from '@/test/mock-delete-modal.ts'
+import { mockOverlay, overlayMock } from '@/test/mock-overlay.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
-import type { useDeleteModal } from '@core/composables/modals/use-delete-modal.ts'
-import type { useOverlay } from '@core/packages/overlay/use-overlay.ts'
-import { SDN_CONTROLLER_PRIVATE_NETWORK_UUID_KEY } from '@vates/types'
-
-const { run, useDeleteJob, openDeleteModal } = vi.hoisted(() => ({
-  run: vi.fn(),
-  useDeleteJob: vi.fn(),
-  openDeleteModal: vi.fn(),
-}))
 
 // The job deletes the networks through the REST API
-vi.mock(import('@/modules/network/jobs/xo-network-delete.job.ts'), async importOriginal => ({
-  ...(await importOriginal()),
-  useXoNetworkDeleteJob: useDeleteJob as unknown as typeof useXoNetworkDeleteJob,
-}))
+const deleteJob = createJobStub(useXoNetworkDeleteJob)
 
-vi.mock(import('@core/composables/modals/use-delete-modal.ts'), () => ({
-  useDeleteModal: (() => ({ open: openDeleteModal })) as unknown as typeof useDeleteModal,
-}))
+mockDeleteModal()
 
 // The error modal is the only overlay the composable opens directly
-vi.mock(import('@core/packages/overlay/use-overlay.ts'), () => ({
-  useOverlay: (() => ({ open: vi.fn() })) as unknown as typeof useOverlay,
-}))
+mockOverlay()
 
 beforeEach(() => {
-  run.mockReset()
-  useDeleteJob.mockReset().mockReturnValue(createJobResult(run))
-  openDeleteModal.mockReset()
-})
-
-const PIF_ID = 'pif-123' as FrontXoPif['id']
-
-const physicalNetwork = createNetwork({ PIFs: [PIF_ID] })
-const bondedNetwork = createNetwork({ isBonded: true, PIFs: [PIF_ID] })
-const internalNetwork = createNetwork({ PIFs: [] })
-const privateNetwork = createNetwork({
-  PIFs: [PIF_ID],
-  other_config: { [SDN_CONTROLLER_PRIVATE_NETWORK_UUID_KEY]: 'private-network-1' },
+  deleteJob.reset()
+  deleteModalMock.reset()
+  overlayMock.reset()
 })
 
 function getDeleteModalSubject(networks: FrontXoNetwork[]) {
   mountComposable(() => useNetworkDelete(networks)).wrapper.vm.deleteNetworks()
 
-  return openDeleteModal.mock.lastCall?.[0].props.subject
+  return deleteModalMock.open.mock.lastCall?.[0].props.subject
 }
 
 describe('deleteNetworks', () => {
-  it('names a physical network as a network', () => {
-    expect(getDeleteModalSubject([physicalNetwork])).toBe(t('n-networks', { n: 1 }))
-  })
-
-  it('names a bonded network as a bonded network', () => {
-    expect(getDeleteModalSubject([bondedNetwork])).toBe(t('n-bonded-networks', { n: 1 }))
-  })
-
-  it('names an internal network as an internal network', () => {
-    expect(getDeleteModalSubject([internalNetwork])).toBe(t('n-internal-networks', { n: 1 }))
-  })
-
-  it('names a private network as a private network', () => {
-    expect(getDeleteModalSubject([privateNetwork])).toBe(t('n-private-networks', { n: 1 }))
+  it.each([
+    { kind: 'a physical network as a network', network: PHYSICAL_NETWORK, subject: t('n-networks', { n: 1 }) },
+    {
+      kind: 'a bonded network as a bonded network',
+      network: BONDED_NETWORK,
+      subject: t('n-bonded-networks', { n: 1 }),
+    },
+    {
+      kind: 'an internal network as an internal network',
+      network: INTERNAL_NETWORK,
+      subject: t('n-internal-networks', { n: 1 }),
+    },
+    {
+      kind: 'a private network as a private network',
+      network: PRIVATE_NETWORK,
+      subject: t('n-private-networks', { n: 1 }),
+    },
+  ])('names $kind', ({ network, subject }) => {
+    expect(getDeleteModalSubject([network])).toBe(subject)
   })
 
   it('counts the networks to delete in the name', () => {
-    expect(getDeleteModalSubject([privateNetwork, privateNetwork])).toBe(t('n-private-networks', { n: 2 }))
+    expect(getDeleteModalSubject([PRIVATE_NETWORK, PRIVATE_NETWORK])).toBe(t('n-private-networks', { n: 2 }))
   })
 })

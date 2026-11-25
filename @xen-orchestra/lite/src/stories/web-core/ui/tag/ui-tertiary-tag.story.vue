@@ -6,12 +6,13 @@
         .type('TagAccent')
         .required()
         .preset('info')
-        .enum('info', 'neutral', 'success', 'warning', 'danger', 'muted')
+        .enum('brand', 'info', 'neutral', 'success', 'warning', 'danger', 'muted')
         .widget(),
       prop('truncate')
         .bool()
         .widget()
         .help('Keeps the tag on one line: the longer part ends with an ellipsis first, the shorter one stays whole'),
+      prop('wrap').bool().widget().help('Stacks the term above the value when they do not fit on one line'),
       slot(),
       slot('term'),
       setting('slot').preset('Label').widget(),

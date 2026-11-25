@@ -7,8 +7,8 @@ import { cancelDrawer, findDrawerButtonLabels, submitDrawer } from '@/test/drawe
 import { getButton } from '@/test/get-button.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
-import { openSelect, pickSelectOption } from '@/test/select.ts'
 import VtsFormErrorSummary from '@core/components/form-error-summary/VtsFormErrorSummary.vue'
+import { chooseSelectOption } from '@core-test/select.ts'
 import { mount } from '@vue/test-utils'
 
 const SCHEMA = {
@@ -55,8 +55,7 @@ it('offers the presets of the plugin', () => {
 it('fills the form with the applied preset', async () => {
   const wrapper = mountDrawer(createPlugin({ ...configuredPlugin, configurationPresets: { gmail: GMAIL_PRESET } }))
 
-  await openSelect(wrapper)
-  await pickSelectOption(wrapper, 'gmail')
+  await chooseSelectOption(wrapper, 'gmail')
   await getButton(wrapper, t('action:apply')).trigger('click')
 
   expect(wrapper.getComponent(JsonSchemaField).props('modelValue')).toEqual(GMAIL_PRESET)

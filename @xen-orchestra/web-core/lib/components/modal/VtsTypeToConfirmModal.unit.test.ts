@@ -1,6 +1,7 @@
 import VtsTypeToConfirmModal from '@core/components/modal/VtsTypeToConfirmModal.vue'
 import { createGlobalTestConfig } from '@core-test/create-global-test-config.ts'
 import { t } from '@core-test/i18n.ts'
+import { submitConfirmationText } from '@core-test/submit-confirmation-text.ts'
 import { mount } from '@vue/test-utils'
 
 function mountTypeToConfirmModal() {
@@ -21,19 +22,15 @@ describe('VtsTypeToConfirmModal', () => {
   ])('does not confirm with $label and shows the error', async ({ text }) => {
     const wrapper = mountTypeToConfirmModal()
 
-    await wrapper.get('input').setValue(text)
-    await wrapper.get('form').trigger('submit')
-
-    expect(wrapper.emitted('confirm')).toBeUndefined()
-    expect(wrapper.get('.ui-info').text()).toBe(t('form:error:must-match', { text: '2 VMs' }))
+    expect(await submitConfirmationText(wrapper, text)).toEqual({
+      isConfirmed: false,
+      errors: [t('form:error:must-match', { text: '2 VMs' })],
+    })
   })
 
   it('confirms with the confirmation text', async () => {
     const wrapper = mountTypeToConfirmModal()
 
-    await wrapper.get('input').setValue('2 VMs')
-    await wrapper.get('form').trigger('submit')
-
-    expect(wrapper.emitted('confirm')).toHaveLength(1)
+    expect(await submitConfirmationText(wrapper, '2 VMs')).toEqual({ isConfirmed: true, errors: [] })
   })
 })

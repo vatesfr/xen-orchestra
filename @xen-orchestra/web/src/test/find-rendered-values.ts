@@ -1,13 +1,22 @@
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
+import UiLink from '@core/components/ui/link/UiLink.vue'
+import { findLinks } from '@core-test/find-links.ts'
 import type { VueWrapper } from '@vue/test-utils'
 
 type QueryableWrapper = Pick<VueWrapper, 'findAll'>
+
+type RowWrapper = ReturnType<QueryableWrapper['findAll']>[number]
 
 type PairSelectors = { root: string; label: string; value: string }
 
 const KEY_VALUE_ROW_SELECTOR = '.vts-tabular-key-value-row, .vts-key-value-row'
 
-const CARD_KEY_VALUE_ROW_SELECTOR = '.vts-card-row-key-value'
+// For a check on the row elements themselves, e.g. whether a button sits inside a row
+export const CARD_KEY_VALUE_ROW_SELECTOR = '.vts-card-row-key-value'
+
+const CARD_ROW: PairSelectors = { root: CARD_KEY_VALUE_ROW_SELECTOR, label: '.key', value: '.value' }
+
+const readCardRowLabel = (row: RowWrapper) => row.get(CARD_ROW.label).text()
 
 /**
  * The reading strategy every helper below shares. Selectors travel in an object
@@ -34,7 +43,56 @@ export function findLabelledValues(wrapper: QueryableWrapper): Record<string, st
  * the side-panel cards.
  */
 export function findCardLabelledValues(wrapper: QueryableWrapper): Record<string, string> {
-  return Object.fromEntries(findPairs(wrapper, { root: CARD_KEY_VALUE_ROW_SELECTOR, label: '.key', value: '.value' }))
+  return Object.fromEntries(findCardRows(wrapper))
+}
+
+// The label of every `VtsTabularKeyValueRow` / `VtsKeyValueRow`, in order
+export function findRowLabels(wrapper: QueryableWrapper): string[] {
+  return wrapper.findAll(KEY_VALUE_ROW_SELECTOR).map(row => row.get('dt.label').text())
+}
+
+// The label of every `VtsCardRowKeyValue` row of a side-panel card, in order
+export function findCardRowLabels(wrapper: QueryableWrapper): string[] {
+  return wrapper.findAll(CARD_ROW.root).map(readCardRowLabel)
+}
+
+/**
+ * Same as {@link findCardLabelledValues}, as ordered `[label, value]` pairs: rows sharing a label (one row per VM,
+ * labelled on the first one only) each keep their own pair.
+ */
+export function findCardRows(wrapper: QueryableWrapper): [string, string][] {
+  return findPairs(wrapper, CARD_ROW)
+}
+
+// The `VtsCardRowKeyValue` row labelled `label`, to query what it holds (a link, a copy button); throws without one
+export function getCardRow(wrapper: QueryableWrapper, label: string) {
+  const row = wrapper.findAll(CARD_ROW.root).find(row => readCardRowLabel(row) === label)
+
+  if (row === undefined) {
+    throw new Error(`No row labelled "${label}"`)
+  }
+
+  return row
+}
+
+// The link the `VtsCardRowKeyValue` row labelled `label` holds; throws without one
+export function getCardRowLink(wrapper: QueryableWrapper, label: string) {
+  return getCardRow(wrapper, label).getComponent(UiLink)
+}
+
+// Every `VtsCardRowKeyValue` row as its key and value elements, to read what they hold beyond their text
+export function findCardRowElements(wrapper: QueryableWrapper) {
+  return wrapper.findAll(CARD_ROW.root).map(row => ({ key: row.get(CARD_ROW.label), value: row.get(CARD_ROW.value) }))
+}
+
+// Whether the `VtsCardRowKeyValue` row labelled `label` offers to copy its value
+export function hasCardRowCopy(wrapper: QueryableWrapper, label: string) {
+  return getCardRow(wrapper, label).findComponent(VtsCopyButton).exists()
+}
+
+// Every link the `VtsCardRowKeyValue` rows hold, as its `[text, href]`, in order
+export function findCardRowLinks(wrapper: QueryableWrapper) {
+  return wrapper.findAll(CARD_ROW.root).flatMap(row => findLinks(row))
 }
 
 /**
@@ -45,9 +103,9 @@ export function findCardLabelledValues(wrapper: QueryableWrapper): Record<string
 export function findCardLabelledValueLists(wrapper: QueryableWrapper): Record<string, string[]> {
   return Object.fromEntries(
     wrapper
-      .findAll(CARD_KEY_VALUE_ROW_SELECTOR)
+      .findAll(CARD_ROW.root)
       .map(row => [
-        row.get('.key').text(),
+        readCardRowLabel(row),
         row.findAll('.value-row > .value, .value-container > .value').map(value => value.text()),
       ])
   )
@@ -134,4 +192,9 @@ export function findTags(wrapper: QueryableWrapper): string[] {
   const tags = wrapper.findAll('.ui-tag')
 
   return tags.map(tag => tag.text())
+}
+
+// The inline style of the fill of the `UiProgressBar` of a mounted component, its width the share it shows
+export function findProgressBarFillStyle(wrapper: Pick<VueWrapper, 'get'>): string | undefined {
+  return wrapper.get('.ui-progress-bar .fill').attributes('style')
 }

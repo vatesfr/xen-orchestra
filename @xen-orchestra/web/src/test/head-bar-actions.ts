@@ -1,3 +1,4 @@
+import { collapseOnOverflowMock } from '@/test/mock-collapse-on-overflow.ts'
 import MenuItem from '@core/components/menu/MenuItem.vue'
 import type { VueWrapper } from '@vue/test-utils'
 import { nextTick } from 'vue'
@@ -31,4 +32,22 @@ export function findMenuEntries(wrapper: VueWrapper) {
 
 export function findMenuEntryIndex(wrapper: VueWrapper, label: string) {
   return findMenuEntries(wrapper).findIndex(entry => entry.startsWith(label))
+}
+
+/**
+ * Registers the test of a header whose quick actions follow the power state of its object: it measures them again,
+ * through the mocked `useCollapseOnOverflow` (`mock-collapse-on-overflow.ts`, reset by the test file before each
+ * test). `mountActions` mounts it on a running object, `haltedProps` are the props of that object once halted.
+ */
+export function itMeasuresAgainOnPowerStateChange(
+  mountActions: () => VueWrapper,
+  haltedProps: () => Record<string, unknown>
+) {
+  it('measures the header again when the quick actions change with the power state', async () => {
+    const wrapper = mountActions()
+
+    await wrapper.setProps(haltedProps())
+
+    expect(collapseOnOverflowMock.resetCollapsedCount).toHaveBeenCalledOnce()
+  })
 }

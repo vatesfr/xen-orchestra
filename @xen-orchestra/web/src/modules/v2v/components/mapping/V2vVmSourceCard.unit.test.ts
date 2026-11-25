@@ -1,6 +1,6 @@
 import V2vVmSourceCard from '@/modules/v2v/components/mapping/V2vVmSourceCard.vue'
 import { createV2vVm } from '@/test/create-v2v-inventory.ts'
-import { findPanelCardTitle } from '@/test/find-card-title.ts'
+import { findPanelCardTitleLabel } from '@/test/find-card-title.ts'
 import { findInlineParts } from '@/test/find-parts.ts'
 import { findCardLabelledValues } from '@/test/find-rendered-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
@@ -20,7 +20,7 @@ function mountCard() {
 }
 
 it('shows its title', () => {
-  expect(findPanelCardTitle(mountCard())).toBe(t('source'))
+  expect(findPanelCardTitleLabel(mountCard())).toBe(t('source'))
 })
 
 it('shows the facts of the source VM', () => {

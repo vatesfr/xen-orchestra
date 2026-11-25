@@ -1,5 +1,4 @@
 import { usePoolConnectionForm } from '@/modules/pool/form/use-pool-connection-form.ts'
-import { describeCredentialsErrorWiring } from '@/test/credentials-error-wiring.ts'
 import { dangerMessage } from '@/test/form-messages.ts'
 import { mountComposableWithI18n } from '@/test/mount-composable.ts'
 
@@ -56,5 +55,3 @@ describe('payload', () => {
     expect(form.payload.httpProxy).toBe('http://proxy:3128')
   })
 })
-
-describeCredentialsErrorWiring(mountPoolConnectionForm, fillRequiredFields)

@@ -1,21 +1,21 @@
 import BackupJobRunItem from '@/modules/backup-job/components/list/panel/card-items/BackupJobRunItem.vue'
 import BackupJobLogsCard from '@/modules/backup-job/components/list/panel/cards/BackupJobLogsCard.vue'
 import type { FrontXoBackupLog } from '@/modules/backup-log/remote-resources/use-xo-backup-log-collection.ts'
-import type { useXoScheduleCollection } from '@/modules/schedule/remote-resources/use-xo-schedule-collection.ts'
 import { createBackupLog } from '@/test/create-backup-log.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
+import { mockXoRoutes } from '@/test/mock-xo-routes.ts'
+import { scheduleCollectionMock, mockXoScheduleCollection } from '@/test/mock-xo-schedule-collection.ts'
 import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
 import { mount } from '@vue/test-utils'
-import { computed } from 'vue'
 
-vi.mock(import('@/shared/remote-resources/use-xo-routes.ts'), () => import('@/test/mock-xo-routes.ts'))
+mockXoRoutes()
 
-vi.mock(import('@/modules/schedule/remote-resources/use-xo-schedule-collection.ts'), () => ({
-  useXoScheduleCollection: (() => ({
-    useGetScheduleById: () => computed(() => undefined),
-  })) as unknown as typeof useXoScheduleCollection,
-}))
+mockXoScheduleCollection()
+
+beforeEach(() => {
+  scheduleCollectionMock.reset()
+})
 
 function mountLogsCard(backupLogs: FrontXoBackupLog[]) {
   return mount(BackupJobLogsCard, {

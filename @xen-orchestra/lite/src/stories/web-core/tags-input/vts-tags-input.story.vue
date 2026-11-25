@@ -3,7 +3,7 @@
     v-slot="{ properties }"
     :params="[
       model().type('string[]').preset(['alpha', 'beta']).help('Enter or comma adds the typed value'),
-      prop('accent').enum('brand', 'warning', 'danger').required().preset('brand').widget(),
+      prop('accent').enum('neutral', 'warning', 'danger').required().preset('neutral').widget(),
       prop('placeholder').str().preset('Add a value').widget(),
     ]"
   >

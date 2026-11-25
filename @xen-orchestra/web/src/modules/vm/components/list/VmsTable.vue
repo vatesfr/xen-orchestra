@@ -39,6 +39,7 @@ import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { useTableSelection } from '@core/composables/table-selection.composable.ts'
 import { useTableState } from '@core/composables/table-state.composable.ts'
 import { useVmColumns } from '@core/tables/column-sets/vm-columns.ts'
+import { sortTags } from '@core/utils/sort-tags.util.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -83,6 +84,7 @@ const {
 })
 
 const { HeadCells, BodyCells } = useVmColumns({
+  exclude: ['lastBackupDate'],
   head: () => ({
     checkbox: r => r(pageSelectionModel),
   }),
@@ -99,7 +101,7 @@ const { HeadCells, BodyCells } = useVmColumns({
       vcpus: r => r(vm.CPUs.number),
       ram: r => r(vm.formattedRam.value, vm.formattedRam.prefix),
       diskSpace: r => r(vm.formattedDiskSpace.value, vm.formattedDiskSpace.unit),
-      tags: r => r(vm.tags),
+      tags: r => r(sortTags(vm.tags), 'brand'),
       actions: r =>
         r({
           onClick: () => (selectedVmId.value = vm.id),

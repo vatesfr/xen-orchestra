@@ -29,9 +29,11 @@ import { computed, provide, reactive, useId } from 'vue'
 
 export type InputWrapperMessage = MaybeArray<string | { content: string; accent?: InfoAccent }>
 
+export type InputWrapperAccent = 'neutral' | 'success' | 'warning' | 'danger'
+
 export type InputWrapperController = {
   id: string
-  labelAccent: LabelAccent
+  accent: InputWrapperAccent
   required: boolean
   describedBy: string | undefined
   invalid: boolean
@@ -62,17 +64,19 @@ const unsortedMessages = useArrayMap(
 
 const messages = useRanked(unsortedMessages, ({ accent }) => accent, ['muted', 'info', 'success', 'warning', 'danger'])
 
-const labelAccent = useMapper<InfoAccent, LabelAccent>(
+const messageAccent = useMapper<InfoAccent, InputWrapperAccent>(
   () => messages.value.at(-1)?.accent,
   {
     info: 'neutral',
-    success: 'neutral',
+    success: 'success',
     warning: 'warning',
     danger: 'danger',
     muted: 'neutral',
   },
   'info'
 )
+
+const labelAccent = computed<LabelAccent>(() => (messageAccent.value === 'success' ? 'neutral' : messageAccent.value))
 
 const messageIds = computed(() => messages.value.map((_, index) => `${id}-message-${index}`))
 
@@ -82,7 +86,7 @@ const invalid = computed(() => messages.value.some(({ accent }) => accent === 'd
 
 const wrapperController = reactive({
   id,
-  labelAccent,
+  accent: messageAccent,
   required: false,
   describedBy,
   invalid,

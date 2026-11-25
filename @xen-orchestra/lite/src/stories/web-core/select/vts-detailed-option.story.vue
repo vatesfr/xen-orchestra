@@ -32,7 +32,7 @@
       },
     }"
   >
-    <VtsSelect :id="optionSelectId" accent="brand">
+    <VtsSelect :id="optionSelectId" accent="neutral">
       <template #default="{ option }">
         <VtsDetailedOption v-bind="properties" :option />
       </template>

@@ -1,13 +1,7 @@
 import BackupJobsTable from '@/modules/backup-job/components/list/BackupJobsTable.vue'
 import type { FrontAnyXoBackupJob } from '@/modules/backup-job/remote-resources/use-xo-backup-job-collection.ts'
-import type {
-  FrontXoBackupLog,
-  useXoBackupLogCollection,
-} from '@/modules/backup-log/remote-resources/use-xo-backup-log-collection.ts'
-import type {
-  FrontXoSchedule,
-  useXoScheduleCollection,
-} from '@/modules/schedule/remote-resources/use-xo-schedule-collection.ts'
+import type { FrontXoBackupLog } from '@/modules/backup-log/remote-resources/use-xo-backup-log-collection.ts'
+import type { FrontXoSchedule } from '@/modules/schedule/remote-resources/use-xo-schedule-collection.ts'
 import { createMetadataBackupJob, createMirrorBackupJob, createVmBackupJob } from '@/test/create-backup-job.ts'
 import { createBackupLog } from '@/test/create-backup-log.ts'
 import { createSchedule } from '@/test/create-schedule.ts'
@@ -15,45 +9,27 @@ import { createTestRouter } from '@/test/create-test-router.ts'
 import { getButton } from '@/test/get-button.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
-import { pickSelectOption } from '@/test/select.ts'
+import { backupLogCollectionMock, mockXoBackupLogCollection } from '@/test/mock-xo-backup-log-collection.ts'
+import { mockXoRoutes } from '@/test/mock-xo-routes.ts'
+import { scheduleCollectionMock, mockXoScheduleCollection } from '@/test/mock-xo-schedule-collection.ts'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiLoader from '@core/components/ui/loader/UiLoader.vue'
+import { pickSelectOption } from '@core-test/select.ts'
 import type { XoSchedule, XoSr } from '@vates/types'
 import { flushPromises, mount, type VueWrapper } from '@vue/test-utils'
-import { ref } from 'vue'
 import type { Router } from 'vue-router'
 
-const { areBackupLogsReady, getLastNBackupLogsByJobId, backupLogsByJobId, schedulesByJobId } = vi.hoisted(() => ({
-  areBackupLogsReady: { value: true },
-  getLastNBackupLogsByJobId: vi.fn(),
-  backupLogsByJobId: new Map<string, FrontXoBackupLog[]>(),
-  schedulesByJobId: new Map<string, FrontXoSchedule[]>(),
-}))
+mockXoRoutes()
 
-vi.mock(import('@/shared/remote-resources/use-xo-routes.ts'), () => import('@/test/mock-xo-routes.ts'))
+mockXoBackupLogCollection()
 
-vi.mock(import('@/modules/backup-log/remote-resources/use-xo-backup-log-collection.ts'), () => ({
-  useXoBackupLogCollection: (() => ({
-    areBackupLogsReady: ref(areBackupLogsReady.value),
-    getLastNBackupLogsByJobId,
-    backupLogsByJobId: ref(backupLogsByJobId),
-  })) as unknown as typeof useXoBackupLogCollection,
-}))
-
-vi.mock(import('@/modules/schedule/remote-resources/use-xo-schedule-collection.ts'), () => ({
-  useXoScheduleCollection: (() => ({
-    schedulesByJobId: ref(schedulesByJobId),
-  })) as unknown as typeof useXoScheduleCollection,
-}))
+mockXoScheduleCollection()
 
 beforeEach(() => {
-  areBackupLogsReady.value = true
-  getLastNBackupLogsByJobId.mockReset()
-  getLastNBackupLogsByJobId.mockReturnValue([])
-  backupLogsByJobId.clear()
-  schedulesByJobId.clear()
+  backupLogCollectionMock.reset()
+  scheduleCollectionMock.reset()
 })
 
 function mountTable(backupJobs: FrontAnyXoBackupJob[], router?: Router) {
@@ -68,9 +44,8 @@ function createNamedBackupJob(name: string) {
 }
 
 function setBackupLogs(backupJob: FrontAnyXoBackupJob, statuses: FrontXoBackupLog['status'][], start = Date.now()) {
-  backupLogsByJobId.set(
-    backupJob.id,
-    statuses.map(status => createBackupLog({ jobId: backupJob.id, status, start }))
+  backupLogCollectionMock.backupLogs.value.push(
+    ...statuses.map(status => createBackupLog({ jobId: backupJob.id, status, start }))
   )
 }
 
@@ -153,12 +128,10 @@ describe('mode', () => {
 
 describe('last runs', () => {
   it('shows the status of the last runs of the backup job', () => {
-    getLastNBackupLogsByJobId.mockReturnValue([
-      createBackupLog({ status: 'failure' }),
-      createBackupLog({ status: 'success' }),
-    ])
+    const backupJob = createVmBackupJob()
+    setBackupLogs(backupJob, ['failure', 'success'])
 
-    const cell = findCell(mountTable([createVmBackupJob()]), t('last-n-runs', { n: 3 }))
+    const cell = findCell(mountTable([backupJob]), t('last-n-runs', { n: 3 }))
 
     const statuses = cell.findAllComponents(VtsStatus) as VueWrapper<InstanceType<typeof VtsStatus>>[]
 
@@ -166,7 +139,7 @@ describe('last runs', () => {
   })
 
   it('shows a loader while the backup logs are loading', () => {
-    areBackupLogsReady.value = false
+    backupLogCollectionMock.areBackupLogsReady.value = false
 
     const cell = findCell(mountTable([createVmBackupJob()]), t('last-n-runs', { n: 3 }))
 
@@ -177,10 +150,10 @@ describe('last runs', () => {
 describe('status', () => {
   it('shows the backup job as enabled when at least one of its schedules is enabled', () => {
     const backupJob = createVmBackupJob()
-    schedulesByJobId.set(backupJob.id, [
+    scheduleCollectionMock.schedules.value = [
       createSchedule({ id: 'schedule-1' as FrontXoSchedule['id'], jobId: backupJob.id, enabled: false }),
       createSchedule({ id: 'schedule-2' as FrontXoSchedule['id'], jobId: backupJob.id, enabled: true }),
-    ])
+    ]
 
     const cell = findCell(mountTable([backupJob]), t('status'))
 
@@ -243,34 +216,84 @@ describe('filters', () => {
     expect(findBackupJobNames(wrapper)).toEqual(['A', 'B'])
   })
 
-  it('filters the backup jobs on their status, enabled with at least one enabled schedule', async () => {
-    const enabledJob = createNamedBackupJob('Enabled job')
-    const disabledJob = createNamedBackupJob('Disabled job')
-    schedulesByJobId.set(enabledJob.id, [
-      createSchedule({ jobId: enabledJob.id, enabled: false }),
-      createSchedule({ jobId: enabledJob.id, enabled: true }),
-    ])
-    schedulesByJobId.set(disabledJob.id, [createSchedule({ jobId: disabledJob.id, enabled: false })])
+  const filterCases: {
+    name: string
+    // The enabled state of each schedule of a job, the status of each of its runs, started that many days ago
+    jobs: { name: string; schedules?: boolean[]; statuses?: FrontXoBackupLog['status'][]; daysAgo?: number }[]
+    // The option picked in each filter, by its label
+    picks: [filter: string, option: string][]
+    shown: string[]
+  }[] = [
+    {
+      name: 'filters the backup jobs on their status, enabled with at least one enabled schedule',
+      jobs: [
+        { name: 'Enabled job', schedules: [false, true] },
+        { name: 'Disabled job', schedules: [false] },
+        { name: 'Job without schedule' },
+      ],
+      picks: [[t('status'), t('disabled')]],
+      shown: ['Disabled job', 'Job without schedule'],
+    },
+    {
+      name: 'filters the backup jobs on the status of their last 3 finished runs',
+      jobs: [
+        { name: 'Failed job', statuses: ['pending', 'success', 'success', 'interrupted'] },
+        { name: 'Good job', statuses: ['success', 'success', 'success', 'failure'] },
+      ],
+      picks: [[lastRunsLabel, t('backups:jobs:errors-detected')]],
+      shown: ['Failed job'],
+    },
+    {
+      name: 'filters the backup jobs on the status of their runs of the last 7 days',
+      jobs: [
+        { name: 'Recent job', statuses: ['success'] },
+        { name: 'Old job', statuses: ['failure'], daysAgo: 10 },
+      ],
+      picks: [[lastDaysLabel, t('no-run')]],
+      shown: ['Old job'],
+    },
+    {
+      name: 'combines the filters',
+      jobs: [
+        { name: 'Enabled failed job', schedules: [true], statuses: ['failure'] },
+        { name: 'Disabled failed job', statuses: ['failure'] },
+        { name: 'Enabled job' },
+      ],
+      picks: [
+        [t('status'), t('enabled')],
+        [lastRunsLabel, t('backups:jobs:errors-detected')],
+      ],
+      shown: ['Enabled failed job'],
+    },
+  ]
 
-    const wrapper = mountTable([enabledJob, disabledJob, createNamedBackupJob('Job without schedule')])
+  // Not `it.each`: its `$name` would quote and truncate the name
+  for (const { name, jobs, picks, shown } of filterCases) {
+    it(name, async () => {
+      const backupJobs = jobs.map(job => {
+        const backupJob = createNamedBackupJob(job.name)
+        const { schedules = [], statuses = [], daysAgo } = job
+        scheduleCollectionMock.schedules.value.push(
+          ...schedules.map(enabled => createSchedule({ jobId: backupJob.id, enabled }))
+        )
+        setBackupLogs(
+          backupJob,
+          statuses,
+          daysAgo === undefined ? undefined : Date.now() - daysAgo * 24 * 60 * 60 * 1000
+        )
 
-    await pickFilterOption(wrapper, t('status'), t('disabled'))
+        return backupJob
+      })
 
-    expect(findBackupJobNames(wrapper)).toEqual(['Disabled job', 'Job without schedule'])
-  })
+      const wrapper = mountTable(backupJobs)
 
-  it('filters the backup jobs on the status of their last 3 finished runs', async () => {
-    const failedJob = createNamedBackupJob('Failed job')
-    const goodJob = createNamedBackupJob('Good job')
-    setBackupLogs(failedJob, ['pending', 'success', 'success', 'interrupted'])
-    setBackupLogs(goodJob, ['success', 'success', 'success', 'failure'])
+      for (const [filter, option] of picks) {
+        await pickFilterOption(wrapper, filter, option)
+      }
 
-    const wrapper = mountTable([failedJob, goodJob])
-
-    await pickFilterOption(wrapper, lastRunsLabel, t('backups:jobs:errors-detected'))
-
-    expect(findBackupJobNames(wrapper)).toEqual(['Failed job'])
-  })
+      expect(findBackupJobNames(wrapper)).toEqual(shown)
+    })
+  }
 
   it('keeps the backup jobs matching one of the selected options', async () => {
     const skippedJob = createNamedBackupJob('Skipped job')
@@ -284,34 +307,6 @@ describe('filters', () => {
     await pickSelectOption(wrapper, t('no-run'))
 
     expect(findBackupJobNames(wrapper)).toEqual(['Skipped job', 'Job without run'])
-  })
-
-  it('filters the backup jobs on the status of their runs of the last 7 days', async () => {
-    const recentJob = createNamedBackupJob('Recent job')
-    const oldJob = createNamedBackupJob('Old job')
-    setBackupLogs(recentJob, ['success'])
-    setBackupLogs(oldJob, ['failure'], Date.now() - 10 * 24 * 60 * 60 * 1000)
-
-    const wrapper = mountTable([recentJob, oldJob])
-
-    await pickFilterOption(wrapper, lastDaysLabel, t('no-run'))
-
-    expect(findBackupJobNames(wrapper)).toEqual(['Old job'])
-  })
-
-  it('combines the filters', async () => {
-    const enabledFailedJob = createNamedBackupJob('Enabled failed job')
-    const disabledFailedJob = createNamedBackupJob('Disabled failed job')
-    schedulesByJobId.set(enabledFailedJob.id, [createSchedule({ jobId: enabledFailedJob.id, enabled: true })])
-    setBackupLogs(enabledFailedJob, ['failure'])
-    setBackupLogs(disabledFailedJob, ['failure'])
-
-    const wrapper = mountTable([enabledFailedJob, disabledFailedJob, createNamedBackupJob('Enabled job')])
-
-    await pickFilterOption(wrapper, t('status'), t('enabled'))
-    await pickFilterOption(wrapper, lastRunsLabel, t('backups:jobs:errors-detected'))
-
-    expect(findBackupJobNames(wrapper)).toEqual(['Enabled failed job'])
   })
 
   it('selects and deselects every option of a filter', async () => {

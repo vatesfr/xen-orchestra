@@ -1,11 +1,10 @@
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsDetailedOption from '@core/components/select/VtsDetailedOption.vue'
-import VtsSelect from '@core/components/select/VtsSelect.vue'
 import type { IconName } from '@core/icons'
-import { type FormOption, useFormSelect } from '@core/packages/form-select'
-import { createGlobalTestConfig } from '@core-test/create-global-test-config.ts'
-import { flushPromises, mount, type VueWrapper } from '@vue/test-utils'
-import { defineComponent, h } from 'vue'
+import { mountSelect } from '@core-test/mount-with-select.ts'
+import { openSelect } from '@core-test/select.ts'
+import type { VueWrapper } from '@vue/test-utils'
+import { h } from 'vue'
 
 type DetailedOptionProps = {
   icon?: IconName
@@ -15,25 +14,9 @@ type DetailedOptionProps = {
 
 // An option only renders inside an open select, which provides it its controller
 async function mountDetailedOption(props: DetailedOptionProps = {}) {
-  const wrapper = mount(
-    defineComponent({
-      setup() {
-        const { id } = useFormSelect(['Network'])
+  const wrapper = mountSelect({ sources: ['Network'], option: option => h(VtsDetailedOption, { option, ...props }) })
 
-        return () =>
-          h(
-            VtsSelect,
-            { id, accent: 'brand' },
-            { default: ({ option }: { option: FormOption }) => h(VtsDetailedOption, { option, ...props }) }
-          )
-      },
-    }),
-    { global: createGlobalTestConfig() }
-  )
-
-  await flushPromises()
-  await wrapper.get('.vts-select .ui-input').trigger('click')
-  await flushPromises()
+  await openSelect(wrapper)
 
   return wrapper.getComponent(VtsDetailedOption)
 }

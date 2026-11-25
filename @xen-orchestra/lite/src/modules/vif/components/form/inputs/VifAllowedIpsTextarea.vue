@@ -1,5 +1,5 @@
 <template>
-  <UiTextarea v-model.trim="model" :accent="errorMessage !== undefined ? 'danger' : 'brand'">
+  <UiTextarea v-model.trim="model" :accent="errorMessage !== undefined ? 'danger' : 'neutral'">
     {{ t('allowed-ips') }}
 
     <template #info>{{ t('allowed-ips-example') }}</template>

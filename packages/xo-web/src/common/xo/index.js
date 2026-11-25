@@ -1638,6 +1638,32 @@ const RPU_UNRESTORED_ITEM_LABELS = {
   wlb: 'rpuUnrestoredWlb',
 }
 
+const RPU_OPERATOR_CHANGE_LABELS = {
+  autoPowerOn: 'rpuOperatorChangeAutoPowerOn',
+  ha: 'rpuOperatorChangeHa',
+  haHeartbeatSr: 'rpuOperatorChangeHaHeartbeatSr',
+  host: 'rpuOperatorChangeHost',
+  schedule: 'rpuOperatorChangeSchedule',
+  vm: 'rpuOperatorChangeVm',
+  wlb: 'rpuOperatorChangeWlb',
+}
+
+export const renderRpuOperatorChanges = changes => (
+  <ul>
+    {changes.map(({ type, id, name, observed }) => {
+      const missing = observed === 'missing'
+      // a deleted object has no name left: its UUID identifies it
+      const object = name ?? (missing ? id : undefined)
+      return (
+        <li key={type + id}>
+          {_(type === 'schedule' && missing ? 'rpuOperatorChangeScheduleDeleted' : RPU_OPERATOR_CHANGE_LABELS[type])}
+          {object !== undefined && `: ${object}`}
+        </li>
+      )
+    })}
+  </ul>
+)
+
 export const finalizeRollingPoolUpdate = async poolId => {
   await confirm({
     body: _('rpuRecoveryFinalizeConfirm'),
@@ -1677,8 +1703,62 @@ export const finalizeRollingPoolUpdate = async poolId => {
       icon: 'pool-rolling-update',
     })
     await _call('pool.finalizeRollingUpdate', { pool: poolId, force: true })
+  } finally {
+    // a refused finalization may have restored a part of the items
+    rollingUpdateRecoveryByPool[poolId]?.forceRefresh()
   }
-  rollingUpdateRecoveryByPool[poolId]?.forceRefresh()
+}
+
+export const resumeRollingPoolUpdate = async poolId => {
+  await confirm({
+    body: _('rpuRecoveryResumeConfirm'),
+    title: _('rpuRecoveryResume'),
+    icon: 'pool-rolling-update',
+  })
+
+  const resume = async (options = {}) => {
+    try {
+      await _call('pool.resumeRollingUpdate', { pool: poolId, ...options })
+      subscribeHostMissingPatches.forceRefresh()
+    } catch (err) {
+      // once the backup check is bypassed, the refusal comes from a run in progress
+      if (forbiddenOperation.is(err) && !options.bypassBackupCheck) {
+        await confirm({
+          body: (
+            <p className='text-warning'>
+              <Icon icon='alarm' /> {_('bypassBackupPoolModalMessage')}
+            </p>
+          ),
+          title: _('rpuRecoveryResume'),
+          icon: 'pool-rolling-update',
+        })
+        return resume({ ...options, bypassBackupCheck: true })
+      }
+      // settings changed by an operator since the update: kept once confirmed
+      if (incorrectState.is(err, { property: 'operatorChanges' }) && !options.acceptOperatorChanges) {
+        await confirm({
+          body: (
+            <div className='text-warning'>
+              <p>
+                <Icon icon='alarm' /> {_('rpuRecoveryAcceptOperatorChangesConfirm')}
+              </p>
+              {renderRpuOperatorChanges(err.data.actual)}
+            </div>
+          ),
+          title: _('rpuRecoveryResume'),
+          icon: 'pool-rolling-update',
+        })
+        return resume({ ...options, acceptOperatorChanges: true })
+      }
+      throw err
+    }
+  }
+
+  try {
+    await resume()
+  } finally {
+    rollingUpdateRecoveryByPool[poolId]?.forceRefresh()
+  }
 }
 
 export const installSupplementalPack = (host, file) => {
@@ -4226,6 +4306,8 @@ export const setXostor = (sr, params) => _call('xostor.set', { sr: resolveId(sr)
 
 export const getLicenses = ({ productType } = {}) => _call('xoa.licenses.getAll', { productType })
 
+export const getIsAirgap = () => _call('xoa.getIsAirgap')
+
 export const getLicense = (productId, boundObjectId) => _call('xoa.licenses.get', { productId, boundObjectId })
 
 export const bindLicense = (licenseId, boundObjectId) => _call('xoa.licenses.bind', { licenseId, boundObjectId })
@@ -4506,6 +4588,19 @@ export const esxiListVms = (host, user, password, sslVerify) =>
 export const esxiCheckInstall = () => _call('esxi.checkInstall')
 export const importVmsFromEsxi = params => _call('vm.importMultipleFromEsxi', params)
 
+export const uploadAirgapDataPack = file =>
+  _call('xoa.licenses.uploadAirgapDataPack').then(({ $sendTo }) =>
+    post($sendTo, file).then(async res => {
+      if (!res.ok) {
+        throw new Error(await res.text())
+      }
+      success(_('uploadAirgapDataPackSuccess'))
+    })
+  )
+export const exportAirgapLicenses = () =>
+  _call('xoa.licenses.exportAirgapLicenses').then(({ $getFrom: url }) => {
+    window.open(`.${url}`)
+  })
 // GitHub API ---------------------------------------------------------------
 const _callGithubApi = async (endpoint = '') => {
   const url = new URL('https://api.github.com/repos/vatesfr/xen-orchestra')

@@ -1,6 +1,6 @@
 <template>
   <VtsInputWrapper :label="t('rate-limit')" :message="error">
-    <UiInput v-model.number="model" accent="brand" type="number">
+    <UiInput v-model.number="model" accent="neutral" type="number">
       <template #right-icon>
         <span class="unit typo-body-regular">{{ t('bytes:kbs') }}</span>
       </template>

@@ -62,12 +62,12 @@
           <FormSection :label="t('configuration')">
             <div class="row">
               <VtsInputWrapper :label="t('storage')" :message="t('n-gb-required', { n: REQUIRED_GB })">
-                <VtsSelect :id="srSelectId" accent="brand" />
+                <VtsSelect :id="srSelectId" accent="neutral" />
               </VtsInputWrapper>
             </div>
             <div class="row">
               <VtsInputWrapper :label="t('network')">
-                <VtsSelect :id="networkSelectId" accent="brand" />
+                <VtsSelect :id="networkSelectId" accent="neutral" />
               </VtsInputWrapper>
               <VtsInputWrapper
                 :label="t('deploy-xoa-custom-ntp-servers')"

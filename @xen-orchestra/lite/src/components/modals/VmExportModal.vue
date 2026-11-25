@@ -8,7 +8,7 @@
         :label="t('select-compression')"
         learn-more-url="https://xcp-ng.org/blog/2018/12/19/zstd-compression-for-xcp-ng/"
       >
-        <VtsSelect :id="compressionSelectId" accent="brand" />
+        <VtsSelect :id="compressionSelectId" accent="neutral" />
       </VtsInputWrapper>
     </template>
     <template #buttons>

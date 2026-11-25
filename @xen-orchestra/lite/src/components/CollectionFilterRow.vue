@@ -2,12 +2,12 @@
   <div class="collection-filter-row">
     <span class="or">{{ t('or') }}</span>
     <div class="inputs">
-      <UiInput v-if="newFilter.isAdvanced" v-model="filterContent" accent="brand" class="advanced-input" />
+      <UiInput v-if="newFilter.isAdvanced" v-model="filterContent" accent="neutral" class="advanced-input" />
       <template v-else>
-        <VtsSelect :id="builderPropertySelectId" accent="brand" />
-        <VtsSelect v-if="hasComparisonSelect" :id="builderComparisonSelectId" accent="brand" />
-        <VtsSelect v-if="currentFilter?.type === 'enum'" :id="builderValueSelectId" accent="brand" />
-        <UiInput v-else-if="hasValueInput" v-model="newFilter.builder.value" accent="brand" />
+        <VtsSelect :id="builderPropertySelectId" accent="neutral" />
+        <VtsSelect v-if="hasComparisonSelect" :id="builderComparisonSelectId" accent="neutral" />
+        <VtsSelect v-if="currentFilter?.type === 'enum'" :id="builderValueSelectId" accent="neutral" />
+        <UiInput v-else-if="hasValueInput" v-model="newFilter.builder.value" accent="neutral" />
       </template>
     </div>
     <div class="buttons">

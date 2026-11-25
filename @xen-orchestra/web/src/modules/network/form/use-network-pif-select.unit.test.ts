@@ -7,21 +7,14 @@ import { createPif } from '@/test/create-pif.ts'
 import { createPool, OTHER_POOL_ID } from '@/test/create-pool.ts'
 import { findAllGenericComponents } from '@/test/find-generic-components.ts'
 import { t } from '@/test/i18n.ts'
-import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
-import { mountWithSelect } from '@/test/mount-with-select.ts'
-import { findSelectOptionLabels, openSelect } from '@/test/select.ts'
-import VtsSelect from '@core/components/select/VtsSelect.vue'
+import { xoCollectionsMock, mockXoCollections } from '@/test/mock-xo-collections.ts'
+import { mountWithSetup } from '@/test/mount-with-setup.ts'
+import { renderSelect } from '@core-test/mount-with-select.ts'
+import { findSelectOptionLabels, openSelect } from '@core-test/select.ts'
 import { IP_CONFIGURATION_MODE } from '@vates/types'
-import { nextTick, type Ref, ref, h } from 'vue'
+import { nextTick, type Ref, ref } from 'vue'
 
-vi.mock(
-  import('@/modules/pif/remote-resources/use-xo-pif-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
-vi.mock(
-  import('@/modules/network/remote-resources/use-xo-network-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
+mockXoCollections('pif', 'network')
 
 const POOL = createPool()
 
@@ -43,14 +36,14 @@ function mountPifSelect(
 ) {
   const model = ref(modelValue)
 
-  const wrapper = mountWithSelect(() => {
+  const wrapper = mountWithSetup(() => {
     const { interfacesSelectId } = useNetworkPifSelect(pool, model, {
       networkType: NETWORK_TYPE.PHYSICAL,
       value: 'id',
       ...options,
     })
 
-    return () => h(VtsSelect, { id: interfacesSelectId, accent: 'brand' })
+    return () => renderSelect(interfacesSelectId)
   })
 
   return { wrapper, model }

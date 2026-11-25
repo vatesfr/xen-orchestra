@@ -1,48 +1,29 @@
 import BackupJobInfosCard from '@/modules/backup-job/components/list/panel/cards/BackupJobInfosCard.vue'
 import type { FrontAnyXoBackupJob } from '@/modules/backup-job/remote-resources/use-xo-backup-job-collection.ts'
-import type { useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
-import type { useXoPbdCollection } from '@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'
 import type { FrontXoSchedule } from '@/modules/schedule/remote-resources/use-xo-schedule-collection.ts'
-import type {
-  FrontXoSr,
-  useXoSrCollection,
-} from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
+import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import { createMetadataBackupJob, createVmBackupJob } from '@/test/create-backup-job.ts'
 import { createSchedule } from '@/test/create-schedule.ts'
 import { createSr } from '@/test/create-sr.ts'
-import { findCardLabelledValueLists, findCardLabelledValues } from '@/test/find-rendered-values.ts'
+import {
+  findCardLabelledValueLists,
+  findCardLabelledValues,
+  findCardRowLinks,
+  findCardRows,
+} from '@/test/find-rendered-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
+import { xoCollectionsMock, mockXoCollections } from '@/test/mock-xo-collections.ts'
+import { mockXoRoutes } from '@/test/mock-xo-routes.ts'
 import VtsCopyAllMenuItem from '@core/components/copy-all-menu-item/VtsCopyAllMenuItem.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
-import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
 import type { XoSchedule } from '@vates/types'
 import { mount, type VueWrapper } from '@vue/test-utils'
-import { ref } from 'vue'
 
-const { srs } = vi.hoisted(() => ({
-  srs: [] as FrontXoSr[],
-}))
+mockXoRoutes()
 
-vi.mock(import('@/shared/remote-resources/use-xo-routes.ts'), () => import('@/test/mock-xo-routes.ts'))
-
-vi.mock(import('@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'), () => ({
-  useXoSrCollection: (() => ({
-    getSrById: (id: FrontXoSr['id']) => srs.find(sr => sr.id === id),
-  })) as unknown as typeof useXoSrCollection,
-}))
-
-vi.mock(import('@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'), () => ({
-  useXoPbdCollection: (() => ({
-    getPbdsByIds: () => [],
-    pbdsBySr: ref(new Map()),
-  })) as unknown as typeof useXoPbdCollection,
-}))
-
-vi.mock(import('@/modules/host/remote-resources/use-xo-host-collection.ts'), () => ({
-  useXoHostCollection: (() => ({ getHostById: () => undefined })) as unknown as typeof useXoHostCollection,
-}))
+mockXoCollections('host', 'pbd', 'sr')
 
 const firstScheduleId = 'schedule-1' as XoSchedule['id']
 const secondScheduleId = 'schedule-2' as XoSchedule['id']
@@ -50,7 +31,8 @@ const secondScheduleId = 'schedule-2' as XoSchedule['id']
 const healthCheckSr = createSr({ id: 'sr-1' as FrontXoSr['id'], name_label: 'Health check SR' })
 
 beforeEach(() => {
-  srs.splice(0, srs.length, healthCheckSr)
+  xoCollectionsMock.reset()
+  xoCollectionsMock.srs.value = [healthCheckSr]
 })
 
 function mountInfosCard(backupJob: FrontAnyXoBackupJob, schedules: FrontXoSchedule[] = [createSchedule()]) {
@@ -64,10 +46,6 @@ function findStatuses(wrapper: ReturnType<typeof mountInfosCard>) {
   return (wrapper.findAllComponents(VtsStatus) as VueWrapper<InstanceType<typeof VtsStatus>>[]).map(status =>
     status.props('status')
   )
-}
-
-function findValues(wrapper: ReturnType<typeof mountInfosCard>) {
-  return wrapper.findAll('.vts-card-row-key-value').map(row => row.get('.value').text())
 }
 
 it('titles the card with the backup job, linked to the XO 5 backup overview', () => {
@@ -150,10 +128,8 @@ it('links each health check SR to its page, and shows the id of a missing one', 
     },
   })
   const wrapper = mountInfosCard(backupJob)
-  const srLinks = wrapper.findAll('.vts-card-row-key-value').flatMap(row => row.findAllComponents(UiLink))
-
-  expect(srLinks.map(link => [link.text(), link.attributes('href')])).toEqual([['Health check SR', '/sr/sr-1/general']])
-  expect(findValues(wrapper)).toContain('sr-missing')
+  expect(findCardRowLinks(wrapper)).toEqual([['Health check SR', '/sr/sr-1/general']])
+  expect(findCardRows(wrapper).map(([, value]) => value)).toContain('sr-missing')
 })
 
 it('shows no mode nor health check for a metadata job', () => {

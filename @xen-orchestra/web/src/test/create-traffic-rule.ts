@@ -17,3 +17,8 @@ export function createTrafficRule(overrides: Partial<TrafficRule> = {}): Traffic
     ...overrides,
   } as TrafficRule
 }
+
+// The ids of the rules, in their order
+export function getTrafficRuleIds(rules: Pick<TrafficRule, 'id'>[]) {
+  return rules.map(rule => rule.id)
+}

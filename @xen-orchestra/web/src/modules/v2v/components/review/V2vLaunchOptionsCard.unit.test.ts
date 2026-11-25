@@ -1,12 +1,12 @@
 import V2vLaunchOptionsCard from '@/modules/v2v/components/review/V2vLaunchOptionsCard.vue'
 import FormCheckbox from '@/shared/components/form/FormCheckbox.vue'
-import { findAccentedInfos } from '@/test/find-accented-labels.ts'
 import { findCardTitle } from '@/test/find-card-title.ts'
 import { getCheckbox } from '@/test/get-checkbox.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { mountV2vLaunchForm } from '@/test/mount-v2v-launch-form.ts'
 import VtsNumberInput from '@core/components/number-input/VtsNumberInput.vue'
+import { findAccentedInfos } from '@core-test/find-accented-labels.ts'
 import { mount } from '@vue/test-utils'
 
 function mountCard() {

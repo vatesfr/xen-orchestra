@@ -4,30 +4,19 @@ import type { PrivateNetworkInterface } from '@/modules/network/form/new-private
 import type { FrontXoPif } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
 import { createPif } from '@/test/create-pif.ts'
 import { createPool, OTHER_POOL_ID } from '@/test/create-pool.ts'
-import { findAccentedInfos } from '@/test/find-accented-labels.ts'
 import { findTableColumnCells } from '@/test/find-table-cells.ts'
 import { getUiButton } from '@/test/get-button.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
-import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
-import { openSelect } from '@/test/select.ts'
+import { xoCollectionsMock, mockXoCollections } from '@/test/mock-xo-collections.ts'
 import VtsDetailedOption from '@core/components/select/VtsDetailedOption.vue'
 import VtsRow from '@core/components/table/VtsRow.vue'
+import { findAccentedInfos } from '@core-test/find-accented-labels.ts'
+import { openSelect } from '@core-test/select.ts'
 import { mount } from '@vue/test-utils'
 import { reactive } from 'vue'
 
-vi.mock(
-  import('@/modules/pool/remote-resources/use-xo-pool-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
-vi.mock(
-  import('@/modules/pif/remote-resources/use-xo-pif-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
-vi.mock(
-  import('@/modules/network/remote-resources/use-xo-network-collection.ts'),
-  () => import('@/test/mock-xo-collections.ts')
-)
+mockXoCollections('pool', 'pif', 'network')
 
 const POOL = createPool()
 

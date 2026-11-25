@@ -1,6 +1,6 @@
 <template>
   <VtsInputWrapper :label :message="error">
-    <UiInput v-model.trim="model" accent="brand" :required />
+    <UiInput v-model.trim="model" accent="neutral" :required />
   </VtsInputWrapper>
 </template>
 

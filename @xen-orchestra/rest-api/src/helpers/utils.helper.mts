@@ -195,3 +195,12 @@ export const parseXml = (function () {
 export function ensureArray<T>(value: T | T[] | undefined): T[] {
   return value === undefined ? [] : Array.isArray(value) ? value : [value]
 }
+
+export function getFileNameFromUrl(url: URL): string {
+  const fileName = url.pathname.slice(url.pathname.lastIndexOf('/') + 1)
+  try {
+    return decodeURIComponent(fileName)
+  } catch {
+    return fileName
+  }
+}

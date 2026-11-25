@@ -1,5 +1,5 @@
 <template>
-  <tr class="vts-row" :class="{ selected, error }">
+  <tr class="vts-row" :class="{ selected, error, warning }">
     <slot />
   </tr>
 </template>
@@ -8,6 +8,7 @@
 defineProps<{
   selected?: boolean
   error?: boolean
+  warning?: boolean
 }>()
 </script>
 
@@ -15,6 +16,10 @@ defineProps<{
 .vts-row {
   &.selected {
     --ui-table-cell-background-color: var(--color-brand-background-selected);
+  }
+
+  &.warning {
+    --ui-table-cell-background-color: var(--color-warning-background-selected);
   }
 
   &.error {
