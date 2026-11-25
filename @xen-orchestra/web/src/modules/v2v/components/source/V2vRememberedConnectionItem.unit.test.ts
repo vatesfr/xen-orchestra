@@ -11,7 +11,7 @@ import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsRelativeTime from '@core/components/relative-time/VtsRelativeTime.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import { findTitle } from '@core-test/find-title.ts'
-import { clickMenuItem, openMoreActions } from '@core-test/menu.ts'
+import { clickMenuItem, findMoreActionLabels, openMoreActions } from '@core-test/menu.ts'
 import { mount } from '@vue/test-utils'
 import { omit } from 'lodash-es'
 
@@ -26,12 +26,6 @@ function mountItem(connection: V2vRememberedConnection = createV2vRememberedConn
     props: { connection, disabled },
     global: createGlobalTestConfig(),
   })
-}
-
-async function listMenuLabels(wrapper: ReturnType<typeof mountItem>) {
-  const items = await openMoreActions(wrapper)
-
-  return items.map(item => item.text())
 }
 
 it('shows the host with its platform', () => {
@@ -110,11 +104,15 @@ it('cannot connect when disabled', () => {
 })
 
 it('offers to edit, forget the password and forget the connection', async () => {
-  expect(await listMenuLabels(mountItem())).toEqual([t('action:edit'), t('action:forget-password'), t('action:forget')])
+  expect(await findMoreActionLabels(mountItem())).toEqual([
+    t('action:edit'),
+    t('action:forget-password'),
+    t('action:forget'),
+  ])
 })
 
 it('does not offer to forget a password that is not remembered', async () => {
-  const labels = await listMenuLabels(mountItem(omit(createV2vRememberedConnection(), 'password')))
+  const labels = await findMoreActionLabels(mountItem(omit(createV2vRememberedConnection(), 'password')))
 
   expect(labels).toEqual([t('action:edit'), t('action:forget')])
 })

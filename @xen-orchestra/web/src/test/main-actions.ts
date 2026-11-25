@@ -1,15 +1,10 @@
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
-import MenuItem from '@core/components/menu/MenuItem.vue'
 import UiDropdownButton from '@core/components/ui/dropdown-button/UiDropdownButton.vue'
 import { IK_PANEL_ACTIONS_COMPACT } from '@core/utils/injection-keys.util.ts'
-import { openMoreActions } from '@core-test/menu.ts'
-import { mount, type VueWrapper } from '@vue/test-utils'
+import { findMoreActionLabels } from '@core-test/menu.ts'
+import { mount } from '@vue/test-utils'
 import { type Component, computed } from 'vue'
-
-function findMenuItemLabels(wrapper: VueWrapper) {
-  return wrapper.findAllComponents(MenuItem).map(item => item.text())
-}
 
 /**
  * Registers the tests the main actions of every object side panel share: the state change dropdown beside the more
@@ -40,9 +35,7 @@ export function itCompactsMainActions(
     it('keeps the state change out of the more actions menu', async () => {
       const wrapper = mountActions()
 
-      await openMoreActions(wrapper)
-
-      const labels = findMenuItemLabels(wrapper)
+      const labels = await findMoreActionLabels(wrapper)
 
       if (otherMenuItem !== undefined) {
         expect(labels).toContain(otherMenuItem)
@@ -63,9 +56,7 @@ export function itCompactsMainActions(
     it('moves the state change into the more actions menu', async () => {
       const wrapper = mountActions({ isPanelCompact: true })
 
-      await openMoreActions(wrapper)
-
-      expect(findMenuItemLabels(wrapper)).toContain(t('action:change-state'))
+      expect(await findMoreActionLabels(wrapper)).toContain(t('action:change-state'))
     })
   })
 }

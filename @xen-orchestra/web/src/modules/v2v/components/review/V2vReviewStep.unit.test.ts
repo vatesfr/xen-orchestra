@@ -1,4 +1,3 @@
-import { getTaskRoute } from '@/modules/task/utils/xo-task.util.ts'
 import V2vSourceSnapshotChangedInfo from '@/modules/v2v/components/mapping/V2vSourceSnapshotChangedInfo.vue'
 import V2vLaunchGroup from '@/modules/v2v/components/review/V2vLaunchGroup.vue'
 import V2vLaunchGroupVm from '@/modules/v2v/components/review/V2vLaunchGroupVm.vue'
@@ -27,7 +26,7 @@ import { V2V_DB_VM, V2V_LISTED_VM, V2V_WEB_VM } from '@/test/v2v-vms-fixtures.ts
 import { V2V_LIST_POOL } from '@/test/v2v-wizard-fixtures.ts'
 import UiAlert from '@core/components/ui/alert/UiAlert.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
-import UiLink from '@core/components/ui/link/UiLink.vue'
+import { findLink } from '@core-test/find-links.ts'
 import { findStateHeroTypes } from '@core-test/find-state-hero-types.ts'
 import { getSuccessState } from '@core-test/get-success-state.ts'
 import { flushPromises, type VueWrapper } from '@vue/test-utils'
@@ -122,9 +121,7 @@ it('links an excluded VM to its mapping, with its reason', async () => {
   const { wrapper } = await mountStep()
   const excluded = getGroup(wrapper, 'v2v:launch-group:excluded').getComponent(V2vLaunchGroupVm)
 
-  expect(excluded.getComponent(UiLink).props('to')).toEqual({
-    query: { pool: V2V_LIST_POOL.id, step: 'mapping', vm: V2V_GONE_VM_ID },
-  })
+  expect(findLink(excluded)?.href).toBe(`/admin/v2v/migrate?step=mapping&pool=${V2V_LIST_POOL.id}&vm=${V2V_GONE_VM_ID}`)
   expect(excluded.text()).toBe(`${V2V_GONE_VM_ID}${t('v2v:not-found-in-source')}`)
 })
 
@@ -232,7 +229,10 @@ describe('once launched', () => {
   it('links to the task of the launch', async () => {
     const { wrapper } = await mountLaunched()
 
-    expect(getSuccessState(wrapper).link).toEqual({ label: t('action:see-task'), to: getTaskRoute(V2V_START_TASK_ID) })
+    expect(getSuccessState(wrapper).link).toMatchObject({
+      text: t('action:see-task'),
+      href: `/tasks?id=${V2V_START_TASK_ID}`,
+    })
   })
 
   it('goes back to the VMs step', async () => {

@@ -1,4 +1,3 @@
-import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import MenuItem from '@core/components/menu/MenuItem.vue'
 import MenuTrigger from '@core/components/menu/MenuTrigger.vue'
 import type { MobileMenuController } from '@core/components/menu/VtsMobileMenu.vue'
@@ -10,6 +9,7 @@ import {
   IK_MENU_LEVEL,
   IK_MOBILE_MENU,
 } from '@core/utils/injection-keys.util.ts'
+import { findIconNames } from '@core-test/find-icon-names.ts'
 import { mountWithSetupResult } from '@core-test/mount-with-setup.ts'
 import { flushPromises, mount } from '@vue/test-utils'
 import { computed, h, provide, type VNodeChild } from 'vue'
@@ -86,10 +86,6 @@ function deferAction() {
   return { onClick, settle }
 }
 
-function findIconNames({ trigger }: ReturnType<typeof mountMenuItem>) {
-  return trigger.findAllComponents(VtsIcon).map(icon => icon.props('name'))
-}
-
 function renderSlot(slot: () => VNodeChild) {
   return mount(() => slot()).text()
 }
@@ -98,7 +94,7 @@ it('renders its label in a trigger with its accent and icon', () => {
   const item = mountMenuItem()
 
   expect(item.trigger.text()).toBe('Item')
-  expect(findIconNames(item)).toEqual(['action:add'])
+  expect(findIconNames(item.trigger)).toEqual(['action:add'])
   expect(item.trigger.props()).toMatchObject({ accent: 'brand', icon: 'action:add', disabled: false, busy: false })
 })
 
@@ -191,7 +187,7 @@ describe('submenu in a mobile menu', () => {
   })
 
   it('shows the submenu arrow', () => {
-    expect(findIconNames(mountMenuItem({ submenu: true, mobileMenu: { openSubmenu: vi.fn() } }))).toEqual([
+    expect(findIconNames(mountMenuItem({ submenu: true, mobileMenu: { openSubmenu: vi.fn() } }).trigger)).toEqual([
       'action:add',
       'fa:angle-right',
     ])
@@ -224,7 +220,7 @@ describe('submenu', () => {
     { direction: 'vertical', horizontal: false, icon: 'fa:angle-right' },
     { direction: 'horizontal', horizontal: true, icon: 'fa:angle-down' },
   ])('points its arrow toward its submenu in a $direction menu', ({ horizontal, icon }) => {
-    expect(findIconNames(mountMenuItem({ submenu: true, horizontal }))).toEqual(['action:add', icon])
+    expect(findIconNames(mountMenuItem({ submenu: true, horizontal }).trigger)).toEqual(['action:add', icon])
   })
 
   it.each([

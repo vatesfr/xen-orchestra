@@ -20,6 +20,13 @@ export async function openMoreActions(wrapper: MenuWrapper) {
   return wrapper.findAllComponents(MenuItem)
 }
 
+// Opens the menu of the more actions button, returns the label of each of its `MenuItem`s, in order
+export async function findMoreActionLabels(wrapper: MenuWrapper) {
+  const items = await openMoreActions(wrapper)
+
+  return items.map(item => item.text())
+}
+
 // The `MenuTrigger` labelled `label`, the first one without a label; throws without one
 export function getMenuTrigger(wrapper: MenuWrapper, label?: string) {
   const triggers = wrapper.findAllComponents(MenuTrigger)

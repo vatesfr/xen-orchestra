@@ -1,7 +1,7 @@
-import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsSelect from '@core/components/select/VtsSelect.vue'
 import UiInput from '@core/components/ui/input/UiInput.vue'
 import type { IconName } from '@core/icons'
+import { findIconNames } from '@core-test/find-icon-names.ts'
 import { t } from '@core-test/i18n.ts'
 import { mountSelect, renderSelect } from '@core-test/mount-with-select.ts'
 import { mountWithSetup } from '@core-test/mount-with-setup.ts'
@@ -15,10 +15,7 @@ const SUCCESS_ICON: IconName = 'status:success-circle'
 const CHEVRON_ICON: IconName = 'fa:angle-down'
 
 function findTriggerIconNames(wrapper: VueWrapper) {
-  return wrapper
-    .getComponent(UiInput)
-    .findAllComponents(VtsIcon)
-    .map(icon => icon.props('name'))
+  return findIconNames(wrapper.getComponent(UiInput))
 }
 
 it.each(['neutral', 'success', 'warning', 'danger'] as const)('applies the %s accent to the trigger', accent => {

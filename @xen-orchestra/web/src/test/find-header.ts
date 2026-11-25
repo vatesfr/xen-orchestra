@@ -1,5 +1,6 @@
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import UiHeadBar from '@core/components/ui/head-bar/UiHeadBar.vue'
+import { findLink } from '@core-test/find-links.ts'
 import type { VueWrapper } from '@vue/test-utils'
 
 // The label of the `UiHeadBar` of a page header
@@ -34,5 +35,5 @@ export function findBreadcrumbItems(wrapper: Pick<VueWrapper, 'findAll'>) {
 
 // Where the link of the breadcrumb of a page header leads back to
 export function findBreadcrumbLink(wrapper: Pick<VueWrapper, 'get'>) {
-  return wrapper.get('.ui-breadcrumb a.ui-link').attributes('href')
+  return findLink(wrapper.get('.ui-breadcrumb'))?.href
 }
