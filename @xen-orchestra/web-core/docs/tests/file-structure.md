@@ -12,16 +12,15 @@
 
 - **One `describe` block per function or exposed property**, labeled with its exact name (`describe('formatItemCount')`, `describe('status')`). A component test has no such members: group with `describe` only to separate genuinely distinct behaviors, otherwise flat `it`s read better.
 - Use `it` (not `test`).
-- The name completes the sentence the `it` starts: a **present-tense assertion**, lowercase, no trailing period, and **without a redundant prefix** — the `describe` label already carries the function name. `it('formats the selected count with the total')` reads as one sentence; `it('formatItemCount formats …')` stutters.
+- The name completes the sentence the `it` starts: a **present-tense assertion**, lowercase, no trailing period, and **without a redundant prefix** — the `describe` label already carries the function name. `it('formats the selected count with the total')` reads as one sentence; `it('formatItemCount formats …')` stutters. An `it.each` row label follows the same rule.
 
 ```typescript
 describe('formatItemCount', () => {
-  it('formats the selected count with the total', () => {
-    expect(formatItemCount({ selected: 2, total: 8 })).toBe('2 / 8')
-  })
-
-  it('falls back to zero for missing counts', () => {
-    expect(formatItemCount({})).toBe('0 / 0')
+  it.each([
+    { label: 'formats the selected count with the total', counts: { selected: 2, total: 8 }, expected: '2 / 8' },
+    { label: 'falls back to zero for missing counts', counts: {}, expected: '0 / 0' },
+  ])('$label', ({ counts, expected }) => {
+    expect(formatItemCount(counts)).toBe(expected)
   })
 })
 ```

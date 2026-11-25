@@ -4,12 +4,11 @@ Utility functions (`*.util.ts`) are pure — import and call them directly, and 
 
 ```typescript
 describe('toVariants', () => {
-  it('renders a `true` value as the bare key', () => {
-    expect(toVariants({ disabled: true })).toEqual(['disabled'])
-  })
-
-  it('drops falsy values', () => {
-    expect(toVariants({ accent: undefined, disabled: false, size: '' })).toEqual([])
+  it.each([
+    { label: 'renders a `true` value as the bare key', variants: { disabled: true }, expected: ['disabled'] },
+    { label: 'drops falsy values', variants: { accent: undefined, disabled: false, size: '' }, expected: [] },
+  ])('$label', ({ variants, expected }) => {
+    expect(toVariants(variants)).toEqual(expected)
   })
 })
 ```

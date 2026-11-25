@@ -1,6 +1,6 @@
 # Mocking (XO 6)
 
-The typed mock form, the partial-mock cast and shared mock modules are in [Mocking dependencies](../../../web-core/docs/tests/mocking.md); XO 6 test files use `mockModule` in place of `vi.mock` and `vi.hoisted`, as below. In XO 6, **mock only the remote-resource collections / stores** a composable depends on.
+The typed mock form, the partial-mock cast and shared mock modules are in [Mocking dependencies](../../../web-core/docs/tests/mocking.md); XO 6 test files use `mockModule` in place of `vi.mock` and `vi.hoisted`, as below.
 
 A test file never calls `vi.mock`. Every module a test replaces is mocked once, in `src/test/global-module-mocks.ts`, for every test file: each function it exports becomes a spy calling the real one. The module then exists once whatever file loads it first, so the test files can share their modules (no test isolation) without one file's mock leaking into another. Mocking a new module adds its line there. ESLint rejects `vi.mock`, `vi.doMock`, `vi.unmock`, `vi.doUnmock`, `vi.hoisted`, `vi.resetModules()` and `vi.resetAllMocks()` in a test file.
 

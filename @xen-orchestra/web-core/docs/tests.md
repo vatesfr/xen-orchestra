@@ -26,7 +26,7 @@ Every component gets tests in the medium term; until then, a change to a compone
 | Generic — knows only web-core components or Vue (`mountComposable`, `createGlobalTestConfig`) | `web-core/test/`               | `@core-test/…` |
 | Domain-aware — knows an XO object, an XO 6 module, a remote resource                          | `@xen-orchestra/web/src/test/` | `@/test/…`     |
 
-XO 6 tests import the generic helpers through `@core-test` too, so a helper exists once for both packages: a generic one found in `src/test/` moves to `web-core/test/` when it is next touched. The exception is the mount config: XO 6 keeps its own `createGlobalTestConfig` in `src/test/`, which installs the app configuration (form validation, real routes) and takes options; its `mountComposable` runs the web-core one with that config, and its tests import those. Never add a domain-aware helper to web-core.
+XO 6 tests import the generic helpers through `@core-test` too, so a helper exists once for both packages: a generic one found in `src/test/` moves to `web-core/test/` when it is next touched. The exception is the mount config: XO 6 keeps its own `createGlobalTestConfig` in `src/test/`, which installs the app configuration (form validation, real routes) and takes options; its `mountComposable` and its `mountWithSetup` / `mountWithSetupResult` / `mountComposableUnderSetup` (`mount-with-setup.ts`) run the web-core ones with that config, and its tests import those. Never add a domain-aware helper to web-core.
 
 ## Writing a test
 
