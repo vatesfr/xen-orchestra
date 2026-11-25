@@ -68,7 +68,7 @@ Prefer this shape, one assertion covering every row a user sees: it fails loudly
 
 The class must exist for the component's own CSS: **never add a class only for a test**, and remove one whose CSS is gone. Without a styled class, query the component (`getComponent`), a styled class of a child component, or the text the user reads.
 
-A query a second test file needs becomes a shared reader (see [Shared test helpers](../tests.md#shared-test-helpers)); XO 6 already has many, listed in [Read what a component renders](../../../web/docs/tests/helpers.md#read-what-a-component-renders).
+Before writing a query, look for a shared reader: [Shared test helpers](../tests.md#shared-test-helpers), and in XO 6 [Read what a component renders](../../../web/docs/tests/helpers.md#read-what-a-component-renders).
 
 ### Never spell out a translation
 

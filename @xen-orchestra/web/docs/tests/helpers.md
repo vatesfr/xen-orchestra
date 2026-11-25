@@ -1,6 +1,6 @@
 # Shared helpers by need (XO 6)
 
-Every helper of `src/test/` (`@/test/…`), under what a test needs it for: look the need up before writing a query, a mount, a mock or a test case. The XO objects are built by the [test data factories](./factories.md). The generic helpers of `web-core/test/` (`@core-test/…`) are named where XO 6 uses them and described in [Shared test helpers](../../../web-core/docs/tests.md#shared-test-helpers); a generic helper still in `src/test/` moves there when next touched.
+Every helper of `src/test/` (`@/test/…`), under what a test needs it for: look the need up before writing a query, a mount, a mock or a test case. The XO objects are built by the [test data factories](./factories.md). The generic helpers of `web-core/test/` (`@core-test/…`) are named where XO 6 uses them and described in [Shared test helpers](../../../web-core/docs/tests.md#shared-test-helpers).
 
 A new `src/test/` helper is added here, under its need, in the same change.
 
