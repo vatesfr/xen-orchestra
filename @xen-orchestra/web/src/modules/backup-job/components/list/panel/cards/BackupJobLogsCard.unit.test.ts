@@ -2,11 +2,11 @@ import BackupJobRunItem from '@/modules/backup-job/components/list/panel/card-it
 import BackupJobLogsCard from '@/modules/backup-job/components/list/panel/cards/BackupJobLogsCard.vue'
 import type { FrontXoBackupLog } from '@/modules/backup-log/remote-resources/use-xo-backup-log-collection.ts'
 import { createBackupLog } from '@/test/create-backup-log.ts'
+import { findPanelCardTitleLabels } from '@/test/find-titles.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { mockXoRoutes } from '@/test/mock-xo-routes.ts'
 import { scheduleCollectionMock, mockXoScheduleCollection } from '@/test/mock-xo-schedule-collection.ts'
-import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
 import { mount } from '@vue/test-utils'
 
 mockXoRoutes()
@@ -27,7 +27,7 @@ function mountLogsCard(backupLogs: FrontXoBackupLog[]) {
 it('always titles the last 3 runs, telling which ones have not run', () => {
   const wrapper = mountLogsCard([createBackupLog({ id: 'backup-log-1' as FrontXoBackupLog['id'] })])
 
-  expect(wrapper.findAllComponents(UiPanelCardTitle).map(title => title.props('label'))).toEqual([
+  expect(findPanelCardTitleLabels(wrapper)).toEqual([
     t('last-n-runs', { n: 3 }),
     t('last-run-number', { n: 1 }),
     t('last-run-number', { n: 2 }),

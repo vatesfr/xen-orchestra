@@ -1,5 +1,5 @@
 import { findLink } from '@core-test/find-links.ts'
-import type { VueWrapper } from '@vue/test-utils'
+import type { DOMWrapper, VueWrapper } from '@vue/test-utils'
 
 // The two card titles, the whole title (label, info, description, id to copy…) or its label alone
 const CARD_TITLE = '.ui-card-title'
@@ -7,7 +7,16 @@ const PANEL_CARD_TITLE = '.ui-panel-card-title'
 
 const readTitle = (wrapper: VueWrapper, root: string) => wrapper.get(root).text()
 
-const readTitleLabel = (wrapper: VueWrapper, root: string) => wrapper.get(`${root} .title`).text()
+// The label of a title, without the counter it may show next to it
+const readLabel = (title: Pick<DOMWrapper<Element>, 'element'>) => {
+  const label = title.element.cloneNode(true) as Element
+
+  label.querySelector('.counter')?.remove()
+
+  return label.textContent?.trim() ?? ''
+}
+
+const readTitleLabel = (wrapper: VueWrapper, root: string) => readLabel(wrapper.get(`${root} .title`))
 
 export function findCardTitle(wrapper: VueWrapper) {
   return readTitle(wrapper, CARD_TITLE)
@@ -32,7 +41,7 @@ export function findPanelCardTitleLink(wrapper: VueWrapper) {
 
 // Every panel card title label of a card, its sub-titles included, in order
 export function findPanelCardTitleLabels(wrapper: VueWrapper) {
-  return wrapper.findAll(`${PANEL_CARD_TITLE} .title`).map(title => title.text())
+  return wrapper.findAll(`${PANEL_CARD_TITLE} .title`).map(readLabel)
 }
 
 // The text of each `UiCardSubtitle` of a card, in order

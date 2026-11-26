@@ -12,12 +12,12 @@ import {
   findCardRowLinks,
   findCardRows,
 } from '@/test/find-rendered-values.ts'
+import { findPanelCardTitleLabel } from '@/test/find-titles.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { xoCollectionsMock, mockXoCollections } from '@/test/mock-xo-collections.ts'
 import { mockXoRoutes } from '@/test/mock-xo-routes.ts'
 import VtsCopyAllMenuItem from '@core/components/copy-all-menu-item/VtsCopyAllMenuItem.vue'
-import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
 import { findStatuses } from '@core-test/find-statuses.ts'
 import type { XoSchedule } from '@vates/types'
 import { mount } from '@vue/test-utils'
@@ -57,11 +57,7 @@ itShowsNameAndIdTitle(
 )
 
 it('names a backup job without name as untitled', () => {
-  expect(
-    mountInfosCard(createVmBackupJob({ name: undefined }))
-      .getComponent(UiPanelCardTitle)
-      .props('label')
-  ).toBe(t('untitled'))
+  expect(findPanelCardTitleLabel(mountInfosCard(createVmBackupJob({ name: undefined })))).toBe(t('untitled'))
 })
 
 it('lists every type of the backup job, offering to copy them all', () => {
