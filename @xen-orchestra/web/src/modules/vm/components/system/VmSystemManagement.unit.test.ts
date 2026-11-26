@@ -1,6 +1,7 @@
 import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import VmSystemManagement from '@/modules/vm/components/system/VmSystemManagement.vue'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
+import { itRendersCardTitle } from '@/test/card-title.ts'
 import { createHost } from '@/test/create-host.ts'
 import { createVm } from '@/test/create-vm.ts'
 import { findTitleLabel } from '@/test/find-card-title.ts'
@@ -24,11 +25,7 @@ function mountManagement(vm: FrontXoVm = createVm()) {
   })
 }
 
-it('renders the card title', () => {
-  const wrapper = mountManagement()
-
-  expect(findTitleLabel(wrapper)).toBe(t('vm-management'))
-})
+itRendersCardTitle(mountManagement, t('vm-management'), findTitleLabel)
 
 const VM_SETTING_CASES: {
   name: string

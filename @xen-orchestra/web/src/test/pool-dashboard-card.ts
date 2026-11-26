@@ -1,5 +1,6 @@
 import type { XoPoolDashboard } from '@/modules/pool/types/xo-pool-dashboard.type.ts'
-import { type CardTitle, type DashboardCardProps, itRendersCardTitle } from '@/test/dashboard-card.ts'
+import { type CardTitle, itRendersCardTitle } from '@/test/card-title.ts'
+import type { DashboardCardProps } from '@/test/dashboard-card.ts'
 import { findCardSubtitles } from '@/test/find-card-title.ts'
 import { findProgressBarGroupLegends } from '@/test/find-rendered-values.ts'
 import { t } from '@/test/i18n.ts'

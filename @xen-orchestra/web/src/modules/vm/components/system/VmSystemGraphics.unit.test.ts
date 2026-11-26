@@ -1,5 +1,7 @@
 import VmSystemGraphics from '@/modules/vm/components/system/VmSystemGraphics.vue'
+import { itRendersCardTitle } from '@/test/card-title.ts'
 import { createVm } from '@/test/create-vm.ts'
+import { findTitleLabel } from '@/test/find-card-title.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { mount } from '@vue/test-utils'
@@ -11,11 +13,7 @@ function mountGraphics(vm = createVm()) {
   })
 }
 
-it('renders the card title', () => {
-  const wrapper = mountGraphics()
-
-  expect(wrapper.text()).toContain(t('graphics-display'))
-})
+itRendersCardTitle(mountGraphics, t('graphics-display'), findTitleLabel)
 
 it('shows VGA as enabled when the VM uses the "std" adapter', () => {
   const wrapper = mountGraphics(createVm({ vga: 'std' }))

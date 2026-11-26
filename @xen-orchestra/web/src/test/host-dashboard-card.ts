@@ -1,4 +1,4 @@
-import { itRendersCardTitle } from '@/test/dashboard-card.ts'
+import { itRendersCardTitle } from '@/test/card-title.ts'
 import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
 import { vmCollectionMock } from '@/test/mock-xo-vm-collection.ts'
 import { expectLoaderInsteadOf } from '@core-test/expect-loader.ts'

@@ -1,12 +1,12 @@
 import BackupRepositoryInfosCard from '@/modules/backup-repository/components/list/panel/cards/BackupRepositoryInfosCard.vue'
 import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
 import { itShowsBrGeneralInfo } from '@/test/br-general-info.ts'
+import { itShowsNameAndIdTitle } from '@/test/card-title.ts'
 import { createBr } from '@/test/create-br.ts'
 import { findPanelCardTitleLink } from '@/test/find-card-title.ts'
 import { findCardCopiedValues, findCardRowLabels } from '@/test/find-rendered-values.ts'
 import { t } from '@/test/i18n.ts'
 import { mockXoProxyCollection } from '@/test/mock-xo-proxy-collection.ts'
-import { itShowsNameAndIdTitle } from '@/test/panel-card-title.ts'
 import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
 import { objectIcon } from '@core/icons'
 

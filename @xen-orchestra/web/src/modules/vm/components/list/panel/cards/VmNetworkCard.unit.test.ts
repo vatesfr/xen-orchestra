@@ -1,5 +1,6 @@
 import VmNetworkCard from '@/modules/vm/components/list/panel/cards/VmNetworkCard.vue'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
+import { itRendersCardTitle } from '@/test/card-title.ts'
 import { createVm } from '@/test/create-vm.ts'
 import { findPanelCardTitleLabel, findPanelCardTitle } from '@/test/find-card-title.ts'
 import { findCardCopiedValues, findCardLabelledValueLists } from '@/test/find-rendered-values.ts'
@@ -15,11 +16,7 @@ function mountNetworkCard(vm: FrontXoVm = createVm()) {
   })
 }
 
-it('renders the card title', () => {
-  const wrapper = mountNetworkCard(createVm({ addresses: undefined }))
-
-  expect(findPanelCardTitleLabel(wrapper)).toBe(t('networks'))
-})
+itRendersCardTitle(() => mountNetworkCard(createVm({ addresses: undefined })), t('networks'), findPanelCardTitleLabel)
 
 it('lists the IP addresses of the VM sorted alphabetically, under a single label', () => {
   const wrapper = mountNetworkCard(createVm({ addresses: { '0/ipv4/0': '10.0.0.2', '0/ipv4/1': '10.0.0.1' } }))

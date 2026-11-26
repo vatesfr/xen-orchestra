@@ -1,5 +1,6 @@
 import BackupLogSizeAndSpeedCard from '@/modules/backup-log/components/list/panel/cards/BackupLogSizeAndSpeedCard.vue'
 import type { FrontXoBackupLog } from '@/modules/backup-log/remote-resources/use-xo-backup-log-collection.ts'
+import { itRendersCardTitle } from '@/test/card-title.ts'
 import {
   createBackupLog,
   createBackupLogExportTask,
@@ -31,11 +32,7 @@ function createBackupLogWithTransfer(size: number, durationMs: number) {
   })
 }
 
-it('renders the card title', () => {
-  const wrapper = mountCard()
-
-  expect(findPanelCardTitleLabel(wrapper)).toBe(t('size-and-speed'))
-})
+itRendersCardTitle(mountCard, t('size-and-speed'), findPanelCardTitleLabel)
 
 it('lists the size then the speed', () => {
   const wrapper = mountCard()

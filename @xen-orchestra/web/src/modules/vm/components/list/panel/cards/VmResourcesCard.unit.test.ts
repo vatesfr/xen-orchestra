@@ -1,5 +1,6 @@
 import VmResourcesCard from '@/modules/vm/components/list/panel/cards/VmResourcesCard.vue'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
+import { itRendersCardTitle } from '@/test/card-title.ts'
 import { createVm } from '@/test/create-vm.ts'
 import { findPanelCardTitleLabel } from '@/test/find-card-title.ts'
 import { findCardLabelledValues } from '@/test/find-rendered-values.ts'
@@ -22,11 +23,7 @@ function mountResourcesCard(vm: FrontXoVm = createVm()) {
   })
 }
 
-it('renders the card title', () => {
-  const wrapper = mountResourcesCard()
-
-  expect(findPanelCardTitleLabel(wrapper)).toBe(t('resources'))
-})
+itRendersCardTitle(mountResourcesCard, t('resources'), findPanelCardTitleLabel)
 
 it('shows the vCPU count, the formatted RAM and the summed disk space of the VM', () => {
   const wrapper = mountResourcesCard(

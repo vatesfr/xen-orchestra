@@ -1,6 +1,7 @@
 import BackupRepositoryDetailGeneralInfo from '@/modules/backup-repository/components/detail/BackupRepositoryDetailGeneralInfo.vue'
 import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
 import { itShowsBrGeneralInfo } from '@/test/br-general-info.ts'
+import { itRendersCardTitle } from '@/test/card-title.ts'
 import { findTitleLabel } from '@/test/find-card-title.ts'
 import { t } from '@/test/i18n.ts'
 import { mockXoProxyCollection } from '@/test/mock-xo-proxy-collection.ts'
@@ -16,8 +17,4 @@ const mountCard = itShowsBrGeneralInfo(BackupRepositoryDetailGeneralInfo, {
   },
 })
 
-it('renders the card title', () => {
-  const wrapper = mountCard()
-
-  expect(findTitleLabel(wrapper)).toBe(t('general-information'))
-})
+itRendersCardTitle(mountCard, t('general-information'), findTitleLabel)

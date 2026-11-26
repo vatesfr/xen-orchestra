@@ -1,5 +1,6 @@
 import VmSystemStorageConfig from '@/modules/vm/components/system/VmSystemStorageConfig.vue'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
+import { itRendersCardTitle } from '@/test/card-title.ts'
 import { createVm } from '@/test/create-vm.ts'
 import { findTitleLabel } from '@/test/find-card-title.ts'
 import { findLabelledValues } from '@/test/find-rendered-values.ts'
@@ -14,11 +15,7 @@ function mountStorageConfig(vm: FrontXoVm = createVm()) {
   })
 }
 
-it('renders the card title', () => {
-  const wrapper = mountStorageConfig()
-
-  expect(findTitleLabel(wrapper)).toBe(t('storage-configuration'))
-})
+itRendersCardTitle(mountStorageConfig, t('storage-configuration'), findTitleLabel)
 
 it('shows the suspend storage repository of the VM', () => {
   const wrapper = mountStorageConfig(createVm({ suspendSr: 'sr-1' as FrontXoVm['suspendSr'] }))

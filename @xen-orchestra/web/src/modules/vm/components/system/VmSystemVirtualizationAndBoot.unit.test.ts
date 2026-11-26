@@ -1,5 +1,6 @@
 import VmSystemVirtualizationAndBoot from '@/modules/vm/components/system/VmSystemVirtualizationAndBoot.vue'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
+import { itRendersCardTitle } from '@/test/card-title.ts'
 import { createVm } from '@/test/create-vm.ts'
 import { findTitleLabel } from '@/test/find-card-title.ts'
 import { findLabelledValues } from '@/test/find-rendered-values.ts'
@@ -14,11 +15,7 @@ function mountVirtualizationAndBoot(vm: FrontXoVm = createVm()) {
   })
 }
 
-it('renders the card title', () => {
-  const wrapper = mountVirtualizationAndBoot()
-
-  expect(findTitleLabel(wrapper)).toBe(t('virtualization-boot-settings'))
-})
+itRendersCardTitle(mountVirtualizationAndBoot, t('virtualization-boot-settings'), findTitleLabel)
 
 it('shows every enabled virtualization and boot setting', () => {
   const wrapper = mountVirtualizationAndBoot(

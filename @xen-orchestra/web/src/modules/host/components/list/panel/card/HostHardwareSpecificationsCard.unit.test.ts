@@ -1,5 +1,6 @@
 import HostHardwareSpecificationsCard from '@/modules/host/components/list/panel/card/HostHardwareSpecificationsCard.vue'
 import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
+import { itRendersCardTitle } from '@/test/card-title.ts'
 import { createHost } from '@/test/create-host.ts'
 import { findPanelCardTitleLabel } from '@/test/find-card-title.ts'
 import { findCardCopiedValues, findCardLabelledValues } from '@/test/find-rendered-values.ts'
@@ -14,11 +15,7 @@ function mountCard(host: FrontXoHost = createHost()) {
   })
 }
 
-it('renders the card title', () => {
-  const wrapper = mountCard()
-
-  expect(findPanelCardTitleLabel(wrapper)).toBe(t('hardware-specifications'))
-})
+itRendersCardTitle(mountCard, t('hardware-specifications'), findPanelCardTitleLabel)
 
 it('shows the manufacturer and the core layout of the host', () => {
   const wrapper = mountCard(

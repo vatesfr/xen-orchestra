@@ -1,4 +1,5 @@
 import BackupRepositorySpeedCard from '@/modules/backup-repository/components/list/panel/cards/BackupRepositorySpeedCard.vue'
+import { itRendersCardTitle } from '@/test/card-title.ts'
 import { createTwiceBenchmarkedBr, LATEST_BR_BENCHMARK_RATES } from '@/test/create-br-benchmark.ts'
 import { createBr } from '@/test/create-br.ts'
 import { findPanelCardTitleLabel } from '@/test/find-card-title.ts'
@@ -41,11 +42,7 @@ function findSpeeds(wrapper: VueWrapper) {
   return { write: values[t('writing-speed')], read: values[t('reading-speed')] }
 }
 
-it('renders the card title', () => {
-  const wrapper = mountCard()
-
-  expect(findPanelCardTitleLabel(wrapper)).toBe(t('speed'))
-})
+itRendersCardTitle(mountCard, t('speed'), findPanelCardTitleLabel)
 
 it('lists the writing and reading speeds only', () => {
   const wrapper = mountCard()
