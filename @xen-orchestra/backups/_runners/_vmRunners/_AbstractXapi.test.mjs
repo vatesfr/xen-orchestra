@@ -734,6 +734,48 @@ describe('after an abort', () => {
       'afterBackup',
     ])
   })
+
+  for (const offline of ['offlineBackup', 'offlineSnapshot']) {
+    it(`run() does not shut down the VM for an ${offline} aborted before the shutdown`, async () => {
+      const calls = []
+      const vmTask = new Task({ skipSubtasksAfterAbort: true, onProgress() {} })
+      const runner = makeRunner({
+        _settings: { [offline]: true, snapshotRetention: 0 },
+        _vm: {
+          uuid: 'live-uuid',
+          power_state: 'Running',
+          blocked_operations: {},
+          update_blocked_operations: async ops => {
+            calls.push(Object.values(ops).every(_ => _ === null) ? 'unblock' : 'block')
+          },
+          $call: async () => {},
+          $callAsync: async method => calls.push(method),
+        },
+        _writers: new Set([
+          {
+            // the clean-vm of `beforeBackup()` swallows its own abort error and resolves
+            beforeBackup: async () => {
+              vmTask.abort()
+            },
+            afterBackup: async () => calls.push('afterBackup'),
+          },
+        ]),
+        _xapi: {},
+        _cleanMetadata: async () => {},
+        _fetchJobSnapshots: async () => {},
+        _selectBaseVm: async () => {},
+        _removeUnusedSnapshots: async () => {},
+        _removeSnapshotData: async () => {},
+        _healthCheck: async () => calls.push('healthCheck'),
+        _snapshot: async () => calls.push('snapshot'),
+        _copy: async () => calls.push('copy'),
+      })
+
+      await vmTask.run(() => assert.rejects(runner.run(), { name: 'AbortError' })).catch(() => {})
+
+      assert.deepEqual(calls, ['block', 'unblock', 'afterBackup'])
+    })
+  }
 })
 
 describe('with the cleanup skipped', () => {

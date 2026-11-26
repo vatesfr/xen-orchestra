@@ -265,6 +265,7 @@ job.start(data: { mode: Mode, reportWhen: ReportWhen })
 
 - A step started as a subtask once the run is aborted fails right away, without running (the root task of the run
   is created with `skipSubtasksAfterAbort: true` in `@vates/task`).
+- A running VM is not shut down for an offline backup or snapshot once the run is aborted.
 - The cleanup still runs: snapshot retention, removal of the snapshot data, restore of the VM's blocked operations,
   and the writers' `afterBackup()`. `clean-vm` (and the merge it runs) is a cleanup subtask (`cleanup: true` in
   `@vates/task`), which the abort does not stop.

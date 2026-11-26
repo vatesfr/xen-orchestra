@@ -702,6 +702,9 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
     const isRunning = vm.power_state === 'Running'
     const startAfter = isRunning && (settings.offlineBackup ? 'backup' : settings.offlineSnapshot && 'snapshot')
     if (startAfter) {
+      // the steps above may have ended with an abort, as the clean of `beforeBackup()` does: do not shut down a VM that
+      // would only be started again
+      Task.abortSignal?.throwIfAborted()
       await vm.$callAsync('clean_shutdown')
     }
 
