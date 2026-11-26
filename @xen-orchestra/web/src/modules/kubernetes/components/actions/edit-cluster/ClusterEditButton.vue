@@ -6,7 +6,7 @@
     :busy="isEditingCluster"
     @click="editCluster()"
   >
-    {{ t('action:edit') }}
+    {{ t('action:edit-and-scale') }}
   </MenuItem>
 </template>
 

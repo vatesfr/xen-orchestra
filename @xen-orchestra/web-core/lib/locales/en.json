@@ -83,6 +83,7 @@
   "action:duplicate": "Duplicate",
   "action:duplicate-n-vms": "Duplicate 1 VM | Duplicate {n} VMs",
   "action:edit": "Edit",
+  "action:edit-and-scale": "Edit/Scale",
   "action:edit-cluster": "@:action:edit @.lower:cluster",
   "action:edit-config": "Edit config",
   "action:edit-traffic-rule": "@:action:edit @.lower:traffic-rule",
