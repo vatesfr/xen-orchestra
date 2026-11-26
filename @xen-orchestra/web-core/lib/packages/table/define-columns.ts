@@ -23,20 +23,21 @@ export function defineColumns<TSetupArgs extends any[], TColumns extends Columns
     THeadItem,
     TBodyItem,
     TExcludedId extends keyof TColumns = never,
+    TSortableId extends Extract<keyof TColumns, string> = never,
   >(
     config: {
       id?: string
       exclude?: TExcludedId[]
       body: (item: TBodyItem) => Omit<TBodyRenderers, TExcludedId>
-      sort?: { [K in keyof TColumns]?: (item1: TBodyItem, item2: TBodyItem) => number }
-      initialSort?: { id: Exclude<keyof TColumns, TExcludedId>; direction: ColumnSortDirection }
+      sort?: { [K in TSortableId]: (item1: TBodyItem, item2: TBodyItem) => number }
+      initialSort?: { id: NoInfer<Exclude<TSortableId, TExcludedId>>; direction: ColumnSortDirection }
     } & (AreAllPropertiesOptional<Omit<THeadRenderers, TExcludedId>> extends true
       ? { head?: (item: THeadItem) => Omit<THeadRenderers, TExcludedId> }
       : { head: (item: THeadItem) => Omit<THeadRenderers, TExcludedId> }),
     ...args: TSetupArgs
   ) {
     type $TAvailableColumns = Omit<TColumns, TExcludedId>
-    type $TAvailableColumnId = keyof $TAvailableColumns
+    type $TAvailableColumnId = Extract<Exclude<keyof TColumns, TExcludedId>, string>
 
     const allColumns = setup(...args)
 
@@ -55,33 +56,33 @@ export function defineColumns<TSetupArgs extends any[], TColumns extends Columns
 
     type $TSort = { id: $TAvailableColumnId; direction: ColumnSortDirection }
 
-    function isSortableColumnId(columnId: string): columnId is $TAvailableColumnId & string {
-      return columnId in availableColumns && config.sort?.[columnId as keyof TColumns] !== undefined
+    const compareFns: Partial<Record<string, (item1: TBodyItem, item2: TBodyItem) => number>> = config.sort ?? {}
+
+    function isSortableColumnId(columnId: string): columnId is $TAvailableColumnId {
+      return Object.hasOwn(availableColumns, columnId) && Object.hasOwn(compareFns, columnId)
     }
 
     function useSortState(): Ref<$TSort | undefined> {
-      if (config.id === undefined) {
-        return ref(config.initialSort) as Ref<$TSort | undefined>
-      }
+      const initialSort = config.initialSort as $TSort | undefined
 
-      const initialSort = config.initialSort && {
-        id: config.initialSort.id as string,
-        direction: config.initialSort.direction,
+      if (config.id === undefined) {
+        return ref(initialSort) as Ref<$TSort | undefined>
       }
 
       const sortRouteQuery = useSortRouteQuery(`${config.id}.sort`, initialSort)
 
-      return computed({
-        // Ignore a sort from the URL on a column that can't be sorted (outdated or hand-edited link)
+      return computed<$TSort | undefined>({
         get: () => {
           const sort = sortRouteQuery.value
 
-          return sort !== undefined && isSortableColumnId(sort.id)
-            ? { id: sort.id, direction: sort.direction }
-            : undefined
+          if (sort === undefined) {
+            return undefined
+          }
+
+          return isSortableColumnId(sort.id) ? (sort as $TSort) : initialSort
         },
         set: sort => {
-          sortRouteQuery.value = sort && { id: sort.id as string, direction: sort.direction }
+          sortRouteQuery.value = sort
         },
       })
     }
@@ -94,9 +95,11 @@ export function defineColumns<TSetupArgs extends any[], TColumns extends Columns
       } else {
         hiddenColumnIds.value.add(columnId)
 
-        // A hidden column has no header left to show or clear its sort
         if (sortState.value?.id === columnId) {
-          sortState.value = undefined
+          const initialSort = config.initialSort as $TSort | undefined
+
+          sortState.value =
+            initialSort !== undefined && !hiddenColumnIds.value.has(initialSort.id) ? initialSort : undefined
         }
       }
     }
@@ -112,7 +115,7 @@ export function defineColumns<TSetupArgs extends any[], TColumns extends Columns
 
       const { id, direction } = sortState.value
 
-      const compareFn = config.sort?.[id]
+      const compareFn = compareFns[id]
 
       if (compareFn === undefined) {
         return items
@@ -162,9 +165,9 @@ export function defineColumns<TSetupArgs extends any[], TColumns extends Columns
 
         return () =>
           visibleColumnIds.value.map(columnId =>
-            config.sort?.[columnId] === undefined
-              ? h(Fragment, { key: columnId }, [renderHeadCell(columnId)])
-              : h(ColumnSortProvider, { key: columnId, columnId: columnId as string }, () => renderHeadCell(columnId))
+            isSortableColumnId(columnId)
+              ? h(ColumnSortProvider, { key: columnId, columnId }, () => renderHeadCell(columnId))
+              : h(Fragment, { key: columnId }, [renderHeadCell(columnId)])
           )
       },
     })

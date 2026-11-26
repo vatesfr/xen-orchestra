@@ -15,10 +15,15 @@ export function useSortRouteQuery(name: string, defaultSort?: RouteQuerySort) {
   return useRouteQuery<RouteQuerySort | undefined>(name, {
     defaultQuery: toQuery(defaultSort),
     toData: query => {
+      // An empty query is a cleared sort, which must not fall back to the default one
+      if (query === '') {
+        return undefined
+      }
+
       const [id, direction] = query.split(',')
 
       if (!id || !isSortDirection(direction)) {
-        return undefined
+        return defaultSort
       }
 
       return { id, direction }

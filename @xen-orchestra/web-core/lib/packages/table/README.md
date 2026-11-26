@@ -87,7 +87,7 @@ Pass an optional `sort` object to make columns sortable:
 - **Keys** are column ids. Columns without a key aren't sortable.
 - **Values** are compare functions receiving two row items (same type as the `body` item), following the `Array.prototype.sort` contract.
 
-A sortable column's header opens a menu to sort ascending or descending. Only one column is sorted at a time, and hiding the sorted column removes the sort.
+A sortable column's header opens a menu to sort ascending or descending. Only one column is sorted at a time, and hiding the sorted column falls back to the `initialSort` (or removes the sort if there is none, or if its column is hidden too).
 
 The sort menu is rendered by `VtsHeaderCell` (what `renderHeadCell` from `@core/tables/helpers/render-head-cell.ts` renders). A head that doesn't render it, such as a plain `<th>` or a `head` override that ignores the renderer, won't be sortable.
 
@@ -131,7 +131,7 @@ Pass an `id` to store the sort in the `<id>.sort` route query, as `<columnId>,<a
 
 - The `id` must be unique among the tables of a page. The `id` given to `usePagination` can be reused: pagination uses `<id>.idx`.
 - The `initialSort` isn't written to the URL: selecting it again removes the query.
-- A sort on a column that isn't sortable, or with an unknown direction, is ignored.
+- A sort on a column that isn't sortable, or with an unknown direction, falls back to the `initialSort` (no sort without one).
 
 ```ts
 const { HeadCells, BodyCells, sortItems } = useUserTableColumns({
