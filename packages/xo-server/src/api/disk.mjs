@@ -156,19 +156,20 @@ exportContent.resolve = {
 
 // -------------------------------------------------------------------
 
-async function handleImportContent(req, res, { vdi, format }) {
+async function handleImportContent(req, res, { vdi, diskFormat }) {
   // Timeout seems to be broken in Node 4.
   // See https://github.com/nodejs/node/issues/3319
   req.setTimeout(43200000) // 12 hours
   req.length = +req.headers['content-length']
-  await vdi.$importContent(req, { format })
+  await vdi.$importContent(req, { format: diskFormat })
   res.end(format.response(0, true))
 }
 
-export async function importContent({ vdi }) {
+export async function importContent({ vdi, format: diskFormat }) {
   return {
     $sendTo: await this.registerHttpRequest(handleImportContent, {
       vdi: this.getXapiObject(vdi),
+      diskFormat,
     }),
   }
 }
