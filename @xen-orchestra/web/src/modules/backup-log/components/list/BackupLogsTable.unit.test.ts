@@ -12,6 +12,7 @@ import { mockXoRoutes } from '@/test/mock-xo-routes.ts'
 import { vmCollectionMock, mockXoVmCollection } from '@/test/mock-xo-vm-collection.ts'
 import { mockModule } from '@/test/spy-on-module.ts'
 import { objectIcon } from '@core/icons'
+import { findExtraCount } from '@core-test/find-extra-count.ts'
 import { findLink, findLinks } from '@core-test/find-links.ts'
 import { mount } from '@vue/test-utils'
 
@@ -67,7 +68,7 @@ describe('VM', () => {
       href: '/vm/vm-1/dashboard',
       icon: objectIcon('vm', 'running'),
     })
-    expect(vmCell.get('.extra-count').text()).toBe('+2')
+    expect(findExtraCount(vmCell)).toBe(t('plus-n', { n: 2 }))
   })
 
   it.each([

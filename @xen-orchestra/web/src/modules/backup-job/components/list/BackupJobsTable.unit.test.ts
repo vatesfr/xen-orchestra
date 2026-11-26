@@ -15,6 +15,7 @@ import { mockXoRoutes } from '@/test/mock-xo-routes.ts'
 import { scheduleCollectionMock, mockXoScheduleCollection } from '@/test/mock-xo-schedule-collection.ts'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import { hasLoader } from '@core-test/expect-loader.ts'
+import { findExtraCount } from '@core-test/find-extra-count.ts'
 import { findLink } from '@core-test/find-links.ts'
 import { findStatuses } from '@core-test/find-statuses.ts'
 import { pickSelectOption } from '@core-test/select.ts'
@@ -106,14 +107,14 @@ describe('type', () => {
     const cell = findCell(mountTable([backupJob]), t('type'))
 
     expect(cell.text()).toContain(t('backup:rolling-snapshot'))
-    expect(cell.get('.extra-count').text()).toBe('+2')
+    expect(findExtraCount(cell)).toBe(t('plus-n', { n: 2 }))
   })
 
   it('shows no count for a backup job of a single type', () => {
     const cell = findCell(mountTable([createMirrorBackupJob()]), t('type'))
 
     expect(cell.text()).toBe(t('backup:vms-mirror'))
-    expect(cell.find('.extra-count').exists()).toBe(false)
+    expect(findExtraCount(cell)).toBeUndefined()
   })
 })
 
