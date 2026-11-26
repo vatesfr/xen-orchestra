@@ -1,4 +1,5 @@
 import VmInfoCard from '@/modules/vm/components/list/panel/cards/VmInfoCard.vue'
+import VmTagsEditor from '@/modules/vm/components/tags/VmTagsEditor.vue'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import type { FrontXoVmTemplate } from '@/modules/vm/remote-resources/use-xo-vm-template-collection.ts'
 import { itShowsNameAndIdTitle } from '@/test/card-title.ts'
@@ -7,7 +8,6 @@ import { createPool } from '@/test/create-pool.ts'
 import { createVm } from '@/test/create-vm.ts'
 import { findCardLabelledValues, findCardRowLabels, findTags } from '@/test/find-rendered-values.ts'
 import { findPanelCardTitleIcon } from '@/test/find-titles.ts'
-import { getButton } from '@/test/get-button.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { xoCollectionsMock, mockXoCollections } from '@/test/mock-xo-collections.ts'
@@ -15,7 +15,6 @@ import { mockXoRoutes } from '@/test/mock-xo-routes.ts'
 import { userResourceMock, mockXoUser } from '@/test/mock-xo-user.ts'
 import { vmCollectionMock, mockXoVmCollection } from '@/test/mock-xo-vm-collection.ts'
 import { itShowsVmCreator } from '@/test/vm-creator.ts'
-import VtsTagSelect from '@core/components/tag-select/VtsTagSelect.vue'
 import { objectIcon } from '@core/icons'
 import { HOST_POWER_STATE, VM_OPERATIONS, VM_POWER_STATE } from '@vates/types'
 import { mount } from '@vue/test-utils'
@@ -121,16 +120,8 @@ it('renders one tag per VM tag, in alphabetical order', () => {
   expect(findTags(wrapper)).toEqual(['billing', 'production'])
 })
 
-it('shows an icon-only "Add" button next to the tags label when the VM has none', () => {
-  const wrapper = mountInfoCard(createVm({ tags: [] }))
-
-  expect(getButton(wrapper.findComponent(VtsTagSelect), t('action:add')).text()).toBe('')
-})
-
-it('shows an icon-only "Edit" button next to the tags label when the VM has some', () => {
-  const wrapper = mountInfoCard(createVm({ tags: ['production'] }))
-
-  expect(getButton(wrapper.findComponent(VtsTagSelect), t('action:edit')).text()).toBe('')
+it('edits the tags of the VM from an icon-only button', () => {
+  expect(mountInfoCard().getComponent(VmTagsEditor).props('iconOnly')).toBe(true)
 })
 
 const POOL_AND_HOST_CASES = [
