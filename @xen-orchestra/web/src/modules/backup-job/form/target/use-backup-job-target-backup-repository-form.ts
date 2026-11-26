@@ -50,7 +50,8 @@ export function useBackupJobTargetBackupRepositoryForm(
   formData: BackupJobTargetBackupRepositoryFormData,
   rawIsActive: MaybeRefOrGetter<boolean>,
   rawHasRetentionStrategy: MaybeRefOrGetter<boolean>,
-  rawSourceBackupRepositoryId: MaybeRefOrGetter<FrontXoBackupRepository['id'] | undefined>
+  rawSourceBackupRepositoryId: MaybeRefOrGetter<FrontXoBackupRepository['id'] | undefined>,
+  rawProxy: MaybeRefOrGetter<FrontXoProxy['id'] | undefined>
 ) {
   const { t } = useI18n()
 
@@ -59,6 +60,8 @@ export function useBackupJobTargetBackupRepositoryForm(
   const hasRetentionStrategy = toComputed(rawHasRetentionStrategy)
 
   const sourceBackupRepositoryId = toComputed(rawSourceBackupRepositoryId)
+
+  const proxy = toComputed(rawProxy)
 
   const { proxies } = useXoProxyCollection()
 
@@ -69,7 +72,7 @@ export function useBackupJobTargetBackupRepositoryForm(
   )
 
   const compatibleBackupRepositories = computed(() =>
-    availableBackupRepositories.value.filter(br => br.proxy === formData.targetProxy)
+    availableBackupRepositories.value.filter(br => br.proxy === proxy.value)
   )
 
   const matchedBackupRepositories = computed(() =>

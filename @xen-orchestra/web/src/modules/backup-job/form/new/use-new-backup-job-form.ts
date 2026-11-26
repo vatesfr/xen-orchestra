@@ -142,7 +142,8 @@ export function useNewBackupJobForm() {
   const target = useBackupJobTargetForm(
     reactive(createTargetFormData()),
     () => source.formData.dataSource,
-    () => source.formData.sourceBackupRepository
+    () => source.formData.sourceBackupRepository,
+    () => source.formData.proxy
   )
 
   const planning = useBackupJobPlanningForm(reactive(createPlanningFormData()))

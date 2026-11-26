@@ -2,7 +2,7 @@
   <div class="backup-job-target-backup-repository-section">
     <UiTitle>{{ t('backup-repositories') }}</UiTitle>
 
-    <div class="block">
+    <div v-if="hasTargetProxy" class="block">
       <span class="typo-body-bold">{{ t('general-information') }}</span>
       <BackupJobFormSelect v-bind="bindings.targetProxy" />
     </div>
@@ -77,6 +77,7 @@ const { bindings } = defineProps<{
   busy: boolean
   hasRetentionStrategy: boolean
   hasStrictGfs: boolean
+  hasTargetProxy: boolean
 }>()
 
 const { t } = useI18n()

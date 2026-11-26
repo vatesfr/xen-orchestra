@@ -4,17 +4,26 @@ import {
   type BackupJobTargetFormData,
   useBackupJobTargetForm,
 } from '@/modules/backup-job/form/use-backup-job-target-form.ts'
-import type { useXoBackupRepositoryCollection } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
+import type {
+  FrontXoBackupRepository,
+  useXoBackupRepositoryCollection,
+} from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
 import type { useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import type { useXoPbdCollection } from '@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'
 import type { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
-import type { useXoProxyCollection } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
+import type { FrontXoProxy, useXoProxyCollection } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
 import type { useXoSrCollection } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import type { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
+import { createBr } from '@/test/create-br.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
 import { mockModule } from '@/test/spy-on-module.ts'
 import { reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+
+const PROXY_ID = 'proxy-1' as FrontXoProxy['id']
+
+const NO_PROXY_BR = createBr({ id: 'br-no-proxy' as FrontXoBackupRepository['id'] })
+const PROXY_BR = createBr({ id: 'br-proxy' as FrontXoBackupRepository['id'], proxy: PROXY_ID })
 
 mockModule(import('@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'), () => ({
   useXoProxyCollection: (() => ({ proxies: ref([]) })) as unknown as typeof useXoProxyCollection,
@@ -22,7 +31,7 @@ mockModule(import('@/modules/proxy/remote-resources/use-xo-proxy-collection.ts')
 
 mockModule(import('@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'), () => ({
   useXoBackupRepositoryCollection: (() => ({
-    backupRepositories: ref([]),
+    backupRepositories: ref([NO_PROXY_BR, PROXY_BR]),
     areBackupRepositoriesReady: ref(true),
   })) as unknown as typeof useXoBackupRepositoryCollection,
 }))
@@ -96,8 +105,10 @@ function mountTargetForm(
   {
     storageTargets,
     backupRepository,
+    sourceProxy,
   }: Partial<Pick<BackupJobTargetFormData, 'storageTargets'>> & {
     backupRepository?: Partial<BackupJobTargetBackupRepositoryFormData>
+    sourceProxy?: FrontXoProxy['id']
   } = {}
 ) {
   const formData = createTargetFormData()
@@ -113,7 +124,8 @@ function mountTargetForm(
           backupRepository: { ...formData.backupRepository, ...backupRepository },
         }),
         ref(dataSource),
-        ref(undefined)
+        ref(undefined),
+        ref(sourceProxy)
       ),
       t,
     }
@@ -126,6 +138,7 @@ function getSections(form: ReturnType<typeof mountTargetForm>) {
     hasBackupRepositorySection: form.hasBackupRepositorySection,
     hasRetentionStrategy: form.hasRetentionStrategy,
     hasStrictGfs: form.hasStrictGfs,
+    hasTargetProxy: form.hasTargetProxy,
     hasStorageRepositorySection: form.hasStorageRepositorySection,
     hasHealthCheckSection: form.hasHealthCheckSection,
   }
@@ -138,6 +151,7 @@ describe('sections', () => {
       hasBackupRepositorySection: true,
       hasRetentionStrategy: true,
       hasStrictGfs: true,
+      hasTargetProxy: true,
       hasStorageRepositorySection: false,
       hasHealthCheckSection: true,
     })
@@ -149,17 +163,19 @@ describe('sections', () => {
       hasBackupRepositorySection: false,
       hasRetentionStrategy: false,
       hasStrictGfs: false,
+      hasTargetProxy: true,
       hasStorageRepositorySection: true,
       hasHealthCheckSection: true,
     })
   })
 
-  it('stores a mirror backup on backup repositories, without strict GFS hierarchy', () => {
+  it('stores a mirror backup on backup repositories, without strict GFS hierarchy nor target proxy', () => {
     expect(getSections(mountTargetForm('mirror', { storageTargets: [] }))).toEqual({
       hasStorageTargetChoice: false,
       hasBackupRepositorySection: true,
       hasRetentionStrategy: true,
       hasStrictGfs: false,
+      hasTargetProxy: false,
       hasStorageRepositorySection: false,
       hasHealthCheckSection: true,
     })
@@ -171,9 +187,24 @@ describe('sections', () => {
       hasBackupRepositorySection: true,
       hasRetentionStrategy: false,
       hasStrictGfs: false,
+      hasTargetProxy: true,
       hasStorageRepositorySection: false,
       hasHealthCheckSection: false,
     })
+  })
+})
+
+describe('backupRepository', () => {
+  it('offers a mirror backup the backup repositories using its source proxy', () => {
+    const form = mountTargetForm('mirror', { storageTargets: [], sourceProxy: PROXY_ID })
+
+    expect(form.backupRepository.compatibleBackupRepositories.value.map(br => br.id)).toEqual([PROXY_BR.id])
+  })
+
+  it('offers a VM backup the backup repositories using its target proxy, whatever the source proxy', () => {
+    const form = mountTargetForm('vm', { sourceProxy: PROXY_ID })
+
+    expect(form.backupRepository.compatibleBackupRepositories.value.map(br => br.id)).toEqual([NO_PROXY_BR.id])
   })
 })
 

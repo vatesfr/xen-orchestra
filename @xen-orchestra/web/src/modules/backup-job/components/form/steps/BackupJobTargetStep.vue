@@ -11,6 +11,7 @@
       :busy="!backupRepository.areBackupRepositoriesReady.value"
       :has-retention-strategy
       :has-strict-gfs
+      :has-target-proxy
     />
     <BackupJobTargetStorageRepositorySection
       v-if="hasStorageRepositorySection"
@@ -43,6 +44,7 @@ const {
   hasBackupRepositorySection,
   hasRetentionStrategy,
   hasStrictGfs,
+  hasTargetProxy,
   hasHealthCheckSection,
   hasStorageRepositorySection,
 } = form

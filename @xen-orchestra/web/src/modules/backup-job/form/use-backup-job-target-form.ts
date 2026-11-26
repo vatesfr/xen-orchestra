@@ -13,6 +13,7 @@ import {
 import type { BackupJobDataSource } from '@/modules/backup-job/form/use-backup-job-source-form.ts'
 import type { BackupJobFormOption } from '@/modules/backup-job/types/backup-job-form.type.ts'
 import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
+import type { FrontXoProxy } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
 import { requiredIf, withMessage } from '@core/packages/form-validation'
 import { useValidatedForm } from '@core/packages/validated-form'
 import { toComputed } from '@core/utils/to-computed.util.ts'
@@ -33,11 +34,14 @@ export type BackupJobTargetForm = ReturnType<typeof useBackupJobTargetForm>
 export function useBackupJobTargetForm(
   formData: BackupJobTargetFormData,
   rawDataSource: MaybeRefOrGetter<BackupJobDataSource>,
-  rawSourceBackupRepositoryId: MaybeRefOrGetter<FrontXoBackupRepository['id'] | undefined>
+  rawSourceBackupRepositoryId: MaybeRefOrGetter<FrontXoBackupRepository['id'] | undefined>,
+  rawSourceProxy: MaybeRefOrGetter<FrontXoProxy['id'] | undefined>
 ) {
   const { t } = useI18n()
 
   const dataSource = toComputed(rawDataSource)
+
+  const sourceProxy = toComputed(rawSourceProxy)
 
   const hasStorageTargetChoice = computed(() => dataSource.value === 'vm')
 
@@ -49,6 +53,12 @@ export function useBackupJobTargetForm(
 
   const hasStrictGfs = computed(() => hasRetentionStrategy.value && dataSource.value !== 'mirror')
 
+  const hasTargetProxy = computed(() => dataSource.value !== 'mirror')
+
+  const backupRepositoryProxy = computed(() =>
+    hasTargetProxy.value ? formData.backupRepository.targetProxy : sourceProxy.value
+  )
+
   const hasHealthCheckSection = computed(() => dataSource.value !== 'metadata')
 
   const hasStorageRepositorySection = computed(
@@ -59,7 +69,8 @@ export function useBackupJobTargetForm(
     formData.backupRepository,
     hasBackupRepositorySection,
     hasRetentionStrategy,
-    rawSourceBackupRepositoryId
+    rawSourceBackupRepositoryId,
+    backupRepositoryProxy
   )
 
   const storageRepository = useBackupJobTargetStorageRepositoryForm(
@@ -135,6 +146,7 @@ export function useBackupJobTargetForm(
     hasBackupRepositorySection,
     hasRetentionStrategy,
     hasStrictGfs,
+    hasTargetProxy,
     hasHealthCheckSection,
     hasStorageRepositorySection,
     getStorageTargetLabel,
