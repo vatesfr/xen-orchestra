@@ -157,7 +157,6 @@ describe('grace period before marking a pool disconnected', function () {
     assert.equal(getStatus(), 'disconnected')
   })
 
-  // the `event.from` in flight when the connection is closed can still answer
   // and emit `eventFetchingSuccess` on the closed connection
   // plugins (e.g. the SDN controller) release a connection on this event
   describe('server:disconnected', function () {
@@ -182,8 +181,9 @@ describe('grace period before marking a pool disconnected', function () {
     })
   })
 
+  // the `event.from` in flight when the connection is closed can still answer
   describe('late events on a closed connection', function () {
-    it('do not reconnect a server disabled by the user', async function () {
+    it('does not reconnect a server disabled by the user', async function () {
       const { getStatus, xenServers } = createXenServers()
       await xenServers.connectXenServer('server-1')
       const [xapi] = xapis
@@ -198,7 +198,7 @@ describe('grace period before marking a pool disconnected', function () {
       assert.equal(xapi.objects.listenerCount('add'), 0, 'the objects of the closed connection must not be reinstalled')
     })
 
-    it('do not mark a dropped connection connected, which would stop the auto-reconnect loop', async function () {
+    it('does not mark a dropped connection connected, which would stop the auto-reconnect loop', async function () {
       const { getStatus, xenServers } = createXenServers()
       await xenServers.connectXenServer('server-1')
       const [xapi] = xapis

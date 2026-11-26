@@ -666,6 +666,7 @@ export default class XenServers {
       xapi.once('disconnected', async () => {
         clearTimeout(markDisconnectedTimeout)
         xapi.xo.uninstall()
+        this._app.emit('server:disconnected', { server, xapi })
         if (this._xapis[server.id] !== xapi) {
           return
         }

@@ -1169,7 +1169,7 @@ export class Xapi extends EventEmitter {
       return await pRetry(() => {
         const sessionId = this._sessionId
         if (sessionId === undefined) {
-          const error = new Error('no session, the connection to XAPI is being reestablished')
+          const error = new Error('no session, the connection to XAPI is being re-established')
           error.code = NO_SESSION_ERROR_CODE
           throw error
         }
