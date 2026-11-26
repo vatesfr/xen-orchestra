@@ -31,7 +31,7 @@ import BackupRepositoriesBulkActions from '@/modules/backup-repository/component
 import { useBackupRepositoryForget } from '@/modules/backup-repository/composables/use-backup-repository-forget.composable.ts'
 import { useEditBackupRepository } from '@/modules/backup-repository/composables/use-edit-backup-repository.composable.ts'
 import { useXoBackupRepositoryParsedUrl } from '@/modules/backup-repository/composables/use-xo-backup-repository-parsed-url.composable.ts'
-import { useXoBackupRepositoryTypeLabelGetter } from '@/modules/backup-repository/composables/use-xo-backup-repository-type-label.composable.ts'
+import { useXoBackupRepositoryTypeLabel } from '@/modules/backup-repository/composables/use-xo-backup-repository-type-label.composable.ts'
 import { useXoBackupRepositoryBenchmarkJob } from '@/modules/backup-repository/jobs/xo-backup-repository-benchmark.job.ts'
 import { useXoBackupRepositoryChangeStateJob } from '@/modules/backup-repository/jobs/xo-backup-repository-change-state.job.ts'
 import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
@@ -108,9 +108,14 @@ const state = useTableState({
 
 const { compareStatuses } = useStatusLabel()
 
-const getTypeLabel = useXoBackupRepositoryTypeLabelGetter()
+const { getBackupRepositoryTypeLabel } = useXoBackupRepositoryTypeLabel()
 
-const getBrTypeLabel = (br: FrontXoBackupRepository) => getTypeLabel(parseBackupRepositoryUrl(br.url).type)
+// Computed once per backup repository, so that a sort doesn't parse the URLs on each comparison
+const typeLabelByBr = computed(
+  () => new Map(filteredBrs.value.map(br => [br, getBackupRepositoryTypeLabel(parseBackupRepositoryUrl(br.url).type)]))
+)
+
+const getBrTypeLabel = (br: FrontXoBackupRepository) => typeLabelByBr.value.get(br) ?? ''
 
 const getProxyName = (br: FrontXoBackupRepository) => (br.proxy ? (getProxyById(br.proxy)?.name ?? '') : '')
 
@@ -122,7 +127,7 @@ const { HeadCells, BodyCells, sortItems } = useBackupRepositoryColumns({
   body: (br: FrontXoBackupRepository) => {
     const parsedBrUrl = useXoBackupRepositoryParsedUrl(() => br)
 
-    const typeLabel = computed(() => getTypeLabel(parsedBrUrl.value?.type))
+    const typeLabel = computed(() => getBackupRepositoryTypeLabel(parsedBrUrl.value?.type))
 
     const proxy = useGetProxyById(() => br.proxy)
 

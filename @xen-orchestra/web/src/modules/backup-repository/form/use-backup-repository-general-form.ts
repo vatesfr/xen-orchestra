@@ -42,6 +42,8 @@ export function useBackupRepositoryGeneralForm(
 ) {
   const { t } = useI18n()
 
+  const { getBackupRepositoryTypeLabel } = useXoBackupRepositoryTypeLabel()
+
   const { proxies } = useXoProxyCollection()
 
   const baseConfig: FormValidationConfig<BackupRepositoryGeneralFormData> = {
@@ -99,7 +101,7 @@ export function useBackupRepositoryGeneralForm(
     ...(isMixed('type') ? [mixedOption] : []),
     ...Object.values(BACKUP_REPOSITORY_TYPE).map(type => ({
       id: type,
-      label: useXoBackupRepositoryTypeLabel(type).value,
+      label: getBackupRepositoryTypeLabel(type),
       value: type,
     })),
   ]

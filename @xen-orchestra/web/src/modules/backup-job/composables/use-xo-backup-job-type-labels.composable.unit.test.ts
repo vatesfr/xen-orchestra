@@ -3,12 +3,11 @@ import type { FrontAnyXoBackupJob } from '@/modules/backup-job/remote-resources/
 import { createMetadataBackupJob, createMirrorBackupJob, createVmBackupJob } from '@/test/create-backup-job.ts'
 import { mountComposableWithI18n } from '@/test/mount-composable.ts'
 import type { XoBackupRepository, XoSchedule, XoSr } from '@vates/types'
-import { type MaybeRefOrGetter, ref } from 'vue'
 
 const scheduleId = 'schedule-1' as XoSchedule['id']
 
-function mountTypeLabels(backupJob: MaybeRefOrGetter<FrontAnyXoBackupJob>) {
-  return mountComposableWithI18n(() => ({ typeLabels: useXoBackupJobTypeLabels(backupJob) }))
+function mountTypeLabels(backupJob: FrontAnyXoBackupJob) {
+  return mountComposableWithI18n(() => ({ typeLabels: useXoBackupJobTypeLabels().getBackupJobTypeLabels(backupJob) }))
 }
 
 describe('useXoBackupJobTypeLabels', () => {
@@ -83,15 +82,6 @@ describe('useXoBackupJobTypeLabels', () => {
 
   it('labels a mirror job as a VMs mirror', () => {
     const result = mountTypeLabels(createMirrorBackupJob())
-
-    expect(result.typeLabels).toEqual([result.t('backup:vms-mirror')])
-  })
-
-  it('reacts to changes of the backup job', () => {
-    const backupJob = ref<FrontAnyXoBackupJob>(createVmBackupJob())
-    const result = mountTypeLabels(backupJob)
-
-    backupJob.value = createMirrorBackupJob()
 
     expect(result.typeLabels).toEqual([result.t('backup:vms-mirror')])
   })

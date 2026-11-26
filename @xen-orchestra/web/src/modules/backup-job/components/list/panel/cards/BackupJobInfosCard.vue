@@ -99,9 +99,13 @@ const { getSrStatusIcon } = useXoSrUtils()
 
 const jobOverviewHref = computed(() => buildXo5Route('/backup/overview'))
 
-const typeLabels = useXoBackupJobTypeLabels(() => backupJob)
+const { getBackupJobTypeLabels } = useXoBackupJobTypeLabels()
 
-const modeLabel = useXoBackupJobModeLabel(() => backupJob)
+const typeLabels = computed(() => getBackupJobTypeLabels(backupJob))
+
+const { getBackupJobModeLabel } = useXoBackupJobModeLabel()
+
+const modeLabel = computed(() => getBackupJobModeLabel(backupJob))
 
 const isEnabled = computed(() => isBackupJobEnabled(schedules))
 

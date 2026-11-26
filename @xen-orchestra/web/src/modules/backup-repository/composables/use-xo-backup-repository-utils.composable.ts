@@ -17,7 +17,9 @@ export function useXoBackupRepositoryUtils(
 
   const brStatus = computed(() => getBackupRepositoryStatus(toValue(rawBr)))
 
-  const brType = useXoBackupRepositoryTypeLabel(() => toValue(rawParsedBrUrl)?.type)
+  const { getBackupRepositoryTypeLabel } = useXoBackupRepositoryTypeLabel()
+
+  const brType = computed(() => getBackupRepositoryTypeLabel(toValue(rawParsedBrUrl)?.type))
 
   const brStorageMode = useXoBackupRepositoryStorageModeLabel(rawParsedBrUrl)
 

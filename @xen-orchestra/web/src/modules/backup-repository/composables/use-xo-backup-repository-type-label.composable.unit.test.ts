@@ -1,10 +1,11 @@
 import { useXoBackupRepositoryTypeLabel } from '@/modules/backup-repository/composables/use-xo-backup-repository-type-label.composable.ts'
 import { mountComposableWithI18n } from '@/test/mount-composable.ts'
-import { type MaybeRefOrGetter, ref } from 'vue'
 import { BACKUP_REPOSITORY_TYPE, type BackupRepositoryType } from 'xo-remote-parser'
 
-function mountTypeLabel(type: MaybeRefOrGetter<BackupRepositoryType | undefined>) {
-  return mountComposableWithI18n(() => ({ typeLabel: useXoBackupRepositoryTypeLabel(type) }))
+function mountTypeLabel(type: BackupRepositoryType | undefined) {
+  return mountComposableWithI18n(() => ({
+    typeLabel: useXoBackupRepositoryTypeLabel().getBackupRepositoryTypeLabel(type),
+  }))
 }
 
 describe('useXoBackupRepositoryTypeLabel', () => {
@@ -32,14 +33,5 @@ describe('useXoBackupRepositoryTypeLabel', () => {
     const result = mountTypeLabel(undefined)
 
     expect(result.typeLabel).toBe(result.t('unknown'))
-  })
-
-  it('reacts to changes of the source type', () => {
-    const type = ref<BackupRepositoryType | undefined>(BACKUP_REPOSITORY_TYPE.NFS)
-    const result = mountTypeLabel(type)
-
-    type.value = BACKUP_REPOSITORY_TYPE.S3
-
-    expect(result.typeLabel).toBe(result.t('s3'))
   })
 })

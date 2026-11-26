@@ -102,7 +102,17 @@ const state = useTableState({
 const { compareStatuses } = useStatusLabel()
 
 // Same values as the ones displayed in the VM and SR cells: the first VM/SR of the run
-const getFirstVmName = (log: BackupLogFilterableData) => getVmById(getBackupLogVmIds(log)[0])?.name_label ?? ''
+const getFirstVmName = (log: BackupLogFilterableData) => {
+  const vmIds = getBackupLogVmIds(log)
+
+  const firstVm = getVmById(vmIds[0])
+
+  if (firstVm !== undefined) {
+    return firstVm.name_label
+  }
+
+  return vmIds.length > 0 || getBackupJobById(log.jobId)?.type === 'backup' ? t('vm-not-found') : ''
+}
 
 const getFirstSrName = (log: BackupLogFilterableData) => {
   const firstSrId = getBackupLogSrIds(log)[0]
@@ -165,7 +175,7 @@ const { HeadCells, BodyCells, sortItems } = useBackupLogColumns({
     }
   },
   sort: {
-    job: (log1, log2) => compareStrings(log1.jobName ?? '', log2.jobName ?? ''),
+    job: (log1, log2) => compareStrings(log1.jobName ?? t('untitled'), log2.jobName ?? t('untitled')),
     backupDate: (log1, log2) => log1.start - log2.start,
     vm: (log1, log2) => compareStrings(getFirstVmName(log1), getFirstVmName(log2)),
     sr: (log1, log2) => compareStrings(getFirstSrName(log1), getFirstSrName(log2)),

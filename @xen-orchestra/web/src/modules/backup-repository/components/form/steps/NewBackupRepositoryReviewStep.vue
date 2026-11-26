@@ -102,7 +102,9 @@ const proxy = useGetProxyById(() => general.formData.proxy ?? undefined)
 
 const type = computed(() => general.formData.type)
 
-const typeLabel = useXoBackupRepositoryTypeLabel(type)
+const { getBackupRepositoryTypeLabel } = useXoBackupRepositoryTypeLabel()
+
+const typeLabel = computed(() => getBackupRepositoryTypeLabel(type.value))
 
 const backupFormatLabel = computed(() => general.getBackupFormatLabel(general.formData.backupFormat))
 </script>

@@ -78,7 +78,9 @@ export function useBackupRepositoryFormBase(
     return details[type === 'azurite' ? 'azure' : type]
   })
 
-  const typeLabel = useXoBackupRepositoryTypeLabel(() => generalFormData.type)
+  const { getBackupRepositoryTypeLabel } = useXoBackupRepositoryTypeLabel()
+
+  const typeLabel = computed(() => getBackupRepositoryTypeLabel(generalFormData.type))
 
   const detailsTitle = computed(() =>
     generalFormData.type === undefined ? '' : t('br-type-details', { type: typeLabel.value })

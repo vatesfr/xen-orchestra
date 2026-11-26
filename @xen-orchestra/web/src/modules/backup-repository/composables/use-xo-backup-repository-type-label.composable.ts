@@ -1,12 +1,11 @@
 import { createMapper } from '@core/packages/mapper'
-import { computed, type MaybeRefOrGetter, toValue } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { BACKUP_REPOSITORY_TYPE, type BackupRepositoryType } from 'xo-remote-parser'
 
-export function useXoBackupRepositoryTypeLabelGetter() {
+export function useXoBackupRepositoryTypeLabel() {
   const { t } = useI18n()
 
-  return createMapper<BackupRepositoryType | 'unknown', string>(
+  const getBackupRepositoryTypeLabel = createMapper<BackupRepositoryType | 'unknown', string>(
     () => ({
       [BACKUP_REPOSITORY_TYPE.FILE]: t('local'),
       [BACKUP_REPOSITORY_TYPE.NFS]: t('nfs'),
@@ -18,10 +17,6 @@ export function useXoBackupRepositoryTypeLabelGetter() {
     }),
     'unknown'
   )
-}
 
-export function useXoBackupRepositoryTypeLabel(rawType: MaybeRefOrGetter<BackupRepositoryType | undefined>) {
-  const getTypeLabel = useXoBackupRepositoryTypeLabelGetter()
-
-  return computed(() => getTypeLabel(toValue(rawType)))
+  return { getBackupRepositoryTypeLabel }
 }

@@ -2,10 +2,9 @@ import { useXoBackupJobModeLabel } from '@/modules/backup-job/composables/use-xo
 import type { FrontAnyXoBackupJob } from '@/modules/backup-job/remote-resources/use-xo-backup-job-collection.ts'
 import { createMetadataBackupJob, createMirrorBackupJob, createVmBackupJob } from '@/test/create-backup-job.ts'
 import { mountComposableWithI18n } from '@/test/mount-composable.ts'
-import { type MaybeRefOrGetter, ref } from 'vue'
 
-function mountModeLabel(backupJob: MaybeRefOrGetter<FrontAnyXoBackupJob>) {
-  return mountComposableWithI18n(() => ({ modeLabel: useXoBackupJobModeLabel(backupJob) }))
+function mountModeLabel(backupJob: FrontAnyXoBackupJob) {
+  return mountComposableWithI18n(() => ({ modeLabel: useXoBackupJobModeLabel().getBackupJobModeLabel(backupJob) }))
 }
 
 describe('useXoBackupJobModeLabel', () => {
@@ -31,14 +30,5 @@ describe('useXoBackupJobModeLabel', () => {
 
   it('has no mode for a metadata job', () => {
     expect(mountModeLabel(createMetadataBackupJob()).modeLabel).toBe('')
-  })
-
-  it('reacts to changes of the backup job', () => {
-    const backupJob = ref<FrontAnyXoBackupJob>(createVmBackupJob({ mode: 'full' }))
-    const result = mountModeLabel(backupJob)
-
-    backupJob.value = createVmBackupJob({ mode: 'delta' })
-
-    expect(result.modeLabel).toBe(result.t('incremental'))
   })
 })

@@ -1,11 +1,9 @@
 import type { FrontAnyXoBackupJob } from '@/modules/backup-job/remote-resources/use-xo-backup-job-collection.ts'
 import { hasBackupJobSnapshotRetention } from '@/modules/backup-job/utils/xo-backup-job.util.ts'
-import { toComputed } from '@core/utils/to-computed.util.ts'
 import { extractIdsFromSimplePattern } from '@xen-orchestra/backups/extractIdsFromSimplePattern.mjs'
-import { computed, type MaybeRefOrGetter } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-export function useGetXoBackupJobTypeLabels() {
+export function useXoBackupJobTypeLabels() {
   const { t } = useI18n()
 
   function hasIds(pattern: unknown) {
@@ -16,7 +14,7 @@ export function useGetXoBackupJobTypeLabels() {
     return extractIdsFromSimplePattern(pattern).length > 0
   }
 
-  return function getBackupJobTypeLabels(job: FrontAnyXoBackupJob) {
+  function getBackupJobTypeLabels(job: FrontAnyXoBackupJob) {
     const labels: string[] = []
 
     switch (job.type) {
@@ -49,12 +47,6 @@ export function useGetXoBackupJobTypeLabels() {
 
     return labels
   }
-}
 
-export function useXoBackupJobTypeLabels(rawBackupJob: MaybeRefOrGetter<FrontAnyXoBackupJob>) {
-  const backupJob = toComputed(rawBackupJob)
-
-  const getBackupJobTypeLabels = useGetXoBackupJobTypeLabels()
-
-  return computed(() => getBackupJobTypeLabels(backupJob.value))
+  return { getBackupJobTypeLabels }
 }

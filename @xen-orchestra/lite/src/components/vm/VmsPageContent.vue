@@ -128,6 +128,15 @@ const getDiskSpace = (vm: XenApiVm) => {
   return getVdis(vbds.map(vbd => vbd.VDI)).reduce((total, vdi) => total + (vdi.virtual_size ?? 0), 0)
 }
 
+// Computed once per VM, so that a sort doesn't recompute them on each comparison
+const ipAddressesByVm = computed(() => new Map(filteredVms.value.map(vm => [vm, getIpAddresses(vm)])))
+
+const diskSpaceByVm = computed(() => new Map(filteredVms.value.map(vm => [vm, getDiskSpace(vm)])))
+
+const getSortIpAddresses = (vm: XenApiVm) => ipAddressesByVm.value.get(vm) ?? []
+
+const getSortDiskSpace = (vm: XenApiVm) => diskSpaceByVm.value.get(vm) ?? 0
+
 const { HeadCells, BodyCells, sortItems } = useVmColumns({
   id: 'vms',
   exclude: ['actions', 'checkbox'],
@@ -149,10 +158,10 @@ const { HeadCells, BodyCells, sortItems } = useVmColumns({
   },
   sort: {
     vm: sortByNameLabel,
-    ipAddresses: (vm1, vm2) => compareFirstStrings(getIpAddresses(vm1), getIpAddresses(vm2)),
+    ipAddresses: (vm1, vm2) => compareFirstStrings(getSortIpAddresses(vm1), getSortIpAddresses(vm2)),
     vcpus: (vm1, vm2) => getVcpus(vm1) - getVcpus(vm2),
     ram: (vm1, vm2) => vm1.memory_dynamic_max - vm2.memory_dynamic_max,
-    diskSpace: (vm1, vm2) => getDiskSpace(vm1) - getDiskSpace(vm2),
+    diskSpace: (vm1, vm2) => getSortDiskSpace(vm1) - getSortDiskSpace(vm2),
     tags: (vm1, vm2) => compareFirstStrings(vm1.tags, vm2.tags),
   },
   initialSort: { id: 'vm', direction: 'asc' },

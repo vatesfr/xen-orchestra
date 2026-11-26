@@ -70,6 +70,11 @@ const state = useTableState({
 
 const displayVms = computed(() => filteredVms.value.map(vm => getDisplayData(vm)))
 
+// Computed once per VM, so that a sort doesn't recompute them on each comparison
+const sortedTagsByVm = computed(() => new Map(displayVms.value.map(vm => [vm, sortTags(vm.tags)])))
+
+const getSortedTags = (vm: VmDisplayData) => sortedTagsByVm.value.get(vm) ?? []
+
 const {
   selectedItems: selectedVms,
   pageSelectionModel,
@@ -116,7 +121,7 @@ const { HeadCells, BodyCells, sortItems } = useVmColumns({
     vcpus: (vm1, vm2) => vm1.CPUs.number - vm2.CPUs.number,
     ram: (vm1, vm2) => vm1.ramSize - vm2.ramSize,
     diskSpace: (vm1, vm2) => vm1.diskSpaceSize - vm2.diskSpaceSize,
-    tags: (vm1, vm2) => compareFirstStrings(sortTags(vm1.tags), sortTags(vm2.tags)),
+    tags: (vm1, vm2) => compareFirstStrings(getSortedTags(vm1), getSortedTags(vm2)),
   },
   initialSort: { id: 'vm', direction: 'asc' },
 })

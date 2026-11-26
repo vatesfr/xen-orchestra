@@ -32,14 +32,8 @@ import BackupJobsFilters from '@/modules/backup-job/components/list/BackupJobsFi
 import { useXoBackupJobActions } from '@/modules/backup-job/composables/use-xo-backup-job-actions.composable.ts'
 import { useXoBackupJobFilters } from '@/modules/backup-job/composables/use-xo-backup-job-filters.composable.ts'
 import { useXoBackupJobLastRuns } from '@/modules/backup-job/composables/use-xo-backup-job-last-runs.composable.ts'
-import {
-  useGetXoBackupJobModeLabel,
-  useXoBackupJobModeLabel,
-} from '@/modules/backup-job/composables/use-xo-backup-job-mode-label.composable.ts'
-import {
-  useGetXoBackupJobTypeLabels,
-  useXoBackupJobTypeLabels,
-} from '@/modules/backup-job/composables/use-xo-backup-job-type-labels.composable.ts'
+import { useXoBackupJobModeLabel } from '@/modules/backup-job/composables/use-xo-backup-job-mode-label.composable.ts'
+import { useXoBackupJobTypeLabels } from '@/modules/backup-job/composables/use-xo-backup-job-type-labels.composable.ts'
 import type { FrontAnyXoBackupJob } from '@/modules/backup-job/remote-resources/use-xo-backup-job-collection.ts'
 import { getBackupJobHealthCheckStatus, isBackupJobEnabled } from '@/modules/backup-job/utils/xo-backup-job.util.ts'
 import { useXoBackupLogCollection } from '@/modules/backup-log/remote-resources/use-xo-backup-log-collection.ts'
@@ -113,9 +107,9 @@ const state = useTableState({
 
 const jobOverviewHref = computed(() => buildXo5Route('/backup/overview'))
 
-const getBackupJobTypeLabels = useGetXoBackupJobTypeLabels()
+const { getBackupJobTypeLabels } = useXoBackupJobTypeLabels()
 
-const getBackupJobModeLabel = useGetXoBackupJobModeLabel()
+const { getBackupJobModeLabel } = useXoBackupJobModeLabel()
 
 const { schedulesByJobId } = useXoScheduleCollection()
 
@@ -137,8 +131,8 @@ const { HeadCells, BodyCells, sortItems } = useBackupJobColumns({
     checkbox: r => r(pageSelectionModel),
   }),
   body: (backupJob: FrontAnyXoBackupJob) => {
-    const typeLabels = useXoBackupJobTypeLabels(() => backupJob)
-    const modeLabel = useXoBackupJobModeLabel(() => backupJob)
+    const typeLabels = computed(() => getBackupJobTypeLabels(backupJob))
+    const modeLabel = computed(() => getBackupJobModeLabel(backupJob))
     const lastRuns = useXoBackupJobLastRuns(() => backupJob)
     const healthCheckStatus = computed(() => getBackupJobHealthCheckStatus(backupJob))
 
@@ -169,7 +163,8 @@ const { HeadCells, BodyCells, sortItems } = useBackupJobColumns({
     }
   },
   sort: {
-    backupJob: (backupJob1, backupJob2) => compareStrings(backupJob1.name ?? '', backupJob2.name ?? ''),
+    backupJob: (backupJob1, backupJob2) =>
+      compareStrings(backupJob1.name ?? t('untitled'), backupJob2.name ?? t('untitled')),
     type: (backupJob1, backupJob2) =>
       compareFirstStrings(getBackupJobTypeLabels(backupJob1), getBackupJobTypeLabels(backupJob2)),
     mode: (backupJob1, backupJob2) =>
