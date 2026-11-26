@@ -618,6 +618,13 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/story/web-core/table/define-columns': RouteRecordInfo<
+      '/story/web-core/table/define-columns',
+      '/story/web-core/table/define-columns',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
     '/story/web-core/tabular-key-value-list/vts-tabular-key-value-list': RouteRecordInfo<
       '/story/web-core/tabular-key-value-list/vts-tabular-key-value-list',
       '/story/web-core/tabular-key-value-list/vts-tabular-key-value-list',
@@ -1808,6 +1815,12 @@ declare module 'vue-router/auto-routes' {
     'src/stories/web-core/tab-list/tab-list.story.vue': {
       routes:
         | '/story/web-core/tab-list/tab-list'
+      views:
+        | never
+    }
+    'src/stories/web-core/table/define-columns.story.vue': {
+      routes:
+        | '/story/web-core/table/define-columns'
       views:
         | never
     }
