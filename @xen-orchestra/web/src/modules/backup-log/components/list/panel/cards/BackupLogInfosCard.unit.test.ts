@@ -22,7 +22,6 @@ import { xoCollectionsMock, mockXoCollections } from '@/test/mock-xo-collections
 import { mockXoRoutes } from '@/test/mock-xo-routes.ts'
 import { vmCollectionMock, mockXoVmCollection } from '@/test/mock-xo-vm-collection.ts'
 import { mockModule } from '@/test/spy-on-module.ts'
-import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
 import { objectIcon } from '@core/icons'
 import { formatDateTime } from '@core/utils/time.util.ts'
 import { mount } from '@vue/test-utils'
@@ -64,20 +63,12 @@ describe('title', () => {
 
   itShowsNameAndIdTitle(
     () => mountCard(titledLog),
-    { label: t('log-name', { date: formatDateTime(titledLog.start) }), id: 'backup-log-42' },
-    'names the log after its start date and shows its id'
+    { label: t('log-name', { date: formatDateTime(titledLog.start) }), id: 'backup-log-42', icon: 'object:backup-run' },
+    'names the log after its start date, with the backup log icon, and shows its id'
   )
 
   it('links to the detail page of the log', () => {
-    const wrapper = mountCard(createBackupLog({ id: 'backup-log-42' as FrontXoBackupLog['id'] }))
-
-    expect(findPanelCardTitleLink(wrapper)?.href).toBe('/admin/backup-log/backup-log-42/general')
-  })
-
-  it('shows the backup log icon', () => {
-    const wrapper = mountCard()
-
-    expect(wrapper.findComponent(UiPanelCardTitle).props('icon')).toBe('object:backup-run')
+    expect(findPanelCardTitleLink(mountCard(titledLog))?.href).toBe('/admin/backup-log/backup-log-42/general')
   })
 })
 
