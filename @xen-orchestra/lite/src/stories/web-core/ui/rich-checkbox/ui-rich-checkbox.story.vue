@@ -3,13 +3,14 @@
     v-slot="{ properties, settings }"
     :params="[
       prop('accent').type('RichCheckboxAccent').required().enum('brand', 'warning', 'danger').preset('brand').widget(),
+      prop('value').str().help('Used when the model is an array'),
       iconProp(),
       prop('tag').str().widget().preset('Label'),
       prop('description').str().widget().preset('Description'),
       prop('info').str().widget(),
       prop('message').str().widget().help('Only displayed when the accent is not brand'),
       prop('disabled').bool().widget(),
-      model().type('boolean | undefined').preset(undefined).help('undefined means partly checked'),
+      model().type('boolean | undefined | string[]').preset(undefined).help('undefined means partly checked'),
       slot().help('Meant to receive the label'),
       slot('tag').help('Meant to receive a UiTag component, to use another accent than the default info one'),
       slot('description'),

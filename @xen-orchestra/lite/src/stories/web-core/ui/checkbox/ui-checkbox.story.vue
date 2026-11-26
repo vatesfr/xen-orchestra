@@ -3,6 +3,7 @@
     v-slot="{ properties, settings }"
     :params="[
       prop('accent').type('CheckboxAccent').required().enum('brand', 'warning', 'danger').preset('brand').widget(),
+      prop('value').str().help('Used when the model is an array'),
       prop('disabled').bool().widget(),
       slot(),
       slot('info'),
@@ -10,7 +11,7 @@
       setting('defaultSlot').widget(text()).preset('Label'),
       setting('info').widget(text()).preset('Lorem ipsum dolor sit amet, consectetur adipiscing elit.'),
       setting('message').widget(text()).preset('Lorem ipsum dolor sit amet, consectetur adipiscing elit.'),
-      model().type('boolean').preset(undefined),
+      model().type('boolean | undefined | string[]').preset(undefined).help('undefined means partly checked'),
     ]"
   >
     <UiCheckbox v-bind="properties">

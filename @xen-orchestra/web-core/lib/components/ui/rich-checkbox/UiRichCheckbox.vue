@@ -7,7 +7,7 @@
           <input
             v-model="model"
             :aria-labelledby="headingId"
-            :aria-describedby="slots.description || description !== undefined ? descriptionId : undefined"
+            :aria-describedby="hasDescription ? descriptionId : undefined"
             :disabled="isDisabled"
             :indeterminate="isIndeterminate"
             :value
@@ -16,7 +16,7 @@
           />
           <VtsIcon :name="checkboxIcon" size="medium" />
         </span>
-        <VtsIcon v-if="icon" :name="icon" size="medium" class="icon" />
+        <VtsIcon v-if="icon" :name="icon" size="medium" />
       </span>
       <span class="content">
         <span :id="headingId" class="heading">
@@ -27,11 +27,7 @@
             <UiTag accent="info" variant="secondary">{{ tag }}</UiTag>
           </slot>
         </span>
-        <span
-          v-if="slots.description || description !== undefined"
-          :id="descriptionId"
-          class="description typo-body-regular"
-        >
+        <span v-if="hasDescription" :id="descriptionId" class="description typo-body-regular">
           <slot name="description">{{ description }}</slot>
         </span>
       </span>
@@ -49,6 +45,7 @@
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import UiTag from '@core/components/ui/tag/UiTag.vue'
+import { type CheckboxModel, useCheckboxState } from '@core/composables/checkbox-state.composable.ts'
 import { useDisabled } from '@core/composables/disabled.composable.ts'
 import type { IconName } from '@core/icons'
 import { toVariants } from '@core/utils/to-variants.util.ts'
@@ -56,7 +53,7 @@ import { computed, useId } from 'vue'
 
 export type RichCheckboxAccent = 'brand' | 'warning' | 'danger'
 
-const { accent, value, disabled } = defineProps<{
+const { accent, value, description, disabled } = defineProps<{
   accent: RichCheckboxAccent
   value?: string
   icon?: IconName
@@ -67,7 +64,7 @@ const { accent, value, disabled } = defineProps<{
   disabled?: boolean
 }>()
 
-const model = defineModel<boolean | undefined | string[]>({ default: undefined })
+const model = defineModel<CheckboxModel>({ default: undefined })
 
 const slots = defineSlots<{
   default(): any
@@ -81,21 +78,11 @@ const headingId = useId()
 
 const descriptionId = useId()
 
+const hasDescription = computed(() => slots.description !== undefined || description !== undefined)
+
 const isDisabled = useDisabled(() => disabled)
 
-const isIndeterminate = computed(() => model.value === undefined)
-
-const isChecked = computed(() =>
-  Array.isArray(model.value) ? model.value.some(item => item === value) : model.value === true
-)
-
-const checkboxIcon = computed<IconName>(() => {
-  if (isIndeterminate.value) {
-    return 'status:checkbox-partially-checked'
-  }
-
-  return isChecked.value ? 'status:checkbox-checked' : 'status:checkbox'
-})
+const { isIndeterminate, isChecked, icon: checkboxIcon } = useCheckboxState(model, () => value)
 
 const className = computed(() =>
   toVariants({

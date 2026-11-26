@@ -1,19 +1,14 @@
 <!-- v1 -->
 <template>
   <div class="ui-rich-checkbox-group">
-    <div v-if="slots.label || label !== undefined" :id="labelId">
+    <div v-if="hasLabel" :id="labelId">
       <slot name="label">
         <UiLabel :accent="labelAccent">
           {{ label }}
         </UiLabel>
       </slot>
     </div>
-    <div
-      :aria-labelledby="slots.label || label !== undefined ? labelId : undefined"
-      :class="{ vertical }"
-      class="group"
-      role="group"
-    >
+    <div :aria-labelledby="hasLabel ? labelId : undefined" :class="{ vertical }" class="group" role="group">
       <slot />
     </div>
     <slot v-if="slots.info || info !== undefined" name="info">
@@ -35,7 +30,7 @@ import UiLabel from '@core/components/ui/label/UiLabel.vue'
 import type { RichCheckboxAccent } from '@core/components/ui/rich-checkbox/UiRichCheckbox.vue'
 import { computed, useId } from 'vue'
 
-const { accent } = defineProps<{
+const { accent, label } = defineProps<{
   accent: RichCheckboxAccent
   label?: string
   info?: string
@@ -52,6 +47,8 @@ const slots = defineSlots<{
 
 const labelId = useId()
 
+const hasLabel = computed(() => slots.label !== undefined || label !== undefined)
+
 const labelAccent = computed(() => (accent === 'brand' ? 'neutral' : accent))
 </script>
 
@@ -62,13 +59,12 @@ const labelAccent = computed(() => (accent === 'brand' ? 'neutral' : accent))
   gap: 0.8rem;
 
   .group {
-    display: grid;
-    grid-auto-flow: column;
-    grid-auto-columns: minmax(0, 1fr);
+    display: flex;
+    flex-wrap: wrap;
     gap: 0.8rem;
 
     &.vertical {
-      grid-auto-flow: row;
+      flex-direction: column;
     }
   }
 }
