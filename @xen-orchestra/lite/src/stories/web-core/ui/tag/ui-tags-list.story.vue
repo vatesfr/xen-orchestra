@@ -8,18 +8,18 @@
       <UiTag accent="success" variant="primary">{{ settings.slot }}</UiTag>
       <UiTag accent="warning" variant="secondary">{{ settings.slot }}</UiTag>
       <UiTag accent="danger" variant="secondary">{{ settings.slot }}</UiTag>
-      <UiTertiaryTag accent="info">
+      <UiLabelValueTag accent="info">
         {{ settings.slot }}
         <template #term>
           {{ settings.slot }}
         </template>
-      </UiTertiaryTag>
-      <UiTertiaryTag accent="success">
+      </UiLabelValueTag>
+      <UiLabelValueTag accent="success">
         {{ settings.slot }}
         <template #term>
           {{ settings.slot }}
         </template>
-      </UiTertiaryTag>
+      </UiLabelValueTag>
     </UiTagsList>
   </ComponentStory>
 </template>
@@ -27,7 +27,7 @@
 <script lang="ts" setup>
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
 import { setting, slot } from '@/libs/story/story-param.ts'
+import UiLabelValueTag from '@core/components/ui/tag/UiLabelValueTag.vue'
 import UiTag from '@core/components/ui/tag/UiTag.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
-import UiTertiaryTag from '@core/components/ui/tag/UiTertiaryTag.vue'
 </script>

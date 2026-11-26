@@ -1,6 +1,7 @@
-<!-- v5 -->
+<!-- v7 -->
 <template>
   <span :class="className" class="ui-tag typo-body-regular-small">
+    <VtsIcon :name="icon" size="current" />
     <slot />
     <button v-if="removable" :aria-label="t('action:remove')" class="remove" type="button" @click.stop="emit('remove')">
       <VtsIcon name="action:close-cancel-clear" size="medium" />
@@ -10,6 +11,7 @@
 
 <script lang="ts" setup>
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
+import type { IconName } from '@core/icons'
 import { toVariants } from '@core/utils/to-variants.util.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -20,6 +22,7 @@ type TagVariant = 'primary' | 'secondary'
 const { accent, variant } = defineProps<{
   accent: TagAccent
   variant: TagVariant
+  icon?: IconName
   removable?: boolean
 }>()
 

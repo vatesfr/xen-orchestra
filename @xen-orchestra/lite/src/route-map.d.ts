@@ -1150,6 +1150,13 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/story/web-core/ui/tag/ui-label-value-tag': RouteRecordInfo<
+      '/story/web-core/ui/tag/ui-label-value-tag',
+      '/story/web-core/ui/tag/ui-label-value-tag',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
     '/story/web-core/ui/tag/ui-tag': RouteRecordInfo<
       '/story/web-core/ui/tag/ui-tag',
       '/story/web-core/ui/tag/ui-tag',
@@ -1160,13 +1167,6 @@ declare module 'vue-router/auto-routes' {
     '/story/web-core/ui/tag/ui-tags-list': RouteRecordInfo<
       '/story/web-core/ui/tag/ui-tags-list',
       '/story/web-core/ui/tag/ui-tags-list',
-      Record<never, never>,
-      Record<never, never>,
-      | never
-    >,
-    '/story/web-core/ui/tag/ui-tertiary-tag': RouteRecordInfo<
-      '/story/web-core/ui/tag/ui-tertiary-tag',
-      '/story/web-core/ui/tag/ui-tertiary-tag',
       Record<never, never>,
       Record<never, never>,
       | never
@@ -2295,6 +2295,12 @@ declare module 'vue-router/auto-routes' {
       views:
         | never
     }
+    'src/stories/web-core/ui/tag/ui-label-value-tag.story.vue': {
+      routes:
+        | '/story/web-core/ui/tag/ui-label-value-tag'
+      views:
+        | never
+    }
     'src/stories/web-core/ui/tag/ui-tag.story.vue': {
       routes:
         | '/story/web-core/ui/tag/ui-tag'
@@ -2304,12 +2310,6 @@ declare module 'vue-router/auto-routes' {
     'src/stories/web-core/ui/tag/ui-tags-list.story.vue': {
       routes:
         | '/story/web-core/ui/tag/ui-tags-list'
-      views:
-        | never
-    }
-    'src/stories/web-core/ui/tag/ui-tertiary-tag.story.vue': {
-      routes:
-        | '/story/web-core/ui/tag/ui-tertiary-tag'
       views:
         | never
     }
