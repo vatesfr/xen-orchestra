@@ -7,11 +7,11 @@ import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { mockXoRoutes } from '@/test/mock-xo-routes.ts'
 import VtsDivider from '@core/components/divider/VtsDivider.vue'
-import VtsStatus from '@core/components/status/VtsStatus.vue'
 import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
 import { formatDateTime } from '@core/utils/time.util.ts'
 import { findLink } from '@core-test/find-links.ts'
-import { mount, type VueWrapper } from '@vue/test-utils'
+import { findStatuses } from '@core-test/find-statuses.ts'
+import { mount } from '@vue/test-utils'
 
 mockXoRoutes()
 
@@ -67,9 +67,7 @@ it('shows the status of each schedule when there are several', () => {
     createSchedule({ id: 'schedule-2' as FrontXoSchedule['id'], enabled: false }),
   ])
 
-  const statuses = wrapper.findAllComponents(VtsStatus) as VueWrapper<InstanceType<typeof VtsStatus>>[]
-
-  expect(statuses.map(status => status.props('status'))).toEqual([true, false])
+  expect(findStatuses(wrapper)).toEqual([true, false])
 })
 
 it('counts the schedules and separates them', () => {

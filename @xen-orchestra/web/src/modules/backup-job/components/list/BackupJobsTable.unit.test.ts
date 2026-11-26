@@ -12,10 +12,10 @@ import { t } from '@/test/i18n.ts'
 import { backupLogCollectionMock, mockXoBackupLogCollection } from '@/test/mock-xo-backup-log-collection.ts'
 import { mockXoRoutes } from '@/test/mock-xo-routes.ts'
 import { scheduleCollectionMock, mockXoScheduleCollection } from '@/test/mock-xo-schedule-collection.ts'
-import VtsStatus from '@core/components/status/VtsStatus.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import { hasLoader } from '@core-test/expect-loader.ts'
 import { findLink } from '@core-test/find-links.ts'
+import { findStatuses } from '@core-test/find-statuses.ts'
 import { pickSelectOption } from '@core-test/select.ts'
 import type { XoSchedule, XoSr } from '@vates/types'
 import { flushPromises, mount, type VueWrapper } from '@vue/test-utils'
@@ -131,9 +131,7 @@ describe('last runs', () => {
 
     const cell = findCell(mountTable([backupJob]), t('last-n-runs', { n: 3 }))
 
-    const statuses = cell.findAllComponents(VtsStatus) as VueWrapper<InstanceType<typeof VtsStatus>>[]
-
-    expect(statuses.map(status => status.props('status'))).toEqual(['failure', 'success'])
+    expect(findStatuses(cell)).toEqual(['failure', 'success'])
   })
 
   it('shows a loader while the backup logs are loading', () => {
@@ -155,13 +153,13 @@ describe('status', () => {
 
     const cell = findCell(mountTable([backupJob]), t('status'))
 
-    expect(cell.getComponent(VtsStatus).props('status')).toBe(true)
+    expect(findStatuses(cell)).toEqual([true])
   })
 
   it('shows a backup job without enabled schedule as disabled', () => {
     const cell = findCell(mountTable([createVmBackupJob()]), t('status'))
 
-    expect(cell.getComponent(VtsStatus).props('status')).toBe(false)
+    expect(findStatuses(cell)).toEqual([false])
   })
 })
 
@@ -177,13 +175,13 @@ describe('health check', () => {
 
     const cell = findCell(mountTable([backupJob]), t('health-check'))
 
-    expect(cell.getComponent(VtsStatus).props('status')).toBe('at-least-one-enabled')
+    expect(findStatuses(cell)).toEqual(['at-least-one-enabled'])
   })
 
   it('leaves the health check empty for a metadata job', () => {
     const cell = findCell(mountTable([createMetadataBackupJob()]), t('health-check'))
 
-    expect(cell.findComponent(VtsStatus).exists()).toBe(false)
+    expect(findStatuses(cell)).toEqual([])
   })
 })
 

@@ -16,10 +16,10 @@ import { t } from '@/test/i18n.ts'
 import { xoCollectionsMock, mockXoCollections } from '@/test/mock-xo-collections.ts'
 import { mockXoRoutes } from '@/test/mock-xo-routes.ts'
 import VtsCopyAllMenuItem from '@core/components/copy-all-menu-item/VtsCopyAllMenuItem.vue'
-import VtsStatus from '@core/components/status/VtsStatus.vue'
 import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
+import { findStatuses } from '@core-test/find-statuses.ts'
 import type { XoSchedule } from '@vates/types'
-import { mount, type VueWrapper } from '@vue/test-utils'
+import { mount } from '@vue/test-utils'
 
 mockXoRoutes()
 
@@ -40,12 +40,6 @@ function mountInfosCard(backupJob: FrontAnyXoBackupJob, schedules: FrontXoSchedu
     props: { backupJob, schedules },
     global: createGlobalTestConfig(),
   })
-}
-
-function findStatuses(wrapper: ReturnType<typeof mountInfosCard>) {
-  return (wrapper.findAllComponents(VtsStatus) as VueWrapper<InstanceType<typeof VtsStatus>>[]).map(status =>
-    status.props('status')
-  )
 }
 
 it('titles the card with the backup job, linked to the XO 5 backup overview', () => {

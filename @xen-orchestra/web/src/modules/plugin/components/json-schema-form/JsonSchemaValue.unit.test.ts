@@ -7,8 +7,8 @@ import { findLabelledValues, findTags } from '@/test/find-rendered-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { mockedExport } from '@/test/spy-on-module.ts'
-import VtsStatus from '@core/components/status/VtsStatus.vue'
 import { findLink } from '@core-test/find-links.ts'
+import { findStatuses } from '@core-test/find-statuses.ts'
 import { mount } from '@vue/test-utils'
 import { computed, toValue } from 'vue'
 
@@ -63,7 +63,7 @@ it('hides the value of a secret', () => {
 it('shows a boolean as a status', () => {
   const wrapper = mountValue({ secure: { type: 'boolean' } }, { secure: true })
 
-  expect(wrapper.getComponent(VtsStatus).props('status')).toBe(true)
+  expect(findStatuses(wrapper)).toEqual([true])
 })
 
 it.each([
