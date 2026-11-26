@@ -4,7 +4,7 @@ import { createHost } from '@/test/create-host.ts'
 import { createPif } from '@/test/create-pif.ts'
 import { createPool } from '@/test/create-pool.ts'
 import { cancelDrawer, submitDrawer } from '@/test/drawer.ts'
-import { findTableColumnCells } from '@/test/find-table-cells.ts'
+import { findTableCell } from '@/test/find-table-cells.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { xoCollectionsMock, mockXoCollections } from '@/test/mock-xo-collections.ts'
@@ -50,7 +50,7 @@ async function fillDrawer(wrapper: VueWrapper) {
   await getField(wrapper, t('name')).get('input').setValue('Private network')
   await chooseSelectOption(wrapper, 'GRE', { container: getField(wrapper, t('encapsulation')) })
   await chooseSelectOption(wrapper, PIF.device, {
-    container: findTableColumnCells(wrapper, t('pif'))[0],
+    container: findTableCell(wrapper, t('pif')),
     detailed: true,
   })
 }

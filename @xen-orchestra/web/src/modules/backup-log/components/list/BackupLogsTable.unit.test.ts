@@ -4,7 +4,7 @@ import type { FrontXoBackupLog } from '@/modules/backup-log/remote-resources/use
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { createBackupLog, createBackupLogVmTask } from '@/test/create-backup-log.ts'
 import { createVm } from '@/test/create-vm.ts'
-import { findTableColumnCells } from '@/test/find-table-cells.ts'
+import { findTableCell } from '@/test/find-table-cells.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { xoCollectionsMock, mockXoCollections } from '@/test/mock-xo-collections.ts'
@@ -48,7 +48,7 @@ function mountTable(backupLog: FrontXoBackupLog) {
 }
 
 function findVmCell(wrapper: ReturnType<typeof mountTable>) {
-  return findTableColumnCells(wrapper, t('vm'))[0]
+  return findTableCell(wrapper, t('vm'))
 }
 
 describe('VM', () => {
