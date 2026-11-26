@@ -1,7 +1,7 @@
 import V2vRememberedConnectionsCard from '@/modules/v2v/components/source/V2vRememberedConnectionsCard.vue'
+import { itRendersCardTitle } from '@/test/card-title.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
-import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import { mount } from '@vue/test-utils'
 
 function mountCard() {
@@ -11,11 +11,7 @@ function mountCard() {
   })
 }
 
-it('shows its title and where the connections are stored', () => {
-  expect(mountCard().getComponent(UiCardTitle).text()).toBe(
-    `${t('remembered-connections')} ${t('stored-in-browser-only')}`
-  )
-})
+itRendersCardTitle(mountCard, `${t('remembered-connections')} ${t('stored-in-browser-only')}`)
 
 it('shows the content it is given', () => {
   expect(mountCard().text()).toContain('Slotted content')
