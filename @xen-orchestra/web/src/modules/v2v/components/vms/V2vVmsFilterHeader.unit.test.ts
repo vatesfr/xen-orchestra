@@ -1,7 +1,7 @@
 import V2vVmsFilterHeader from '@/modules/v2v/components/vms/V2vVmsFilterHeader.vue'
 import type { V2vDatastoreSummary } from '@/modules/v2v/composables/use-v2v-vms-step.composable.ts'
-import { findCardTitleLabel } from '@/test/find-card-title.ts'
 import { findInlineParts } from '@/test/find-parts.ts'
+import { findCardTitleLabel } from '@/test/find-titles.ts'
 import { getButton } from '@/test/get-button.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'

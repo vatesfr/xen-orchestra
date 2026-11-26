@@ -6,8 +6,9 @@ import {
 } from '@/modules/backup-repository/utils/xo-backup-repository-details-payload.util.ts'
 import { MASKED_SECRET } from '@/modules/backup-repository/utils/xo-backup-repository.util.ts'
 import { createProxy } from '@/test/create-proxy.ts'
-import { findTitleLabel } from '@/test/find-card-title.ts'
 import { findLabelledValues } from '@/test/find-rendered-values.ts'
+import { findTitleLabel } from '@/test/find-titles.ts'
+import { getButton } from '@/test/get-button.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { proxyCollectionMock, mockXoProxyCollection } from '@/test/mock-xo-proxy-collection.ts'
@@ -263,7 +264,7 @@ describe('edit', () => {
   it('asks to edit the general step from the general section', async () => {
     const { wrapper, generalSection } = await mountReviewStep()
 
-    await generalSection.get('.ui-title button').trigger('click')
+    await getButton(generalSection, t('action:edit')).trigger('click')
 
     expect(wrapper.emitted('edit')).toEqual([['general']])
   })
@@ -271,7 +272,7 @@ describe('edit', () => {
   it('asks to edit the details step from the details section', async () => {
     const { wrapper, detailsSection } = await mountReviewStep()
 
-    await detailsSection.get('.ui-title button').trigger('click')
+    await getButton(detailsSection, t('action:edit')).trigger('click')
 
     expect(wrapper.emitted('edit')).toEqual([['details']])
   })

@@ -142,7 +142,7 @@ describe('review step', () => {
   it('goes back to the step a section asks to edit', async () => {
     const wrapper = await mountDrawerAtReviewStep()
 
-    await wrapper.get('.section .ui-title button').trigger('click')
+    await getButton(wrapper, t('action:edit')).trigger('click')
 
     expect(findRenderedSteps(wrapper)).toEqual(['general'])
   })

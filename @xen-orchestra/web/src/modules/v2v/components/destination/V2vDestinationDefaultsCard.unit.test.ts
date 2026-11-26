@@ -1,7 +1,7 @@
 import V2vDestinationDefaultsCard from '@/modules/v2v/components/destination/V2vDestinationDefaultsCard.vue'
 import { createSelectBindings } from '@/test/create-select-bindings.ts'
-import { findCardTitle } from '@/test/find-card-title.ts'
 import { findSelectStubLabels } from '@/test/find-select-stub-labels.ts'
+import { findCardTitle } from '@/test/find-titles.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { mount } from '@vue/test-utils'

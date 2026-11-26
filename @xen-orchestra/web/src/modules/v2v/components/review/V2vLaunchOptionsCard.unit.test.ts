@@ -1,6 +1,6 @@
 import V2vLaunchOptionsCard from '@/modules/v2v/components/review/V2vLaunchOptionsCard.vue'
 import FormCheckbox from '@/shared/components/form/FormCheckbox.vue'
-import { findCardTitle } from '@/test/find-card-title.ts'
+import { findCardTitle } from '@/test/find-titles.ts'
 import { getCheckbox } from '@/test/get-checkbox.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'

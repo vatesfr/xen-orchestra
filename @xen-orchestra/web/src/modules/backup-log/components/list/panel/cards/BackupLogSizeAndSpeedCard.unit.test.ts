@@ -7,8 +7,8 @@ import {
   createBackupLogTransferTask,
   createBackupLogVmTask,
 } from '@/test/create-backup-log.ts'
-import { findPanelCardTitleLabel } from '@/test/find-card-title.ts'
 import { findCardCopiedValues, findCardLabelledValues, findCardRowLabels } from '@/test/find-rendered-values.ts'
+import { findPanelCardTitleLabel } from '@/test/find-titles.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { formatSizeRaw } from '@core/utils/size.util.ts'

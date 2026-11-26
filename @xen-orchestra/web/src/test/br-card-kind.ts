@@ -1,5 +1,5 @@
-import { findPanelCardTitleLabel, findTitleLabel } from '@/test/find-card-title.ts'
 import { findCardLabelledValues, findLabelledValues } from '@/test/find-rendered-values.ts'
+import { findPanelCardTitleLabel, findTitleLabel } from '@/test/find-titles.ts'
 
 // Where a card of a backup repository shows: `detail`, the detail page; `panel`, the side panel of the list
 export type BrCardKind = 'detail' | 'panel'

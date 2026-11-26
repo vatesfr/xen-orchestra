@@ -2,13 +2,13 @@ import BackupRepositorySpeedCard from '@/modules/backup-repository/components/li
 import { itRendersCardTitle } from '@/test/card-title.ts'
 import { createTwiceBenchmarkedBr, LATEST_BR_BENCHMARK_RATES } from '@/test/create-br-benchmark.ts'
 import { createBr } from '@/test/create-br.ts'
-import { findPanelCardTitleLabel } from '@/test/find-card-title.ts'
 import {
   CARD_KEY_VALUE_ROW_SELECTOR,
   findCardCopiedValues,
   findCardLabelledValues,
   findCardRowLabels,
 } from '@/test/find-rendered-values.ts'
+import { findPanelCardTitleLabel } from '@/test/find-titles.ts'
 import { t } from '@/test/i18n.ts'
 import { itRunsJobFromButton } from '@/test/job-button.ts'
 import { benchmarkJobMock } from '@/test/mock-backup-repository-benchmark-job.ts'

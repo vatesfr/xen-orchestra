@@ -7,6 +7,7 @@ import {
   useBackupJobTransferForm,
 } from '@/modules/backup-job/form/use-backup-job-transfer-form.ts'
 import type { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
+import { findTitles } from '@/test/find-titles.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { mockModule } from '@/test/spy-on-module.ts'
@@ -49,10 +50,6 @@ function mountTransferStep(
   )
 }
 
-function findSectionTitles(wrapper: VueWrapper) {
-  return wrapper.findAll('.section > .ui-title').map(title => title.text())
-}
-
 function findNumberInputLabels(wrapper: VueWrapper) {
   return wrapper.findAllComponents(BackupJobFormNumberInput).map(input => input.props('label'))
 }
@@ -64,21 +61,21 @@ function findRadioLabels(wrapper: VueWrapper) {
 it('shows the general information, the incremental specifics and the snapshot of an incremental backup', () => {
   const wrapper = mountTransferStep()
 
-  expect(findSectionTitles(wrapper)).toEqual([t('general-information'), t('incremental-specifics'), t('snapshot')])
+  expect(findTitles(wrapper)).toEqual([t('general-information'), t('incremental-specifics'), t('snapshot')])
   expect(findRadioLabels(wrapper)).not.toContain(t('compression-type'))
 })
 
 it('compresses a full backup, without incremental specifics', () => {
   const wrapper = mountTransferStep({}, { isIncremental: false })
 
-  expect(findSectionTitles(wrapper)).toEqual([t('general-information'), t('snapshot')])
+  expect(findTitles(wrapper)).toEqual([t('general-information'), t('snapshot')])
   expect(findRadioLabels(wrapper)).toContain(t('compression-type'))
 })
 
 it('shows the general information only of a mirror backup', () => {
   const wrapper = mountTransferStep({}, { isMirror: true })
 
-  expect(findSectionTitles(wrapper)).toEqual([t('general-information')])
+  expect(findTitles(wrapper)).toEqual([t('general-information')])
   expect(findRadioLabels(wrapper)).toEqual([])
 })
 

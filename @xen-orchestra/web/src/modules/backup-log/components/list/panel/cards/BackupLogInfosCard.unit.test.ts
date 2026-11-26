@@ -7,7 +7,6 @@ import { itShowsNameAndIdTitle } from '@/test/card-title.ts'
 import { createBackupLog, createBackupLogSrTask, createBackupLogVmTask } from '@/test/create-backup-log.ts'
 import { createSr } from '@/test/create-sr.ts'
 import { createVm } from '@/test/create-vm.ts'
-import { findPanelCardTitleLink } from '@/test/find-card-title.ts'
 import {
   findCardCopiedValues,
   findCardLabelledValues,
@@ -16,6 +15,7 @@ import {
   findCardRowLink,
   hasCardRowCopy,
 } from '@/test/find-rendered-values.ts'
+import { findPanelCardTitleLink } from '@/test/find-titles.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { xoCollectionsMock, mockXoCollections } from '@/test/mock-xo-collections.ts'

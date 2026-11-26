@@ -1,6 +1,6 @@
 import HostDashboardLoadAverageChart from '@/modules/host/components/dashboard/HostDashboardLoadAverageChart.vue'
 import { createHostStats } from '@/test/create-host-stats.ts'
-import { findCardTitle } from '@/test/find-card-title.ts'
+import { findCardTitle } from '@/test/find-titles.ts'
 import { t } from '@/test/i18n.ts'
 import { findLinearChart } from '@/test/linear-chart-stub.ts'
 import { mountChartCard, type ChartCardProps } from '@/test/mount-chart-card.ts'

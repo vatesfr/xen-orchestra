@@ -1,4 +1,4 @@
-import { findCardTitle } from '@/test/find-card-title.ts'
+import { findCardTitle } from '@/test/find-titles.ts'
 import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
 import type { VueWrapper } from '@vue/test-utils'
 

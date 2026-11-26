@@ -1,6 +1,6 @@
 import VmDashboardNetworkUsageChart from '@/modules/vm/components/dashboard/VmDashboardNetworkUsageChart.vue'
 import { createVmStats } from '@/test/create-vm-stats.ts'
-import { findCardTitle } from '@/test/find-card-title.ts'
+import { findCardTitle } from '@/test/find-titles.ts'
 import { t } from '@/test/i18n.ts'
 import { findLinearChart, formatChartValue } from '@/test/linear-chart-stub.ts'
 import { mountChartCard, type ChartCardProps } from '@/test/mount-chart-card.ts'

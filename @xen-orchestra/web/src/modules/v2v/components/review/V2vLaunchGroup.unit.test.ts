@@ -1,5 +1,5 @@
 import V2vLaunchGroup from '@/modules/v2v/components/review/V2vLaunchGroup.vue'
-import { findCardTitleLabel } from '@/test/find-card-title.ts'
+import { findCardTitleLabel } from '@/test/find-titles.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'

@@ -1,7 +1,7 @@
 import VmSystemGraphics from '@/modules/vm/components/system/VmSystemGraphics.vue'
 import { itRendersCardTitle } from '@/test/card-title.ts'
 import { createVm } from '@/test/create-vm.ts'
-import { findTitleLabel } from '@/test/find-card-title.ts'
+import { findTitleLabel } from '@/test/find-titles.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { mount } from '@vue/test-utils'

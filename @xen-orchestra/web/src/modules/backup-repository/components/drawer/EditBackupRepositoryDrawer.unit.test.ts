@@ -4,6 +4,7 @@ import BackupRepositoryGeneralStep from '@/modules/backup-repository/components/
 import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
 import { createBr } from '@/test/create-br.ts'
 import { cancelDrawer, findDrawerButtonLabels, submitDrawer } from '@/test/drawer.ts'
+import { findTitles } from '@/test/find-titles.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { proxyCollectionMock, mockXoProxyCollection } from '@/test/mock-xo-proxy-collection.ts'
@@ -48,7 +49,11 @@ it('shows the general information and the details of the repository type togethe
 
   expect(wrapper.findComponent(BackupRepositoryGeneralStep).exists()).toBe(true)
   expect(wrapper.findComponent(BackupRepositoryDetailsStep).exists()).toBe(true)
-  expect(wrapper.get('.details-section > .ui-title').text()).toBe(t('br-type-details', { type: t('nfs') }))
+  expect(findTitles(wrapper)).toEqual([
+    t('general-information'),
+    t('options'),
+    t('br-type-details', { type: t('nfs') }),
+  ])
 })
 
 it('fills the fields from the repository', async () => {

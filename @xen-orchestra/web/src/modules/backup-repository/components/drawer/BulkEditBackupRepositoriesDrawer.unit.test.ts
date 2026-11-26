@@ -6,6 +6,7 @@ import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote
 import FormCheckbox from '@/shared/components/form/FormCheckbox.vue'
 import { createBr } from '@/test/create-br.ts'
 import { submitDrawer } from '@/test/drawer.ts'
+import { findTitles } from '@/test/find-titles.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { proxyCollectionMock, mockXoProxyCollection } from '@/test/mock-xo-proxy-collection.ts'
@@ -77,7 +78,7 @@ it('shows the details of the repositories when they are of the same type', async
   const wrapper = await mountDrawer()
 
   expect(wrapper.findComponent(BackupRepositoryDetailsStep).exists()).toBe(true)
-  expect(wrapper.get('.details-section > .ui-title').text()).toBe(t('br-type-details', { type: t('nfs') }))
+  expect(findTitles(wrapper)).toEqual([t('general-information'), t('br-type-details', { type: t('nfs') })])
   expect(getField(wrapper, t('host-or-ip-address')).get('input').element.value).toBe('192.168.1.10')
 })
 

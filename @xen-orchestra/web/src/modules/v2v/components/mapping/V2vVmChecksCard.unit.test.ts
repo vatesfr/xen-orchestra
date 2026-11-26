@@ -1,5 +1,5 @@
 import V2vVmChecksCard from '@/modules/v2v/components/mapping/V2vVmChecksCard.vue'
-import { findPanelCardTitleLabel } from '@/test/find-card-title.ts'
+import { findPanelCardTitleLabel } from '@/test/find-titles.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { findAccentedInfos } from '@core-test/find-accented-labels.ts'

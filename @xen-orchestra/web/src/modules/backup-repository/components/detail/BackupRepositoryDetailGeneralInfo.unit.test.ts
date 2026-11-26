@@ -2,7 +2,7 @@ import BackupRepositoryDetailGeneralInfo from '@/modules/backup-repository/compo
 import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
 import { itShowsBrGeneralInfo } from '@/test/br-general-info.ts'
 import { itRendersCardTitle } from '@/test/card-title.ts'
-import { findTitleLabel } from '@/test/find-card-title.ts'
+import { findTitleLabel } from '@/test/find-titles.ts'
 import { t } from '@/test/i18n.ts'
 import { mockXoProxyCollection } from '@/test/mock-xo-proxy-collection.ts'
 

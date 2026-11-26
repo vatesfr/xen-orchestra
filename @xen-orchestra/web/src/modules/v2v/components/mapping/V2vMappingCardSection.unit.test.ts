@@ -1,6 +1,6 @@
 import V2vMappingCardSection from '@/modules/v2v/components/mapping/V2vMappingCardSection.vue'
-import { findPanelCardTitleLabels } from '@/test/find-card-title.ts'
 import { findCardLabelledValues } from '@/test/find-rendered-values.ts'
+import { findPanelCardTitleLabels } from '@/test/find-titles.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { countDividers } from '@/test/v2v-mapping-card.ts'
 import { mount } from '@vue/test-utils'

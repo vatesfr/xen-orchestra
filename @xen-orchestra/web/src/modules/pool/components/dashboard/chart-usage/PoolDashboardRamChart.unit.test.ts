@@ -1,6 +1,6 @@
 import PoolDashboardRamChart from '@/modules/pool/components/dashboard/chart-usage/PoolDashboardRamChart.vue'
 import { createPoolStats } from '@/test/create-pool-stats.ts'
-import { findCardTitle } from '@/test/find-card-title.ts'
+import { findCardTitle } from '@/test/find-titles.ts'
 import { t } from '@/test/i18n.ts'
 import { findLinearChart, formatChartValue } from '@/test/linear-chart-stub.ts'
 import { mountChartCard, type ChartCardProps } from '@/test/mount-chart-card.ts'
