@@ -147,24 +147,6 @@ describe('VM', () => {
       icon: objectIcon('vm', 'running'),
     })
   })
-
-  it('leaves the VM empty and not copyable for a log of a job without VM', () => {
-    mockBackupJob({ name: 'QA metadata', type: 'metadataBackup' })
-
-    const wrapper = mountCard(createBackupLog({ tasks: [] }))
-
-    expect(findCardLabelledValues(wrapper)).toMatchObject({ [t('vm')]: '' })
-    expect(hasCardRowCopy(wrapper, t('vm'))).toBe(false)
-  })
-
-  it('shows a VM not found, without copy, for a log of a VM backup without VM', () => {
-    mockBackupJob({ name: 'QA delta', type: 'backup' })
-
-    const wrapper = mountCard(createBackupLog({ tasks: [] }))
-
-    expect(findCardLabelledValues(wrapper)).toMatchObject({ [t('vm')]: t('vm-not-found') })
-    expect(hasCardRowCopy(wrapper, t('vm'))).toBe(false)
-  })
 })
 
 describe('SR', () => {
@@ -195,13 +177,6 @@ describe('SR', () => {
 
     expect(findCardRowLink(wrapper, t('sr'))?.href).toBe('/sr/sr-1/general')
   })
-
-  it('leaves the SR empty and not copyable for a log without SR', () => {
-    const wrapper = mountCard(createBackupLog({ tasks: [] }))
-
-    expect(findCardLabelledValues(wrapper)).toMatchObject({ [t('sr')]: '' })
-    expect(hasCardRowCopy(wrapper, t('sr'))).toBe(false)
-  })
 })
 
 describe('job', () => {
@@ -210,20 +185,49 @@ describe('job', () => {
 
     expect(findCardRowLink(wrapper, t('job'))?.href).toBe('https://xo5.example.com/#/settings/remotes')
   })
-
-  it('shows an unknown job as untitled, without copy', () => {
-    mockBackupJob(undefined)
-
-    const wrapper = mountCard()
-
-    expect(findCardLabelledValues(wrapper)).toMatchObject({ [t('job')]: t('untitled') })
-    expect(hasCardRowCopy(wrapper, t('job'))).toBe(false)
-  })
 })
 
-it('leaves the duration empty and not copyable for a log that has not ended', () => {
-  const wrapper = mountCard(createBackupLog({ end: undefined }))
+it.each([
+  {
+    label: 'the VM empty for a log of a job without VM',
+    backupJob: { name: 'QA metadata', type: 'metadataBackup' },
+    backupLog: createBackupLog({ tasks: [] }),
+    row: t('vm'),
+    value: '',
+  },
+  {
+    label: 'a VM not found for a log of a VM backup without VM',
+    backupJob: { name: 'QA delta', type: 'backup' },
+    backupLog: createBackupLog({ tasks: [] }),
+    row: t('vm'),
+    value: t('vm-not-found'),
+  },
+  {
+    label: 'the SR empty for a log without SR',
+    backupJob: { name: 'QA delta' },
+    backupLog: createBackupLog({ tasks: [] }),
+    row: t('sr'),
+    value: '',
+  },
+  {
+    label: 'an unknown job as untitled',
+    backupJob: undefined,
+    backupLog: createBackupLog(),
+    row: t('job'),
+    value: t('untitled'),
+  },
+  {
+    label: 'the duration empty for a log that has not ended',
+    backupJob: { name: 'QA delta' },
+    backupLog: createBackupLog({ end: undefined }),
+    row: t('duration'),
+    value: '',
+  },
+])('shows $label, not copyable', ({ backupJob, backupLog, row, value }) => {
+  mockBackupJob(backupJob)
 
-  expect(findCardLabelledValues(wrapper)).toMatchObject({ [t('duration')]: '' })
-  expect(hasCardRowCopy(wrapper, t('duration'))).toBe(false)
+  const wrapper = mountCard(backupLog)
+
+  expect(findCardLabelledValues(wrapper)).toMatchObject({ [row]: value })
+  expect(hasCardRowCopy(wrapper, row)).toBe(false)
 })
