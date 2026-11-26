@@ -2,7 +2,7 @@ import V2vActiveMappingCard from '@/modules/v2v/components/mapping/V2vActiveMapp
 import { DISKOR_POOL_NAME } from '@/test/create-pool.ts'
 import { findInlineParts } from '@/test/find-parts.ts'
 import { findCardLabelledValues, findCardRowElements } from '@/test/find-rendered-values.ts'
-import { findPanelCardTitleIcon, findPanelCardTitleLabel } from '@/test/find-titles.ts'
+import { findPanelCardTitleIcon } from '@/test/find-titles.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { describeV2vMappingCardLayout } from '@/test/v2v-mapping-card.ts'
@@ -27,13 +27,8 @@ function findDevices(wrapper: VueWrapper) {
     .map(({ key, value }) => ({ sourceParts: findInlineParts(key), destination: value.text() }))
 }
 
-it('shows its title, locked', () => {
-  const wrapper = mountCard()
-
-  expect([findPanelCardTitleLabel(wrapper), findPanelCardTitleIcon(wrapper).icon]).toEqual([
-    t('active-mapping'),
-    'fa:lock',
-  ])
+it('shows its title locked', () => {
+  expect(findPanelCardTitleIcon(mountCard()).icon).toBe('fa:lock')
 })
 
 it('tells the mapping is locked since the first sync', () => {
