@@ -74,15 +74,17 @@ async function pickFilterOption(wrapper: VueWrapper, filterLabel: string, option
   await pickSelectOption(wrapper, optionLabel)
 }
 
+function findJobCell(backupJob: FrontAnyXoBackupJob, headerLabel: string) {
+  return findTableCell(mountTable([backupJob]), headerLabel)
+}
+
 function findJobCellStatuses(backupJob: FrontAnyXoBackupJob, headerLabel: string) {
-  return findStatuses(findTableCell(mountTable([backupJob]), headerLabel))
+  return findStatuses(findJobCell(backupJob, headerLabel))
 }
 
 describe('backup job', () => {
   it('links the backup job to the XO 5 backup overview, with the backup job icon', () => {
-    expect(
-      findLink(findTableCell(mountTable([createVmBackupJob({ name: 'Nightly backup' })]), t('backup-job')))
-    ).toEqual({
+    expect(findLink(findJobCell(createVmBackupJob({ name: 'Nightly backup' }), t('backup-job')))).toEqual({
       text: 'Nightly backup',
       href: 'https://xo5.example.com/#/backup/overview',
       icon: 'object:backup-job',
@@ -90,7 +92,7 @@ describe('backup job', () => {
   })
 
   it('names a backup job without name as untitled', () => {
-    const cell = findTableCell(mountTable([createVmBackupJob({ name: undefined })]), t('backup-job'))
+    const cell = findJobCell(createVmBackupJob({ name: undefined }), t('backup-job'))
 
     expect(cell.text()).toBe(t('untitled'))
   })
@@ -102,14 +104,14 @@ describe('type', () => {
       srs: { id: 'sr-123' as XoSr['id'] },
       settings: { '': {}, ['schedule-1' as XoSchedule['id']]: { snapshotRetention: 1 } },
     })
-    const cell = findTableCell(mountTable([backupJob]), t('type'))
+    const cell = findJobCell(backupJob, t('type'))
 
     expect(cell.text()).toContain(t('backup:rolling-snapshot'))
     expect(findExtraCount(cell)).toBe(t('plus-n', { n: 2 }))
   })
 
   it('shows no count for a backup job of a single type', () => {
-    const cell = findTableCell(mountTable([createMirrorBackupJob()]), t('type'))
+    const cell = findJobCell(createMirrorBackupJob(), t('type'))
 
     expect(cell.text()).toBe(t('backup:vms-mirror'))
     expect(findExtraCount(cell)).toBeUndefined()
@@ -118,11 +120,11 @@ describe('type', () => {
 
 describe('mode', () => {
   it('shows the mode of the backup job', () => {
-    expect(findTableCell(mountTable([createVmBackupJob({ mode: 'delta' })]), t('mode')).text()).toBe(t('incremental'))
+    expect(findJobCell(createVmBackupJob({ mode: 'delta' }), t('mode')).text()).toBe(t('incremental'))
   })
 
   it('leaves the mode empty for a metadata job', () => {
-    expect(findTableCell(mountTable([createMetadataBackupJob()]), t('mode')).text()).toBe('')
+    expect(findJobCell(createMetadataBackupJob(), t('mode')).text()).toBe('')
   })
 })
 
@@ -137,7 +139,7 @@ describe('last runs', () => {
   it('shows a loader while the backup logs are loading', () => {
     backupLogCollectionMock.areBackupLogsReady.value = false
 
-    const cell = findTableCell(mountTable([createVmBackupJob()]), t('last-n-runs', { n: 3 }))
+    const cell = findJobCell(createVmBackupJob(), t('last-n-runs', { n: 3 }))
 
     expect(hasLoader(cell)).toBe(true)
   })
