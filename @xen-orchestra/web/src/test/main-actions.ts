@@ -2,6 +2,7 @@ import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import UiDropdownButton from '@core/components/ui/dropdown-button/UiDropdownButton.vue'
 import { IK_PANEL_ACTIONS_COMPACT } from '@core/utils/injection-keys.util.ts'
+import { findButton } from '@core-test/get-button.ts'
 import { findMoreActionLabels } from '@core-test/menu.ts'
 import { mount } from '@vue/test-utils'
 import { type Component, computed } from 'vue'
@@ -50,7 +51,7 @@ export function itCompactsMainActions(
       const wrapper = mountActions({ isPanelCompact: true })
 
       expect(wrapper.findComponent(UiDropdownButton).exists()).toBe(false)
-      expect(wrapper.get('button.ui-button-icon').attributes('aria-label')).toBe(t('more-actions'))
+      expect(findButton(wrapper, t('more-actions'))).toBeDefined()
     })
 
     it('moves the state change into the more actions menu', async () => {
