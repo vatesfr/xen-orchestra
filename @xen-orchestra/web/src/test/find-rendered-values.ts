@@ -192,8 +192,3 @@ export function findTags(wrapper: QueryableWrapper): string[] {
 
   return tags.map(tag => tag.text())
 }
-
-// The inline style of the fill of the `UiProgressBar` of a mounted component, its width the share it shows
-export function findProgressBarFillStyle(wrapper: Pick<VueWrapper, 'get'>): string | undefined {
-  return wrapper.get('.ui-progress-bar .fill').attributes('style')
-}

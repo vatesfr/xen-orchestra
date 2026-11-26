@@ -1,11 +1,12 @@
 import HostDashboardRamProvisioning from '@/modules/host/components/dashboard/HostDashboardRamProvisioning.vue'
 import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import { createHost } from '@/test/create-host.ts'
-import { findCardNumbers, findLegends, findProgressBarFillStyle } from '@/test/find-rendered-values.ts'
+import { findCardNumbers, findLegends } from '@/test/find-rendered-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { itShowsHostDashboardCard } from '@/test/host-dashboard-card.ts'
 import { t } from '@/test/i18n.ts'
 import { xoCollectionsMock, mockXoCollections } from '@/test/mock-xo-collections.ts'
+import { findProgressBarFills } from '@core-test/find-progress-bars.ts'
 import { mount } from '@vue/test-utils'
 
 mockXoCollections('host')
@@ -38,7 +39,7 @@ it('splits the memory of the host between what is assigned and what is left', ()
 it('fills the progress bar with the share of the memory in use', () => {
   const wrapper = mountProvisioning()
 
-  expect(findProgressBarFillStyle(wrapper)).toBe('width: 25%;')
+  expect(findProgressBarFills(wrapper)).toEqual(['25%'])
 })
 
 it('labels the progress bar with the name of the host', () => {

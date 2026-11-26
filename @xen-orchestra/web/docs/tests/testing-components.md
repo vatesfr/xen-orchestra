@@ -152,7 +152,6 @@ A donut card and a progress-bar card both render their values through `UiLegend`
 | `findLegends`                 | every `UiLegend`, as ordered `[label, value]` pairs    |
 | `findProgressBarGroupLegends` | the same, grouped per `VtsProgressBarGroup`            |
 | `findCardNumbers`             | every `UiCardNumbers` a card lays out beside its chart |
-| `findProgressBarFillStyle`    | the inline style of the fill of the `UiProgressBar`    |
 
 ```typescript
 expect(findLegends(wrapper)).toEqual([
