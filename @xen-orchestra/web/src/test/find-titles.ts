@@ -47,6 +47,13 @@ export function findPanelCardCounter(wrapper: Pick<VueWrapper, 'getComponent'>) 
   return wrapper.getComponent(UiPanelCardTitle).props('counter')
 }
 
+// The icon the first `UiPanelCardTitle` of a card is handed, and its tooltip
+export function findPanelCardTitleIcon(wrapper: Pick<VueWrapper, 'getComponent'>) {
+  const title = wrapper.getComponent(UiPanelCardTitle)
+
+  return { icon: title.props('icon'), tooltip: title.props('iconTooltip') }
+}
+
 // Every panel card title label of a card, its sub-titles included, in order
 export function findPanelCardTitleLabels(wrapper: Pick<VueWrapper, 'findAll'>) {
   return wrapper.findAll(`${PANEL_CARD_TITLE} .title`).map(readLabel)

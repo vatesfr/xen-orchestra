@@ -4,10 +4,9 @@ import { itShowsBrGeneralInfo } from '@/test/br-general-info.ts'
 import { itShowsNameAndIdTitle } from '@/test/card-title.ts'
 import { createBr } from '@/test/create-br.ts'
 import { findCardCopiedValues, findCardRowLabels } from '@/test/find-rendered-values.ts'
-import { findPanelCardTitleLink } from '@/test/find-titles.ts'
+import { findPanelCardTitleLink, findPanelCardTitleIcon } from '@/test/find-titles.ts'
 import { t } from '@/test/i18n.ts'
 import { mockXoProxyCollection } from '@/test/mock-xo-proxy-collection.ts'
-import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
 import { objectIcon } from '@core/icons'
 
 mockXoProxyCollection()
@@ -39,7 +38,7 @@ it('links the title to the backup repository page', () => {
 it('picks the title icon from the status of the repository', () => {
   const wrapper = mountCard(createBr({ error: { code: 'ENOENT' } }))
 
-  expect(wrapper.findComponent(UiPanelCardTitle).props('icon')).toBe(objectIcon('br', 'disconnected'))
+  expect(findPanelCardTitleIcon(wrapper).icon).toBe(objectIcon('br', 'disconnected'))
 })
 
 it('lists every row of the card, in order', () => {

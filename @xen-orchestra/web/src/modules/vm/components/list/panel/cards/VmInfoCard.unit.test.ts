@@ -6,7 +6,7 @@ import { createHost } from '@/test/create-host.ts'
 import { createPool } from '@/test/create-pool.ts'
 import { createVm } from '@/test/create-vm.ts'
 import { findCardLabelledValues, findCardRowLabels, findTags } from '@/test/find-rendered-values.ts'
-import { findTooltipContent } from '@/test/find-tooltip-content.ts'
+import { findPanelCardTitleIcon } from '@/test/find-titles.ts'
 import { getButton } from '@/test/get-button.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
@@ -15,9 +15,7 @@ import { mockXoRoutes } from '@/test/mock-xo-routes.ts'
 import { userResourceMock, mockXoUser } from '@/test/mock-xo-user.ts'
 import { vmCollectionMock, mockXoVmCollection } from '@/test/mock-xo-vm-collection.ts'
 import { itShowsVmCreator } from '@/test/vm-creator.ts'
-import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsTagSelect from '@core/components/tag-select/VtsTagSelect.vue'
-import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
 import { objectIcon } from '@core/icons'
 import { HOST_POWER_STATE, VM_OPERATIONS, VM_POWER_STATE } from '@vates/types'
 import { mount } from '@vue/test-utils'
@@ -63,13 +61,13 @@ it('shows the busy icon in the card title while the VM power state is changing',
     createVm({ power_state: VM_POWER_STATE.RUNNING, current_operations: { 'task-1': VM_OPERATIONS.CLEAN_REBOOT } })
   )
 
-  expect(wrapper.getComponent(UiPanelCardTitle).getComponent(VtsIcon).props('name')).toBe(objectIcon('vm', 'busy'))
+  expect(findPanelCardTitleIcon(wrapper).icon).toBe(objectIcon('vm', 'busy'))
 })
 
-it('shows the pending operation in the tooltip of the busy icon of the card title', async () => {
+it('shows the pending operation in the tooltip of the busy icon of the card title', () => {
   const wrapper = mountInfoCard(createVm({ current_operations: { 'task-1': VM_OPERATIONS.CLEAN_REBOOT } }))
 
-  expect(await findTooltipContent(wrapper.getComponent(UiPanelCardTitle).getComponent(VtsIcon).element)).toBe(
+  expect(findPanelCardTitleIcon(wrapper).tooltip).toBe(
     t('operation-in-progress', { operation: t('operation:clean-reboot') })
   )
 })
