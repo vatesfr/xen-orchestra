@@ -130,6 +130,21 @@ describe('report of a VM backup', () => {
     assert.match(emails[0].text, /abort requested by deleted-user-id/)
   })
 
+  it('shows who requested the skip of the cleanup, in all the templates', async () => {
+    const { emails, plugin, slackMessages } = createReporter()
+    const log = abortedRunLog()
+    log.infos.push({ message: 'cleanup skip requested', data: { type: 'cleanupSkipRequested', userId: 'user-id' } })
+
+    await plugin._vmHandler(log, { name: 'job', settings: { '': {} } })
+
+    const [{ html, text }] = emails
+    const [compactText] = slackMessages
+    for (const report of [html, text, compactText]) {
+      assert.match(report, ABORT_LINE)
+      assert.match(report, /cleanup skip requested by admin@admin\.net, the next run cleans what is left/)
+    }
+  })
+
   it('finds the abort request by the type of the info, not by its data', async () => {
     const { emails, plugin } = createReporter()
     const log = abortedRunLog()
