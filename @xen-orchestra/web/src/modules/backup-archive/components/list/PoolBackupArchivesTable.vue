@@ -2,7 +2,7 @@
   <UiTitle>
     {{ t('pool-metadata-backup-archives') }}
   </UiTitle>
-  <VtsQueryBuilder :model-value="filter" :schema @search="filter = $event" />
+  <VtsQueryBuilder v-bind="searchBindings" :schema />
 
   <VtsTable :state :pagination-bindings sticky="right">
     <thead>
@@ -68,7 +68,7 @@ const filterableBackupArchives = computed(() =>
   }))
 )
 
-const { items: filteredBackupArchives, filter } = useQueryBuilderFilter<PoolBackupArchiveFilterableData>(
+const { items: filteredBackupArchives, searchBindings } = useQueryBuilderFilter<PoolBackupArchiveFilterableData>(
   'pool-backup-archives',
   () => filterableBackupArchives.value
 )

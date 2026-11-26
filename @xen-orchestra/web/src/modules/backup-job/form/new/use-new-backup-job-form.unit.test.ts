@@ -1,3 +1,4 @@
+import type { useXoVmBackupArchiveCollection } from '@/modules/backup-archive/remote-resources/use-xo-vm-backup-archive-collection.ts'
 import { useNewBackupJobForm } from '@/modules/backup-job/form/new/use-new-backup-job-form.ts'
 import type {
   FrontXoBackupRepository,
@@ -10,7 +11,6 @@ import type { FrontXoProxy, useXoProxyCollection } from '@/modules/proxy/remote-
 import type { useXoSrCollection } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import type { useXoVbdCollection } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
 import type { useXoVdiCollection } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
-import type { useXoVmBackupArchiveCollection } from '@/modules/backup-archive/remote-resources/use-xo-vm-backup-archive-collection.ts'
 import type { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { createBr } from '@/test/create-br.ts'
 import { mountComposable } from '@/test/mount-composable.ts'

@@ -1,3 +1,4 @@
+import type { useXoVmBackupArchiveCollection } from '@/modules/backup-archive/remote-resources/use-xo-vm-backup-archive-collection.ts'
 import BackupJobReviewSection from '@/modules/backup-job/components/form/review/BackupJobReviewSection.vue'
 import BackupJobReviewStep from '@/modules/backup-job/components/form/steps/BackupJobReviewStep.vue'
 import { useNewBackupJobForm } from '@/modules/backup-job/form/new/use-new-backup-job-form.ts'
@@ -9,7 +10,6 @@ import type { useXoProxyCollection } from '@/modules/proxy/remote-resources/use-
 import type { useXoSrCollection } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import type { useXoVbdCollection } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
 import type { useXoVdiCollection } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
-import type { useXoVmBackupArchiveCollection } from '@/modules/backup-archive/remote-resources/use-xo-vm-backup-archive-collection.ts'
 import type { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'

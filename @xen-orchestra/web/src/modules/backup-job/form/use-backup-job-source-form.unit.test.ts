@@ -1,3 +1,7 @@
+import type {
+  FrontXoVmBackupArchive,
+  useXoVmBackupArchiveCollection,
+} from '@/modules/backup-archive/remote-resources/use-xo-vm-backup-archive-collection.ts'
 import {
   type BackupJobSourceFormData,
   useBackupJobSourceForm,
@@ -11,10 +15,6 @@ import { toPoolQueryPreviewItem } from '@/modules/pool/utils/xo-pool-query-previ
 import type { FrontXoProxy, useXoProxyCollection } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
 import type { useXoVbdCollection } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
 import type { useXoVdiCollection } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
-import type {
-  FrontXoVmBackupArchive,
-  useXoVmBackupArchiveCollection,
-} from '@/modules/backup-archive/remote-resources/use-xo-vm-backup-archive-collection.ts'
 import type { FrontXoVm, useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { toVmQueryPreviewItem } from '@/modules/vm/utils/xo-vm-query-preview-item.util.ts'
 import { createBr } from '@/test/create-br.ts'
