@@ -7,6 +7,7 @@ import { createVm } from '@/test/create-vm.ts'
 import { findPanelCardTitle } from '@/test/find-card-title.ts'
 import { findCardLabelledValues, findCardRowLabels, findTags } from '@/test/find-rendered-values.ts'
 import { findTooltipContent } from '@/test/find-tooltip-content.ts'
+import { getButton } from '@/test/get-button.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { xoCollectionsMock, mockXoCollections } from '@/test/mock-xo-collections.ts'
@@ -127,16 +128,13 @@ it('renders one tag per VM tag, in alphabetical order', () => {
 it('shows an icon-only "Add" button next to the tags label when the VM has none', () => {
   const wrapper = mountInfoCard(createVm({ tags: [] }))
 
-  const button = wrapper.findComponent(VtsTagSelect).get('.ui-button-icon')
-
-  expect(button.attributes('aria-label')).toBe(t('action:add'))
-  expect(button.text()).toBe('')
+  expect(getButton(wrapper.findComponent(VtsTagSelect), t('action:add')).text()).toBe('')
 })
 
 it('shows an icon-only "Edit" button next to the tags label when the VM has some', () => {
   const wrapper = mountInfoCard(createVm({ tags: ['production'] }))
 
-  expect(wrapper.findComponent(VtsTagSelect).get('.ui-button-icon').attributes('aria-label')).toBe(t('action:edit'))
+  expect(getButton(wrapper.findComponent(VtsTagSelect), t('action:edit')).text()).toBe('')
 })
 
 const POOL_AND_HOST_CASES = [

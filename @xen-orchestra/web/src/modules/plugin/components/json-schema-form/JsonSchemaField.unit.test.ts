@@ -1,3 +1,4 @@
+import JsonSchemaArrayItemDeleteButton from '@/modules/plugin/components/json-schema-form/JsonSchemaArrayItemDeleteButton.vue'
 import JsonSchemaField from '@/modules/plugin/components/json-schema-form/JsonSchemaField.vue'
 import type { JsonSchema } from '@/modules/plugin/utils/json-schema.util.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
@@ -60,6 +61,10 @@ async function findRequiredLabels(wrapper: VueWrapper) {
   await nextTick()
 
   return wrapper.findAll('label.required').map(label => label.text())
+}
+
+async function removeItem(wrapper: Pick<VueWrapper, 'findAllComponents'>, index = 0) {
+  await wrapper.findAllComponents(JsonSchemaArrayItemDeleteButton)[index].trigger('click')
 }
 
 function findSectionHeaders(wrapper: VueWrapper) {
@@ -586,7 +591,7 @@ describe('array field', () => {
   it('removes an item', async () => {
     const wrapper = mountField({ schema, required: true, modelValue: ['a', 'b', 'c'] })
 
-    await wrapper.findAll('button.ui-button-icon')[1].trigger('click')
+    await removeItem(wrapper, 1)
 
     expect(lastEmittedValue(wrapper)).toEqual(['a', 'c'])
   })
@@ -598,7 +603,7 @@ describe('array field', () => {
       modelValue: [{ uri: 'a' }, { uri: 'b' }],
     })
 
-    await findSectionHeaders(wrapper)[0].get('button.ui-button-icon').trigger('click')
+    await removeItem(findSectionHeaders(wrapper)[0])
 
     expect(lastEmittedValue(wrapper)).toEqual([{ uri: 'b' }])
   })
@@ -606,7 +611,7 @@ describe('array field', () => {
   it('keeps the state of the following items when an item is removed', async () => {
     const wrapper = mountField({ schema, required: true, modelValue: ['a', OBFUSCATED_VALUE] })
 
-    await wrapper.findAll('button.ui-button-icon')[0].trigger('click')
+    await removeItem(wrapper)
     await wrapper.setProps({ modelValue: lastEmittedValue(wrapper) })
 
     expect(wrapper.findAll('input').map(input => input.element.type)).toEqual(['password'])
