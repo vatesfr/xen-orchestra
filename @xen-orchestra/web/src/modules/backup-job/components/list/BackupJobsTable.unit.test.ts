@@ -6,6 +6,7 @@ import { createMetadataBackupJob, createMirrorBackupJob, createVmBackupJob } fro
 import { createBackupLog } from '@/test/create-backup-log.ts'
 import { createSchedule } from '@/test/create-schedule.ts'
 import { createTestRouter } from '@/test/create-test-router.ts'
+import { findTableColumnCells } from '@/test/find-table-cells.ts'
 import { getButton } from '@/test/get-button.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
@@ -73,9 +74,11 @@ async function pickFilterOption(wrapper: VueWrapper, filterLabel: string, option
 }
 
 function findCell(wrapper: VueWrapper, headerLabel: string) {
-  const headers = wrapper.findAll('thead th').map(header => header.text())
+  return findTableColumnCells(wrapper, headerLabel)[0]
+}
 
-  return wrapper.findAll('tbody tr td')[headers.indexOf(headerLabel)]
+function findJobCellStatuses(backupJob: FrontAnyXoBackupJob, headerLabel: string) {
+  return findStatuses(findCell(mountTable([backupJob]), headerLabel))
 }
 
 describe('backup job', () => {
@@ -129,9 +132,7 @@ describe('last runs', () => {
     const backupJob = createVmBackupJob()
     setBackupLogs(backupJob, ['failure', 'success'])
 
-    const cell = findCell(mountTable([backupJob]), t('last-n-runs', { n: 3 }))
-
-    expect(findStatuses(cell)).toEqual(['failure', 'success'])
+    expect(findJobCellStatuses(backupJob, t('last-n-runs', { n: 3 }))).toEqual(['failure', 'success'])
   })
 
   it('shows a loader while the backup logs are loading', () => {
@@ -151,15 +152,11 @@ describe('status', () => {
       createSchedule({ id: 'schedule-2' as FrontXoSchedule['id'], jobId: backupJob.id, enabled: true }),
     ]
 
-    const cell = findCell(mountTable([backupJob]), t('status'))
-
-    expect(findStatuses(cell)).toEqual([true])
+    expect(findJobCellStatuses(backupJob, t('status'))).toEqual([true])
   })
 
   it('shows a backup job without enabled schedule as disabled', () => {
-    const cell = findCell(mountTable([createVmBackupJob()]), t('status'))
-
-    expect(findStatuses(cell)).toEqual([false])
+    expect(findJobCellStatuses(createVmBackupJob(), t('status'))).toEqual([false])
   })
 })
 
@@ -173,15 +170,11 @@ describe('health check', () => {
       },
     })
 
-    const cell = findCell(mountTable([backupJob]), t('health-check'))
-
-    expect(findStatuses(cell)).toEqual(['at-least-one-enabled'])
+    expect(findJobCellStatuses(backupJob, t('health-check'))).toEqual(['at-least-one-enabled'])
   })
 
   it('leaves the health check empty for a metadata job', () => {
-    const cell = findCell(mountTable([createMetadataBackupJob()]), t('health-check'))
-
-    expect(findStatuses(cell)).toEqual([])
+    expect(findJobCellStatuses(createMetadataBackupJob(), t('health-check'))).toEqual([])
   })
 })
 
