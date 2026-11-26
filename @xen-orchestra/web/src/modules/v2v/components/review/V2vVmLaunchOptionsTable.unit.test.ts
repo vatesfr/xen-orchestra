@@ -1,8 +1,8 @@
 import V2vLaunchOptionSelect from '@/modules/v2v/components/review/V2vLaunchOptionSelect.vue'
 import V2vVmLaunchOptionsTable from '@/modules/v2v/components/review/V2vVmLaunchOptionsTable.vue'
+import { itRendersCardTitle } from '@/test/card-title.ts'
 import { createV2vVmLaunchOptionsRow } from '@/test/create-v2v-launch.ts'
 import { findTableColumn, findTableColumnCells, findTableHeaders } from '@/test/find-table-cells.ts'
-import { findCardTitle } from '@/test/find-titles.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import type { XoV2vVm } from '@vates/types'
@@ -31,9 +31,7 @@ function findOptionSelects(wrapper: ReturnType<typeof mountTable>, header: strin
   return findTableColumnCells(wrapper, header).map(cell => cell.getComponent(V2vLaunchOptionSelect))
 }
 
-it('shows its title and that "Default" follows the default options', () => {
-  expect(findCardTitle(mountTable())).toBe(`${t('per-vm-options')} ${t('v2v:per-vm-options-info')}`)
-})
+itRendersCardTitle(mountTable, `${t('per-vm-options')} ${t('v2v:per-vm-options-info')}`)
 
 it('shows the VM, then whether to stop its source, to dock it and to start it, in this order', () => {
   expect(findTableHeaders(mountTable())).toEqual([

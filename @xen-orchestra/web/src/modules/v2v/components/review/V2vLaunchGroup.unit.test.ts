@@ -1,4 +1,5 @@
 import V2vLaunchGroup from '@/modules/v2v/components/review/V2vLaunchGroup.vue'
+import { itRendersCardTitle } from '@/test/card-title.ts'
 import { findCardTitleLabel } from '@/test/find-titles.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import UiCard from '@core/components/ui/card/UiCard.vue'
@@ -15,9 +16,7 @@ function mountGroup(count: number) {
   })
 }
 
-it('titles the group with its label', () => {
-  expect(findCardTitleLabel(mountGroup(2))).toContain(HEADING.label)
-})
+itRendersCardTitle(() => mountGroup(2), [HEADING.label], findCardTitleLabel)
 
 it('counts its VMs with the accent of the group', () => {
   expect(mountGroup(2).getComponent(UiCounter).props()).toMatchObject({ value: 2, accent: 'danger' })

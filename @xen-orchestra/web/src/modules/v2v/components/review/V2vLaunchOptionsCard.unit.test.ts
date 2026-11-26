@@ -1,6 +1,6 @@
 import V2vLaunchOptionsCard from '@/modules/v2v/components/review/V2vLaunchOptionsCard.vue'
 import FormCheckbox from '@/shared/components/form/FormCheckbox.vue'
-import { findCardTitle } from '@/test/find-titles.ts'
+import { itRendersCardTitle } from '@/test/card-title.ts'
 import { getCheckbox } from '@/test/get-checkbox.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
@@ -38,9 +38,7 @@ function findCheckboxes(wrapper: ReturnType<typeof mountCard>['wrapper']) {
   })
 }
 
-it('shows its title and that the options apply to every VM unless overridden', () => {
-  expect(findCardTitle(mountCard().wrapper)).toBe(`${t('default-options')} ${t('v2v:default-options-info')}`)
-})
+itRendersCardTitle(() => mountCard().wrapper, `${t('default-options')} ${t('v2v:default-options-info')}`)
 
 it('shows stopping the source VM, docking the guest, starting the VM then stopping on error, bound to the form', () => {
   const { wrapper, form } = mountCard()

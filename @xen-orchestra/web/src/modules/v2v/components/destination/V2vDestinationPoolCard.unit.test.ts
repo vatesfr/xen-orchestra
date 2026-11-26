@@ -1,9 +1,9 @@
 import V2vDestinationPoolCard from '@/modules/v2v/components/destination/V2vDestinationPoolCard.vue'
 import V2vPoolOption from '@/modules/v2v/components/destination/V2vPoolOption.vue'
+import { itRendersCardTitle } from '@/test/card-title.ts'
 import { createPool } from '@/test/create-pool.ts'
 import { createSelectBindings } from '@/test/create-select-bindings.ts'
 import { findSelectStubLabels } from '@/test/find-select-stub-labels.ts'
-import { findCardTitle } from '@/test/find-titles.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { mountWithSetup } from '@/test/mount-with-setup.ts'
@@ -21,9 +21,7 @@ function mountCard() {
   })
 }
 
-it('shows its title and that a migration goes to one pool', () => {
-  expect(findCardTitle(mountCard())).toBe(`${t('destination-pool')} ${t('v2v:destination-pool-info')}`)
-})
+itRendersCardTitle(mountCard, `${t('destination-pool')} ${t('v2v:destination-pool-info')}`)
 
 it('lets the user choose the pool', () => {
   expect(findSelectStubLabels(mountCard())).toEqual([POOL_SELECT_BINDINGS.label])

@@ -1,4 +1,5 @@
 import V2vVmChecksCard from '@/modules/v2v/components/mapping/V2vVmChecksCard.vue'
+import { itRendersCardTitle } from '@/test/card-title.ts'
 import { findPanelCardTitleLabel } from '@/test/find-titles.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
@@ -14,9 +15,7 @@ function mountCard() {
   return mount(V2vVmChecksCard, { props: { checks: [...CHECKS] }, global: createGlobalTestConfig() })
 }
 
-it('shows its title', () => {
-  expect(findPanelCardTitleLabel(mountCard())).toBe(t('checks'))
-})
+itRendersCardTitle(mountCard, t('checks'), findPanelCardTitleLabel)
 
 it('tells each check with its accent, in order', () => {
   expect(findAccentedInfos(mountCard())).toEqual(CHECKS)
