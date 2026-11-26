@@ -2896,6 +2896,8 @@ const messages = {
   licenses: 'Licenses',
   licensesBinding: 'Licenses binding',
   notEnoughXcpngLicenses: 'Not enough XCP-ng licenses',
+  xcpngSupportedVersionsUnavailable:
+    'Unable to check whether the XCP-ng versions of the hosts are supported. Please try again later.',
   notBoundSelectLicense: 'Not bound (Plan (ID), expiration date)',
   xcpngLicensesBindingAvancedView: "To bind an XCP-ng license, go to the pool's Advanced tab.",
   registerNow: 'Register now!',
