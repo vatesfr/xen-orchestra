@@ -38,11 +38,14 @@ class ForkedDisk extends DiskPassthrough {
   async close(): Promise<void> {
     const alreadyClosed = this.#closed
     this.#closed = true
-    // closing the source first makes a pending read fail instead of ending like a complete disk
-    await super.close()
-    if (!alreadyClosed) {
-      // the other forks are waiting for this one at each block, even if it has not been consumed at all
-      await this.#generator.return(undefined)
+    try {
+      // closing the source first makes a pending read fail instead of ending like a complete disk
+      await super.close()
+    } finally {
+      if (!alreadyClosed) {
+        // the other forks are waiting for this one at each block, even if it has not been consumed at all
+        await this.#generator.return(undefined)
+      }
     }
   }
 }

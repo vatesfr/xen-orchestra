@@ -340,7 +340,11 @@ export const importIncrementalVm = defer(async function importIncrementalVm(
   const { disks } = incrementalVm
   const importDiskContent = limitConcurrency(diskConcurrency)(async (signal, id) => {
     // another disk may have failed while this one was waiting for its turn
-    signal.throwIfAborted()
+    if (signal.aborted) {
+      // release the forks
+      await Promise.all(ensureArray(disks[id]).map(disk => disk?.close()))
+      signal.throwIfAborted()
+    }
 
     const vdi = newVdis[id]
     for (const disk of ensureArray(disks[id])) {
