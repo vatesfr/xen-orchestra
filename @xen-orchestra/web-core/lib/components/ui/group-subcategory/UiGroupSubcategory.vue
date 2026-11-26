@@ -19,7 +19,7 @@ const slots = defineSlots<{
   align-items: center;
   gap: 0.8rem;
   color: var(--color-neutral-txt-secondary);
-  word-break: break-word;
+  overflow-wrap: break-word;
 
   .title {
     flex: 1;

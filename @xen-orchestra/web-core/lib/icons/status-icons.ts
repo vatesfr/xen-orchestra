@@ -160,24 +160,18 @@ export const statusIcons = defineIconPack({
   'checkbox-checked': [
     {
       icon: faSquare,
-      color: 'var(--color-brand-txt-item)',
+      color: 'var(--checkbox-mark-color, var(--color-neutral-background-primary))',
       size: 10,
     },
-    {
-      icon: faSquareCheck,
-      color: 'var(--color-brand-item-base)',
-    },
+    constructIcon(faSquareCheck),
   ],
   'checkbox-partially-checked': [
     {
       icon: faSquare,
-      color: 'var(--color-brand-txt-item)',
+      color: 'var(--checkbox-mark-color, var(--color-neutral-background-primary))',
       size: 10,
     },
-    {
-      icon: faSquareMinus,
-      color: 'var(--color-brand-item-base)',
-    },
+    constructIcon(faSquareMinus),
   ],
   'radio-button': constructIcon(circleEmpty),
   'radio-button-checked': [
