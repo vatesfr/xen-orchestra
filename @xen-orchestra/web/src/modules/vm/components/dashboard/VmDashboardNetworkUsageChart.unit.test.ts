@@ -4,6 +4,7 @@ import { findCardTitle } from '@/test/find-card-title.ts'
 import { t } from '@/test/i18n.ts'
 import { findLinearChart, formatChartValue } from '@/test/linear-chart-stub.ts'
 import { mountChartCard, type ChartCardProps } from '@/test/mount-chart-card.ts'
+import { findStateHeroTexts } from '@core-test/find-state-hero-types.ts'
 import type { XapiVmStats } from '@vates/types/common'
 
 function mountChart(props: ChartCardProps<XapiVmStats>) {
@@ -28,25 +29,25 @@ it('shows a loader while the stats are loading', () => {
 it('shows an error message when the stats could not be fetched', () => {
   const wrapper = mountChart({ data: null, error: true })
 
-  expect(wrapper.get('.vts-state-hero').text()).toBe(t('error-no-data'))
+  expect(findStateHeroTexts(wrapper)).toEqual([t('error-no-data')])
 })
 
 it('prefers the error message over the missing stats', () => {
   const wrapper = mountChart({ data: statsWithSamples, error: true })
 
-  expect(wrapper.get('.vts-state-hero').text()).toBe(t('error-no-data'))
+  expect(findStateHeroTexts(wrapper)).toEqual([t('error-no-data')])
 })
 
 it('reports that there is nothing to plot when the VM has no vif sample', () => {
   const wrapper = mountChart({ data: createVmStats() })
 
-  expect(wrapper.get('.vts-state-hero').text()).toBe(t('no-data-to-calculate'))
+  expect(findStateHeroTexts(wrapper)).toEqual([t('no-data-to-calculate')])
 })
 
 it('reports that there is nothing to plot for null stats', () => {
   const wrapper = mountChart({ data: null })
 
-  expect(wrapper.get('.vts-state-hero').text()).toBe(t('no-data-to-calculate'))
+  expect(findStateHeroTexts(wrapper)).toEqual([t('no-data-to-calculate')])
 })
 
 it('plots the upload above the download', () => {

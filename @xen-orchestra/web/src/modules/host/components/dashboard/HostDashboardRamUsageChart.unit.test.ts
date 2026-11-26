@@ -4,6 +4,7 @@ import { findCardTitle } from '@/test/find-card-title.ts'
 import { t } from '@/test/i18n.ts'
 import { findLinearChart, formatChartValue } from '@/test/linear-chart-stub.ts'
 import { mountChartCard, type ChartCardProps } from '@/test/mount-chart-card.ts'
+import { findStateHeroTexts } from '@core-test/find-state-hero-types.ts'
 import type { XapiHostStats } from '@vates/types/common'
 
 function mountChart(props: ChartCardProps<XapiHostStats>) {
@@ -36,19 +37,19 @@ it('shows a loader while the stats have not arrived yet', () => {
 it('shows an error message when the stats could not be fetched', () => {
   const wrapper = mountChart({ data: statsWithSamples, error: true })
 
-  expect(wrapper.get('.vts-state-hero').text()).toBe(t('error-no-data'))
+  expect(findStateHeroTexts(wrapper)).toEqual([t('error-no-data')])
 })
 
 it('reports that there is nothing to plot when the host has no memory sample', () => {
   const wrapper = mountChart({ data: createHostStats() })
 
-  expect(wrapper.get('.vts-state-hero').text()).toBe(t('no-data-to-calculate'))
+  expect(findStateHeroTexts(wrapper)).toEqual([t('no-data-to-calculate')])
 })
 
 it('reports that there is nothing to plot when the free memory is missing', () => {
   const wrapper = mountChart({ data: createHostStats({ stats: { memory: [2048, 4096] } }) })
 
-  expect(wrapper.get('.vts-state-hero').text()).toBe(t('no-data-to-calculate'))
+  expect(findStateHeroTexts(wrapper)).toEqual([t('no-data-to-calculate')])
 })
 
 it('plots the memory the host actually uses', () => {

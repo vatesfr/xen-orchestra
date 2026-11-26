@@ -1,6 +1,7 @@
 import { findCardTitle } from '@/test/find-card-title.ts'
 import { t } from '@/test/i18n.ts'
 import { expectLoaderInsteadOf } from '@core-test/expect-loader.ts'
+import { findStateHeroTexts } from '@core-test/find-state-hero-types.ts'
 import type { VueWrapper } from '@vue/test-utils'
 
 // The whole card title, or the parts a title holding more (a count, a top five) must contain
@@ -71,6 +72,6 @@ export function itShowsDashboardCardStates<TProp extends string, TDashboard>(
   it('shows an error message when the dashboard could not be fetched', () => {
     const wrapper = mountCard({ hasError: true } as DashboardCardProps<TProp, TDashboard>)
 
-    expect(wrapper.get('.vts-state-hero').text()).toBe(t('error-no-data'))
+    expect(findStateHeroTexts(wrapper)).toEqual([t('error-no-data')])
   })
 }

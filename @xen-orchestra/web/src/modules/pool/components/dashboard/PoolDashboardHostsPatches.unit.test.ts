@@ -5,6 +5,7 @@ import { findTableRows } from '@/test/find-rendered-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import type { PoolDashboardCardProps } from '@/test/pool-dashboard-card.ts'
+import { findStateHeroTexts } from '@core-test/find-state-hero-types.ts'
 import { mount } from '@vue/test-utils'
 
 type MissingPatches = NonNullable<NonNullable<XoPoolDashboard['hosts']>['missingPatches']>
@@ -63,13 +64,13 @@ it('lists one row per missing patch', () => {
 it('reports the pool as up to date when its hosts miss no patch', () => {
   const wrapper = mountPatches({ poolDashboard: withAuthorizedPatches([]) })
 
-  expect(wrapper.get('.vts-state-hero').text()).toContain(t('patches-up-to-date'))
+  expect(findStateHeroTexts(wrapper)).toEqual([expect.stringContaining(t('patches-up-to-date'))])
   expect(wrapper.find('.missing-patches-info').exists()).toBe(false)
 })
 
 it('reports the pool as up to date when the patches cannot be listed without a licence', () => {
   const wrapper = mountPatches({ poolDashboard: withMissingPatches({ hasAuthorization: false }) })
 
-  expect(wrapper.get('.vts-state-hero').text()).toContain(t('patches-up-to-date'))
+  expect(findStateHeroTexts(wrapper)).toEqual([expect.stringContaining(t('patches-up-to-date'))])
   expect(findTableRows(wrapper)).toEqual([])
 })

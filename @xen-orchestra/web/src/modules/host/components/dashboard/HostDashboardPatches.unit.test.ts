@@ -10,6 +10,7 @@ import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { itShowsHostDashboardCard } from '@/test/host-dashboard-card.ts'
 import { t } from '@/test/i18n.ts'
 import { mockedExport } from '@/test/spy-on-module.ts'
+import { findStateHeroTexts } from '@core-test/find-state-hero-types.ts'
 import { mount } from '@vue/test-utils'
 import { ref } from 'vue'
 
@@ -71,7 +72,7 @@ it('lists one row per missing patch', () => {
 it('reports the host as up to date when it misses no patch', () => {
   const wrapper = mountPatches()
 
-  expect(wrapper.get('.vts-state-hero').text()).toContain(t('patches-up-to-date'))
+  expect(findStateHeroTexts(wrapper)).toEqual([expect.stringContaining(t('patches-up-to-date'))])
   expect(findTableRows(wrapper)).toEqual([])
 })
 
@@ -80,6 +81,6 @@ it('reports the host as up to date while its patches are still loading', () => {
 
   const wrapper = mountPatches()
 
-  expect(wrapper.get('.vts-state-hero').text()).toContain(t('patches-up-to-date'))
+  expect(findStateHeroTexts(wrapper)).toEqual([expect.stringContaining(t('patches-up-to-date'))])
   expect(wrapper.find('.ui-loader').exists()).toBe(false)
 })
