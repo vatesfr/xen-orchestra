@@ -891,9 +891,23 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/story/web-core/ui/group-subcategory/ui-group-subcategory': RouteRecordInfo<
+      '/story/web-core/ui/group-subcategory/ui-group-subcategory',
+      '/story/web-core/ui/group-subcategory/ui-group-subcategory',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
     '/story/web-core/ui/head-bar/ui-head-bar': RouteRecordInfo<
       '/story/web-core/ui/head-bar/ui-head-bar',
       '/story/web-core/ui/head-bar/ui-head-bar',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/story/web-core/ui/image-radio-button/ui-image-radio-button': RouteRecordInfo<
+      '/story/web-core/ui/image-radio-button/ui-image-radio-button',
+      '/story/web-core/ui/image-radio-button/ui-image-radio-button',
       Record<never, never>,
       Record<never, never>,
       | never
@@ -1052,9 +1066,30 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/story/web-core/ui/rich-checkbox/ui-rich-checkbox': RouteRecordInfo<
+      '/story/web-core/ui/rich-checkbox/ui-rich-checkbox',
+      '/story/web-core/ui/rich-checkbox/ui-rich-checkbox',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/story/web-core/ui/rich-checkbox-group/ui-rich-checkbox-group': RouteRecordInfo<
+      '/story/web-core/ui/rich-checkbox-group/ui-rich-checkbox-group',
+      '/story/web-core/ui/rich-checkbox-group/ui-rich-checkbox-group',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
     '/story/web-core/ui/rich-radio-button/ui-rich-radio-button': RouteRecordInfo<
       '/story/web-core/ui/rich-radio-button/ui-rich-radio-button',
       '/story/web-core/ui/rich-radio-button/ui-rich-radio-button',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/story/web-core/ui/rich-radio-button-group/ui-rich-radio-button-group': RouteRecordInfo<
+      '/story/web-core/ui/rich-radio-button-group/ui-rich-radio-button-group',
+      '/story/web-core/ui/rich-radio-button-group/ui-rich-radio-button-group',
       Record<never, never>,
       Record<never, never>,
       | never
@@ -2038,9 +2073,21 @@ declare module 'vue-router/auto-routes' {
       views:
         | never
     }
+    'src/stories/web-core/ui/group-subcategory/ui-group-subcategory.story.vue': {
+      routes:
+        | '/story/web-core/ui/group-subcategory/ui-group-subcategory'
+      views:
+        | never
+    }
     'src/stories/web-core/ui/head-bar/ui-head-bar.story.vue': {
       routes:
         | '/story/web-core/ui/head-bar/ui-head-bar'
+      views:
+        | never
+    }
+    'src/stories/web-core/ui/image-radio-button/ui-image-radio-button.story.vue': {
+      routes:
+        | '/story/web-core/ui/image-radio-button/ui-image-radio-button'
       views:
         | never
     }
@@ -2176,9 +2223,27 @@ declare module 'vue-router/auto-routes' {
       views:
         | never
     }
+    'src/stories/web-core/ui/rich-checkbox/ui-rich-checkbox.story.vue': {
+      routes:
+        | '/story/web-core/ui/rich-checkbox/ui-rich-checkbox'
+      views:
+        | never
+    }
+    'src/stories/web-core/ui/rich-checkbox-group/ui-rich-checkbox-group.story.vue': {
+      routes:
+        | '/story/web-core/ui/rich-checkbox-group/ui-rich-checkbox-group'
+      views:
+        | never
+    }
     'src/stories/web-core/ui/rich-radio-button/ui-rich-radio-button.story.vue': {
       routes:
         | '/story/web-core/ui/rich-radio-button/ui-rich-radio-button'
+      views:
+        | never
+    }
+    'src/stories/web-core/ui/rich-radio-button-group/ui-rich-radio-button-group.story.vue': {
+      routes:
+        | '/story/web-core/ui/rich-radio-button-group/ui-rich-radio-button-group'
       views:
         | never
     }

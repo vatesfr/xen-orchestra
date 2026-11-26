@@ -22,6 +22,7 @@
 - [XO6] A PIF can no longer be set as the management PIF when its network MTU is not 1500, which XCP-ng does not support on management interfaces (PR [#10905](https://github.com/vatesfr/xen-orchestra/pull/10905))
 - [XO6] A VM converted into a template no longer stays in the VM list and treeview, contribution by [@pcbeingused333](https://github.com/pcbeingused333), fixes issue [#10717](https://github.com/vatesfr/xen-orchestra/issues/10717) (PR [#10884](https://github.com/vatesfr/xen-orchestra/pull/10884))
 - [VDIs] The used space of a VDI now includes its whole snapshot chain instead of only its last layer, which was almost 0 for disks with snapshots (e.g. after backups). As it can exceed the disk size, it is shown as a size, without usage bar or free space (PR [#10902](https://github.com/vatesfr/xen-orchestra/pull/10902))
+- [XO6/Backup jobs] Remove the Target proxy field from the mirror backup job form (PR [#10914](https://github.com/vatesfr/xen-orchestra/pull/10914))
 - [REST API] Fix Basic authentication when the password contains a colon, contribution by [@pcbeingused333](https://github.com/pcbeingused333) [#10782](https://github.com/vatesfr/xen-orchestra/issues/10782) (PR [#10801](https://github.com/vatesfr/xen-orchestra/pull/10801))
 
 ### Packages to release
