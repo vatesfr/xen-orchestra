@@ -815,6 +815,8 @@ class SDNController extends EventEmitter {
       const network = this._xo.getXapiObject(this._xo.getObject(networkId, 'network'))
       assert(network.$PIFs.length > 0, 'Network needs to be plugged to add a rule')
 
+      await this._setPoolControllerIfNeeded(network.$pool)
+
       const networkRules = JSON.parse(network.other_config['xo:sdn-controller:of-rules'] || '[]').map(JSON.parse)
 
       // filter matching rule (don't compare allow and cookie)
@@ -993,6 +995,8 @@ class SDNController extends EventEmitter {
     try {
       let network = this._xo.getXapiObject(this._xo.getObject(networkId, 'network'))
       assert(network.$PIFs.length > 0, 'Network needs to be plugged to delete a rule')
+
+      await this._setPoolControllerIfNeeded(network.$pool)
 
       const networkRules = JSON.parse(network.other_config['xo:sdn-controller:of-rules'] || '[]').map(JSON.parse)
 

@@ -350,6 +350,7 @@ describe('network traffic rules', () => {
     const network = {
       $ref: 'OpaqueRef:network-1',
       $PIFs: [{ host: 'host-1' }],
+      $pool: {},
       other_config: otherConfig,
       update_other_config: async (key, value) => writes.push([key, value]),
       $xapi: { barrier: async () => network },
@@ -357,6 +358,7 @@ describe('network traffic rules', () => {
     const controller = createFakeController()
     controller._xo.getObject = () => ({ id: 'network-1' })
     controller._xo.getXapiObject = () => network
+    controller._setPoolControllerIfNeeded = async () => undefined
     controller._getOrCreateOfChannel = async () => ({
       addNetworkRule: async () => {
         throw new Error('XENAPI_PLUGIN_FAILURE(add-rule)')
