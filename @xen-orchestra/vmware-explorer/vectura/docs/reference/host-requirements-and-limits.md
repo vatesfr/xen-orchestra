@@ -9,7 +9,7 @@ documentation is cited where it states the limit.
 
 | Requirement                                                            | Detail                                                                                                                                                                |
 | ---------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| ESXi 7.x or 8.x, directly or through a vCenter; ESXi 6.x directly      | With a vCenter, `--host` names the vCenter and the ticket names the ESXi host that holds the virtual machine; the data port is opened on that host.                   |
+| ESXi 6.x, 7.x or 8.x directly; 6.5, 6.7, 7.x or 8.x through a vCenter  | With a vCenter, `--host` names the vCenter and the ticket names the ESXi host that holds the virtual machine; the data port is opened on that host.                   |
 | `SHA256 supported` in the data port's greeting, for the modern dialect | The ticket dialogue confirms the data port's certificate by its SHA-256. A host that does not announce it, ESXi 6.x, is read in the [legacy dialect](#esxi-6x-hosts). |
 | `NFCSSL supported` in the greeting, for `--transport nfcssl`           | Without it, only `--transport nfc` can run, in clear text. Every host measured, 6.0 included, announces it.                                                           |
 | Port 443 and port 902 reachable                                        | 443 for the management calls, on the vCenter when there is one; 902 for the greeting, the ticket dialogue and the disk, always on the ESXi host.                      |
@@ -31,7 +31,8 @@ NBD export are the same; the disk session differs:
 | Compression            | None, whatever `--compression` says: each read comes back as stored.                                                                                            | Measured on ESXi 6.0 |
 | Capacity               | Not in the open reply. Found by 512-byte reads from the size the disk's geometry gives: 26 reads for an 8 GiB disk, 6 for a 24 GiB disk.                        | Measured on ESXi 6.0 |
 | Throughput             | 3 to 5 MiB/s per process over a link with a 30 ms round trip.                                                                                                   | Measured on ESXi 6.0 |
-| Versions               | ESXi 6.0.0, reached directly. ESXi 6.5, 6.7 and a 6.x vCenter are untested.                                                                                     |                      |
+| Versions               | ESXi 6.0.0, reached directly. ESXi 6.5 and 6.7, through a 6.x vCenter.                                                                                          |                      |
+| Ticket of a vCenter    | Known to vpxa, the vCenter's agent on the host, not to hostd: the dialogue asks `PROXY vpxa-nfcssl`, which hostd would drop as `session ticket ... not found`.  | ESXi 6.5 and 6.7     |
 
 Several `serve` processes can read the same disk at once, each over its
 own session: two processes read about 9 MiB/s over the link above, where
@@ -86,11 +87,12 @@ A run longer than the session lifetime serves the whole disk and exits
 
 ## TLS
 
-| Item                         | Value                                                                                                                                                               | Source                                                                   |
-| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
-| Versions the hosts negotiate | TLS 1.2 on both ports, `TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384` or the AES-128 variant                                                                               | Measured; the vSphere 7 and 8 documentation on the default cipher suites |
-| Certificate on 902           | The same certificate as on 443 on every host measured                                                                                                               | Measured                                                                 |
-| Data port verification       | The SHA-1 thumbprint in the ticket, the SHA-256 confirmed in the dialogue on ESXi 7 and later, and the second TLS session must present the certificate of the first | Vectura                                                                  |
+| Item                         | Value                                                                                                                                                                                          | Source                                                                   |
+| ---------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
+| Versions the hosts negotiate | TLS 1.2 on both ports, `TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384` or the AES-128 variant                                                                                                          | Measured; the vSphere 7 and 8 documentation on the default cipher suites |
+| RSA key exchange on 902      | Offered only after the host refused the first handshake with a `handshake_failure` alert: TLS 1.2, `TLS_RSA_WITH_AES_256_GCM_SHA384` or the AES-128 variant, no forward secrecy. Never on 443. | Vectura; reported on an ESXi 6.5 U3 host, not measured                   |
+| Certificate on 902           | The same certificate as on 443 on every host measured                                                                                                                                          | Measured                                                                 |
+| Data port verification       | The SHA-1 thumbprint in the ticket, the SHA-256 confirmed in the dialogue on ESXi 7 and later, and the second TLS session must present the certificate of the first                            | Vectura                                                                  |
 
 ## Throughput, measured
 
