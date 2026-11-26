@@ -2,10 +2,9 @@ import HostHardwareSpecificationsCard from '@/modules/host/components/list/panel
 import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import { createHost } from '@/test/create-host.ts'
 import { findPanelCardTitleLabel } from '@/test/find-card-title.ts'
-import { findCardLabelledValues } from '@/test/find-rendered-values.ts'
+import { findCardCopiedValues, findCardLabelledValues } from '@/test/find-rendered-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
-import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import { mount } from '@vue/test-utils'
 
 function mountCard(host: FrontXoHost = createHost()) {
@@ -55,8 +54,5 @@ it('offers to copy each specification as it is shown', () => {
     })
   )
 
-  expect(wrapper.findAllComponents(VtsCopyButton).map(button => button.props('value'))).toEqual([
-    'Dell (PowerEdge R640)',
-    '16 (2)',
-  ])
+  expect(findCardCopiedValues(wrapper)).toEqual(['Dell (PowerEdge R640)', '16 (2)'])
 })
