@@ -10,6 +10,7 @@
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
 - [REST API] Get the state of a proxy appliance updater: `GET /rest/v0/proxies/:id/appliance_updater_state` (PR [#10773](https://github.com/vatesfr/xen-orchestra/pull/10773))
+- [XO6] Radio buttons follow the latest design: thinner outline, darker accent colors and greyed label when disabled (PR [#10907](https://github.com/vatesfr/xen-orchestra/pull/10907))
 
 ### Bug fixes
 

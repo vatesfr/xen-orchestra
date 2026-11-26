@@ -905,6 +905,13 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/story/web-core/ui/image-radio-button/ui-image-radio-button': RouteRecordInfo<
+      '/story/web-core/ui/image-radio-button/ui-image-radio-button',
+      '/story/web-core/ui/image-radio-button/ui-image-radio-button',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
     '/story/web-core/ui/info/ui-info': RouteRecordInfo<
       '/story/web-core/ui/info/ui-info',
       '/story/web-core/ui/info/ui-info',
@@ -1062,6 +1069,13 @@ declare module 'vue-router/auto-routes' {
     '/story/web-core/ui/rich-radio-button/ui-rich-radio-button': RouteRecordInfo<
       '/story/web-core/ui/rich-radio-button/ui-rich-radio-button',
       '/story/web-core/ui/rich-radio-button/ui-rich-radio-button',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/story/web-core/ui/rich-radio-button-group/ui-rich-radio-button-group': RouteRecordInfo<
+      '/story/web-core/ui/rich-radio-button-group/ui-rich-radio-button-group',
+      '/story/web-core/ui/rich-radio-button-group/ui-rich-radio-button-group',
       Record<never, never>,
       Record<never, never>,
       | never
@@ -2057,6 +2071,12 @@ declare module 'vue-router/auto-routes' {
       views:
         | never
     }
+    'src/stories/web-core/ui/image-radio-button/ui-image-radio-button.story.vue': {
+      routes:
+        | '/story/web-core/ui/image-radio-button/ui-image-radio-button'
+      views:
+        | never
+    }
     'src/stories/web-core/ui/info/ui-info.story.vue': {
       routes:
         | '/story/web-core/ui/info/ui-info'
@@ -2192,6 +2212,12 @@ declare module 'vue-router/auto-routes' {
     'src/stories/web-core/ui/rich-radio-button/ui-rich-radio-button.story.vue': {
       routes:
         | '/story/web-core/ui/rich-radio-button/ui-rich-radio-button'
+      views:
+        | never
+    }
+    'src/stories/web-core/ui/rich-radio-button-group/ui-rich-radio-button-group.story.vue': {
+      routes:
+        | '/story/web-core/ui/rich-radio-button-group/ui-rich-radio-button-group'
       views:
         | never
     }
