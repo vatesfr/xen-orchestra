@@ -3,11 +3,11 @@ import type { FrontXoSchedule } from '@/modules/schedule/remote-resources/use-xo
 import { getScheduleNextRun } from '@/modules/schedule/utils/xo-schedule.util.ts'
 import { createSchedule } from '@/test/create-schedule.ts'
 import { findCardLabelledValues } from '@/test/find-rendered-values.ts'
+import { findPanelCardCounter } from '@/test/find-titles.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { mockXoRoutes } from '@/test/mock-xo-routes.ts'
 import VtsDivider from '@core/components/divider/VtsDivider.vue'
-import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
 import { formatDateTime } from '@core/utils/time.util.ts'
 import { findLink } from '@core-test/find-links.ts'
 import { findStatuses } from '@core-test/find-statuses.ts'
@@ -76,6 +76,6 @@ it('counts the schedules and separates them', () => {
     createSchedule({ id: 'schedule-2' as FrontXoSchedule['id'] }),
   ])
 
-  expect(wrapper.getComponent(UiPanelCardTitle).props('counter')).toBe(2)
+  expect(findPanelCardCounter(wrapper)).toBe(2)
   expect(wrapper.findAllComponents(VtsDivider)).toHaveLength(1)
 })

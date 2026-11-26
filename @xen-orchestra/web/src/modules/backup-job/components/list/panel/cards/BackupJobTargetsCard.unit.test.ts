@@ -3,12 +3,11 @@ import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote
 import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import { createBr } from '@/test/create-br.ts'
 import { createSr } from '@/test/create-sr.ts'
-import { findPanelCardTitleLabels } from '@/test/find-titles.ts'
+import { findPanelCardCounter, findPanelCardTitleLabels } from '@/test/find-titles.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { xoCollectionsMock, mockXoCollections } from '@/test/mock-xo-collections.ts'
 import VtsDivider from '@core/components/divider/VtsDivider.vue'
-import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
 import { findLinks } from '@core-test/find-links.ts'
 import { mount } from '@vue/test-utils'
 
@@ -48,7 +47,7 @@ it('lists the storage repositories, then the backup repositories, linked to thei
 })
 
 it('counts every target of the backup job', () => {
-  expect(mountTargetsCard([sr], [br]).getComponent(UiPanelCardTitle).props('counter')).toBe(2)
+  expect(findPanelCardCounter(mountTargetsCard([sr], [br]))).toBe(2)
 })
 
 it('only lists the backup repositories of a backup job without storage repository', () => {
