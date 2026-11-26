@@ -7,7 +7,7 @@
     <template v-if="form.hasBackupRepositorySection.value">
       <UiSubtitle>{{ t('backup-repositories') }}</UiSubtitle>
       <VtsTabularKeyValueList>
-        <VtsTabularKeyValueRow :label="t('target-proxy')" :value="targetProxy?.name" />
+        <VtsTabularKeyValueRow v-if="form.hasTargetProxy.value" :label="t('target-proxy')" :value="targetProxy?.name" />
         <VtsTabularKeyValueRow :label="t('scope-type')" :value="backupRepositoryScopeTypeLabel" />
         <VtsTabularKeyValueRow
           v-if="backupRepository.formData.backupRepositoryScopeType === 'manual'"

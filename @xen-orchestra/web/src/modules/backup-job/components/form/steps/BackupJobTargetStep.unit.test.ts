@@ -98,7 +98,7 @@ function mountTargetStep(dataSource: BackupJobDataSource, storageTargets: Backup
 
   return mount(
     defineComponent(() => {
-      const form = useBackupJobTargetForm(data, ref(dataSource), ref(undefined))
+      const form = useBackupJobTargetForm(data, ref(dataSource), ref(undefined), ref(undefined))
 
       return () => h(BackupJobTargetStep, { form })
     }),
@@ -170,4 +170,16 @@ it('offers no retention strategy to a metadata backup', () => {
   const section = mountTargetStep('metadata').getComponent(BackupJobTargetBackupRepositorySection)
 
   expect(section.props()).toMatchObject({ hasRetentionStrategy: false, hasStrictGfs: false })
+})
+
+it('lets a VM backup choose its target proxy', () => {
+  const section = mountTargetStep('vm', ['backup-repository']).getComponent(BackupJobTargetBackupRepositorySection)
+
+  expect(section.props('hasTargetProxy')).toBe(true)
+})
+
+it('offers no target proxy to a mirror backup, which uses its source proxy', () => {
+  const section = mountTargetStep('mirror').getComponent(BackupJobTargetBackupRepositorySection)
+
+  expect(section.props('hasTargetProxy')).toBe(false)
 })

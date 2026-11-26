@@ -11,7 +11,7 @@ import { createBr } from '@/test/create-br.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
 import { mockModule } from '@/test/spy-on-module.ts'
 import { flushPromises } from '@vue/test-utils'
-import { reactive, ref } from 'vue'
+import { reactive, type Ref, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const PROXY_ID = 'proxy-1' as FrontXoProxy['id']
@@ -60,10 +60,12 @@ function mountBackupRepositoryForm(
     isActive = true,
     hasRetentionStrategy = true,
     sourceBackupRepositoryId = undefined,
+    proxy = ref(undefined),
   }: {
     isActive?: boolean
     hasRetentionStrategy?: boolean
     sourceBackupRepositoryId?: FrontXoBackupRepository['id']
+    proxy?: Ref<FrontXoProxy['id'] | undefined>
   } = {}
 ) {
   return mountComposable(() => {
@@ -74,7 +76,8 @@ function mountBackupRepositoryForm(
         reactive({ ...createBackupRepositoryFormData(), ...formData }),
         ref(isActive),
         ref(hasRetentionStrategy),
-        ref(sourceBackupRepositoryId)
+        ref(sourceBackupRepositoryId),
+        proxy
       ),
       t,
     }
@@ -96,14 +99,14 @@ describe('availableBackupRepositories', () => {
 })
 
 describe('compatibleBackupRepositories', () => {
-  it('keeps the backup repositories without proxy when no target proxy is selected', () => {
+  it('keeps the backup repositories without proxy when no proxy is given', () => {
     const form = mountBackupRepositoryForm()
 
     expect(form.compatibleBackupRepositories.map(br => br.id)).toEqual([NFS_BR.id, LOCAL_BR.id])
   })
 
-  it('keeps the backup repositories using the target proxy', () => {
-    const form = mountBackupRepositoryForm({ targetProxy: PROXY_ID })
+  it('keeps the backup repositories using the given proxy', () => {
+    const form = mountBackupRepositoryForm({}, { proxy: ref(PROXY_ID) })
 
     expect(form.compatibleBackupRepositories.map(br => br.id)).toEqual([PROXY_BR.id])
   })
@@ -118,10 +121,11 @@ describe('matchedBackupRepositories', () => {
 })
 
 describe('formData', () => {
-  it('drops the selected backup repositories which do not use the new target proxy', async () => {
-    const form = mountBackupRepositoryForm({ backupRepositoryIds: [NFS_BR.id] })
+  it('drops the selected backup repositories which do not use the new proxy', async () => {
+    const proxy = ref<FrontXoProxy['id']>()
+    const form = mountBackupRepositoryForm({ backupRepositoryIds: [NFS_BR.id] }, { proxy })
 
-    form.formData.targetProxy = PROXY_ID
+    proxy.value = PROXY_ID
     await flushPromises()
 
     expect(form.formData.backupRepositoryIds).toEqual([])
