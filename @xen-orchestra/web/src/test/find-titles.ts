@@ -2,9 +2,9 @@ import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTi
 import { findLink } from '@core-test/find-links.ts'
 import type { DOMWrapper, VueWrapper } from '@vue/test-utils'
 
-// The two card titles, the whole title (label, info, description, id to copy…) or its label alone
 type TitleWrapper = Pick<VueWrapper, 'get'>
 
+// The two card titles, the whole title (label, info, description, id to copy…) or its label alone
 const CARD_TITLE = '.ui-card-title'
 const PANEL_CARD_TITLE = '.ui-panel-card-title'
 
