@@ -81,9 +81,9 @@ describe('backup repository', () => {
 })
 
 it('shows the long-term retention tags of the archive', () => {
-  const tagsCell = findTableColumnCells(mountTable([createVmBackupArchive({ tags: ['daily=2026-11-26'] })]), t('tags'))[0]
+  const wrapper = mountTable([createVmBackupArchive({ tags: ['daily=2026-11-26'] })])
 
-  expect(tagsCell.findAllComponents(VtsTag).map(tag => tag.props('value'))).toEqual(['daily=2026-11-26'])
+  expect(wrapper.findAllComponents(VtsTag).map(tag => tag.props('value'))).toEqual(['daily=2026-11-26'])
 })
 
 it('shows that no archive is available when there is none', () => {
