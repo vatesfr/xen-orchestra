@@ -15,6 +15,7 @@ import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { xoCollectionsMock, mockXoCollections } from '@/test/mock-xo-collections.ts'
 import { mockXoRoutes } from '@/test/mock-xo-routes.ts'
+import { itShowsNameAndIdTitle } from '@/test/panel-card-title.ts'
 import VtsCopyAllMenuItem from '@core/components/copy-all-menu-item/VtsCopyAllMenuItem.vue'
 import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
 import { findStatuses } from '@core-test/find-statuses.ts'
@@ -42,17 +43,18 @@ function mountInfosCard(backupJob: FrontAnyXoBackupJob, schedules: FrontXoSchedu
   })
 }
 
-it('titles the card with the backup job, linked to the XO 5 backup overview', () => {
-  const backupJob = createVmBackupJob({ name: 'Nightly backup' })
-  const title = mountInfosCard(backupJob).getComponent(UiPanelCardTitle)
+const namedBackupJob = createVmBackupJob({ name: 'Nightly backup' })
 
-  expect(title.props()).toMatchObject({
-    id: backupJob.id,
+itShowsNameAndIdTitle(
+  () => mountInfosCard(namedBackupJob),
+  {
+    id: namedBackupJob.id,
     label: 'Nightly backup',
     href: 'https://xo5.example.com/#/backup/overview',
     icon: 'object:backup-job',
-  })
-})
+  },
+  'titles the card with the backup job, linked to the XO 5 backup overview'
+)
 
 it('names a backup job without name as untitled', () => {
   expect(

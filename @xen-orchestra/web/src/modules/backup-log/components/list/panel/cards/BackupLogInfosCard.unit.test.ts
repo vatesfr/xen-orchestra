@@ -6,7 +6,7 @@ import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collecti
 import { createBackupLog, createBackupLogSrTask, createBackupLogVmTask } from '@/test/create-backup-log.ts'
 import { createSr } from '@/test/create-sr.ts'
 import { createVm } from '@/test/create-vm.ts'
-import { findPanelCardTitle, findPanelCardTitleLink } from '@/test/find-card-title.ts'
+import { findPanelCardTitleLink } from '@/test/find-card-title.ts'
 import {
   findCardCopiedValues,
   findCardLabelledValues,
@@ -20,6 +20,7 @@ import { t } from '@/test/i18n.ts'
 import { xoCollectionsMock, mockXoCollections } from '@/test/mock-xo-collections.ts'
 import { mockXoRoutes } from '@/test/mock-xo-routes.ts'
 import { vmCollectionMock, mockXoVmCollection } from '@/test/mock-xo-vm-collection.ts'
+import { itShowsNameAndIdTitle } from '@/test/panel-card-title.ts'
 import { mockModule } from '@/test/spy-on-module.ts'
 import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
 import { objectIcon } from '@core/icons'
@@ -59,14 +60,13 @@ function mountCard(backupLog: FrontXoBackupLog = createBackupLog()) {
 }
 
 describe('title', () => {
-  it('names the log after its start date and shows its id', () => {
-    const backupLog = createBackupLog({ id: 'backup-log-42' as FrontXoBackupLog['id'] })
+  const titledLog = createBackupLog({ id: 'backup-log-42' as FrontXoBackupLog['id'] })
 
-    const title = findPanelCardTitle(mountCard(backupLog))
-
-    expect(title).toContain(t('log-name', { date: formatDateTime(backupLog.start) }))
-    expect(title).toContain('backup-log-42')
-  })
+  itShowsNameAndIdTitle(
+    () => mountCard(titledLog),
+    { label: t('log-name', { date: formatDateTime(titledLog.start) }), id: 'backup-log-42' },
+    'names the log after its start date and shows its id'
+  )
 
   it('links to the detail page of the log', () => {
     const wrapper = mountCard(createBackupLog({ id: 'backup-log-42' as FrontXoBackupLog['id'] }))

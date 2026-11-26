@@ -4,7 +4,6 @@ import type { FrontXoVmTemplate } from '@/modules/vm/remote-resources/use-xo-vm-
 import { createHost } from '@/test/create-host.ts'
 import { createPool } from '@/test/create-pool.ts'
 import { createVm } from '@/test/create-vm.ts'
-import { findPanelCardTitle } from '@/test/find-card-title.ts'
 import { findCardLabelledValues, findCardRowLabels, findTags } from '@/test/find-rendered-values.ts'
 import { findTooltipContent } from '@/test/find-tooltip-content.ts'
 import { getButton } from '@/test/get-button.ts'
@@ -14,6 +13,7 @@ import { xoCollectionsMock, mockXoCollections } from '@/test/mock-xo-collections
 import { mockXoRoutes } from '@/test/mock-xo-routes.ts'
 import { userResourceMock, mockXoUser } from '@/test/mock-xo-user.ts'
 import { vmCollectionMock, mockXoVmCollection } from '@/test/mock-xo-vm-collection.ts'
+import { itShowsNameAndIdTitle } from '@/test/panel-card-title.ts'
 import { itShowsVmCreator } from '@/test/vm-creator.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsTagSelect from '@core/components/tag-select/VtsTagSelect.vue'
@@ -53,11 +53,9 @@ function mountInfoCard(vm: FrontXoVm = createVm()) {
   })
 }
 
-it('renders the name and the id of the VM as the card title', () => {
-  const wrapper = mountInfoCard(createVm({ name_label: 'Web server', id: 'vm-42' as FrontXoVm['id'] }))
-
-  expect(findPanelCardTitle(wrapper)).toContain('Web server')
-  expect(findPanelCardTitle(wrapper)).toContain('vm-42')
+itShowsNameAndIdTitle(() => mountInfoCard(createVm({ name_label: 'Web server', id: 'vm-42' as FrontXoVm['id'] })), {
+  label: 'Web server',
+  id: 'vm-42',
 })
 
 it('shows the busy icon in the card title while the VM power state is changing', () => {
