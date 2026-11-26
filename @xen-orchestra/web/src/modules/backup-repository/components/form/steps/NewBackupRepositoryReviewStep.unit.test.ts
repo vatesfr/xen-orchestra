@@ -8,11 +8,11 @@ import { MASKED_SECRET } from '@/modules/backup-repository/utils/xo-backup-repos
 import { createProxy } from '@/test/create-proxy.ts'
 import { findLabelledValues } from '@/test/find-rendered-values.ts'
 import { findTitleLabel } from '@/test/find-titles.ts'
-import { getButton } from '@/test/get-button.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { proxyCollectionMock, mockXoProxyCollection } from '@/test/mock-xo-proxy-collection.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
+import { getButton } from '@core-test/get-button.ts'
 import { flushPromises, mount } from '@vue/test-utils'
 import type { BackupRepositoryType } from 'xo-remote-parser'
 

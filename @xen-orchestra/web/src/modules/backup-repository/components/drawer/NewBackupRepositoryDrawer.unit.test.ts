@@ -3,10 +3,10 @@ import BackupRepositoryDetailsStep from '@/modules/backup-repository/components/
 import BackupRepositoryGeneralStep from '@/modules/backup-repository/components/form/steps/BackupRepositoryGeneralStep.vue'
 import NewBackupRepositoryReviewStep from '@/modules/backup-repository/components/form/steps/NewBackupRepositoryReviewStep.vue'
 import { findDrawerButtonLabels, submitDrawer } from '@/test/drawer.ts'
-import { getButton } from '@/test/get-button.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { proxyCollectionMock, mockXoProxyCollection } from '@/test/mock-xo-proxy-collection.ts'
+import { getButton } from '@core-test/get-button.ts'
 import { chooseSelectOption } from '@core-test/select.ts'
 import { flushPromises, mount, type VueWrapper } from '@vue/test-utils'
 

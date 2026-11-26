@@ -1,6 +1,5 @@
 import V2vValueOrigin from '@/modules/v2v/components/mapping/V2vValueOrigin.vue'
 import V2vVmOptionsFields from '@/modules/v2v/components/mapping/V2vVmOptionsFields.vue'
-import { getButton } from '@/test/get-button.ts'
 import { getCheckbox } from '@/test/get-checkbox.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
@@ -9,6 +8,7 @@ import { getV2vTargetSelect } from '@/test/v2v-target-cells.ts'
 import VtsTagsInput from '@core/components/tags-input/VtsTagsInput.vue'
 import UiCheckbox from '@core/components/ui/checkbox/UiCheckbox.vue'
 import { findAccentedInfos } from '@core-test/find-accented-labels.ts'
+import { getButton } from '@core-test/get-button.ts'
 import { mount } from '@vue/test-utils'
 
 const TEMPLATE = createV2vOfferedTarget(V2V_DEBIAN_TEMPLATE.id, 'overridden')

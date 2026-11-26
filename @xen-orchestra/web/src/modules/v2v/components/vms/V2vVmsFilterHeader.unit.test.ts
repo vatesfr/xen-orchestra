@@ -2,10 +2,10 @@ import V2vVmsFilterHeader from '@/modules/v2v/components/vms/V2vVmsFilterHeader.
 import type { V2vDatastoreSummary } from '@/modules/v2v/composables/use-v2v-vms-step.composable.ts'
 import { findInlineParts } from '@/test/find-parts.ts'
 import { findCardTitleLabel } from '@/test/find-titles.ts'
-import { getButton } from '@/test/get-button.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import UiChip from '@core/components/ui/chip/UiChip.vue'
+import { getButton } from '@core-test/get-button.ts'
 import { mount } from '@vue/test-utils'
 
 const SOURCE_HOST = 'vcenter-prod.lab.local'

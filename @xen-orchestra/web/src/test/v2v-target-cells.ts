@@ -2,8 +2,8 @@ import V2vValueOrigin from '@/modules/v2v/components/mapping/V2vValueOrigin.vue'
 import type { V2vResolvedTarget, V2vTargetOption } from '@/modules/v2v/types/v2v-mapping.type.ts'
 import { getGenericComponent } from '@/test/find-generic-components.ts'
 import { findTableColumnCells } from '@/test/find-table-cells.ts'
-import { getButton } from '@/test/get-button.ts'
 import { t } from '@/test/i18n.ts'
+import { getButton } from '@core-test/get-button.ts'
 import type { VueWrapper } from '@vue/test-utils'
 
 type V2vTargetRow = { key: string; target: V2vResolvedTarget<string> }

@@ -1,8 +1,8 @@
 import V2vShowSelectedVmsButton from '@/modules/v2v/components/selected-vms/V2vShowSelectedVmsButton.vue'
-import { findButton, getButton } from '@/test/get-button.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { usePanelStore } from '@core/stores/panel.store.ts'
+import { findButton, getButton } from '@core-test/get-button.ts'
 import { flushPromises, mount } from '@vue/test-utils'
 
 const LABEL = t('selected-vms-n', { n: 2 })

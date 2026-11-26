@@ -4,10 +4,10 @@ import type { FrontXoPlugin } from '@/modules/plugin/remote-resources/use-xo-plu
 import type { JsonSchema } from '@/modules/plugin/utils/json-schema.util.ts'
 import { createPlugin } from '@/test/create-plugin.ts'
 import { cancelDrawer, findDrawerButtonLabels, submitDrawer } from '@/test/drawer.ts'
-import { getButton } from '@/test/get-button.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import VtsFormErrorSummary from '@core/components/form-error-summary/VtsFormErrorSummary.vue'
+import { getButton } from '@core-test/get-button.ts'
 import { chooseSelectOption } from '@core-test/select.ts'
 import { mount } from '@vue/test-utils'
 

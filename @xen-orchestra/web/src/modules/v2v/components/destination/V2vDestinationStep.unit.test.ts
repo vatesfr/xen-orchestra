@@ -4,12 +4,12 @@ import V2vDestinationStep from '@/modules/v2v/components/destination/V2vDestinat
 import V2vExistingListInfo from '@/modules/v2v/components/destination/V2vExistingListInfo.vue'
 import type { useV2vDestinationStep } from '@/modules/v2v/composables/use-v2v-destination-step.composable.ts'
 import { createPool } from '@/test/create-pool.ts'
-import { getButton, getUiButton } from '@/test/get-button.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { mockModule } from '@/test/spy-on-module.ts'
 import { V2V_EXISTING_LIST } from '@/test/v2v-wizard-fixtures.ts'
 import UiAlert from '@core/components/ui/alert/UiAlert.vue'
+import { getButton, getUiButton } from '@core-test/get-button.ts'
 import { mount } from '@vue/test-utils'
 import { reactive, ref } from 'vue'
 

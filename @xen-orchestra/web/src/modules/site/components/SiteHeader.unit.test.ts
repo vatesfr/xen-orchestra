@@ -1,9 +1,9 @@
 import { usePoolConnection } from '@/modules/pool/composables/use-pool-connection.composable.ts'
 import SiteHeader from '@/modules/site/components/SiteHeader.vue'
 import { createJobStub } from '@/test/create-job-result.ts'
-import { getUiButton } from '@/test/get-button.ts'
 import { t } from '@/test/i18n.ts'
 import { mountWithProps } from '@/test/mount-with-props.ts'
+import { getUiButton } from '@core-test/get-button.ts'
 
 const poolConnection = createJobStub(usePoolConnection, result => ({
   openPoolConnectionDrawer: result.run,

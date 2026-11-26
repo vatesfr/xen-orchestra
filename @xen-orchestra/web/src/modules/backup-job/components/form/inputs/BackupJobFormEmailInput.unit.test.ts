@@ -1,8 +1,8 @@
 import BackupJobFormEmailInput from '@/modules/backup-job/components/form/inputs/BackupJobFormEmailInput.vue'
-import { getButton } from '@/test/get-button.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { findInfoLabels } from '@core-test/find-accented-labels.ts'
+import { getButton } from '@core-test/get-button.ts'
 import { mount, type VueWrapper } from '@vue/test-utils'
 
 function mountEmailInput(modelValue: string[] = []) {

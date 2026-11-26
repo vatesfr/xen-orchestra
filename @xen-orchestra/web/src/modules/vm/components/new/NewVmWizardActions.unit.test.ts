@@ -1,8 +1,8 @@
 import NewVmWizardActions from '@/modules/vm/components/new/NewVmWizardActions.vue'
 import type { NewVmStep } from '@/modules/vm/composables/use-new-vm-wizard.composable.ts'
-import { getButton, getUiButton } from '@/test/get-button.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
+import { getButton, getUiButton } from '@core-test/get-button.ts'
 import { mount } from '@vue/test-utils'
 
 function mountActions(step: NewVmStep, canCreate = true, busy = false) {

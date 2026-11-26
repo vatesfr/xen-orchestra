@@ -1,7 +1,7 @@
 import V2vDatastoresCell from '@/modules/v2v/components/vms/V2vDatastoresCell.vue'
-import { getButton } from '@/test/get-button.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import UiButton from '@core/components/ui/button/UiButton.vue'
+import { getButton } from '@core-test/get-button.ts'
 import { mount } from '@vue/test-utils'
 
 function mountCell(names: string[]) {

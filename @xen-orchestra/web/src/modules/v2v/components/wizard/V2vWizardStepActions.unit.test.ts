@@ -1,8 +1,8 @@
 import V2vWizardStepActions from '@/modules/v2v/components/wizard/V2vWizardStepActions.vue'
-import { getButton } from '@/test/get-button.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import UiButton from '@core/components/ui/button/UiButton.vue'
+import { getButton } from '@core-test/get-button.ts'
 import { mount } from '@vue/test-utils'
 import { h } from 'vue'
 

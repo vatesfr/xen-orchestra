@@ -6,6 +6,7 @@ import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiDropdown from '@core/components/ui/dropdown/UiDropdown.vue'
 import { createGlobalTestConfig } from '@core-test/create-global-test-config.ts'
 import { hasLoader } from '@core-test/expect-loader.ts'
+import { getButton, getUiButton } from '@core-test/get-button.ts'
 import { t } from '@core-test/i18n.ts'
 import { setViewportWidth } from '@core-test/set-viewport-width.ts'
 import { flushPromises, mount, type VueWrapper } from '@vue/test-utils'
@@ -29,27 +30,6 @@ function mountTagSelect({ tags = ['production', 'web'], suggestions = SUGGESTION
     props: { tags, suggestions, ...props },
     global: createGlobalTestConfig(),
   })
-}
-
-// By its accessible name: its text, or its `aria-label` for an icon button, which has no text
-function getButton(wrapper: VueWrapper, label: string) {
-  const button = wrapper.findAll('button').find(button => (button.text() || button.attributes('aria-label')) === label)
-
-  if (button === undefined) {
-    throw new Error(`No button "${label}"`)
-  }
-
-  return button
-}
-
-function getUiButton(wrapper: VueWrapper, label: string) {
-  const button = wrapper.findAllComponents(UiButton).find(button => button.text() === label)
-
-  if (button === undefined) {
-    throw new Error(`No UiButton "${label}"`)
-  }
-
-  return button
 }
 
 async function clickButton(wrapper: VueWrapper, label: string) {

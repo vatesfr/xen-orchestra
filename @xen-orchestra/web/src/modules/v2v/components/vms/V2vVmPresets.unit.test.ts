@@ -1,10 +1,10 @@
 import V2vVmPresets from '@/modules/v2v/components/vms/V2vVmPresets.vue'
 import type { V2vVmPreset } from '@/modules/v2v/composables/use-v2v-vms-step.composable.ts'
-import { getButton } from '@/test/get-button.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
+import { getButton } from '@core-test/get-button.ts'
 import { mount } from '@vue/test-utils'
 
 const PRESETS: V2vVmPreset[] = [
