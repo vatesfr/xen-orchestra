@@ -4,6 +4,7 @@ import { findCardTitle } from '@/test/find-card-title.ts'
 import { n, t } from '@/test/i18n.ts'
 import { findLinearChart, formatChartValue } from '@/test/linear-chart-stub.ts'
 import { mountChartCard, type ChartCardProps } from '@/test/mount-chart-card.ts'
+import { hasLoader } from '@core-test/expect-loader.ts'
 import { findStateHeroTexts } from '@core-test/find-state-hero-types.ts'
 import type { XapiPoolStats } from '@vates/types/common'
 
@@ -25,13 +26,13 @@ it('renders the card title and the period it covers', () => {
 it('shows a loader while the stats are loading', () => {
   const wrapper = mountChart({ data: null, loading: true })
 
-  expect(wrapper.find('.ui-loader').exists()).toBe(true)
+  expect(hasLoader(wrapper)).toBe(true)
 })
 
 it('shows a loader while the stats have not arrived yet', () => {
   const wrapper = mountChart({ data: null })
 
-  expect(wrapper.find('.ui-loader').exists()).toBe(true)
+  expect(hasLoader(wrapper)).toBe(true)
 })
 
 it('shows an error message when the stats could not be fetched', () => {

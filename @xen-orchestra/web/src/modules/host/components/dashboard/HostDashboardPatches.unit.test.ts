@@ -10,6 +10,7 @@ import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { itShowsHostDashboardCard } from '@/test/host-dashboard-card.ts'
 import { t } from '@/test/i18n.ts'
 import { mockedExport } from '@/test/spy-on-module.ts'
+import { hasLoader } from '@core-test/expect-loader.ts'
 import { findStateHeroTexts } from '@core-test/find-state-hero-types.ts'
 import { mount } from '@vue/test-utils'
 import { ref } from 'vue'
@@ -82,5 +83,5 @@ it('reports the host as up to date while its patches are still loading', () => {
   const wrapper = mountPatches()
 
   expect(findStateHeroTexts(wrapper)).toEqual([expect.stringContaining(t('patches-up-to-date'))])
-  expect(wrapper.find('.ui-loader').exists()).toBe(false)
+  expect(hasLoader(wrapper)).toBe(false)
 })

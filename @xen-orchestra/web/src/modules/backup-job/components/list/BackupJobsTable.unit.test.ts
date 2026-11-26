@@ -14,7 +14,7 @@ import { mockXoRoutes } from '@/test/mock-xo-routes.ts'
 import { scheduleCollectionMock, mockXoScheduleCollection } from '@/test/mock-xo-schedule-collection.ts'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
-import UiLoader from '@core/components/ui/loader/UiLoader.vue'
+import { hasLoader } from '@core-test/expect-loader.ts'
 import { findLink } from '@core-test/find-links.ts'
 import { pickSelectOption } from '@core-test/select.ts'
 import type { XoSchedule, XoSr } from '@vates/types'
@@ -141,7 +141,7 @@ describe('last runs', () => {
 
     const cell = findCell(mountTable([createVmBackupJob()]), t('last-n-runs', { n: 3 }))
 
-    expect(cell.findComponent(UiLoader).exists()).toBe(true)
+    expect(hasLoader(cell)).toBe(true)
   })
 })
 

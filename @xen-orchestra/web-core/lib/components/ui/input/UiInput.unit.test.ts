@@ -1,8 +1,8 @@
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiInput from '@core/components/ui/input/UiInput.vue'
-import UiLoader from '@core/components/ui/loader/UiLoader.vue'
 import type { IconName } from '@core/icons'
+import { hasLoader } from '@core-test/expect-loader.ts'
 import { setFieldValue } from '@core-test/field-events.ts'
 import { findIconNames } from '@core-test/find-icon-names.ts'
 import { isPlaceholderShown } from '@core-test/is-placeholder-shown.ts'
@@ -77,7 +77,7 @@ it.each([
 ])('shows the loader and aria-busy only when busy is $busy', ({ busy, loader, ariaBusy }) => {
   const wrapper = mountField(UiInput, { busy })
 
-  expect(wrapper.findComponent(UiLoader).exists()).toBe(loader)
+  expect(hasLoader(wrapper)).toBe(loader)
   expect(wrapper.get('input').attributes('aria-busy')).toBe(ariaBusy)
 })
 

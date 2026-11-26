@@ -4,8 +4,8 @@ import VtsTagSelectOption from '@core/components/tag-select/VtsTagSelectOption.v
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiDropdown from '@core/components/ui/dropdown/UiDropdown.vue'
-import UiLoader from '@core/components/ui/loader/UiLoader.vue'
 import { createGlobalTestConfig } from '@core-test/create-global-test-config.ts'
+import { hasLoader } from '@core-test/expect-loader.ts'
 import { t } from '@core-test/i18n.ts'
 import { setViewportWidth } from '@core-test/set-viewport-width.ts'
 import { flushPromises, mount, type VueWrapper } from '@vue/test-utils'
@@ -157,14 +157,14 @@ describe('trigger', () => {
     const wrapper = mountTagSelect({ iconOnly: true, busy: true })
 
     expect(wrapper.getComponent(UiButtonIcon).props('disabled')).toBe(true)
-    expect(wrapper.findComponent(UiLoader).exists()).toBe(true)
+    expect(hasLoader(wrapper)).toBe(true)
   })
 
   it('shows no loader on the icon-only trigger when not busy', () => {
     const wrapper = mountTagSelect({ iconOnly: true })
 
     expect(wrapper.getComponent(UiButtonIcon).props('disabled')).toBe(false)
-    expect(wrapper.findComponent(UiLoader).exists()).toBe(false)
+    expect(hasLoader(wrapper)).toBe(false)
   })
 })
 

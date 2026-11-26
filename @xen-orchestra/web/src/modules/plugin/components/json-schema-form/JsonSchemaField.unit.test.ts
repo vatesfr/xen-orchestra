@@ -12,6 +12,7 @@ import { xoCollectionsMock, mockXoCollections } from '@/test/mock-xo-collections
 import { vmCollectionMock, mockXoVmCollection } from '@/test/mock-xo-vm-collection.ts'
 import { mountJsonSchemaForm } from '@/test/mount-json-schema-form.ts'
 import VtsInputWrapper from '@core/components/input-wrapper/VtsInputWrapper.vue'
+import { hasLoader } from '@core-test/expect-loader.ts'
 import { setFieldValue } from '@core-test/field-events.ts'
 import { findInfoLabels } from '@core-test/find-accented-labels.ts'
 import { findSelectOptionLabels, findShownSelections, openSelect, pickSelectOption } from '@core-test/select.ts'
@@ -356,14 +357,14 @@ describe('XO object field', () => {
   it('waits for the objects to load', () => {
     const wrapper = mountField({ schema: { type: 'string', $type: 'SR' } })
 
-    expect(wrapper.find('.ui-loader').exists()).toBe(true)
+    expect(hasLoader(wrapper)).toBe(true)
     expect(findShownSelections(wrapper)).toEqual([])
   })
 
   it('explains that the objects could not be loaded', () => {
     const wrapper = mountField({ schema: { type: 'string', $type: 'pool', description: 'The pool to watch' } })
 
-    expect(wrapper.find('.ui-loader').exists()).toBe(false)
+    expect(hasLoader(wrapper)).toBe(false)
     expect(wrapper.text()).toContain(t('error-no-data'))
     expect(wrapper.text()).not.toContain('The pool to watch')
   })
