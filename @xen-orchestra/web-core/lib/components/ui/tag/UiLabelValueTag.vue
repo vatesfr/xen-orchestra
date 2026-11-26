@@ -1,6 +1,6 @@
 <!-- v1 -->
 <template>
-  <span class="ui-tertiary-tag" :class="className">
+  <span class="ui-label-value-tag" :class="className">
     <UiTag :accent variant="primary" class="term">
       <slot name="term" />
     </UiTag>
@@ -35,7 +35,7 @@ const className = computed(() => toVariants({ truncate, wrap }))
 </script>
 
 <style lang="postcss" scoped>
-.ui-tertiary-tag {
+.ui-label-value-tag {
   display: inline-grid;
   grid-template-columns: auto auto;
 
