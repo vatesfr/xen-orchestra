@@ -30,6 +30,7 @@ import {
   editPool,
   enableHa,
   disableHa,
+  getIsAirgap,
   installSupplementalPackOnAllHosts,
   isSrWritable,
   rollingPoolReboot,
@@ -72,6 +73,12 @@ const BindLicensesButton = decorate([
           return error(_('licensesBinding'), _('notEnoughXcpngLicenses'))
         }
 
+        // skip the check for airgap XOA cause we can't fetch the supported versions list
+        const xcpngSupportedVersions = this.props.hvSupportedVersions?.['XCP-ng']
+        if (xcpngSupportedVersions === undefined && !(await getIsAirgap().catch(() => false))) {
+          return error(_('licensesBinding'), _('xcpngSupportedVersionsUnavailable'))
+        }
+
         const hostsWithoutLicense = poolHosts.filter(host => {
           const license = this.state.xcpngLicenseByBoundObjectId?.[host.id]
           return license === undefined || license.expires < Date.now()
@@ -104,7 +111,7 @@ const BindLicensesButton = decorate([
             fullySupportedPoolIds.push(poolId)
           }
 
-          if (!satisfies(hostToBind.version, this.props.hvSupportedVersions['XCP-ng'])) {
+          if (xcpngSupportedVersions !== undefined && !satisfies(hostToBind.version, xcpngSupportedVersions)) {
             unsupportedXcpngHostIds.push(hostToBind.id)
           }
         })
