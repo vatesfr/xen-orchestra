@@ -129,7 +129,11 @@ export class VmIncrementalBackupArchive implements VmBackupInterface {
    * If mergedSizes is provided, updates metadata with the total merged size for this archive's disks.
    * Actual disk merge/deletion is handled by RemoteDiskLineage.
    */
-  async clean({ remove = this.opts.remove ?? false, mergedSizes }: ArchiveCleanOptions = {}): Promise<CleanResult> {
+  async clean({
+    remove = this.opts.remove ?? false,
+    mergedSizes,
+    hasMergeLeft,
+  }: ArchiveCleanOptions = {}): Promise<CleanResult> {
     if (!this.#isChecked) {
       await this.check()
     }
@@ -151,7 +155,9 @@ export class VmIncrementalBackupArchive implements VmBackupInterface {
 
     const changedFiles: string[] = []
     let mergedSize = 0
-    if (mergedSizes !== undefined) {
+    // `updateMetadata()` marks all the disks as not differencing: wait until none has a merge left, the next clean does
+    // it then
+    if (mergedSizes !== undefined && !this.diskPaths.some(diskPath => hasMergeLeft?.(diskPath))) {
       for (const diskPath of this.diskPaths) {
         mergedSize += mergedSizes.get(diskPath) ?? 0
       }

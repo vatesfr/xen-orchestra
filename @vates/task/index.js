@@ -65,6 +65,14 @@ class Task {
     }
   }
 
+  // signal of the current task that stops its cleanup, see `abortCleanup()`
+  static get cleanupSignal() {
+    const task = getTask()
+    if (task !== undefined) {
+      return task._cleanupController?.signal
+    }
+  }
+
   static run(...args) {
     let opts = args[0]
     let fn
@@ -101,6 +109,7 @@ class Task {
   //
   // To ensure compatibility between multiple versions of this lib, they are kept public for now
   _abortController = new AbortController()
+  _cleanupController = new AbortController()
   _onProgress
   _skipSubtasksAfterAbort = false
 
@@ -125,7 +134,8 @@ class Task {
   // `skipSubtasksAfterAbort` (root task only, inherited by its subtasks): a subtask created after the abort is
   // aborted right away, so the steps of an aborted task are skipped.
   //
-  // `cleanup`: this subtask does not follow the abort of its parent, so that it still runs after an abort.
+  // `cleanup`: this subtask does not follow the abort of its parent, so that it still runs after an abort: it follows
+  // its parent's cleanup signal instead, until the cleanup itself is stopped (see `abortCleanup()`).
   constructor({ properties, onProgress, cleanup = false, skipSubtasksAfterAbort = false } = {}) {
     this.#startData = { properties }
 
@@ -139,9 +149,14 @@ class Task {
       if (parent !== undefined) {
         // `_skipSubtasksAfterAbort` is missing on a task created by an older version of this library
         this._skipSubtasksAfterAbort = parent._skipSubtasksAfterAbort === true
-        if (!cleanup) {
-          parentSignal = parent._abortController.signal
+
+        // `_cleanupController` is missing on a task created by an older version of this library
+        const parentCleanupSignal = parent._cleanupController?.signal
+        if (parentCleanupSignal !== undefined) {
+          followSignal(parentCleanupSignal, this._cleanupController)
         }
+
+        parentSignal = cleanup ? parentCleanupSignal : parent._abortController.signal
 
         this._onProgress = parent._onProgress
         this.#startData.parentId = parent.id
@@ -179,6 +194,14 @@ class Task {
 
   abort(reason) {
     this._abortController.abort(reason)
+  }
+
+  // Stops the cleanup of the task: aborts its cleanup signal, hence the cleanup signal of its subtasks and the abort
+  // signal of its running cleanup subtasks.
+  //
+  // It does not abort the task itself: call `abort()` first to do both.
+  abortCleanup(reason) {
+    this._cleanupController.abort(reason)
   }
 
   #emit(type, data) {

@@ -7,10 +7,15 @@ import { Task } from '@vates/task'
  * - `app.tasks.abort(id)` on its root task,
  * - `signal`, the cancellation of the job run (`jobs.cancelJobRun()`),
  * - the abort of the task this function is called from, if any (e.g. the REST action "run schedule"): the backup
- *   task has its own `onProgress`, so it does not follow that task by itself.
+ *   task has its own `onProgress`, so it does not follow that task by itself. The same goes for the skip of its
+ *   cleanup (`abortCleanup()`), which skips the cleanup of the run.
  *
  * The abort is always made without a reason, so that the backup code always sees an `AbortError`.
  * The user who requested it, if any, is recorded as an info of the root task, with the type `abortRequested`.
+ *
+ * A second request, `app.tasks.abort(id, reason, { skipCleanup: true })`, also stops the cleanup of the run (the
+ * cleanup signal of the task, see `Task#abortCleanup()`), and is recorded the same way, with the type
+ * `cleanupSkipRequested`. Each request is applied and recorded once, in any order: repeating one changes nothing.
  *
  * @param {object} params
  * @param {object} params.app
@@ -23,24 +28,39 @@ import { Task } from '@vates/task'
 export async function runInMainThread({ app, fn, onRootTaskStart, onTaskUpdate, properties, signal }) {
   // the caller's signal is read before creating the backup task, which is not a subtask of the caller's task
   const followedSignals = [Task.abortSignal, signal].filter(signal => signal !== undefined)
+  const followedCleanupSignal = Task.cleanupSignal
+
+  let isAbortRequested = false
+  let isCleanupSkipRequested = false
 
   // only called once the task below has started
-  let abortRequested = false
-  const abort = () => {
-    // the run may be aborted in several ways at once, e.g. the cancellation of the job run and of the caller's task
-    if (abortRequested) {
-      return
-    }
-    abortRequested = true
-
+  const abort = (_reason, { skipCleanup = false } = {}) => {
     // `tasks.abort()` and the abort listeners run synchronously in the context of the request that asked for it
+    // only the id of the user: the task can be read by users who must not see the email of another one
     const user = app.apiContext?.user
-    if (user !== undefined) {
-      // only the id of the user: the task can be read by users who must not see the email of another one
-      task.info('abort requested', { type: 'abortRequested', userId: user.id })
+
+    // the run may be aborted in several ways at once, e.g. the cancellation of the job run and of the caller's task
+    if (!isAbortRequested) {
+      isAbortRequested = true
+      if (user !== undefined) {
+        task.info('abort requested', { type: 'abortRequested', userId: user.id })
+      }
+      task.abort()
     }
-    task.abort()
+
+    if (skipCleanup && !isCleanupSkipRequested) {
+      isCleanupSkipRequested = true
+      if (user !== undefined) {
+        task.info('cleanup skip requested', { type: 'cleanupSkipRequested', userId: user.id })
+      }
+      task.abortCleanup()
+    }
   }
+
+  // the followed signals trigger level 1 only
+  const onFollowedSignalAbort = () => abort()
+  // skipping the cleanup of the caller's task skips the one of the run, and aborts it as well
+  const onFollowedCleanupSignalAbort = () => abort(undefined, { skipCleanup: true })
 
   const task = new Task({
     properties,
@@ -56,7 +76,15 @@ export async function runInMainThread({ app, fn, onRootTaskStart, onTaskUpdate, 
           abort()
           Task.abortSignal.throwIfAborted()
         }
-        followedSignal.addEventListener('abort', abort, { once: true })
+        followedSignal.addEventListener('abort', onFollowedSignalAbort, { once: true })
+      }
+
+      if (followedCleanupSignal !== undefined) {
+        if (followedCleanupSignal.aborted) {
+          onFollowedCleanupSignalAbort()
+        } else {
+          followedCleanupSignal.addEventListener('abort', onFollowedCleanupSignalAbort, { once: true })
+        }
       }
 
       const result = await fn()
@@ -69,7 +97,8 @@ export async function runInMainThread({ app, fn, onRootTaskStart, onTaskUpdate, 
     })
   } finally {
     for (const followedSignal of followedSignals) {
-      followedSignal.removeEventListener('abort', abort)
+      followedSignal.removeEventListener('abort', onFollowedSignalAbort)
     }
+    followedCleanupSignal?.removeEventListener('abort', onFollowedCleanupSignalAbort)
   }
 }

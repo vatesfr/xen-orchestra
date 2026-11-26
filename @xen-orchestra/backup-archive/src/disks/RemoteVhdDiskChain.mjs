@@ -224,6 +224,14 @@ export class RemoteVhdDiskChain extends RemoteDisk {
   }
 
   /**
+   * @param {RemoteDisk} childDisk
+   * @returns {Promise<boolean>} mergeMovesBlocks
+   */
+  async mergeMovesBlocks(childDisk) {
+    throw new Error(`Can't merge block into a disk chain`)
+  }
+
+  /**
    * Gets a specific block path from the VHD directory disk.
    * @param {number} index
    * @returns {string} blockPath

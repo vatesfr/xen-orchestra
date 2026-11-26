@@ -5,11 +5,12 @@ import { Task } from '@vates/task'
 import { IncrementalRemoteWriter } from './IncrementalRemoteWriter.mjs'
 
 // a writer on a fake remote, whose transfer fails as an aborted transfer does
-function createWriter() {
+function createWriter({ config = { disableMergeWorker: true }, handler } = {}) {
   const calls = { cleanVm: 0, cleanVmOptions: [], lockDisposed: false }
   const writer = new IncrementalRemoteWriter({
     adapter: {
       handler: {
+        ...handler,
         mktree: async () => {},
         lock: async () => ({
           dispose: async () => {
@@ -23,7 +24,7 @@ function createWriter() {
         return {}
       },
     },
-    config: { disableMergeWorker: true },
+    config,
     job: { id: 'job', mode: 'delta' },
     remoteId: 'remote',
     schedule: { id: 'schedule' },
@@ -213,5 +214,125 @@ describe('IncrementalRemoteWriter#transfer() after an abort', () => {
 
     assert.equal(writes.length, 1, 'the second disk is not written')
     assert.equal(metadataWritten, false, 'no metadata is written for an aborted backup')
+  })
+})
+
+describe('IncrementalRemoteWriter clean-vm and the skip of the cleanup', () => {
+  it('does not stop the clean-vm made before the transfer for a level 1 abort, but for a skipped cleanup', async () => {
+    const { writer } = createWriter()
+    const vmTask = new Task({ onProgress() {} })
+    const states = []
+    writer._adapter.cleanVm = async (vmDir, options) => {
+      assert.ok(options.signal instanceof AbortSignal)
+      // level 1: the merge goes on, the clean after the transfer would resume it anyway
+      vmTask.abort()
+      states.push(options.signal.aborted)
+      // level 2
+      vmTask.abortCleanup()
+      states.push(options.signal.aborted)
+      return {}
+    }
+
+    await vmTask.run(() => writer.beforeBackup())
+
+    assert.deepEqual(states, [false, true])
+  })
+
+  it('gives cleanVm() of afterBackup() the cleanup signal, not the abort', async () => {
+    const { writer } = createWriter()
+    const vmTask = new Task({ onProgress() {} })
+    const states = []
+    writer._adapter.cleanVm = async (vmDir, options) => {
+      assert.ok(options.signal instanceof AbortSignal)
+      states.push(options.signal.aborted)
+      return {}
+    }
+
+    await vmTask.run(async () => {
+      await writer.beforeBackup()
+      // level 1
+      vmTask.abort()
+      await writer.afterBackup()
+    })
+
+    // not aborted by the abort alone, before or after the transfer
+    assert.deepEqual(states, [false, false])
+  })
+
+  it('stops the clean of afterBackup() when the cleanup is skipped, and still releases the lock', async () => {
+    const { calls, writer } = createWriter()
+    const vmTask = new Task({ onProgress() {} })
+    let received
+    let afterBackupError
+    writer._adapter.cleanVm = async (vmDir, { signal }) => {
+      received = signal
+      // the user skips the cleanup while it runs
+      vmTask.abortCleanup()
+      signal.throwIfAborted()
+      return {}
+    }
+
+    await vmTask.run(async () => {
+      vmTask.abort()
+      // the lock taken by beforeBackup() is the one afterBackup() releases
+      await writer.beforeBackup()
+      calls.cleanVm = 0
+      await writer.afterBackup().catch(error => (afterBackupError = error))
+    })
+
+    assert.equal(received?.aborted, true, 'the clean was stopped by the skip of the cleanup')
+    assert.equal(afterBackupError, undefined, 'afterBackup() does not fail: the clean error is logged')
+    assert.equal(calls.lockDisposed, true, 'the remote lock is released')
+  })
+
+  it('does not queue the merge worker when the clean completes after the skip of the cleanup', async () => {
+    let queued = false
+    const { calls, writer } = createWriter({
+      config: { disableMergeWorker: false },
+      handler: {
+        getRealPath: () => '/remote',
+        outputFile: async () => {
+          queued = true
+          // never reaches MergeWorker.run()
+          throw new Error('the merge worker is queued')
+        },
+      },
+    })
+    const vmTask = new Task({ onProgress() {} })
+    let afterBackupError
+
+    await vmTask.run(async () => {
+      await writer.beforeBackup()
+      vmTask.abort()
+      writer._adapter.cleanVm = async () => {
+        // skipped once the clean is past its last stop point: it completes, with merges left to the worker
+        vmTask.abortCleanup()
+        return { merge: true }
+      }
+      await writer.afterBackup().catch(error => (afterBackupError = error))
+    })
+
+    assert.equal(queued, false)
+    assert.equal(afterBackupError, undefined)
+    assert.equal(calls.lockDisposed, true)
+  })
+
+  it('does not abort the clean of afterBackup() for a second level 1 abort', async () => {
+    const { writer } = createWriter()
+    const vmTask = new Task({ onProgress() {} })
+    let signal
+    writer._adapter.cleanVm = async (vmDir, options) => {
+      signal = options.signal
+      // aborting again, without skipping the cleanup, must not stop the clean
+      vmTask.abort()
+      return {}
+    }
+
+    await vmTask.run(async () => {
+      await writer.beforeBackup()
+      await writer.afterBackup()
+    })
+
+    assert.equal(signal.aborted, false)
   })
 })

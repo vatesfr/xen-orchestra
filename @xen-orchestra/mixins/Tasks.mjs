@@ -264,8 +264,10 @@ export default class Tasks extends EventEmitter {
    * Map), so concurrent backup jobs don't interfere with each other.
    *
    * Options:
-   * - abort: `(reason) => …` called by `tasks.abort(rootId, reason)` while the
+   * - abort: `(reason, { skipCleanup }) => …` called by `tasks.abort(rootId, reason, { skipCleanup })` while the
    *   root task runs. Without it, aborting the task fails with `forbiddenOperation`.
+   *   `skipCleanup` is `true` when the cleanup of the task must be stopped too (a second abort, see
+   *   `Task#abortCleanup()`).
    *
    * The returned handler has an `end({ status = 'interrupted', reason })` method for
    * a source that disappeared without ending its root task. It ends the open
@@ -400,10 +402,26 @@ export default class Tasks extends EventEmitter {
     return Object.assign(handler, { end })
   }
 
-  async abort(id, reason) {
+  /**
+   * @param {string} id
+   * @param {*} [reason]
+   * @param {object} [options]
+   * @param {boolean} [options.skipCleanup] also stop the cleanup of the task (the cleanup steps it runs after an
+   *   abort), whatever the abort already requested
+   */
+  async abort(id, reason, { skipCleanup = false } = {}) {
     const task = this.#tasks.get(id)
     if (task !== undefined) {
-      return task.abort(reason)
+      if (typeof task.abortCleanup === 'function') {
+        // internal task
+        task.abort(reason)
+        if (skipCleanup) {
+          task.abortCleanup()
+        }
+        return
+      }
+      // handle of an external task
+      return task.abort(reason, { skipCleanup })
     }
 
     // running external task without abort option

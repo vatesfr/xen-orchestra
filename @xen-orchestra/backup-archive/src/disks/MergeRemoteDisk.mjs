@@ -77,6 +77,11 @@ export class MergeRemoteDisk {
   #writeStateDelay
 
   /**
+   * @type {AbortSignal | undefined}
+   */
+  #signal
+
+  /**
    * @type {number}
    */
   #lastStateWrittenAt
@@ -94,6 +99,9 @@ export class MergeRemoteDisk {
    * @param {boolean} [params.removeUnused]
    * @param {number} [params.mergeBlockConcurrency]
    * @param {number} [params.writeStateDelay]
+   * @param {AbortSignal} [params.signal] stops the merge before it starts, or between two blocks when they are copied:
+   *   its state is kept to be resumed. A merge that moves the blocks of the child (two VHD directories) is not stopped
+   *   once started, since the child, which is the disk of a listed backup, cannot be read until the merge completes.
    */
   constructor(
     handler,
@@ -103,6 +111,7 @@ export class MergeRemoteDisk {
       removeUnused = false,
       mergeBlockConcurrency = 2,
       writeStateDelay = 10e3,
+      signal,
     }
   ) {
     this.#handler = handler
@@ -111,6 +120,7 @@ export class MergeRemoteDisk {
     this.#removeUnused = removeUnused
     this.#mergeBlockConcurrency = mergeBlockConcurrency
     this.#writeStateDelay = writeStateDelay
+    this.#signal = signal
 
     this.#isResuming = false
     this.#lastStateWrittenAt = 0
@@ -159,8 +169,15 @@ export class MergeRemoteDisk {
       /* eslint-disable no-fallthrough */
       switch (this.#state?.step ?? 'mergeBlocks') {
         case 'mergeBlocks':
+          // nothing has changed yet. A merge of VHD directories resumed here has already moved blocks out of the child
+          // (a crash): stopping it leaves the child as it was
+          this.#signal?.throwIfAborted()
           await this.#step_mergeBlocks(parentDisk, childDisk)
         case 'cleanup':
+          // never stopped here. Coming from `mergeBlocks`, the parent already carries the metadata, and the uuid, of
+          // the child while the state still says `mergeBlocks`: the next clean would not resume such a merge but
+          // remove the parent. Then this step removes the merged disks and renames the result, and stopping in
+          // between would lose the chain.
           await this.#step_cleanup(parentDisk, childDisk)
           return this.#cleanup(parentDisk, childDisk, true)
         default:
@@ -220,7 +237,16 @@ export class MergeRemoteDisk {
       await this.#writeState()
     }
 
-    await this.#mergeBlocks(parentDisk, childDisk)
+    // once a block has been moved out of the child, the child cannot be read until the merge has completed: such a
+    // merge is not stopped
+    const isStoppable = !(await parentDisk.mergeMovesBlocks(childDisk))
+
+    await this.#mergeBlocks(parentDisk, childDisk, isStoppable)
+    // last point where the merge stops, before the metadata of the parent is written: the state, written by
+    // #mergeBlocks(), holds the progress and the next merge resumes from it
+    if (isStoppable) {
+      this.#signal?.throwIfAborted()
+    }
     await parentDisk.flushMetadata(childDisk)
     await parentDisk.mergeMetadata(childDisk)
     this.#state.diskSize = parentDisk.getSizeOnDisk()
@@ -229,8 +255,9 @@ export class MergeRemoteDisk {
   /**
    * @param {RemoteDisk} parentDisk
    * @param {RemoteDisk} childDisk
+   * @param {boolean} isStoppable whether the signal stops the merge between two blocks
    */
-  async #mergeBlocks(parentDisk, childDisk) {
+  async #mergeBlocks(parentDisk, childDisk, isStoppable) {
     this.#mergeBlockConcurrency =
       (await parentDisk.canMergeConcurently()) && (await childDisk.canMergeConcurently())
         ? this.#mergeBlockConcurrency
@@ -251,6 +278,11 @@ export class MergeRemoteDisk {
     await asyncEach(
       toMerge,
       async blockId => {
+        // `asyncEach`'s own `signal` would reject before the blocks in flight have settled, and the state must be
+        // written after them
+        if (isStoppable && this.#signal?.aborted) {
+          return
+        }
         merging.add(blockId)
 
         const blockSize = await parentDisk.mergeBlock(childDisk, blockId, this.#isResuming)
@@ -268,7 +300,8 @@ export class MergeRemoteDisk {
 
     await this.#writeState()
 
-    this.#onProgress({ total: nBlocks, done: nBlocks })
+    // less than `nBlocks` when the merge has been stopped
+    this.#onProgress({ total: nBlocks, done: counter })
   }
 
   /**

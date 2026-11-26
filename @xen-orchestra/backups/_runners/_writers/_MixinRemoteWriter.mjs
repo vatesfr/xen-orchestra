@@ -26,14 +26,18 @@ export const MixinRemoteWriter = (BaseClass = Object) =>
       this._vmBackupDir = getVmBackupDir(rest.vmUuid)
     }
 
-    // `cleanup`: the clean-vm is a cleanup subtask, it also runs after the backup has been aborted. Otherwise it is
-    // not started once the backup is aborted, but a merge already running is not interrupted: `cleanVm()` does not
-    // read the signal
+    // `cleanup`: the clean-vm is a cleanup subtask, it also runs after the backup has been aborted (level 1).
+    //
+    // The signal given to the clean is the one of the skip of the cleanup (level 2): it stops the clean and its merges
+    // between two operations, the merge keeps its state and the next clean resumes it. The abort of the backup alone
+    // does not stop a running merge. Before the transfer (`cleanup` is false), a merge not started yet when the backup
+    // is aborted does not start: its subtask fails right away, and the clean after the transfer runs it instead.
     async _cleanVm({ cleanup = false, ...options }) {
       try {
         return await Task.run({ properties: { name: 'clean-vm' }, cleanup }, () => {
           return this._adapter.cleanVm(this._vmBackupDir, {
             ...options,
+            signal: Task.cleanupSignal,
             logInfo: info,
             logWarn: (message, data) => {
               warn(message, data)
@@ -77,13 +81,15 @@ export const MixinRemoteWriter = (BaseClass = Object) =>
       const willMergeInWorker = !synchronousMerge && !disableMergeWorker && typeof handler.getRealPath === 'function'
       let merge
       try {
-        // part of the cleanup: it also runs after an abort, merge included (skipping it is a level 2 abort)
+        // part of the cleanup: it also runs after an abort, merge included, until the cleanup is skipped (level 2
+        // abort): the lock is released in all cases and no merge is queued, the next run cleans the leftovers
         ;({ merge } = await this._cleanVm({ cleanup: true, remove: true, merge: !willMergeInWorker }))
       } finally {
         await this.#lock.dispose()
       }
 
-      if (merge && willMergeInWorker) {
+      // the clean may have completed after the skip of the cleanup, once past its last stop point
+      if (merge && willMergeInWorker && Task.cleanupSignal?.aborted !== true) {
         const taskFile =
           join(MergeWorker.CLEAN_VM_QUEUE, formatFilenameDate(new Date())) +
           '-' +

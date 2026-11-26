@@ -1,7 +1,8 @@
-import type { Request as ExRequest } from 'express'
+import { json, type Request as ExRequest } from 'express'
 import type { XoTask } from '@vates/types'
 import { XoController } from '../abstract-classes/xo-controller.mjs'
 import {
+  Body,
   Delete,
   Example,
   Extension,
@@ -267,28 +268,47 @@ export class TaskController extends XoController<XoTask> {
    * Required privilege:
    * - resource: task, action: abort
    *
+   * Asks the task to stop. A backup job then runs its cleanup (removal of the snapshots, clean of the backup
+   * directory and merge of the backups) before it ends.
+   *
+   * With `skipCleanup`, the cleanup is stopped too, so the job ends as soon as possible: the steps that have started
+   * complete, the next ones are not run, and a merge of VHD files stops between two blocks and is resumed by the next
+   * run. A merge of VHD directories already running completes, as the backup it merges cannot be read before. The VM
+   * is restarted and unblocked, and the remote unlocked, in all cases. Snapshots, merges and files may be left, the
+   * next run of the job cleans them. It can be sent after a first abort of the task.
+   *
    * @example id "0mdd1basu"
+   * @example body { "skipCleanup": true }
    */
   @Example(taskLocation)
   @Extension('x-mcp-exposure', 'confirm')
   @Post('{id}/actions/abort')
-  @Middlewares(
+  @Middlewares([
+    json(),
     acl({
       resource: 'task',
       action: 'abort',
       objectId: 'params.id',
       getObject: ({ restApi }) => restApi.xoApp.tasks.get.bind(restApi.xoApp.tasks),
-    })
-  )
+    }),
+  ])
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
   @Response(noContentResp.status, noContentResp.description)
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
-  async abortTask(@Path() id: string, @Query() sync?: boolean): CreateActionReturnType<void> {
+  async abortTask(
+    @Path() id: string,
+    @Body()
+    body?: {
+      /** Also stop the cleanup of the task. Defaults to false. */
+      skipCleanup?: boolean
+    },
+    @Query() sync?: boolean
+  ): CreateActionReturnType<void> {
     const taskId = id as XoTask['id']
 
     const action = async () => {
-      await this.restApi.tasks.abort(taskId)
+      await this.restApi.tasks.abort(taskId, undefined, { skipCleanup: body?.skipCleanup })
     }
 
     return this.createAction<void>(action, {
@@ -297,6 +317,7 @@ export class TaskController extends XoController<XoTask> {
       taskProperties: {
         name: 'abort task',
         objectId: taskId,
+        params: body,
       },
     })
   }

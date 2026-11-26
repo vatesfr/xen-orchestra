@@ -418,7 +418,17 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
     }
   }
 
+  // Whether the cleanup of the job has been skipped (level 2 abort): the steps that can wait for the next run do not
+  // start. It is not an error, the run is already ending with its abort.
+  _isCleanupSkipped() {
+    return Task.cleanupSignal?.aborted === true
+  }
+
   async _removeUnusedSnapshots() {
+    if (this._isCleanupSkipped()) {
+      return
+    }
+
     const allSettings = this.job.settings
     const baseSettings = this._baseSettings
 
@@ -465,6 +475,11 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
       }
       const retention = settings.snapshotRetention ?? 0
       await asyncMap(getOldEntries(retention, datetimes), async datetime => {
+        // all the destroys start at once, right after the barrier: this only catches a skip made during the barrier
+        if (this._isCleanupSkipped()) {
+          return
+        }
+
         // keep the last exported snapshot across all schedules for delta
         // since we'll need it to compute delta for next backup
         if (
@@ -542,6 +557,10 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
         }
         const retention = settings.snapshotRetention ?? 0
         await asyncEach(getOldEntries(retention, datetimes), async datetime => {
+          if (this._isCleanupSkipped()) {
+            return
+          }
+
           if (
             this.job.mode === 'delta' &&
             lastExportedSnapshotDateTime !== undefined &&
@@ -558,6 +577,9 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
 
     // list and remove the snapshot were the jobs failed between
     // makesnapshot and update_other_config
+    if (this._isCleanupSkipped()) {
+      return
+    }
     const snapshots = this._vm.$snapshots.filter(_ => !!_).filter(({ name_label }) => name_label === TEMP_SNAPSHOT_NAME)
     await asyncEach(snapshots, snapshot => snapshot.$destroy())
   }
@@ -572,6 +594,12 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
   }
 
   async _removeSnapshotData() {
+    // once started it completes: stopping between the destroy of the VM and the one of the data of its VDIs would
+    // leave VDIs the next run does not expect
+    if (this._isCleanupSkipped()) {
+      return
+    }
+
     // now that we use CBT, we can destroy the data of the snapshot used for this backup
     // going back to a previous version of XO not supporting CBT will create a full backup
     // this will only do something after snapshot and transfer
@@ -674,6 +702,9 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
     const isRunning = vm.power_state === 'Running'
     const startAfter = isRunning && (settings.offlineBackup ? 'backup' : settings.offlineSnapshot && 'snapshot')
     if (startAfter) {
+      // the steps above may have ended with an abort, as the clean of `beforeBackup()` does: do not shut down a VM that
+      // would only be started again
+      Task.abortSignal?.throwIfAborted()
       await vm.$callAsync('clean_shutdown')
     }
 

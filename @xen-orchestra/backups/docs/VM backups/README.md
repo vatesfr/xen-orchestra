@@ -14,6 +14,7 @@
 - [Task logs](#task-logs)
   - [During backup](#during-backup)
   - [Aborted backup](#aborted-backup)
+  - [Skipped cleanup](#skipped-cleanup)
   - [During restoration](#during-restoration)
 - [API](#api)
   - [Run description object](#run-description-object)
@@ -265,6 +266,7 @@ job.start(data: { mode: Mode, reportWhen: ReportWhen })
 
 - A step started as a subtask once the run is aborted fails right away, without running (the root task of the run
   is created with `skipSubtasksAfterAbort: true` in `@vates/task`).
+- A running VM is not shut down for an offline backup or snapshot once the run is aborted.
 - The cleanup still runs: snapshot retention, removal of the snapshot data, restore of the VM's blocked operations,
   and the writers' `afterBackup()`. `clean-vm` (and the merge it runs) is a cleanup subtask (`cleanup: true` in
   `@vates/task`), which the abort does not stop.
@@ -272,6 +274,51 @@ job.start(data: { mode: Mode, reportWhen: ReportWhen })
   are removed by `clean-vm`.
 - In the backup logs and reports, a task that failed after an abort was requested on it (`abortionRequested`) has the
   status `interrupted`, and does not make its parent `failure`.
+
+### Skipped cleanup
+
+The cleanup of an aborted run can itself be stopped (level 2): `app.tasks.abort(id, undefined, { skipCleanup: true })`,
+or `POST /rest/v0/tasks/{id}/actions/abort` with the body `{ "skipCleanup": true }`. It can be sent after a first abort,
+or alone: it then aborts the run and its cleanup. The reason stays an `AbortError`. The user who requested it is
+recorded, after the first abort info:
+
+```
+├─ task.info(message: 'abort requested', data: { type: 'abortRequested', userId: string })
+├─ task.info(message: 'cleanup skip requested', data: { type: 'cleanupSkipRequested', userId: string })
+```
+
+Each request is applied once: repeating one changes nothing.
+
+It stops, between two operations (an operation started completes):
+
+- the snapshot retention (`_removeUnusedSnapshots()`), before its destroys: they all start at once;
+- the removal of the snapshot data (`_removeSnapshotData()`), unless it has started;
+- the deletion of the old backups and replicas made after the transfer (`deleteFirst` not set) by a full backup or
+  replication job, and of the old replicas by a delta replication job. A delta backup job still removes the metadata
+  of its old backups: the merge of their disks is part of `clean-vm`;
+- `clean-vm` (removal of unused disks, merges, orphan directories), and the merges of VHD files between two blocks. A
+  merge writes its state (`.<disk>.merge.json`) before it rejects, so the next clean resumes it. The end of a merge,
+  from the write of the merged metadata to the removal of the merged disks and the rename of the result, is not
+  interrupted. A merge of VHD directories moves the blocks out of the disk of the oldest backup still listed, which
+  cannot be read until the merge completes: it is stopped before it starts only, so the skip waits for a merge of VHD
+  directories already running. A
+  completed merge has removed its state, so only this clean can update the metadata of its backup: once a merge has
+  completed, the other merges are still stopped, but the clean goes on to the update of the metadata instead of
+  rejecting. A backup with a disk whose merge is left keeps its metadata until the clean that completes that merge.
+  Once `clean-vm` updates the metadata of the backups (removal of incomplete backups, size of the merged ones), it runs
+  to its end, so that the cache and the journal record these changes;
+- the merge worker is not queued.
+
+It does not stop: the restart of a VM shut down for an offline backup, the restore of the VM's blocked operations,
+and the release of the remote lock of the VM.
+
+What is left is cleaned by the next run of the job, or by "reclaim space": old snapshots (retention applies to all the
+job's snapshots), old backups and replicas, unused disks, orphan files and the interrupted merge. When the merges of the
+disks of a backup complete in different runs, its size only counts the disks merged by the last one, as after a crash.
+
+The `clean-vm` that runs before the transfer (`beforeBackup()`) is stopped by the skip of the cleanup. A first abort
+does not stop a merge it is running, but a merge it has not started yet does not start (the clean after the transfer
+runs it).
 
 ### During restoration
 

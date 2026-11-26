@@ -1,3 +1,5 @@
+import { Task } from '@vates/task'
+
 import { AbstractAggregatedXapiWriter } from './_AbstractAggregatedXapiWriter.mjs'
 
 export class AggregatedFullXapiWriter extends AbstractAggregatedXapiWriter {
@@ -17,9 +19,9 @@ export class AggregatedFullXapiWriter extends AbstractAggregatedXapiWriter {
     await this.mainWriter.run(props)
   }
 
-  // delete replica if not using deleteFirst
+  // delete replica if not using deleteFirst, unless the cleanup has been skipped (level 2 abort): the next run does it
   async afterBackup() {
-    if (!this.props.settings.deleteFirst) {
+    if (!this.props.settings.deleteFirst && Task.cleanupSignal?.aborted !== true) {
       await this.deleteOldReplicas()
     }
     await Promise.all(this.writers.map(writer => writer.afterBackup()))

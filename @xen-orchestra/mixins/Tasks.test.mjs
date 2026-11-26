@@ -512,6 +512,111 @@ describe('Tasks', () => {
       assert.deepEqual(reasons, ['user request'])
     })
 
+    it('passes skipCleanup to the abort option of a running external task', async () => {
+      const fake = makeApp()
+      const tasks = new Tasks(fake.app)
+      await fake.start()
+
+      const calls = []
+      const onLogFct = tasks.createExternalProgressHandler({
+        abort: (reason, options) => calls.push([reason, options]),
+      })
+
+      const id = 'ext-skip-cleanup'
+      onLogFct({ type: 'start', id, timestamp: Date.now(), properties: { name: 'backup run' } })
+
+      await tasks.abort(id, undefined, { skipCleanup: true })
+      assert.deepEqual(calls, [[undefined, { skipCleanup: true }]])
+    })
+
+    it('does not ask an external task to skip its cleanup unless told to', async () => {
+      const fake = makeApp()
+      const tasks = new Tasks(fake.app)
+      await fake.start()
+
+      const options = []
+      const onLogFct = tasks.createExternalProgressHandler({ abort: (reason, opts) => options.push(opts) })
+
+      const id = 'ext-no-skip-cleanup'
+      onLogFct({ type: 'start', id, timestamp: Date.now(), properties: { name: 'backup run' } })
+
+      await tasks.abort(id)
+      await tasks.abort(id, 'user request', {})
+      assert.deepEqual(
+        options.map(_ => _?.skipCleanup === true),
+        [false, false]
+      )
+    })
+
+    it('does not call the abort option with skipCleanup after the external task ended', async () => {
+      const fake = makeApp()
+      const tasks = new Tasks(fake.app)
+      await fake.start()
+
+      const calls = []
+      const onLogFct = tasks.createExternalProgressHandler({ abort: () => calls.push('abort') })
+
+      const id = 'ext-skip-cleanup-after-end'
+      const timestamp = Date.now()
+      onLogFct({ type: 'start', id, timestamp, properties: { name: 'backup run' } })
+      onLogFct({ type: 'end', id, timestamp: timestamp + 1, status: 'success', result: 'done' })
+
+      await assert.rejects(tasks.abort(id, undefined, { skipCleanup: true }))
+      assert.deepEqual(calls, [])
+    })
+
+    it('aborts an internal task, then its cleanup, when skipCleanup is set', async () => {
+      const fake = makeApp()
+      const tasks = new Tasks(fake.app)
+      await fake.start()
+
+      const task = tasks.create({ name: 'cleanup test' })
+      const states = []
+      await task.run(async () => {
+        const abortSignal = Task.abortSignal
+        const cleanupSignal = Task.cleanupSignal
+        await tasks.abort(task.id, undefined, { skipCleanup: true })
+        states.push([abortSignal.aborted, cleanupSignal.aborted])
+      })
+
+      assert.deepEqual(states, [[true, true]])
+    })
+
+    it('only aborts an internal task when skipCleanup is not set', async () => {
+      const fake = makeApp()
+      const tasks = new Tasks(fake.app)
+      await fake.start()
+
+      const task = tasks.create({ name: 'abort test' })
+      const states = []
+      await task.run(async () => {
+        const abortSignal = Task.abortSignal
+        const cleanupSignal = Task.cleanupSignal
+        await tasks.abort(task.id)
+        states.push([abortSignal.aborted, cleanupSignal.aborted])
+      })
+
+      assert.deepEqual(states, [[true, false]])
+    })
+
+    it('aborts the cleanup of an internal task that was aborted before, when skipCleanup is set', async () => {
+      const fake = makeApp()
+      const tasks = new Tasks(fake.app)
+      await fake.start()
+
+      const task = tasks.create({ name: 'escalation test' })
+      const states = []
+      await task.run(async () => {
+        const cleanupSignal = Task.cleanupSignal
+        await tasks.abort(task.id)
+        states.push(cleanupSignal.aborted)
+        await tasks.abort(task.id, undefined, { skipCleanup: true })
+        states.push(cleanupSignal.aborted)
+      })
+
+      assert.deepEqual(states, [false, true])
+    })
+
     it('does not call the abort option after the external task ended', async () => {
       const fake = makeApp()
       const tasks = new Tasks(fake.app)

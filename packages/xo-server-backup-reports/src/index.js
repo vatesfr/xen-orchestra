@@ -72,6 +72,13 @@ const UNHEALTHY_VDI_CHAIN_ERROR = 'unhealthy VDI chain'
 const UNHEALTHY_VDI_CHAIN_MESSAGE =
   '(unhealthy VDI chain) Job canceled to protect the VDI chain. See https://docs.xen-orchestra.com/backup_troubleshooting#vdi-chain-protection'
 
+// message of each type of abort info added by xo-server, from the user who requested it
+const ABORT_INFO_MESSAGES = {
+  __proto__: null,
+  abortRequested: user => `abort requested by ${user}`,
+  cleanupSkipRequested: user => `cleanup skip requested by ${user}, the next run cleans what is left`,
+}
+
 const getAdditionalData = async (task, props) => {
   if (task.data?.type === 'remote') {
     const name = await props.xo.getRemote(task.data.id).then(
@@ -368,15 +375,16 @@ class BackupReportsXoPlugin {
     const nVmTasks = nSuccesses + nFailures + nSkipped + nInterrupted
 
     const context = {
-      // who requested the abort of the run: xo-server adds an info with the type `abortRequested` and the id of the
-      // user, the other infos of the run are not shown in the report
+      // who requested the abort of the run, and the skip of its cleanup: xo-server adds an info with the type
+      // `abortRequested` or `cleanupSkipRequested` and the id of the user, the other infos of the run are not shown in
+      // the report
       abortInfos: await Promise.all(
         (log.infos ?? [])
-          .filter(info => info.data?.type === 'abortRequested')
-          .map(async ({ data: { userId } }) => {
+          .filter(info => ABORT_INFO_MESSAGES[info.data?.type] !== undefined)
+          .map(async ({ data: { type, userId } }) => {
             // the user may have been deleted since
             const user = await xo.getUser(userId).catch(() => undefined)
-            return { message: `abort requested by ${user?.email ?? userId}` }
+            return { message: ABORT_INFO_MESSAGES[type](user?.email ?? userId) }
           })
       ),
       jobName,
