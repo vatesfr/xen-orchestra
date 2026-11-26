@@ -34,6 +34,11 @@ const { debug } = createLogger('xen-api')
 
 export const DISCONNECTED_ERROR_CODE = 'XEN_API_DISCONNECTED'
 
+export const NO_SESSION_ERROR_CODE = 'XEN_API_NO_SESSION'
+const TRANSIENT_CONNECTION_ERROR_CODES = new Set(['ECONNREFUSED', 'ECONNRESET', 'EPIPE', 'UND_ERR_SOCKET'])
+const isTransientConnectionError = error =>
+  TRANSIENT_CONNECTION_ERROR_CODES.has(error?.code) || TRANSIENT_CONNECTION_ERROR_CODES.has(error?.cause?.code)
+
 // ===================================================================
 // Minimal `node:http(s)` request helper used by `putResource`.
 // `fetch`/`undici` cannot be used here because `putResource` relies on a hack
@@ -1163,7 +1168,11 @@ export class Xapi extends EventEmitter {
     try {
       return await pRetry(() => {
         const sessionId = this._sessionId
-        assert.notStrictEqual(sessionId, undefined)
+        if (sessionId === undefined) {
+          const error = new Error('no session, the connection to XAPI is being re-established')
+          error.code = NO_SESSION_ERROR_CODE
+          throw error
+        }
 
         const newArgs = [sessionId]
         if (args !== undefined) {
@@ -1189,10 +1198,12 @@ export class Xapi extends EventEmitter {
   // 4. the second call fails with SESSION_INVALID which leads to a new
   //    unnecessary renewal
   _sessionOpenRetryOptions = {
-    tries: 2,
-    when: { code: 'HOST_IS_SLAVE' },
+    tries: 3,
+    when: error => error?.code === 'HOST_IS_SLAVE' || isTransientConnectionError(error),
     onRetry: error => {
-      this._setUrl({ ...this._url, hostname: formatHostname(error.params[0]) })
+      if (error.code === 'HOST_IS_SLAVE') {
+        this._setUrl({ ...this._url, hostname: formatHostname(error.params[0]) })
+      }
     },
   }
   _sessionOpen = coalesceCalls(this._sessionOpen)

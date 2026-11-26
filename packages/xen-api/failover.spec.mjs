@@ -1,6 +1,6 @@
 import t from 'tap'
 
-import { Xapi } from './index.mjs'
+import { NO_SESSION_ERROR_CODE, Xapi } from './index.mjs'
 import XapiError from './_XapiError.mjs'
 
 // Build a client without starting the event loop or opening any connection.
@@ -242,6 +242,82 @@ t.test('_failoverToSurvivor', t => {
 
     await t.rejects(xapi._failoverToSurvivor())
     t.equal(opens, 0, 'did not try to reopen a session')
+  })
+
+  t.end()
+})
+
+// The event loop lost the master: a probe (on its own transport) found it
+// back, but the re-login on the main connection is reset because XAPI is still
+// restarting, which is what happens right after a toolstack restart.
+t.test('re-login after a failover', t => {
+  const OLD_SESSION = 'OpaqueRef:old-session'
+  const NEW_SESSION = 'OpaqueRef:new-session'
+
+  // the first `failedLogins` logins fail with `loginError`, `onFailedLogin` is
+  // called on each of them, while the session is being reopened
+  const stubXapi = (xapi, { failedLogins, loginError = connError('ECONNRESET'), onFailedLogin = () => {} }) => {
+    const state = { logins: 0 }
+    xapi._sessionId = OLD_SESSION
+    // do not slow the tests down with the delay between the login attempts
+    xapi._sessionOpenRetryOptions = { ...xapi._sessionOpenRetryOptions, delay: 0 }
+    xapi._probeHost = async hostname => hostname
+    xapi._call = async (method, args) => {
+      switch (method) {
+        case 'session.login_with_password':
+          if (++state.logins <= failedLogins) {
+            await onFailedLogin()
+            throw loginError
+          }
+          return NEW_SESSION
+        case 'pool.get_all_records':
+          return { 'OpaqueRef:pool': { uuid: 'pool-1', master: 'OpaqueRef:master', other_config: {} } }
+        case 'host.get_all_records':
+          return {}
+        case 'system.listMethods':
+          return []
+        default:
+          // any other call needs a valid session
+          if (args[0] !== NEW_SESSION) {
+            throw new XapiError('SESSION_INVALID', [args[0]])
+          }
+          return 'result'
+      }
+    }
+    return state
+  }
+
+  t.test('retries the login when the connection is reset', async t => {
+    const xapi = makeXapi()
+    stubXapi(xapi, { failedLogins: 1 })
+
+    await xapi._failoverToSurvivor()
+
+    t.equal(xapi._sessionId, NEW_SESSION)
+  })
+
+  t.test('does not retry a timeout, which would delay the failover to the other members', async t => {
+    const xapi = makeXapi()
+    const state = stubXapi(xapi, { failedLogins: Infinity, loginError: connError('ETIMEDOUT') })
+
+    await t.rejects(xapi._failoverToSurvivor(), { code: 'ETIMEDOUT' })
+
+    t.equal(state.logins, 1)
+  })
+
+  t.test('fails the calls made meanwhile with a no-session error', async t => {
+    const xapi = makeXapi()
+    const errors = []
+    stubXapi(xapi, {
+      failedLogins: 1,
+      onFailedLogin: () => xapi.call('VM.start', 'OpaqueRef:vm', false, false).catch(error => errors.push(error)),
+    })
+
+    await xapi._failoverToSurvivor()
+
+    t.equal(errors.length, 1)
+    t.equal(errors[0].code, NO_SESSION_ERROR_CODE)
+    t.equal(await xapi.call('VM.start', 'OpaqueRef:vm', false, false), 'result', 'calls work once the session is back')
   })
 
   t.end()

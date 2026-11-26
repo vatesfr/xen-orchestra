@@ -4,6 +4,7 @@ import { configure } from '@xen-orchestra/log/configure'
 
 import XenServers from './xen-servers.mjs'
 import EventEmitter from 'node:events'
+import { incorrectState } from 'xo-common/api-errors.js'
 
 configure({ level: 'FATAL', transport: () => {} })
 
@@ -132,6 +133,55 @@ describe('updateXenServer', function () {
     await xenServers.updateXenServer('server-1', { enabled: true })
 
     assert.deepEqual(reconnected, [])
+  })
+})
+
+describe('connectXenServer', function () {
+  // records the attempts instead of opening a connection
+  const stubConnection = xenServers => {
+    const attempts = []
+    xenServers._connectXenServer = async id => {
+      attempts.push(id)
+    }
+    return attempts
+  }
+
+  // a status saved by a connection which is gone, e.g. a late event on a
+  // dropped connection which saved `connected`, or its grace period which
+  // saved `connecting`: without a live connection or an attempt in flight,
+  // nothing will ever fix it
+  for (const status of ['connected', 'connecting']) {
+    it(`connects a disabled server whose saved status is a stale \`${status}\``, async function () {
+      const { xenServers } = createXenServers({ ...SERVER, enabled: false, status })
+      const attempts = stubConnection(xenServers)
+
+      await xenServers.connectXenServer('server-1')
+
+      assert.deepEqual(attempts, ['server-1'])
+    })
+  }
+
+  it('refuses while the server has a live connection, even if its saved status is `disconnected`', async function () {
+    // e.g. after `xo-server-db` reset every saved status: connecting would
+    // replace `_xapis[id]` and orphan the live connection
+    const { xenServers } = createXenServers()
+    xenServers._xapis['server-1'] = createXapi()
+    xenServers._serverIdsByPool['pool-1'] = 'server-1'
+    const attempts = stubConnection(xenServers)
+
+    await assert.rejects(xenServers.connectXenServer('server-1'), error => incorrectState.is(error))
+
+    assert.deepEqual(attempts, [])
+  })
+
+  it('refuses while a connection attempt is in flight', async function () {
+    const { xenServers } = createXenServers({ ...SERVER, status: 'connecting' })
+    xenServers._connectingXenServers.add('server-1')
+    const attempts = stubConnection(xenServers)
+
+    await assert.rejects(xenServers.connectXenServer('server-1'), error => incorrectState.is(error))
+
+    assert.deepEqual(attempts, [])
   })
 })
 

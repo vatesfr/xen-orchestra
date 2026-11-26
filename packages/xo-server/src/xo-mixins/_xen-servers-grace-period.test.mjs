@@ -53,6 +53,8 @@ const createXenServers = () => {
   xapis.length = 0
 
   const resolved = async () => {}
+  // events emitted on the app, e.g. `server:disconnected`
+  const emitted = []
   const app = {
     addConfigManager() {},
     config: {
@@ -63,7 +65,7 @@ const createXenServers = () => {
       getOptional() {},
       watchDuration: (_, cb) => cb(DELAY),
     },
-    emit() {},
+    emit: (event, payload) => emitted.push({ event, ...payload }),
     hooks: new EventEmitter(),
     httpRequest() {},
     _objects: { set() {}, unset() {} },
@@ -99,7 +101,7 @@ const createXenServers = () => {
 
   const getStatus = () => stored['server-1'].status
 
-  return { getStatus, xenServers }
+  return { emitted, getStatus, xenServers }
 }
 
 describe('grace period before marking a pool disconnected', function () {
@@ -109,6 +111,9 @@ describe('grace period before marking a pool disconnected', function () {
       if (xapi.status !== 'disconnected') {
         await xapi.disconnect()
       }
+      // a late event on a disconnected connection may have reinstalled it,
+      // restarting its pool marking interval
+      xapi.xo?.uninstall()
     }
     await sleep(10)
   })
@@ -150,6 +155,64 @@ describe('grace period before marking a pool disconnected', function () {
     await sleep(DELAY * 2)
 
     assert.equal(getStatus(), 'disconnected')
+  })
+
+  // and emit `eventFetchingSuccess` on the closed connection
+  // plugins (e.g. the SDN controller) release a connection on this event
+  describe('server:disconnected', function () {
+    const disconnectedXapis = emitted => emitted.filter(_ => _.event === 'server:disconnected').map(_ => _.xapi)
+
+    it('is emitted when the user disables the server', async function () {
+      const { emitted, xenServers } = createXenServers()
+      await xenServers.connectXenServer('server-1')
+
+      await xenServers.disconnectXenServer('server-1')
+
+      assert.deepEqual(disconnectedXapis(emitted), [xapis[0]])
+    })
+
+    it('is emitted when the connection drops', async function () {
+      const { emitted, xenServers } = createXenServers()
+      await xenServers.connectXenServer('server-1')
+
+      await xapis[0].disconnect()
+
+      assert.deepEqual(disconnectedXapis(emitted), [xapis[0]])
+    })
+  })
+
+  // the `event.from` in flight when the connection is closed can still answer
+  describe('late events on a closed connection', function () {
+    it('does not reconnect a server disabled by the user', async function () {
+      const { getStatus, xenServers } = createXenServers()
+      await xenServers.connectXenServer('server-1')
+      const [xapi] = xapis
+
+      xapi.emit('eventFetchingError', new Error('other side closed'))
+      await xenServers.disconnectXenServer('server-1')
+      xapi.emit('eventFetchingSuccess')
+      await sleep(10)
+
+      assert.equal(getStatus(), 'disconnected')
+      assert.equal(xenServers._serverIdsByPool['pool-1'], undefined)
+      assert.equal(xapi.objects.listenerCount('add'), 0, 'the objects of the closed connection must not be reinstalled')
+    })
+
+    it('does not mark a dropped connection connected, which would stop the auto-reconnect loop', async function () {
+      const { getStatus, xenServers } = createXenServers()
+      await xenServers.connectXenServer('server-1')
+      const [xapi] = xapis
+
+      xapi.emit('eventFetchingError', new Error('other side closed'))
+      await xapi.disconnect()
+      await sleep(10)
+      xapi.emit('eventFetchingSuccess')
+      await sleep(10)
+
+      assert.equal(getStatus(), 'disconnected')
+      assert.equal(xenServers._serverIdsByPool['pool-1'], undefined)
+      assert.equal(xapi.objects.listenerCount('add'), 0, 'the objects of the closed connection must not be reinstalled')
+    })
   })
 
   it('does not break the connection that replaced a disconnected one', async function () {
