@@ -2,6 +2,7 @@ import JsonSchemaValue from '@/modules/plugin/components/json-schema-form/JsonSc
 import { useXoObjectOptions } from '@/modules/plugin/composables/use-xo-object-options.composable.ts'
 import type { JsonSchema } from '@/modules/plugin/utils/json-schema.util.ts'
 import { createTestRouter } from '@/test/create-test-router.ts'
+import { findCardSubtitles } from '@/test/find-card-title.ts'
 import { findLabelledValues, findTags } from '@/test/find-rendered-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
@@ -50,9 +51,7 @@ it('titles a nested section with the labels of its parents', () => {
     { transport: { auth: { user: 'xo' } } }
   )
 
-  expect(wrapper.findAll('.ui-card-subtitle').map(subtitle => subtitle.text())).toEqual([
-    t('json-schema:nested-label', { parent: 'Transport', label: 'Auth' }),
-  ])
+  expect(findCardSubtitles(wrapper)).toEqual([t('json-schema:nested-label', { parent: 'Transport', label: 'Auth' })])
 })
 
 it('hides the value of a secret', () => {

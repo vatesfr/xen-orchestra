@@ -35,6 +35,11 @@ export function findPanelCardTitleLabels(wrapper: VueWrapper) {
   return wrapper.findAll(`${PANEL_CARD_TITLE} .title`).map(title => title.text())
 }
 
+// The text of each `UiCardSubtitle` of a card, in order
+export function findCardSubtitles(wrapper: Pick<VueWrapper, 'findAll'>) {
+  return wrapper.findAll('.ui-card-subtitle').map(subtitle => subtitle.text())
+}
+
 // The label of a `UiTitle`, the title of a section or of a detail card
 export function findTitleLabel(wrapper: { get: (selector: string) => { text: () => string } }) {
   return wrapper.get('.ui-title .label').text()
