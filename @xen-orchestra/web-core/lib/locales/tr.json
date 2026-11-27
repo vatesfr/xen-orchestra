@@ -119,7 +119,7 @@
   "action:revert-vm-here": "VM'yi buraya geri al",
   "action:save": "Kaydet",
   "action:search": "Ara",
-  "action:search-treeview": "Ağaç görünümünde ara",
+  "action:search-treeview": "Ağaç görünümünde ara ({shortcut})",
   "action:see-all": "Tümünü gör",
   "action:see-less": "Daha az gör",
   "action:see-n-more": "{n} tane daha gör",
