@@ -6,7 +6,7 @@ import { findCopiedValues, findLabelledValues, findTags } from '@/test/find-rend
 import { findTitleLabel } from '@/test/find-titles.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
-import { findTagAccents } from '@core-test/find-accented-labels.ts'
+import { findTagProps } from '@core-test/find-accented-labels.ts'
 import { VM_POWER_STATE } from '@vates/types'
 import { mount } from '@vue/test-utils'
 
@@ -68,7 +68,7 @@ it('renders one tag per VM tag, in alphabetical order', () => {
 it('renders the VM tags with the brand accent', () => {
   const wrapper = mountGeneralInfo(createVm({ tags: ['production', 'billing'] }))
 
-  expect(findTagAccents(wrapper)).toEqual(['brand', 'brand'])
+  expect(findTagProps(wrapper, 'accent')).toEqual(['brand', 'brand'])
 })
 
 it('renders no tag when the VM has none', () => {

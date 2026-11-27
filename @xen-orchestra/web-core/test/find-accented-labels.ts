@@ -14,9 +14,10 @@ export function findAccentedTags(wrapper: AccentedComponents) {
   return findAccentedLabels(wrapper, UiTag)
 }
 
-// The accent each `VtsTag` of the wrapper is handed, in order
-export function findTagAccents(wrapper: AccentedComponents) {
-  return wrapper.findAllComponents(VtsTag).map(tag => tag.props('accent'))
+// What each `VtsTag` of the wrapper is handed as `prop`, in order. A `term:label` tag renders its value in two parts:
+// read its `value` here, not its text
+export function findTagProps(wrapper: AccentedComponents, prop: 'accent' | 'removable' | 'value') {
+  return wrapper.findAllComponents(VtsTag).map(tag => tag.props(prop))
 }
 
 export function findAccentedInfos(wrapper: AccentedComponents) {

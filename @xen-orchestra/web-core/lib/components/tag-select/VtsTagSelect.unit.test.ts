@@ -6,6 +6,7 @@ import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiDropdown from '@core/components/ui/dropdown/UiDropdown.vue'
 import { createGlobalTestConfig } from '@core-test/create-global-test-config.ts'
 import { hasLoader } from '@core-test/expect-loader.ts'
+import { findTagProps } from '@core-test/find-accented-labels.ts'
 import { getButton, getUiButton } from '@core-test/get-button.ts'
 import { t } from '@core-test/i18n.ts'
 import { setViewportWidth } from '@core-test/set-viewport-width.ts'
@@ -78,10 +79,7 @@ async function clickTagOption(wrapper: VueWrapper, tag: string) {
 }
 
 function findCurrentTags(wrapper: VueWrapper) {
-  return wrapper
-    .findAllComponents(VtsTag)
-    .filter(tag => tag.element.closest('.current-tags') !== null)
-    .map(tag => tag.props('value'))
+  return findTagProps(wrapper.get('.current-tags'), 'value')
 }
 
 async function removeCurrentTag(wrapper: VueWrapper, tag: string) {
