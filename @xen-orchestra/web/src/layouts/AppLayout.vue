@@ -25,6 +25,9 @@
       <MyTasksButton />
       <AccountMenu />
     </template>
+    <template #banner>
+      <ApplianceUpgradeBanner />
+    </template>
     <template #left-sidebar>
       <AppNavigationSidebar />
     </template>
@@ -50,6 +53,7 @@
 
 <script lang="ts" setup>
 import AccountMenu from '@/modules/account/components/menu/AccountMenu.vue'
+import ApplianceUpgradeBanner from '@/modules/appliance/components/ApplianceUpgradeBanner.vue'
 import AppHeaderMenu from '@/modules/navigation/components/AppHeaderMenu.vue'
 import AppNavigationSidebar from '@/modules/navigation/components/AppNavigationSidebar.vue'
 import MyTasksButton from '@/modules/task/components/MyTasksButton.vue'

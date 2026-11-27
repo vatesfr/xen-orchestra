@@ -11,7 +11,7 @@
 import { toVariants } from '@core/utils/to-variants.util.ts'
 import { computed } from 'vue'
 
-export type BannerAccent = 'brand' | 'warning' | 'danger'
+export type BannerAccent = 'brand' | 'info' | 'warning' | 'danger'
 
 const { accent } = defineProps<{
   accent: BannerAccent
@@ -37,6 +37,10 @@ const className = computed(() => toVariants({ accent }))
   /* ACCENT */
   &.accent--brand {
     background-color: var(--color-brand-background-selected);
+  }
+
+  &.accent--info {
+    background-color: var(--color-info-background-selected);
   }
 
   &.accent--warning {

@@ -2,7 +2,7 @@
   <ComponentStory
     v-slot="{ properties, settings }"
     :params="[
-      prop('accent').enum('brand', 'warning', 'danger').widget(),
+      prop('accent').enum('brand', 'info', 'warning', 'danger').widget(),
       slot().help('Meant to receive message of the banner'),
       slot('addons').help('Meant to receive addons like button etc.'),
       setting('defaultSlot').widget(text()).preset('Message of the banner'),

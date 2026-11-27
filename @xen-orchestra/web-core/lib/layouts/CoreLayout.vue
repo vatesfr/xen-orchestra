@@ -18,6 +18,7 @@
         </UiButton>
       </template>
     </VtsBanner>
+    <slot name="banner" />
     <div class="container">
       <VtsBackdrop v-if="uiStore.hasUi && showBackdrop" @click="handleBackdropClick()" />
       <slot v-if="uiStore.hasUi && hasLeftSidebar" name="left-sidebar" />
@@ -44,6 +45,7 @@ import { useI18n } from 'vue-i18n'
 const slots = defineSlots<{
   'header-start'?(): any
   'header-end'?(): any
+  banner?(): any
   'left-sidebar'?(): any
   'right-sidebar'?(): any
   content(): any
