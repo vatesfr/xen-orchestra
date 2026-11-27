@@ -144,6 +144,7 @@ pub struct Session {
     port: u16,
     client: tls::Client,
     manager: String,
+    vcenter: bool,
     cookie: Cookie,
     transcript: Transcript,
 }
@@ -173,7 +174,7 @@ impl Session {
             &this(SERVICE_INSTANCE, SERVICE_INSTANCE),
             transcript,
         )?;
-        let manager = service_content(&String::from_utf8_lossy(&content.body))?;
+        let (manager, vcenter) = service_content(&String::from_utf8_lossy(&content.body))?;
         let inner = format!(
             "{}<userName>{}</userName><password>{}</password>",
             this("SessionManager", &manager),
@@ -198,9 +199,16 @@ impl Session {
             port,
             client,
             manager,
+            vcenter,
             cookie: Cookie(cookie),
             transcript,
         })
+    }
+
+    /// Whether a vCenter answered, as its service content's `about.apiType` states.
+    #[must_use]
+    pub const fn vcenter(&self) -> bool {
+        self.vcenter
     }
 
     /// Asks the NFC service for a fresh ticket to the files of the VM `vm_id` names.
@@ -303,12 +311,15 @@ fn this(kind: &str, reference: &str) -> String {
     format!("<_this type=\"{kind}\">{}</_this>", escape(reference))
 }
 
-/// Returns the session manager the service content names.
-fn service_content(content: &str) -> Result<String, Error> {
-    element(content, "sessionManager").ok_or(Error::Missing {
+/// Returns the session manager the service content names, and whether
+/// `about.apiType` says a vCenter answered.
+fn service_content(content: &str) -> Result<(String, bool), Error> {
+    let manager = element(content, "sessionManager").ok_or(Error::Missing {
         call: "RetrieveServiceContent",
         element: "sessionManager",
-    })
+    })?;
+    let vcenter = element(content, "apiType").as_deref() == Some("VirtualCenter");
+    Ok((manager, vcenter))
 }
 
 /// Reads the ticket out of an `NfcGetVmFiles` reply.
@@ -398,6 +409,7 @@ mod tests {
             ))
             .unwrap(),
             manager: "ha-sessionmgr".to_owned(),
+            vcenter: false,
             cookie: Cookie("vmware_soap_session=\"mock-cookie\"".to_owned()),
             transcript: Transcript::new(false),
         };
@@ -474,16 +486,22 @@ mod tests {
 
     #[test]
     fn an_esxi_service_content_yields_its_session_manager() {
-        assert_eq!(service_content(SERVICE_CONTENT).unwrap(), "ha-sessionmgr");
+        assert_eq!(
+            service_content(SERVICE_CONTENT).unwrap(),
+            ("ha-sessionmgr".to_owned(), false)
+        );
     }
 
     #[test]
-    fn a_vcenter_service_content_yields_its_session_manager() {
+    fn a_vcenter_service_content_yields_its_session_manager_and_says_so() {
         let content = SERVICE_CONTENT
             .replace("HostAgent", "VirtualCenter")
             .replace("ha-sessionmgr", "SessionManager");
 
-        assert_eq!(service_content(&content).unwrap(), "SessionManager");
+        assert_eq!(
+            service_content(&content).unwrap(),
+            ("SessionManager".to_owned(), true)
+        );
     }
 
     #[test]

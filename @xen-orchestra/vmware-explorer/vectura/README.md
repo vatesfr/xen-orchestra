@@ -117,7 +117,8 @@ scripts/build.sh .
 ```
 
 The build is reproducible: `scripts/build.sh` keeps the paths of the machine
-out of the binary and refuses any zig or cargo-zigbuild but the versions the
+out of the binary, builds under `/tmp/vectura-build`, a path OpenSSL writes
+into the binary, and refuses any zig or cargo-zigbuild but the versions the
 workflow installs. Linux x86_64 machines build the same binary; macOS and
 aarch64 hosts are untested.
 
@@ -128,3 +129,8 @@ and Ubuntu 20.04. It needs [zig](https://ziglang.org/download/) 0.16.0 and:
 ```sh
 cargo install --locked cargo-zigbuild@0.23.4
 ```
+
+OpenSSL is compiled from its sources, which takes perl, to run its
+`Configure` script, and make. Debian and Ubuntu install both with
+`build-essential`; on Fedora and RHEL, `perl-core` brings the perl modules
+`Configure` loads.

@@ -19,6 +19,12 @@ use std::thread;
 use std::time::Duration;
 
 use aws_lc_rs::digest::{self, Algorithm, SHA1_FOR_LEGACY_USE_ONLY, SHA256};
+use openssl::asn1::Asn1Time;
+use openssl::hash::MessageDigest;
+use openssl::pkey::PKey;
+use openssl::rsa::Rsa;
+use openssl::ssl::{Ssl, SslContext, SslMethod, SslStream, SslVersion};
+use openssl::x509::{X509, X509NameBuilder};
 use rustls::{IoState, ServerConfig, ServerConnection, Stream};
 use rustls_pki_types::{CertificateDer, PrivateKeyDer, PrivatePkcs8KeyDer};
 
@@ -159,6 +165,13 @@ pub enum ReadFault {
 pub struct Scenario {
     /// What the data port does on connection.
     pub data: DataPort,
+    /// The only suites the data port accepts, as an OpenSSL cipher list, with TLS 1.2 at most.
+    ///
+    /// `None` is a host that offers ECDHE. With a list, the host has an RSA
+    /// key, as RSA key exchange needs, and the data port serves every
+    /// connection instead of the first only: a client refused once may come
+    /// back, and [`Host::data`] then reports the connections in order.
+    pub data_suites: Option<&'static str>,
     /// Whether the management port plays a vCenter.
     ///
     /// It reports `VirtualCenter`, and its ticket names [`VCENTER_DATA_HOST`],
@@ -197,6 +210,7 @@ impl Default for Scenario {
     fn default() -> Scenario {
         Scenario {
             data: DataPort::Greeting(GREETING),
+            data_suites: None,
             vcenter: false,
             login: Ok(()),
             ticket_thumbprint: Thumbprint::Own,
@@ -324,14 +338,20 @@ pub struct Host {
 impl Host {
     /// Starts a host with a fresh self-signed certificate that plays `scenario`.
     pub fn start(scenario: Scenario) -> Host {
-        let issued = rcgen::generate_simple_self_signed(vec![
-            "esxi.test".to_owned(),
-            "127.0.0.1".to_owned(),
-        ])
-        .expect("a self-signed certificate is generated");
-        let certificate = issued.cert.der().clone();
-        let key =
-            PrivateKeyDer::Pkcs8(PrivatePkcs8KeyDer::from(issued.signing_key.serialize_der()));
+        let restricted = scenario.data_suites.map(restricted);
+        let (certificate, key) = if let Some((certificate, key, _)) = &restricted {
+            (certificate.clone(), key.clone_key())
+        } else {
+            let issued = rcgen::generate_simple_self_signed(vec![
+                "esxi.test".to_owned(),
+                "127.0.0.1".to_owned(),
+            ])
+            .expect("a self-signed certificate is generated");
+            (
+                issued.cert.der().clone(),
+                PrivateKeyDer::Pkcs8(PrivatePkcs8KeyDer::from(issued.signing_key.serialize_der())),
+            )
+        };
         let config = Arc::new(
             ServerConfig::builder()
                 .with_no_client_auth()
@@ -347,6 +367,7 @@ impl Host {
         let mock = Arc::new(Mock {
             scenario,
             config,
+            restricted: restricted.map(|(_, _, context)| context),
             events: Mutex::new(Vec::new()),
             certificate: certificate.clone(),
             data_port,
@@ -357,7 +378,12 @@ impl Host {
             true,
             serve_management,
         );
-        let data = listen(data_listener, Arc::clone(&mock), false, serve_data);
+        let data = listen(
+            data_listener,
+            Arc::clone(&mock),
+            mock.restricted.is_some(),
+            serve_data,
+        );
         Host {
             certificate,
             management_port,
@@ -392,7 +418,7 @@ impl Host {
             .expect("the management port served a connection")
     }
 
-    /// What the data port observed; panics when it was never contacted.
+    /// What the data port observed on its next connection; panics when there was none.
     pub fn data(&self) -> Observed {
         self.data
             .recv_timeout(REPORT_TIMEOUT)
@@ -437,14 +463,67 @@ pub fn text(bytes: &[u8]) -> String {
     String::from_utf8(bytes.to_vec()).expect("the output is UTF-8")
 }
 
+/// An RSA certificate and key, and the TLS 1.2 server that accepts `suites` alone with them.
+fn restricted(suites: &str) -> (CertificateDer<'static>, PrivateKeyDer<'static>, SslContext) {
+    let key = PKey::from_rsa(Rsa::generate(2048).expect("an RSA key is generated"))
+        .expect("the key is usable");
+    let mut name = X509NameBuilder::new().expect("a name builder");
+    name.append_entry_by_text("CN", "esxi.test")
+        .expect("a common name");
+    let name = name.build();
+    let mut certificate = X509::builder().expect("a certificate builder");
+    certificate.set_version(2).expect("version 3");
+    certificate.set_subject_name(&name).expect("a subject");
+    certificate.set_issuer_name(&name).expect("an issuer");
+    certificate.set_pubkey(&key).expect("a public key");
+    certificate
+        .set_not_before(&Asn1Time::days_from_now(0).expect("today"))
+        .expect("a start");
+    certificate
+        .set_not_after(&Asn1Time::days_from_now(1).expect("tomorrow"))
+        .expect("an end");
+    certificate
+        .sign(&key, MessageDigest::sha256())
+        .expect("the certificate is signed");
+    let certificate = certificate.build();
+    let mut context = SslContext::builder(SslMethod::tls_server()).expect("a server context");
+    context
+        .set_max_proto_version(Some(SslVersion::TLS1_2))
+        .expect("TLS 1.2 is available");
+    context.set_cipher_list(suites).expect("the suites exist");
+    context
+        .set_certificate(&certificate)
+        .expect("the certificate is accepted");
+    context.set_private_key(&key).expect("the key matches");
+    (
+        CertificateDer::from(certificate.to_der().expect("the certificate encodes")),
+        PrivateKeyDer::Pkcs8(PrivatePkcs8KeyDer::from(
+            key.private_key_to_pkcs8().expect("the key encodes"),
+        )),
+        context.build(),
+    )
+}
+
 /// What both port threads share.
-#[derive(Debug)]
 struct Mock {
     scenario: Scenario,
     config: Arc<ServerConfig>,
+    /// The data port's TLS server when the scenario restricts its suites.
+    restricted: Option<SslContext>,
     events: Mutex<Vec<Event>>,
     certificate: CertificateDer<'static>,
     data_port: u16,
+}
+
+impl std::fmt::Debug for Mock {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        // `SslContext` has no `Debug`; the scenario says whether it is there.
+        formatter
+            .debug_struct("Mock")
+            .field("scenario", &self.scenario)
+            .field("data_port", &self.data_port)
+            .finish_non_exhaustive()
+    }
 }
 
 impl Mock {
@@ -748,6 +827,8 @@ fn fault(text: &str) -> String {
 /// The disk session as the mock carries it: TLS or the socket in clear.
 enum Plane<'a> {
     Tls(&'a mut ServerConnection, &'a mut TcpStream),
+    /// TLS as OpenSSL serves it, on its own clone of the socket.
+    Restricted(SslStream<TcpStream>),
     Clear(&'a mut TcpStream),
 }
 
@@ -756,6 +837,13 @@ impl Plane<'_> {
     fn message(&mut self) -> Option<Vec<u8>> {
         match self {
             Plane::Tls(connection, stream) => next_record(connection, stream),
+            // OpenSSL hands over the plaintext of one record per read.
+            Plane::Restricted(session) => {
+                let mut message = vec![0_u8; 1 << 14];
+                let length = session.read(&mut message).ok().filter(|read| *read > 0)?;
+                message.truncate(length);
+                Some(message)
+            }
             Plane::Clear(stream) => {
                 let mut message = vec![0_u8; MESSAGE_LEN];
                 stream.read_exact(&mut message).ok()?;
@@ -773,15 +861,22 @@ impl Plane<'_> {
     fn send(&mut self, bytes: &[u8]) -> Option<()> {
         match self {
             Plane::Tls(connection, stream) => send_record(connection, stream, bytes),
+            Plane::Restricted(session) => send(session, bytes),
             Plane::Clear(stream) => send(stream, bytes),
         }
     }
 
     /// Ends the TLS session properly; the clear session just closes.
     fn close(self) {
-        if let Plane::Tls(connection, stream) = self {
-            connection.send_close_notify();
-            let _ = connection.complete_io(stream);
+        match self {
+            Plane::Tls(connection, stream) => {
+                connection.send_close_notify();
+                let _ = connection.complete_io(stream);
+            }
+            Plane::Restricted(mut session) => {
+                let _ = session.shutdown();
+            }
+            Plane::Clear(_) => {}
         }
     }
 }
@@ -792,6 +887,7 @@ impl Read for Plane<'_> {
             Plane::Tls(connection, stream) => {
                 Stream::new(&mut **connection, &mut **stream).read(buffer)
             }
+            Plane::Restricted(session) => session.read(buffer),
             Plane::Clear(stream) => stream.read(buffer),
         }
     }
@@ -803,6 +899,7 @@ impl Write for Plane<'_> {
             Plane::Tls(connection, stream) => {
                 Stream::new(&mut **connection, &mut **stream).write(buffer)
             }
+            Plane::Restricted(session) => session.write(buffer),
             Plane::Clear(stream) => stream.write(buffer),
         }
     }
@@ -810,6 +907,7 @@ impl Write for Plane<'_> {
     fn flush(&mut self) -> io::Result<()> {
         match self {
             Plane::Tls(connection, stream) => Stream::new(&mut **connection, &mut **stream).flush(),
+            Plane::Restricted(session) => session.flush(),
             Plane::Clear(stream) => stream.flush(),
         }
     }
@@ -824,6 +922,10 @@ fn serve_data(mut stream: TcpStream, mock: &Mock) -> Observed {
     if stream.write_all(greeting).is_err() {
         return observed;
     }
+    if let Some(context) = &mock.restricted {
+        serve_restricted(stream, mock, context, &mut observed);
+        return observed;
+    }
     let Some(mut first) = handshake(&mut stream, mock, &mut observed) else {
         return observed;
     };
@@ -835,7 +937,7 @@ fn serve_data(mut stream: TcpStream, mock: &Mock) -> Observed {
     drop(first);
     let socket = stream.try_clone().expect("the socket clones");
     let mut second;
-    let mut plane = if transport == "nfc" {
+    let mut plane = if transport.ends_with("nfc") {
         Plane::Clear(&mut stream)
     } else {
         second = ServerConnection::new(Arc::clone(&mock.config))
@@ -855,6 +957,75 @@ fn serve_data(mut stream: TcpStream, mock: &Mock) -> Observed {
     }
     plane.close();
     observed
+}
+
+/// Accepts one TLS session with the restricted suites on a clone of `stream`.
+fn accept(stream: &TcpStream, context: &SslContext) -> Option<SslStream<TcpStream>> {
+    let socket = stream.try_clone().expect("the socket clones");
+    Ssl::new(context)
+        .expect("the server context is valid")
+        .accept(socket)
+        .ok()
+}
+
+/// [`serve_data`] past the greeting, for a data port whose suites are restricted.
+///
+/// A client offering none of them is answered with a `handshake_failure`
+/// alert and the connection ends there, as on a host.
+fn serve_restricted(
+    mut stream: TcpStream,
+    mock: &Mock,
+    context: &SslContext,
+    observed: &mut Observed,
+) {
+    let mut first = [0_u8; 1];
+    observed.handshake_started = matches!(stream.peek(&mut first), Ok(1));
+    let Some(mut first) = accept(&stream, context) else {
+        return;
+    };
+    observed.handshake_completed = true;
+    // The names rustls debug-prints, which the transcript uses.
+    observed.version = Some(first.ssl().version_str().replace('.', "_"));
+    observed.suite = first
+        .ssl()
+        .current_cipher()
+        .and_then(openssl::ssl::SslCipherRef::standard_name)
+        .map(str::to_owned);
+    let (read, granted) = dialogue(&mut first, mock);
+    observed.bytes_after_tls_handshake = read;
+    let Some(transport) = granted else {
+        return;
+    };
+    // No close notify, as on the other path: the socket goes on.
+    drop(first);
+    let mut plane = if transport.ends_with("nfc") {
+        Plane::Clear(&mut stream)
+    } else {
+        let Some(second) = accept(&stream, context) else {
+            return;
+        };
+        observed.second_handshake = true;
+        Plane::Restricted(second)
+    };
+    if mock.legacy() {
+        if legacy_shake(&mut plane, mock).is_some() {
+            legacy_messages(&mut plane, mock);
+        }
+    } else if shake(&mut plane, mock).is_some() {
+        let socket = stream_clone(&plane);
+        if let Some(socket) = socket {
+            records(&mut plane, &socket, mock, observed);
+        }
+    }
+    plane.close();
+}
+
+/// A handle on the socket under `plane`, to set its timeouts.
+fn stream_clone(plane: &Plane<'_>) -> Option<TcpStream> {
+    match plane {
+        Plane::Tls(_, stream) | Plane::Clear(stream) => stream.try_clone().ok(),
+        Plane::Restricted(session) => session.get_ref().try_clone().ok(),
+    }
 }
 
 /// Runs the ticket dialogue: the bytes read, and the transport `PROXY` was granted, if any.
@@ -888,11 +1059,20 @@ fn dialogue<S: Read + Write>(tls: &mut S, mock: &Mock) -> (usize, Option<String>
                 "200 {}",
                 mock.thumbprint(&SHA256, mock.scenario.announced_thumbprint)
             )
-        } else if let Some(transport @ ("nfc" | "nfcssl")) = text.strip_prefix("PROXY ") {
+        } else if let Some(transport @ ("nfc" | "nfcssl" | "vpxa-nfc" | "vpxa-nfcssl")) =
+            text.strip_prefix("PROXY ")
+            // A 6.x host knows a vCenter's ticket under vpxa's services only.
+            && transport.starts_with("vpxa-") == (mock.scenario.vcenter && mock.legacy())
+        {
             mock.record(Event::Proxy(transport.to_owned()));
+            let service = if transport.starts_with("vpxa-") {
+                transport.to_owned()
+            } else {
+                format!("ha-{transport}")
+            };
             mock.scenario
                 .proxy_reply
-                .map_or_else(|| format!("200 Connect ha-{transport}"), str::to_owned)
+                .map_or_else(|| format!("200 Connect {service}"), str::to_owned)
         } else {
             return (read, None);
         };

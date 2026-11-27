@@ -2,17 +2,30 @@
   <ComponentStory
     v-slot="{ properties, settings }"
     :params="[
-      prop('accent').required().enum('brand', 'warning', 'danger').preset('brand').widget(),
-      prop('size').required().enum('small', 'medium').preset('medium').widget(),
+      prop('accent')
+        .type('RichRadioButtonAccent')
+        .required()
+        .enum('brand', 'warning', 'danger')
+        .preset('brand')
+        .widget(),
+      iconProp(),
+      prop('tag').str().widget().preset('Label'),
+      prop('description').str().widget().preset('Description'),
+      prop('info').str().widget(),
       prop('disabled').bool().widget(),
-      prop('src').required().str().help('Image URL for rich mode'),
-      prop('alt').required().str().help('Alt text for image'),
-      model().type('string').preset(''),
+      model().type('string'),
+      slot().help('Meant to receive the label'),
+      slot('tag').help('Meant to receive a UiTag component, to use another accent than the default info one'),
+      slot('description'),
+      slot('info'),
       setting('defaultSlot').widget(text()).preset('Label'),
     ]"
   >
-    <div class="radio">
-      <UiRichRadioButton v-model="selectedRadio" value="1" v-bind="properties" :src="imageUrl" :alt="properties.alt">
+    <div class="radios">
+      <UiRichRadioButton v-model="selectedRadio" v-bind="properties" value="1">
+        {{ settings.defaultSlot }}
+      </UiRichRadioButton>
+      <UiRichRadioButton v-model="selectedRadio" v-bind="properties" value="2">
         {{ settings.defaultSlot }}
       </UiRichRadioButton>
     </div>
@@ -21,19 +34,19 @@
 
 <script lang="ts" setup>
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
-import { model, prop, setting } from '@/libs/story/story-param.ts'
+import { iconProp, model, prop, setting, slot } from '@/libs/story/story-param.ts'
 import { text } from '@/libs/story/story-widget.ts'
 import UiRichRadioButton from '@core/components/ui/rich-radio-button/UiRichRadioButton.vue'
 import { ref } from 'vue'
-import imageUrl from '../../../../assets/color-mode-dark.svg'
 
 const selectedRadio = ref('')
 </script>
 
 <style lang="postcss" scoped>
-.radio {
+.radios {
   display: flex;
-  gap: 1.6rem;
-  flex-wrap: wrap;
+  flex-direction: column;
+  gap: 0.8rem;
+  max-width: 40rem;
 }
 </style>

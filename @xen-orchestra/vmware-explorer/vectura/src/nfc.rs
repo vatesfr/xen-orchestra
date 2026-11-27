@@ -21,7 +21,7 @@ use std::net::TcpStream;
 use std::num::NonZeroUsize;
 use std::str::FromStr;
 
-use rustls::{ClientConnection, Stream};
+use rustls::Stream;
 use rustls_pki_types::CertificateDer;
 
 use crate::transcript::Transcript;
@@ -64,19 +64,19 @@ pub enum Transport {
 }
 
 impl Transport {
-    /// The dialogue line asking for this transport, without its line end.
-    const fn proxy(self) -> &'static str {
-        match self {
-            Transport::Nfcssl => "PROXY nfcssl",
-            Transport::Nfc => "PROXY nfc",
-        }
-    }
-
-    /// The whole reply granting this transport; nothing else is written before it.
-    const fn granted(self) -> &'static str {
-        match self {
-            Transport::Nfcssl => "200 Connect ha-nfcssl",
-            Transport::Nfc => "200 Connect ha-nfc",
+    /// The dialogue line asking for this transport, without its line end,
+    /// and the whole reply granting it.
+    ///
+    /// With `vpxa`, it is asked of vpxa, the vCenter's agent on the host,
+    /// instead of hostd: the hostd of an ESXi 6.5 or 6.7 host drops a
+    /// ticket its vCenter issued as not found, since the vCenter
+    /// registered it with vpxa.
+    const fn proxy(self, vpxa: bool) -> (&'static str, &'static str) {
+        match (self, vpxa) {
+            (Transport::Nfcssl, false) => ("PROXY nfcssl", "200 Connect ha-nfcssl"),
+            (Transport::Nfc, false) => ("PROXY nfc", "200 Connect ha-nfc"),
+            (Transport::Nfcssl, true) => ("PROXY vpxa-nfcssl", "200 Connect vpxa-nfcssl"),
+            (Transport::Nfc, true) => ("PROXY vpxa-nfc", "200 Connect vpxa-nfc"),
         }
     }
 }
@@ -171,6 +171,11 @@ pub enum Error {
         /// The SHA-256 thumbprint of the certificate the first session verified.
         presented: String,
     },
+    /// The connection reopened for RSA key exchange was greeted differently.
+    #[error(
+        "greeting: the host announced other capabilities on the connection reopened for RSA key exchange"
+    )]
+    GreetingChanged,
     /// The second TLS session did not present the certificate the first one did.
     #[error("the second tls session presented another certificate than the first")]
     Certificate,
@@ -330,14 +335,54 @@ pub fn read_greeting<R: Read>(reader: &mut R) -> Result<greeting::Greeting, Erro
 /// Reads a host's data-port greeting, then captures the certificate TLS presents.
 ///
 /// TLS starts on the same connection right after the greeting line,
-/// whatever capabilities it announces.
+/// whatever capabilities it announces. A host that refuses the ECDHE suites
+/// is asked again on a new connection, with RSA key exchange, which
+/// `transcript` says under the port's number. That connection must be
+/// greeted as the first one was.
 ///
 /// # Errors
-/// When connecting, reading the greeting or the TLS handshake fails.
-pub(crate) fn capture(host: &str, port: u16) -> Result<tls::Presented, Error> {
+/// When connecting, reading the greeting or the TLS handshake fails, or the
+/// reopened connection is greeted differently.
+pub(crate) fn capture(
+    host: &str,
+    port: u16,
+    transcript: Transcript,
+) -> Result<tls::Presented, Error> {
     let mut stream = tls::connect(host, port)?;
-    read_greeting(&mut stream)?;
-    Ok(tls::capture(&mut stream, host)?)
+    let greeted = read_greeting(&mut stream)?;
+    match tls::capture(&mut stream, host) {
+        Err(error) if error.refused_suites() => {
+            transcript.fallback(&port.to_string());
+            let (stream, again) = greet_again(host, port)?;
+            // Another greeting means another peer: its certificate is not
+            // the data port's.
+            if again != greeted {
+                return Err(Error::GreetingChanged);
+            }
+            Ok(tls::capture_rsa_kx(&stream)?)
+        }
+        presented => Ok(presented?),
+    }
+}
+
+/// Opens a new connection to a host that refused the ECDHE suites, past its greeting.
+///
+/// The refusal is a fatal alert, after which the host closes the connection,
+/// so the RSA key exchange retry cannot reuse it. The greeting read on the
+/// new connection is returned for the caller to compare with the first one.
+fn greet_again(host: &str, port: u16) -> Result<(TcpStream, greeting::Greeting), Error> {
+    let mut stream = tls::connect(host, port)?;
+    let greeted = read_greeting(&mut stream)?;
+    Ok((stream, greeted))
+}
+
+/// The byte stream of `session`, whose records travel on `stream`.
+fn wire<'a>(session: &'a mut tls::Session, stream: &'a mut TcpStream) -> Box<dyn Wire + 'a> {
+    match session {
+        tls::Session::Ecdhe(connection) => Box::new(Stream::new(&mut **connection, stream)),
+        // The session owns its clone of the socket.
+        tls::Session::RsaKx(session) => Box::new(session),
+    }
 }
 
 /// An established data session, ready to open a disk.
@@ -353,7 +398,7 @@ pub struct Connection {
 /// What carries the disk session: the second TLS session, or the socket in clear.
 #[derive(Debug)]
 enum Plane {
-    Tls(Box<ClientConnection>),
+    Tls(tls::Session),
     Clear,
 }
 
@@ -370,9 +415,14 @@ impl Connection {
     /// present the certificate `pin` names, which is the ticket's thumbprint;
     /// `secret` is the ticket presented in that session. With `nfcssl` the
     /// second TLS session must present the same certificate; with `nfc` the
-    /// connection goes on in clear. The handshake, hello, version and
-    /// capabilities exchanges follow, each waiting for its reply; a legacy
-    /// host gets the start of the handshake alone.
+    /// connection goes on in clear. A host that refuses the ECDHE suites is
+    /// connected to again and both sessions use RSA key exchange, under the
+    /// same pin. `vcenter` says a vCenter issued the ticket: a legacy host
+    /// is then asked for the transport of vpxa, the vCenter's agent on the
+    /// host; since vCenter 7.0 U1, hostd serves a vCenter's tickets, as it
+    /// does a host's own. The handshake, hello, version and capabilities
+    /// exchanges follow, each waiting for its reply; a legacy host gets the
+    /// start of the handshake alone.
     ///
     /// # Errors
     /// When any phase fails, naming that phase.
@@ -382,6 +432,7 @@ impl Connection {
         secret: &str,
         pin: &tls::Pin,
         transport: Transport,
+        vcenter: bool,
         transcript: Transcript,
     ) -> Result<Connection, Error> {
         let mut stream = tls::connect(host, port)?;
@@ -395,33 +446,53 @@ impl Connection {
             greeted.require(greeting::NFCSSL_SUPPORTED)?;
         }
         let client = tls::Client::new(&tls::Trust::Pin(pin.clone()))?;
-        let mut first = client.handshake(&mut stream, host)?;
-        let (version, suite) = tls::negotiated(&first)?;
+        let mut first = match client.handshake(&mut stream, host) {
+            Ok(connection) => tls::Session::Ecdhe(Box::new(connection)),
+            Err(error) if error.refused_suites() => {
+                transcript.fallback("first session");
+                let (reopened, again) = greet_again(host, port)?;
+                // The dialect and transport were chosen from the first
+                // greeting: another one means another peer or another state.
+                if again != greeted {
+                    return Err(Error::GreetingChanged);
+                }
+                stream = reopened;
+                tls::rsa_kx(&stream, pin)?
+            }
+            Err(error) => return Err(error.into()),
+        };
+        let (version, suite) = first.negotiated()?;
         transcript.tls("first session", version, suite);
-        let certificate = tls::peer_certificate(&first)?;
+        let certificate = first.certificate()?;
         let tag = draw_tag()?;
         dialogue(
-            &mut Stream::new(&mut first, &mut stream),
+            &mut wire(&mut first, &mut stream),
             secret,
             &tag,
             &certificate,
-            transport,
+            transport.proxy(vcenter && dialect == Dialect::Legacy),
             dialect,
             transcript,
         )?;
         // The PROXY reply is the last thing the host sends in the first
         // session, so nothing of it is left unread; dropping the connection
         // without a close notify keeps the stream clear for what follows.
+        let fallback = matches!(first, tls::Session::RsaKx(_));
         drop(first);
         let plane = match transport {
             Transport::Nfcssl => {
-                let session = client.handshake(&mut stream, host)?;
-                let (version, suite) = tls::negotiated(&session)?;
+                // The host that refused ECDHE once is not offered it again.
+                let session = if fallback {
+                    tls::rsa_kx(&stream, pin)?
+                } else {
+                    tls::Session::Ecdhe(Box::new(client.handshake(&mut stream, host)?))
+                };
+                let (version, suite) = session.negotiated()?;
                 transcript.tls("second session", version, suite);
-                if tls::peer_certificate(&session)? != certificate {
+                if session.certificate()? != certificate {
                     return Err(Error::Certificate);
                 }
-                Plane::Tls(Box::new(session))
+                Plane::Tls(session)
             }
             Transport::Nfc => Plane::Clear,
         };
@@ -587,7 +658,7 @@ impl Connection {
 
     fn data(&mut self) -> Box<dyn Wire + '_> {
         match &mut self.plane {
-            Plane::Tls(session) => Box::new(Stream::new(&mut **session, &mut self.stream)),
+            Plane::Tls(session) => wire(session, &mut self.stream),
             Plane::Clear => Box::new(&mut self.stream),
         }
     }
@@ -657,14 +728,14 @@ fn draw_tag() -> Result<[u8; handshake::TAG_LEN], Error> {
 /// `200 <hash>`, where the hash must be the SHA-256 thumbprint of the
 /// certificate this session verified; a legacy host is asked `THUMBPRINT
 /// <tag>` instead, and its reply, a SHA-1 hash, must only start with `200 `.
-/// The `PROXY` line asking for `transport` must be answered with exactly
-/// the line granting it; nothing else is written before that.
+/// The `PROXY` line, from [`Transport::proxy`], must be answered with
+/// exactly the line granting it; nothing else is written before that.
 fn dialogue<S: Read + Write>(
     stream: &mut S,
     secret: &str,
     tag: &[u8; handshake::TAG_LEN],
     certificate: &CertificateDer<'_>,
-    transport: Transport,
+    (proxy, granted): (&'static str, &'static str),
     dialect: Dialect,
     transcript: Transcript,
 ) -> Result<(), Error> {
@@ -705,17 +776,13 @@ fn dialogue<S: Read + Write>(
             });
         }
     }
-    send(
-        stream,
-        format!("{}\r\n", transport.proxy()).as_bytes(),
-        "dialogue",
-    )?;
-    transcript.sent(transport.proxy());
+    send(stream, format!("{proxy}\r\n").as_bytes(), "dialogue")?;
+    transcript.sent(proxy);
     let answer = reply(stream)?;
     transcript.received(&answer);
-    if answer != transport.granted() {
+    if answer != granted {
         return Err(Error::Dialogue {
-            command: transport.proxy(),
+            command: proxy,
             reply: answer,
         });
     }
@@ -1130,9 +1197,75 @@ mod tests {
     use super::*;
     use greeting::ESXI_8;
     use std::io::Cursor;
+    use std::net::TcpListener;
+    use std::thread;
 
     const TAG: &[u8; 16] = b"ABCDEFGHIJKLMNOP";
     const QUIET: Transcript = Transcript::new(false);
+
+    /// A fatal `handshake_failure` alert, as one TLS 1.2 record.
+    const HANDSHAKE_FAILURE: [u8; 7] = [0x15, 0x03, 0x03, 0x00, 0x02, 0x02, 0x28];
+
+    /// A host that refuses ECDHE, then greets the reopened connection as another peer.
+    ///
+    /// Returns its port and what the client wrote on the reopened connection.
+    fn greeting_differently_after_refusing_ecdhe() -> (u16, thread::JoinHandle<Vec<u8>>) {
+        let listener = TcpListener::bind("127.0.0.1:0").unwrap();
+        let port = listener.local_addr().unwrap().port();
+        let host = thread::spawn(move || {
+            let (mut first, _) = listener.accept().unwrap();
+            first.write_all(ESXI_8).unwrap();
+            let mut header = [0_u8; 5];
+            first.read_exact(&mut header).unwrap();
+            let mut hello = vec![0_u8; usize::from(u16::from_be_bytes([header[3], header[4]]))];
+            first.read_exact(&mut hello).unwrap();
+            first.write_all(&HANDSHAKE_FAILURE).unwrap();
+            drop(first);
+            let (mut second, _) = listener.accept().unwrap();
+            second
+                .write_all(b"220 VMware Authentication Daemon Version 1.10: SSL Required, NFCSSL supported/t\r\n")
+                .unwrap();
+            let mut received = Vec::new();
+            // The client leaves at once; whatever it wrote first is returned.
+            let _ = second.read_to_end(&mut received);
+            received
+        });
+        (port, host)
+    }
+
+    #[test]
+    fn a_host_greeting_differently_after_refusing_ecdhe_is_not_offered_rsa_key_exchange() {
+        let (port, host) = greeting_differently_after_refusing_ecdhe();
+        let pin = tls::Pin::sha256(&tls::sha256(b"a certificate")).unwrap();
+
+        let error = Connection::establish(
+            "127.0.0.1",
+            port,
+            "ticket",
+            &pin,
+            Transport::Nfcssl,
+            false,
+            QUIET,
+        )
+        .unwrap_err();
+
+        assert!(matches!(error, Error::GreetingChanged), "{error:?}");
+        assert_eq!(
+            error.to_string(),
+            "greeting: the host announced other capabilities on the connection reopened for RSA key exchange"
+        );
+        assert!(host.join().unwrap().is_empty(), "no handshake was started");
+    }
+
+    #[test]
+    fn a_capture_greeted_differently_after_refusing_ecdhe_reports_no_thumbprint() {
+        let (port, host) = greeting_differently_after_refusing_ecdhe();
+
+        let error = capture("127.0.0.1", port, QUIET).unwrap_err();
+
+        assert!(matches!(error, Error::GreetingChanged), "{error:?}");
+        assert!(host.join().unwrap().is_empty(), "no handshake was started");
+    }
 
     /// A scripted peer: replies come from `input`, each write the client makes lands in `writes`.
     ///
@@ -1303,7 +1436,7 @@ mod tests {
             "ticket-0",
             TAG,
             &certificate(),
-            Transport::Nfcssl,
+            Transport::Nfcssl.proxy(false),
             Dialect::Modern,
             QUIET,
         )
@@ -1328,7 +1461,7 @@ mod tests {
             "ticket-0",
             TAG,
             &certificate(),
-            Transport::Nfc,
+            Transport::Nfc.proxy(false),
             Dialect::Modern,
             QUIET,
         )
@@ -1350,7 +1483,7 @@ mod tests {
             "ticket-0",
             TAG,
             &certificate(),
-            Transport::Nfc,
+            Transport::Nfc.proxy(false),
             Dialect::Modern,
             QUIET,
         )
@@ -1371,7 +1504,7 @@ mod tests {
             "ticket-0",
             TAG,
             &certificate(),
-            Transport::Nfcssl,
+            Transport::Nfcssl.proxy(false),
             Dialect::Modern,
             QUIET,
         )
@@ -1393,7 +1526,7 @@ mod tests {
             "ticket-0",
             TAG,
             &certificate(),
-            Transport::Nfcssl,
+            Transport::Nfcssl.proxy(false),
             Dialect::Modern,
             QUIET,
         )
@@ -1416,7 +1549,7 @@ mod tests {
             "ticket-0",
             TAG,
             &certificate(),
-            Transport::Nfcssl,
+            Transport::Nfcssl.proxy(false),
             Dialect::Modern,
             QUIET,
         )
@@ -1445,7 +1578,7 @@ mod tests {
             "ticket-0",
             TAG,
             &certificate(),
-            Transport::Nfcssl,
+            Transport::Nfcssl.proxy(false),
             Dialect::Modern,
             QUIET,
         )
@@ -1466,7 +1599,7 @@ mod tests {
             "ticket-0",
             TAG,
             &certificate(),
-            Transport::Nfcssl,
+            Transport::Nfcssl.proxy(false),
             Dialect::Modern,
             QUIET,
         )
@@ -2006,7 +2139,7 @@ mod tests {
             "ticket-0",
             TAG,
             &certificate(),
-            Transport::Nfcssl,
+            Transport::Nfcssl.proxy(false),
             Dialect::Legacy,
             QUIET,
         )
@@ -2027,7 +2160,7 @@ mod tests {
             "ticket-0",
             TAG,
             &certificate(),
-            Transport::Nfcssl,
+            Transport::Nfcssl.proxy(false),
             Dialect::Legacy,
             QUIET,
         )

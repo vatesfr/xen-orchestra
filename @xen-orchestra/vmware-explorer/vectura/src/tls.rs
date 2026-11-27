@@ -5,6 +5,10 @@
 //! accept-everything verifier never leaves this module: [`capture`] runs a TLS
 //! handshake with it, sends nothing afterwards and drops the connection
 //! before returning.
+//!
+//! rustls only knows ECDHE key exchange. A data port that refuses it is
+//! retried through [`rsa_kx`], which the `legacy` module runs on OpenSSL; a
+//! [`Session`] is either of the two.
 
 use std::fmt;
 use std::io;
@@ -13,14 +17,18 @@ use std::sync::{Arc, Mutex, PoisonError};
 use std::time::Duration;
 
 use aws_lc_rs::digest;
+use openssl::error::ErrorStack;
+use openssl::ssl::SslStream;
 use rustls::client::danger::{HandshakeSignatureValid, ServerCertVerified, ServerCertVerifier};
 use rustls::crypto::aws_lc_rs::default_provider;
 use rustls::crypto::{CryptoProvider, verify_tls12_signature, verify_tls13_signature};
 use rustls::{
-    CertificateError, CipherSuite, ClientConfig, ClientConnection, DigitallySignedStruct,
-    ProtocolVersion, RootCertStore, SignatureScheme,
+    AlertDescription, CertificateError, CipherSuite, ClientConfig, ClientConnection,
+    DigitallySignedStruct, ProtocolVersion, RootCertStore, SignatureScheme,
 };
 use rustls_pki_types::{CertificateDer, InvalidDnsNameError, ServerName, UnixTime};
+
+mod legacy;
 
 /// How long a TCP connect may take before the host counts as unreachable.
 ///
@@ -75,6 +83,68 @@ pub enum Error {
     /// rustls rejected the client configuration.
     #[error("tls configuration rejected: {0}")]
     Config(#[source] rustls::Error),
+    /// OpenSSL rejected the configuration of the RSA key exchange fallback.
+    #[error("tls configuration rejected: {0}")]
+    LegacyConfig(#[source] ErrorStack),
+    /// The host refused the ECDHE suites, then the RSA key exchange ones.
+    #[error("host refused every supported TLS suite (ECDHE, then RSA key exchange with AES-GCM)")]
+    NoCommonSuite,
+}
+
+impl Error {
+    /// Whether the host answered the handshake with a `handshake_failure` alert.
+    ///
+    /// That alert is how a server says it shares no cipher suite with the
+    /// client. Nothing else counts: a refused certificate, a closed socket or
+    /// a timeout must never lead to the RSA key exchange fallback.
+    #[must_use]
+    pub(crate) fn refused_suites(&self) -> bool {
+        let Error::TlsHandshake(error) = self else {
+            return false;
+        };
+        error
+            .get_ref()
+            .and_then(|inner| inner.downcast_ref::<rustls::Error>())
+            .is_some_and(|inner| {
+                matches!(
+                    inner,
+                    rustls::Error::AlertReceived(AlertDescription::HandshakeFailure)
+                )
+            })
+    }
+}
+
+/// A completed TLS session on a data port, by the stack that negotiated it.
+#[derive(Debug)]
+pub(crate) enum Session {
+    /// rustls, with ECDHE key exchange: every host that offers it.
+    Ecdhe(Box<ClientConnection>),
+    /// OpenSSL, with RSA key exchange: a host that refused ECDHE.
+    RsaKx(SslStream<TcpStream>),
+}
+
+impl Session {
+    /// The protocol version and cipher suite the session negotiated.
+    ///
+    /// # Errors
+    /// When the session has not completed its handshake.
+    pub(crate) fn negotiated(&self) -> Result<(ProtocolVersion, CipherSuite), Error> {
+        match self {
+            Session::Ecdhe(connection) => negotiated(connection),
+            Session::RsaKx(session) => legacy::negotiated(session),
+        }
+    }
+
+    /// The first certificate of the chain the peer sent, DER encoded.
+    ///
+    /// # Errors
+    /// When the session carries no certificate.
+    pub(crate) fn certificate(&self) -> Result<CertificateDer<'static>, Error> {
+        match self {
+            Session::Ecdhe(connection) => peer_certificate(connection),
+            Session::RsaKx(session) => legacy::certificate(session),
+        }
+    }
 }
 
 /// What a host presented during a TLS handshake that carried nothing else.
@@ -321,6 +391,38 @@ pub(crate) fn capture(stream: &mut TcpStream, host: &str) -> Result<Presented, E
     let connection = client.handshake(stream, host)?;
     let certificate = peer_certificate(&connection)?;
     let (version, suite) = negotiated(&connection)?;
+    Ok(Presented {
+        certificate,
+        version,
+        suite,
+    })
+}
+
+/// Runs a TLS 1.2 handshake with RSA key exchange on `stream`, pinned to `pin`.
+///
+/// For a host that refused the ECDHE suites, on a fresh connection: the
+/// refusal closed the first one. The session has no forward secrecy. Nothing
+/// is written after the handshake when the certificate is not the pinned one.
+///
+/// # Errors
+/// When the host refuses these suites too, presents another certificate, or
+/// the TLS handshake fails or times out.
+pub(crate) fn rsa_kx(stream: &TcpStream, pin: &Pin) -> Result<Session, Error> {
+    legacy::handshake(stream, Some(pin)).map(Session::RsaKx)
+}
+
+/// What a host that refused the ECDHE suites presents with RSA key exchange.
+///
+/// The counterpart of [`capture`]: any certificate is accepted, nothing is
+/// sent after the TLS handshake, and the session is dropped on return.
+///
+/// # Errors
+/// When the host refuses these suites too, or the TLS handshake fails, times
+/// out or ends without a certificate.
+pub(crate) fn capture_rsa_kx(stream: &TcpStream) -> Result<Presented, Error> {
+    let session = legacy::handshake(stream, None)?;
+    let certificate = legacy::certificate(&session)?;
+    let (version, suite) = legacy::negotiated(&session)?;
     Ok(Presented {
         certificate,
         version,
@@ -605,6 +707,10 @@ mod tests {
                 sha1(&certificate)
             )
         );
+        assert!(
+            !error.refused_suites(),
+            "a refused certificate never leads to the fallback"
+        );
     }
 
     #[test]
@@ -637,6 +743,33 @@ mod tests {
         let error = client.handshake(&mut stream, "127.0.0.1").unwrap_err();
 
         assert!(matches!(error, Error::TlsHandshake(_)), "{error:?}");
+    }
+
+    #[test]
+    fn only_a_handshake_failure_alert_counts_as_refused_suites() {
+        let alert = |description| {
+            Error::TlsHandshake(io::Error::other(rustls::Error::AlertReceived(description)))
+        };
+        assert!(alert(AlertDescription::HandshakeFailure).refused_suites());
+        for other in [
+            AlertDescription::BadCertificate,
+            AlertDescription::ProtocolVersion,
+            AlertDescription::InsufficientSecurity,
+            AlertDescription::InternalError,
+        ] {
+            assert!(!alert(other).refused_suites(), "{other:?}");
+        }
+        for kind in [
+            io::ErrorKind::ConnectionReset,
+            io::ErrorKind::UnexpectedEof,
+            io::ErrorKind::TimedOut,
+        ] {
+            assert!(
+                !Error::TlsHandshake(kind.into()).refused_suites(),
+                "{kind:?}"
+            );
+        }
+        assert!(!Error::NoCommonSuite.refused_suites());
     }
 
     #[test]
