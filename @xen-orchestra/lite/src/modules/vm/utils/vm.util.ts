@@ -1,5 +1,7 @@
 import { VM_OPERATION, VM_POWER_STATE } from '@/libs/xen-api/xen-api.enums.ts'
-import type { XenApiVm, XenApiVmGuestMetrics } from '@/libs/xen-api/xen-api.types.ts'
+import type { XenApiVm, XenApiVmGuestMetrics, XenApiVmMetrics } from '@/libs/xen-api/xen-api.types.ts'
+import { objectIcon } from '@core/icons'
+import { toLower } from 'lodash-es'
 
 export const CHANGING_STATE_OPERATIONS: VM_OPERATION[] = [
   VM_OPERATION.START,
@@ -41,6 +43,26 @@ export function areVmToolsDetected(guestMetrics: XenApiVmGuestMetrics | undefine
   const managementAgentDetected = hasPvVersion || guestMetrics.other['feature-static-ip-setting'] === '1'
 
   return managementAgentDetected && pvDriversDetected
+}
+
+export function getVmIcon(vm: XenApiVm) {
+  return objectIcon('vm', toLower(vm.power_state))
+}
+
+export function getVmVcpus(
+  vm: XenApiVm,
+  metrics: XenApiVmMetrics | undefined,
+  guestMetrics: XenApiVmGuestMetrics | undefined
+): number {
+  if (vm.power_state === VM_POWER_STATE.RUNNING && metrics !== undefined && areVmToolsDetected(guestMetrics)) {
+    return metrics.VCPUs_number
+  }
+
+  return vm.VCPUs_at_startup
+}
+
+export function getVmIpAddresses(guestMetrics: XenApiVmGuestMetrics | undefined): string[] {
+  return [...new Set(Object.values(guestMetrics?.networks ?? {}).sort())]
 }
 
 /**

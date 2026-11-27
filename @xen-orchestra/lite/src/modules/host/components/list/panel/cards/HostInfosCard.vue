@@ -66,15 +66,7 @@
             {{ t('this-host') }}
           </div>
           <div v-else-if="masterHost !== undefined" class="value">
-            <UiLink
-              :to="{ name: '/host/[uuid]/dashboard', params: { uuid: masterHost.uuid } }"
-              size="small"
-              :icon="masterHostIcon"
-              is-primary
-              :primary-tooltip="t('master')"
-            >
-              {{ masterHost.name_label }}
-            </UiLink>
+            <HostLink :host="masterHost" size="small" />
           </div>
         </template>
         <template v-if="masterHost !== undefined" #addons>
@@ -105,6 +97,7 @@
 <script lang="ts" setup>
 import { useHostPatches } from '@/composables/host-patches.composable.ts'
 import type { XenApiHost } from '@/libs/xen-api/xen-api.types.ts'
+import HostLink from '@/modules/host/components/HostLink.vue'
 import { useHostUtils } from '@/modules/host/composables/host-utils.composable.ts'
 import { getHostIcon } from '@/modules/host/utils/host.util.ts'
 import { useHostMetricsStore } from '@/stores/xen-api/host-metrics.store.ts'
@@ -136,8 +129,6 @@ const { getHostPowerState } = useHostMetricsStore().subscribe()
 const { isMaster, powerState, relativeStartTime } = useHostUtils(() => host)
 
 const hostIcon = computed(() => getHostIcon(host, getHostPowerState(host)))
-
-const masterHostIcon = computed(() => getHostIcon(masterHost.value, getHostPowerState(masterHost.value)))
 
 const { count: nMissingPatches, areAllLoaded } = useHostPatches(() => [host])
 
