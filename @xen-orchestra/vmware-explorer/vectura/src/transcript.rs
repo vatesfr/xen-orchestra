@@ -45,7 +45,14 @@ impl Transcript {
 
     /// The protocol version and cipher suite the TLS session at `place` negotiated.
     pub fn tls(&self, place: &str, version: ProtocolVersion, suite: CipherSuite) {
-        self.line(&format!("{place} tls {version:?} {suite:?}"));
+        self.line(&format!("{place} tls {version:?} {}", suite_name(suite)));
+    }
+
+    /// That the data port refused the ECDHE suites at `place` and is asked again.
+    pub fn fallback(&self, place: &str) {
+        self.line(&format!(
+            "{place} tls fallback: host refused ECDHE, retrying with RSA key exchange"
+        ));
     }
 
     /// A dialogue line sent to the host, without its line end; never the ticket.
@@ -118,6 +125,18 @@ impl Transcript {
     }
 }
 
+/// The IANA name of `suite`.
+///
+/// rustls prints the name of the suites it implements and a bare number for
+/// the others, which the two RSA key exchange suites of the fallback are.
+fn suite_name(suite: CipherSuite) -> String {
+    match u16::from(suite) {
+        0x009C => "TLS_RSA_WITH_AES_128_GCM_SHA256".to_owned(),
+        0x009D => "TLS_RSA_WITH_AES_256_GCM_SHA384".to_owned(),
+        _ => format!("{suite:?}"),
+    }
+}
+
 /// `wire` over `logical` with two decimals, in integer arithmetic; 0.00 before any byte.
 fn ratio(wire: u64, logical: u64) -> String {
     let hundredths = wire.saturating_mul(100) / logical.max(1);
@@ -127,6 +146,18 @@ fn ratio(wire: u64, logical: u64) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn a_suite_is_named_whether_or_not_rustls_implements_it() {
+        for (suite, expected) in [
+            (0x009C, "TLS_RSA_WITH_AES_128_GCM_SHA256"),
+            (0x009D, "TLS_RSA_WITH_AES_256_GCM_SHA384"),
+            (0x1302, "TLS13_AES_256_GCM_SHA384"),
+            (0xC02F, "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256"),
+        ] {
+            assert_eq!(suite_name(CipherSuite::from(suite)), expected);
+        }
+    }
 
     #[test]
     fn the_ratio_has_two_decimals_and_is_zero_before_any_byte() {

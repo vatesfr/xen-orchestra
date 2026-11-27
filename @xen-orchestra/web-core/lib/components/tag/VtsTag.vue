@@ -1,8 +1,8 @@
 <template>
-  <UiTertiaryTag
+  <UiLabelValueTag
     v-if="parsedTag"
-    ref="tertiaryTag"
-    v-tooltip="isTertiaryTagTruncated && value"
+    ref="labelValueTag"
+    v-tooltip="isLabelValueTagTruncated && value"
     :accent
     :removable
     :truncate="!wrap"
@@ -11,7 +11,7 @@
   >
     <template #term>{{ parsedTag.term }}</template>
     {{ parsedTag.label }}
-  </UiTertiaryTag>
+  </UiLabelValueTag>
   <UiTag
     v-else
     v-tooltip
@@ -28,8 +28,8 @@
 </template>
 
 <script lang="ts" setup>
+import UiLabelValueTag from '@core/components/ui/tag/UiLabelValueTag.vue'
 import UiTag, { type TagAccent } from '@core/components/ui/tag/UiTag.vue'
-import UiTertiaryTag from '@core/components/ui/tag/UiTertiaryTag.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { hasEllipsis } from '@core/utils/has-ellipsis.util.ts'
 import { parseTag } from '@core/utils/parse-tag.util.ts'
@@ -61,23 +61,23 @@ const parsedTag = computed(() => parseTag(value))
 
 const isEmpty = computed(() => value.trim() === '')
 
-const tertiaryTag = useTemplateRef('tertiaryTag')
+const labelValueTag = useTemplateRef('labelValueTag')
 
-const tertiaryTagElement = computed(() => tertiaryTag.value?.$el as HTMLElement | undefined)
+const labelValueTagElement = computed(() => labelValueTag.value?.$el as HTMLElement | undefined)
 
-const isTertiaryTagTruncated = ref(false)
+const isLabelValueTagTruncated = ref(false)
 
-function updateTertiaryTagTruncation() {
-  const element = tertiaryTagElement.value
+function updateLabelValueTagTruncation() {
+  const element = labelValueTagElement.value
 
-  isTertiaryTagTruncated.value = element !== undefined && [...element.children].some(part => hasEllipsis(part))
+  isLabelValueTagTruncated.value = element !== undefined && [...element.children].some(part => hasEllipsis(part))
 }
 
-useResizeObserver(tertiaryTagElement, () => updateTertiaryTagTruncation())
+useResizeObserver(labelValueTagElement, () => updateLabelValueTagTruncation())
 
 watch(
   () => value,
-  () => updateTertiaryTagTruncation(),
+  () => updateLabelValueTagTruncation(),
   { flush: 'post' }
 )
 </script>

@@ -447,6 +447,24 @@ fn a_vcenter_serves_the_disk_from_the_host_its_ticket_names() {
 }
 
 #[test]
+fn a_legacy_host_through_a_vcenter_is_asked_for_the_transport_of_vpxa() {
+    // The mock grants a vCenter's ticket on a legacy host to vpxa only.
+    let host = Host::start(Scenario {
+        data: DataPort::Greeting(GREETING_WITHOUT_SHA256),
+        vcenter: true,
+        ..Scenario::default()
+    });
+    let mut child = spawn(&host, Some(PASSWORD), &pin(&host));
+    negotiate(&mut child, true);
+    let events = session_ends_cleanly(&host, child);
+
+    assert!(
+        events.contains(&Event::Proxy("vpxa-nfcssl".to_owned())),
+        "{events:?}"
+    );
+}
+
+#[test]
 fn a_refused_login_reports_the_fault_without_the_password() {
     let fault = "Cannot complete login due to an incorrect user name or password.";
     let (host, output) = run_failing(Scenario {
@@ -579,6 +597,123 @@ fn a_legacy_host_exports_the_capacity_its_reads_reveal_and_serves_the_disk_bytes
             legacy_message(LEGACY_END),
             call("Logout", Some(COOKIE)),
         ]
+    );
+}
+
+/// A legacy host whose data port accepts RSA key exchange alone, like an ESXi 6.5 one.
+///
+/// Its ticket carries the SHA-1 thumbprint of `ticket_thumbprint`.
+fn rsa_only(ticket_thumbprint: Thumbprint) -> Scenario {
+    Scenario {
+        data: DataPort::Greeting(GREETING_WITHOUT_SHA256),
+        data_suites: Some("AES256-GCM-SHA384"),
+        ticket_thumbprint,
+        ..Scenario::default()
+    }
+}
+
+#[test]
+fn a_host_that_refuses_ecdhe_serves_the_disk_over_rsa_key_exchange_in_both_sessions() {
+    let capacity = Scenario::default().capacity;
+    let host = Host::start(rsa_only(Thumbprint::Own));
+    let mut child = spawn(&host, Some(PASSWORD), &pinned(&host, &["--verbose"]));
+
+    let export = negotiate(&mut child, true);
+    let first = read_at(&mut child, 1, 0, 4 * MIB);
+    let last = read_at(&mut child, 2, capacity - SECTOR, SECTOR);
+    disconnect(&mut child);
+    let output = finish(child);
+
+    assert_eq!(
+        output.status.code(),
+        Some(0),
+        "stderr: {}",
+        text(&output.stderr)
+    );
+    assert_eq!(export.size, capacity);
+    matches_disk(&first, 0, 4 * MIB);
+    matches_disk(&last, capacity - SECTOR, SECTOR);
+    let refused = host.data();
+    assert!(
+        refused.handshake_started && !refused.handshake_completed,
+        "the ECDHE offer is refused first: {refused:?}"
+    );
+    let served = host.data();
+    assert!(served.second_handshake, "{served:?}");
+    let stderr = text(&output.stderr);
+    let lines = [
+        "first session tls fallback: host refused ECDHE, retrying with RSA key exchange\n\
+         first session tls TLSv1_2 TLS_RSA_WITH_AES_256_GCM_SHA384\n",
+        "second session tls TLSv1_2 TLS_RSA_WITH_AES_256_GCM_SHA384\n",
+    ];
+    for line in lines {
+        assert!(stderr.contains(line), "{stderr}");
+    }
+    secrets_absent(&output);
+    let opened = legacy_events_up_to_open();
+    assert_eq!(host.events()[..opened.len()], opened);
+}
+
+#[test]
+fn a_host_that_offers_ecdhe_is_never_asked_for_rsa_key_exchange() {
+    let host = Host::start(Scenario {
+        capacity: SMALL,
+        ..Scenario::default()
+    });
+    let mut child = spawn(&host, Some(PASSWORD), &pinned(&host, &["--verbose"]));
+
+    negotiate(&mut child, true);
+    disconnect(&mut child);
+    let output = finish(child);
+
+    assert_eq!(output.status.code(), Some(0));
+    let stderr = text(&output.stderr);
+    assert!(!stderr.contains("fallback"), "{stderr}");
+    assert!(!stderr.contains("TLS_RSA_"), "{stderr}");
+}
+
+#[test]
+fn a_pin_mismatch_does_not_trigger_the_fallback() {
+    let host = Host::start(Scenario {
+        ticket_thumbprint: Thumbprint::Other,
+        ..Scenario::default()
+    });
+
+    let output = finish(spawn(&host, Some(PASSWORD), &pinned(&host, &["--verbose"])));
+
+    assert_eq!(output.status.code(), Some(1));
+    let stderr = text(&output.stderr);
+    assert!(
+        stderr.contains("vectura: data plane: certificate thumbprint mismatch"),
+        "{stderr}"
+    );
+    assert!(!stderr.contains("fallback"), "{stderr}");
+    assert!(
+        !host.events().contains(&Event::Session(TICKET.to_owned())),
+        "the ticket was never presented: {:?}",
+        host.events()
+    );
+}
+
+#[test]
+fn a_ticket_thumbprint_that_is_not_the_certificate_aborts_the_fallback_before_any_write() {
+    let (host, stderr) = fails_then_logs_out(rsa_only(Thumbprint::Other));
+
+    assert!(
+        stderr.starts_with("vectura: data plane: certificate thumbprint mismatch"),
+        "{stderr}"
+    );
+    assert!(!host.data().handshake_completed);
+    let pinned = host.data();
+    assert!(pinned.handshake_completed, "{pinned:?}");
+    assert_eq!(
+        pinned.bytes_after_tls_handshake, 0,
+        "nothing is written to a host presenting another certificate: {pinned:?}"
+    );
+    assert!(
+        !host.events().contains(&Event::Session(TICKET.to_owned())),
+        "the ticket was never presented: {:?}",
+        host.events()
     );
 }
 

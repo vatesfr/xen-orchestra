@@ -20,12 +20,15 @@
       setting('maxWidth').widget(number()).help('Maximum width, in rem'),
     ]"
   >
-    <UiTertiaryTag v-bind="properties" :style="{ maxWidth: settings.maxWidth ? `${settings.maxWidth}rem` : undefined }">
+    <UiLabelValueTag
+      v-bind="properties"
+      :style="{ maxWidth: settings.maxWidth ? `${settings.maxWidth}rem` : undefined }"
+    >
       {{ settings.slot }}
       <template #term>
         {{ settings.term }}
       </template>
-    </UiTertiaryTag>
+    </UiLabelValueTag>
   </ComponentStory>
 </template>
 
@@ -33,5 +36,5 @@
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
 import { prop, setting, slot } from '@/libs/story/story-param.ts'
 import { number } from '@/libs/story/story-widget.ts'
-import UiTertiaryTag from '@core/components/ui/tag/UiTertiaryTag.vue'
+import UiLabelValueTag from '@core/components/ui/tag/UiLabelValueTag.vue'
 </script>
