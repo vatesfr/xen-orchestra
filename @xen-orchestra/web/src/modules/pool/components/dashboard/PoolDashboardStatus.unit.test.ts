@@ -5,6 +5,7 @@ import { findCardNumbers, findLegends } from '@/test/find-rendered-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import type { PoolDashboardCardProps } from '@/test/pool-dashboard-card.ts'
+import { vmStatusLegends } from '@/test/vm-status-legends.ts'
 import { findStateHeroTexts } from '@core-test/find-state-hero-types.ts'
 import { mount, type VueWrapper } from '@vue/test-utils'
 
@@ -64,15 +65,7 @@ it('breaks down the hosts and the VMs by status', () => {
         [t('host:status:halted', 2), '1'],
       ],
     ],
-    [
-      t('vms'),
-      [
-        [t('vm:status:running', 2), '5'],
-        [t('vm:status:paused', 2), '2'],
-        [t('vm:status:suspended', 2), '1'],
-        [t('vm:status:halted', 2), '2'],
-      ],
-    ],
+    [t('vms'), vmStatusLegends('5', '2', '1', '2')],
   ])
 })
 

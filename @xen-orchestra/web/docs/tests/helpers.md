@@ -64,20 +64,21 @@ When you add a helper to `src/test/`, list it here under its need, in the same c
 
 ## Build an input or an expected value
 
-| Need                                                               | Helper                                                                                                                                            |
-| ------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------- |
-| an XO object                                                       | the [test data factories](./factories.md)                                                                                                         |
-| a translated label                                                 | `t`, `n` (`i18n.ts`), see [Translations](./testing-components.md#translations)                                                                    |
-| a task as the task lists display it                                | `createTaskItem` (`@core-test/create-task-item.ts`)                                                                                               |
-| the message of a form field                                        | `dangerMessage`, `invalidCredentialsMessage`, `requiredMessage` (`form-messages.ts`), see [Form messages](#form-messages)                         |
-| the label of a JSON schema list item                               | `getItemLabel(index, itemSchema)`, `getNumberedItemLabel(n, label?)` (`json-schema-item-label.ts`): the labels of the items of a JSON schema list |
-| the bindings of a select, for a component that only passes them on | `createSelectBindings(label)` (`create-select-bindings.ts`), see [Selects](./testing-components.md#selects)                                       |
-| a menu / button action                                             | `createActionItem` (`create-action-item.ts`): a menu / button `LeafActionItem`                                                                    |
-| an API error                                                       | `createApiError(status, cause?)` (`create-api-error.ts`): the `ApiError` `fetchRequest` throws for that status and body                           |
-| the fixed date of the fake timers                                  | `NOW` (`now.ts`)                                                                                                                                  |
-| items grouped by a key, in order                                   | `groupBy(items, getKey)` (`group-by.ts`)                                                                                                          |
-| an unparsable query builder filter                                 | `UNPARSABLE_FILTER` (`query-builder-filters.ts`)                                                                                                  |
-| a stored JSON                                                      | `readLocalStorageJson(key)` (`local-storage.ts`)                                                                                                  |
+| Need                                                               | Helper                                                                                                                                             |
+| ------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| an XO object                                                       | the [test data factories](./factories.md)                                                                                                          |
+| a translated label                                                 | `t`, `n` (`i18n.ts`), see [Translations](./testing-components.md#translations)                                                                     |
+| the legend of a VM status card                                     | `vmStatusLegends(running, paused, suspended, halted)` (`vm-status-legends.ts`): the count of each power state, in order, as `findLegends` reads it |
+| a task as the task lists display it                                | `createTaskItem` (`@core-test/create-task-item.ts`)                                                                                                |
+| the message of a form field                                        | `dangerMessage`, `invalidCredentialsMessage`, `requiredMessage` (`form-messages.ts`), see [Form messages](#form-messages)                          |
+| the label of a JSON schema list item                               | `getItemLabel(index, itemSchema)`, `getNumberedItemLabel(n, label?)` (`json-schema-item-label.ts`): the labels of the items of a JSON schema list  |
+| the bindings of a select, for a component that only passes them on | `createSelectBindings(label)` (`create-select-bindings.ts`), see [Selects](./testing-components.md#selects)                                        |
+| a menu / button action                                             | `createActionItem` (`create-action-item.ts`): a menu / button `LeafActionItem`                                                                     |
+| an API error                                                       | `createApiError(status, cause?)` (`create-api-error.ts`): the `ApiError` `fetchRequest` throws for that status and body                            |
+| the fixed date of the fake timers                                  | `NOW` (`now.ts`)                                                                                                                                   |
+| items grouped by a key, in order                                   | `groupBy(items, getKey)` (`group-by.ts`)                                                                                                           |
+| an unparsable query builder filter                                 | `UNPARSABLE_FILTER` (`query-builder-filters.ts`)                                                                                                   |
+| a stored JSON                                                      | `readLocalStorageJson(key)` (`local-storage.ts`)                                                                                                   |
 
 ## Mock and stub
 
