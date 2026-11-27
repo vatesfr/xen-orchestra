@@ -7,13 +7,14 @@ import { createVm } from '@/test/create-vm.ts'
 import { type DashboardCardProps, itShowsDashboardCardStates } from '@/test/dashboard-card.ts'
 import { findLabelledValues, findRowLabels } from '@/test/find-rendered-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
+import { HOLD_LOADING } from '@/test/host-dashboard-card.ts'
 import { t } from '@/test/i18n.ts'
 import { xoCollectionsMock, mockXoCollections } from '@/test/mock-xo-collections.ts'
 import { vmCollectionMock, mockXoVmCollection } from '@/test/mock-xo-vm-collection.ts'
 import { mockedExport } from '@/test/spy-on-module.ts'
 import { objectIcon } from '@core/icons'
 import { formatDateTime } from '@core/utils/time.util.ts'
-import { hasLoader } from '@core-test/expect-loader.ts'
+import { expectLoaderInsteadOf } from '@core-test/expect-loader.ts'
 import { findStateHeroTexts } from '@core-test/find-state-hero-types.ts'
 import { mount } from '@vue/test-utils'
 import { computed } from 'vue'
@@ -56,12 +57,10 @@ itShowsDashboardCardStates(mountReplication, {
   hasErrorState: true,
 })
 
-it('shows a loader while the storage repositories are still loading', () => {
-  xoCollectionsMock.areSrsReady.value = false
+it('shows a loader instead of the replication while the storage repositories are still loading', () => {
+  HOLD_LOADING.SRs()
 
-  const wrapper = mountReplication()
-
-  expect(hasLoader(wrapper)).toBe(true)
+  expectLoaderInsteadOf(mountReplication(), findRowLabels)
 })
 
 it('shows an error message when the storage repositories failed to load', () => {

@@ -12,6 +12,9 @@ export const HOLD_LOADING = {
   VMs: () => {
     vmCollectionMock.areVmsReady.value = false
   },
+  SRs: () => {
+    xoCollectionsMock.areSrsReady.value = false
+  },
 }
 
 type HostDashboardCardCase = {
