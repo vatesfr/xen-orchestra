@@ -53,6 +53,7 @@
 - [REST API] `POST /rest/v0/srs/:id/actions/import_vdi_from_url` imports an ISO from an HTTP(S) URL into an ISO SR (PR [#10751](https://github.com/vatesfr/xen-orchestra/pull/10751))
 - [REST API] `sr: import:vdi` privilege is split into `import:vdi:upload` and `import:vdi:url`, existing `import:vdi` privileges cover both (PR [#10751](https://github.com/vatesfr/xen-orchestra/pull/10751))
 - [REST API] `POST /rest/v0/vdis` (create an empty VDI) now only requires the `vdi: create` privilege, `sr: import:vdi` is no longer needed (PR [#10751](https://github.com/vatesfr/xen-orchestra/pull/10751))
+- [REST API] Get the state of a proxy appliance updater: `GET /rest/v0/proxies/:id/appliance_updater_state` (PR [#10773](https://github.com/vatesfr/xen-orchestra/pull/10773))
 - [REST API/SDN Controller] Global Private Networks can be created with `POST /rest/v0/plugins/sdn-controller/pools/actions/create_private_network`, which answers the ids of their networks (PR [#10708](https://github.com/vatesfr/xen-orchestra/pull/10708))
 - [REST API/V2V] `POST /rest/v0/v2v/inventory` reads the inventory of a vCenter or ESXi (datacenters, clusters, hosts, datastores, networks and VMs with their disks and network cards), and `POST /rest/v0/pools/:id/actions/import_vms_from_vmware` imports a list of VMs into the pool, with an SR per disk and a network per network card, resuming partial imports with a delta. Restricted to administrators, credentials are never stored (PR [#10597](https://github.com/vatesfr/xen-orchestra/pull/10597))
 - [RPU] Resume a failed or interrupted rolling pool update: only the hosts with remaining work are handled, and the VMs go back to their original host (PR [#10474](https://github.com/vatesfr/xen-orchestra/pull/10474))
@@ -74,6 +75,8 @@
 - [V2V] Add the _Migrate VMs_ wizard in Administration › V2V: connect to a VMware source, choose the destination pool and its defaults, select the VMs to migrate, map their disks, network cards and settings, then review and start the migration (PR [#10816](https://github.com/vatesfr/xen-orchestra/pull/10816))
 - [V2V] Optional `docking` of the guest once its import is complete: the VM boots on the docking ISO deployed on the pool (`vates-autopilot-docking-<build date and time>-<commit>.iso`), with the guest tools ISO, which prepares it to run on XCP-ng (Xen drivers, VMware tools disabled, guest agent, network interface names, Windows first boot). Off by default, available on `POST /rest/v0/pools/:id/actions/import_vms_from_vmware` (PR [#10621](https://github.com/vatesfr/xen-orchestra/pull/10621))
 - [V2V] Optional `startVm` once the import is complete: a docked guest is followed through its first boot (Windows drivers and agent installation, with a diagnosis of the VM when it does not complete), then Secure Boot is enabled again when the source had it (PR [#10621](https://github.com/vatesfr/xen-orchestra/pull/10621))
+- [V2V] Import from ESXi 6.5 hosts whose data port only accepts RSA key exchange (PR [#10802](https://github.com/vatesfr/xen-orchestra/pull/10802))
+- [V2V] Import from ESXi 6.5 and 6.7 hosts through a vCenter (PR [#10819](https://github.com/vatesfr/xen-orchestra/pull/10819))
 - [VM] Select multiple VMs in VM tables to change their power state, snapshot or delete them at once (PR [#10780](https://github.com/vatesfr/xen-orchestra/pull/10780))
 - [VM] Add and remove VM tags from the VM dashboard and the VM side panel (PR [#10804](https://github.com/vatesfr/xen-orchestra/pull/10804))
 - [VM] The VM creation form is now a 3-step workflow: choose the pool and the template, configure the VM, then review every setting (with the values overridden from the template highlighted) before creating it. Required fields are checked at each step, and a failed creation shows its error details without losing the form (PR [#10851](https://github.com/vatesfr/xen-orchestra/pull/10851))
@@ -90,8 +93,12 @@
 ### Bug fixes
 
 - [Backup/Live mount] Fix mounts failing when xo-server runs without root on a system using iptables-legacy, instead of leaving the firewall alone (PR [#10426](https://github.com/vatesfr/xen-orchestra/pull/10426))
+- [Backups/Merge] The background merge no longer crashes with `ENAMETOOLONG` when a VM's backups are locked by another job: it waits 5 minutes before trying again instead of retrying in a loop (PR [#10866](https://github.com/vatesfr/xen-orchestra/pull/10866))
 - [Backups] A backup job that fails as a whole is now marked as failed in its task, instead of staying pending until XO restarts (PR [#10778](https://github.com/vatesfr/xen-orchestra/pull/10778))
+- [Backup jobs] Remove the Target proxy field from the mirror backup job form (PR [#10914](https://github.com/vatesfr/xen-orchestra/pull/10914))
+- [Dark mode] Selected, hovered and pressed backgrounds of danger elements (buttons, tags, chips, toasters…) are darker, as designed, so their text is easier to read (PR [#10888](https://github.com/vatesfr/xen-orchestra/pull/10888))
 - [Forms] Dropdown lists with nothing selected show their placeholder (e.g. _Select a storage_ in the VM migration form) instead of staying empty (PR [#10882](https://github.com/vatesfr/xen-orchestra/pull/10882))
+- [Light theme] Danger backgrounds (selected, hover and active) use the lighter red tints of the design system (PR [#10891](https://github.com/vatesfr/xen-orchestra/pull/10891))
 - [Logs] Fix the syslog transport sending every log with the _informational_ severity, splitting a log with line breaks into several messages, keeping the previous connection open when the configuration changes, and accumulating connections and memory when the syslog server is unreachable or does not read (PR [#10619](https://github.com/vatesfr/xen-orchestra/pull/10619))
 - [Modals] Modals no longer stretch across the screen: their width is limited to a third of the screen, up to 550px (PR [#10800](https://github.com/vatesfr/xen-orchestra/pull/10800))
 - [Pages] The page header and tabs now stay in place on every page: dashboards, System and General tabs, consoles, settings and creation forms scroll under them instead of scrolling with them (PR [#10822](https://github.com/vatesfr/xen-orchestra/pull/10822))
@@ -107,14 +114,19 @@
 - [Servers] Fix a pool disappearing from XO, its server stuck in "connecting" until it is disabled and enabled again, after a short network interruption (PR [#10814](https://github.com/vatesfr/xen-orchestra/pull/10814))
 - [Side panels] Fix the double scrollbar when the side panel content is taller than the screen: the page header now stays in place, and the list and the side panel each scroll on their own. All scrollbars are now thin, like the side panel one (PR [#10807](https://github.com/vatesfr/xen-orchestra/pull/10807))
 - [Side panels] Closing a side panel in one browser tab no longer closes it in the other tabs, where the eye buttons stopped working (PR [#10869](https://github.com/vatesfr/xen-orchestra/pull/10869))
+- [Site] The site pages are no longer displayed below a loader while pools are loading (PR [#10923](https://github.com/vatesfr/xen-orchestra/pull/10923))
 - [Tables] The "Show more"/"Show less" button of long texts stays at the top right of the cell, and expanding every text of a column no longer squeezes it to one letter per line (PR [#10873](https://github.com/vatesfr/xen-orchestra/pull/10873))
 - [Tooltips] Short tooltips near the edge of the screen no longer wrap onto two lines (PR [#10822](https://github.com/vatesfr/xen-orchestra/pull/10822))
 - [Treeview] Fix translations of the tooltip for VM and host statuses in treeview (PR [#10643](https://github.com/vatesfr/xen-orchestra/pull/10643))
 - [Treeview] The treeview scrollbar can be dragged again: the resize handle, which covered it, now sits just outside the treeview (PR [#10886](https://github.com/vatesfr/xen-orchestra/pull/10886))
 - [UI] Searchable dropdown lists no longer overflow the screen on mobile (PR [#10854](https://github.com/vatesfr/xen-orchestra/pull/10854))
 - [V2V] Keep the MAC address of a network card set by hand on VMware, instead of generating a new one, and no longer create a network interface for a card which is not present (PR [#10597](https://github.com/vatesfr/xen-orchestra/pull/10597))
+- [V2V] When the import of a disk fails before its transfer starts, the task shows the reason given by the migration engine (e.g. `could not connect: timed out`) instead of `stream has ended without data, was looking for 8 bytes` (PR [#10842](https://github.com/vatesfr/xen-orchestra/pull/10842))
 - [VDIs] The storage link of a VDI, in its side panel and on its page, opens the storage repository page of XO 6 instead of XO 5 (PR [#10864](https://github.com/vatesfr/xen-orchestra/pull/10864))
+- [VDIs] The used space of a VDI now includes its whole snapshot chain instead of only its last layer, which was almost 0 for disks with snapshots (e.g. after backups). As it can exceed the disk size, it is shown as a size, without usage bar or free space (PR [#10902](https://github.com/vatesfr/xen-orchestra/pull/10902))
 - [VM] In the VM creation form, a template without network interface now gets one by default, like in XO 5: one on each automatic network of the pool, or on its management network (PR [#10863](https://github.com/vatesfr/xen-orchestra/pull/10863))
+- [XO6] A PIF can no longer be set as the management PIF when its network MTU is not 1500, which XCP-ng does not support on management interfaces (PR [#10905](https://github.com/vatesfr/xen-orchestra/pull/10905))
+- [XO6] A VM converted into a template no longer stays in the VM list and treeview, contribution by [@pcbeingused333](https://github.com/pcbeingused333), fixes issue [#10717](https://github.com/vatesfr/xen-orchestra/issues/10717) (PR [#10884](https://github.com/vatesfr/xen-orchestra/pull/10884))
 
 ### Released packages
 
@@ -125,32 +137,22 @@
 - @vates/fuse-vhd 2.1.4
 - @vates/iscsi 0.4.1
 - @vates/obfuscate 0.2.0
-- xo-collection 1.0.0
 - xen-api 6.0.0
-- @vates/nbd-client 3.7.1
 - @vates/node-vsphere-soap 2.2.1
 - @vates/syslog 0.2.0
-- @vates/types 3.0.0
 - @xen-orchestra/acl 1.9.0
 - @xen-orchestra/audit-core 0.4.1
 - @xen-orchestra/autopilot-docking 0.1.0
 - @xen-orchestra/backup-archive 1.2.1
 - @xen-orchestra/xapi 10.0.0
-- @xen-orchestra/backups 1.0.0
 - @xen-orchestra/backups-cli 1.1.19
 - @xen-orchestra/cr-seed-cli 1.0.4
 - @xen-orchestra/disk-cli 2.2.6
 - @xen-orchestra/immutable-backups 3.0.10
-- @xen-orchestra/web-core 0.66.0
 - @xen-orchestra/mcp 1.4.4
 - @xen-orchestra/mixins 0.24.0
-- @xen-orchestra/proxy 0.35.0
-- @xen-orchestra/vmware-explorer 1.3.0
 - @xen-orchestra/qa-test 1.5.0
-- @xen-orchestra/rest-api 0.42.0
-- @xen-orchestra/web 0.66.0
 - xapi-explore-sr 0.4.9
-- xo-server 5.214.0
 - xo-server-audit 0.16.0
 - xo-server-auth-ldap 0.10.13
 - xo-server-backup-reports 1.7.2
@@ -164,6 +166,16 @@
 - xo-server-usage-report 0.11.2
 - xo-server-web-hooks 0.4.1
 - xo-web 5.209.0
+- xo-collection 1.0.1
+- @vates/nbd-client 3.7.2
+- @vates/types 3.1.0
+- @xen-orchestra/backups 1.0.1
+- @xen-orchestra/web-core 0.66.1
+- @xen-orchestra/proxy 0.35.1
+- @xen-orchestra/vmware-explorer 1.4.0
+- @xen-orchestra/rest-api 0.43.0
+- @xen-orchestra/web 0.66.1
+- xo-server 5.214.1
 
 ## **6.10.0** (2026-10-29)
 
