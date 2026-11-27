@@ -13,6 +13,7 @@ export const XO_LINKS = {
   DOC_SDN_CONTROLLER_XAPI_PLUGIN:
     'https://docs.xen-orchestra.com/manage-your-infrastructure/networking/sdn_controller#xapi-plugin',
   TRANSLATION: 'https://translate.vates.tech/engage/xen-orchestra/',
+  VATES_ACCOUNT: 'https://account.vates.tech/',
 }
 
 export const XCP_LINKS = {

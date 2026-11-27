@@ -19,6 +19,7 @@
       </div>
       <div class="column">
         <ApplianceConnectionCard :proxy />
+        <ApplianceRegistrationCard :registered />
       </div>
       <AppliancePackagesCard :packages class="full-width" />
     </div>
@@ -28,6 +29,7 @@
 <script lang="ts" setup>
 import ApplianceConnectionCard from '@/modules/appliance/components/connection/ApplianceConnectionCard.vue'
 import AppliancePackagesCard from '@/modules/appliance/components/packages/AppliancePackagesCard.vue'
+import ApplianceRegistrationCard from '@/modules/appliance/components/registration/ApplianceRegistrationCard.vue'
 import ApplianceVersionCard from '@/modules/appliance/components/version/ApplianceVersionCard.vue'
 import { useXoaUpgrade } from '@/modules/appliance/composables/use-xoa-upgrade.composable.ts'
 import { useXoaPackages } from '@/modules/appliance/remote-resources/use-xoa-packages.ts'
