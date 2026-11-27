@@ -54,6 +54,8 @@ export default defineConfig(({ mode }) => {
       // More workers are not faster, and each one keeps every module it loaded
       maxWorkers: 4,
       setupFiles: ['./src/test/global-module-mocks.ts', './src/test/setup.ts'],
+      // From Node 25, the `localStorage` of Node hides the one of happy-dom, and is undefined in the tests
+      execArgv: ['--no-experimental-webstorage'],
       alias: {
         '@core-test': fileURLToPath(new URL('../web-core/test', import.meta.url)),
         // `placement.js` only declares a `module` entry, which the Node-style resolution used by Vitest ignores
