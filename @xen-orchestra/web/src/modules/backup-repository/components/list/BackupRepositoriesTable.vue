@@ -34,6 +34,7 @@ import { useXoBackupRepositoryParsedUrl } from '@/modules/backup-repository/comp
 import { useXoBackupRepositoryTypeLabel } from '@/modules/backup-repository/composables/use-xo-backup-repository-type-label.composable.ts'
 import { useXoBackupRepositoryBenchmarkJob } from '@/modules/backup-repository/jobs/xo-backup-repository-benchmark.job.ts'
 import { useXoBackupRepositoryChangeStateJob } from '@/modules/backup-repository/jobs/xo-backup-repository-change-state.job.ts'
+import { useXoBackupRepositoryReclaimSpaceJob } from '@/modules/backup-repository/jobs/xo-backup-repository-reclaim-space.job.ts'
 import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
 import {
   getBackupRepositoryIcon,
@@ -130,6 +131,13 @@ const { HeadCells, BodyCells } = useBackupRepositoryColumns({
     } = useXoBackupRepositoryBenchmarkJob(() => [br])
 
     const {
+      run: reclaimBackupRepositorySpace,
+      canRun: canReclaimBackupRepositorySpace,
+      isRunning: isReclaimingBackupRepositorySpace,
+      errorMessage: reclaimBackupRepositorySpaceErrorMessage,
+    } = useXoBackupRepositoryReclaimSpaceJob(() => [br])
+
+    const {
       run: changeBackupRepositoriesState,
       canRun: canChangeBackupRepositoriesState,
       isRunning: isChangingBackupRepositoriesState,
@@ -192,6 +200,14 @@ const { HeadCells, BodyCells } = useBackupRepositoryColumns({
               disabled: !canBenchmarkBackupRepository.value,
               busy: isBenchmarkingBackupRepository.value,
               hint: benchmarkBackupRepositoryErrorMessage.value,
+            },
+            {
+              label: t('action:reclaim-space'),
+              icon: 'action:reclaim-space',
+              onClick: () => reclaimBackupRepositorySpace(),
+              disabled: !canReclaimBackupRepositorySpace.value,
+              busy: isReclaimingBackupRepositorySpace.value,
+              hint: reclaimBackupRepositorySpaceErrorMessage.value,
             },
             {
               label: t('action:forget'),

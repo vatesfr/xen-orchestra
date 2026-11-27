@@ -4,6 +4,7 @@
       <BackupRepositoryChangeStateButton :br />
       <BackupRepositoryEditButton :br />
       <BackupRepositoryTestSpeedButton :br />
+      <BackupRepositoryReclaimSpaceButton :br />
       <BackupRepositoryForgetButton :br />
     </template>
 
@@ -27,6 +28,7 @@ import BackupRepositoryTestSpeedButton from '@/modules/backup-repository/compone
 import BackupRepositoryChangeStateButton from '@/modules/backup-repository/components/actions/change-state/BackupRepositoryChangeStateButton.vue'
 import BackupRepositoryEditButton from '@/modules/backup-repository/components/actions/edit/BackupRepositoryEditButton.vue'
 import BackupRepositoryForgetButton from '@/modules/backup-repository/components/actions/forget/BackupRepositoryForgetButton.vue'
+import BackupRepositoryReclaimSpaceButton from '@/modules/backup-repository/components/actions/reclaim-space/BackupRepositoryReclaimSpaceButton.vue'
 import BackupRepositoryAzureAzuriteCard from '@/modules/backup-repository/components/list/panel/cards/BackupRepositoryAzureAzuriteCard.vue'
 import BackupRepositoryInfosCard from '@/modules/backup-repository/components/list/panel/cards/BackupRepositoryInfosCard.vue'
 import BackupRepositoryLocalCard from '@/modules/backup-repository/components/list/panel/cards/BackupRepositoryLocalCard.vue'

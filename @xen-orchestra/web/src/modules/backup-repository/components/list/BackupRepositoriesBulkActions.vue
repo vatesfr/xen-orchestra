@@ -7,6 +7,7 @@ import { useBackupRepositoryForget } from '@/modules/backup-repository/composabl
 import { useBulkEditBackupRepositories } from '@/modules/backup-repository/composables/use-bulk-edit-backup-repositories.composable.ts'
 import { useXoBackupRepositoryBenchmarkJob } from '@/modules/backup-repository/jobs/xo-backup-repository-benchmark.job.ts'
 import { useXoBackupRepositoryChangeStateJob } from '@/modules/backup-repository/jobs/xo-backup-repository-change-state.job.ts'
+import { useXoBackupRepositoryReclaimSpaceJob } from '@/modules/backup-repository/jobs/xo-backup-repository-reclaim-space.job.ts'
 import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
 import type { ActionItem } from '@core/components/menu/VtsActionsMenu.vue'
 import VtsTableBulkActions from '@core/components/table/VtsTableBulkActions.vue'
@@ -46,6 +47,13 @@ const {
   isRunning: isBenchmarkingBackupRepositories,
   errorMessage: benchmarkBackupRepositoriesErrorMessage,
 } = useXoBackupRepositoryBenchmarkJob(() => brs)
+
+const {
+  run: reclaimBackupRepositoriesSpace,
+  canRun: canReclaimBackupRepositoriesSpace,
+  isRunning: isReclaimingBackupRepositoriesSpace,
+  errorMessage: reclaimBackupRepositoriesSpaceErrorMessage,
+} = useXoBackupRepositoryReclaimSpaceJob(() => brs)
 
 const {
   forgetBackupRepositories,
@@ -96,6 +104,14 @@ const bulkActions = computed<ActionItem[]>(() => [
     disabled: !canBenchmarkBackupRepositories.value,
     busy: isBenchmarkingBackupRepositories.value,
     hint: isSelectionEmpty.value ? t('no-br-selected') : benchmarkBackupRepositoriesErrorMessage.value,
+  },
+  {
+    label: t('action:reclaim-space'),
+    icon: 'action:reclaim-space',
+    onClick: () => reclaimBackupRepositoriesSpace(),
+    disabled: !canReclaimBackupRepositoriesSpace.value,
+    busy: isReclaimingBackupRepositoriesSpace.value,
+    hint: isSelectionEmpty.value ? t('no-br-selected') : reclaimBackupRepositoriesSpaceErrorMessage.value,
   },
   {
     label: t('action:forget'),

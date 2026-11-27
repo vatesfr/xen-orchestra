@@ -1,6 +1,7 @@
 import BackupRepositoryTestSpeedButton from '@/modules/backup-repository/components/actions/benchmark/BackupRepositoryTestSpeedButton.vue'
 import BackupRepositoryEditButton from '@/modules/backup-repository/components/actions/edit/BackupRepositoryEditButton.vue'
 import BackupRepositoryForgetButton from '@/modules/backup-repository/components/actions/forget/BackupRepositoryForgetButton.vue'
+import BackupRepositoryReclaimSpaceButton from '@/modules/backup-repository/components/actions/reclaim-space/BackupRepositoryReclaimSpaceButton.vue'
 import BackupRepositoryHeader from '@/modules/backup-repository/components/BackupRepositoryHeader.vue'
 import type { useBackupRepositoryForget } from '@/modules/backup-repository/composables/use-backup-repository-forget.composable.ts'
 import type { useXoBackupRepositoryChangeStateJob } from '@/modules/backup-repository/jobs/xo-backup-repository-change-state.job.ts'
@@ -18,6 +19,7 @@ import { findShownComponents } from '@/test/find-shown-components.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { benchmarkJobMock } from '@/test/mock-backup-repository-benchmark-job.ts'
+import { reclaimSpaceJobMock } from '@/test/mock-backup-repository-reclaim-space-job.ts'
 import { mockModule } from '@/test/spy-on-module.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
@@ -41,6 +43,7 @@ mockModule(import('@/modules/backup-repository/composables/use-backup-repository
 
 beforeEach(() => {
   benchmarkJobMock.reset()
+  reclaimSpaceJobMock.reset()
 })
 
 function mountHeader(br: FrontXoBackupRepository = createBr()) {
@@ -83,9 +86,14 @@ it('offers to change the state of the repository', () => {
   expect(getHeadBarActions(wrapper).text()).toContain(t('action:disable'))
 })
 
-it('offers to edit, to test the speed and to forget the repository in the more actions menu', async () => {
+it('offers to edit, to test the speed, to reclaim space and to forget the repository in the more actions menu', async () => {
   const wrapper = mountHeader()
-  const moreActions = [BackupRepositoryEditButton, BackupRepositoryTestSpeedButton, BackupRepositoryForgetButton]
+  const moreActions = [
+    BackupRepositoryEditButton,
+    BackupRepositoryTestSpeedButton,
+    BackupRepositoryReclaimSpaceButton,
+    BackupRepositoryForgetButton,
+  ]
 
   const moreActionsButton = wrapper
     .findAllComponents(UiButtonIcon)
