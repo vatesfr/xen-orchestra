@@ -35,7 +35,12 @@
 import VtsResizeHandle from '@core/components/resize-handle/VtsResizeHandle.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
-import { type SidebarSide, useLeftSidebarStore, useRightSidebarStore } from '@core/packages/sidebar'
+import {
+  SIDEBAR_TRANSITION_DURATION,
+  type SidebarSide,
+  useLeftSidebarStore,
+  useRightSidebarStore,
+} from '@core/packages/sidebar'
 import { useUiStore } from '@core/stores/ui.store.ts'
 import { IK_MENU_ACTION_HANDLER } from '@core/utils/injection-keys.util.ts'
 import { toVariants } from '@core/utils/to-variants.util.ts'
@@ -68,6 +73,8 @@ const showResizeHandle = computed(() => !ui.isSmall && sidebar.value.isExpanded)
 
 const resizeHandlePosition = computed(() => (side === 'left' ? 'end' : 'start'))
 
+const slideTransition = `margin-inline ${SIDEBAR_TRANSITION_DURATION}ms, transform ${SIDEBAR_TRANSITION_DURATION}ms`
+
 provide(IK_MENU_ACTION_HANDLER, () => {
   if (ui.isSmall) {
     sidebar.value.toggleExpand(false)
@@ -93,9 +100,7 @@ const className = computed(() => [
   background-color: var(--color-neutral-background-secondary);
   width: v-bind('sidebar.cssWidth');
   z-index: 1010;
-  transition:
-    margin-inline 0.25s,
-    transform 0.25s;
+  transition: v-bind(slideTransition);
 
   &.bordered {
     &.side--left {

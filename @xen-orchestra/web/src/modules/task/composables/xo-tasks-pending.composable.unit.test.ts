@@ -61,6 +61,24 @@ describe('pendingProgress', () => {
     expect(wrapper.vm.pendingProgress).toEqual({ value: 100, maxValue: 200 })
   })
 
+  it('keeps the same object when the tasks change without changing the progress', async () => {
+    lastDayTasks.value = [
+      createTaskItem({ id: 'running', status: 'pending', start: 300, progress: 40 }),
+      createTaskItem({ id: 'done', status: 'success', start: 100, end: 200 }),
+    ]
+
+    const { wrapper } = mountPendingTasks()
+    const progress = wrapper.vm.pendingProgress
+
+    lastDayTasks.value = [
+      createTaskItem({ id: 'running', status: 'pending', start: 300, progress: 40, warnings: [] }),
+      createTaskItem({ id: 'done', status: 'success', start: 100, end: 250 }),
+    ]
+    await nextTick()
+
+    expect(wrapper.vm.pendingProgress).toBe(progress)
+  })
+
   it('is cleared once every task of the batch is done, and the next batch starts fresh', async () => {
     lastDayTasks.value = [createTaskItem({ id: 'first', status: 'pending', start: 300 })]
 

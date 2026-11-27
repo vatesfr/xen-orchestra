@@ -6,21 +6,36 @@ import MenuItem from '@core/components/menu/MenuItem.vue'
 import VtsTaskList from '@core/components/task/VtsTaskList.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
+import { SIDEBAR_TRANSITION_DURATION, useRightSidebarStore } from '@core/packages/sidebar'
 import { createTaskItem } from '@core-test/create-task-item.ts'
 import { mount } from '@vue/test-utils'
+import { nextTick } from 'vue'
 
 mockXoTaskCollection()
 
-// Tasks started after it are unread
 const LAST_SEEN_AT = 200
 
 beforeEach(() => {
   taskCollectionMock.reset()
   localStorage.setItem('my-tasks.last-seen-at', String(LAST_SEEN_AT))
+  localStorage.setItem('sidebar.right.expanded', 'true')
+})
+
+afterEach(() => {
+  vi.useRealTimers()
 })
 
 function mountSidebar() {
   return mount(MyTasksSidebar, { global: createGlobalTestConfig() })
+}
+
+function hasTaskList(wrapper: ReturnType<typeof mountSidebar>) {
+  return wrapper.findComponent(VtsTaskList).exists()
+}
+
+async function toggleSidebar(value: boolean) {
+  useRightSidebarStore().toggleExpand(value)
+  await nextTick()
 }
 
 async function openMenu(wrapper: ReturnType<typeof mountSidebar>) {
@@ -55,4 +70,52 @@ it('cannot mark all tasks as read when none is unread', async () => {
   const item = await openMenu(mountSidebar())
 
   expect(item.props('disabled')).toBe(true)
+})
+
+describe('task list rendering', () => {
+  beforeEach(() => {
+    taskCollectionMock.lastDayTasks.value = [createTaskItem({ id: 'task', status: 'success', start: 100, end: 150 })]
+  })
+
+  it('does not render the tasks while the sidebar is collapsed', async () => {
+    localStorage.setItem('sidebar.right.expanded', 'false')
+
+    const wrapper = mountSidebar()
+
+    expect(hasTaskList(wrapper)).toBe(false)
+
+    await toggleSidebar(true)
+
+    expect(hasTaskList(wrapper)).toBe(true)
+  })
+
+  it('keeps rendering the tasks while the sidebar slides out', async () => {
+    vi.useFakeTimers()
+
+    const wrapper = mountSidebar()
+
+    await toggleSidebar(false)
+    vi.advanceTimersByTime(SIDEBAR_TRANSITION_DURATION - 1)
+    await nextTick()
+
+    expect(hasTaskList(wrapper)).toBe(true)
+
+    vi.advanceTimersByTime(1)
+    await nextTick()
+
+    expect(hasTaskList(wrapper)).toBe(false)
+  })
+
+  it('keeps rendering the tasks when the sidebar expands again while sliding out', async () => {
+    vi.useFakeTimers()
+
+    const wrapper = mountSidebar()
+
+    await toggleSidebar(false)
+    await toggleSidebar(true)
+    vi.advanceTimersByTime(SIDEBAR_TRANSITION_DURATION)
+    await nextTick()
+
+    expect(hasTaskList(wrapper)).toBe(true)
+  })
 })

@@ -16,6 +16,8 @@
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
 
+- [Tasks] Fix XO 6 freezes caused by the "My tasks" sidebar (PR [#10935](https://github.com/vatesfr/xen-orchestra/pull/10935))
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
@@ -34,6 +36,7 @@
 
 - @vates/types minor
 - @xen-orchestra/rest-api patch
+- @xen-orchestra/web patch
 - @xen-orchestra/web-core minor
 - @xen-orchestra/xapi minor
 - xo-server patch

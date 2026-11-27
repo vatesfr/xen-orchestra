@@ -6,6 +6,7 @@ import {
   getUnreadTaskIds,
   pruneReadActivity,
 } from '@/modules/task/utils/xo-tasks-unread.util.ts'
+import { keepIfEqual } from '@/shared/utils/keep-if-equal.util.ts'
 import { findTask } from '@core/utils/task.util.ts'
 import { createSharedComposable, useLocalStorage } from '@vueuse/core'
 import { computed, type MaybeRefOrGetter, onScopeDispose, readonly, ref, toValue, watch } from 'vue'
@@ -65,7 +66,9 @@ export const useXoTasksUnread = createSharedComposable(() => {
     { immediate: true }
   )
 
-  const unreadTaskIds = computed(() => getUnreadTaskIds(lastDayTasks.value, lastSeenAt.value, readActivityById.value))
+  const unreadTaskIds = computed<Set<string>>(previousIds =>
+    keepIfEqual(previousIds, getUnreadTaskIds(lastDayTasks.value, lastSeenAt.value, readActivityById.value))
+  )
 
   const unreadTasks = computed(() => lastDayTasks.value.filter(task => unreadTaskIds.value.has(task.id)))
 

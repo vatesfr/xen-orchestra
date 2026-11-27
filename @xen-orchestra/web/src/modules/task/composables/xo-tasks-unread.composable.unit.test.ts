@@ -48,6 +48,18 @@ describe('unreadTaskIds', () => {
     expect([...wrapper.vm.unreadTaskIds].sort()).toEqual(['a', 'root'])
   })
 
+  it('keeps the same set when the tasks change without changing the unread ones', async () => {
+    lastDayTasks.value = [createTree(), createTaskItem({ id: 'old', start: 50, end: 150 })]
+
+    const { wrapper } = mountUnreadTasks()
+    const unreadTaskIds = wrapper.vm.unreadTaskIds
+
+    lastDayTasks.value = [createTree(), createTaskItem({ id: 'old', start: 50, end: 160 })]
+    await nextTick()
+
+    expect(wrapper.vm.unreadTaskIds).toBe(unreadTaskIds)
+  })
+
   it('no longer contains a parent once its only unread subtask is opened', () => {
     lastDayTasks.value = [createTree()]
 

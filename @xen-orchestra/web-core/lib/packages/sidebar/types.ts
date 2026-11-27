@@ -14,6 +14,8 @@ export type SidebarState = ResizableWidth & {
   cssUnlockedOffset: string | number
 }
 
+export const SIDEBAR_TRANSITION_DURATION = 250
+
 export const SIDEBAR_DEFAULTS = {
   left: { isExpanded: true, isLocked: true },
   right: { isExpanded: false, isLocked: false },

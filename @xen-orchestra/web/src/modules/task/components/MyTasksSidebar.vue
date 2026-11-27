@@ -38,20 +38,22 @@
       </div>
     </template>
 
-    <VtsStateHero v-if="hasTaskFetchError" format="card" type="error" size="medium">
-      {{ t('error-no-data') }}
-    </VtsStateHero>
-    <VtsStateHero v-else-if="!areTasksReady || isSearching" format="panel" type="busy" size="medium" />
-    <VtsTaskList
-      v-else-if="displayedTasks.length > 0"
-      :tasks="displayedTasks"
-      :selected-task-id="openedTaskId"
-      :expand-all="hasSearch"
-      :unread-task-ids
-    />
-    <VtsStateHero v-else format="card" type="no-result" size="medium">
-      {{ hasSearch ? t('no-result') : t('no-task') }}
-    </VtsStateHero>
+    <template v-if="isTasksListRendered">
+      <VtsStateHero v-if="hasTaskFetchError" format="card" type="error" size="medium">
+        {{ t('error-no-data') }}
+      </VtsStateHero>
+      <VtsStateHero v-else-if="!areTasksReady || isSearching" format="panel" type="busy" size="medium" />
+      <VtsTaskList
+        v-else-if="displayedTasks.length > 0"
+        :tasks="displayedTasks"
+        :selected-task-id="openedTaskId"
+        :expand-all="hasSearch"
+        :unread-task-ids
+      />
+      <VtsStateHero v-else format="card" type="no-result" size="medium">
+        {{ hasSearch ? t('no-result') : t('no-task') }}
+      </VtsStateHero>
+    </template>
   </VtsLayoutSidebar>
 </template>
 
@@ -68,10 +70,11 @@ import UiInput from '@core/components/ui/input/UiInput.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import { useDebouncedSearch } from '@core/composables/debounced-search.composable.ts'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
-import { useRightSidebarStore } from '@core/packages/sidebar'
+import { SIDEBAR_TRANSITION_DURATION, useRightSidebarStore } from '@core/packages/sidebar'
 import { useUiStore } from '@core/stores/ui.store.ts'
 import { filterTasksByName } from '@core/utils/task.util.ts'
-import { computed, watch } from 'vue'
+import { useTimeoutFn } from '@vueuse/core'
+import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
 
@@ -86,6 +89,28 @@ watch(
   () => {
     if (uiStore.isSmall) {
       rightSidebar.toggleExpand(false)
+    }
+  }
+)
+
+const isTasksListRendered = ref(rightSidebar.isExpanded)
+
+const { start: hideContentAfterSlide, stop: cancelHideContent } = useTimeoutFn(
+  () => {
+    isTasksListRendered.value = false
+  },
+  SIDEBAR_TRANSITION_DURATION,
+  { immediate: false }
+)
+
+watch(
+  () => rightSidebar.isExpanded,
+  isExpanded => {
+    if (isExpanded) {
+      cancelHideContent()
+      isTasksListRendered.value = true
+    } else {
+      hideContentAfterSlide()
     }
   }
 )
