@@ -6,7 +6,7 @@ import MenuItem from '@core/components/menu/MenuItem.vue'
 import VtsTaskList from '@core/components/task/VtsTaskList.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
-import { useRightSidebarStore } from '@core/packages/sidebar'
+import { SIDEBAR_TRANSITION_DURATION, useRightSidebarStore } from '@core/packages/sidebar'
 import { createTaskItem } from '@core-test/create-task-item.ts'
 import { mount } from '@vue/test-utils'
 import { nextTick } from 'vue'
@@ -14,8 +14,6 @@ import { nextTick } from 'vue'
 mockXoTaskCollection()
 
 const LAST_SEEN_AT = 200
-
-const SLIDE_DURATION = 250
 
 beforeEach(() => {
   taskCollectionMock.reset()
@@ -97,7 +95,7 @@ describe('task list rendering', () => {
     const wrapper = mountSidebar()
 
     await toggleSidebar(false)
-    vi.advanceTimersByTime(SLIDE_DURATION - 1)
+    vi.advanceTimersByTime(SIDEBAR_TRANSITION_DURATION - 1)
     await nextTick()
 
     expect(hasTaskList(wrapper)).toBe(true)
@@ -115,7 +113,7 @@ describe('task list rendering', () => {
 
     await toggleSidebar(false)
     await toggleSidebar(true)
-    vi.advanceTimersByTime(SLIDE_DURATION)
+    vi.advanceTimersByTime(SIDEBAR_TRANSITION_DURATION)
     await nextTick()
 
     expect(hasTaskList(wrapper)).toBe(true)

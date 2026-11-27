@@ -70,7 +70,7 @@ import UiInput from '@core/components/ui/input/UiInput.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import { useDebouncedSearch } from '@core/composables/debounced-search.composable.ts'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
-import { useRightSidebarStore } from '@core/packages/sidebar'
+import { SIDEBAR_TRANSITION_DURATION, useRightSidebarStore } from '@core/packages/sidebar'
 import { useUiStore } from '@core/stores/ui.store.ts'
 import { filterTasksByName } from '@core/utils/task.util.ts'
 import { useTimeoutFn } from '@vueuse/core'
@@ -93,15 +93,13 @@ watch(
   }
 )
 
-const SLIDE_DURATION = 250
-
 const isTasksListRendered = ref(rightSidebar.isExpanded)
 
 const { start: hideContentAfterSlide, stop: cancelHideContent } = useTimeoutFn(
   () => {
     isTasksListRendered.value = false
   },
-  SLIDE_DURATION,
+  SIDEBAR_TRANSITION_DURATION,
   { immediate: false }
 )
 
