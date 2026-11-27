@@ -52,7 +52,7 @@
     "promise-toolbox": "^0.21.0",
     "pw": "0.0.4",
     "undici": "^8.10.0",
-    "xo-collection": "^1.0.0",
+    "xo-collection": "^1.0.1",
     "xo-common": "^0.11.0"
   },
   "devDependencies": {

@@ -147,7 +147,7 @@
     "xdg-basedir": "^5.1.0",
     "xen-api": "^6.0.0",
     "xo-acl-resolver": "^0.6.0",
-    "xo-collection": "^1.0.0",
+    "xo-collection": "^1.0.1",
     "xo-common": "^0.11.0",
     "xo-remote-parser": "^2.0.0",
     "xo-vmdk-to-vhd": "^2.5.10",
