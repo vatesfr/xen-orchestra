@@ -16,6 +16,7 @@ vi.mock(import('@/modules/appliance/jobs/xoa-proxy-remove.job.ts'), spyOnOrigina
 vi.mock(import('@/modules/appliance/jobs/xoa-proxy-set.job.ts'), spyOnOriginal)
 vi.mock(import('@/modules/appliance/jobs/xoa-proxy-test.job.ts'), spyOnOriginal)
 vi.mock(import('@/modules/appliance/jobs/xoa-register.job.ts'), spyOnOriginal)
+vi.mock(import('@/modules/appliance/jobs/xoa-restart-xo-server.job.ts'), spyOnOriginal)
 vi.mock(import('@/modules/appliance/jobs/xoa-snapshot.job.ts'), spyOnOriginal)
 vi.mock(import('@/modules/appliance/jobs/xoa-update-settings-edit.job.ts'), spyOnOriginal)
 vi.mock(import('@/modules/appliance/jobs/xoa-upgrade.job.ts'), spyOnOriginal)
