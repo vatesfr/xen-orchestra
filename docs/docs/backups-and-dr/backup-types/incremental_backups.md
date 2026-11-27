@@ -155,9 +155,31 @@ If a Backup network is configured for the pool (**Pool** view → **Advanced** t
 
 ### Enable NBD in the backup job
 
-When creating or editing an incremental backup or replication job for this pool, you can then enable **Use NBD to transfer disk** in the Advanced settings, and raise the number of NBD connections per disk to parallelize the transfer:
+When creating or editing an incremental backup or replication job for this pool, you can then enable **Use NBD to transfer disk** in the Advanced settings, and set the number of NBD connections per disk:
 
 <UiDetail src="/img/xo5/nbd-backup-settings.png" alt="The job's Advanced settings: enable NBD and set the number of connections per disk" width={620} />
+
+### How many NBD connections per disk? {#nbd-connections-per-disk}
+
+More connections per disk can speed up the transfer of a single large disk, but only within a strict limit.
+
+**Each host accepts at most 16 simultaneous NBD connections.** The limit is enforced by the NBD server of the host (`xapi-nbd`), not by XO. It is shared by every NBD client of that host: all disks, all VMs and all jobs that transfer data from it at the same time, including other XO instances or third-party backup tools. Any connection beyond 16 is refused by the host. The UI does not enforce this limit and accepts any value.
+
+All the disks of a VM are transferred at the same time, so the number of connections a job opens on a host is roughly:
+
+```
+connections per disk × disks per VM × VMs backed up at the same time (job concurrency)
+```
+
+Keep this total **at or below 16 per host**, with some margin if other jobs or tools also use NBD on the same pool.
+
+- **Start with 1** (the default). This is the right value for most jobs, especially when several VMs or multi-disk VMs are backed up in parallel.
+- **Raise it to 2–4** only for jobs that transfer a few large disks one at a time, and only if the backup log shows a real speed gain.
+- **Never go much higher.** For example, 20 connections per disk exceeds the host limit on the very first disk.
+
+:::warning
+Going above the limit does not speed up the transfer, it degrades it. When the host refuses connections, XO continues with fewer connections, or, if it can't open any for a disk, falls back to the VHD export handler for that disk. For qcow2 disks, and for jobs using [Purge snapshot data](#purge-snapshot-data-cbt), this fallback means **a full backup is transferred instead of a delta**, on every run, until the setting is lowered. Look for the `can't connect through NBD, fall back to stream export` warning in the backup log.
+:::
 
 After the job has run, always verify in the backup log that NBD was actually used for the transfer:
 
