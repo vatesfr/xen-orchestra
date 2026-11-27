@@ -17,16 +17,21 @@
           @upgraded="handleUpgraded()"
         />
       </div>
+      <div class="column">
+        <ApplianceConnectionCard :proxy />
+      </div>
       <AppliancePackagesCard :packages class="full-width" />
     </div>
   </div>
 </template>
 
 <script lang="ts" setup>
+import ApplianceConnectionCard from '@/modules/appliance/components/connection/ApplianceConnectionCard.vue'
 import AppliancePackagesCard from '@/modules/appliance/components/packages/AppliancePackagesCard.vue'
 import ApplianceVersionCard from '@/modules/appliance/components/version/ApplianceVersionCard.vue'
 import { useXoaUpgrade } from '@/modules/appliance/composables/use-xoa-upgrade.composable.ts'
 import { useXoaPackages } from '@/modules/appliance/remote-resources/use-xoa-packages.ts'
+import { useXoaProxy } from '@/modules/appliance/remote-resources/use-xoa-proxy.ts'
 import { useXoaUpdateChannel } from '@/modules/appliance/remote-resources/use-xoa-update-channel.ts'
 import UiAlert from '@core/components/ui/alert/UiAlert.vue'
 import { useUiStore } from '@core/stores/ui.store.ts'
@@ -50,6 +55,8 @@ function handleUpgraded() {
 
 // TEMP: en attendant une route d'enregistrement, le 409 de la vérification signifie « non enregistrée »
 const registered = computed(() => !hasCheckUpdatesError.value)
+
+const { proxy } = useXoaProxy()
 
 const channelLabel = computed(() => {
   if (channel.value === undefined) {

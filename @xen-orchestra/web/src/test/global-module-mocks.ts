@@ -5,11 +5,17 @@ import { resetModuleSpies } from '@/test/spy-on-module.ts'
 // replaces exports with `mockModule` (same arguments as `vi.mock`); they are back to the real ones before each test.
 const { spyOnOriginal } = await vi.hoisted(() => import('@/test/spy-on-module.ts'))
 
+vi.mock(import('@/modules/appliance/composables/use-edit-proxy.composable.ts'), spyOnOriginal)
 vi.mock(import('@/modules/appliance/composables/use-install-update.composable.ts'), spyOnOriginal)
+vi.mock(import('@/modules/appliance/composables/use-new-proxy.composable.ts'), spyOnOriginal)
 vi.mock(import('@/modules/appliance/composables/use-xoa-upgrade.composable.ts'), spyOnOriginal)
+vi.mock(import('@/modules/appliance/jobs/xoa-proxy-remove.job.ts'), spyOnOriginal)
+vi.mock(import('@/modules/appliance/jobs/xoa-proxy-set.job.ts'), spyOnOriginal)
+vi.mock(import('@/modules/appliance/jobs/xoa-proxy-test.job.ts'), spyOnOriginal)
 vi.mock(import('@/modules/appliance/jobs/xoa-snapshot.job.ts'), spyOnOriginal)
 vi.mock(import('@/modules/appliance/jobs/xoa-upgrade.job.ts'), spyOnOriginal)
 vi.mock(import('@/modules/appliance/remote-resources/use-xoa-packages.ts'), spyOnOriginal)
+vi.mock(import('@/modules/appliance/remote-resources/use-xoa-proxy.ts'), spyOnOriginal)
 vi.mock(import('@/modules/appliance/remote-resources/use-xoa-update-channel.ts'), spyOnOriginal)
 vi.mock(import('@/modules/backup-job/composables/use-backup-job-delete.composable.ts'), spyOnOriginal)
 vi.mock(import('@/modules/backup-job/jobs/xo-backup-job-change-state.job.ts'), spyOnOriginal)
