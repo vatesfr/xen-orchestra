@@ -7,7 +7,7 @@ import { createV2vImportVm } from '@/test/create-v2v-import-vm.ts'
 import { createV2vInventory } from '@/test/create-v2v-inventory.ts'
 import { getV2vVmIds, getV2vVmNames } from '@/test/create-v2v-vm-row.ts'
 import { findV2vRouteQuery, getV2vVmsQuery, V2V_VMS_FILTER_QUERY_KEY } from '@/test/create-v2v-wizard-router.ts'
-import { HOLD_LOADING } from '@/test/hold-loading.ts'
+import { HOLD_LOADING, itIsReadyOnceLoaded } from '@/test/hold-loading.ts'
 import { writeLocalStorageFromAnotherTab } from '@/test/local-storage.ts'
 import { mockDeleteModal } from '@/test/mock-delete-modal.ts'
 import { mockXoCollections } from '@/test/mock-xo-collections.ts'
@@ -364,11 +364,16 @@ describe('selectedVms', () => {
     expect(getV2vVmIds(result.selectedVms.items.value)).toEqual(getV2vVmIds(V2V_LIST_WITH_LISTED_VM.vms))
   })
 
-  it('is busy until the rows are ready', async () => {
-    HOLD_LOADING.VMs()
-    const { result } = await mountVmsStep()
+  describe('isBusy', () => {
+    itIsReadyOnceLoaded(
+      async () => {
+        const { result } = await mountVmsStep()
 
-    expect(result.selectedVms.isBusy.value).toBe(true)
+        return () => result.selectedVms.isBusy.value
+      },
+      [['the XO VMs', 'VMs']],
+      { busy: true }
+    )
   })
 })
 

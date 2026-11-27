@@ -5,7 +5,7 @@ import { createV2vConnection } from '@/test/create-v2v-connection.ts'
 import { createV2vMigrationListVmsOf, createV2vMigrationList } from '@/test/create-v2v-migration-list.ts'
 import { getV2vVmIds } from '@/test/create-v2v-vm-row.ts'
 import { findV2vRouteQuery } from '@/test/create-v2v-wizard-router.ts'
-import { HOLD_LOADING } from '@/test/hold-loading.ts'
+import { HOLD_LOADING, itIsReadyOnceLoaded } from '@/test/hold-loading.ts'
 import { deleteModalMock, mockDeleteModal } from '@/test/mock-delete-modal.ts'
 import { xoCollectionsMock, mockXoCollections } from '@/test/mock-xo-collections.ts'
 import { mockXoV2vVmRowsCollections } from '@/test/mock-xo-v2v-vm-rows-collections.ts'
@@ -144,15 +144,30 @@ describe('selectedVm', () => {
   it.each([
     ['the XO VMs', HOLD_LOADING.VMs],
     ['the SRs of the pool', HOLD_LOADING.SRs],
-  ])('is undefined, busy, without rows, while %s load', async (_, holdLoading) => {
+  ])('is undefined, without rows, while %s load', async (_, holdLoading) => {
     const { result } = await mountMappingStep({ vm: V2V_DB_VM.id })
 
     holdLoading()
 
     expect(result.selectedVm).toBeUndefined()
     expect(result.rows).toEqual([])
-    expect(result.isBusy).toBe(true)
   })
+})
+
+// Forwarded from `useV2vSelectedVms`, whose tests cover every collection it waits for
+describe('isBusy', () => {
+  itIsReadyOnceLoaded(
+    async () => {
+      const { result } = await mountMappingStep({ vm: V2V_DB_VM.id })
+
+      return () => result.isBusy
+    },
+    [
+      ['the XO VMs', 'VMs'],
+      ['the SRs of the pool', 'SRs'],
+    ],
+    { busy: true }
+  )
 })
 
 describe('rows', () => {
