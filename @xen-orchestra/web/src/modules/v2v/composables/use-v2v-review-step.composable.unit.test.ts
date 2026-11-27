@@ -9,9 +9,10 @@ import {
 } from '@/test/create-v2v-launch.ts'
 import { findV2vRouteQuery } from '@/test/create-v2v-wizard-router.ts'
 import { hasRequested } from '@/test/fetch-requests.ts'
+import { HOLD_LOADING } from '@/test/hold-loading.ts'
 import { mockDeleteModal } from '@/test/mock-delete-modal.ts'
 import { mockXoCollections } from '@/test/mock-xo-collections.ts'
-import { v2vVmRowsCollectionsMock, mockXoV2vVmRowsCollections } from '@/test/mock-xo-v2v-vm-rows-collections.ts'
+import { mockXoV2vVmRowsCollections } from '@/test/mock-xo-v2v-vm-rows-collections.ts'
 import { mockXoVmDeviceCollections } from '@/test/mock-xo-vm-device-collections.ts'
 import { mountV2vListStepComposable, type MountV2vListStepOptions } from '@/test/mount-v2v-list-step.ts'
 import { resetV2vCollectionMocks } from '@/test/reset-v2v-collection-mocks.ts'
@@ -50,7 +51,7 @@ describe('isBusy', () => {
   it('is busy while the rows load', async () => {
     const { result } = await mountReviewStep()
 
-    v2vVmRowsCollectionsMock.areVmsReady.value = false
+    HOLD_LOADING.VMs()
 
     expect(result.isBusy).toBe(true)
   })

@@ -58,6 +58,11 @@ export function findCardRowLabels(wrapper: QueryableWrapper): string[] {
   return wrapper.findAll(`${CARD_ROW.root} ${CARD_ROW.label}, ${VM_TAGS_LABEL}`).map(label => label.text())
 }
 
+// The props a component hands its `VmTagsEditor`
+export function findVmTagsEditorProps(wrapper: Pick<VueWrapper, 'getComponent'>) {
+  return wrapper.getComponent(VmTagsEditor).props()
+}
+
 // What the copy button of the `VmTagsEditor` copies, `undefined` without one
 export function findVmTagsCopiedValue(wrapper: Pick<VueWrapper, 'findComponent'>) {
   const button = wrapper.findComponent(VmTagsEditor).findComponent(VtsCopyButton)

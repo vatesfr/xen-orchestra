@@ -1,13 +1,12 @@
 import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import VmDashboardQuickInfo from '@/modules/vm/components/dashboard/VmDashboardQuickInfo.vue'
-import VmTagsEditor from '@/modules/vm/components/tags/VmTagsEditor.vue'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { createHost } from '@/test/create-host.ts'
 import { createPool } from '@/test/create-pool.ts'
 import { createSr } from '@/test/create-sr.ts'
 import { createVm } from '@/test/create-vm.ts'
 import { itShowsDashboardQuickInfo } from '@/test/dashboard-quick-info.ts'
-import { findLabelledValues, findVmTagsLabel } from '@/test/find-rendered-values.ts'
+import { findLabelledValues, findVmTagsEditorProps, findVmTagsLabel } from '@/test/find-rendered-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { xoCollectionsMock, mockXoCollections } from '@/test/mock-xo-collections.ts'
@@ -205,5 +204,5 @@ it('labels the tags', () => {
 it('edits the tags of the VM', () => {
   const vm = createVm()
 
-  expect(mountQuickInfo(vm).getComponent(VmTagsEditor).props('vm')).toEqual(vm)
+  expect(findVmTagsEditorProps(mountQuickInfo(vm)).vm).toEqual(vm)
 })

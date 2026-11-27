@@ -1,12 +1,16 @@
 import VmInfoCard from '@/modules/vm/components/list/panel/cards/VmInfoCard.vue'
-import VmTagsEditor from '@/modules/vm/components/tags/VmTagsEditor.vue'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import type { FrontXoVmTemplate } from '@/modules/vm/remote-resources/use-xo-vm-template-collection.ts'
 import { itShowsNameAndIdTitle } from '@/test/card-title.ts'
 import { createHost } from '@/test/create-host.ts'
 import { createPool } from '@/test/create-pool.ts'
 import { createVm } from '@/test/create-vm.ts'
-import { findCardLabelledValues, findCardRowLabels, findVmTagsCopiedValue } from '@/test/find-rendered-values.ts'
+import {
+  findCardLabelledValues,
+  findCardRowLabels,
+  findVmTagsCopiedValue,
+  findVmTagsEditorProps,
+} from '@/test/find-rendered-values.ts'
 import { findPanelCardTitleIcon } from '@/test/find-titles.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
@@ -108,7 +112,7 @@ it('shows the power state, description and OS name of the VM', () => {
 it('edits the tags of the VM from an icon-only button', () => {
   const vm = createVm()
 
-  expect(mountInfoCard(vm).getComponent(VmTagsEditor).props()).toMatchObject({ vm, iconOnly: true })
+  expect(findVmTagsEditorProps(mountInfoCard(vm))).toMatchObject({ vm, iconOnly: true })
 })
 
 it.each<[string, string[], string | undefined]>([

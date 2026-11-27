@@ -2,6 +2,7 @@ import { useV2vVmRows } from '@/modules/v2v/composables/use-v2v-vm-rows.composab
 import { createV2vImportTask } from '@/test/create-task.ts'
 import { createV2vImportVm, createV2vPartialImportSnapshot } from '@/test/create-v2v-import-vm.ts'
 import { createV2vInventory, createV2vVm } from '@/test/create-v2v-inventory.ts'
+import { HOLD_LOADING } from '@/test/hold-loading.ts'
 import { v2vVmRowsCollectionsMock, mockXoV2vVmRowsCollections } from '@/test/mock-xo-v2v-vm-rows-collections.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
 import { createConnectedV2vContext, v2vConnectionProvide } from '@/test/v2v-connection-provide.ts'
@@ -112,8 +113,8 @@ describe('areRowsReady', () => {
   })
 
   it.each([
-    ['VMs', () => (v2vVmRowsCollectionsMock.areVmsReady.value = false)],
-    ['tasks', () => (v2vVmRowsCollectionsMock.areTasksReady.value = false)],
+    ['VMs', HOLD_LOADING.VMs],
+    ['tasks', HOLD_LOADING.tasks],
     ['snapshots', () => (v2vVmRowsCollectionsMock.areSnapshotsReady.value = false)],
   ])('is false while the %s are loading', (_, startLoading) => {
     startLoading()
