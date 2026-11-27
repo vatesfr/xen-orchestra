@@ -123,7 +123,7 @@
   "action:revert-vm-here": "Vrátiť virt. stroj do stavu tu",
   "action:save": "Uložiť",
   "action:search": "Hľadať",
-  "action:search-treeview": "@:action:hľadať v stromovom zobrazení ({shortcut})",
+  "action:search-treeview": "@:action:search v stromovom zobrazení ({shortcut})",
   "action:see-all": "Zobraziť všetko",
   "action:see-less": "Zobraziť menej",
   "action:see-n-more": "Pozri {n} ďalšie",
