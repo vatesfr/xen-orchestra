@@ -157,7 +157,6 @@ describe('grace period before marking a pool disconnected', function () {
     assert.equal(getStatus(), 'disconnected')
   })
 
-  // and emit `eventFetchingSuccess` on the closed connection
   // plugins (e.g. the SDN controller) release a connection on this event
   describe('server:disconnected', function () {
     const disconnectedXapis = emitted => emitted.filter(_ => _.event === 'server:disconnected').map(_ => _.xapi)
@@ -182,6 +181,7 @@ describe('grace period before marking a pool disconnected', function () {
   })
 
   // the `event.from` in flight when the connection is closed can still answer
+  // and emit `eventFetchingSuccess` on the closed connection
   describe('late events on a closed connection', function () {
     it('does not reconnect a server disabled by the user', async function () {
       const { getStatus, xenServers } = createXenServers()

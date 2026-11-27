@@ -1,8 +1,6 @@
 import assert from 'node:assert/strict'
 import { after, describe, it } from 'node:test'
 import { mkdtempSync, readFileSync, rmSync } from 'node:fs'
-import { after, describe, it } from 'node:test'
-import { mkdtempSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { forbiddenOperation, incorrectState } from 'xo-common/api-errors.js'
