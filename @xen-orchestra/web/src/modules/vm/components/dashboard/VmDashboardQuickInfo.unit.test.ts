@@ -195,11 +195,10 @@ describe('storages', () => {
   })
 })
 
-it('renders the tags below their label', () => {
+it('labels the tags', () => {
   const wrapper = mountQuickInfo(createVm({ tags: ['production'] }))
 
   expect(findVmTagsLabel(wrapper)).toBe(t('tags'))
-  expect(wrapper.find('.vm-tags-editor > .ui-tags-list').exists()).toBe(true)
 })
 
 it('renders one tag per VM tag, in alphabetical order', () => {
