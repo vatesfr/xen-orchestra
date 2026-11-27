@@ -16,6 +16,8 @@
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
 
+- [XO5/Backup] The backup job list no longer crashes on metadata jobs created in XO 6 with all or dynamically selected pools, and shows the modes of jobs targeting all or dynamically selected repositories
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
@@ -37,5 +39,6 @@
 - @xen-orchestra/web-core minor
 - @xen-orchestra/xapi minor
 - xo-server patch
+- xo-web patch
 
 <!--packages-end-->
