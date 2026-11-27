@@ -1,6 +1,6 @@
 import { useXoBackupRepositoryBenchmark } from '@/modules/backup-repository/composables/use-xo-backup-repository-benchmark.composable.ts'
 import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
-import { createBrBenchmark, createTwiceBenchmarkedBr, LATEST_BR_BENCHMARK_RATES } from '@/test/create-br-benchmark.ts'
+import { createBrBenchmark, createTwiceBenchmarkedBr, getLatestBrBenchmarkSpeeds } from '@/test/create-br-benchmark.ts'
 import { createBr } from '@/test/create-br.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
 import { formatSpeed } from '@core/utils/speed.util.ts'
@@ -20,10 +20,7 @@ describe('writeSpeed and readSpeed', () => {
   it('are the formatted rates of the latest stored benchmark', () => {
     const result = mountBenchmark(createTwiceBenchmarkedBr())
 
-    expect({ write: result.writeSpeed, read: result.readSpeed }).toEqual({
-      write: formatSpeed(LATEST_BR_BENCHMARK_RATES.write),
-      read: formatSpeed(LATEST_BR_BENCHMARK_RATES.read),
-    })
+    expect({ write: result.writeSpeed, read: result.readSpeed }).toEqual(getLatestBrBenchmarkSpeeds())
   })
 
   it('follow the changes of the source repository', () => {

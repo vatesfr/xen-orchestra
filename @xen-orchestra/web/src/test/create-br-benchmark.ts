@@ -1,4 +1,5 @@
 import { createBr } from '@/test/create-br.ts'
+import { formatSpeed } from '@core/utils/speed.util.ts'
 import type { XoBackupRepositoryBenchmark } from '@vates/types'
 
 /**
@@ -15,7 +16,12 @@ export function createBrBenchmark(overrides: Partial<XoBackupRepositoryBenchmark
 }
 
 // The rates of the latest benchmark of `createTwiceBenchmarkedBr`
-export const LATEST_BR_BENCHMARK_RATES = { write: 100_000_000, read: 200_000_000 }
+const LATEST_BR_BENCHMARK_RATES = { write: 100_000_000, read: 200_000_000 }
+
+// The speeds of the latest benchmark of `createTwiceBenchmarkedBr`, formatted as the app shows them
+export function getLatestBrBenchmarkSpeeds() {
+  return { write: formatSpeed(LATEST_BR_BENCHMARK_RATES.write), read: formatSpeed(LATEST_BR_BENCHMARK_RATES.read) }
+}
 
 /**
  * A backup repository benchmarked twice: an older benchmark, then the latest one, of `LATEST_BR_BENCHMARK_RATES`.
