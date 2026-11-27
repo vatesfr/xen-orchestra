@@ -26,6 +26,7 @@ vi.mock(import('@/modules/backup-repository/jobs/xo-backup-repository-change-sta
 vi.mock(import('@/modules/backup-repository/jobs/xo-backup-repository-create.job.ts'), spyOnOriginal)
 vi.mock(import('@/modules/backup-repository/jobs/xo-backup-repository-edit.job.ts'), spyOnOriginal)
 vi.mock(import('@/modules/backup-repository/jobs/xo-backup-repository-forget.job.ts'), spyOnOriginal)
+vi.mock(import('@/modules/backup-repository/jobs/xo-backup-repository-reclaim-space.job.ts'), spyOnOriginal)
 vi.mock(import('@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'), spyOnOriginal)
 vi.mock(import('@/modules/backup-repository/utils/xo-backup-repository-health.util.ts'), spyOnOriginal)
 vi.mock(import('@/modules/host/remote-resources/use-xo-host-collection.ts'), spyOnOriginal)
