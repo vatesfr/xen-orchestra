@@ -207,84 +207,77 @@ describe('filters', () => {
     expect(findBackupJobNames(wrapper)).toEqual(['A', 'B'])
   })
 
-  const filterCases: {
-    name: string
-    // The enabled state of each schedule of a job, the status of each of its runs, started that many days ago
-    jobs: { name: string; schedules?: boolean[]; statuses?: FrontXoBackupLog['status'][]; daysAgo?: number }[]
-    // The option picked in each filter, by its label
-    picks: [filter: string, option: string][]
-    shown: string[]
-  }[] = [
-    {
-      name: 'filters the backup jobs on their status, enabled with at least one enabled schedule',
-      jobs: [
+  // `jobs`: the enabled state of each schedule of a job, the status of each of its runs, started that many days ago.
+  // `picks`: the option picked in each filter, by its label
+  const filterCases: [
+    name: string,
+    jobs: { name: string; schedules?: boolean[]; statuses?: FrontXoBackupLog['status'][]; daysAgo?: number }[],
+    picks: [filter: string, option: string][],
+    shown: string[],
+  ][] = [
+    [
+      'filters the backup jobs on their status, enabled with at least one enabled schedule',
+      [
         { name: 'Enabled job', schedules: [false, true] },
         { name: 'Disabled job', schedules: [false] },
         { name: 'Job without schedule' },
       ],
-      picks: [[t('status'), t('disabled')]],
-      shown: ['Disabled job', 'Job without schedule'],
-    },
-    {
-      name: 'filters the backup jobs on the status of their last 3 finished runs',
-      jobs: [
+      [[t('status'), t('disabled')]],
+      ['Disabled job', 'Job without schedule'],
+    ],
+    [
+      'filters the backup jobs on the status of their last 3 finished runs',
+      [
         { name: 'Failed job', statuses: ['pending', 'success', 'success', 'interrupted'] },
         { name: 'Good job', statuses: ['success', 'success', 'success', 'failure'] },
       ],
-      picks: [[lastRunsLabel, t('backups:jobs:errors-detected')]],
-      shown: ['Failed job'],
-    },
-    {
-      name: 'filters the backup jobs on the status of their runs of the last 7 days',
-      jobs: [
+      [[lastRunsLabel, t('backups:jobs:errors-detected')]],
+      ['Failed job'],
+    ],
+    [
+      'filters the backup jobs on the status of their runs of the last 7 days',
+      [
         { name: 'Recent job', statuses: ['success'] },
         { name: 'Old job', statuses: ['failure'], daysAgo: 10 },
       ],
-      picks: [[lastDaysLabel, t('no-run')]],
-      shown: ['Old job'],
-    },
-    {
-      name: 'combines the filters',
-      jobs: [
+      [[lastDaysLabel, t('no-run')]],
+      ['Old job'],
+    ],
+    [
+      'combines the filters',
+      [
         { name: 'Enabled failed job', schedules: [true], statuses: ['failure'] },
         { name: 'Disabled failed job', statuses: ['failure'] },
         { name: 'Enabled job' },
       ],
-      picks: [
+      [
         [t('status'), t('enabled')],
         [lastRunsLabel, t('backups:jobs:errors-detected')],
       ],
-      shown: ['Enabled failed job'],
-    },
+      ['Enabled failed job'],
+    ],
   ]
 
-  // Not `it.each`: its `$name` would quote and truncate the name
-  for (const { name, jobs, picks, shown } of filterCases) {
-    it(name, async () => {
-      const backupJobs = jobs.map(job => {
-        const backupJob = createNamedBackupJob(job.name)
-        const { schedules = [], statuses = [], daysAgo } = job
-        scheduleCollectionMock.schedules.value.push(
-          ...schedules.map(enabled => createSchedule({ jobId: backupJob.id, enabled }))
-        )
-        setBackupLogs(
-          backupJob,
-          statuses,
-          daysAgo === undefined ? undefined : Date.now() - daysAgo * 24 * 60 * 60 * 1000
-        )
+  it.each(filterCases)('%s', async (_, jobs, picks, shown) => {
+    const backupJobs = jobs.map(job => {
+      const backupJob = createNamedBackupJob(job.name)
+      const { schedules = [], statuses = [], daysAgo } = job
+      scheduleCollectionMock.schedules.value.push(
+        ...schedules.map(enabled => createSchedule({ jobId: backupJob.id, enabled }))
+      )
+      setBackupLogs(backupJob, statuses, daysAgo === undefined ? undefined : Date.now() - daysAgo * 24 * 60 * 60 * 1000)
 
-        return backupJob
-      })
-
-      const wrapper = mountTable(backupJobs)
-
-      for (const [filter, option] of picks) {
-        await pickFilterOption(wrapper, filter, option)
-      }
-
-      expect(findBackupJobNames(wrapper)).toEqual(shown)
+      return backupJob
     })
-  }
+
+    const wrapper = mountTable(backupJobs)
+
+    for (const [filter, option] of picks) {
+      await pickFilterOption(wrapper, filter, option)
+    }
+
+    expect(findBackupJobNames(wrapper)).toEqual(shown)
+  })
 
   it('keeps the backup jobs matching one of the selected options', async () => {
     const skippedJob = createNamedBackupJob('Skipped job')

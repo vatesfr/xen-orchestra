@@ -91,31 +91,29 @@ it('shows the identity, power state and resources of the VM', () => {
   })
 })
 
-const VIRTUALIZATION_TYPE_CASES: { name: string; vm: Partial<FrontXoVm>; type: string }[] = [
-  {
-    name: 'reports an HVM guest running the PV drivers as pvhvm',
-    vm: { virtualizationMode: 'hvm', pvDriversDetected: true },
-    type: 'pvhvm',
-  },
-  {
-    name: 'reports the raw virtualization mode of an HVM guest without PV drivers',
-    vm: { virtualizationMode: 'hvm', pvDriversDetected: false },
-    type: 'hvm',
-  },
-  {
-    name: 'reports the raw virtualization mode of a paravirtualized guest',
-    vm: { virtualizationMode: 'pv', pvDriversDetected: true },
-    type: 'pv',
-  },
+const VIRTUALIZATION_TYPE_CASES: [name: string, vm: Partial<FrontXoVm>, type: string][] = [
+  [
+    'reports an HVM guest running the PV drivers as pvhvm',
+    { virtualizationMode: 'hvm', pvDriversDetected: true },
+    'pvhvm',
+  ],
+  [
+    'reports the raw virtualization mode of an HVM guest without PV drivers',
+    { virtualizationMode: 'hvm', pvDriversDetected: false },
+    'hvm',
+  ],
+  [
+    'reports the raw virtualization mode of a paravirtualized guest',
+    { virtualizationMode: 'pv', pvDriversDetected: true },
+    'pv',
+  ],
 ]
 
-for (const { name, vm, type } of VIRTUALIZATION_TYPE_CASES) {
-  it(name, () => {
-    const wrapper = mountQuickInfo(createVm(vm))
+it.each(VIRTUALIZATION_TYPE_CASES)('%s', (_, vm, type) => {
+  const wrapper = mountQuickInfo(createVm(vm))
 
-    expect(findLabelledValues(wrapper)).toMatchObject({ [t('virtualization-type')]: type })
-  })
-}
+  expect(findLabelledValues(wrapper)).toMatchObject({ [t('virtualization-type')]: type })
+})
 
 it('shows the pool and the host of the VM', () => {
   xoCollectionsMock.pools.value = [createPool({ name_label: 'Production Pool' })]

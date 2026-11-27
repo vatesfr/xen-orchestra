@@ -46,15 +46,15 @@ itShowsHostDashboardCard(mountProvisioning, {
   loading: { collections: ['hosts', 'VMs'], content: 'the provisioning', find: findCardNumbers },
 })
 
-const ASSIGNED_VCPUS_CASES = [
-  {
-    name: 'sums the vCPUs of the running VMs against the cores of the host',
-    vms: () => [createRunningVm('vm-1', 2), createRunningVm('vm-2', 4)],
-    assigned: '6',
-  },
-  {
-    name: 'leaves out the vCPUs of the VMs that are not running',
-    vms: () => [
+const ASSIGNED_VCPUS_CASES: [name: string, vms: () => FrontXoVm[], assigned: string][] = [
+  [
+    'sums the vCPUs of the running VMs against the cores of the host',
+    () => [createRunningVm('vm-1', 2), createRunningVm('vm-2', 4)],
+    '6',
+  ],
+  [
+    'leaves out the vCPUs of the VMs that are not running',
+    () => [
       createRunningVm('vm-1', 2),
       createVm({
         id: 'vm-2' as FrontXoVm['id'],
@@ -63,33 +63,27 @@ const ASSIGNED_VCPUS_CASES = [
         CPUs: { max: 4, number: 4 },
       }),
     ],
-    assigned: '2',
-  },
-  {
-    name: 'leaves out the VMs running on another host',
-    vms: () => [createRunningVm('vm-1', 2, 'host-2' as FrontXoHost['id'])],
-    assigned: '0',
-  },
-  { name: 'reports no vCPU assigned for a host without VM', vms: () => [], assigned: '0' },
-  {
-    name: 'overprovisions past the cores of the host',
-    vms: () => [createRunningVm('vm-1', 8), createRunningVm('vm-2', 8)],
-    assigned: '16',
-  },
+    '2',
+  ],
+  [
+    'leaves out the VMs running on another host',
+    () => [createRunningVm('vm-1', 2, 'host-2' as FrontXoHost['id'])],
+    '0',
+  ],
+  ['reports no vCPU assigned for a host without VM', () => [], '0'],
+  ['overprovisions past the cores of the host', () => [createRunningVm('vm-1', 8), createRunningVm('vm-2', 8)], '16'],
 ]
 
-for (const { name, vms, assigned } of ASSIGNED_VCPUS_CASES) {
-  it(name, () => {
-    vmCollectionMock.vms.value = vms()
+it.each(ASSIGNED_VCPUS_CASES)('%s', (_, vms, assigned) => {
+  vmCollectionMock.vms.value = vms()
 
-    const wrapper = mountProvisioning()
+  const wrapper = mountProvisioning()
 
-    expect(findCardNumbers(wrapper)).toEqual([
-      [t('vcpus-assigned'), assigned],
-      [t('total-cpus'), '8'],
-    ])
-  })
-}
+  expect(findCardNumbers(wrapper)).toEqual([
+    [t('vcpus-assigned'), assigned],
+    [t('total-cpus'), '8'],
+  ])
+})
 
 // Two running VMs taking 6 vCPUs, 75% of the cores of the host
 function mountWithSixVCpus(mountedHost = host) {

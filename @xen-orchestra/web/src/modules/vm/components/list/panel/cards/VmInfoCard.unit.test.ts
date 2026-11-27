@@ -122,36 +122,34 @@ it.each<[string, string[], string | undefined]>([
   expect(findVmTagsCopiedValue(mountInfoCard(createVm({ tags })))).toBe(copiedTags)
 })
 
-const POOL_AND_HOST_CASES = [
-  {
-    name: 'shows the name of the pool hosting the VM',
-    seed: () => {
+const POOL_AND_HOST_CASES: [name: string, label: string, value: string, seed?: () => void][] = [
+  [
+    'shows the name of the pool hosting the VM',
+    t('pool'),
+    'Production Pool',
+    () => {
       xoCollectionsMock.pools.value = [createPool({ name_label: 'Production Pool' })]
     },
-    label: t('pool'),
-    value: 'Production Pool',
-  },
-  { name: 'leaves the pool row empty when the pool is unknown', label: t('pool'), value: '' },
-  {
-    name: 'shows the name of the host running the VM',
-    seed: () => {
+  ],
+  ['leaves the pool row empty when the pool is unknown', t('pool'), ''],
+  [
+    'shows the name of the host running the VM',
+    t('host'),
+    'Primary Host',
+    () => {
       xoCollectionsMock.hosts.value = [
         createHost({ name_label: 'Primary Host', power_state: HOST_POWER_STATE.RUNNING }),
       ]
     },
-    label: t('host'),
-    value: 'Primary Host',
-  },
-  { name: 'leaves the host row empty when the VM runs on no host', label: t('host'), value: '' },
+  ],
+  ['leaves the host row empty when the VM runs on no host', t('host'), ''],
 ]
 
-for (const { name, seed, label, value } of POOL_AND_HOST_CASES) {
-  it(name, () => {
-    seed?.()
+it.each(POOL_AND_HOST_CASES)('%s', (_, label, value, seed) => {
+  seed?.()
 
-    expect(findCardLabelledValues(mountInfoCard())).toMatchObject({ [label]: value })
-  })
-}
+  expect(findCardLabelledValues(mountInfoCard())).toMatchObject({ [label]: value })
+})
 
 it('shows the name of the template the VM was created from', () => {
   xoCollectionsMock.templates.value = [createTemplate()]

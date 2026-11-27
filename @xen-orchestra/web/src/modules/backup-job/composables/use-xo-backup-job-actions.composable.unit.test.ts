@@ -90,45 +90,48 @@ describe('changeStateAction', () => {
 })
 
 const JOB_ACTIONS = [
-  {
-    action: 'manualRunAction',
-    job: runJob,
-    clickCase: 'runs the backup job on click',
-    item: { label: 'action:manual-run', icon: 'fa:play' },
-    errorMessage: 'already running',
-  },
-  {
-    action: 'duplicateAction',
-    job: duplicateJob,
-    clickCase: 'duplicates the backup job on click',
-    item: { label: 'action:duplicate', icon: 'action:duplicate' },
-    errorMessage: 'in progress',
-  },
-  {
-    action: 'deleteAction',
-    job: deleteJob,
-    clickCase: 'asks to delete the backup job on click, apart from the other actions',
-    item: { label: 'action:delete', icon: 'action:delete', accent: 'danger', separator: true },
-    errorMessage: 'in progress',
-  },
+  [
+    'manualRunAction',
+    {
+      job: runJob,
+      clickCase: 'runs the backup job on click',
+      item: { label: 'action:manual-run', icon: 'fa:play' },
+      errorMessage: 'already running',
+    },
+  ],
+  [
+    'duplicateAction',
+    {
+      job: duplicateJob,
+      clickCase: 'duplicates the backup job on click',
+      item: { label: 'action:duplicate', icon: 'action:duplicate' },
+      errorMessage: 'in progress',
+    },
+  ],
+  [
+    'deleteAction',
+    {
+      job: deleteJob,
+      clickCase: 'asks to delete the backup job on click, apart from the other actions',
+      item: { label: 'action:delete', icon: 'action:delete', accent: 'danger', separator: true },
+      errorMessage: 'in progress',
+    },
+  ],
 ] as const
 
-// Not `describe.each`: its `$action` would quote the name
-for (const { action, job, clickCase, item, errorMessage } of JOB_ACTIONS) {
-  describe(action, () => {
-    it(clickCase, () => {
-      const actionItem = mountActions()[action]
+describe.each(JOB_ACTIONS)('%s', (action, { job, clickCase, item, errorMessage }) => {
+  it(clickCase, () => {
+    const actionItem = mountActions()[action]
 
-      actionItem.onClick()
+    actionItem.onClick()
 
-      expect(actionItem).toMatchObject({ ...item, label: t(item.label) })
-      expect(findLastArgs(job.use)).toEqual([[backupJob]])
-      expect(job.run).toHaveBeenCalledOnce()
-    })
-
-    itRunsJobFromAction({ getAction: () => mountActions()[action], setJobState: job.setState, errorMessage })
+    expect(actionItem).toMatchObject({ ...item, label: t(item.label) })
+    expect(findLastArgs(job.use)).toEqual([[backupJob]])
+    expect(job.run).toHaveBeenCalledOnce()
   })
-}
+
+  itRunsJobFromAction({ getAction: () => mountActions()[action], setJobState: job.setState, errorMessage })
+})
 
 describe('moreActions', () => {
   it('lists the change of state, the manual run and the duplication, without the deletion', () => {
