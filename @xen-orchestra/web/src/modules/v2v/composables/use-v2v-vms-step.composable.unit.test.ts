@@ -13,6 +13,7 @@ import { mockDeleteModal } from '@/test/mock-delete-modal.ts'
 import { mockXoCollections } from '@/test/mock-xo-collections.ts'
 import { v2vVmRowsCollectionsMock, mockXoV2vVmRowsCollections } from '@/test/mock-xo-v2v-vm-rows-collections.ts'
 import { mountV2vVmsStep } from '@/test/mount-v2v-vms-step.ts'
+import { resetV2vCollectionMocks } from '@/test/reset-v2v-collection-mocks.ts'
 import { readV2vMigrationListVmIds } from '@/test/v2v-migration-list-storage.ts'
 import {
   V2V_DATASTORE_A_FILTER,
@@ -69,7 +70,7 @@ function expectedDatastoreBSummaryLabels(result: VmsStep) {
 }
 
 beforeEach(() => {
-  v2vVmRowsCollectionsMock.reset()
+  resetV2vCollectionMocks()
 })
 
 describe('tableView', () => {

@@ -13,7 +13,7 @@ import {
 } from '@/test/create-v2v-migration-list.ts'
 import { createV2vListPair } from '@/test/create-v2v-selected-vms.ts'
 import { getV2vVmIds } from '@/test/create-v2v-vm-row.ts'
-import { itIsReadyOnceLoaded } from '@/test/hold-loading.ts'
+import { HOLD_LOADING, itIsReadyOnceLoaded } from '@/test/hold-loading.ts'
 import { deleteModalMock, mockDeleteModal } from '@/test/mock-delete-modal.ts'
 import { xoCollectionsMock, mockXoCollections } from '@/test/mock-xo-collections.ts'
 import { v2vVmRowsCollectionsMock, mockXoV2vVmRowsCollections } from '@/test/mock-xo-v2v-vm-rows-collections.ts'
@@ -326,7 +326,7 @@ describe('listPair', () => {
   it('names the pool by its id while the pools load', async () => {
     const { result } = await mountSelectedVms()
 
-    xoCollectionsMock.startLoadingPools()
+    HOLD_LOADING.pools()
 
     expect(result.listPair.poolName).toBe(V2V_LIST_POOL.id)
     expect(findItemIds(result)).toEqual(LIST_IDS)

@@ -1,6 +1,7 @@
 import { useV2vWizard } from '@/modules/v2v/composables/use-v2v-wizard.composable.ts'
 import { UNKNOWN_POOL_ID } from '@/test/create-pool.ts'
 import { createV2vMigrationList } from '@/test/create-v2v-migration-list.ts'
+import { HOLD_LOADING } from '@/test/hold-loading.ts'
 import { xoCollectionsMock, mockXoCollections } from '@/test/mock-xo-collections.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
 import { mountOnV2vWizard, type V2vWizardSetup } from '@/test/mount-on-v2v-wizard.ts'
@@ -29,65 +30,48 @@ beforeEach(() => {
 })
 
 describe('currentStep', () => {
-  it('is the source step by default', async () => {
-    const { wizard } = await mountWizard()
+  it.each<[string, V2vWizardSetup, string]>([
+    ['is the source step by default', {}, 'source'],
+    ['stays on the source step until connected', { step: 'destination' }, 'source'],
+    ['is the requested step once connected', { step: 'destination', source: V2V_WIZARD_SOURCE }, 'destination'],
+    [
+      'stays on the destination step until a migration list is saved for the pool',
+      { step: 'vms', source: V2V_WIZARD_SOURCE, query: { pool: V2V_EMPTY_LIST.poolId } },
+      'destination',
+    ],
+    [
+      'is the VMs step once a migration list is saved for the pool',
+      { step: 'vms', source: V2V_WIZARD_SOURCE, list: V2V_EMPTY_LIST },
+      'vms',
+    ],
+    [
+      'goes back to the destination step once the pools tell its pool is unknown',
+      { step: 'vms', source: V2V_WIZARD_SOURCE, list: UNKNOWN_POOL_LIST },
+      'destination',
+    ],
+    [
+      'stays on the VMs step until the list holds VMs',
+      { step: 'mapping', source: V2V_WIZARD_SOURCE, list: V2V_EMPTY_LIST },
+      'vms',
+    ],
+    [
+      'is the mapping step once the list holds VMs',
+      { step: 'mapping', source: V2V_WIZARD_SOURCE, list: V2V_LIST_WITH_VMS },
+      'mapping',
+    ],
+  ])('%s', async (_, setup, step) => {
+    const { wizard } = await mountWizard(setup)
 
-    expect(wizard.currentStep).toBe('source')
-  })
-
-  it('stays on the source step until connected', async () => {
-    const { wizard } = await mountWizard({ step: 'destination' })
-
-    expect(wizard.currentStep).toBe('source')
-  })
-
-  it('is the requested step once connected', async () => {
-    const { wizard } = await mountWizard({ step: 'destination', source: V2V_WIZARD_SOURCE })
-
-    expect(wizard.currentStep).toBe('destination')
-  })
-
-  it('stays on the destination step until a migration list is saved for the pool', async () => {
-    const { wizard } = await mountWizard({
-      step: 'vms',
-      source: V2V_WIZARD_SOURCE,
-      query: { pool: V2V_EMPTY_LIST.poolId },
-    })
-
-    expect(wizard.currentStep).toBe('destination')
-  })
-
-  it('is the VMs step once a migration list is saved for the pool', async () => {
-    const { wizard } = await mountWizard({ step: 'vms', source: V2V_WIZARD_SOURCE, list: V2V_EMPTY_LIST })
-
-    expect(wizard.currentStep).toBe('vms')
+    expect(wizard.currentStep).toBe(step)
   })
 
   it('stays on the VMs step while the pools load', async () => {
     const { wizard } = await mountWizard({ step: 'vms', source: V2V_WIZARD_SOURCE, list: V2V_EMPTY_LIST })
 
-    xoCollectionsMock.startLoadingPools()
+    HOLD_LOADING.pools()
     await nextTick()
 
     expect(wizard.currentStep).toBe('vms')
-  })
-
-  it('goes back to the destination step once the pools tell its pool is unknown', async () => {
-    const { wizard } = await mountWizard({ step: 'vms', source: V2V_WIZARD_SOURCE, list: UNKNOWN_POOL_LIST })
-
-    expect(wizard.currentStep).toBe('destination')
-  })
-
-  it('stays on the VMs step until the list holds VMs', async () => {
-    const { wizard } = await mountWizard({ step: 'mapping', source: V2V_WIZARD_SOURCE, list: V2V_EMPTY_LIST })
-
-    expect(wizard.currentStep).toBe('vms')
-  })
-
-  it('is the mapping step once the list holds VMs', async () => {
-    const { wizard } = await mountWizard({ step: 'mapping', source: V2V_WIZARD_SOURCE, list: V2V_LIST_WITH_VMS })
-
-    expect(wizard.currentStep).toBe('mapping')
   })
 })
 
@@ -106,7 +90,7 @@ describe('summary', () => {
 
   it.each([
     ['its name', () => {}, V2V_LIST_POOL.name_label],
-    ['its id while the pools load', () => xoCollectionsMock.startLoadingPools(), V2V_LIST_POOL.id],
+    ['its id while the pools load', HOLD_LOADING.pools, V2V_LIST_POOL.id],
   ])('names the source and the pool by %s past the destination step', async (_, setPools, destination) => {
     const { wizard } = await mountWizard({ step: 'vms', source: V2V_WIZARD_SOURCE, list: V2V_EMPTY_LIST })
 

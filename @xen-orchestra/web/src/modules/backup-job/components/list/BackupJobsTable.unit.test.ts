@@ -8,6 +8,7 @@ import { createSchedule } from '@/test/create-schedule.ts'
 import { createTestRouter } from '@/test/create-test-router.ts'
 import { findTableCell } from '@/test/find-table-cells.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
+import { HOLD_LOADING } from '@/test/hold-loading.ts'
 import { t } from '@/test/i18n.ts'
 import { backupLogCollectionMock, mockXoBackupLogCollection } from '@/test/mock-xo-backup-log-collection.ts'
 import { mockXoRoutes } from '@/test/mock-xo-routes.ts'
@@ -137,7 +138,7 @@ describe('last runs', () => {
   })
 
   it('shows a loader while the backup logs are loading', () => {
-    backupLogCollectionMock.areBackupLogsReady.value = false
+    HOLD_LOADING.backupLogs()
 
     const cell = findJobCell(createVmBackupJob(), t('last-n-runs', { n: 3 }))
 

@@ -1,4 +1,5 @@
 import { useV2vPoolName, useV2vPoolNameGetter } from '@/modules/v2v/composables/use-v2v-pool-name.composable.ts'
+import { HOLD_LOADING } from '@/test/hold-loading.ts'
 import { xoCollectionsMock, mockXoCollections } from '@/test/mock-xo-collections.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
 import { seedV2vListPool } from '@/test/seed-v2v-list-pool.ts'
@@ -23,7 +24,7 @@ describe('getPoolName', () => {
   })
 
   it('names the pool by its id while the pools load', () => {
-    xoCollectionsMock.startLoadingPools()
+    HOLD_LOADING.pools()
 
     expect(mountPoolNameGetter().getPoolName(V2V_LIST_POOL.id)).toBe(V2V_LIST_POOL.id)
   })
