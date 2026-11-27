@@ -1,3 +1,4 @@
+import VtsHeaderCell from '@core/components/table/cells/VtsHeaderCell.vue'
 import UiButtonIcon, {
   type ButtonIconAccent,
   type ButtonIconSize,
@@ -5,7 +6,6 @@ import UiButtonIcon, {
 import UiTableCell from '@core/components/ui/table-cell/UiTableCell.vue'
 import type { IconName } from '@core/icons'
 import { defineColumn } from '@core/packages/table/define-column.ts'
-import { renderHeadCell } from '@core/tables/helpers/render-head-cell.ts'
 import type { HeaderConfig } from '@core/tables/types.ts'
 import { h, type MaybeRefOrGetter, toValue } from 'vue'
 
@@ -15,10 +15,16 @@ export type ButtonIconConfig = {
   buttonAccent?: MaybeRefOrGetter<ButtonIconAccent>
 }
 
+const COLUMN_WIDTH = '6rem'
+
 export const useButtonIconColumn = defineColumn((config: HeaderConfig & ButtonIconConfig) => ({
-  renderHead: () => renderHeadCell(config.headerLabel),
-  renderBody: (onClick: () => void) =>
-    h(UiTableCell, { align: 'center', style: 'width: 6rem' }, () =>
+  renderHead: () => h(VtsHeaderCell, { style: { width: COLUMN_WIDTH } }, () => toValue(config.headerLabel)),
+  renderBody: (onClick: (() => void) | undefined) => {
+    if (onClick === undefined) {
+      return h(UiTableCell, { style: { width: COLUMN_WIDTH } })
+    }
+
+    return h(UiTableCell, { align: 'center', style: { width: COLUMN_WIDTH } }, () =>
       h(UiButtonIcon, {
         icon: toValue(config.buttonIcon),
         accent: toValue(config.buttonAccent) ?? 'brand',
@@ -26,5 +32,6 @@ export const useButtonIconColumn = defineColumn((config: HeaderConfig & ButtonIc
         targetScale: 1.5,
         onClick,
       })
-    ),
+    )
+  },
 }))

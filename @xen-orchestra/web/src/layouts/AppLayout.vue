@@ -17,13 +17,19 @@
       />
     </template>
     <template #header-end>
-      <UiLink :href="xo5Route" size="medium">{{ t('xo-5') }}</UiLink>
-      <ThirdParties />
-      <QuickTaskButton />
+      <AppHeaderMenu v-if="uiStore.isSmall" />
+      <template v-else>
+        <UiLink :href="xo5Route" size="medium">{{ t('xo-5') }}</UiLink>
+        <ThirdParties />
+      </template>
+      <MyTasksButton />
       <AccountMenu />
     </template>
     <template #left-sidebar>
       <AppNavigationSidebar />
+    </template>
+    <template #right-sidebar>
+      <MyTasksSidebar />
     </template>
     <template #content>
       <VtsStateHero v-if="showLoader" format="page" size="large" type="busy">
@@ -44,8 +50,10 @@
 
 <script lang="ts" setup>
 import AccountMenu from '@/modules/account/components/menu/AccountMenu.vue'
+import AppHeaderMenu from '@/modules/navigation/components/AppHeaderMenu.vue'
 import AppNavigationSidebar from '@/modules/navigation/components/AppNavigationSidebar.vue'
-import QuickTaskButton from '@/modules/task/components/QuickTaskButton.vue'
+import MyTasksButton from '@/modules/task/components/MyTasksButton.vue'
+import MyTasksSidebar from '@/modules/task/components/MyTasksSidebar.vue'
 import ThirdParties from '@/modules/third-parties/components/ThirdParties.vue'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'

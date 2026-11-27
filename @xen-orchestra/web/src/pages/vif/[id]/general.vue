@@ -1,12 +1,14 @@
 <template>
-  <VtsColumns extra-space-around>
-    <VtsColumn>
-      <VifGeneralInfoCard :vif />
-    </VtsColumn>
-    <VtsColumn>
-      <VifNetworkInfoCard :vif />
-    </VtsColumn>
-  </VtsColumns>
+  <div class="scroll-container">
+    <VtsColumns extra-space-around>
+      <VtsColumn>
+        <VifGeneralInfoCard :vif />
+      </VtsColumn>
+      <VtsColumn>
+        <VifNetworkInfoCard :vif />
+      </VtsColumn>
+    </VtsColumns>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -18,3 +20,11 @@ import VtsColumns from '@core/components/columns/VtsColumns.vue'
 
 defineProps<{ vif: FrontXoVif }>()
 </script>
+
+<style lang="postcss" scoped>
+.scroll-container {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+</style>

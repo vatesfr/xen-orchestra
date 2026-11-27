@@ -116,6 +116,7 @@ A disk can be [live mounted](../backup-features-and-settings.md#live-mount) from
 
 - The hosts connect to the proxy over iSCSI, on a TCP port picked for each mount. If a firewall sits between the hosts and the proxy, that firewall must allow TCP connections from the hosts to the proxy.
 - The address provided to the hosts is the proxy's automatically detected address. If the hosts cannot reach it, set the address in the `[iscsi]` section of the proxy configuration (`/etc/xo-proxy/config.toml`), using the same `advertisedAddress` and `bindAddress` settings as those configured for XOA.
+- The proxy only accepts iSCSI connections from the host each disk is mounted on. If the hosts reach the proxy through a NAT, set `restrictToHost = false` in the same `[iscsi]` section, see [Only the host connects](../backup-features-and-settings.md#live-mount).
 - If ufw is enabled on the proxy, the proxy opens the port of each mount itself, only for the host it is mounted on. This is enabled by default: set `manageFirewall = false` in the same `[iscsi]` section to turn it off. See [Firewall of Xen Orchestra](../backup-features-and-settings.md#live-mount-firewall) for how the rules behave, including when ufw is changed or the proxy crashes.
 - The mount lasts as long as the proxy process: restarting or updating the proxy ends it.
 - Deleting the live mounted disk, or the VM with its disks, releases the mount, as without a proxy.
@@ -125,14 +126,29 @@ If the proxy is too old to support live mount, the restore fails with `the proxy
 ## Enabling login to a proxy appliance
 
 Login is disabled by default on proxy appliances.
-If you need to login for some reason, you need to set a password for the `xoa` user via the XenStore of the VM. Run the following on your XCP-ng host, where `UUID` is the UUID of your proxy VM:
+If you need to login for some reason, you need to give the `xoa` user an SSH public key (recommended) or a password (deprecated) via the XenStore of the VM. Run one of the following on your XCP-ng host, where `UUID` is the UUID of your proxy VM.
+
+With an SSH public key, given whole and quoted, as found in your `~/.ssh/id_ed25519.pub` for instance:
+
+<Terminal shell title="XCP-ng host: add an SSH key to the xoa user">{`
+xe vm-param-set uuid=<UUID> xenstore-data:vm-data/system-account-xoa-ssh-key='ssh-ed25519 AAAA…'
+`}</Terminal>
+
+<details>
+<summary>With a password (deprecated)</summary>
 
 <Terminal shell title="XCP-ng host: set a password for the xoa user">{`
 xe vm-param-set uuid=<UUID> xenstore-data:vm-data/system-account-xoa-password=<password>
 `}</Terminal>
 
+:::warning
+Setting the password through XenStore is deprecated and will be removed in a future version: use an SSH key instead. Unlike a password, a public key does no harm if someone reads it.
+:::
+
+</details>
+
 Then restart the proxy VM.
-You can now login through SSH with the `xoa` username and the password you defined in the previous command.
+You can now login through SSH with the `xoa` username and the matching private key, or the password you defined. With a key, the `xoa` user can run `sudo` without a password. If the key is not accepted, your proxy may be too old to support it: update it, or use a password.
 
 ## Adding a network card to a Proxy
 

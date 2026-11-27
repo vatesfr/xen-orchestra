@@ -1,4 +1,5 @@
 import type { FrontXoBackupLog } from '@/modules/backup-log/remote-resources/use-xo-backup-log-collection.ts'
+import { computeTransferSpeed } from '@/modules/backup-log/utils/xo-backup-log-transfer-speed.util.ts'
 import { formatSizeRaw } from '@core/utils/size.util.ts'
 import { formatDateTime } from '@core/utils/time.util.ts'
 import type { Info, Scale } from 'human-format'
@@ -18,12 +19,12 @@ export function useXoBackupLogsUtils() {
     return formatDateTime(value)
   }
 
-  function getBackupLogDuration(backupLog: FrontXoBackupLog) {
-    if (backupLog.end === undefined || backupLog.start === undefined) {
+  function getBackupLogDuration(start: number | undefined, end: number | undefined) {
+    if (end === undefined || start === undefined) {
       return undefined
     }
 
-    const durationMs = new Date(backupLog.end).getTime() - new Date(backupLog.start).getTime()
+    const durationMs = new Date(end).getTime() - new Date(start).getTime()
 
     if (durationMs < 0) {
       return undefined
@@ -97,16 +98,13 @@ export function useXoBackupLogsUtils() {
     const start = Math.min(...transfers.map(transfer => transfer.start))
     const end = Math.max(...transfers.map(transfer => transfer.end))
 
-    if (end <= start) {
-      return undefined
-    }
-
-    return (size * 1000) / (end - start)
+    return computeTransferSpeed(size, start, end)
   }
 
   return {
     getBackupLogDate,
     getBackupLogDuration,
+    findVmTransfer,
     getTransferSize,
     findTransferTaskSize,
     getTransferSpeed,

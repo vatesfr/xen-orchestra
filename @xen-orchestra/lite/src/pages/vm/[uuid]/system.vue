@@ -2,19 +2,21 @@
   <VtsStateHero v-if="vm === undefined" format="page" type="not-found" size="large">
     {{ t('object-not-found', { id }) }}
   </VtsStateHero>
-  <VtsColumns v-else extra-space-around>
-    <VtsColumn>
-      <VmGeneralInfo :vm />
-      <VmSystemNetworking :vm />
-      <VmStorageConfig :vm />
-      <VmResource :vm />
-    </VtsColumn>
-    <VtsColumn>
-      <VmVirtualizationAndBoot :vm />
-      <VmManagement :vm />
-      <VmGraphics :vm />
-    </VtsColumn>
-  </VtsColumns>
+  <div v-else class="scroll-container">
+    <VtsColumns extra-space-around>
+      <VtsColumn>
+        <VmGeneralInfo :vm />
+        <VmSystemNetworking :vm />
+        <VmStorageConfig :vm />
+        <VmResource :vm />
+      </VtsColumn>
+      <VtsColumn>
+        <VmVirtualizationAndBoot :vm />
+        <VmManagement :vm />
+        <VmGraphics :vm />
+      </VtsColumn>
+    </VtsColumns>
+  </div>
 </template>
 
 <script lang="ts" setup>
@@ -45,3 +47,11 @@ usePageTitleStore().setTitle(useI18n().t('system'))
 const id = computed(() => route.params.uuid as XenApiVm['uuid'])
 const vm = computed(() => getByUuid(id.value))
 </script>
+
+<style lang="postcss" scoped>
+.scroll-container {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+</style>

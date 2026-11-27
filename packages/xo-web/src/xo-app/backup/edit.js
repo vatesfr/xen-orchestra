@@ -18,6 +18,7 @@ import Metadata from './new/metadata'
 import New from './new'
 import NewMirrorBackup from './new/mirror'
 import NewSequence from './new/sequence'
+import { usesExpressions } from './utils'
 
 export default decorate([
   addSubscriptions({
@@ -55,6 +56,10 @@ export default decorate([
     ) : job === undefined ? (
       <span className='text-danger'>
         <Icon icon='error' /> {_('editJobNotFound')}
+      </span>
+    ) : usesExpressions(job) ? (
+      <span className='text-danger'>
+        <Icon icon='error' /> {_('editJobUsesExpressions')}
       </span>
     ) : job.type === 'backup' ? (
       <New job={job} schedules={schedules} />

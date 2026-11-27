@@ -1,5 +1,5 @@
 <template>
-  <VtsQuickInfoCard class="vm-dashboard-quick-info" :loading="!isReady">
+  <VtsQuickInfoCard :loading="!isReady" class="vm-dashboard-quick-info">
     <VtsKeyValueList>
       <VtsKeyValueRow :label="t('state')">
         <template #value>
@@ -19,11 +19,11 @@
         <template #value>
           <UiLink
             v-if="host"
-            :to="`/host/${host.uuid}`"
-            size="medium"
             :icon="hostIcon"
             :is-primary="isPoolMaster"
             :primary-tooltip="t('master')"
+            :to="`/host/${host.uuid}`"
+            size="medium"
           >
             {{ host.name_label }}
           </UiLink>
@@ -54,9 +54,10 @@
 </template>
 
 <script lang="ts" setup>
-import { VM_POWER_STATE } from '@/libs/xen-api/xen-api.enums.ts'
 import type { XenApiVm } from '@/libs/xen-api/xen-api.types.ts'
 import { getHostIcon } from '@/modules/host/utils/host.util.ts'
+import { useVmUtils } from '@/modules/vm/composables/vm-utils.composable.ts'
+import { getVmDomainType } from '@/modules/vm/utils/vm.util.ts'
 import { useHostMetricsStore } from '@/stores/xen-api/host-metrics.store.ts'
 import { usePoolStore } from '@/stores/xen-api/pool.store.ts'
 import { useVmGuestMetricsStore } from '@/stores/xen-api/vm-guest-metrics.store.ts'
@@ -70,7 +71,6 @@ import VtsTag from '@core/components/tag/VtsTag.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import { useTimeAgo } from '@core/composables/locale-time-ago.composable.ts'
-import { useMapper } from '@core/packages/mapper'
 import { formatSizeRaw } from '@core/utils/size.util.ts'
 import { formatDate, parseDateTime } from '@core/utils/time.util.ts'
 import { computed } from 'vue'
@@ -98,16 +98,7 @@ const isPoolMaster = computed(() => pool.value?.master === host.value?.$ref)
 
 const hostIcon = computed(() => getHostIcon(host.value, getHostPowerState(host.value)))
 
-const powerState = useMapper(
-  () => vm.power_state,
-  {
-    [VM_POWER_STATE.RUNNING]: { icon: 'status:running-circle', text: t('vm:status:running') },
-    [VM_POWER_STATE.HALTED]: { icon: 'status:halted-circle', text: t('vm:status:halted') },
-    [VM_POWER_STATE.PAUSED]: { icon: 'status:paused-circle', text: t('vm:status:paused') },
-    [VM_POWER_STATE.SUSPENDED]: { icon: 'status:suspended-circle', text: t('vm:status:suspended') },
-  },
-  VM_POWER_STATE.RUNNING
-)
+const { powerState } = useVmUtils(() => vm)
 
 function getValidDateTime(dateTime: string | undefined): string | undefined {
   return dateTime === '19700101T00:00:00Z' ? undefined : dateTime
@@ -143,16 +134,7 @@ const ram = computed(() => formatSizeRaw(vm.memory_dynamic_max, 0))
 
 const osVersion = computed(() => guestMetrics.value?.os_version.name)
 
-const domainType = computed(() => {
-  if (
-    vm.domain_type !== undefined && // XS < 7.5
-    vm.domain_type !== 'unspecified' // detection failed
-  ) {
-    return vm.domain_type
-  }
-
-  return vm.HVM_boot_policy === '' ? 'pv' : 'hvm'
-})
+const domainType = computed(() => getVmDomainType(vm))
 
 const virtualizationType = computed(() =>
   domainType.value === 'hvm' && guestMetrics.value?.PV_drivers_detected ? 'pvhvm' : domainType.value

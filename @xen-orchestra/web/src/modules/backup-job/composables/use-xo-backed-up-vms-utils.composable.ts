@@ -1,4 +1,9 @@
 import type { FrontXoVmBackupJob } from '@/modules/backup-job/remote-resources/use-xo-backup-job-collection.ts'
+import {
+  formatContextExpressionQuery,
+  VM_EXPRESSION_KEY,
+} from '@/modules/backup-job/utils/backup-job-expression-context.util.ts'
+import { filterByQuery } from '@/modules/backup-job/utils/filter-by-query.util.ts'
 import { isBackupJobVmsSmartMode } from '@/modules/backup-job/utils/xo-backup-job.util.ts'
 import { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import { useXoVmCollection, type FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
@@ -15,9 +20,25 @@ export function useXoBackedUpVmsUtils(rawBackedUpVmsConfig: MaybeRefOrGetter<Fro
 
   const backedUpVmsConfig = toComputed(rawBackedUpVmsConfig)
 
+  const vmsExpression = computed(() => {
+    const config: unknown = backedUpVmsConfig.value
+
+    return typeof config === 'string' ? config : undefined
+  })
+
+  const backedUpVmsExpression = computed(() =>
+    vmsExpression.value !== undefined ? formatContextExpressionQuery(VM_EXPRESSION_KEY, vmsExpression.value) : undefined
+  )
+
   const isSmartModeEnabled = computed(() => isBackupJobVmsSmartMode(backedUpVmsConfig.value))
 
   const backedUpVms = computed(() => {
+    if (vmsExpression.value !== undefined) {
+      return filterByQuery(vms.value, vmsExpression.value, vm => ({ [VM_EXPRESSION_KEY]: vm })).filter(
+        vm => !vmContainsNoBakTag(vm)
+      )
+    }
+
     if (isBackupJobVmsSmartMode(backedUpVmsConfig.value)) {
       const predicate = ValueMatcher.createPredicate(backedUpVmsConfig.value)
 
@@ -66,6 +87,7 @@ export function useXoBackedUpVmsUtils(rawBackedUpVmsConfig: MaybeRefOrGetter<Fro
   return {
     backedUpVms,
     backedUpVmsCount,
+    backedUpVmsExpression,
     isSmartModeEnabled,
     smartModePools,
     smartModePowerState,

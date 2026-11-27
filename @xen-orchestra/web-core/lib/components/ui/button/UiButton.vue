@@ -1,14 +1,17 @@
 <!-- v7 -->
 <template>
   <button :class="classNames" :disabled="busy || isDisabled || lockIcon" class="ui-button" type="button">
-    <VtsIcon :busy :name="leftIcon" class="icon" size="current" />
+    <VtsIcon :name="leftIcon" class="icon" size="current" />
     <slot />
+    <VtsIcon :name="rightIcon" class="icon" size="current" />
+    <UiLoader v-if="busy" class="icon" />
     <VtsIcon v-if="lockIcon" name="fa:lock" size="medium" class="icon" />
   </button>
 </template>
 
 <script lang="ts" setup>
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
+import UiLoader from '@core/components/ui/loader/UiLoader.vue'
 import { useDisabled } from '@core/composables/disabled.composable.ts'
 import type { IconName } from '@core/icons'
 import { toVariants } from '@core/utils/to-variants.util.ts'
@@ -26,6 +29,7 @@ export type ButtonProps = {
   disabled?: boolean
   lockIcon?: boolean
   leftIcon?: IconName
+  rightIcon?: IconName
 }
 
 const { accent, variant, size, disabled, busy, lockIcon } = defineProps<ButtonProps>()

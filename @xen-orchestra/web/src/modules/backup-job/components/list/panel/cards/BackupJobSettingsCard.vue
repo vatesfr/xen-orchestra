@@ -1,7 +1,7 @@
 <template>
-  <UiPanelCard class="backup-job-settings-card">
+  <UiPanelCard>
     <UiPanelCardTitle size="medium" :label="t('settings')" />
-    <div class="content">
+    <VtsCardRowList>
       <VtsCardRowKeyValue>
         <template #key>{{ t('proxy') }}</template>
         <template #value>{{ proxy?.name }}</template>
@@ -39,35 +39,8 @@
           <VtsCopyButton :value="reportWhenValueTranslation" />
         </template>
       </VtsCardRowKeyValue>
-      <template v-if="reportRecipients.length > 0">
-        <VtsCardRowKeyValue v-for="(recipient, index) in visibleReportRecipients" :key="recipient" align-top>
-          <template #key>
-            <template v-if="index === 0">{{ t('report-recipients') }}</template>
-          </template>
-          <template #value>{{ recipient }}</template>
-          <template #addons>
-            <VtsCopyButton :value="recipient" />
-            <VtsCopyAllMenuItem v-if="index === 0 && reportRecipients.length > 1" :values="reportRecipients" />
-          </template>
-        </VtsCardRowKeyValue>
-        <UiButton
-          v-if="hiddenReportRecipientsCount > 0"
-          class="see-more"
-          size="small"
-          accent="brand"
-          variant="tertiary"
-          @click="toggleReportRecipients()"
-        >
-          {{
-            areReportRecipientsExpanded
-              ? t('action:see-less')
-              : t('action:see-n-more', { n: hiddenReportRecipientsCount })
-          }}
-        </UiButton>
-      </template>
-      <VtsCardRowKeyValue v-else>
+      <VtsCardRowKeyValue :values="reportRecipients" :max-visible-values="VISIBLE_REPORT_RECIPIENTS_COUNT" align-top>
         <template #key>{{ t('report-recipients') }}</template>
-        <template #value />
       </VtsCardRowKeyValue>
       <VtsCardRowKeyValue v-if="hasTransferSettings">
         <template #key>{{ t('concurrency') }}</template>
@@ -98,7 +71,7 @@
           <VtsStatus :status="!!settings.mergeBackupsSynchronously" />
         </template>
       </VtsCardRowKeyValue>
-    </div>
+    </VtsCardRowList>
   </UiPanelCard>
 </template>
 
@@ -107,20 +80,20 @@ import { useXoBackupJobSettings } from '@/modules/backup-job/composables/use-xo-
 import type { FrontAnyXoBackupJob } from '@/modules/backup-job/remote-resources/use-xo-backup-job-collection.ts'
 import { hasBackupJobSnapshotRetention } from '@/modules/backup-job/utils/xo-backup-job.util.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
-import VtsCopyAllMenuItem from '@core/components/copy-all-menu-item/VtsCopyAllMenuItem.vue'
+import VtsCardRowList from '@core/components/card/VtsCardRowList.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
-import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
 import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
 import UiTag from '@core/components/ui/tag/UiTag.vue'
-import { useToggle } from '@vueuse/core'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { backupJob } = defineProps<{
   backupJob: FrontAnyXoBackupJob
 }>()
+
+const VISIBLE_REPORT_RECIPIENTS_COUNT = 5
 
 const { t } = useI18n()
 
@@ -142,33 +115,5 @@ const canSetCompression = computed(() => backupJob.type === 'backup' && backupJo
 
 const canSetOfflineBackup = computed(() => backupJob.type === 'backup' && !hasBackupJobSnapshotRetention(backupJob))
 
-const VISIBLE_REPORT_RECIPIENTS_COUNT = 5
-
-const [areReportRecipientsExpanded, toggleReportRecipients] = useToggle(false)
-
 const reportRecipients = computed(() => settings.reportRecipients ?? [])
-
-const hiddenReportRecipientsCount = computed(() =>
-  Math.max(reportRecipients.value.length - VISIBLE_REPORT_RECIPIENTS_COUNT, 0)
-)
-
-const visibleReportRecipients = computed(() =>
-  areReportRecipientsExpanded.value
-    ? reportRecipients.value
-    : reportRecipients.value.slice(0, VISIBLE_REPORT_RECIPIENTS_COUNT)
-)
 </script>
-
-<style scoped lang="postcss">
-.backup-job-settings-card {
-  .content {
-    display: flex;
-    flex-direction: column;
-    gap: 0.4rem;
-
-    .see-more {
-      align-self: center;
-    }
-  }
-}
-</style>

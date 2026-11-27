@@ -1,11 +1,16 @@
+import { useNetworkPoolPrefill } from '@/modules/network/form/use-network-pool-prefill.ts'
 import { type FrontXoPool, useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
-import { useFormBindings } from '@core/packages/form-bindings'
 import { useFormSelect } from '@core/packages/form-select'
-import { toComputed } from '@core/utils/to-computed.util.ts'
-import { type MaybeRefOrGetter, toRef, watch } from 'vue'
+import {
+  type FormValidationConfig,
+  mergeValidationConfigs,
+  required,
+  withMessage,
+} from '@core/packages/form-validation'
+import { useValidatedForm } from '@core/packages/validated-form'
+import { type MaybeRefOrGetter, toRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-// 'nbd': NBD over TLS, 'insecure-nbd': NBD in clear, only on a network dedicated to backups
 export type NetworkNbdMode = 'none' | 'nbd' | 'insecure-nbd'
 
 export type BaseNetworkFormData = {
@@ -25,11 +30,24 @@ export type BaseNetworkPayload = {
   insecureNbd?: boolean
 }
 
-export function useNetworkFormBase<T extends BaseNetworkFormData>(
+export function useNetworkFormBase<T extends BaseNetworkFormData & Record<string, unknown>>(
   _poolId: MaybeRefOrGetter<FrontXoPool['id'] | undefined>,
-  formData: T
+  formData: T,
+  extraConfig?: FormValidationConfig<T>
 ) {
-  const poolId = toComputed(_poolId)
+  const { t } = useI18n()
+
+  const baseConfig: FormValidationConfig<BaseNetworkFormData> = {
+    errors: {
+      onSubmit: () => ({
+        pool: { required: withMessage(required, () => t('pool-required')) },
+        name: { required: withMessage(required, () => t('name-required')) },
+      }),
+    },
+  }
+
+  const { useField, useSelect, validate } = useValidatedForm(formData, mergeValidationConfigs(baseConfig, extraConfig))
+
   const { pools, useGetPoolById } = useXoPoolCollection()
 
   const { id: poolSelectId } = useFormSelect(pools, {
@@ -42,23 +60,11 @@ export function useNetworkFormBase<T extends BaseNetworkFormData>(
     },
   })
 
-  watch(
-    pools,
-    newPools => {
-      const targetPool = newPools.find(pool => pool.id === poolId.value)
+  const baseFormData: BaseNetworkFormData = formData
 
-      if (targetPool?.id !== formData.pool) {
-        formData.pool = targetPool?.id
-      }
-    },
-    { immediate: true }
-  )
+  useNetworkPoolPrefill(_poolId, toRef(baseFormData, 'pool'))
 
   const selectedPool = useGetPoolById(() => formData.pool)
-
-  const { t } = useI18n()
-
-  const { useField, useSelect } = useFormBindings(formData)
 
   function buildBasePayload(): BaseNetworkPayload {
     return {
@@ -72,9 +78,12 @@ export function useNetworkFormBase<T extends BaseNetworkFormData>(
   }
 
   return {
+    useField,
+    useSelect,
+    validate,
     selectedPool,
     buildBasePayload,
-    poolSelectBindings: useSelect(poolSelectId, () => ({ label: t('pool') })),
+    poolSelectBindings: useSelect(poolSelectId, 'pool', () => ({ label: t('pool') })),
     nameInputBindings: useField('name', () => ({ label: t('name'), required: true })),
     descriptionInputBindings: useField('description', () => ({ label: t('description') })),
     mtuInputBindings: useField('mtu', () => ({ label: t('mtu'), info: t('mtu-default-value-message') })),

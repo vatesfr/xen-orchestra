@@ -139,6 +139,7 @@ fn export<R: Read + Send + 'static, W: Write>(
         &ticket.secret,
         &ticket.thumbprint,
         target.transport,
+        session.vcenter(),
         target.transcript,
     )?;
     let disk = match connection.open(&target.disk) {

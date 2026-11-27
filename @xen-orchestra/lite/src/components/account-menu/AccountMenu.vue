@@ -1,8 +1,9 @@
 <template>
-  <MenuList placement="bottom-end">
-    <template #trigger="{ open, isOpen }">
+  <VtsResponsiveMenu :title="t('account')" :section-title="t('menu')" placement="bottom-end">
+    <template #trigger="{ open, isOpen, bindings }">
       <UiAccountMenuButton
         v-tooltip="isOpen ? false : { content: t('settings'), placement: 'left' }"
+        v-bind="bindings"
         :selected="isOpen"
         size="medium"
         @click="open($event)"
@@ -33,13 +34,13 @@
     <MenuItem accent="brand" icon="fa:arrow-right-from-bracket" @click="logout">
       {{ t('action:log-out') }}
     </MenuItem>
-  </MenuList>
+  </VtsResponsiveMenu>
 </template>
 
 <script lang="ts" setup>
 import { useXenApiStore } from '@/stores/xen-api.store.ts'
 import MenuItem from '@core/components/menu/MenuItem.vue'
-import MenuList from '@core/components/menu/MenuList.vue'
+import VtsResponsiveMenu from '@core/components/menu/VtsResponsiveMenu.vue'
 import UiAccountMenuButton from '@core/components/ui/account-menu-button/UiAccountMenuButton.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { nextTick } from 'vue'

@@ -1,6 +1,14 @@
 <!-- v7 -->
 <template>
-  <component :is="resolvedTag" :class="className" class="ui-tab-item" :href="resolvedHref">
+  <component
+    :is="resolvedTag"
+    :class="className"
+    class="ui-tab-item"
+    :href="resolvedHref"
+    role="tab"
+    :aria-selected="active"
+    :aria-disabled="isDisabled || undefined"
+  >
     <slot />
   </component>
 </template>
@@ -53,6 +61,8 @@ const className = computed(() => {
   align-items: center;
   gap: 1.6rem;
   padding: 1.6rem;
+  flex-shrink: 0;
+  white-space: nowrap;
   text-decoration: none;
   cursor: pointer;
   color: var(--color-neutral-txt-primary);

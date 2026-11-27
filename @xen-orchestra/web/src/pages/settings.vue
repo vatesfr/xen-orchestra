@@ -1,150 +1,152 @@
 <template>
   <UiHeadBar icon="fa:gear">{{ t('settings') }}</UiHeadBar>
-  <UiCard class="settings">
-    <!-- ABOUT -->
-    <div class="container">
-      <UiTitle>{{ t('about') }}</UiTitle>
-      <VtsColumns>
-        <VtsColumn :class="{ 'mobile-about': uiStore.isSmall }">
-          <div class="typo-h6">{{ t('xen-orchestra') }}</div>
-          <VtsTabularKeyValueList>
-            <VtsTabularKeyValueRow :label="t('version')" />
-            <VtsTabularKeyValueRow :label="t('news')">
-              <template #value>
-                <UiLink size="medium" :href="XO_LINKS.BLOG">
-                  {{ t('news-name', { name: t('xen-orchestra') }) }}
-                </UiLink>
-              </template>
-            </VtsTabularKeyValueRow>
-            <VtsTabularKeyValueRow :label="t('community')">
-              <template #value>
-                <UiLink size="medium" :href="XO_LINKS.COMMUNITY">
-                  {{ t('community-name', { name: t('xen-orchestra') }) }}
-                </UiLink>
-              </template>
-            </VtsTabularKeyValueRow>
-            <VtsTabularKeyValueRow :label="t('documentation')">
-              <template #value>
-                <UiLink size="medium" :href="XO_LINKS.DOC">
-                  {{ t('documentation-name', { name: t('xen-orchestra') }) }}
-                </UiLink>
-              </template>
-            </VtsTabularKeyValueRow>
-          </VtsTabularKeyValueList>
-        </VtsColumn>
-        <VtsColumn>
-          <div class="typo-h6">{{ t('xcp-ng') }}</div>
-          <VtsTabularKeyValueList>
-            <VtsTabularKeyValueRow :label="t('news')">
-              <template #value>
-                <UiLink size="medium" :href="XCP_LINKS.BLOG">
-                  {{ t('news-name', { name: t('xcp-ng') }) }}
-                </UiLink>
-              </template>
-            </VtsTabularKeyValueRow>
-            <VtsTabularKeyValueRow :label="t('community')">
-              <template #value>
-                <UiLink size="medium" :href="XCP_LINKS.COMMUNITY">
-                  {{ t('community-name', { name: t('xcp-ng') }) }}
-                </UiLink>
-              </template>
-            </VtsTabularKeyValueRow>
-            <VtsTabularKeyValueRow :label="t('documentation')">
-              <template #value>
-                <UiLink size="medium" :href="XCP_LINKS.DOC">
-                  {{ t('documentation-name', { name: t('xcp-ng') }) }}
-                </UiLink>
-              </template>
-            </VtsTabularKeyValueRow>
-            <VtsTabularKeyValueRow :label="t('support')">
-              <template #value>
-                <UiLink size="medium" :href="XCP_LINKS.SUPPORT">
-                  {{ t('pro-support', { name: t('xcp-ng') }) }}
-                </UiLink>
-              </template>
-            </VtsTabularKeyValueRow>
-          </VtsTabularKeyValueList>
-        </VtsColumn>
-      </VtsColumns>
-    </div>
-    <!-- APPEARANCE -->
-    <div class="container">
-      <UiTitle>{{ t('appearance') }}</UiTitle>
-      <div>
-        <div class="typo-h6 title">{{ t('mode') }}</div>
-        <!-- TODO replace this part when the component is available -->
-        <div class="color-modes">
-          <div
-            v-for="colorModeOption in colorModeOptions"
-            :key="colorModeOption"
-            class="color-mode"
-            :class="{ selected: uiStore.colorMode === colorModeOption }"
-            @click="uiStore.colorMode = colorModeOption"
-          >
-            <img
-              v-if="colorModeOption === 'light'"
-              src="../assets/color-mode-light.svg"
-              :alt="t('action:enable-light-mode')"
-            />
-            <img
-              v-else-if="colorModeOption === 'dark'"
-              src="../assets/color-mode-dark.svg"
-              :alt="t('dark-mode:enable')"
-            />
-            <img v-else src="../assets/color-mode-auto.svg" :alt="t('color-mode:auto')" />
-            <span>
-              <VtsIcon v-if="uiStore.colorMode === colorModeOption" name="fa:check" size="medium" />
-              {{ t(`theme-${colorModeOption}`) }}
-            </span>
-          </div>
-        </div>
+  <div class="scroll-container">
+    <UiCard class="settings">
+      <!-- ABOUT -->
+      <div class="container">
+        <UiTitle>{{ t('about') }}</UiTitle>
+        <VtsColumns>
+          <VtsColumn :class="{ 'mobile-about': uiStore.isSmall }">
+            <div class="typo-h6">{{ t('xen-orchestra') }}</div>
+            <VtsTabularKeyValueList>
+              <VtsTabularKeyValueRow :label="t('version')" />
+              <VtsTabularKeyValueRow :label="t('news')">
+                <template #value>
+                  <UiLink size="medium" :href="XO_LINKS.BLOG">
+                    {{ t('news-name', { name: t('xen-orchestra') }) }}
+                  </UiLink>
+                </template>
+              </VtsTabularKeyValueRow>
+              <VtsTabularKeyValueRow :label="t('community')">
+                <template #value>
+                  <UiLink size="medium" :href="XO_LINKS.COMMUNITY">
+                    {{ t('community-name', { name: t('xen-orchestra') }) }}
+                  </UiLink>
+                </template>
+              </VtsTabularKeyValueRow>
+              <VtsTabularKeyValueRow :label="t('documentation')">
+                <template #value>
+                  <UiLink size="medium" :href="XO_LINKS.DOC">
+                    {{ t('documentation-name', { name: t('xen-orchestra') }) }}
+                  </UiLink>
+                </template>
+              </VtsTabularKeyValueRow>
+            </VtsTabularKeyValueList>
+          </VtsColumn>
+          <VtsColumn>
+            <div class="typo-h6">{{ t('xcp-ng') }}</div>
+            <VtsTabularKeyValueList>
+              <VtsTabularKeyValueRow :label="t('news')">
+                <template #value>
+                  <UiLink size="medium" :href="XCP_LINKS.BLOG">
+                    {{ t('news-name', { name: t('xcp-ng') }) }}
+                  </UiLink>
+                </template>
+              </VtsTabularKeyValueRow>
+              <VtsTabularKeyValueRow :label="t('community')">
+                <template #value>
+                  <UiLink size="medium" :href="XCP_LINKS.COMMUNITY">
+                    {{ t('community-name', { name: t('xcp-ng') }) }}
+                  </UiLink>
+                </template>
+              </VtsTabularKeyValueRow>
+              <VtsTabularKeyValueRow :label="t('documentation')">
+                <template #value>
+                  <UiLink size="medium" :href="XCP_LINKS.DOC">
+                    {{ t('documentation-name', { name: t('xcp-ng') }) }}
+                  </UiLink>
+                </template>
+              </VtsTabularKeyValueRow>
+              <VtsTabularKeyValueRow :label="t('support')">
+                <template #value>
+                  <UiLink size="medium" :href="XCP_LINKS.SUPPORT">
+                    {{ t('pro-support', { name: t('xcp-ng') }) }}
+                  </UiLink>
+                </template>
+              </VtsTabularKeyValueRow>
+            </VtsTabularKeyValueList>
+          </VtsColumn>
+        </VtsColumns>
       </div>
-      <div>
-        <div class="typo-h6 title">{{ t('theme') }}</div>
-        <div class="themes">
-          <div
-            v-for="theme in themes"
-            :key="theme.id"
-            class="theme-card"
-            :class="{ selected: currentTheme === theme.id }"
-            @click="currentTheme = theme.id"
-          >
-            <div class="theme-header">
-              <VtsIcon v-if="currentTheme === theme.id" name="fa:circle-check" size="medium" />
-              <div v-else class="circle" />
-              <span class="typo-h6">{{ t(theme.label) }}</span>
+      <!-- APPEARANCE -->
+      <div class="container">
+        <UiTitle>{{ t('appearance') }}</UiTitle>
+        <div>
+          <div class="typo-h6 title">{{ t('mode') }}</div>
+          <!-- TODO replace this part when the component is available -->
+          <div class="color-modes">
+            <div
+              v-for="colorModeOption in colorModeOptions"
+              :key="colorModeOption"
+              class="color-mode"
+              :class="{ selected: uiStore.colorMode === colorModeOption }"
+              @click="uiStore.colorMode = colorModeOption"
+            >
+              <img
+                v-if="colorModeOption === 'light'"
+                src="../assets/color-mode-light.svg"
+                :alt="t('action:enable-light-mode')"
+              />
+              <img
+                v-else-if="colorModeOption === 'dark'"
+                src="../assets/color-mode-dark.svg"
+                :alt="t('dark-mode:enable')"
+              />
+              <img v-else src="../assets/color-mode-auto.svg" :alt="t('color-mode:auto')" />
+              <span>
+                <VtsIcon v-if="uiStore.colorMode === colorModeOption" name="fa:check" size="medium" />
+                {{ t(`theme-${colorModeOption}`) }}
+              </span>
             </div>
-            <span class="typo-body-regular-small theme-description">{{ t(theme.description) }}</span>
+          </div>
+        </div>
+        <div>
+          <div class="typo-h6 title">{{ t('theme') }}</div>
+          <div class="themes">
+            <div
+              v-for="theme in themes"
+              :key="theme.id"
+              class="theme-card"
+              :class="{ selected: currentTheme === theme.id }"
+              @click="currentTheme = theme.id"
+            >
+              <div class="theme-header">
+                <VtsIcon v-if="currentTheme === theme.id" name="fa:circle-check" size="medium" />
+                <div v-else class="circle" />
+                <span class="typo-h6">{{ t(theme.label) }}</span>
+              </div>
+              <span class="typo-body-regular-small theme-description">{{ t(theme.description) }}</span>
+            </div>
           </div>
         </div>
       </div>
-    </div>
-    <!-- LANGUAGE -->
-    <div class="container">
-      <UiTitle>{{ t('language-preferences') }}</UiTitle>
-      <VtsColumns>
-        <VtsColumn :class="{ 'mobile-language': uiStore.isSmall }">
-          <div class="language">
-            <VtsInputWrapper :label="t('language')">
-              <VtsSelect :id="localeSelectId" accent="brand" />
-              <UiInfo accent="info" wrap>{{ t('untranslated-text-helper') }}</UiInfo>
-            </VtsInputWrapper>
-          </div>
-        </VtsColumn>
-        <VtsColumn>
-          <VtsTabularKeyValueList>
-            <VtsTabularKeyValueRow :label="t('translation-tool')">
-              <template #value>
-                <UiLink size="medium" :href="XO_LINKS.TRANSLATION">
-                  {{ t('weblate') }}
-                </UiLink>
-              </template>
-            </VtsTabularKeyValueRow>
-          </VtsTabularKeyValueList>
-        </VtsColumn>
-      </VtsColumns>
-    </div>
-  </UiCard>
+      <!-- LANGUAGE -->
+      <div class="container">
+        <UiTitle>{{ t('language-preferences') }}</UiTitle>
+        <VtsColumns>
+          <VtsColumn :class="{ 'mobile-language': uiStore.isSmall }">
+            <div class="language">
+              <VtsInputWrapper :label="t('language')">
+                <VtsSelect :id="localeSelectId" accent="neutral" />
+                <UiInfo accent="info" wrap>{{ t('untranslated-text-helper') }}</UiInfo>
+              </VtsInputWrapper>
+            </div>
+          </VtsColumn>
+          <VtsColumn>
+            <VtsTabularKeyValueList>
+              <VtsTabularKeyValueRow :label="t('translation-tool')">
+                <template #value>
+                  <UiLink size="medium" :href="XO_LINKS.TRANSLATION">
+                    {{ t('weblate') }}
+                  </UiLink>
+                </template>
+              </VtsTabularKeyValueRow>
+            </VtsTabularKeyValueList>
+          </VtsColumn>
+        </VtsColumns>
+      </div>
+    </UiCard>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -194,6 +196,12 @@ const { id: localeSelectId } = useFormSelect(availableLocales, {
 </script>
 
 <style lang="postcss" scoped>
+.scroll-container {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
 .settings {
   margin: 0.8rem;
   gap: 4rem;

@@ -2,7 +2,7 @@
   "name": "@xen-orchestra/qa-test",
   "private": true,
   "type": "module",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "description": "XenOrchestra QA Test Suite",
   "author": {
     "name": "Vates SAS",
@@ -22,10 +22,10 @@
   "dependencies": {
     "@vates/async-each": "^1.0.3",
     "@vates/read-chunk": "^1.2.1",
-    "@xen-orchestra/backups": "^0.78.0",
-    "@xen-orchestra/fs": "^4.10.0",
-    "@xen-orchestra/log": "^0.7.2",
-    "@xen-orchestra/vmware-explorer": "^1.2.0",
+    "@xen-orchestra/backups": "^1.0.1",
+    "@xen-orchestra/fs": "^4.11.0",
+    "@xen-orchestra/log": "^1.0.0",
+    "@xen-orchestra/vmware-explorer": "^1.4.0",
     "nodemailer": "^7.0.13",
     "xo-lib": "^0.11.2"
   },
@@ -39,6 +39,7 @@
     "qa:backup:combined": "node --env-file-if-exists=.env --test tests/backup-replication-combined.test.js",
     "qa:backup:combined:cycle": "node --env-file-if-exists=.env --test tests/backup-replication-combined.test.js --test-name-pattern='Full Cycle'",
     "qa:backup:sync": "node --env-file-if-exists=.env --test tests/backup.synchronized.test.js --test-concurrency=1",
+    "qa:backup:lock": "node --env-file-if-exists=.env --test tests/backup.lock.test.js",
     "qa:mirror:cr": "node --env-file-if-exists=.env --test tests/backup-replication-combined.test.js --test-name-pattern='CR Mode'",
     "qa:mirror": "node --env-file-if-exists=.env --test tests/backup-mirror.test.js",
     "qa:replication": "node --env-file-if-exists=.env --test --test-concurrency=1 tests/replication.test.js",

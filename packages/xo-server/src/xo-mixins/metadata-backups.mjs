@@ -5,6 +5,9 @@ import { createLogger } from '@xen-orchestra/log'
 import { createRunner } from '@xen-orchestra/backups/Backup.mjs'
 import { parseMetadataBackupId } from '@xen-orchestra/backups/parseMetadataBackupId.mjs'
 import { RestoreMetadataBackup } from '@xen-orchestra/backups/RestoreMetadataBackup.mjs'
+import { isExpression } from '@xen-orchestra/backups/_expressionPredicate.mjs'
+import { resolveBackupPools, resolveBackupRepositories } from './backups-ng/_resolveBackupTargets.mjs'
+import { buildRunContext } from '@xen-orchestra/backups/_buildContext.mjs'
 import { Task } from '@vates/task'
 
 import { debounceWithKey, REMOVE_CACHE_ENTRY } from '../_pDebounceWithKey.mjs'
@@ -34,7 +37,7 @@ export default class metadataBackup {
     })
   }
 
-  async _executor({ cancelToken, job: job_, jobData, jobUpdateFct, logger: jobsLogger, runJobId, schedule }) {
+  async _executor({ signal, job: job_, jobData, jobUpdateFct, logger: jobsLogger, runJobId, schedule }) {
     const job = cloneDeep(job_)
     const scheduleSettings = job.settings[schedule.id]
 
@@ -48,10 +51,60 @@ export default class metadataBackup {
     }
 
     const app = this._app
+    const runContext = buildRunContext(
+      new Date(),
+      job.settings[schedule.id]?.timezone ?? job.settings['']?.timezone ?? schedule.timezone
+    )
 
     if (job.xoMetadata) {
       const config = await app.exportConfig()
       job.xoMetadata = typeof config === 'string' ? config : { encoding: 'base64', data: config.toString('base64') }
+    }
+
+    if (isExpression(job.remotes)) {
+      const {
+        backupRepositoryIds: remoteIds,
+        proxySkippedIds,
+        invalidUrlIds,
+      } = resolveBackupRepositories(job, await app.getAllRemotes(), runContext)
+
+      if (proxySkippedIds.length > 0) {
+        jobsLogger.warning(
+          'some backup repositories matched the expression but are not linked to the proxy of this job, they are skipped',
+          {
+            event: 'task.warning',
+            taskId: runJobId,
+            data: { backupRepositories: proxySkippedIds, proxy: job.proxy },
+          }
+        )
+      }
+
+      if (invalidUrlIds.length > 0) {
+        jobsLogger.warning(
+          'some backup repositories matched the expression but have an invalid URL, they are skipped',
+          {
+            event: 'task.warning',
+            taskId: runJobId,
+            data: { backupRepositories: invalidUrlIds },
+          }
+        )
+      }
+
+      job.remotes = { id: { __or: remoteIds } }
+    }
+
+    if (isExpression(job.pools)) {
+      const poolIds = resolveBackupPools(job, Object.values(app.getObjectsByType('pool')), runContext)
+
+      if (poolIds.length === 0) {
+        jobsLogger.warning('no matching pool found', {
+          event: 'task.warning',
+          taskId: runJobId,
+          data: { pools: job.pools },
+        })
+      }
+
+      job.pools = { id: { __or: poolIds } }
     }
 
     const remoteIds = unboxIdsFromPattern(job.remotes)
@@ -123,7 +176,7 @@ export default class metadataBackup {
         }
         return result
       } else {
-        cancelToken.throwIfRequested()
+        signal.throwIfAborted()
 
         const onLogFct = app.tasks.createExternalProgressHandler({
           onRootTaskStart: log => {

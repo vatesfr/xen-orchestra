@@ -1,44 +1,29 @@
-import type { useXoPbdCollection } from '@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'
 import type { useXoSrUtils } from '@/modules/storage-repository/composables/xo-sr-utils.composable.ts'
-import type {
-  FrontXoSr,
-  useXoSrCollection,
-} from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
+import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import { useDuplicateVmForm } from '@/modules/vm/form/use-duplicate-vm-form.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { createSr } from '@/test/create-sr.ts'
 import { createVm } from '@/test/create-vm.ts'
+import { xoCollectionsMock, mockXoCollections } from '@/test/mock-xo-collections.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
+import { resetStubs } from '@/test/reset-stubs.ts'
+import { mockModule } from '@/test/spy-on-module.ts'
 import { VM_POWER_STATE } from '@vates/types'
-import { computed, nextTick, ref } from 'vue'
+import { nextTick, ref } from 'vue'
 
-const { useXoSrCollectionMock, useXoPbdCollectionMock, getSrLocation, getSrSelectLabel } = vi.hoisted(() => ({
-  useXoSrCollectionMock: vi.fn(),
-  useXoPbdCollectionMock: vi.fn(),
-  getSrLocation: vi.fn(),
-  getSrSelectLabel: vi.fn(),
-}))
+const getSrLocation = vi.fn()
+const getSrSelectLabel = vi.fn()
 
-vi.mock(import('@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'), () => ({
-  useXoSrCollection: useXoSrCollectionMock as unknown as typeof useXoSrCollection,
-}))
+mockXoCollections('pbd', 'sr')
 
-vi.mock(import('@/modules/pbd/remote-resources/use-xo-pbd-collection.ts'), () => ({
-  useXoPbdCollection: useXoPbdCollectionMock as unknown as typeof useXoPbdCollection,
-}))
-
-vi.mock(import('@/modules/storage-repository/composables/xo-sr-utils.composable.ts'), () => ({
+mockModule(import('@/modules/storage-repository/composables/xo-sr-utils.composable.ts'), () => ({
   useXoSrUtils: (() => ({ getSrLocation, getSrSelectLabel })) as unknown as typeof useXoSrUtils,
 }))
 
 beforeEach(() => {
-  useXoSrCollectionMock.mockReset()
-  useXoPbdCollectionMock.mockReset()
-  getSrLocation.mockReset()
-  getSrSelectLabel.mockReset()
+  xoCollectionsMock.reset()
+  resetStubs(getSrLocation, getSrSelectLabel)
 
-  useXoSrCollectionMock.mockReturnValue({ srs: computed(() => []) })
-  useXoPbdCollectionMock.mockReturnValue({ pbdsBySr: computed(() => new Map()) })
   getSrLocation.mockReturnValue('Local')
   getSrSelectLabel.mockImplementation((sr: FrontXoSr) => sr.name_label)
 })

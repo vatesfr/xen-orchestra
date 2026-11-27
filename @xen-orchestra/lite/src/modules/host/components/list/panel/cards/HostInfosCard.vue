@@ -7,7 +7,7 @@
       :icon="hostIcon"
       :to="{ name: '/host/[uuid]/dashboard', params: { uuid: host.uuid } }"
     />
-    <div class="content">
+    <VtsCardRowList class="content">
       <VtsCardRowKeyValue>
         <template #key>{{ t('state') }}</template>
         <template #value>
@@ -98,7 +98,7 @@
           <VtsCopyButton :value="noMissingPatches ? t('patches-up-to-date') : t('n-missing', nMissingPatches)" />
         </template>
       </VtsCardRowKeyValue>
-    </div>
+    </VtsCardRowList>
   </UiPanelCard>
 </template>
 
@@ -110,6 +110,7 @@ import { getHostIcon } from '@/modules/host/utils/host.util.ts'
 import { useHostMetricsStore } from '@/stores/xen-api/host-metrics.store.ts'
 import { usePoolStore } from '@/stores/xen-api/pool.store.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
+import VtsCardRowList from '@core/components/card/VtsCardRowList.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsEnabledState from '@core/components/enabled-state/VtsEnabledState.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
@@ -146,10 +147,6 @@ const noMissingPatches = computed(() => nMissingPatches.value === 0)
 <style lang="postcss" scoped>
 .host-infos-card {
   .content {
-    display: flex;
-    flex-direction: column;
-    gap: 0.4rem;
-
     .value {
       display: flex;
       align-items: center;

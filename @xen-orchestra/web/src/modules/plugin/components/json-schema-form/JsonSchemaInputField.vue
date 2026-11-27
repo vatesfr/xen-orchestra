@@ -1,10 +1,10 @@
 <template>
   <JsonSchemaInputWrapper class="json-schema-input-field" :label :description="description.text" :path>
-    <UiTextarea v-if="schema.$multiline" v-model="textareaModel" accent="brand" :required />
+    <UiTextarea v-if="schema.$multiline" v-model="textareaModel" accent="neutral" :required />
     <UiInput
       v-else
       v-model="inputModel"
-      accent="brand"
+      accent="neutral"
       :type
       :required
       :placeholder

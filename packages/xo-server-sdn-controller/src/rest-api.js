@@ -1,8 +1,11 @@
+import { createLogger } from '@xen-orchestra/log'
 import { flatMap } from 'lodash'
 import { noSuchObject } from 'xo-common/api-errors.js'
 import { SDN_CONTROLLER_OF_RULES_KEY } from '@vates/types'
 
-const QUERY_SYNC = { sync: { type: 'boolean', optional: true } }
+const log = createLogger('xo:sdn-controller:rest-api')
+
+export const QUERY_SYNC = /** @type {const} */ ({ sync: { type: 'boolean', optional: true } })
 
 const PARAMS_ID = { id: { type: 'string', example: 'b97f4e69-d275-4b25-9dc9-c1ac4e9b3fa5' } }
 
@@ -19,7 +22,7 @@ const RULE_FIELDS = {
 }
 
 const PRIORITY_DESCRIPTION = [
-  '`priority` is the OpenFlow priority of the rule, an integer from 0 to 65535, optional with the XAPI plugin and refused without it (`useDirectChannel` in the configuration). A rule without one has the OpenFlow default, 32768.',
+  '`priority` is the OpenFlow priority of the rule, an integer from 1 to 65535 (XAPI reserves 0), optional with the XAPI plugin and refused without it (`useDirectChannel` in the configuration). A rule without one has the OpenFlow default, 32768.',
   'Of the rules of a network matching a packet, network and VIF rules alike, the one with the highest priority applies: a rule of priority 30 applies before a rule of priority 20.',
   'Two rules of a network cannot be given the same priority.',
   'Leave room between priorities (100, 110, 120…, not 101, 102, 103…): a rule can then go between two others without renumbering them.',
@@ -47,16 +50,18 @@ const RESOURCES = [
     acl: 'network',
     type: 'network',
     idKey: 'networkId',
-    addRule: (controller, rule) => controller._addNetworkRule(rule),
-    deleteRule: (controller, rule) => controller._deleteNetworkOfRule(rule),
+    addRule: (controller, rule) => controller._addNetworkRule(rule, { strict: true }),
+    deleteRule: (controller, rule) => controller._deleteNetworkOfRule(rule, true, { strict: true }),
   },
   {
     collection: 'vifs',
     acl: 'vif',
     type: 'VIF',
     idKey: 'vifId',
-    addRule: (controller, rule) => controller._addRule(rule),
-    deleteRule: (controller, rule) => controller._deleteRule(rule),
+    // a rule the host can't install (or remove) fails the call, and the VIF's
+    // other_config is left as it was
+    addRule: (controller, rule) => controller._addRule(rule, { strict: true }),
+    deleteRule: (controller, rule) => controller._deleteRule(rule, true, { strict: true }),
   },
 ]
 
@@ -243,13 +248,29 @@ function updateRuleRoute(controller, resource) {
             throw noSuchObject(JSON.stringify(oldRule), 'traffic-rule')
           }
           const newRule = applyRulePatch(oldRule, partialNewRule)
-          // a kept priority may be shared, like the copy a clone makes of a VIF's rules
-          if (newRule.priority !== oldRule.priority) {
+          // a kept priority may be shared, like the copy a clone makes of a VIF's rules, but a kept 0 is
+          // refused like a new one: the rule would be deleted, then not added back
+          if (newRule.priority !== oldRule.priority || newRule.priority === 0) {
             controller._checkTrafficRulePriority({ [resource.idKey]: id }, newRule.priority)
           }
 
-          await resource.deleteRule(controller, { ...oldRule, [resource.idKey]: id })
-          await resource.addRule(controller, { ...newRule, [resource.idKey]: id })
+          const oldRuleOf = { ...oldRule, [resource.idKey]: id }
+          await resource.deleteRule(controller, oldRuleOf)
+          try {
+            await resource.addRule(controller, { ...newRule, [resource.idKey]: id })
+          } catch (error) {
+            // e.g. a host refused the new rule: the old one is put back, so that a failed update
+            // leaves the rules as they were
+            try {
+              await resource.addRule(controller, oldRuleOf)
+            } catch (restoreError) {
+              log.warn('could not put back a traffic rule after a failed update', {
+                error: restoreError,
+                rule: oldRuleOf,
+              })
+            }
+            throw error
+          }
         },
         {
           sync: req.query.sync ?? false,

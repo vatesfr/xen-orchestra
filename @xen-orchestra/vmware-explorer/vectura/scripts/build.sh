@@ -39,6 +39,29 @@ RUSTFLAGS="--remap-path-prefix=${CARGO_HOME:-$HOME/.cargo}=/cargo --remap-path-p
 export RUSTFLAGS
 unset CARGO_ENCODED_RUSTFLAGS
 
-cargo zigbuild --locked --release --target x86_64-unknown-linux-gnu.2.31
+# OpenSSL, which is compiled from its sources, writes into the binary the date
+# of its build and two absolute paths: the directory it is built in, under the
+# target directory, and the compiler, a wrapper cargo-zigbuild keeps in its
+# cache. No flag remaps them, so all three are the same on every machine. The
+# two directories are named in the binary and never read: OpenSSL is built
+# without the support for loading code at run time. Its configuration file is
+# another matter, see the security model.
+build=/tmp/vectura-build
+# /tmp is shared: a directory someone else prepared could plant what gets
+# linked into the binary.
+mkdir -p "$build"
+if [ -L "$build" ] || [ ! -O "$build" ]; then
+  echo "$build is not a directory of yours, refusing to build in it" >&2
+  exit 1
+fi
+chmod 700 "$build"
+export CARGO_TARGET_DIR=$build/target
+export CARGO_ZIGBUILD_CACHE_DIR=$build/zigbuild
+export SOURCE_DATE_EPOCH=1
+
+# cargo-zigbuild names the directory of that wrapper after its own path, which
+# depends on the home directory: it runs from a copy at a fixed path.
+install -m 755 "$(command -v cargo-zigbuild)" "$build/cargo-zigbuild"
+"$build/cargo-zigbuild" zigbuild --locked --release --target x86_64-unknown-linux-gnu.2.31
 # the glibc suffix is for zig only: the binary lands under the plain triple
-install -m 755 target/x86_64-unknown-linux-gnu/release/vectura "$out"
+install -m 755 "$CARGO_TARGET_DIR/x86_64-unknown-linux-gnu/release/vectura" "$out"

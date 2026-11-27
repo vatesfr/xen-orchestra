@@ -1,6 +1,6 @@
 <template>
   <div class="pages-dev-icons">
-    <!--    <UiInput v-model="searchTerm" accent="brand" placeholder="Search icon" /> -->
+    <!--    <UiInput v-model="searchTerm" accent="neutral" placeholder="Search icon" /> -->
     <UiCard>
       <div class="icons">
         <RouterLink

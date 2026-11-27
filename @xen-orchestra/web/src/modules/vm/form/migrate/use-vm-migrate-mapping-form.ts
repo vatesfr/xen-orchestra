@@ -10,10 +10,10 @@ import {
   type FrontXoSr,
   useXoSrCollection,
 } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
-import { isSrWritable } from '@/modules/storage-repository/utils/xo-sr.util.ts'
-import { type FrontXoVdi, useXoVdiCollection } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
+import { isWritableSrOfPool } from '@/modules/storage-repository/utils/xo-sr.util.ts'
+import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
 import { type FrontXoVif, useXoVifCollection } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
-import { useXoVmVbdsUtils } from '@/modules/vm/composables/xo-vm-vbd-utils.composable.ts'
+import { useXoVmDisksSrs } from '@/modules/vm/composables/xo-vm-disks-srs.composable.ts'
 import type { VmMigratePayload } from '@/modules/vm/form/migrate/use-vm-migrate-form.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { toComputed } from '@core/utils/to-computed.util.ts'
@@ -44,8 +44,7 @@ export function useVmMigrateMappingForm(
   const targetPoolId = toComputed(rawTargetPoolId)
   const targetHostId = toComputed(rawTargetHostId)
 
-  const { notCdDriveVbds } = useXoVmVbdsUtils(vm)
-  const { useGetVdisByIds } = useXoVdiCollection()
+  const { vdis: vmVdis } = useXoVmDisksSrs(vm)
   const { srs, getSrById } = useXoSrCollection()
   const { pbdsBySr } = useXoPbdCollection()
   const { useGetVifsByIds } = useXoVifCollection()
@@ -61,7 +60,7 @@ export function useVmMigrateMappingForm(
   }
 
   const availableSrs = computed(() =>
-    srs.value.filter(sr => sr.$pool === targetPoolId.value && isSrWritable(sr) && isSrConnectedToTargetHost(sr.id))
+    srs.value.filter(sr => isWritableSrOfPool(sr, targetPoolId.value) && isSrConnectedToTargetHost(sr.id))
   )
 
   const targetHostNetworkIds = computed(() => {
@@ -77,10 +76,6 @@ export function useVmMigrateMappingForm(
   const availableNetworks = computed(() =>
     networks.value.filter(network => network.$pool === targetPoolId.value && targetHostNetworkIds.value.has(network.id))
   )
-
-  const vmVdiIds = computed(() => notCdDriveVbds.value.flatMap(vbd => (vbd.VDI ? [vbd.VDI as FrontXoVdi['id']] : [])))
-
-  const vmVdis = useGetVdisByIds(vmVdiIds)
 
   const vmVifs = useGetVifsByIds(() => vm.value.VIFs)
 

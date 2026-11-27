@@ -16,10 +16,12 @@ export const vdiFields = [
   '$pool',
   'type',
   'usage',
+  'chainPhysicalUsage',
   'tags',
   'uuid',
   'cbt_enabled',
   'image_format',
+  'other_config',
 ] as const satisfies readonly (keyof XoVdi)[]
 
 export const useXoVdiCollection = defineRemoteResource({

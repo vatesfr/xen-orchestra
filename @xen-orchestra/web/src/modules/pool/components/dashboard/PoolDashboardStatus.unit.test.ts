@@ -1,9 +1,11 @@
 import PoolDashboardStatus from '@/modules/pool/components/dashboard/PoolDashboardStatus.vue'
 import type { XoPoolDashboard } from '@/modules/pool/types/xo-pool-dashboard.type.ts'
+import { itShowsDashboardCardStates } from '@/test/dashboard-card.ts'
 import { findCardNumbers, findLegends } from '@/test/find-rendered-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
-import { mount } from '@vue/test-utils'
+import type { PoolDashboardCardProps } from '@/test/pool-dashboard-card.ts'
+import { mount, type VueWrapper } from '@vue/test-utils'
 
 type HostsStatus = NonNullable<NonNullable<XoPoolDashboard['hosts']>['status']>
 
@@ -25,48 +27,28 @@ function createPoolDashboardStatus(overrides: Partial<XoPoolDashboard> = {}): Xo
   }
 }
 
-function mountStatus(props: { poolDashboard?: XoPoolDashboard; hasError?: boolean } = {}) {
+function mountStatus(props: PoolDashboardCardProps = {}) {
   return mount(PoolDashboardStatus, {
     props: { poolDashboard: createPoolDashboardStatus(), ...props },
     global: createGlobalTestConfig(),
   })
 }
 
-function findLegendSections(wrapper: ReturnType<typeof mountStatus>) {
+function findLegendSections(wrapper: VueWrapper) {
   return wrapper
     .findAll('.vts-donut-chart-with-legend')
     .map(section => [section.get('.ui-legend-title').text(), findLegends(section)])
 }
 
-it('renders the card title', () => {
-  const wrapper = mountStatus()
-
-  expect(wrapper.get('.ui-card-title').text()).toBe(t('status'))
-})
-
-it('shows a loader while the dashboard has not arrived yet', () => {
-  const wrapper = mountStatus({ poolDashboard: undefined })
-
-  expect(wrapper.find('.ui-loader').exists()).toBe(true)
-  expect(findLegendSections(wrapper)).toEqual([])
-})
-
-it('shows a loader while the status of the hosts is missing from the dashboard', () => {
-  const wrapper = mountStatus({ poolDashboard: { hosts: {}, vms: { status: createVmsStatus() } } })
-
-  expect(wrapper.find('.ui-loader').exists()).toBe(true)
-})
-
-it('shows a loader while the status of the VMs is missing from the dashboard', () => {
-  const wrapper = mountStatus({ poolDashboard: { hosts: { status: createHostsStatus() }, vms: {} } })
-
-  expect(wrapper.find('.ui-loader').exists()).toBe(true)
-})
-
-it('shows an error message when the dashboard could not be fetched', () => {
-  const wrapper = mountStatus({ hasError: true })
-
-  expect(wrapper.get('.vts-state-hero').text()).toBe(t('error-no-data'))
+itShowsDashboardCardStates(mountStatus, {
+  dashboardProp: 'poolDashboard',
+  title: t('status'),
+  missing: {
+    'the status of the hosts': { hosts: {}, vms: { status: createVmsStatus() } },
+    'the status of the VMs': { hosts: { status: createHostsStatus() }, vms: {} },
+  },
+  findContent: findLegendSections,
+  hasErrorState: true,
 })
 
 it('breaks down the hosts and the VMs by status', () => {

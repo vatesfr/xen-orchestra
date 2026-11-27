@@ -22,6 +22,14 @@ export const proxy = {
   name: 'Proxy 2025-08-29T08:23:33.394Z',
   vmUuid: '7330139d-288f-2248-5986-d508ea71f12c',
   id: 'e625ea0c-a876-405a-b838-109d762efe88',
-  url: 'https://uxxa-NIAY9W29VlGMrRcKuxx2dsYMTldJo-7l2YnMNQ@10.1.7.238/',
+  url: 'proxy.url is no longer exposed by Xen Orchestra because it contained the proxy authentication token, see the Xen Orchestra changelog',
   version: '0.29.29',
+}
+
+export const proxyHealth = { success: true }
+
+export const proxyApplianceUpdaterState = {
+  level: 'info',
+  message: 'All up to date',
+  state: 'xoa-up-to-date',
 }

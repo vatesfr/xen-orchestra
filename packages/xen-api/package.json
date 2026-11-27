@@ -1,7 +1,7 @@
 {
   "private": false,
   "name": "xen-api",
-  "version": "5.1.0",
+  "version": "6.0.0",
   "license": "ISC",
   "description": "Connector to the Xen API",
   "keywords": [
@@ -35,10 +35,10 @@
     "@vates/compose": "^2.1.0",
     "@vates/decorate-with": "^2.1.0",
     "@vates/json-hash": "^0.2.0",
-    "@vates/obfuscate": "^0.1.0",
+    "@vates/obfuscate": "^0.2.0",
     "@vates/xml": "^2.0.0",
     "@vates/xml-rpc": "^1.0.0",
-    "@xen-orchestra/log": "^0.7.2",
+    "@xen-orchestra/log": "^1.0.0",
     "bind-property-descriptor": "^2.0.0",
     "blocked": "^1.2.1",
     "jest-diff": "^29.0.3",
@@ -52,7 +52,7 @@
     "promise-toolbox": "^0.21.0",
     "pw": "0.0.4",
     "undici": "^8.10.0",
-    "xo-collection": "^0.6.1",
+    "xo-collection": "^1.0.1",
     "xo-common": "^0.11.0"
   },
   "devDependencies": {
@@ -67,7 +67,7 @@
     "source-map-support": "^0.5.21",
     "tap": "^18.7.0",
     "throttle": "^1.0.3",
-    "vhd-lib": "^4.17.0"
+    "vhd-lib": "^4.17.1"
   },
   "scripts": {
     "plot": "gnuplot -p memory-test.gnu",

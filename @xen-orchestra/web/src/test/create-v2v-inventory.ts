@@ -1,0 +1,127 @@
+import {
+  V2V_DISK_MODE,
+  V2V_FIRMWARE,
+  V2V_VM_POWER_STATE,
+  type XoV2vDatacenter,
+  type XoV2vDatastore,
+  type XoV2vDisk,
+  type XoV2vHost,
+  type XoV2vInventory,
+  type XoV2vNic,
+  type XoV2vPortGroup,
+  type XoV2vVm,
+} from '@vates/types'
+
+export const V2V_TEST_SOURCE = {
+  product: 'VMware vCenter Server',
+  version: '8.0.2',
+  instanceUuid: 'vcenter-uuid-1',
+} as const
+
+export const V2V_VM_ID = 'vm-1' as XoV2vVm['id']
+
+const DATASTORE_ID = 'datastore-1' as XoV2vDatastore['id']
+
+const VM_NAME = 'app-03'
+
+const DATACENTER_ID = 'datacenter-1' as XoV2vDatacenter['id']
+
+const HOST_ID = 'host-1' as XoV2vHost['id']
+
+export function createV2vDatacenter(overrides: Partial<XoV2vDatacenter> = {}): XoV2vDatacenter {
+  return {
+    id: DATACENTER_ID,
+    name: 'DC-Paris',
+    ...overrides,
+  }
+}
+
+export function createV2vHost(overrides: Partial<XoV2vHost> = {}): XoV2vHost {
+  return {
+    id: HOST_ID,
+    name: 'esx01.lab.local',
+    datacenterId: DATACENTER_ID,
+    ...overrides,
+  }
+}
+
+export function createV2vDatastore(overrides: Partial<XoV2vDatastore> = {}): XoV2vDatastore {
+  return {
+    id: DATASTORE_ID,
+    name: 'ds-prod-01',
+    type: 'VMFS',
+    capacity: 4 * 1024 ** 4,
+    free: 1024 ** 4,
+    hostIds: [],
+    ...overrides,
+  }
+}
+
+export function createV2vPortGroup(overrides: Partial<XoV2vPortGroup> = {}): XoV2vPortGroup {
+  return {
+    id: 'port-group-1' as XoV2vPortGroup['id'],
+    name: 'PG-Prod',
+    vlan: 10,
+    ...overrides,
+  }
+}
+
+export function createV2vDisk(overrides: Partial<XoV2vDisk> = {}): XoV2vDisk {
+  return {
+    key: 'scsi0:0' as XoV2vDisk['key'],
+    label: 'Hard disk 1',
+    datastoreId: DATASTORE_ID,
+    capacity: 80 * 1024 ** 3,
+    mode: V2V_DISK_MODE.PERSISTENT,
+    isRdm: false,
+    isEncrypted: false,
+    chainPaths: [`${VM_NAME}/${VM_NAME}.vmdk`],
+    ...overrides,
+  }
+}
+
+export function createV2vNic(overrides: Partial<XoV2vNic> = {}): XoV2vNic {
+  return {
+    key: 'nic-4000' as XoV2vNic['key'],
+    label: 'Network adapter 1',
+    macAddress: '00:50:56:00:00:01',
+    ...overrides,
+  }
+}
+
+export function createV2vVm(overrides: Partial<XoV2vVm> = {}): XoV2vVm {
+  return {
+    id: V2V_VM_ID,
+    instanceUuid: 'vm-instance-uuid-1',
+    name: VM_NAME,
+    description: '',
+    powerState: V2V_VM_POWER_STATE.POWERED_ON,
+    hostId: HOST_ID,
+    nCpus: 4,
+    memory: 16 * 1024 ** 3,
+    firmware: V2V_FIRMWARE.UEFI,
+    secureBoot: false,
+    datastoreIds: [DATASTORE_ID],
+    snapshotCount: 0,
+    disks: [createV2vDisk()],
+    nics: [],
+    ...overrides,
+  }
+}
+
+export function createV2vVmWithDisks(disks: Partial<XoV2vDisk>[], overrides: Partial<XoV2vVm> = {}): XoV2vVm {
+  return createV2vVm({ disks: disks.map(disk => createV2vDisk(disk)), ...overrides })
+}
+
+export function createV2vInventory(overrides: Partial<XoV2vInventory> = {}): XoV2vInventory {
+  return {
+    ...V2V_TEST_SOURCE,
+    datacenters: [],
+    clusters: [],
+    hosts: [],
+    datastores: [createV2vDatastore()],
+    portGroups: [],
+    vms: [createV2vVm()],
+    ...overrides,
+  }
+}

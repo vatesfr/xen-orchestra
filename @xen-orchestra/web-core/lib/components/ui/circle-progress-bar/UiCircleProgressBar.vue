@@ -17,7 +17,7 @@
         :class="{ success: isCompleteWithSuccess }"
       />
     </svg>
-    <div v-if="size !== 'extra-small'" class="overlay">
+    <div v-if="size !== 'extra-small' && !noValue" class="overlay">
       <VtsIcon v-if="isComplete" class="icon" :name="icon" size="medium" />
       <span v-else>{{ percentValue }}</span>
     </div>
@@ -35,18 +35,20 @@ import { useI18n } from 'vue-i18n'
 const {
   accent,
   size,
-  value: _value,
+  value: rawValue,
   maxValue = 100,
+  noValue = false,
 } = defineProps<{
   accent: CircleProgressBarAccent
   size: CircleProgressBarSize
   value: number
   maxValue?: number
+  noValue?: boolean
 }>()
 
 const { n } = useI18n()
 
-export type CircleProgressBarAccent = 'info' | 'warning' | 'danger'
+export type CircleProgressBarAccent = 'brand' | 'info' | 'warning' | 'danger'
 type CircleProgressBarSize = 'extra-small' | 'small' | 'medium' | 'large'
 
 const circleSizeMap = {
@@ -77,7 +79,7 @@ const strokeWidth = computed(() => strokeWidthMap[size])
 const radius = computed(() => (circleSize.value - strokeWidth.value) / 2)
 const circumference = computed(() => 2 * Math.PI * radius.value)
 
-const value = useMax(0, () => _value)
+const value = useMax(0, () => rawValue)
 const valuePercent = useClamp(() => (value.value / maxValue) * 100 || 0, 0, 100)
 
 const isComplete = computed(() => valuePercent.value >= 100)
@@ -88,7 +90,8 @@ const dashOffset = computed(() => {
   return circumference.value * (1 - valuePercent.value / 100)
 })
 
-const percentValue = computed(() => n(valuePercent.value / 100, 'percent'))
+// Floor (not round) so an unfinished value never displays as "100 %"
+const percentValue = computed(() => n(Math.floor(valuePercent.value) / 100, 'percent'))
 
 const icon = computed<IconName>(() => (accent === 'warning' || accent === 'danger' ? 'fa:exclamation' : 'fa:check'))
 
@@ -110,11 +113,23 @@ const className = computed(() => [
 
   /* ACCENT */
 
+  &.accent--brand {
+    color: var(--color-brand-item-base);
+
+    .fill {
+      stroke: var(--color-brand-data);
+    }
+
+    .background {
+      stroke: var(--color-brand-background-selected);
+    }
+  }
+
   &.accent--info {
     color: var(--color-info-item-base);
 
     .fill {
-      stroke: var(--color-info-item-base);
+      stroke: var(--color-info-data);
     }
 
     .background {
@@ -122,7 +137,7 @@ const className = computed(() => [
     }
 
     .success {
-      stroke: var(--color-success-item-base);
+      stroke: var(--color-success-data);
     }
 
     .icon {
@@ -134,7 +149,7 @@ const className = computed(() => [
     color: var(--color-warning-item-base);
 
     .fill {
-      stroke: var(--color-warning-item-base);
+      stroke: var(--color-warning-data);
     }
 
     .background {
@@ -146,7 +161,7 @@ const className = computed(() => [
     color: var(--color-danger-item-base);
 
     .fill {
-      stroke: var(--color-danger-item-base);
+      stroke: var(--color-danger-data);
     }
 
     .background {

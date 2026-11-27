@@ -4,7 +4,7 @@
 
     <template #content>
       <VtsInputWrapper :label="t('select-format')" wrap-message>
-        <VtsSelect :id="exportFormatSelectedId" accent="brand" />
+        <VtsSelect :id="exportFormatSelectedId" accent="neutral" />
       </VtsInputWrapper>
     </template>
 

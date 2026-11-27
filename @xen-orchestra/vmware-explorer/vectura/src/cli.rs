@@ -297,21 +297,21 @@ fn report_parse(error: &clap::Error) -> ExitCode {
 /// Probes both ports, then prints their thumbprints, management port first.
 fn fingerprint(arguments: &Fingerprint) -> Result<(), Failure> {
     let HostPort { host, port } = &arguments.host;
+    let transcript = Transcript::new(arguments.verbose);
     let management = tls::connect(host, *port)
         .and_then(|mut stream| tls::capture(&mut stream, host))
         .map_err(|source| Failure::Management {
             address: format!("{host}:{port}"),
             source,
         })?;
-    let data = nfc::capture(host, arguments.nfc_port).map_err(|source| Failure::Data {
-        address: format!("{host}:{}", arguments.nfc_port),
-        source,
-    })?;
+    transcript.tls(&port.to_string(), management.version, management.suite);
+    let data =
+        nfc::capture(host, arguments.nfc_port, transcript).map_err(|source| Failure::Data {
+            address: format!("{host}:{}", arguments.nfc_port),
+            source,
+        })?;
+    transcript.tls(&arguments.nfc_port.to_string(), data.version, data.suite);
     let presented = [(*port, management), (arguments.nfc_port, data)];
-    let transcript = Transcript::new(arguments.verbose);
-    for (port, presented) in &presented {
-        transcript.tls(&port.to_string(), presented.version, presented.suite);
-    }
     let mut stdout = io::stdout().lock();
     for (port, presented) in &presented {
         writeln!(

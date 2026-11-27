@@ -27,6 +27,7 @@ export function useNetworkDelete(rawNetworks: MaybeRefOrGetter<FrontXoNetwork[]>
       physical: t('n-networks', { n: count }),
       bonded: t('n-bonded-networks', { n: count }),
       internal: t('n-internal-networks', { n: count }),
+      private: t('n-private-networks', { n: count }),
     }
 
     return subjectsByType[getNetworkType(networks.value[0])]

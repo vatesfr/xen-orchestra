@@ -1,9 +1,9 @@
-<!-- v4 -->
+<!-- v7 -->
 <template>
   <label :class="variant" class="ui-radio-button typo-body-regular">
-    <span class="radio-container">
+    <span class="radio">
       <input v-model="model" :disabled="isDisabled" :value class="input" type="radio" />
-      <VtsIcon name="fa:circle" size="medium" class="radio-icon" />
+      <VtsIcon name="status:radio-button" size="medium" />
     </span>
     <slot />
   </label>
@@ -34,120 +34,86 @@ const isDisabled = useDisabled(() => disabled)
 
 <style lang="postcss" scoped>
 .ui-radio-button {
+  --radio-dot-color: var(--color-neutral-background-primary);
   display: inline-flex;
   align-items: center;
   gap: 0.8rem;
 
-  .radio-container {
-    display: inline-flex;
-    align-items: center;
-    flex-shrink: 0;
-    justify-content: center;
-    border: 0.2rem solid var(--accent-color);
-    background-color: transparent;
-    border-radius: 0.8rem;
-    width: 1.6rem;
-    height: 1.6rem;
+  .radio {
     position: relative;
+    display: inline-flex;
+    flex-shrink: 0;
+    border-radius: 50%;
+    color: var(--radio-color);
     transition:
-      border-color 0.125s ease-in-out,
+      color 0.125s ease-in-out,
       background-color 0.125s ease-in-out;
 
-    &:has(input:focus-visible) {
-      outline: none;
+    &:has(.input:checked) {
+      background-color: var(--radio-color);
 
       &::after {
-        position: absolute;
         content: '';
-        inset: -0.5rem;
-        border: 0.2rem solid var(--color-brand-txt-base);
-        border-radius: 0.4rem;
+        position: absolute;
+        inset: 0;
+        width: 0.6rem;
+        height: 0.6rem;
+        margin: auto;
+        border-radius: 50%;
+        background-color: var(--radio-dot-color);
       }
     }
 
-    &:has(.input:checked) {
-      background-color: var(--accent-color);
+    &:has(.input:focus-visible)::before {
+      content: '';
+      position: absolute;
+      inset: -0.4rem;
+      border: 0.2rem solid var(--color-brand-txt-base);
+      border-radius: 0.4rem;
     }
-
-    /* INPUT */
 
     .input {
       opacity: 0;
       position: absolute;
       pointer-events: none;
     }
-
-    /* ICON */
-
-    .radio-icon {
-      font-size: 0.8rem;
-      transition: font-size 0.125s ease-in-out;
-      color: var(--radio-icon-color);
-      --radio-icon-color: var(--color-neutral-background-primary);
-    }
-
-    .input:not(:checked) + .radio-icon {
-      font-size: 1.2rem;
-    }
-
-    .input:disabled + .radio-icon {
-      --radio-icon-color: var(--color-neutral-background-disabled);
-    }
   }
 
   /* ACCENT */
 
   &.accent--brand {
-    --accent-color: var(--color-brand-item-base);
+    --radio-color: var(--color-brand-txt-base);
 
     &:hover {
-      --accent-color: var(--color-brand-item-hover);
+      --radio-color: var(--color-brand-txt-hover);
     }
 
     &:active {
-      --accent-color: var(--color-brand-item-active);
-    }
-
-    &:has(.input:checked:not(:disabled)) {
-      .radio-icon {
-        --radio-icon-color: var(--color-brand-txt-item);
-      }
+      --radio-color: var(--color-brand-txt-active);
     }
   }
 
   &.accent--warning {
-    --accent-color: var(--color-warning-item-base);
+    --radio-color: var(--color-warning-txt-base);
 
     &:hover {
-      --accent-color: var(--color-warning-item-hover);
+      --radio-color: var(--color-warning-txt-hover);
     }
 
     &:active {
-      --accent-color: var(--color-warning-item-active);
-    }
-
-    &:has(.input:checked:not(:disabled)) {
-      .radio-icon {
-        --radio-icon-color: var(--color-warning-txt-item);
-      }
+      --radio-color: var(--color-warning-txt-active);
     }
   }
 
   &.accent--danger {
-    --accent-color: var(--color-danger-item-base);
+    --radio-color: var(--color-danger-txt-base);
 
     &:hover {
-      --accent-color: var(--color-danger-item-hover);
+      --radio-color: var(--color-danger-txt-hover);
     }
 
     &:active {
-      --accent-color: var(--color-danger-item-active);
-    }
-
-    &:has(.input:checked:not(:disabled)) {
-      .radio-icon {
-        --radio-icon-color: var(--color-danger-txt-item);
-      }
+      --radio-color: var(--color-danger-txt-active);
     }
   }
 
@@ -155,7 +121,9 @@ const isDisabled = useDisabled(() => disabled)
 
   &:has(.input:disabled) {
     cursor: not-allowed;
-    --accent-color: var(--color-neutral-txt-secondary);
+    color: var(--color-neutral-txt-secondary);
+    --radio-color: var(--color-neutral-txt-secondary);
+    --radio-dot-color: var(--color-neutral-background-disabled);
   }
 }
 </style>

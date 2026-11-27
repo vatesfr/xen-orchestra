@@ -15,10 +15,12 @@ export function createVdi(overrides: Partial<FrontXoVdi> = {}): FrontXoVdi {
     $pool: 'pool-789' as FrontXoVdi['$pool'],
     type: 'VDI',
     usage: 5368709120,
+    chainPhysicalUsage: 5368709120,
     tags: [],
     uuid: 'vdi-uuid-1',
     cbt_enabled: false,
     image_format: 'vhd',
+    other_config: {},
     ...overrides,
   }
 }

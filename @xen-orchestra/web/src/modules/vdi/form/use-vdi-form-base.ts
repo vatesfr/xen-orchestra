@@ -5,14 +5,19 @@ import {
   type FrontXoSr,
   useXoSrCollection,
 } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
-import { isSrWritable } from '@/modules/storage-repository/utils/xo-sr.util.ts'
+import { isWritableSrOfPool } from '@/modules/storage-repository/utils/xo-sr.util.ts'
 import { useXoVbdCollection } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
-import { type FrontXoVdi, useXoVdiCollection } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
-import { useXoVmVbdsUtils } from '@/modules/vm/composables/xo-vm-vbd-utils.composable.ts'
+import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
+import { useXoVmDisksSrs } from '@/modules/vm/composables/xo-vm-disks-srs.composable.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import type { InputWrapperMessage } from '@core/components/input-wrapper/VtsInputWrapper.vue'
 import { objectIcon } from '@core/icons'
-import { type FormValidationConfig, mergeValidationConfigs, required } from '@core/packages/form-validation'
+import {
+  type FormValidationConfig,
+  mergeValidationConfigs,
+  required,
+  withMessage,
+} from '@core/packages/form-validation'
 import { useValidatedForm } from '@core/packages/validated-form'
 import { toComputed } from '@core/utils/to-computed.util.ts'
 import { computed, type MaybeRefOrGetter } from 'vue'
@@ -34,7 +39,7 @@ export function useVdiFormBase<T extends BaseVdiFormData & Record<string, unknow
   const baseConfig: FormValidationConfig<BaseVdiFormData> = {
     errors: {
       onSubmit: () => ({
-        sr: { required },
+        sr: { required: withMessage(required, () => t('sr-required')) },
       }),
     },
   }
@@ -44,29 +49,20 @@ export function useVdiFormBase<T extends BaseVdiFormData & Record<string, unknow
     mergeValidationConfigs(baseConfig, extraConfig)
   )
 
-  const { srs, useGetSrById, useGetSrsByIds } = useXoSrCollection()
-  const { useGetVdisByIds } = useXoVdiCollection()
+  const { srs, useGetSrById } = useXoSrCollection()
   const { useGetVbdsByIds } = useXoVbdCollection()
 
   const { getSrSelectLabel } = useXoSrUtils()
 
-  const { notCdDriveVbds } = useXoVmVbdsUtils(vm)
+  const { srs: vmVdiSrs } = useXoVmDisksSrs(vm)
 
-  const availableSrs = computed(() => srs.value.filter(sr => sr.$pool === vm.value.$pool && isSrWritable(sr)))
+  const availableSrs = computed(() => srs.value.filter(sr => isWritableSrOfPool(sr, vm.value.$pool)))
 
   const vmVbds = useGetVbdsByIds(() => vm.value.$VBDs)
 
   const attachedVdiIds = computed(
     () => new Set(vmVbds.value.flatMap(vbd => (vbd.VDI ? [vbd.VDI as FrontXoVdi['id']] : [])))
   )
-
-  const vmVdiIds = computed(() => notCdDriveVbds.value.flatMap(vbd => (vbd.VDI ? [vbd.VDI as FrontXoVdi['id']] : [])))
-
-  const vmVdis = useGetVdisByIds(vmVdiIds)
-
-  const vmVdiSrIds = computed(() => [...new Set(vmVdis.value.map(vdi => vdi.$SR))])
-
-  const vmVdiSrs = useGetSrsByIds(vmVdiSrIds)
 
   const requiredHost = computed(() => {
     let host: FrontXoSr['$container'] | undefined

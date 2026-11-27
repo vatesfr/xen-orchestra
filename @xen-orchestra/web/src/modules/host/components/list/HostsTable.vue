@@ -1,7 +1,7 @@
 <template>
   <div class="hosts-table">
     <UiTitle>{{ t('hosts') }}</UiTitle>
-    <VtsQueryBuilder :model-value="filter" :schema @search="filter = $event" />
+    <VtsQueryBuilder v-bind="searchBindings" :schema />
     <div class="container">
       <VtsTable :pagination-bindings :state sticky="right">
         <thead>
@@ -18,7 +18,9 @@
 </template>
 
 <script lang="ts" setup>
+import HostMoreActions from '@/modules/host/components/HostMoreActions.vue'
 import { useHostQueryBuilder } from '@/modules/host/composables/use-host-query-builder.composable.ts'
+import { useXoHostOperationLabel } from '@/modules/host/composables/xo-host-operation-label.composable.ts'
 import { type FrontXoHost, useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import { getHostIcon } from '@/modules/host/utils/xo-host.util.ts'
 import { getPbdsConnectionStatus } from '@/modules/pbd/utils/xo-pbd.util.ts'
@@ -61,11 +63,13 @@ const { pifsByHost, arePifsReady, hasPifFetchError } = useXoPifCollection()
 
 const { isMasterHost } = useXoHostCollection()
 
+const { getHostIconTooltip } = useXoHostOperationLabel()
+
 const isReady = logicAnd(() => !busy, arePifsReady)
 
 const hasError = logicOr(() => error, hasPifFetchError)
 
-const { items: filteredHosts, filter, schema } = useHostQueryBuilder('hosts', () => rawHosts)
+const { items: filteredHosts, searchBindings, schema } = useHostQueryBuilder('hosts', () => rawHosts)
 
 const state = useTableState({
   busy: logicNot(isReady),
@@ -96,7 +100,7 @@ function getMasterIcon(host: FrontXoHost) {
 }
 
 const { HeadCells, BodyCells } = useHostColumns({
-  exclude: sr === undefined ? ['checkbox', 'srStatus'] : ['checkbox'],
+  exclude: sr === undefined ? ['checkbox', 'srStatus', 'selectItem'] : ['checkbox', 'selectItem'],
   body: (host: FrontXoHost) => {
     const ipAddresses = computed(() => getHostIpAddresses(host.address, pifsByHost.value.get(host.id)))
     const hostIcon = computed(() => getHostIcon(host))
@@ -111,13 +115,19 @@ const { HeadCells, BodyCells } = useHostColumns({
           label: host.name_label,
           to: { name: '/host/[id]/dashboard', params: { id: host.id } },
           icon: hostIcon.value,
+          iconTooltip: getHostIconTooltip(host),
           rightIcon: rightIcon.value,
         }),
       description: r => r(host.name_description),
       ipAddresses: r => r(ipAddresses.value),
       tags: r => r(host.tags),
       srStatus: r => r(srConnectionStatus.value),
-      selectItem: r => r(() => (selectedHostId.value = host.id)),
+      actions: r =>
+        r({
+          onClick: () => (selectedHostId.value = host.id),
+          component: HostMoreActions,
+          props: { host, layout: 'change-state-submenu' },
+        }),
     }
   },
 })

@@ -1,10 +1,15 @@
 <template>
   <VtsInputWrapper :label :message="messages" wrap-message>
-    <VtsSelect :id accent="brand">
+    <VtsSelect :id accent="neutral">
       <template #default="{ option }">
         <VtsOption :option>
           <span class="select-option">
-            <VtsIcon v-if="option.properties.icon" :name="option.properties.icon" size="medium" />
+            <VtsIcon
+              v-if="option.properties.icon"
+              :name="option.properties.icon"
+              :tooltip="option.properties.iconTooltip"
+              size="medium"
+            />
             {{ option.properties.label }}
           </span>
         </VtsOption>
@@ -22,16 +27,17 @@ import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsInputWrapper from '@core/components/input-wrapper/VtsInputWrapper.vue'
 import VtsOption from '@core/components/select/VtsOption.vue'
 import VtsSelect from '@core/components/select/VtsSelect.vue'
+import { mergeInputWrapperMessages } from '@core/utils/input-wrapper-message.util.ts'
 import { computed } from 'vue'
 
 const { error, info } = defineProps<{
-  id: FormSelectId<{ icon?: IconName; accent?: DropdownAccent }>
+  id: FormSelectId<{ icon?: IconName; iconTooltip?: string; accent?: DropdownAccent }>
   label: string
   error?: InputWrapperMessage
   info?: InputWrapperMessage
 }>()
 
-const messages = computed(() => [error, info].filter(message => message !== undefined).flat())
+const messages = computed(() => mergeInputWrapperMessages(error, info))
 </script>
 
 <style lang="postcss" scoped>

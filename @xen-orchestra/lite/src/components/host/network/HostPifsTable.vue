@@ -7,7 +7,7 @@
       </template>
     </UiTitle>
     <div class="container">
-      <UiQuerySearchBar @search="(value: string) => (searchQuery = value)" />
+      <UiQuerySearchBar v-bind="searchBindings" />
       <VtsTable :state :pagination-bindings sticky="right">
         <thead>
           <tr>
@@ -35,11 +35,12 @@ import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearch
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { usePagination } from '@core/composables/pagination.composable.ts'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
+import { useSearchFilter } from '@core/composables/search-filter.composable.ts'
 import { useTableState } from '@core/composables/table-state.composable.ts'
 import { icon } from '@core/icons'
 import { usePifColumns } from '@core/tables/column-sets/pif-columns.ts'
 import { logicNot } from '@vueuse/math'
-import { computed, ref } from 'vue'
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { pifs } = defineProps<{
@@ -75,21 +76,10 @@ const getIpConfigurationMode = (ipMode: string) => {
   }
 }
 
-const searchQuery = ref('')
-
-const filteredPifs = computed(() => {
-  const searchTerm = searchQuery.value.trim().toLocaleLowerCase()
-
-  if (!searchTerm) {
-    return pifs
-  }
-
-  return pifs.filter(pif =>
-    [...Object.values(pif), getNetworkName(pif.network)].some(value =>
-      String(value).toLocaleLowerCase().includes(searchTerm)
-    )
-  )
-})
+const { items: filteredPifs, searchBindings } = useSearchFilter(
+  () => pifs,
+  pif => [...Object.values(pif), getNetworkName(pif.network)]
+)
 
 const state = useTableState({
   busy: logicNot(isReady),

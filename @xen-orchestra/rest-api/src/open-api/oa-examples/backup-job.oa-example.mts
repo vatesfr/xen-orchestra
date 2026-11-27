@@ -134,3 +134,7 @@ export const mirrorBackupJob = {
   proxy: '83050a39-44e2-4e59-b612-860250ce9338',
   id: 'e680c14c-ab52-45c8-bb0e-bd4ca12ea8f9',
 }
+
+export const backupJobId = {
+  id: 'd33f3dc1-92b4-469c-ad58-4c2a106a4721',
+}

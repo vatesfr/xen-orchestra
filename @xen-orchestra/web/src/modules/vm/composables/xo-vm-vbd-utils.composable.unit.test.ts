@@ -1,37 +1,34 @@
-import type { useXoVbdCollection } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
+import type { FrontXoVbd } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
 import { useXoVmVbdsUtils } from '@/modules/vm/composables/xo-vm-vbd-utils.composable.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { createVbd } from '@/test/create-vbd.ts'
 import { createVm } from '@/test/create-vm.ts'
+import { vmDeviceCollectionsMock, mockXoVmDeviceCollections } from '@/test/mock-xo-vm-device-collections.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
+import { seedVmDisks } from '@/test/seed-vm-disks.ts'
 import { ref } from 'vue'
 
-const { getVbdsByIds } = vi.hoisted(() => ({
-  getVbdsByIds: vi.fn(),
-}))
-
-vi.mock(import('@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'), () => ({
-  useXoVbdCollection: (() => ({ getVbdsByIds })) as unknown as typeof useXoVbdCollection,
-}))
+mockXoVmDeviceCollections('vbd')
 
 beforeEach(() => {
-  getVbdsByIds.mockReset()
+  vmDeviceCollectionsMock.reset()
 })
 
 describe('notCdDriveVbds', () => {
   it('filters out the CD-drive VBDs', () => {
-    getVbdsByIds.mockReturnValue([createVbd({ is_cd_drive: false }), createVbd({ is_cd_drive: true })])
+    const vm = createVm({ $VBDs: seedVmDisks([{ vbd: { is_cd_drive: false } }, { vbd: { is_cd_drive: true } }]) })
 
-    const { wrapper } = mountComposable(() => useXoVmVbdsUtils(createVm()))
+    const { wrapper } = mountComposable(() => useXoVmVbdsUtils(vm))
 
     expect(wrapper.vm.notCdDriveVbds).toHaveLength(1)
     expect(wrapper.vm.notCdDriveVbds[0].is_cd_drive).toBe(false)
   })
 
   it('reacts to changes of the source VM', () => {
-    getVbdsByIds.mockImplementation((ids: string[]) =>
-      ids.includes('vbd-cd') ? [createVbd({ is_cd_drive: true })] : [createVbd({ is_cd_drive: false })]
-    )
+    vmDeviceCollectionsMock.vbds.value = [
+      createVbd({ id: 'vbd-disk' as FrontXoVbd['id'], is_cd_drive: false }),
+      createVbd({ id: 'vbd-cd' as FrontXoVbd['id'], is_cd_drive: true }),
+    ]
 
     const vm = ref(createVm({ $VBDs: ['vbd-disk'] as FrontXoVm['$VBDs'] }))
     const { wrapper } = mountComposable(() => useXoVmVbdsUtils(vm))

@@ -1,32 +1,27 @@
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
-import { mount, type VueWrapper } from '@vue/test-utils'
-import { defineComponent, type ShallowUnwrapRef } from 'vue'
-import type { Router } from 'vue-router'
+import { mountComposable as mountCoreComposable } from '@core-test/mount-composable.ts'
+import { useI18n } from 'vue-i18n'
+
+export type MountComposableOptions = NonNullable<Parameters<typeof createGlobalTestConfig>[0]>
 
 /**
- * Runs a composable inside a mounted component so it has access to a Vue
- * instance context (lifecycle hooks, `provide`/`inject`, effect scope, plugins
- * such as `vue-i18n`…).
- *
- * The composable result becomes the component state: read it through
- * `wrapper.vm`, with refs already unwrapped. Destructuring it snapshots the
- * values and stops observing updates.
- *
- * Pass a `router` to run the composable on a given route.
+ * The web-core `mountComposable`, on the XO 6 global test config.
  */
 export function mountComposable<TResult extends Record<string, unknown>>(
   composable: () => TResult,
-  { router }: { router?: Router } = {}
+  globalOptions: MountComposableOptions = {}
 ) {
-  const wrapper = mount(
-    defineComponent({
-      // Vue calls `setup(props, ctx)`: passing `composable` as-is would land `props` on its first parameter
-      setup: () => composable(),
-      render: () => null,
-    }),
-    { global: createGlobalTestConfig({ router }) }
-    // `defineComponent` cannot infer the bindings of a generic setup
-  ) as unknown as VueWrapper<ShallowUnwrapRef<TResult>>
+  return mountCoreComposable(composable, createGlobalTestConfig(globalOptions))
+}
 
-  return { wrapper }
+// The expected labels of a composable test are built with the `t` of the mounted component (see testing-composables.md)
+export function mountComposableWithI18n<TResult extends Record<string, unknown>>(
+  composable: () => TResult,
+  options?: MountComposableOptions
+) {
+  return mountComposable(() => {
+    const { t } = useI18n()
+
+    return { ...composable(), t }
+  }, options).wrapper.vm
 }

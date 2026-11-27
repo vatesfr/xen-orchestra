@@ -241,9 +241,13 @@ export default class {
     if (idsToCheck === undefined) {
       return false
     }
-    const { id } = idsToCheck
-    const ids = typeof id === 'string' ? [id] : id.__or
-    return ids.includes(remoteId)
+    if (typeof idsToCheck === 'string') {
+      return true
+    } else {
+      const { id } = idsToCheck
+      const ids = typeof id === 'string' ? [id] : id.__or
+      return ids.includes(remoteId)
+    }
   }
 
   // The caller of this function have to create a parent Task

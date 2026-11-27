@@ -14,10 +14,10 @@ The two replication job types now have clearer names, but the XO 5 screens below
 
 | Current name                                                       | Former name, still shown in XO 5 |
 | ------------------------------------------------------------------ | -------------------------------- |
-| [Full replication](./backup-types/full_replication.md)                          | Disaster Recovery (DR)           |
-| [Incremental replication](./backup-types/incremental_replication.md)               | Continuous Replication (CR)      |
+| [Full replication](../replication/full_replication.md)                          | Disaster Recovery (DR)           |
+| [Incremental replication](../replication/incremental_replication.md)               | Continuous Replication (CR)      |
 
-Nothing changed in behaviour: only the labels differ. XO 6 uses the current names, and the tags XO puts on replicas (`Disaster Recovery`, `Continuous Replication`) kept the former ones.
+Nothing changed in behavior: only the labels differ. XO 6 uses the current names, and the tags XO puts on replicas (`Disaster Recovery`, `Continuous Replication`) kept the former ones.
 :::
 
 ## Interface
@@ -392,6 +392,7 @@ Xen Orchestra supports Amazon S3 storage and other S3-compatible providers, so y
 - Not all S3-compatible providers adhere perfectly to Amazon S3 standards. Check the [supported object storage providers](./scale-and-security/object-storage-support.md) list and its support tiers, and test your setup before trusting it with critical backups.
 - Losing your encryption key means your backups will be permanently inaccessible. If you enable encryption, make sure your key is stored securely, and outside of the backed up infrastructure, as there's no way to recover your data without it.
 - If the bucket has S3 Object Lock enabled, read [S3 Object Lock](./scale-and-security/object-lock.md) first: it constrains which backup modes and retention settings you can use, and XO does not set the retention period itself.
+- XO locks a VM's folder in the bucket while a backup job writes to it, and while the cleanup that follows a job or a deletion merges and removes the leftover files in it. The lock does not cover removing the backups you delete themselves. On buckets with Object Lock enabled, and when the S3 user cannot read the bucket's Object Lock configuration (`s3:GetBucketObjectLockConfiguration`, XO logs a warning), backups run without this lock, as they used to. On a versioned bucket, the lock object is rewritten every 30 seconds while a backup job, a merge or a cleanup holds a VM's folder, so the bucket keeps its previous versions; a lifecycle rule that expires noncurrent versions removes them.
 
 :::
 
@@ -415,6 +416,7 @@ To configure an Azure backup repository, you'll need:
 
 - When using Azurite instead of real Azure, select the **Azurite** type and provide the emulator's host/port.
 - Container names must be **lowercase**.
+- XO locks a VM's folder in the container while a backup job writes to it, and while the cleanup that follows a job or a deletion merges and removes the leftover files in it. The lock does not cover removing the backups you delete themselves. On an account with blob versioning or soft delete, each lock taken leaves a copy of its 0-byte lock blob: a previous version, or a soft-deleted blob. A lifecycle management rule that deletes previous versions, or the soft-delete retention period, removes them.
 
 :::
 
@@ -505,6 +507,13 @@ With a slow or distant BR, typically an S3 or Azure BR outside your network, rea
   #bindAddress = '0.0.0.0'
   ```
 
+- **Only the host connects.** The iSCSI target of a mount only accepts connections from the addresses of the host it is mounted on: its management address and the addresses of its PIFs, storage networks included. Any other connection is closed at once, so nothing else can keep the host from connecting. If the hosts reach Xen Orchestra through a NAT, which hides their own addresses, turn it off in the same `[iscsi]` section:
+
+  ```toml
+  [iscsi]
+  restrictToHost = false
+  ```
+
 - **Temporary.** A live mount only lasts as long as the Xen Orchestra process serving it: restarting or updating XOA ends it, and the disk becomes unavailable to the VM. Stop using the disk before restarting or updating XOA. If Xen Orchestra stopped unexpectedly, the `[XO live mount] <VM name> (<backup date>)` SR stays behind with nothing serving it: detach the disk from the VM and forget the SR.
 
 ### Firewall of Xen Orchestra {#live-mount-firewall}
@@ -518,7 +527,7 @@ To turn it off, and manage the firewall yourself, add to the [configuration file
 manageFirewall = false
 ```
 
-If a firewall still blocks the hosts, the restore fails with `the host cannot reach the iSCSI target at <address>:<port>, check iscsi.advertisedAddress and the firewalls between them`.
+If a firewall still blocks the hosts, the restore fails with `the host cannot reach the iSCSI target at <address>:<port>, check iscsi.advertisedAddress and the firewalls between them, …`. If they connect through a NAT, it fails with `the host connected to the iSCSI target from <address>, which is not one of its addresses, e.g. through a NAT: set iscsi.restrictToHost = false`.
 
 How it works:
 
@@ -643,6 +652,7 @@ You can also restore specific files and directories inside a VM. It works with a
 
 - File level restore **is only possible on incremental backups**. Also, due to some technical limitations, you won't be able to do file level restore if you have a chain longer than 99 (ie retention longer than 99 records without any full between). Take a look at the [key backup interval section](./backup-types/incremental_backups.md#key-backup-interval) to set this correctly.
 - File level restore **is only possible on a single VDI**, it does not support LVM Volume Groups that span multiple VDIs.
+- File level restore **does not support symbolic links**: they are hidden when browsing, skipped when a folder is restored, and a path going through one is refused. Restore the link target directly instead.
 - The following Microsoft solutions are **not supported**:
   - [Data Deduplication](https://learn.microsoft.com/en-us/windows-server/storage/data-deduplication/overview)
   - [Logical Disk Manager](https://en.wikipedia.org/wiki/Logical_Disk_Manager) (LDM)

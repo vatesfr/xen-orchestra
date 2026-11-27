@@ -1,4 +1,5 @@
 import { useAzureBackupRepositoryDetailsForm } from '@/modules/backup-repository/form/details/use-azure-backup-repository-details-form.ts'
+import { requiredMessage } from '@/test/form-messages.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
 import { nextTick, ref } from 'vue'
 import type { BackupRepositoryType } from 'xo-remote-parser'
@@ -25,10 +26,10 @@ describe('validate', () => {
     const result = mountAzureForm()
 
     expect(await result.validate()).toBe(false)
-    expect(result.bindings.hostName.error).toBeDefined()
-    expect(result.bindings.accountName.error).toBeDefined()
-    expect(result.bindings.key.error).toBeDefined()
-    expect(result.bindings.containerName.error).toBeDefined()
+    expect(result.bindings.hostName.error).toEqual(requiredMessage())
+    expect(result.bindings.accountName.error).toEqual(requiredMessage())
+    expect(result.bindings.key.error).toEqual(requiredMessage())
+    expect(result.bindings.containerName.error).toEqual(requiredMessage())
   })
 
   it('accepts the required fields without a path in the container', async () => {

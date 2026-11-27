@@ -759,6 +759,10 @@ export type TrafficRuleProtocol = (typeof TRAFFIC_RULE_PROTOCOLS)[number]
 export const SDN_CONTROLLER_OF_RULES_KEY = 'xo:sdn-controller:of-rules'
 export const SDN_CONTROLLER_OF_METHOD_KEY = 'xo:sdn-controller:of-method'
 export const SDN_CONTROLLER_OF_FORMAT_KEY = 'xo:sdn-controller:of-format'
+export const SDN_CONTROLLER_PRIVATE_NETWORK_UUID_KEY = 'xo:sdn-controller:private-network-uuid'
+export const SDN_CONTROLLER_ENCRYPTED_KEY = 'xo:sdn-controller:encrypted'
+export const SDN_CONTROLLER_ENCAPSULATION_KEY = 'xo:sdn-controller:encapsulation'
+export const SDN_CONTROLLER_PREFERRED_CENTER_KEY = 'xo:sdn-controller:preferred-center'
 export const TRAFFIC_RULE_PROTOCOLS = ['ARP', 'ICMP', 'IP', 'TCP', 'UDP'] as const
 export const TRAFFIC_RULE_PROTOCOLS_WITH_PORT: readonly TrafficRuleProtocol[] = ['TCP', 'UDP']
 
@@ -772,6 +776,7 @@ export type RawTrafficRule = {
   ipRange: string
   direction: TrafficRuleDirection
   port?: string
+  priority?: number
 }
 
 type BaseTrafficRule = RawTrafficRule & {
@@ -817,3 +822,16 @@ export type RPU_RECOVERY_STEP_NAME = (typeof RPU_RECOVERY_STEP_NAMES)[number]
 export const COMMON_TAG = {
   NOBAK: 'xo:no-bak',
 } as const
+
+/**
+ * a package of the XO appliance with another version available
+ *
+ * Returned by `xoa-updater` as `upgradablePackages` at the end of an update check.
+ */
+export type XoaPackageUpdate = {
+  name: string
+  /** version which will be installed */
+  version: string
+  /** undefined: the package is not installed yet */
+  installedVersion?: string
+}

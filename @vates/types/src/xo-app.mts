@@ -3,12 +3,17 @@ import type {
   AnyXoJob,
   AnyXoLog,
   NonXapiXoRecord,
+  XoBackupDiskPartition,
   XapiXoRecord,
   XoAuthenticationToken,
   XoBackupRepository,
+  XoBrowserMediaSession,
   XoConfigBackupArchive,
   XoGroup,
   XoHost,
+  XoMetadataBackupJob,
+  XoMirrorBackupJob,
+  XoNetwork,
   XoPlugin,
   XoPool,
   XoPoolBackupArchive,
@@ -18,12 +23,17 @@ import type {
   XoSr,
   XoTask,
   XoUser,
+  XoVdi,
   XoVif,
   XoVm,
   XoVmBackupArchive,
+  XoVmBackupJob,
+  XoVmTemplate,
 } from './xo.mjs'
 import { VatesTask } from './lib/vates-task.mjs'
 import type { PluginRestRouteDefinition } from './lib/rest-api.mjs'
+import type { VmwareInventory } from './lib/xen-orchestra-vmware-explorer.mjs'
+import type { XoV2vStatus } from './lib/xen-orchestra-v2v.mjs'
 import type { RPU_RECOVERY_STEP_NAME } from './common.mjs'
 import {
   Xapi,
@@ -145,26 +155,80 @@ export type PoolRollingUpdateRecoveryError = {
 }
 
 export type PoolRollingUpdateRecoveryHost = {
-  status: 'pending' | 'running' | 'succeeded' | 'failed' | 'not-needed'
+  /** `interrupted`: left in progress by a run that is over */
+  status: 'pending' | 'running' | 'interrupted' | 'succeeded' | 'failed' | 'not-needed'
   steps: Record<RPU_RECOVERY_STEP_NAME, PoolRollingUpdateRecoveryStep>
   lastError: PoolRollingUpdateRecoveryError | null
+}
+
+/** a VM the last migrate back of the run could not bring to its original host */
+export type PoolRollingUpdateRecoveryVmConflict = {
+  vmId: string
+  /** unknown for a VM deleted before the run could read it */
+  vmName?: string
+  /** UUID of the host the VM was running on before the run */
+  hostId: string
+  /** `stopped` and `deleted`: left to the operator; `migration-failed`: retried by a resume */
+  reason: 'stopped' | 'deleted' | 'migration-failed'
+  /** XAPI error of the last migration, `migration-failed` only */
+  message?: string
+}
+
+/** what an operator changed, since the run, on a setting the run left changed or on an object of the run */
+export type PoolRollingUpdateRecoveryOperatorChange = {
+  /** `haHeartbeatSr`: a heartbeat SR needed to enable HA again no longer exists */
+  type: 'ha' | 'autoPowerOn' | 'wlb' | 'schedule' | 'haHeartbeatSr' | 'host' | 'vm'
+  /** pool, schedule, SR, host or VM UUID */
+  id: string
+  /** schedules enabled again only */
+  name?: string
+  /** `disabled` as the run left it, `present` for a heartbeat SR, a host or a VM */
+  expected: 'disabled' | 'present'
+  /** `missing` for a deleted schedule, heartbeat SR, host or VM */
+  observed: 'enabled' | 'missing'
+}
+
+/** hosts resumes added to the plan of the run: patches released since it started, or hosts new to the pool */
+export type PoolRollingUpdateRecoveryPlanChange = {
+  /** the last resume which added hosts */
+  attempt: number
+  /** UUIDs of hosts the run did not plan to update, or had finished, added by any resume */
+  addedHostIds: string[]
 }
 
 export type PoolRollingUpdateRecoveryRun = {
   runId: string
   poolId: string
-  status: 'preparing' | 'running' | 'interrupted' | 'resuming' | 'failed' | 'cleaning' | 'succeeded'
+  /** `awaiting-acceptance`: a resume found operator changes and waits for them to be accepted */
+  status:
+    | 'preparing'
+    | 'running'
+    | 'interrupted'
+    | 'resuming'
+    | 'failed'
+    | 'cleaning'
+    | 'succeeded'
+    | 'awaiting-acceptance'
   startedAt: string
   updatedAt: string
   finishedAt?: string
   interruptedAt?: string
   taskId?: string
   variant?: 'xcp' | 'xs-cdn'
+  /** 1 for the first attempt, incremented by each resume of the run */
+  attempt?: number
+  /** whether a resume would be accepted: run failed, interrupted or awaiting the acceptance of operator changes */
+  resumable?: boolean
   hostOrder?: string[]
   hosts: Record<string, PoolRollingUpdateRecoveryHost>
   lastError: PoolRollingUpdateRecoveryError | null
   /** VM UUID -> UUID of the host it must be started on */
   haltedPinnedVms: Record<string, string>
+  vmConflicts: PoolRollingUpdateRecoveryVmConflict[]
+  /** found by the last resume, the run stays `awaiting-acceptance` until they are accepted */
+  operatorChanges: PoolRollingUpdateRecoveryOperatorChange[]
+  /** absent when no resume changed the plan */
+  planChange?: PoolRollingUpdateRecoveryPlanChange
 }
 
 /** record unreadable or of an unknown schema version: recovery needs a human */
@@ -200,6 +264,15 @@ type XoStoreRangeOptions = {
   lte?: string
   limit?: number
   reverse?: boolean
+}
+
+// `@xen-orchestra/vmware-explorer` is not typed
+export type EsxiConnectionParams = {
+  /** `host` or `host:port` */
+  host: string
+  user: string
+  password: string
+  sslVerify: boolean
 }
 
 export type XoApp = EventEmitter & {
@@ -282,6 +355,10 @@ export type XoApp = EventEmitter & {
   backupGuard(objectId: XapiXoRecord['id'], opts?: { bypassBackupCheck?: boolean; operation: string }): Promise<void>
   /* Throw if no authorization */
   checkFeatureAuthorization(featureCode: FeatureCode): Promise<void>
+  /* whether this machine can run the tools of an import from VMware */
+  checkEsxiDependencies(): Promise<XoV2vStatus>
+  /* Throw if the proxy cannot be reached */
+  checkProxyHealth(id: XoProxy['id']): Promise<void>
   /* validate, apply and persist the configuration of a plugin */
   configurePlugin(id: string, configuration: unknown, mergeWithExisting?: boolean): Promise<void>
   /* connect a server (XCP-ng/XenServer) */
@@ -309,6 +386,17 @@ export type XoApp = EventEmitter & {
     set(key: string, value: unknown): void
     unset(key: string): void
   }
+  createBackupNgJob<T extends XoVmBackupJob | XoMirrorBackupJob>(
+    type: T['type'],
+    props: Omit<T, 'id' | 'type'>,
+    /** keyed by temporary IDs, which can be used as keys in `props.settings` */
+    schedules?: Record<string, Pick<XoSchedule, 'cron' | 'enabled' | 'name' | 'timezone'>>
+  ): Promise<T>
+  createMetadataBackupJob(
+    props: Omit<XoMetadataBackupJob, 'id' | 'type'>,
+    /** keyed by temporary IDs, which can be used as keys in `props.settings` */
+    schedules: Record<string, Pick<XoSchedule, 'cron' | 'enabled' | 'name' | 'timezone'>>
+  ): Promise<XoMetadataBackupJob>
   createAuthenticationToken(opts: {
     client?: {
       id?: string
@@ -324,6 +412,14 @@ export type XoApp = EventEmitter & {
     proxy?: XoProxy['id']
     url: string
   }): Promise<XoBackupRepository>
+  createSchedule(params: {
+    cron: XoSchedule['cron']
+    enabled: XoSchedule['enabled']
+    jobId: XoSchedule['jobId']
+    name?: XoSchedule['name']
+    timezone?: XoSchedule['timezone']
+    userId?: XoUser['id']
+  }): Promise<XoSchedule>
   createUser(params: {
     firstname?: string
     lastname?: string
@@ -340,6 +436,7 @@ export type XoApp = EventEmitter & {
   deleteAclV2Privilege(privilegeId: XoAclBasePrivilege['id'], options?: { force?: boolean }): Promise<boolean>
   deleteAclV2Role(roleId: XoAclRole['id'], options?: { force?: boolean }): Promise<boolean>
   deleteGroup(id: XoGroup['id']): Promise<void>
+  deleteSchedule(id: XoSchedule['id']): Promise<void>
   deleteUser(id: XoUser['id']): Promise<void>
   detachHostFromPool(hostId: XoHost['id']): Promise<void>
   createGroup(params: { name: string; provider?: string; providerGroup?: string }): Promise<XoGroup>
@@ -375,9 +472,12 @@ export type XoApp = EventEmitter & {
   getPlugin(id: XoPlugin['id']): Promise<XoPlugin>
   getPlugins(): Promise<XoPlugin[]>
   getProxy(id: XoProxy['id']): Promise<XoProxy>
+  getProxyApplianceUpdaterState(id: XoProxy['id']): Promise<{ level: string; message: string; state: string }>
   getRemote(id: XoBackupRepository['id']): Promise<XoBackupRepository>
   getAllRemotes(): Promise<XoBackupRepository[]>
   removeRemote(id: XoBackupRepository['id']): Promise<void>
+  /** Also deletes the schedules of the job */
+  removeJob(id: AnyXoJob['id']): Promise<void>
   getAllRemotesInfo(): Promise<
     Record<
       XoBackupRepository['id'],
@@ -394,6 +494,23 @@ export type XoApp = EventEmitter & {
     >
   >
   getAllSchedules(): Promise<XoSchedule[]>
+  /** Every browser media session, whoever owns it; empty when the feature is disabled */
+  getAllBrowserMediaSessions(): XoBrowserMediaSession[]
+  getBrowserMediaSession(id: XoBrowserMediaSession['id']): XoBrowserMediaSession
+  /**
+   * Insert the ISO of a browser media session in the CD drive of a VM. Undone by `ejectBrowserMedia`,
+   * or when the browser disconnects.
+   *
+   * `assertBrowserMediaInsertable` reports the predictable failures synchronously, e.g. before
+   * starting a task.
+   */
+  insertBrowserMedia(params: {
+    id: XoBrowserMediaSession['id']
+    vmId: XoVm['id']
+  }): Promise<{ vdiId: XoVdi['id'] }>
+  assertBrowserMediaInsertable(params: { id: XoBrowserMediaSession['id']; vmId: XoVm['id'] }): void
+  /** Eject the ISO of a browser media session, release its storage, and disconnect the browser */
+  ejectBrowserMedia(id: XoBrowserMediaSession['id']): Promise<void>
   getAllUsers(opts?: { obfuscatePassword?: boolean }): Promise<XoUser[]>
   getAllXenServers(): Promise<XoServer[]>
   getAuthenticationTokensForUser(userId: XoUser['id']): Promise<XoAuthenticationToken[]>
@@ -441,6 +558,7 @@ export type XoApp = EventEmitter & {
   }>
   getUser: (id: XoUser['id'], opts?: { obfuscatePassword?: boolean }) => Promise<XoUser>
   getUserIdentityFields(): string[]
+  getEsxiInventory(params: EsxiConnectionParams): Promise<VmwareInventory>
   getXapi(maybeId: XapiXoRecord['id'] | XapiXoRecord): Xapi
   getXapiHostStats: (hostId: XoHost['id'], granularity?: XapiStatsGranularity) => Promise<XapiHostStats>
   getXapiObject: <T extends XapiXoRecord>(
@@ -456,6 +574,22 @@ export type XoApp = EventEmitter & {
   getXoEventEmitterByType(type: string): EventEmitter
   hasFeatureAuthorization(featureCode: string): Promise<boolean>
   hasObject<T extends XapiXoRecord>(id: T['id'], type: T['type']): boolean
+  listBackupNgDiskPartitions(remoteId: XoBackupRepository['id'], diskId: string): Promise<XoBackupDiskPartition[]>
+  listBackupNgPartitionFiles(
+    remoteId: XoBackupRepository['id'],
+    diskId: string,
+    partitionId: string | undefined,
+    path: string
+    // keys ending in "/" are directories; files carry size (bytes) and mtime (epoch ms).
+    // Values may be empty ({}) for directories or when served by an older proxy.
+  ): Promise<Record<string, { size?: number; mtime?: number }>>
+  fetchBackupNgPartitionFiles(
+    remoteId: XoBackupRepository['id'],
+    diskId: string,
+    partitionId: string | undefined,
+    paths: string[],
+    format: string
+  ): Promise<Readable>
   loadPlugin(id: XoPlugin['id']): Promise<void>
   listMetadataBackups(backupRepositoryIds: XoBackupRepository['id'][]): Promise<{
     xo: Record<XoBackupRepository['id'], XoConfigBackupArchive[]>
@@ -466,6 +600,25 @@ export type XoApp = EventEmitter & {
     backupRepositoryIds: XoBackupRepository['id'][],
     opts?: { _forceRefresh?: boolean; vmId?: XoVm['id'] }
   ): Promise<Record<XoBackupRepository['id'], Record<XoVm['id'], XoVmBackupArchive[]> | null>>
+  /** imports one VM from VMware, resuming a previous partial import when possible, returns the UUID of the XCP-ng VM */
+  migrationfromEsxi(
+    params: EsxiConnectionParams & {
+      sr: XoSr['id']
+      network: XoNetwork['id']
+      /** overrides `sr`, by disk node (e.g. `scsi0:0`) */
+      disks?: Record<string, XoSr['id']>
+      /** overrides `network`, by NIC device key (e.g. `4000`) */
+      nics?: Record<string, XoNetwork['id']>
+      template: XoVmTemplate['id']
+      stopSource: boolean
+      /** VMware moref of the VM */
+      vm: string
+      /** dock the guest once the import is complete, off by default. A failed docking does not fail the import */
+      docking?: boolean
+      /** start the VM once the import is complete, following the first boot of a docked guest, off by default */
+      startVm?: boolean
+    }
+  ): Promise<XoVm['uuid']>
   /**
    * Serve one disk of a backup archive as an iSCSI LUN and attach it to `host`
    * as an SR, read-only unless `cacheSrId` is set. Undone by `unmountBackupArchiveDisk`.
@@ -521,6 +674,10 @@ export type XoApp = EventEmitter & {
   ): Promise<void>
   getRollingUpdateRecovery(poolId: XoPool['id']): Promise<PoolRollingUpdateRecovery | undefined>
   finalizeRollingUpdate(pool: XoPool, opts?: { force?: boolean; parentTask?: VatesTask }): Promise<void>
+  resumeRollingPoolUpdate(
+    pool: XoPool,
+    opts?: { acceptOperatorChanges?: boolean; bypassBackupCheck?: boolean; parentTask?: VatesTask }
+  ): Promise<void>
   setVmResourceSet(vmId: XoVm['id'], resourceSetId: string | null, force?: boolean): Promise<void>
   shareVmResourceSet(vmId: XoVm['id']): Promise<void>
   removeUserFromGroup(userId: XoUser['id'], id: XoGroup['id']): Promise<void>
@@ -543,6 +700,19 @@ export type XoApp = EventEmitter & {
   ): Promise<{ vmUuid: string; success: boolean; merge?: boolean; size?: number; error?: string }[]>
   /** Remove a server from the DB (XCP-ng/XenServer) */
   unregisterXenServer(id: XoServer['id']): Promise<void>
+  /**
+   * Shallow merge of the properties into the existing job, a `null` value removes the property.
+   */
+  updateJob(job: { id: AnyXoJob['id']; [key: string]: unknown }, merge?: boolean): Promise<void>
+  updateSchedule(params: {
+    id: XoSchedule['id']
+    cron?: XoSchedule['cron']
+    enabled?: XoSchedule['enabled']
+    jobId?: XoSchedule['jobId']
+    name?: XoSchedule['name']
+    timezone?: XoSchedule['timezone']
+    userId?: XoUser['id']
+  }): Promise<void>
   updateUser(
     id: XoUser['id'],
     updates: {

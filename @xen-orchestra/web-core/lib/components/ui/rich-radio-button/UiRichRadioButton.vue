@@ -1,101 +1,149 @@
 <!-- v1 -->
 <template>
-  <label :class="variants" class="ui-rich-radio-button typo-body-regular">
-    <span class="rich-image">
-      <img :src :alt />
-    </span>
-    <span class="radio-wrapper typo-body-regular">
-      <span class="radio-container">
-        <input v-model="model" :disabled="isDisabled" :value class="input" type="radio" />
-        <VtsIcon name="fa:circle" size="small" class="radio-icon" />
+  <div :class="className" class="ui-rich-radio-button">
+    <label class="box">
+      <span class="controls">
+        <span class="radio">
+          <input
+            v-model="model"
+            :aria-labelledby="headingId"
+            :aria-describedby="slots.description || description !== undefined ? descriptionId : undefined"
+            :disabled="isDisabled"
+            :value
+            class="input"
+            type="radio"
+          />
+          <VtsIcon name="status:radio-button" size="medium" />
+        </span>
+        <VtsIcon v-if="icon" :name="icon" size="medium" class="icon" />
       </span>
-      <slot />
-    </span>
-  </label>
+      <span class="content">
+        <span :id="headingId" class="heading">
+          <span class="label typo-body-bold">
+            <slot />
+          </span>
+          <slot v-if="slots.tag || tag !== undefined" name="tag">
+            <UiTag accent="info" variant="secondary">{{ tag }}</UiTag>
+          </slot>
+        </span>
+        <span
+          v-if="slots.description || description !== undefined"
+          :id="descriptionId"
+          class="description typo-body-regular"
+        >
+          <slot name="description">{{ description }}</slot>
+        </span>
+      </span>
+    </label>
+    <slot v-if="slots.info || info !== undefined" name="info">
+      <UiInfo accent="info">{{ info }}</UiInfo>
+    </slot>
+  </div>
 </template>
 
-<script lang="ts" setup>
+<script lang="ts" setup generic="TValue">
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
+import UiInfo from '@core/components/ui/info/UiInfo.vue'
+import UiTag from '@core/components/ui/tag/UiTag.vue'
 import { useDisabled } from '@core/composables/disabled.composable.ts'
+import type { IconName } from '@core/icons'
 import { toVariants } from '@core/utils/to-variants.util.ts'
-import { computed } from 'vue'
+import { computed, useId } from 'vue'
 
-const { accent, value, disabled, size } = defineProps<{
-  accent: 'brand' | 'warning' | 'danger'
-  size: 'small' | 'medium'
-  value: unknown
-  src: string
-  alt: string
+export type RichRadioButtonAccent = 'brand' | 'warning' | 'danger'
+
+const { accent, disabled } = defineProps<{
+  accent: RichRadioButtonAccent
+  value: TValue
+  icon?: IconName
+  tag?: string
+  description?: string
+  info?: string
   disabled?: boolean
 }>()
 
-const model = defineModel<string>()
+const model = defineModel<TValue>()
 
-defineSlots<{
+const slots = defineSlots<{
   default(): any
+  tag?(): any
+  description?(): any
+  info?(): any
 }>()
 
-const variants = computed(() => toVariants({ accent, size }))
+const headingId = useId()
+
+const descriptionId = useId()
+
 const isDisabled = useDisabled(() => disabled)
+
+const className = computed(() => toVariants({ accent, disabled: isDisabled.value }))
 </script>
 
 <style lang="postcss" scoped>
 .ui-rich-radio-button {
-  cursor: pointer;
-  border: 0.1rem solid var(--color-neutral-border);
-  border-radius: 0.4rem;
-  overflow: hidden;
+  --radio-dot-color: var(--color-neutral-background-primary);
+  --box-border-color: var(--accent-color);
+  --box-background-color: var(--color-neutral-background-primary);
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
 
-  .rich-image {
-    border-bottom: 0.1rem solid;
-    border-color: inherit;
-    overflow: hidden;
-    width: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-  }
-
-  .radio-container {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    border: 0.2rem solid var(--accent-color);
-    background-color: transparent;
-    border-radius: 0.8rem;
-    width: 1.6rem;
-    height: 1.6rem;
+  .box {
     position: relative;
+    display: flex;
+    flex-grow: 1;
+    align-items: flex-start;
+    gap: 1.2rem;
+    padding: 1.2rem 1.6rem;
+    border: 0.1rem solid var(--box-border-color);
+    border-radius: 0.4rem;
+    background-color: var(--box-background-color);
+    cursor: pointer;
     transition:
       border-color 0.125s ease-in-out,
       background-color 0.125s ease-in-out;
 
-    &:has(input:focus-visible) {
-      outline: none;
-
-      &::after {
-        position: absolute;
-        content: '';
-        inset: -0.5rem;
-        border: 0.2rem solid var(--color-brand-txt-base);
-        border-radius: 0.4rem;
-      }
+    &:has(.input:focus-visible)::before {
+      content: '';
+      position: absolute;
+      inset: -0.4rem;
+      border: 0.2rem solid var(--color-brand-txt-base);
+      border-radius: 0.4rem;
     }
+  }
+
+  .controls {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+    gap: 1.2rem;
+    height: 2.4rem;
+  }
+
+  .radio {
+    position: relative;
+    display: inline-flex;
+    flex-shrink: 0;
+    border-radius: 50%;
+    color: var(--radio-color);
+    transition:
+      color 0.125s ease-in-out,
+      background-color 0.125s ease-in-out;
 
     &:has(.input:checked) {
-      border-color: var(--accent-checked-color);
-      background-color: var(--accent-checked-color);
-    }
+      background-color: var(--radio-color);
 
-    &:has(.input:checked:disabled) {
-      border-color: var(--color-neutral-txt-secondary);
-      background-color: var(--color-neutral-txt-secondary);
+      &::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        width: 0.6rem;
+        height: 0.6rem;
+        margin: auto;
+        border-radius: 50%;
+        background-color: var(--radio-dot-color);
+      }
     }
 
     .input {
@@ -103,144 +151,108 @@ const isDisabled = useDisabled(() => disabled)
       position: absolute;
       pointer-events: none;
     }
+  }
 
-    .radio-icon {
-      font-size: 0.8rem;
-      position: absolute;
-      transition: font-size 0.125s ease-in-out;
-      color: var(--radio-icon-color);
-      --radio-icon-color: var(--color-neutral-background-primary);
-    }
+  .icon {
+    color: var(--color-neutral-txt-primary);
+  }
 
-    .input:not(:checked) + .radio-icon {
-      font-size: 1.2rem;
-    }
+  .content {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    gap: 0.2rem;
+    min-width: 0;
+  }
 
-    .input:disabled + .radio-icon {
-      --radio-icon-color: var(--color-neutral-background-disabled);
-    }
+  .heading {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 0.8rem;
+  }
+
+  .label {
+    flex: auto;
+    min-width: 0;
+    overflow-wrap: break-word;
+    color: var(--color-neutral-txt-primary);
+  }
+
+  .description {
+    overflow-wrap: break-word;
+    color: var(--color-neutral-txt-secondary);
   }
 
   /* ACCENT */
 
   &.accent--brand {
+    --box-border-color: var(--color-neutral-txt-secondary);
     --accent-color: var(--color-brand-txt-base);
     --accent-hover-color: var(--color-brand-txt-hover);
-    --accent-checked-color: var(--color-brand-item-base);
     --accent-active-color: var(--color-brand-txt-active);
+    --background-checked-color: var(--color-brand-background-selected);
+    --background-hover-color: var(--color-brand-background-hover);
+    --background-active-color: var(--color-brand-background-active);
+    --background-checked-active-color: var(--color-brand-background-hover);
   }
 
   &.accent--warning {
     --accent-color: var(--color-warning-txt-base);
     --accent-hover-color: var(--color-warning-txt-hover);
-    --accent-checked-color: var(--color-warning-item-base);
     --accent-active-color: var(--color-warning-txt-active);
+    --background-checked-color: var(--color-warning-background-selected);
+    --background-hover-color: var(--color-warning-background-hover);
+    --background-active-color: var(--color-warning-background-hover);
+    --background-checked-active-color: var(--color-warning-background-hover);
   }
 
   &.accent--danger {
     --accent-color: var(--color-danger-txt-base);
     --accent-hover-color: var(--color-danger-txt-hover);
-    --accent-checked-color: var(--color-danger-item-base);
     --accent-active-color: var(--color-danger-txt-active);
+    --background-checked-color: var(--color-danger-background-selected);
+    --background-hover-color: var(--color-danger-background-hover);
+    --background-active-color: var(--color-danger-background-active);
+    --background-checked-active-color: var(--color-danger-background-active);
+  }
+
+  /* INTERACTIONS */
+
+  &:not(.disabled) .box {
+    --radio-color: var(--accent-color);
+
+    &:has(.input:checked) {
+      --box-border-color: var(--accent-color);
+      --box-background-color: var(--background-checked-color);
+      --background-active-color: var(--background-checked-active-color);
+    }
+
+    &:hover {
+      --radio-color: var(--accent-hover-color);
+      border-color: var(--color-brand-txt-hover);
+      background-color: var(--background-hover-color);
+    }
+
+    &:active {
+      --radio-color: var(--accent-active-color);
+      border-color: var(--color-brand-txt-active);
+      background-color: var(--background-active-color);
+    }
   }
 
   /* DISABLED */
 
-  &:has(.input:disabled) {
-    cursor: not-allowed;
-    --accent-color: var(--color-neutral-txt-secondary);
-  }
-  .radio-wrapper {
-    display: flex;
-    align-items: center;
-    gap: 0.8rem;
-    padding: 1.6rem;
-    background-color: var(--color-neutral-background-primary);
-    cursor: pointer;
-  }
-
-  /* INITIAL BORDER EXCEPT BRAND */
-
-  &.accent--warning,
-  &.accent--danger {
-    border-color: var(--accent-color);
-  }
-
-  /* CHECKED STATE */
-
-  &:has(input:checked:not(:disabled)) {
-    border-color: var(--accent-checked-color);
-
-    .radio-container {
-      border-color: var(--accent-checked-color);
-      background-color: var(--accent-checked-color);
-    }
-  }
-
-  /* HOVER STATE */
-
-  &:hover:not(:has(input:disabled)) {
-    border-color: var(--accent-hover-color);
-
-    .radio-container {
-      border-color: var(--accent-hover-color);
-    }
-    .radio-container:has(.input:checked) {
-      background-color: var(--accent-hover-color);
-    }
-  }
-
-  /* ACTIVE STATE */
-
-  &:active:not(:has(input:disabled)) {
-    .radio-container {
-      border-color: var(--accent-active-color);
-    }
-    .radio-container:has(.input:checked) {
-      background-color: var(--accent-active-color);
-    }
-  }
-
-  /* DISABLED STATE */
-
-  &:has(input:disabled) {
+  &.disabled .box {
+    --radio-color: var(--color-neutral-txt-secondary);
+    --radio-dot-color: var(--color-neutral-background-disabled);
     border-color: var(--color-neutral-border);
+    background-color: var(--color-neutral-background-disabled);
+    cursor: not-allowed;
 
-    .rich-image {
-      opacity: 0.5;
-    }
-
-    .radio-wrapper {
-      background-color: var(--color-neutral-background-disabled);
-      cursor: not-allowed;
-    }
-  }
-
-  /* SIZES */
-
-  &.size--small {
-    height: 16.4rem;
-    width: 12.8rem;
-
-    .rich-image {
-      height: 10.8rem;
-    }
-
-    .radio-wrapper {
-      height: 5.6rem;
-    }
-  }
-
-  &.size--medium {
-    height: 25.6rem;
-    width: 20rem;
-
-    .rich-image {
-      height: 20rem;
-    }
-
-    .radio-wrapper {
-      height: 5.6rem;
+    .label,
+    .icon {
+      color: var(--color-neutral-txt-secondary);
     }
   }
 }

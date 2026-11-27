@@ -3,7 +3,9 @@
     <UiCard class="container">
       <PoolsTable :servers />
     </UiCard>
-    <PoolSidePanel :server="selectedServer" @close="selectedServer = undefined" />
+    <template #panel>
+      <PoolSidePanel :server="selectedServer" @close="selectedServer = undefined" />
+    </template>
   </VtsContentSidePanel>
 </template>
 

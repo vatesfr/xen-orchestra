@@ -1,7 +1,7 @@
 <template>
-  <UiPanelCard class="plugin-infos-card">
+  <UiPanelCard>
     <UiPanelCardTitle :id="plugin.id" size="medium" :label="plugin.name" :to="pluginRoute" icon="object:plugin" />
-    <div class="content">
+    <VtsCardRowList>
       <VtsCardRowKeyValue>
         <template #key>{{ t('version') }}</template>
         <template #value>{{ plugin.version }}</template>
@@ -36,7 +36,7 @@
         <template #key>{{ t('load-at-startup') }}</template>
         <template #value><VtsStatus :status="plugin.autoload" /></template>
       </VtsCardRowKeyValue>
-    </div>
+    </VtsCardRowList>
     <UiAlert v-if="!plugin.configured" accent="warning">{{ t('plugin:needs-configuration-short') }}</UiAlert>
   </UiPanelCard>
 </template>
@@ -46,6 +46,7 @@ import { useXoPluginUtils } from '@/modules/plugin/composables/xo-plugin-utils.c
 import type { FrontXoPlugin } from '@/modules/plugin/remote-resources/use-xo-plugin-collection.ts'
 import { getPluginRoute } from '@/modules/plugin/utils/xo-plugin.util.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
+import VtsCardRowList from '@core/components/card/VtsCardRowList.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
 import VtsTag from '@core/components/tag/VtsTag.vue'
@@ -66,13 +67,3 @@ const { description, isLoaded, keywords, configurationStatus } = useXoPluginUtil
 
 const pluginRoute = computed(() => getPluginRoute(plugin.id))
 </script>
-
-<style scoped lang="postcss">
-.plugin-infos-card {
-  .content {
-    display: flex;
-    flex-direction: column;
-    gap: 0.4rem;
-  }
-}
-</style>

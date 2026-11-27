@@ -1,26 +1,18 @@
 import BackupJobSettingsCard from '@/modules/backup-job/components/list/panel/cards/BackupJobSettingsCard.vue'
 import type { FrontAnyXoBackupJob } from '@/modules/backup-job/remote-resources/use-xo-backup-job-collection.ts'
-import type { FrontXoProxy, useXoProxyCollection } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
+import type { FrontXoProxy } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
 import { createMetadataBackupJob, createMirrorBackupJob, createVmBackupJob } from '@/test/create-backup-job.ts'
-import { findCardLabelledValues } from '@/test/find-rendered-values.ts'
+import { createProxy } from '@/test/create-proxy.ts'
+import { findCardLabelledValueLists, findCardLabelledValues } from '@/test/find-rendered-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
+import { proxyCollectionMock, mockXoProxyCollection } from '@/test/mock-xo-proxy-collection.ts'
 import VtsCopyAllMenuItem from '@core/components/copy-all-menu-item/VtsCopyAllMenuItem.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import type { XoSchedule } from '@vates/types'
 import { mount } from '@vue/test-utils'
-import { computed, toValue, type MaybeRefOrGetter } from 'vue'
 
-const { proxies } = vi.hoisted(() => ({
-  proxies: [] as FrontXoProxy[],
-}))
-
-vi.mock(import('@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'), () => ({
-  useXoProxyCollection: (() => ({
-    useGetProxyById: (id: MaybeRefOrGetter<FrontXoProxy['id'] | undefined>) =>
-      computed(() => proxies.find(proxy => proxy.id === toValue(id))),
-  })) as unknown as typeof useXoProxyCollection,
-}))
+mockXoProxyCollection()
 
 const scheduleId = 'schedule-1' as XoSchedule['id']
 
@@ -34,7 +26,7 @@ const recipients = [
 ]
 
 beforeEach(() => {
-  proxies.length = 0
+  proxyCollectionMock.reset()
 })
 
 function mountSettingsCard(backupJob: FrontAnyXoBackupJob) {
@@ -46,16 +38,6 @@ function mountSettingsCard(backupJob: FrontAnyXoBackupJob) {
 
 function findLabels(wrapper: ReturnType<typeof mountSettingsCard>) {
   return Object.keys(findCardLabelledValues(wrapper))
-}
-
-function findRecipients(wrapper: ReturnType<typeof mountSettingsCard>) {
-  const rows = wrapper.findAll('.vts-card-row-key-value')
-  const firstRecipientIndex = rows.findIndex(row => row.get('.key').text() === t('report-recipients'))
-
-  return rows
-    .slice(firstRecipientIndex)
-    .filter((row, index) => index === 0 || row.get('.key').text() === '')
-    .map(row => row.get('.value').text())
 }
 
 describe('rows', () => {
@@ -112,7 +94,7 @@ describe('rows', () => {
 
 describe('values', () => {
   it('shows the values of the settings', () => {
-    proxies.push({ id: 'proxy-123' as FrontXoProxy['id'], name: 'Main proxy' })
+    proxyCollectionMock.proxies.value = [createProxy({ id: 'proxy-123' as FrontXoProxy['id'], name: 'Main proxy' })]
 
     const backupJob = createVmBackupJob({
       mode: 'full',
@@ -163,7 +145,7 @@ describe('report recipients', () => {
   it('shows the first recipients, then all of them on demand', async () => {
     const wrapper = mountSettingsCard(createMetadataBackupJob({ settings: { '': { reportRecipients: recipients } } }))
 
-    expect(findRecipients(wrapper)).toEqual(recipients.slice(0, 5))
+    expect(findCardLabelledValueLists(wrapper)[t('report-recipients')]).toEqual(recipients.slice(0, 5))
 
     const seeMoreButton = wrapper.getComponent(UiButton)
 
@@ -171,7 +153,7 @@ describe('report recipients', () => {
 
     await seeMoreButton.trigger('click')
 
-    expect(findRecipients(wrapper)).toEqual(recipients)
+    expect(findCardLabelledValueLists(wrapper)[t('report-recipients')]).toEqual(recipients)
     expect(seeMoreButton.text()).toBe(t('action:see-less'))
   })
 

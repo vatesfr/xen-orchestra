@@ -2,7 +2,7 @@
   <UiTitle>
     {{ t('backup-logs') }}
   </UiTitle>
-  <VtsQueryBuilder :model-value="filter" :schema @search="filter = $event" />
+  <VtsQueryBuilder v-bind="searchBindings" :schema />
 
   <VtsTable :state :pagination-bindings sticky="right">
     <thead>
@@ -25,7 +25,9 @@ import type { BackupLogFilterableData } from '@/modules/backup-log/types/xo-back
 import { getBackupLogSrIds, getBackupLogVmIds } from '@/modules/backup-log/utils/xo-backup-log.util.ts'
 import { useXoSrUtils } from '@/modules/storage-repository/composables/xo-sr-utils.composable.ts'
 import { useXoSrCollection } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
+import { useXoVmOperationLabel } from '@/modules/vm/composables/xo-vm-operation-label.composable.ts'
 import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
+import { getVmIcon } from '@/modules/vm/utils/xo-vm.util.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import VtsQueryBuilder from '@core/components/query-builder/VtsQueryBuilder.vue'
 import VtsRow from '@core/components/table/VtsRow.vue'
@@ -34,12 +36,10 @@ import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { usePagination } from '@core/composables/pagination.composable.ts'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { useTableState } from '@core/composables/table-state.composable.ts'
-import { objectIcon } from '@core/icons'
 import { useQueryBuilderSchema } from '@core/packages/query-builder/schema/use-query-builder-schema.ts'
 import { useQueryBuilderFilter } from '@core/packages/query-builder/use-query-builder-filter.ts'
 import { useBackupLogColumns } from '@core/tables/column-sets/backup-log-columns.ts'
 import { useStringSchema } from '@core/utils/query-builder/use-string-schema.ts'
-import { toLower } from 'lodash-es'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -59,6 +59,8 @@ const { getBackupJobById } = useXoBackupJobCollection()
 
 const { getVmById } = useXoVmCollection()
 
+const { getVmIconTooltip } = useXoVmOperationLabel()
+
 const { getSrById } = useXoSrCollection()
 
 const { getSrStatusIcon } = useXoSrUtils()
@@ -67,7 +69,7 @@ const filterableBackupLogs = computed(() =>
   backupLogs.map(log => ({ ...log, jobName: getBackupJobById(log.jobId)?.name }))
 )
 
-const { items: filteredBackupLogs, filter } = useQueryBuilderFilter<BackupLogFilterableData>(
+const { items: filteredBackupLogs, searchBindings } = useQueryBuilderFilter<BackupLogFilterableData>(
   'backup-logs',
   () => filterableBackupLogs.value
 )
@@ -80,7 +82,7 @@ const schema = useQueryBuilderSchema<BackupLogFilterableData>({
     skipped: t('skipped'),
     interrupted: t('interrupted'),
     failure: t('failure'),
-    pending: t('pending'),
+    pending: t('in-progress'),
   }),
 })
 
@@ -121,7 +123,8 @@ const { HeadCells, BodyCells } = useBackupLogColumns({
           return r({
             label: firstVm.value.name_label,
             to: { name: '/vm/[id]/dashboard', params: { id: firstVm.value.id } },
-            icon: objectIcon('vm', toLower(firstVm.value.power_state)),
+            icon: getVmIcon(firstVm.value),
+            iconTooltip: getVmIconTooltip(firstVm.value),
             extraCount: vmIds.value.length - 1,
           })
         }

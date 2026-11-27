@@ -191,7 +191,15 @@ async function importDiskChain({ esxi, sr, vm, chainByNode, changeTracking, user
   }
 }
 
-export const importDisksFromDatastore = async function importDisksFromDatastore({ esxi, vm, vmId, chainsByNodes, sr }) {
+// `srsByNode` overrides `sr` for some disks. A disk already imported stays where it is
+export const importDisksFromDatastore = async function importDisksFromDatastore({
+  esxi,
+  vm,
+  vmId,
+  chainsByNodes,
+  sr,
+  srsByNode = {},
+}) {
   // what the change tracking of the host is addressed by is the same for every disk of a VM:
   // reading it here costs a few calls once, where every disk used to issue the same ones at the
   // same time. A VM the host cannot answer for simply imports as it did before
@@ -215,7 +223,7 @@ export const importDisksFromDatastore = async function importDisksFromDatastore(
           chainByNode,
           changeTracking,
           userdevice,
-          sr,
+          sr: srsByNode[node] ?? sr,
           vmId,
         })
       })

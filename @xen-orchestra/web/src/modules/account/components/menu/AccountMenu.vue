@@ -1,8 +1,9 @@
 <template>
-  <MenuList :disabled placement="bottom-end">
-    <template #trigger="{ isOpen, open }">
+  <VtsResponsiveMenu :title="t('account')" :section-title="t('menu')" :disabled placement="bottom-end">
+    <template #trigger="{ isOpen, open, bindings }">
       <UiAccountMenuButton
         v-tooltip="isOpen ? false : { content: t('account-organization-more'), placement: 'bottom-end' }"
+        v-bind="bindings"
         :selected="isOpen"
         size="medium"
         @click="open($event)"
@@ -18,7 +19,7 @@
     <MenuItem accent="brand" icon="fa:arrow-right-from-bracket" @click="logout()">
       <span class="link">{{ t('action:log-out') }}</span>
     </MenuItem>
-  </MenuList>
+  </VtsResponsiveMenu>
 </template>
 
 <script lang="ts" setup>
@@ -26,7 +27,7 @@ import { XCP_LINKS, XO_LINKS } from '@/shared/constants.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import type { IconName } from '@core/icons'
 import MenuItem from '@core/components/menu/MenuItem.vue'
-import MenuList from '@core/components/menu/MenuList.vue'
+import VtsResponsiveMenu from '@core/components/menu/VtsResponsiveMenu.vue'
 import UiAccountMenuButton from '@core/components/ui/account-menu-button/UiAccountMenuButton.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import { type LinkOptions } from '@core/composables/link-component.composable.ts'

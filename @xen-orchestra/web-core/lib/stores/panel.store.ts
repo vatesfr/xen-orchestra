@@ -1,12 +1,19 @@
+import { useResizableWidth } from '@core/composables/resizable-width.composable.ts'
 import { useUiStore } from '@core/stores/ui.store.ts'
 import { useLocalStorage } from '@vueuse/core'
 import { defineStore } from 'pinia'
 import { computed, watch } from 'vue'
 
+export const PANEL_TRANSITION_DURATION = 250
+
 export const usePanelStore = defineStore('panel', () => {
   const uiStore = useUiStore()
-  const isExpanded = useLocalStorage('panel.expanded', true)
+  const isExpanded = useLocalStorage('panel.expanded', true, { listenToStorageChanges: false })
   const isLocked = useLocalStorage('panel.locked', true)
+
+  const resizableWidth = useResizableWidth('right', 'panel.custom-width')
+
+  const cssWidth = computed(() => `${resizableWidth.width.value}px`)
 
   const cssHorizontalOffset = computed(() => (isExpanded.value ? 0 : '100%'))
   /* Panel closes automatically when it has no content (true on small UI or when not locked) */
@@ -32,18 +39,14 @@ export const usePanelStore = defineStore('panel', () => {
   }
 
   function toggleLock() {
-    const next = !isLocked.value
-    isLocked.value = next
-    if (next && !uiStore.isSmall && !isExpanded.value) {
-      expand()
-    }
+    isLocked.value = !isLocked.value
   }
 
   watch(
-    () => uiStore.isSmall,
-    isSmall => {
-      /* Expand when coming back from small to large UI, if locked and not expanded */
-      if (!isSmall && isLocked.value && !isExpanded.value) {
+    [() => uiStore.isSmall, isLocked],
+    () => {
+      /* Expand when locked on large UI (also when locked from another tab), if not expanded */
+      if (!uiStore.isSmall && isLocked.value && !isExpanded.value) {
         expand()
       }
     },
@@ -59,5 +62,7 @@ export const usePanelStore = defineStore('panel', () => {
     toggleLock,
     syncWithSelection,
     cssHorizontalOffset,
+    cssWidth,
+    ...resizableWidth,
   }
 })

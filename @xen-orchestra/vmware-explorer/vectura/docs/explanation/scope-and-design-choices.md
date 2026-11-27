@@ -71,10 +71,14 @@ thirty minutes, makes the ordinary run not need one.
 
 ## Why rustls, synchronous I/O and two threads
 
-- **rustls with aws-lc-rs, no OpenSSL.** One TLS stack, in the binary,
-  with no system library to match at run time and no shell out. ESXi 6.0,
-  7 and 8 hosts negotiate TLS 1.2 with ECDHE and AES-GCM on both ports,
-  which rustls speaks.
+- **rustls with aws-lc-rs, and OpenSSL for one handshake.** The TLS
+  stack is in the binary, with no system library to match at run time
+  and no shell out. ESXi 6.0, 7 and 8 hosts negotiate TLS 1.2 with ECDHE
+  and AES-GCM on both ports, which rustls speaks. The data port of some
+  ESXi 6.5 hosts accepts RSA key exchange alone, which rustls leaves out
+  on purpose, so a copy of OpenSSL is compiled in and used for that port
+  when the host has refused rustls, and for nothing else. The security
+  model says what such a session gives up.
 - **Synchronous `std` I/O, no async runtime.** A run is two sockets and
   two pipes. Two threads joined by a bounded channel cover that with
   back pressure for free and nothing to schedule. An async runtime would

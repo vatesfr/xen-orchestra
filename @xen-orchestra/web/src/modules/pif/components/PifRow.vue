@@ -1,108 +1,76 @@
 <template>
-  <tr class="pif-row" :class="{ clickable: pifHost }" @click="pifHost?.redirect()">
-    <td v-tooltip class="typo-body-regular-small text-ellipsis host-container">
-      <div v-if="pifHost" class="host">
-        <VtsObjectIcon :state="pifHost.state" type="host" size="small" />
-        <span v-tooltip class="typo-body-regular-small text-ellipsis host-name">
-          {{ pifHost.label }}
-        </span>
-      </div>
-      <div v-else>
-        <span>{{ t('host:status:unknown') }}</span>
-      </div>
+  <tr class="pif-row" :class="{ compact }">
+    <td class="typo-body-regular-small host">
+      <HostLink
+        v-if="host"
+        :host
+        :to="{ name: '/host/[id]/networks', params: { id: host.id }, query: { id: pif.id } }"
+        size="small"
+        class="host-link"
+      >
+        <span v-tooltip class="text-ellipsis">{{ host.name_label }}</span>
+      </HostLink>
+      <span v-else>{{ t('host:status:unknown') }}</span>
     </td>
     <td v-tooltip class="typo-body-regular-small text-ellipsis device">{{ pif.device }}</td>
-    <td v-tooltip class="typo-body-regular-small status">
-      <VtsStatus :status />
-    </td>
-    <td>
-      <UiButtonIcon size="small" accent="brand" icon="fa:angle-right" :disabled="!pifHost" />
+    <td class="typo-body-regular-small status">
+      <VtsStatus :status :icon-only="compact" />
     </td>
   </tr>
 </template>
 
 <script setup lang="ts">
+import HostLink from '@/modules/host/components/HostLink.vue'
 import { useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
-import { getHostState } from '@/modules/host/utils/xo-host.util.ts'
 import type { FrontXoPif } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
 import { getPifStatus } from '@/modules/pif/utils/xo-pif.util.ts'
-import VtsObjectIcon from '@core/components/object-icon/VtsObjectIcon.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
-import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useRouter } from 'vue-router'
 
 const { pif } = defineProps<{
   pif: FrontXoPif
+  compact?: boolean
 }>()
 
 const { t } = useI18n()
 
 const { getHostById } = useXoHostCollection()
 
-const router = useRouter()
+const host = computed(() => getHostById(pif.$host))
 
 const status = computed(() => getPifStatus(pif))
-
-const pifHost = computed(() => {
-  const host = getHostById(pif.$host)
-
-  if (!host) {
-    return
-  }
-
-  return {
-    label: host.name_label,
-    state: getHostState(host),
-    redirect() {
-      router.push({
-        name: '/host/[id]/networks',
-        params: { id: host.id },
-        query: { id: pif.id },
-      })
-    },
-  } as const
-})
 </script>
 
 <style lang="postcss" scoped>
 .pif-row {
-  &.clickable {
-    cursor: pointer;
-
-    &:hover {
-      background-color: var(--color-brand-background-hover);
-    }
-  }
-
   td {
     color: var(--color-neutral-txt-primary);
   }
 
-  .host-container {
-    max-width: 14rem;
+  .host-link {
+    max-width: 100%;
+  }
 
+  &:not(.compact) {
     .host {
-      display: flex;
-      align-items: center;
-      gap: 0.8rem;
+      max-width: 14rem;
     }
 
-    .host-name {
-      color: var(--color-brand-txt-base);
+    .device {
+      width: 8rem;
+      max-width: 8rem;
+    }
+
+    .status {
+      width: 12rem;
+      max-width: 12rem;
     }
   }
 
-  .device {
-    width: 8rem;
-    max-width: 8rem;
-  }
-
-  .status {
-    width: 12rem;
-    max-width: 12rem;
+  &.compact .device {
+    padding-inline-start: 1.6rem;
   }
 }
 </style>

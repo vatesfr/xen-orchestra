@@ -2,12 +2,13 @@
   <UiHeadBar icon="object:pool">
     {{ pool.name_label }}
     <template #actions>
+      <PoolAddHostButton :pool-id="pool.id" />
       <UiLink size="medium" :to="{ name: '/vm/new', query: { poolid: pool.id } }" icon="fa:plus">
         {{ t('new-vm') }}
       </UiLink>
     </template>
   </UiHeadBar>
-  <TabList>
+  <TabList :label="pool.name_label">
     <RouterLink v-slot="{ isActive, href }" :to="{ name: '/pool/[id]/dashboard', params: { id: pool.id } }" custom>
       <UiTabItem :active="isActive" :href tag="a">
         {{ t('dashboard') }}
@@ -57,6 +58,7 @@
 </template>
 
 <script lang="ts" setup>
+import PoolAddHostButton from '@/modules/pool/components/actions/add-host/PoolAddHostButton.vue'
 import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import TabList from '@core/components/tab-list/TabList.vue'

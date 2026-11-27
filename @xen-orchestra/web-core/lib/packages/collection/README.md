@@ -45,9 +45,9 @@ If `TSource` doesn't provide an `id`, then `options.itemId` will be required.
 ### `CollectionConfigFlags` type
 
 ```typescript
-type FlagConfig = { multiple?: MaybeRef<boolean> }
+type FlagConfig<TId> = { multiple?: MaybeRef<boolean>; ids?: Ref<TId[]> }
 
-type CollectionConfigFlags<TFlag extends string> = Record<TFlag, true | FlagConfig>
+type CollectionConfigFlags<TFlag extends string, TId> = Record<TFlag, true | FlagConfig<TId>>
 ```
 
 A flag that needs no configuration is declared with `true`.
@@ -56,6 +56,19 @@ Values for `multiple`:
 
 - `true` (default): multiple items can share the same flag.
 - `false`: only one item can have the flag at a time (exclusive selection). Setting the flag on one item will automatically unset it on all other items.
+
+`ids` is the ref holding the IDs of the flagged items. Pass your own ref (a `defineModel` for example) to set the initially flagged items, and to read or change the flagged IDs from outside the collection:
+
+```typescript
+const selectedIds = defineModel<User['id'][]>('selectedIds', { required: true })
+
+const { useFlag } = useCollection(users, {
+  flags: { selected: { ids: selectedIds } },
+})
+```
+
+- The ref is written once per operation (`toggleAll` and `clearFlag` included), with a new array.
+- IDs that match no item of the collection are kept in the ref: an item added later with one of these IDs is flagged.
 
 ## Return Value
 

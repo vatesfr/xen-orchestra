@@ -1,5 +1,25 @@
 # ChangeLog
 
+## **next**
+
+- [VDIs] The used space of a VDI now includes its whole snapshot chain instead of only its last layer, which showed almost 0% for disks with snapshots. It is shown as a size, without usage bar or free space (PR [#10116](https://github.com/vatesfr/xen-orchestra/pull/10116))
+- [Web-Core/UiCircleProgressBar] Add a brand accent and an option to hide the value (PR [#10849](https://github.com/vatesfr/xen-orchestra/pull/10849))
+- [Tables] Cells fit on one line: long names are cut in the middle, extra tags go under "+N" and long texts end with "…" (PR [#10850](https://github.com/vatesfr/xen-orchestra/pull/10850))
+- [Pages] The page header and tabs now stay in place on every page: dashboards, System tabs, consoles, tasks, settings and creation forms scroll under them instead of scrolling with them (PR [#10822](https://github.com/vatesfr/xen-orchestra/pull/10822))
+- [VM/Host] Main actions (shutdown, reboot, start, resume, migrate, snapshot) are shown as buttons in the VM and host headers and move one by one into "More actions" when space runs out; "More actions" groups them under "Change state" and "Actions" sections, and VMs without guest tools get force shutdown and force reboot instead (PR [#10815](https://github.com/vatesfr/xen-orchestra/pull/10815))
+- [Web-Core/UiButtonIcon] Update icon buttons design, with a counter replacing the notification dot (PR [#10799](https://github.com/vatesfr/xen-orchestra/pull/10799))
+- [Mobile/Side panels] Full-page menus on mobile with "Change state" in "More actions", side panel actions shown as buttons when there is room, and fixes for long names in headers and menu placement (PR [#10745](https://github.com/vatesfr/xen-orchestra/pull/10745))
+- [Side panels] Side panels can be resized like the treeview, whose default width now adapts to the screen size (PR [#10725](https://github.com/vatesfr/xen-orchestra/pull/10725))
+- [Side panels] Values stay next to their label when they fit and move below it otherwise, fields with several values (IP addresses, bond devices) get a copy button per value and a "Copy all" action, and rows, links and statuses are more evenly spaced and sized (PR [#10733](https://github.com/vatesfr/xen-orchestra/pull/10733))
+- [Treeview] Fix translations of the tooltip for VM and host statuses in treeview (PR [#10643](https://github.com/vatesfr/xen-orchestra/pull/10643))
+- [Web-Core/UiDropdownButton] Update dropdown buttons design (PR [#9850](https://github.com/vatesfr/xen-orchestra/pull/9850))
+- [Tables] Tables are filtered as you type, half a second after the last keystroke, or right away with Enter; the "Search" button is removed (PR [#10797](https://github.com/vatesfr/xen-orchestra/pull/10797))
+- [Side panels] Fix the double scrollbar when the side panel content is taller than the screen: the page header now stays in place, and the list and the side panel each scroll on their own. All scrollbars are now thin, like the side panel one (PR [#10807](https://github.com/vatesfr/xen-orchestra/pull/10807))
+- [Mobile] Searchable dropdown lists no longer overflow the screen (PR [#10854](https://github.com/vatesfr/xen-orchestra/pull/10854))
+- [New/VM] Fix the storage table overflowing horizontally, which hid part of the delete button (PR [#10851](https://github.com/vatesfr/xen-orchestra/pull/10851))
+- [New/VM] Fix template disk settings being applied to every disk of the new VM: each disk now keeps its own name, description and SR (PR [#10898](https://github.com/vatesfr/xen-orchestra/pull/10898))
+- [VM/System] Display the default 4 MiB video RAM for HVM VMs that don't define it, as XO 6 does (PR [#10901](https://github.com/vatesfr/xen-orchestra/pull/10901))
+
 ## **0.27.0** (2026-10-29)
 
 - [New network] Choose between no NBD, secure NBD and insecure NBD (not encrypted) when creating a network (PR [#10540](https://github.com/vatesfr/xen-orchestra/pull/10540))

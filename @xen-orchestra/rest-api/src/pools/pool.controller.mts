@@ -84,6 +84,7 @@ import type {
   CreateVmParams,
   FinalizeRollingUpdateBody,
   PoolDashboard,
+  ResumeRollingUpdateBody,
   RollingPoolActionBody,
   RollingPoolUpdateBody,
 } from './pool.type.mjs'
@@ -95,6 +96,10 @@ import { BASE_URL, escapeUnsafeComplexMatcher, NDJSON_CONTENT_TYPE } from '../he
 import { messageIds, partialMessages } from '../open-api/oa-examples/message.oa-example.mjs'
 import type { CreateActionReturnType } from '../abstract-classes/base-controller.mjs'
 import { NetworkService } from '../networks/network.service.mjs'
+import { v2vStartResult } from '../open-api/oa-examples/v2v.oa-example.mjs'
+import { V2V_TASK_PROPERTY } from '@vates/types'
+import { V2vService, V2V_TASK_NAME } from '../v2v/v2v.service.mjs'
+import type { V2vStartBody, V2vStartResult } from '../v2v/v2v.type.mjs'
 
 @Route('pools')
 @Security('*')
@@ -107,19 +112,22 @@ export class PoolController extends XapiXoController<XoPool> {
   #poolService: PoolService
   #alarmService: AlarmService
   #networkService: NetworkService
+  #v2vService: V2vService
 
   constructor(
     @inject(RestApi) restApi: RestApi,
     @inject(VmService) vmService: VmService,
     @inject(PoolService) poolService: PoolService,
     @inject(AlarmService) alarmService: AlarmService,
-    @inject(NetworkService) networkService: NetworkService
+    @inject(NetworkService) networkService: NetworkService,
+    @inject(V2vService) v2vService: V2vService
   ) {
     super('pool', restApi)
     this.#vmService = vmService
     this.#poolService = poolService
     this.#alarmService = alarmService
     this.#networkService = networkService
+    this.#v2vService = v2vService
   }
 
   /**
@@ -609,6 +617,72 @@ export class PoolController extends XapiXoController<XoPool> {
   }
 
   /**
+   * Imports a list of VMs from VMware (vCenter or ESXi) into this pool. A VM already partially imported
+   * on this pool is resumed with a delta, otherwise it is imported entirely. With `stopSource`, the
+   * source VM is stopped before the last delta, which completes the import.
+   *
+   * Each disk goes to the SR given for its key in `disks` (e.g. `scsi0:0`, as listed by
+   * `POST /v2v/inventory`), each network card to the network given for its key in `nics` (e.g. `4000`),
+   * the others to the defaults. A resumed import keeps the SRs and networks of its first run. An unknown
+   * key fails the import of the VM before anything is done on either side.
+   *
+   * With `docking`, the guest is prepared to boot on XCP-ng by the docking ISO of the pool once the import is
+   * complete, and with `startVm` the VM is started, its first boot followed when it was docked.
+   *
+   * For now, the MAC addresses are kept, and `tags` are refused.
+   *
+   * The request is checked before the import starts: 422 with the list of the problems.
+   *
+   * As in XO5, the XCP-ng side is not checked: that the SRs, networks and templates belong to this pool,
+   * that no import of the same VM is already running, and that the VM has not already been imported.
+   * Launching a VM twice at the same time leads to two imports competing for the same partial import:
+   * wait for the end of a task before launching its VMs again. A VM already fully imported is imported
+   * again, as a second VM.
+   *
+   * The task result is the UUID of the XCP-ng VM, by VMware VM id.
+   *
+   * No ACL privilege covers this route: it is restricted to administrators.
+   *
+   * @example id "355ee47d-ff4c-4924-3db2-fd86ae629677"
+   * @example body { "connection": { "host": "vcenter.example.org", "username": "administrator@vsphere.local", "password": "secret" }, "defaults": { "sr": "c4284e12-37c9-7967-b9e8-83ef229c3e03", "network": "6b6ca0f5-6611-0636-4b0a-1fb1c815e898", "template": "0f3b3b5d-ef02-4fb5-9b7a-d4a2e5eb8e14", "stopSource": true }, "vms": [{ "id": "vm-1042" }], "concurrency": 2 }
+   */
+  @Example(taskLocation)
+  @Example(v2vStartResult)
+  // the body carries the credentials of the source
+  @Extension('x-mcp-exposure', 'deny')
+  @Post('{id}/actions/import_vms_from_vmware')
+  @Middlewares(json())
+  @Tags('v2v')
+  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
+  @Response(200, 'OK')
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(invalidParametersResp.status, invalidParametersResp.description)
+  @Response(internalServerErrorResp.status, internalServerErrorResp.description)
+  async importVmsFromVmware(
+    @Path() id: string,
+    @Body() body: V2vStartBody,
+    @Query() sync?: boolean
+  ): CreateActionReturnType<V2vStartResult> {
+    const poolId = id as XoPool['id']
+    // 404 before anything is read from the source
+    this.getObject(poolId)
+    const plans = await this.#v2vService.prepareStart(body)
+
+    return this.createAction<V2vStartResult>(task => this.#v2vService.start(task, body, plans), {
+      sync,
+      taskProperties: {
+        name: V2V_TASK_NAME,
+        objectId: poolId,
+        // read by the front to tell which source VMs are being imported
+        [V2V_TASK_PROPERTY.SOURCE_VM_IDS]: plans.map(plan => plan.id),
+        // the credentials stay out of the task, which every administrator can read
+        params: { host: body.connection.host },
+      },
+    })
+  }
+
+  /**
    * Required privilege:
    * - resource: pool, action: read
    *
@@ -721,7 +795,13 @@ export class PoolController extends XapiXoController<XoPool> {
 
   /**
    * Recovery status of an incomplete rolling pool update: run and per-host
-   * step statuses, last error, pinned VMs still halted. 404 when the last
+   * step statuses, last error, pinned VMs still halted, VMs the update could
+   * not migrate back to their original host (`vmConflicts`), hosts a resume
+   * added to the plan because of patches released since the run started or
+   * because they joined the pool since (`planChange`), what an operator
+   * changed since: settings the update left changed, hosts, VMs or backup
+   * schedules of the update removed, which block its resume until accepted
+   * (`operatorChanges`). 404 when the last
    * rolling pool update completed successfully (no recovery needed), or when
    * the pool's master does not run XCP-ng or XenServer 8.4+ (no recovery
    * record is kept for those pools).
@@ -747,12 +827,20 @@ export class PoolController extends XapiXoController<XoPool> {
   }
 
   /**
-   * Close the record of an incomplete rolling pool update, once the pool has been reviewed.
+   * Close the record of an incomplete rolling pool update.
    *
-   * Refused with an `incorrect state` error listing what the update changed and did not restore (HA, auto power-on,
-   * WLB, load balancer, backup schedules, disabled hosts, displaced or halted VMs) while any item remains, or when
-   * the record cannot be read. Displaced VMs alone do not refuse it, they are only listed in the task. Set `force` to `true` to close it anyway: the items are abandoned and listed in the
-   * task, nothing is restored nor changed in the pool. 404 when the pool has no record.
+   * What the update changed and did not restore is restored first, best effort: disabled hosts are enabled, halted
+   * pinned VMs are started, displaced VMs are migrated back to their host, and HA, auto power-on, WLB, the load
+   * balancer and the backup schedules are enabled again. The record is closed once nothing is left but VMs which could
+   * not be migrated back: they do not keep the call refused.
+   *
+   * A host which was updated and not rebooted is left disabled, without its VMs: it keeps the call refused, resuming
+   * the update is what finishes it.
+   *
+   * Refused with an `incorrect state` error listing what could not be restored while any other item remains, or when
+   * the record cannot be read: the record is kept. Refused with a `forbidden operation` error while a backup runs or
+   * may run on the pool and VMs are left to migrate back. Set `force` to `true` to close it anyway: the items are
+   * abandoned and listed in the task, nothing is restored nor changed in the pool. 404 when the pool has no record.
    *
    * Required privilege:
    * - resource: pool, action: rolling-update
@@ -785,6 +873,64 @@ export class PoolController extends XapiXoController<XoPool> {
       statusCode: noContentResp.status,
       taskProperties: {
         name: 'finalize rolling pool update',
+        objectId: poolId,
+        params: body,
+        progress: 0,
+      },
+    })
+  }
+
+  /**
+   * Resume a failed or interrupted rolling pool update: the same run continues, the hosts with remaining work are
+   * evacuated, updated and rebooted, and a host a previous attempt finished is updated and rebooted again if patches
+   * were released since. Then the VMs are migrated back to the host they were on before the first attempt. The settings the previous attempts left disabled (HA, auto power on, backup schedules, WLB, load
+   * balancer) stay disabled until the end of the run, then are restored.
+   *
+   * The backup check is not taken from the previous attempts: set `bypassBackupCheck` again if needed.
+   *
+   * 404 when the pool has no record. Refused with an `incorrect state` error when the update is neither failed,
+   * interrupted nor awaiting acceptance.
+   *
+   * When an operator changed a setting the update left changed (HA, auto power on, WLB or a backup schedule enabled
+   * again, a heartbeat SR of HA deleted) or removed a host, a VM or a backup schedule of the update, the update goes
+   * to `awaiting-acceptance` and the resume is refused with an `incorrect state` error on `operatorChanges` listing
+   * them. Set
+   * `acceptOperatorChanges` to keep them: the update starts from the current state, as a new one would. A setting
+   * enabled again is disabled while the update runs and enabled again at its end, HA whose heartbeat SR was deleted
+   * stays disabled, and the removed hosts and VMs are left out.
+   *
+   * Required privilege:
+   * - resource: pool, action: rolling-update
+   *
+   * @example id "355ee47d-ff4c-4924-3db2-fd86ae629676"
+   * @example body { "bypassBackupCheck": false }
+   */
+  @Example(taskLocation)
+  @Extension('x-mcp-exposure', 'confirm')
+  @Post('{id}/actions/resume_rolling_update')
+  @Middlewares([json(), acl({ resource: 'pool', action: 'rolling-update', objectId: 'params.id' })])
+  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
+  @Response(noContentResp.status, noContentResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  @Response(featureUnauthorized.status, featureUnauthorized.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(incorrectStateResp.status, incorrectStateResp.description)
+  resumeRollingUpdate(
+    @Path() id: string,
+    @Body() body?: ResumeRollingUpdateBody,
+    @Query() sync?: boolean
+  ): CreateActionReturnType<void> {
+    const poolId = id as XoPool['id']
+    const action = async (task: VatesTask) => {
+      const pool = this.getObject(poolId)
+      await this.restApi.xoApp.resumeRollingPoolUpdate(pool, { ...body, parentTask: task })
+    }
+
+    return this.createAction<void>(action, {
+      sync,
+      statusCode: noContentResp.status,
+      taskProperties: {
+        name: 'resume rolling pool update',
         objectId: poolId,
         params: body,
         progress: 0,

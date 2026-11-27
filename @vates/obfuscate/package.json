@@ -13,11 +13,12 @@
     "url": "https://vates.fr"
   },
   "license": "ISC",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "engines": {
     "node": ">=8.10"
   },
   "scripts": {
-    "postversion": "npm publish --access public"
+    "postversion": "npm publish --access public",
+    "test": "node --test"
   }
 }

@@ -296,6 +296,13 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/story/web-core/action-button/vts-action-button': RouteRecordInfo<
+      '/story/web-core/action-button/vts-action-button',
+      '/story/web-core/action-button/vts-action-button',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
     '/story/web-core/banner/vts-banner': RouteRecordInfo<
       '/story/web-core/banner/vts-banner',
       '/story/web-core/banner/vts-banner',
@@ -313,6 +320,13 @@ declare module 'vue-router/auto-routes' {
     '/story/web-core/card/vts-card-row-key-value': RouteRecordInfo<
       '/story/web-core/card/vts-card-row-key-value',
       '/story/web-core/card/vts-card-row-key-value',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/story/web-core/card/vts-card-row-list': RouteRecordInfo<
+      '/story/web-core/card/vts-card-row-list',
+      '/story/web-core/card/vts-card-row-list',
       Record<never, never>,
       Record<never, never>,
       | never
@@ -366,9 +380,30 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/story/web-core/file-uploader-container/vts-file-uploader-container': RouteRecordInfo<
+      '/story/web-core/file-uploader-container/vts-file-uploader-container',
+      '/story/web-core/file-uploader-container/vts-file-uploader-container',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
     '/story/web-core/form-error-summary/vts-form-error-summary': RouteRecordInfo<
       '/story/web-core/form-error-summary/vts-form-error-summary',
       '/story/web-core/form-error-summary/vts-form-error-summary',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/story/web-core/head-bar/vts-head-bar-actions': RouteRecordInfo<
+      '/story/web-core/head-bar/vts-head-bar-actions',
+      '/story/web-core/head-bar/vts-head-bar-actions',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/story/web-core/inline-parts/vts-inline-parts': RouteRecordInfo<
+      '/story/web-core/inline-parts/vts-inline-parts',
+      '/story/web-core/inline-parts/vts-inline-parts',
       Record<never, never>,
       Record<never, never>,
       | never
@@ -422,6 +457,55 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/story/web-core/menu/vts-change-state-menu': RouteRecordInfo<
+      '/story/web-core/menu/vts-change-state-menu',
+      '/story/web-core/menu/vts-change-state-menu',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/story/web-core/menu/vts-change-state-menu-item': RouteRecordInfo<
+      '/story/web-core/menu/vts-change-state-menu-item',
+      '/story/web-core/menu/vts-change-state-menu-item',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/story/web-core/menu/vts-menu-title': RouteRecordInfo<
+      '/story/web-core/menu/vts-menu-title',
+      '/story/web-core/menu/vts-menu-title',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/story/web-core/menu/vts-mobile-menu': RouteRecordInfo<
+      '/story/web-core/menu/vts-mobile-menu',
+      '/story/web-core/menu/vts-mobile-menu',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/story/web-core/menu/vts-responsive-menu': RouteRecordInfo<
+      '/story/web-core/menu/vts-responsive-menu',
+      '/story/web-core/menu/vts-responsive-menu',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/story/web-core/middle-ellipsis/vts-middle-ellipsis': RouteRecordInfo<
+      '/story/web-core/middle-ellipsis/vts-middle-ellipsis',
+      '/story/web-core/middle-ellipsis/vts-middle-ellipsis',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/story/web-core/number-input/vts-number-input': RouteRecordInfo<
+      '/story/web-core/number-input/vts-number-input',
+      '/story/web-core/number-input/vts-number-input',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
     '/story/web-core/object-icon/vts-object-icon': RouteRecordInfo<
       '/story/web-core/object-icon/vts-object-icon',
       '/story/web-core/object-icon/vts-object-icon',
@@ -457,6 +541,13 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/story/web-core/panel/vts-side-panel': RouteRecordInfo<
+      '/story/web-core/panel/vts-side-panel',
+      '/story/web-core/panel/vts-side-panel',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
     '/story/web-core/resources/vts-resource': RouteRecordInfo<
       '/story/web-core/resources/vts-resource',
       '/story/web-core/resources/vts-resource',
@@ -467,6 +558,13 @@ declare module 'vue-router/auto-routes' {
     '/story/web-core/resources/vts-resources': RouteRecordInfo<
       '/story/web-core/resources/vts-resources',
       '/story/web-core/resources/vts-resources',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/story/web-core/select/vts-detailed-option': RouteRecordInfo<
+      '/story/web-core/select/vts-detailed-option',
+      '/story/web-core/select/vts-detailed-option',
       Record<never, never>,
       Record<never, never>,
       | never
@@ -499,6 +597,13 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/story/web-core/success-state-hero/vts-success-state-hero': RouteRecordInfo<
+      '/story/web-core/success-state-hero/vts-success-state-hero',
+      '/story/web-core/success-state-hero/vts-success-state-hero',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
     '/story/web-core/tab/router-tab': RouteRecordInfo<
       '/story/web-core/tab/router-tab',
       '/story/web-core/tab/router-tab',
@@ -523,6 +628,34 @@ declare module 'vue-router/auto-routes' {
     '/story/web-core/tabular-key-value-row/vts-tabular-key-value-row': RouteRecordInfo<
       '/story/web-core/tabular-key-value-row/vts-tabular-key-value-row',
       '/story/web-core/tabular-key-value-row/vts-tabular-key-value-row',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/story/web-core/tag/vts-tag': RouteRecordInfo<
+      '/story/web-core/tag/vts-tag',
+      '/story/web-core/tag/vts-tag',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/story/web-core/tag-select/vts-tag-select': RouteRecordInfo<
+      '/story/web-core/tag-select/vts-tag-select',
+      '/story/web-core/tag-select/vts-tag-select',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/story/web-core/tags-input/vts-tags-input': RouteRecordInfo<
+      '/story/web-core/tags-input/vts-tags-input',
+      '/story/web-core/tags-input/vts-tags-input',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/story/web-core/task/vts-task-list': RouteRecordInfo<
+      '/story/web-core/task/vts-task-list',
+      '/story/web-core/task/vts-task-list',
       Record<never, never>,
       Record<never, never>,
       | never
@@ -737,9 +870,44 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/story/web-core/ui/file-item/ui-file-item': RouteRecordInfo<
+      '/story/web-core/ui/file-item/ui-file-item',
+      '/story/web-core/ui/file-item/ui-file-item',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/story/web-core/ui/file-list/ui-file-list': RouteRecordInfo<
+      '/story/web-core/ui/file-list/ui-file-list',
+      '/story/web-core/ui/file-list/ui-file-list',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/story/web-core/ui/file-uploader/ui-file-uploader': RouteRecordInfo<
+      '/story/web-core/ui/file-uploader/ui-file-uploader',
+      '/story/web-core/ui/file-uploader/ui-file-uploader',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/story/web-core/ui/group-subcategory/ui-group-subcategory': RouteRecordInfo<
+      '/story/web-core/ui/group-subcategory/ui-group-subcategory',
+      '/story/web-core/ui/group-subcategory/ui-group-subcategory',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
     '/story/web-core/ui/head-bar/ui-head-bar': RouteRecordInfo<
       '/story/web-core/ui/head-bar/ui-head-bar',
       '/story/web-core/ui/head-bar/ui-head-bar',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/story/web-core/ui/image-radio-button/ui-image-radio-button': RouteRecordInfo<
+      '/story/web-core/ui/image-radio-button/ui-image-radio-button',
+      '/story/web-core/ui/image-radio-button/ui-image-radio-button',
       Record<never, never>,
       Record<never, never>,
       | never
@@ -828,9 +996,23 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/story/web-core/ui/numbered-stepper/ui-numbered-stepper': RouteRecordInfo<
+      '/story/web-core/ui/numbered-stepper/ui-numbered-stepper',
+      '/story/web-core/ui/numbered-stepper/ui-numbered-stepper',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
     '/story/web-core/ui/object-link/ui-object-link': RouteRecordInfo<
       '/story/web-core/ui/object-link/ui-object-link',
       '/story/web-core/ui/object-link/ui-object-link',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/story/web-core/ui/overridden/ui-overridden': RouteRecordInfo<
+      '/story/web-core/ui/overridden/ui-overridden',
+      '/story/web-core/ui/overridden/ui-overridden',
       Record<never, never>,
       Record<never, never>,
       | never
@@ -884,9 +1066,30 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/story/web-core/ui/rich-checkbox/ui-rich-checkbox': RouteRecordInfo<
+      '/story/web-core/ui/rich-checkbox/ui-rich-checkbox',
+      '/story/web-core/ui/rich-checkbox/ui-rich-checkbox',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/story/web-core/ui/rich-checkbox-group/ui-rich-checkbox-group': RouteRecordInfo<
+      '/story/web-core/ui/rich-checkbox-group/ui-rich-checkbox-group',
+      '/story/web-core/ui/rich-checkbox-group/ui-rich-checkbox-group',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
     '/story/web-core/ui/rich-radio-button/ui-rich-radio-button': RouteRecordInfo<
       '/story/web-core/ui/rich-radio-button/ui-rich-radio-button',
       '/story/web-core/ui/rich-radio-button/ui-rich-radio-button',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/story/web-core/ui/rich-radio-button-group/ui-rich-radio-button-group': RouteRecordInfo<
+      '/story/web-core/ui/rich-radio-button-group/ui-rich-radio-button-group',
+      '/story/web-core/ui/rich-radio-button-group/ui-rich-radio-button-group',
       Record<never, never>,
       Record<never, never>,
       | never
@@ -947,6 +1150,13 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/story/web-core/ui/tag/ui-label-value-tag': RouteRecordInfo<
+      '/story/web-core/ui/tag/ui-label-value-tag',
+      '/story/web-core/ui/tag/ui-label-value-tag',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
     '/story/web-core/ui/tag/ui-tag': RouteRecordInfo<
       '/story/web-core/ui/tag/ui-tag',
       '/story/web-core/ui/tag/ui-tag',
@@ -961,23 +1171,9 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
-    '/story/web-core/ui/tag/ui-tertiary-tag': RouteRecordInfo<
-      '/story/web-core/ui/tag/ui-tertiary-tag',
-      '/story/web-core/ui/tag/ui-tertiary-tag',
-      Record<never, never>,
-      Record<never, never>,
-      | never
-    >,
     '/story/web-core/ui/task-item/ui-task-item': RouteRecordInfo<
       '/story/web-core/ui/task-item/ui-task-item',
       '/story/web-core/ui/task-item/ui-task-item',
-      Record<never, never>,
-      Record<never, never>,
-      | never
-    >,
-    '/story/web-core/ui/task-list/ui-task-list': RouteRecordInfo<
-      '/story/web-core/ui/task-list/ui-task-list',
-      '/story/web-core/ui/task-list/ui-task-list',
       Record<never, never>,
       Record<never, never>,
       | never
@@ -1367,6 +1563,12 @@ declare module 'vue-router/auto-routes' {
       views:
         | never
     }
+    'src/stories/web-core/action-button/vts-action-button.story.vue': {
+      routes:
+        | '/story/web-core/action-button/vts-action-button'
+      views:
+        | never
+    }
     'src/stories/web-core/banner/vts-banner.story.vue': {
       routes:
         | '/story/web-core/banner/vts-banner'
@@ -1382,6 +1584,12 @@ declare module 'vue-router/auto-routes' {
     'src/stories/web-core/card/vts-card-row-key-value.story.vue': {
       routes:
         | '/story/web-core/card/vts-card-row-key-value'
+      views:
+        | never
+    }
+    'src/stories/web-core/card/vts-card-row-list.story.vue': {
+      routes:
+        | '/story/web-core/card/vts-card-row-list'
       views:
         | never
     }
@@ -1427,9 +1635,27 @@ declare module 'vue-router/auto-routes' {
       views:
         | never
     }
+    'src/stories/web-core/file-uploader-container/vts-file-uploader-container.story.vue': {
+      routes:
+        | '/story/web-core/file-uploader-container/vts-file-uploader-container'
+      views:
+        | never
+    }
     'src/stories/web-core/form-error-summary/vts-form-error-summary.story.vue': {
       routes:
         | '/story/web-core/form-error-summary/vts-form-error-summary'
+      views:
+        | never
+    }
+    'src/stories/web-core/head-bar/vts-head-bar-actions.story.vue': {
+      routes:
+        | '/story/web-core/head-bar/vts-head-bar-actions'
+      views:
+        | never
+    }
+    'src/stories/web-core/inline-parts/vts-inline-parts.story.vue': {
+      routes:
+        | '/story/web-core/inline-parts/vts-inline-parts'
       views:
         | never
     }
@@ -1475,6 +1701,48 @@ declare module 'vue-router/auto-routes' {
       views:
         | never
     }
+    'src/stories/web-core/menu/vts-change-state-menu.story.vue': {
+      routes:
+        | '/story/web-core/menu/vts-change-state-menu'
+      views:
+        | never
+    }
+    'src/stories/web-core/menu/vts-change-state-menu-item.story.vue': {
+      routes:
+        | '/story/web-core/menu/vts-change-state-menu-item'
+      views:
+        | never
+    }
+    'src/stories/web-core/menu/vts-menu-title.story.vue': {
+      routes:
+        | '/story/web-core/menu/vts-menu-title'
+      views:
+        | never
+    }
+    'src/stories/web-core/menu/vts-mobile-menu.story.vue': {
+      routes:
+        | '/story/web-core/menu/vts-mobile-menu'
+      views:
+        | never
+    }
+    'src/stories/web-core/menu/vts-responsive-menu.story.vue': {
+      routes:
+        | '/story/web-core/menu/vts-responsive-menu'
+      views:
+        | never
+    }
+    'src/stories/web-core/middle-ellipsis/vts-middle-ellipsis.story.vue': {
+      routes:
+        | '/story/web-core/middle-ellipsis/vts-middle-ellipsis'
+      views:
+        | never
+    }
+    'src/stories/web-core/number-input/vts-number-input.story.vue': {
+      routes:
+        | '/story/web-core/number-input/vts-number-input'
+      views:
+        | never
+    }
     'src/stories/web-core/object-icon/vts-object-icon.story.vue': {
       routes:
         | '/story/web-core/object-icon/vts-object-icon'
@@ -1505,6 +1773,12 @@ declare module 'vue-router/auto-routes' {
       views:
         | never
     }
+    'src/stories/web-core/panel/vts-side-panel.story.vue': {
+      routes:
+        | '/story/web-core/panel/vts-side-panel'
+      views:
+        | never
+    }
     'src/stories/web-core/resources/vts-resource.story.vue': {
       routes:
         | '/story/web-core/resources/vts-resource'
@@ -1514,6 +1788,12 @@ declare module 'vue-router/auto-routes' {
     'src/stories/web-core/resources/vts-resources.story.vue': {
       routes:
         | '/story/web-core/resources/vts-resources'
+      views:
+        | never
+    }
+    'src/stories/web-core/select/vts-detailed-option.story.vue': {
+      routes:
+        | '/story/web-core/select/vts-detailed-option'
       views:
         | never
     }
@@ -1541,6 +1821,12 @@ declare module 'vue-router/auto-routes' {
       views:
         | never
     }
+    'src/stories/web-core/success-state-hero/vts-success-state-hero.story.vue': {
+      routes:
+        | '/story/web-core/success-state-hero/vts-success-state-hero'
+      views:
+        | never
+    }
     'src/stories/web-core/tab/router-tab.story.vue': {
       routes:
         | '/story/web-core/tab/router-tab'
@@ -1562,6 +1848,30 @@ declare module 'vue-router/auto-routes' {
     'src/stories/web-core/tabular-key-value-row/vts-tabular-key-value-row.story.vue': {
       routes:
         | '/story/web-core/tabular-key-value-row/vts-tabular-key-value-row'
+      views:
+        | never
+    }
+    'src/stories/web-core/tag/vts-tag.story.vue': {
+      routes:
+        | '/story/web-core/tag/vts-tag'
+      views:
+        | never
+    }
+    'src/stories/web-core/tag-select/vts-tag-select.story.vue': {
+      routes:
+        | '/story/web-core/tag-select/vts-tag-select'
+      views:
+        | never
+    }
+    'src/stories/web-core/tags-input/vts-tags-input.story.vue': {
+      routes:
+        | '/story/web-core/tags-input/vts-tags-input'
+      views:
+        | never
+    }
+    'src/stories/web-core/task/vts-task-list.story.vue': {
+      routes:
+        | '/story/web-core/task/vts-task-list'
       views:
         | never
     }
@@ -1745,9 +2055,39 @@ declare module 'vue-router/auto-routes' {
       views:
         | never
     }
+    'src/stories/web-core/ui/file-item/ui-file-item.story.vue': {
+      routes:
+        | '/story/web-core/ui/file-item/ui-file-item'
+      views:
+        | never
+    }
+    'src/stories/web-core/ui/file-list/ui-file-list.story.vue': {
+      routes:
+        | '/story/web-core/ui/file-list/ui-file-list'
+      views:
+        | never
+    }
+    'src/stories/web-core/ui/file-uploader/ui-file-uploader.story.vue': {
+      routes:
+        | '/story/web-core/ui/file-uploader/ui-file-uploader'
+      views:
+        | never
+    }
+    'src/stories/web-core/ui/group-subcategory/ui-group-subcategory.story.vue': {
+      routes:
+        | '/story/web-core/ui/group-subcategory/ui-group-subcategory'
+      views:
+        | never
+    }
     'src/stories/web-core/ui/head-bar/ui-head-bar.story.vue': {
       routes:
         | '/story/web-core/ui/head-bar/ui-head-bar'
+      views:
+        | never
+    }
+    'src/stories/web-core/ui/image-radio-button/ui-image-radio-button.story.vue': {
+      routes:
+        | '/story/web-core/ui/image-radio-button/ui-image-radio-button'
       views:
         | never
     }
@@ -1823,9 +2163,21 @@ declare module 'vue-router/auto-routes' {
       views:
         | never
     }
+    'src/stories/web-core/ui/numbered-stepper/ui-numbered-stepper.story.vue': {
+      routes:
+        | '/story/web-core/ui/numbered-stepper/ui-numbered-stepper'
+      views:
+        | never
+    }
     'src/stories/web-core/ui/object-link/ui-object-link.story.vue': {
       routes:
         | '/story/web-core/ui/object-link/ui-object-link'
+      views:
+        | never
+    }
+    'src/stories/web-core/ui/overridden/ui-overridden.story.vue': {
+      routes:
+        | '/story/web-core/ui/overridden/ui-overridden'
       views:
         | never
     }
@@ -1871,9 +2223,27 @@ declare module 'vue-router/auto-routes' {
       views:
         | never
     }
+    'src/stories/web-core/ui/rich-checkbox/ui-rich-checkbox.story.vue': {
+      routes:
+        | '/story/web-core/ui/rich-checkbox/ui-rich-checkbox'
+      views:
+        | never
+    }
+    'src/stories/web-core/ui/rich-checkbox-group/ui-rich-checkbox-group.story.vue': {
+      routes:
+        | '/story/web-core/ui/rich-checkbox-group/ui-rich-checkbox-group'
+      views:
+        | never
+    }
     'src/stories/web-core/ui/rich-radio-button/ui-rich-radio-button.story.vue': {
       routes:
         | '/story/web-core/ui/rich-radio-button/ui-rich-radio-button'
+      views:
+        | never
+    }
+    'src/stories/web-core/ui/rich-radio-button-group/ui-rich-radio-button-group.story.vue': {
+      routes:
+        | '/story/web-core/ui/rich-radio-button-group/ui-rich-radio-button-group'
       views:
         | never
     }
@@ -1925,6 +2295,12 @@ declare module 'vue-router/auto-routes' {
       views:
         | never
     }
+    'src/stories/web-core/ui/tag/ui-label-value-tag.story.vue': {
+      routes:
+        | '/story/web-core/ui/tag/ui-label-value-tag'
+      views:
+        | never
+    }
     'src/stories/web-core/ui/tag/ui-tag.story.vue': {
       routes:
         | '/story/web-core/ui/tag/ui-tag'
@@ -1937,21 +2313,9 @@ declare module 'vue-router/auto-routes' {
       views:
         | never
     }
-    'src/stories/web-core/ui/tag/ui-tertiary-tag.story.vue': {
-      routes:
-        | '/story/web-core/ui/tag/ui-tertiary-tag'
-      views:
-        | never
-    }
     'src/stories/web-core/ui/task-item/ui-task-item.story.vue': {
       routes:
         | '/story/web-core/ui/task-item/ui-task-item'
-      views:
-        | never
-    }
-    'src/stories/web-core/ui/task-list/ui-task-list.story.vue': {
-      routes:
-        | '/story/web-core/ui/task-list/ui-task-list'
       views:
         | never
     }

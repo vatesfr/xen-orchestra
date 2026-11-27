@@ -1,9 +1,14 @@
 <template>
   <div class="tasks-list">
     <UiTitle>
-      {{ t('tasks') }}
+      {{ title ?? t('tasks') }}
+      <template v-if="autoCollapseToggle" #action>
+        <UiToggle v-model="autoCollapseCompleted" class="auto-collapse-toggle">
+          {{ t('auto-collapse-completed-tasks') }}
+        </UiToggle>
+      </template>
     </UiTitle>
-    <UiQuerySearchBar @search="value => (searchQuery = value)" />
+    <UiQuerySearchBar v-bind="searchBindings" />
     <div class="container">
       <div class="actions">
         <UiTableControlsBar :pagination-bindings />
@@ -15,13 +20,16 @@
       <VtsStateHero v-else-if="tasks.length === 0" format="table" type="no-data" size="small">
         {{ t('no-task-detected') }}
       </VtsStateHero>
-      <UiTaskList
+      <VtsTaskList
         v-else
         :tasks="tasksRecords"
         :selected-task-id="selectedTaskId"
+        show-eye-icon
+        :auto-collapse-completed
+        :expand-all="hasSearch"
         @select="id => (selectedTaskId = id)"
       />
-      <VtsStateHero v-if="searchQuery && filteredTasks.length === 0" format="table" type="no-result" size="small">
+      <VtsStateHero v-if="hasNoSearchResult" format="table" type="no-result" size="small">
         {{ t('no-result') }}
       </VtsStateHero>
       <UiTableControlsBar :pagination-bindings />
@@ -32,38 +40,57 @@
 <script setup lang="ts">
 import type { Task } from '@core/components/ui/task-item/UiTaskItem.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
+import VtsTaskList from '@core/components/task/VtsTaskList.vue'
 import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
 import UiTableControlsBar from '@core/components/ui/table-controls-bar/UiTableControlsBar.vue'
-import UiTaskList from '@core/components/ui/task-list/UiTaskList.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
+import UiToggle from '@core/components/ui/toggle/UiToggle.vue'
+import { useDebouncedSearch } from '@core/composables/debounced-search.composable.ts'
 import { usePagination } from '@core/composables/pagination.composable.ts'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
-import { computed, ref } from 'vue'
+import { filterTasksByName, hasSubtask } from '@core/utils/task.util.ts'
+import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { tasks } = defineProps<{
+const { tasks, title } = defineProps<{
   tasks: Task[]
   hasError: boolean
   busy: boolean
+  title?: string
+  autoCollapseToggle?: boolean
 }>()
 
 const { t } = useI18n()
 
 const selectedTaskId = useRouteQuery('id')
 
-const searchQuery = ref('')
+const autoCollapseCompleted = ref(false)
 
-const filteredTasks = computed(() => {
-  const searchTerm = searchQuery.value.trim().toLocaleLowerCase()
+const { debouncedSearch, searchBindings } = useDebouncedSearch()
 
-  if (!searchTerm) {
-    return tasks
-  }
+const hasSearch = computed(() => debouncedSearch.value.trim() !== '')
 
-  return tasks.filter(task => Object.values(task).some(value => String(value).toLocaleLowerCase().includes(searchTerm)))
+const filteredTasks = computed(() => filterTasksByName(tasks, debouncedSearch.value))
+
+const hasNoSearchResult = computed(() => hasSearch.value && filteredTasks.value.length === 0)
+
+const { pageRecords: tasksRecords, paginationBindings, seek } = usePagination('tasks', filteredTasks)
+
+const selectedRootTaskId = computed(() => {
+  const taskId = selectedTaskId.value
+
+  return taskId ? filteredTasks.value.find(task => task.id === taskId || hasSubtask(task, taskId))?.id : undefined
 })
 
-const { pageRecords: tasksRecords, paginationBindings } = usePagination('tasks', filteredTasks)
+watch(
+  [selectedTaskId, selectedRootTaskId],
+  ([, rootTaskId]) => {
+    if (rootTaskId !== undefined) {
+      seek(task => task.id === rootTaskId)
+    }
+  },
+  { immediate: true }
+)
 </script>
 
 <style scoped lang="postcss">
@@ -80,6 +107,10 @@ const { pageRecords: tasksRecords, paginationBindings } = usePagination('tasks',
   .container,
   .actions {
     gap: 0.8rem;
+  }
+
+  .auto-collapse-toggle {
+    text-transform: none;
   }
 }
 </style>

@@ -1,37 +1,32 @@
 import { useXoHostUtils } from '@/modules/host/composables/xo-host-utils.composable.ts'
 import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import type { XoHostState } from '@/modules/host/utils/xo-host.util.ts'
-import type { FrontXoVm, useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
+import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { createHost } from '@/test/create-host.ts'
 import { createVm } from '@/test/create-vm.ts'
-import { mountComposable } from '@/test/mount-composable.ts'
+import { vmCollectionMock, mockXoVmCollection } from '@/test/mock-xo-vm-collection.ts'
+import { mountComposable, mountComposableWithI18n } from '@/test/mount-composable.ts'
 import { getRelativeTime } from '@core/composables/relative-time.composable.ts'
 import { HOST_ALLOWED_OPERATIONS, HOST_POWER_STATE, VM_OPERATIONS } from '@vates/types'
-import { ref } from 'vue'
+import { type MaybeRefOrGetter, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { vmsByHost } = vi.hoisted(() => ({
-  vmsByHost: { value: new Map<string, unknown[]>() },
-}))
-
-vi.mock(import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'), () => ({
-  useXoVmCollection: (() => ({ vmsByHost })) as unknown as typeof useXoVmCollection,
-}))
+mockXoVmCollection()
 
 beforeEach(() => {
-  vmsByHost.value = new Map()
+  vmCollectionMock.reset()
 })
 
 function setResidentVms(hostId: FrontXoHost['id'], vms: FrontXoVm[]) {
-  vmsByHost.value = new Map([[hostId, vms]])
+  vmCollectionMock.vms.value = vms.map(vm => ({ ...vm, $container: hostId }))
+}
+
+function mountHostUtilsFromSource(host: MaybeRefOrGetter<FrontXoHost>) {
+  return mountComposableWithI18n(() => useXoHostUtils(host))
 }
 
 function mountHostUtils(overrides: Partial<FrontXoHost> = {}) {
-  return mountComposable(() => {
-    const { t } = useI18n()
-
-    return { ...useXoHostUtils(createHost(overrides)), t }
-  }).wrapper.vm
+  return mountHostUtilsFromSource(createHost(overrides))
 }
 
 describe('getHostStateDisplay', () => {
@@ -139,9 +134,9 @@ describe('isChangingState', () => {
 
     setResidentVms(host.id, [createVm({ current_operations: { 'task-1': VM_OPERATIONS.SUSPEND } })])
 
-    const { wrapper } = mountComposable(() => useXoHostUtils(host))
+    const result = mountHostUtilsFromSource(host)
 
-    expect(wrapper.vm.isChangingState).toBe(true)
+    expect(result.isChangingState).toBe(true)
   })
 
   it('is false when a resident VM is suspending but the host is still enabled', () => {
@@ -149,20 +144,20 @@ describe('isChangingState', () => {
 
     setResidentVms(host.id, [createVm({ current_operations: { 'task-1': VM_OPERATIONS.SUSPEND } })])
 
-    const { wrapper } = mountComposable(() => useXoHostUtils(host))
+    const result = mountHostUtilsFromSource(host)
 
-    expect(wrapper.vm.isChangingState).toBe(false)
+    expect(result.isChangingState).toBe(false)
   })
 
   it('reacts to changes of the source host', () => {
     const host = ref(createHost({ current_operations: {} }))
-    const { wrapper } = mountComposable(() => useXoHostUtils(host))
+    const result = mountHostUtilsFromSource(host)
 
-    expect(wrapper.vm.isChangingState).toBe(false)
+    expect(result.isChangingState).toBe(false)
 
     host.value = createHost({ current_operations: { 'task-1': HOST_ALLOWED_OPERATIONS.REBOOT } })
 
-    expect(wrapper.vm.isChangingState).toBe(true)
+    expect(result.isChangingState).toBe(true)
   })
 })
 
@@ -172,7 +167,7 @@ describe('currentOperation', () => {
       current_operations: { 'task-1': HOST_ALLOWED_OPERATIONS.REBOOT },
     })
 
-    expect(currentOperation).toBe(t('operation:clean-reboot'))
+    expect(currentOperation).toBe(t('operation-in-progress', { operation: t('operation:clean-reboot') }))
   })
 
   it('maps the power-on operation of a halted host to a translated label', () => {
@@ -181,7 +176,7 @@ describe('currentOperation', () => {
       current_operations: { 'task-1': HOST_ALLOWED_OPERATIONS.POWER_ON },
     })
 
-    expect(currentOperation).toBe(t('operation:start'))
+    expect(currentOperation).toBe(t('operation-in-progress', { operation: t('operation:start') }))
   })
 
   it('maps the smart-reboot VM operation to a translated label', () => {
@@ -189,13 +184,11 @@ describe('currentOperation', () => {
 
     setResidentVms(host.id, [createVm({ current_operations: { 'task-1': VM_OPERATIONS.HARD_SHUTDOWN } })])
 
-    const { wrapper } = mountComposable(() => {
-      const { t } = useI18n()
+    const result = mountHostUtilsFromSource(host)
 
-      return { ...useXoHostUtils(host), t }
-    })
-
-    expect(wrapper.vm.currentOperation).toBe(wrapper.vm.t('operation:vm-hard-shutdown'))
+    expect(result.currentOperation).toBe(
+      result.t('operation-in-progress', { operation: result.t('operation:vm-hard-shutdown') })
+    )
   })
 
   it('falls back to an empty label when there is no pending operation', () => {
@@ -210,5 +203,27 @@ describe('currentOperation', () => {
     })
 
     expect(currentOperation).toBe('')
+  })
+})
+
+describe('iconTooltip', () => {
+  it('shows the operation changing the host state', () => {
+    const result = mountHostUtils({
+      power_state: HOST_POWER_STATE.RUNNING,
+      current_operations: { 'task-1': HOST_ALLOWED_OPERATIONS.REBOOT },
+    })
+
+    expect(result.iconTooltip).toBe(
+      result.t('operation-in-progress', { operation: result.t('operation:clean-reboot') })
+    )
+  })
+
+  it('is empty while only a VM operation is pending on the host', () => {
+    const result = mountHostUtils({
+      power_state: HOST_POWER_STATE.RUNNING,
+      current_operations: { 'task-1': HOST_ALLOWED_OPERATIONS.VM_START },
+    })
+
+    expect(result.iconTooltip).toBe('')
   })
 })

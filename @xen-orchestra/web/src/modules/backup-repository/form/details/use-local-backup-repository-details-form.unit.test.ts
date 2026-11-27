@@ -1,17 +1,13 @@
 import { useLocalBackupRepositoryDetailsForm } from '@/modules/backup-repository/form/details/use-local-backup-repository-details-form.ts'
 import type { FrontXoProxy } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
-import { mountComposable } from '@/test/mount-composable.ts'
+import { requiredMessage } from '@/test/form-messages.ts'
+import { mountComposableWithI18n } from '@/test/mount-composable.ts'
 import { type MaybeRefOrGetter, nextTick, ref } from 'vue'
-import { useI18n } from 'vue-i18n'
 
 const PROXY_ID = 'proxy-1' as FrontXoProxy['id']
 
 function mountLocalForm(proxy?: MaybeRefOrGetter<FrontXoProxy['id'] | undefined>) {
-  return mountComposable(() => {
-    const { t } = useI18n()
-
-    return { ...useLocalBackupRepositoryDetailsForm(proxy), t }
-  }).wrapper.vm
+  return mountComposableWithI18n(() => useLocalBackupRepositoryDetailsForm(proxy))
 }
 
 describe('bindings', () => {
@@ -41,7 +37,7 @@ describe('validate', () => {
     const result = mountLocalForm()
 
     expect(await result.validate()).toBe(false)
-    expect(result.bindings.path.error).toBeDefined()
+    expect(result.bindings.path.error).toEqual(requiredMessage())
   })
 
   it('accepts a filled path', async () => {

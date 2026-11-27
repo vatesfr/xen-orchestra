@@ -19,6 +19,7 @@ import TaskPropertiesCard from '@/modules/task/components/list/panel/cards/TaskP
 import TaskQuickInfosCard from '@/modules/task/components/list/panel/cards/TaskQuickInfosCard.vue'
 import TaskWarningsCard from '@/modules/task/components/list/panel/cards/TaskWarningsCard.vue'
 import { useXoTaskPropertiesUtils } from '@/modules/task/composables/xo-task-properties-utils.composable.ts'
+import { useXoTasksUnread } from '@/modules/task/composables/xo-tasks-unread.composable.ts'
 import type { FrontXoTask } from '@/modules/task/remote-resources/use-xo-task-collection.ts'
 import VtsSidePanel from '@core/components/panel/VtsSidePanel.vue'
 import { computed } from 'vue'
@@ -32,6 +33,10 @@ const emit = defineEmits<{
 }>()
 
 const { properties } = useXoTaskPropertiesUtils(() => task)
+
+const { trackOpenedTask } = useXoTasksUnread()
+
+trackOpenedTask(() => task?.id)
 
 const isError = computed(() => task && task.result && (task.status === 'failure' || task.status === 'interrupted'))
 </script>

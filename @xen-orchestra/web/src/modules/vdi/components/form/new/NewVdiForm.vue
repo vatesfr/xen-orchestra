@@ -1,13 +1,14 @@
 <template>
-  <VtsForm class="vdi-new-form" @submit="onSubmit()">
+  <div class="vdi-new-form">
     <div class="new-form">
       <UiTitle>{{ t('general-information') }}</UiTitle>
+      <VtsRequiredHint />
 
       <NewVdiSourceSelector v-model="source" />
 
       <div class="row">
         <VdiFormTextInput v-bind="nameInputBindings" />
-        <VdiFormTextarea v-bind="descriptionInputBindings" />
+        <FormTextarea v-bind="descriptionInputBindings" />
       </div>
 
       <div class="row">
@@ -39,14 +40,7 @@
         </UiCheckbox>
       </div>
     </div>
-
-    <div class="buttons-container">
-      <UiLink :to="cancelTo" size="medium">{{ t('cancel') }}</UiLink>
-      <UiButton type="submit" size="medium" accent="brand" variant="primary">
-        {{ t('action:create') }}
-      </UiButton>
-    </div>
-  </VtsForm>
+  </div>
 </template>
 
 <script lang="ts" setup>
@@ -55,26 +49,17 @@ import NewVdiAllocatedSpaceInput from '@/modules/vdi/components/form/new/NewVdiA
 import NewVdiSourceSelector from '@/modules/vdi/components/form/new/NewVdiSourceSelector.vue'
 import VdiFormSelect from '@/modules/vdi/components/form/shared/VdiFormSelect.vue'
 import { useNewVdiForm } from '@/modules/vdi/form/new/use-new-vdi-form.ts'
-import type { NewVdiPayload } from '@/modules/vdi/jobs/xo-vdi-create.job.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
-import VtsForm from '@core/components/form/VtsForm.vue'
+import FormTextarea from '@/shared/components/form/FormTextarea.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
+import VtsRequiredHint from '@core/components/required-hint/VtsRequiredHint.vue'
 import VtsOption from '@core/components/select/VtsOption.vue'
-import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiCheckbox from '@core/components/ui/checkbox/UiCheckbox.vue'
-import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { useI18n } from 'vue-i18n'
-import type { RouteLocationRaw } from 'vue-router'
-import VdiFormTextarea from './inputs/VdiFormTextarea.vue'
 
 const { vm } = defineProps<{
   vm: FrontXoVm
-  cancelTo: RouteLocationRaw
-}>()
-
-const emit = defineEmits<{
-  create: [data: NewVdiPayload]
 }>()
 
 const { t } = useI18n()
@@ -91,13 +76,9 @@ const {
   validateAndBuildPayload,
 } = useNewVdiForm(() => vm)
 
-async function onSubmit() {
-  const payload = await validateAndBuildPayload()
-
-  if (payload !== undefined) {
-    emit('create', payload)
-  }
-}
+defineExpose({
+  validate: validateAndBuildPayload,
+})
 </script>
 
 <style lang="postcss" scoped>
@@ -125,16 +106,7 @@ async function onSubmit() {
 
     @media (--medium-or-large) {
       flex-direction: row;
-      gap: 8rem;
-      max-width: 88rem;
     }
-  }
-
-  .buttons-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 2.4rem;
   }
 }
 

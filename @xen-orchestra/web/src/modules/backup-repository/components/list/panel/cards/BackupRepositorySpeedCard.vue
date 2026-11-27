@@ -1,12 +1,12 @@
 <template>
-  <UiPanelCard class="backup-repository-speed-card">
+  <UiPanelCard>
     <UiPanelCardTitle size="medium" :label="t('speed')">
       <template #more-actions>
         <BackupRepositoryBenchmarkButton :br />
       </template>
     </UiPanelCardTitle>
 
-    <div class="content">
+    <VtsCardRowList>
       <VtsCardRowKeyValue>
         <template #key>{{ t('writing-speed') }}</template>
         <template #value>{{ writeSpeed }}</template>
@@ -21,7 +21,7 @@
           <VtsCopyButton :value="readSpeed" />
         </template>
       </VtsCardRowKeyValue>
-    </div>
+    </VtsCardRowList>
   </UiPanelCard>
 </template>
 
@@ -30,6 +30,7 @@ import BackupRepositoryBenchmarkButton from '@/modules/backup-repository/compone
 import { useXoBackupRepositoryBenchmark } from '@/modules/backup-repository/composables/use-xo-backup-repository-benchmark.composable.ts'
 import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
+import VtsCardRowList from '@core/components/card/VtsCardRowList.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
 import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
@@ -43,13 +44,3 @@ const { t } = useI18n()
 
 const { writeSpeed, readSpeed } = useXoBackupRepositoryBenchmark(() => br)
 </script>
-
-<style scoped lang="postcss">
-.backup-repository-speed-card {
-  .content {
-    display: flex;
-    flex-direction: column;
-    gap: 0.4rem;
-  }
-}
-</style>

@@ -2,21 +2,19 @@ import EditBackupRepositoryDrawer from '@/modules/backup-repository/components/d
 import BackupRepositoryDetailsStep from '@/modules/backup-repository/components/form/steps/BackupRepositoryDetailsStep.vue'
 import BackupRepositoryGeneralStep from '@/modules/backup-repository/components/form/steps/BackupRepositoryGeneralStep.vue'
 import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
-import type { useXoProxyCollection } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
 import { createBr } from '@/test/create-br.ts'
 import { cancelDrawer, findDrawerButtonLabels, submitDrawer } from '@/test/drawer.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
+import { proxyCollectionMock, mockXoProxyCollection } from '@/test/mock-xo-proxy-collection.ts'
 import { flushPromises, mount, type VueWrapper } from '@vue/test-utils'
-import { computed, ref } from 'vue'
 import { parse as parseBackupRepositoryUrl } from 'xo-remote-parser'
 
-vi.mock(import('@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'), () => ({
-  useXoProxyCollection: (() => ({
-    proxies: ref([]),
-    useGetProxyById: () => computed(() => undefined),
-  })) as unknown as typeof useXoProxyCollection,
-}))
+mockXoProxyCollection()
+
+beforeEach(() => {
+  proxyCollectionMock.reset()
+})
 
 const NFS_BR = createBr({ name: 'Nightly backups', url: 'nfs://192.168.1.10:2049:/exports/backups' })
 

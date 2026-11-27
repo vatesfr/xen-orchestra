@@ -267,7 +267,7 @@ Throw `noSuchObject(id, type)` to get an automatic 404 when the routing doesn't 
 
 ## Streaming & file-download routes
 
-- Obtain and validate the resource **before** setting any response header, so a `noSuchObject` returns a clean JSON 404 instead of a body labelled as a download
+- Obtain and validate the resource **before** setting any response header, so a `noSuchObject` returns a clean JSON 404 instead of a body labeled as a download
 - Set `content-disposition: attachment; filename="…"` with a meaningful name built from domain labels (VM / disk / partition). Fold accents to ASCII and collapse anything outside `[\w.-]` so the header and the on-disk filename stay safe (also blocks header injection)
 - Tie the stream to the request lifetime (`req.on('close', () => stream.destroy())`) so a client disconnect doesn't leak the export
 - Export: return the stream (`Promise<Readable>`) and let the REST API pipe it to the response. Don't pipe it manually (`pipeline(stream, res)` + `Promise<void>`)
