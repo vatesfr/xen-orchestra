@@ -2,6 +2,7 @@ import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
 import { taskCollectionMock } from '@/test/mock-xo-task-collection.ts'
 import { v2vVmRowsCollectionsMock } from '@/test/mock-xo-v2v-vm-rows-collections.ts'
 import { vmCollectionMock } from '@/test/mock-xo-vm-collection.ts'
+import { vmDeviceCollectionsMock } from '@/test/mock-xo-vm-device-collections.ts'
 import type { Ref } from 'vue'
 
 const holdLoading = (isReady: Ref<boolean>) => () => {
@@ -9,7 +10,8 @@ const holdLoading = (isReady: Ref<boolean>) => () => {
 }
 
 // Holds a mocked collection as still loading (`mock-xo-collections.ts`, `mock-xo-vm-collection.ts`,
-// `mock-xo-task-collection.ts`, and the V2V VM rows mock built on them), by its name
+// `mock-xo-task-collection.ts`, `mock-xo-vm-device-collections.ts`, and the V2V VM rows mock built on them), by its
+// name
 export const HOLD_LOADING = {
   hosts: holdLoading(xoCollectionsMock.areHostsReady),
   networks: holdLoading(xoCollectionsMock.areNetworksReady),
@@ -18,5 +20,30 @@ export const HOLD_LOADING = {
   SRs: holdLoading(xoCollectionsMock.areSrsReady),
   tasks: holdLoading(taskCollectionMock.areTasksReady),
   templates: holdLoading(xoCollectionsMock.areTemplatesReady),
+  VBDs: holdLoading(vmDeviceCollectionsMock.areVbdsReady),
+  VDIs: holdLoading(vmDeviceCollectionsMock.areVdisReady),
+  VIFs: holdLoading(vmDeviceCollectionsMock.areVifsReady),
   VMs: holdLoading(vmCollectionMock.areVmsReady),
+}
+
+/**
+ * Registers the tests of a ready flag: true once every collection it waits for is loaded, false while each one still
+ * loads, held after the mount. `mountReady` mounts the code under test and returns a reader of the flag; `collections`
+ * are the collections it waits for, each with its name in the test names.
+ */
+export function itIsReadyOnceLoaded(
+  mountReady: () => () => boolean,
+  collections: [name: string, collection: keyof typeof HOLD_LOADING][]
+) {
+  it('is true once every collection it waits for is loaded', () => {
+    expect(mountReady()()).toBe(true)
+  })
+
+  it.each(collections)('is false while %s load', (_, collection) => {
+    const isReady = mountReady()
+
+    HOLD_LOADING[collection]()
+
+    expect(isReady()).toBe(false)
+  })
 }

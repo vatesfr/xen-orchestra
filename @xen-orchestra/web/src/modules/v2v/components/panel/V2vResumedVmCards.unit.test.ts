@@ -3,8 +3,9 @@ import V2vDestinationVmCard from '@/modules/v2v/components/mapping/V2vDestinatio
 import V2vNextRunCard from '@/modules/v2v/components/mapping/V2vNextRunCard.vue'
 import V2vResumedVmCards from '@/modules/v2v/components/panel/V2vResumedVmCards.vue'
 import { createV2vResumedMappingStepVm } from '@/test/create-v2v-mapping-step-vm.ts'
+import { HOLD_LOADING } from '@/test/hold-loading.ts'
 import { mockXoCollections } from '@/test/mock-xo-collections.ts'
-import { vmDeviceCollectionsMock, mockXoVmDeviceCollections } from '@/test/mock-xo-vm-device-collections.ts'
+import { mockXoVmDeviceCollections } from '@/test/mock-xo-vm-device-collections.ts'
 import { mountComponentOnV2vWizard } from '@/test/mount-on-v2v-wizard.ts'
 import { resetV2vCollectionMocks } from '@/test/reset-v2v-collection-mocks.ts'
 import { seedV2vResumedVmCollections } from '@/test/seed-v2v-resumed-vm.ts'
@@ -61,7 +62,7 @@ it('shows the mapping of the first sync, locked on the pool', async () => {
 })
 
 it('shows the active mapping loading while the devices of the import VM load', async () => {
-  vmDeviceCollectionsMock.areVdisReady.value = false
+  HOLD_LOADING.VDIs()
 
   const card = (await mountCards()).getComponent(V2vActiveMappingCard)
 

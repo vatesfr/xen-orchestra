@@ -1,7 +1,8 @@
 import { useV2vResumedVm } from '@/modules/v2v/composables/use-v2v-resumed-vm.composable.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
+import { itIsReadyOnceLoaded } from '@/test/hold-loading.ts'
 import { xoCollectionsMock, mockXoCollections } from '@/test/mock-xo-collections.ts'
-import { vmDeviceCollectionsMock, mockXoVmDeviceCollections } from '@/test/mock-xo-vm-device-collections.ts'
+import { mockXoVmDeviceCollections } from '@/test/mock-xo-vm-device-collections.ts'
 import { mountComposableWithI18n } from '@/test/mount-composable.ts'
 import { resetV2vCollectionMocks } from '@/test/reset-v2v-collection-mocks.ts'
 import { seedV2vResumedVmCollections } from '@/test/seed-v2v-resumed-vm.ts'
@@ -75,21 +76,14 @@ describe('activeDiskRows / activeNicRows', () => {
 })
 
 describe('isActiveMappingReady', () => {
-  it('is true once the devices of the import VM and their targets are loaded', () => {
-    expect(mountResumedVm().isActiveMappingReady).toBe(true)
-  })
-
   // Which device flag `areImportDevicesReady` reads is covered by the `useV2vImportVm` tests
-  const READY_FLAGS = {
-    'the devices of the import VM': vmDeviceCollectionsMock.areVbdsReady,
-    'the SRs': xoCollectionsMock.areSrsReady,
-    'the networks': xoCollectionsMock.areNetworksReady,
-  }
-
-  it.each(Object.keys(READY_FLAGS) as (keyof typeof READY_FLAGS)[])('is false while %s load', readyFlag => {
+  itIsReadyOnceLoaded(() => {
     const resumedVm = mountResumedVm()
-    READY_FLAGS[readyFlag].value = false
 
-    expect(resumedVm.isActiveMappingReady).toBe(false)
-  })
+    return () => resumedVm.isActiveMappingReady
+  }, [
+    ['the devices of the import VM', 'VBDs'],
+    ['the SRs', 'SRs'],
+    ['the networks', 'networks'],
+  ])
 })
