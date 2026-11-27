@@ -6,7 +6,7 @@ import { itShowsNameAndIdTitle } from '@/test/card-title.ts'
 import { createHost } from '@/test/create-host.ts'
 import { createPool } from '@/test/create-pool.ts'
 import { createVm } from '@/test/create-vm.ts'
-import { findCardLabelledValues, findCardRowLabels, findTags } from '@/test/find-rendered-values.ts'
+import { findCardLabelledValues, findCardRowLabels } from '@/test/find-rendered-values.ts'
 import { findPanelCardTitleIcon } from '@/test/find-titles.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
@@ -15,6 +15,7 @@ import { mockXoRoutes } from '@/test/mock-xo-routes.ts'
 import { userResourceMock, mockXoUser } from '@/test/mock-xo-user.ts'
 import { vmCollectionMock, mockXoVmCollection } from '@/test/mock-xo-vm-collection.ts'
 import { itShowsVmCreator } from '@/test/vm-creator.ts'
+import { itShowsVmTagsSorted } from '@/test/vm-tags.ts'
 import { objectIcon } from '@core/icons'
 import { HOST_POWER_STATE, VM_OPERATIONS, VM_POWER_STATE } from '@vates/types'
 import { mount } from '@vue/test-utils'
@@ -105,11 +106,7 @@ it('shows the power state, description and OS name of the VM', () => {
   })
 })
 
-it('renders one tag per VM tag, in alphabetical order', () => {
-  const wrapper = mountInfoCard(createVm({ tags: ['production', 'billing'] }))
-
-  expect(findTags(wrapper)).toEqual(['billing', 'production'])
-})
+itShowsVmTagsSorted(mountInfoCard)
 
 it('edits the tags of the VM from an icon-only button', () => {
   expect(mountInfoCard().getComponent(VmTagsEditor).props('iconOnly')).toBe(true)

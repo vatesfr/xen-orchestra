@@ -6,7 +6,7 @@ import { createPool } from '@/test/create-pool.ts'
 import { createSr } from '@/test/create-sr.ts'
 import { createVm } from '@/test/create-vm.ts'
 import { itShowsDashboardQuickInfo } from '@/test/dashboard-quick-info.ts'
-import { findLabelledValues, findTags, findVmTagsLabel } from '@/test/find-rendered-values.ts'
+import { findLabelledValues, findVmTagsLabel } from '@/test/find-rendered-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { xoCollectionsMock, mockXoCollections } from '@/test/mock-xo-collections.ts'
@@ -16,6 +16,7 @@ import { vmCollectionMock, mockXoVmCollection } from '@/test/mock-xo-vm-collecti
 import { vmDeviceCollectionsMock, mockXoVmDeviceCollections } from '@/test/mock-xo-vm-device-collections.ts'
 import { seedVmDisks } from '@/test/seed-vm-disks.ts'
 import { itShowsVmCreator } from '@/test/vm-creator.ts'
+import { itShowsVmTagsSorted } from '@/test/vm-tags.ts'
 import { findLink, findLinks } from '@core-test/find-links.ts'
 import { VM_POWER_STATE } from '@vates/types'
 import { mount } from '@vue/test-utils'
@@ -201,8 +202,4 @@ it('labels the tags', () => {
   expect(findVmTagsLabel(wrapper)).toBe(t('tags'))
 })
 
-it('renders one tag per VM tag, in alphabetical order', () => {
-  const wrapper = mountQuickInfo(createVm({ tags: ['production', 'billing'] }))
-
-  expect(findTags(wrapper)).toEqual(['billing', 'production'])
-})
+itShowsVmTagsSorted(mountQuickInfo)
