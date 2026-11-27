@@ -39,6 +39,8 @@ Two host tabs deserve a special mention:
 
 The remaining tabs (System, Network, Storage, Tasks, VMs) follow the same patterns as pools.
 
+To remove a host that is permanently gone from its pool, use **Forget** in the host action menu. The action is only enabled when the host is halted, and some prerequisites must be handled from the command line: read [Forget a host that is permanently gone](manage_infrastructure.md#forget-a-host-that-is-permanently-gone) first.
+
 ## VMs
 
 The VM page is where you will spend most of your time. Its dashboard gathers the quick info (state, IP address, OS, vCPUs, RAM, virtualization mode, guest tools version and tags), the last backup runs and the protection status, the last replication, and the VM alarms.
