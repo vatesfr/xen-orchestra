@@ -1,6 +1,6 @@
 <template>
   <VtsStateHero v-if="!arePoolsReady" format="page" type="busy" size="large" />
-  <RouterView v-slot="{ Component }">
+  <RouterView v-else v-slot="{ Component }">
     <SiteHeader />
     <component :is="Component" />
   </RouterView>
