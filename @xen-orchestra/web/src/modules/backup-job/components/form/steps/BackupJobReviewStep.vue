@@ -1,23 +1,28 @@
 <template>
   <div class="backup-job-review-step">
     <BackupJobReviewSection :title="t('source')" @edit="emit('edit', 'source')">
-      <BackupJobReviewSource :form="source" />
+      <BackupJobReviewSource :form="source" :saved="savedFormDataSet?.source" />
     </BackupJobReviewSection>
 
     <BackupJobReviewSection v-if="transfer" :title="t('transfer')" @edit="emit('edit', 'transfer')">
       <BackupJobReviewTransfer
         :form="transfer"
+        :saved="savedFormDataSet?.transfer"
         :is-incremental="source.isIncremental.value"
         :is-mirror="source.isMirror.value"
       />
     </BackupJobReviewSection>
 
     <BackupJobReviewSection :title="t('target')" @edit="emit('edit', 'target')">
-      <BackupJobReviewTarget :form="target" />
+      <BackupJobReviewTarget :form="target" :saved="savedFormDataSet?.target" />
     </BackupJobReviewSection>
 
     <BackupJobReviewSection :title="t('planning')" @edit="emit('edit', 'planning')">
-      <BackupJobReviewPlanning :form="planning" :is-metadata="source.isMetadata.value" />
+      <BackupJobReviewPlanning
+        :form="planning"
+        :saved="savedFormDataSet?.planning"
+        :is-metadata="source.isMetadata.value"
+      />
     </BackupJobReviewSection>
   </div>
 </template>
@@ -32,6 +37,7 @@ import type { BackupJobPlanningForm } from '@/modules/backup-job/form/use-backup
 import type { BackupJobSourceForm } from '@/modules/backup-job/form/use-backup-job-source-form.ts'
 import type { BackupJobTargetForm } from '@/modules/backup-job/form/use-backup-job-target-form.ts'
 import type { BackupJobTransferForm } from '@/modules/backup-job/form/use-backup-job-transfer-form.ts'
+import type { BackupJobFormDataSet } from '@/modules/backup-job/utils/backup-job-payload.util.ts'
 import { useI18n } from 'vue-i18n'
 
 defineProps<{
@@ -39,6 +45,7 @@ defineProps<{
   transfer: BackupJobTransferForm | undefined
   target: BackupJobTargetForm
   planning: BackupJobPlanningForm
+  savedFormDataSet?: BackupJobFormDataSet
 }>()
 
 const emit = defineEmits<{

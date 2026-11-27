@@ -41,6 +41,7 @@ const mirrorBackupJobFields = [
   'type',
   'settings',
   'sourceRemote',
+  'filter',
   'remotes',
   'proxy',
 ] as const satisfies readonly (keyof XoMirrorBackupJob)[]

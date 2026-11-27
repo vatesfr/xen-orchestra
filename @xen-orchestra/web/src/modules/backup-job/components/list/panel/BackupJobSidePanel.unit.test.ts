@@ -1,5 +1,6 @@
 import BackupJobMoreActions from '@/modules/backup-job/components/actions/BackupJobMoreActions.vue'
 import BackupJobDeleteButton from '@/modules/backup-job/components/actions/delete/BackupJobDeleteButton.vue'
+import BackupJobEditButton from '@/modules/backup-job/components/actions/edit/BackupJobEditButton.vue'
 import BackupJobSidePanel from '@/modules/backup-job/components/list/panel/BackupJobSidePanel.vue'
 import BackupJobBackedUpVmsCard from '@/modules/backup-job/components/list/panel/cards/BackupJobBackedUpVmsCard.vue'
 import BackupJobInfosCard from '@/modules/backup-job/components/list/panel/cards/BackupJobInfosCard.vue'
@@ -86,7 +87,10 @@ beforeEach(() => {
   backupRepositories.splice(0, backupRepositories.length, mainBr, otherBr, disabledBr, otherProxyBr)
 })
 
-const global = { ...createGlobalTestConfig(), stubs: { BackupJobDeleteButton: true, BackupJobMoreActions: true } }
+const global = {
+  ...createGlobalTestConfig(),
+  stubs: { BackupJobEditButton: true, BackupJobDeleteButton: true, BackupJobMoreActions: true },
+}
 
 function mountSidePanel(backupJob: FrontAnyXoBackupJob) {
   return mount(BackupJobSidePanel, {
@@ -142,7 +146,12 @@ it('shows nothing without selected backup job', () => {
   const wrapper = mount(BackupJobSidePanel, { props: {}, global })
 
   expect(wrapper.findComponent(BackupJobInfosCard).exists()).toBe(false)
+  expect(wrapper.findComponent(BackupJobEditButton).exists()).toBe(false)
   expect(wrapper.findComponent(BackupJobDeleteButton).exists()).toBe(false)
+})
+
+it('offers to edit the backup job directly', () => {
+  expect(mountSidePanel(vmBackupJob).getComponent(BackupJobEditButton).props('backupJob')).toEqual(vmBackupJob)
 })
 
 it('offers to delete the backup job directly', () => {

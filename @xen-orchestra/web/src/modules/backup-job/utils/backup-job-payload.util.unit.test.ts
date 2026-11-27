@@ -7,6 +7,7 @@ import type { BackupJobTargetFormData } from '@/modules/backup-job/form/use-back
 import type { BackupJobTransferFormData } from '@/modules/backup-job/form/use-backup-job-transfer-form.ts'
 import {
   type BackupJobFormDataSet,
+  mergeBackupJobSettings,
   toBackupJobPayload,
   toRunExpression,
 } from '@/modules/backup-job/utils/backup-job-payload.util.ts'
@@ -524,6 +525,85 @@ describe('toBackupJobPayload', () => {
       expect(payload).not.toHaveProperty('pools', expect.anything())
       expect(payload.settings.schedule).toEqual({ retentionXoMetadata: 3 })
     })
+  })
+})
+
+describe('toBackupJobPayload with a schedule key', () => {
+  const SCHEDULE_ID = 'schedule-42'
+  const SCHEDULE = { cron: '0 0 * * *', timezone: 'Europe/Paris', enabled: true }
+
+  it.each([
+    ['VM', {}],
+    ['mirror', { dataSource: 'mirror' as const }],
+    ['metadata', { dataSource: 'metadata' as const, saveXoConfig: true }],
+  ])('identifies the schedule of a %s backup by the key', (_, source) => {
+    const payload = toBackupJobPayload(createFormDataSet({ source }), SCHEDULE_ID)
+
+    expect(payload.schedules).toEqual({ [SCHEDULE_ID]: SCHEDULE })
+    expect(Object.keys(payload.settings).sort()).toEqual(['', SCHEDULE_ID])
+    expect(payload.settings[SCHEDULE_ID]).toBeDefined()
+  })
+
+  it('keeps the retentions of a VM backup under the key', () => {
+    const payload = toBackupJobPayload(createFormDataSet(), SCHEDULE_ID)
+
+    expect(payload.settings[SCHEDULE_ID]).toMatchObject({ exportRetention: 3, snapshotRetention: 1 })
+  })
+
+  it('keeps the retentions of a metadata backup under the key', () => {
+    const payload = toBackupJobPayload(
+      createFormDataSet({ source: { dataSource: 'metadata', saveXoConfig: true } }),
+      SCHEDULE_ID
+    )
+
+    expect(payload.settings[SCHEDULE_ID]).toMatchObject({ retentionXoMetadata: 3, retentionPoolMetadata: 3 })
+  })
+})
+
+describe('mergeBackupJobSettings', () => {
+  const CURRENT_SETTINGS = {
+    '': { backupReportTpl: 'mjml', concurrency: 1, timeout: 3600e3 },
+    'br-1': { deleteFirst: true },
+    'schedule-1': { exportRetention: 1, copyRetention: 2 },
+  }
+
+  it('keeps the settings the form does not manage', () => {
+    const merged = mergeBackupJobSettings(CURRENT_SETTINGS, {
+      '': { concurrency: 2 },
+      'schedule-1': { exportRetention: 3 },
+    })
+
+    expect(merged['']).toMatchObject({ backupReportTpl: 'mjml' })
+    expect(merged['br-1']).toEqual({ deleteFirst: true })
+    expect(merged['schedule-1']).toMatchObject({ copyRetention: 2 })
+  })
+
+  it('overwrites the settings the form manages', () => {
+    const merged = mergeBackupJobSettings(CURRENT_SETTINGS, {
+      '': { concurrency: 2 },
+      'schedule-1': { exportRetention: 3 },
+    })
+
+    expect(merged['']).toMatchObject({ concurrency: 2 })
+    expect(merged['schedule-1']).toMatchObject({ exportRetention: 3 })
+  })
+
+  it('removes a setting the form leaves undefined', () => {
+    const merged = mergeBackupJobSettings(CURRENT_SETTINGS, { '': { timeout: undefined } })
+
+    expect(JSON.parse(JSON.stringify(merged))['']).toEqual({ backupReportTpl: 'mjml', concurrency: 1 })
+  })
+
+  it('adds the settings of a key the job did not have', () => {
+    const merged = mergeBackupJobSettings({ '': {} }, { 'schedule-2': { exportRetention: 3 } })
+
+    expect(merged['schedule-2']).toEqual({ exportRetention: 3 })
+  })
+
+  it('does not mutate the current settings', () => {
+    mergeBackupJobSettings(CURRENT_SETTINGS, { '': { concurrency: 2 } })
+
+    expect(CURRENT_SETTINGS['']).toEqual({ backupReportTpl: 'mjml', concurrency: 1, timeout: 3600e3 })
   })
 })
 

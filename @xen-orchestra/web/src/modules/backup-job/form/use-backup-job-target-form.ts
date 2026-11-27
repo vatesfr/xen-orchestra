@@ -35,7 +35,8 @@ export function useBackupJobTargetForm(
   formData: BackupJobTargetFormData,
   rawDataSource: MaybeRefOrGetter<BackupJobDataSource>,
   rawSourceBackupRepositoryId: MaybeRefOrGetter<FrontXoBackupRepository['id'] | undefined>,
-  rawSourceProxy: MaybeRefOrGetter<FrontXoProxy['id'] | undefined>
+  rawSourceProxy: MaybeRefOrGetter<FrontXoProxy['id'] | undefined>,
+  { isEditing = false }: { isEditing?: boolean } = {}
 ) {
   const { t } = useI18n()
 
@@ -70,7 +71,8 @@ export function useBackupJobTargetForm(
     hasBackupRepositorySection,
     hasRetentionStrategy,
     rawSourceBackupRepositoryId,
-    backupRepositoryProxy
+    backupRepositoryProxy,
+    { isEditing }
   )
 
   const storageRepository = useBackupJobTargetStorageRepositoryForm(

@@ -54,7 +54,10 @@ export type BackupJobSourceFormData = {
 
 export type BackupJobSourceForm = ReturnType<typeof useBackupJobSourceForm>
 
-export function useBackupJobSourceForm(formData: BackupJobSourceFormData) {
+export function useBackupJobSourceForm(
+  formData: BackupJobSourceFormData,
+  { isEditing = false }: { isEditing?: boolean } = {}
+) {
   const { t } = useI18n()
 
   const { proxies } = useXoProxyCollection()
@@ -221,6 +224,7 @@ export function useBackupJobSourceForm(formData: BackupJobSourceFormData) {
 
   const { id: proxySelectId } = useFormSelect('proxy', proxies, {
     searchable: true,
+    disabled: () => isEditing,
     emptyOption: { label: t('none'), value: undefined },
     option: { label: 'name', value: 'id' },
   })
@@ -256,8 +260,12 @@ export function useBackupJobSourceForm(formData: BackupJobSourceFormData) {
   const bindings = reactive({
     name: useField('name', () => ({ label: t('name'), required: true })),
     enabled: useField('enabled'),
-    dataSource: useField('dataSource', () => ({ label: t('data-source'), options: dataSourceOptions.value })),
-    mode: useField('mode', () => ({ label: t('backup-mode'), options: modeOptions.value })),
+    dataSource: useField('dataSource', () => ({
+      label: t('data-source'),
+      options: dataSourceOptions.value,
+      disabled: isEditing,
+    })),
+    mode: useField('mode', () => ({ label: t('backup-mode'), options: modeOptions.value, disabled: isEditing })),
     saveXoConfig: useField('saveXoConfig', () => ({ label: t('save-xo-config') })),
     savePoolsMetadata: useField('savePoolsMetadata', () => ({ label: t('save-pools-metadata') })),
     proxy: useSelect(proxySelectId, () => ({

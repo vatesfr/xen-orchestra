@@ -32,6 +32,7 @@
 <script setup lang="ts">
 import BackupJobsBulkActions from '@/modules/backup-job/components/list/BackupJobsBulkActions.vue'
 import BackupJobsFilters from '@/modules/backup-job/components/list/BackupJobsFilters.vue'
+import { useEditBackupJob } from '@/modules/backup-job/composables/use-edit-backup-job.composable.ts'
 import { useXoBackupJobActions } from '@/modules/backup-job/composables/use-xo-backup-job-actions.composable.ts'
 import { useXoBackupJobFilters } from '@/modules/backup-job/composables/use-xo-backup-job-filters.composable.ts'
 import { useXoBackupJobLastRuns } from '@/modules/backup-job/composables/use-xo-backup-job-last-runs.composable.ts'
@@ -124,6 +125,9 @@ const { HeadCells, BodyCells } = useBackupJobColumns({
     const healthCheckStatus = computed(() => getBackupJobHealthCheckStatus(backupJob))
 
     const { isEnabled, moreActions, deleteAction } = useXoBackupJobActions(() => backupJob)
+    const { editBackupJob, canEditBackupJob, isEditingBackupJob, editBackupJobErrorMessage } = useEditBackupJob(
+      () => backupJob
+    )
 
     return {
       checkbox: r =>
@@ -145,7 +149,18 @@ const { HeadCells, BodyCells } = useBackupJobColumns({
       actions: r =>
         r({
           onClick: () => (selectedBackupJobId.value = backupJob.id),
-          actions: [...moreActions.value, deleteAction.value],
+          actions: [
+            {
+              label: t('action:edit'),
+              icon: 'action:edit',
+              onClick: () => editBackupJob(),
+              busy: isEditingBackupJob.value,
+              disabled: !canEditBackupJob.value,
+              hint: editBackupJobErrorMessage.value,
+            },
+            ...moreActions.value,
+            deleteAction.value,
+          ],
         }),
     }
   },
