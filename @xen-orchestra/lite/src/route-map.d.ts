@@ -618,6 +618,13 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/story/web-core/table/define-columns': RouteRecordInfo<
+      '/story/web-core/table/define-columns',
+      '/story/web-core/table/define-columns',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
     '/story/web-core/tabular-key-value-list/vts-tabular-key-value-list': RouteRecordInfo<
       '/story/web-core/tabular-key-value-list/vts-tabular-key-value-list',
       '/story/web-core/tabular-key-value-list/vts-tabular-key-value-list',
@@ -817,6 +824,13 @@ declare module 'vue-router/auto-routes' {
     '/story/web-core/ui/collapsible-list/ui-collapsible-list': RouteRecordInfo<
       '/story/web-core/ui/collapsible-list/ui-collapsible-list',
       '/story/web-core/ui/collapsible-list/ui-collapsible-list',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/story/web-core/ui/column-header/ui-column-header': RouteRecordInfo<
+      '/story/web-core/ui/column-header/ui-column-header',
+      '/story/web-core/ui/column-header/ui-column-header',
       Record<never, never>,
       Record<never, never>,
       | never
@@ -1839,6 +1853,12 @@ declare module 'vue-router/auto-routes' {
       views:
         | never
     }
+    'src/stories/web-core/table/define-columns.story.vue': {
+      routes:
+        | '/story/web-core/table/define-columns'
+      views:
+        | never
+    }
     'src/stories/web-core/tabular-key-value-list/vts-tabular-key-value-list.story.vue': {
       routes:
         | '/story/web-core/tabular-key-value-list/vts-tabular-key-value-list'
@@ -2010,6 +2030,12 @@ declare module 'vue-router/auto-routes' {
     'src/stories/web-core/ui/collapsible-list/ui-collapsible-list.story.vue': {
       routes:
         | '/story/web-core/ui/collapsible-list/ui-collapsible-list'
+      views:
+        | never
+    }
+    'src/stories/web-core/ui/column-header/ui-column-header.story.vue': {
+      routes:
+        | '/story/web-core/ui/column-header/ui-column-header'
       views:
         | never
     }

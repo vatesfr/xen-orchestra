@@ -22,7 +22,10 @@ export function useRouteQuery<TData>(name: string, options: Partial<Options & Tr
 
   const source = computed<TData>({
     get() {
-      return toData((route.query[name] as string | undefined) ?? defaultQuery)
+      const query = route.query[name]
+
+      // A repeated query param is parsed as an array by vue-router, only the first value is kept
+      return toData((Array.isArray(query) ? query[0] : query) ?? defaultQuery)
     },
     set(newData) {
       const query = toQuery(newData)
