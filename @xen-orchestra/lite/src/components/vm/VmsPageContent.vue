@@ -10,7 +10,7 @@
     <div>
       <CollectionFilter
         :active-filters="filters"
-        :available-filters="availableFilters"
+        :available-filters
         @add-filter="addFilter"
         @remove-filter="removeFilter"
       />
