@@ -16,6 +16,7 @@
           :upgrade
           @upgraded="handleUpgraded()"
         />
+        <ApplianceHealthCheckCard />
       </div>
       <div class="column">
         <ApplianceUpdateSettingsCard :channel="channelLabel" />
@@ -29,6 +30,7 @@
 
 <script lang="ts" setup>
 import ApplianceConnectionCard from '@/modules/appliance/components/connection/ApplianceConnectionCard.vue'
+import ApplianceHealthCheckCard from '@/modules/appliance/components/health-check/ApplianceHealthCheckCard.vue'
 import AppliancePackagesCard from '@/modules/appliance/components/packages/AppliancePackagesCard.vue'
 import ApplianceRegistrationCard from '@/modules/appliance/components/registration/ApplianceRegistrationCard.vue'
 import ApplianceUpdateSettingsCard from '@/modules/appliance/components/settings/ApplianceUpdateSettingsCard.vue'
