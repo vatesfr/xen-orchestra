@@ -33,7 +33,8 @@ A label/value row is read through one query covering every row a user sees ([Ass
 | `findCardLabelledValues`     | every `VtsCardRowKeyValue` of a side-panel card                              |
 | `findCardLabelledValueLists` | every `VtsCardRowKeyValue`, each value of a multi-value row listed           |
 | `findRowLabels`              | the label of every `VtsTabularKeyValueRow` / `VtsKeyValueRow`                |
-| `findCardRowLabels`          | the label of every `VtsCardRowKeyValue`, in order                            |
+| `findCardRowLabels`          | the label of every `VtsCardRowKeyValue` and of a `VmTagsEditor`, in order    |
+| `findVmTagsLabel`            | the label of a `VmTagsEditor`                                                |
 | `findCardRows`               | every `VtsCardRowKeyValue` as `[label, value]` pairs, in order               |
 | `hasCardRowCopy`             | whether the `VtsCardRowKeyValue` with that label offers a copy               |
 | `findCardRowLink`            | the link of the `VtsCardRowKeyValue` with that label, as `findLink` reads it |
@@ -91,12 +92,13 @@ A table is read **by header label**, never by column position: `src/test/find-ta
 | `findTableHeaders(wrapper)`                              | the header labels, in order (`''` for a checkbox column)              |
 | `findTableColumn(wrapper, label)`                        | the text of each cell of that column, one per body row                |
 | `findTableColumnCells(wrapper, label)`                   | the cells of that column, to query a link, a tag or a checkbox inside |
+| `findTableCell(wrapper, label)`                          | the cell of the first row in that column                              |
 | `findTableRows(wrapper)`, from `find-rendered-values.ts` | the cell texts of each body row, for a table read row by row          |
 
 ```typescript
 expect(findTableHeaders(wrapper)).toEqual(['', t('vm'), t('size')])
 expect(findTableColumn(wrapper, t('size'))).toEqual(['80GiB', '120GiB'])
-expect(findLink(findTableColumnCells(wrapper, t('vm'))[0])?.href).toBe('/vm/vm-42/dashboard')
+expect(findLink(findTableCell(wrapper, t('vm')))?.href).toBe('/vm/vm-42/dashboard')
 ```
 
 A label missing from the header throws, naming the label, rather than reading an empty column.
@@ -152,7 +154,6 @@ A donut card and a progress-bar card both render their values through `UiLegend`
 | `findLegends`                 | every `UiLegend`, as ordered `[label, value]` pairs    |
 | `findProgressBarGroupLegends` | the same, grouped per `VtsProgressBarGroup`            |
 | `findCardNumbers`             | every `UiCardNumbers` a card lays out beside its chart |
-| `findProgressBarFillStyle`    | the inline style of the fill of the `UiProgressBar`    |
 
 ```typescript
 expect(findLegends(wrapper)).toEqual([

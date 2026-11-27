@@ -5,13 +5,13 @@ import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collecti
 import { createPool } from '@/test/create-pool.ts'
 import { createVm } from '@/test/create-vm.ts'
 import { findCardLabelledValues } from '@/test/find-rendered-values.ts'
+import { findPanelCardCounter } from '@/test/find-titles.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { xoCollectionsMock, mockXoCollections } from '@/test/mock-xo-collections.ts'
 import { vmCollectionMock, mockXoVmCollection } from '@/test/mock-xo-vm-collection.ts'
 import { mockXoVmDeviceCollections } from '@/test/mock-xo-vm-device-collections.ts'
 import VtsTag from '@core/components/tag/VtsTag.vue'
-import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
 import { findLinks } from '@core-test/find-links.ts'
 import { mount } from '@vue/test-utils'
 
@@ -52,7 +52,7 @@ it('lists the VMs picked by hand, linked to their dashboard, without smart mode'
     ['VM 1', '/vm/vm-1/dashboard'],
     ['VM 2', '/vm/vm-2/dashboard'],
   ])
-  expect(wrapper.getComponent(UiPanelCardTitle).props('counter')).toBe(2)
+  expect(findPanelCardCounter(wrapper)).toBe(2)
 })
 
 it('shows the filters of the smart mode', () => {
@@ -81,7 +81,7 @@ it('shows the smart mode of a job excluding no tag', () => {
 it('shows the first backed up VMs, offering to see the other ones', () => {
   const wrapper = mountBackedUpVmsCard({ type: 'VM', tags: { __or: [['test']] } })
 
-  expect(wrapper.getComponent(UiPanelCardTitle).props('counter')).toBe(6)
+  expect(findPanelCardCounter(wrapper)).toBe(6)
   expect(wrapper.text()).toContain(t('action:see-n-more', { n: 1 }))
 })
 

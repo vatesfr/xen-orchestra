@@ -4,13 +4,13 @@ import type { PrivateNetworkInterface } from '@/modules/network/form/new-private
 import type { FrontXoPif } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
 import { createPif } from '@/test/create-pif.ts'
 import { createPool, OTHER_POOL_ID } from '@/test/create-pool.ts'
-import { findTableColumnCells } from '@/test/find-table-cells.ts'
-import { getUiButton } from '@/test/get-button.ts'
+import { findTableCell, findTableColumnCells } from '@/test/find-table-cells.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { xoCollectionsMock, mockXoCollections } from '@/test/mock-xo-collections.ts'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import { findAccentedInfos } from '@core-test/find-accented-labels.ts'
+import { getUiButton } from '@core-test/get-button.ts'
 import { findDetailedOptions, openSelect } from '@core-test/select.ts'
 import { mount } from '@vue/test-utils'
 import { reactive } from 'vue'
@@ -72,7 +72,7 @@ describe('pif', () => {
     ]
     const wrapper = mountTable()
 
-    await openSelect(findTableColumnCells(wrapper, t('pif'))[0])
+    await openSelect(findTableCell(wrapper, t('pif')))
 
     expect(findDetailedOptions(wrapper)).toMatchObject([
       { icon: 'object:network', details: 'eth0' },

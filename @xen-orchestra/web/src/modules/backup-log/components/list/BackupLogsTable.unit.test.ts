@@ -4,7 +4,7 @@ import type { FrontXoBackupLog } from '@/modules/backup-log/remote-resources/use
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { createBackupLog, createBackupLogVmTask } from '@/test/create-backup-log.ts'
 import { createVm } from '@/test/create-vm.ts'
-import { findTableColumnCells } from '@/test/find-table-cells.ts'
+import { findTableCell } from '@/test/find-table-cells.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { xoCollectionsMock, mockXoCollections } from '@/test/mock-xo-collections.ts'
@@ -12,6 +12,7 @@ import { mockXoRoutes } from '@/test/mock-xo-routes.ts'
 import { vmCollectionMock, mockXoVmCollection } from '@/test/mock-xo-vm-collection.ts'
 import { mockModule } from '@/test/spy-on-module.ts'
 import { objectIcon } from '@core/icons'
+import { findExtraCount } from '@core-test/find-extra-count.ts'
 import { findLink, findLinks } from '@core-test/find-links.ts'
 import { mount } from '@vue/test-utils'
 
@@ -47,7 +48,7 @@ function mountTable(backupLog: FrontXoBackupLog) {
 }
 
 function findVmCell(wrapper: ReturnType<typeof mountTable>) {
-  return findTableColumnCells(wrapper, t('vm'))[0]
+  return findTableCell(wrapper, t('vm'))
 }
 
 describe('VM', () => {
@@ -67,7 +68,7 @@ describe('VM', () => {
       href: '/vm/vm-1/dashboard',
       icon: objectIcon('vm', 'running'),
     })
-    expect(vmCell.get('.extra-count').text()).toBe('+2')
+    expect(findExtraCount(vmCell)).toBe(t('plus-n', { n: 2 }))
   })
 
   it.each([

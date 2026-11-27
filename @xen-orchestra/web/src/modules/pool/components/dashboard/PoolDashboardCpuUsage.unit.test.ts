@@ -4,6 +4,7 @@ import { createPoolDashboardTopFiveUsage } from '@/test/create-pool-dashboard.ts
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { itShowsPoolTopFiveUsage, type PoolDashboardCardProps } from '@/test/pool-dashboard-card.ts'
+import { findProgressBarAccents } from '@core-test/find-progress-bars.ts'
 import { mount } from '@vue/test-utils'
 
 type HostCpuUsage = NonNullable<NonNullable<XoPoolDashboard['hosts']>['topFiveUsage']>['cpu'][number]
@@ -43,5 +44,5 @@ it('measures both sections against the CPU thresholds, which a full CPU has yet 
     poolDashboard: withTopFiveCpu([createHostCpuUsage({ percent: 85 })], [createVmCpuUsage({ percent: 85 })]),
   })
 
-  expect(wrapper.findAll('.ui-progress-bar').map(bar => bar.classes('accent--info'))).toEqual([true, true])
+  expect(findProgressBarAccents(wrapper)).toEqual(['info', 'info'])
 })

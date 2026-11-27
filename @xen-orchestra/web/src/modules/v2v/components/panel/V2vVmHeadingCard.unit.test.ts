@@ -1,12 +1,12 @@
 import V2vVmHeadingCard from '@/modules/v2v/components/panel/V2vVmHeadingCard.vue'
 import type { V2vMappingVmHeading } from '@/modules/v2v/types/v2v-mapping-step.type.ts'
+import { itShowsNameAndIdTitle } from '@/test/card-title.ts'
 import { createV2vNewMappingStepVm } from '@/test/create-v2v-mapping-step-vm.ts'
 import { createV2vMappingVmHeading } from '@/test/create-v2v-mapping-vm-heading.ts'
 import { findInlineParts } from '@/test/find-parts.ts'
 import { findCardLabelledValues } from '@/test/find-rendered-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
-import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
 import { findAccentedTags } from '@core-test/find-accented-labels.ts'
 import type { XoV2vVm } from '@vates/types'
 import { mount } from '@vue/test-utils'
@@ -17,11 +17,11 @@ function mountCard({ id = VM.id, heading = VM.heading }: { id?: XoV2vVm['id']; h
   return mount(V2vVmHeadingCard, { props: { id, heading }, global: createGlobalTestConfig() })
 }
 
-it('titles the card with a VM icon, the name of the VM and its copyable id, without a link', () => {
-  const title = mountCard().getComponent(UiPanelCardTitle)
-
-  expect(title.props()).toMatchObject({ label: VM.heading.name, id: VM.id, icon: 'object:vm', to: undefined })
-})
+itShowsNameAndIdTitle(
+  () => mountCard(),
+  { label: VM.heading.name, id: VM.id, icon: 'object:vm', to: undefined },
+  'titles the card with a VM icon, the name of the VM and its copyable id, without a link'
+)
 
 it('tags the VM with its status, then locates it on the source', () => {
   const wrapper = mountCard()

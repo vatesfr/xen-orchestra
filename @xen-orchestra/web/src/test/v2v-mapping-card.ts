@@ -1,6 +1,6 @@
 import { DISKOR_POOL_NAME } from '@/test/create-pool.ts'
-import { findPanelCardTitleLabels } from '@/test/find-card-title.ts'
 import { findCardLabelledValues } from '@/test/find-rendered-values.ts'
+import { findPanelCardTitleLabels } from '@/test/find-titles.ts'
 import { t } from '@/test/i18n.ts'
 import VtsDivider from '@core/components/divider/VtsDivider.vue'
 import { findStateHeroTypes } from '@core-test/find-state-hero-types.ts'

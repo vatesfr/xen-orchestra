@@ -3,11 +3,12 @@ import { useXoObjectOptions } from '@/modules/plugin/composables/use-xo-object-o
 import type { JsonSchema } from '@/modules/plugin/utils/json-schema.util.ts'
 import { createTestRouter } from '@/test/create-test-router.ts'
 import { findLabelledValues, findTags } from '@/test/find-rendered-values.ts'
+import { findCardSubtitles } from '@/test/find-titles.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { mockedExport } from '@/test/spy-on-module.ts'
-import VtsStatus from '@core/components/status/VtsStatus.vue'
 import { findLink } from '@core-test/find-links.ts'
+import { findStatuses } from '@core-test/find-statuses.ts'
 import { mount } from '@vue/test-utils'
 import { computed, toValue } from 'vue'
 
@@ -50,9 +51,7 @@ it('titles a nested section with the labels of its parents', () => {
     { transport: { auth: { user: 'xo' } } }
   )
 
-  expect(wrapper.findAll('.ui-card-subtitle').map(subtitle => subtitle.text())).toEqual([
-    t('json-schema:nested-label', { parent: 'Transport', label: 'Auth' }),
-  ])
+  expect(findCardSubtitles(wrapper)).toEqual([t('json-schema:nested-label', { parent: 'Transport', label: 'Auth' })])
 })
 
 it('hides the value of a secret', () => {
@@ -64,7 +63,7 @@ it('hides the value of a secret', () => {
 it('shows a boolean as a status', () => {
   const wrapper = mountValue({ secure: { type: 'boolean' } }, { secure: true })
 
-  expect(wrapper.getComponent(VtsStatus).props('status')).toBe(true)
+  expect(findStatuses(wrapper)).toEqual([true])
 })
 
 it.each([

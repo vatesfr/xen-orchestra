@@ -2,6 +2,7 @@ import BackupJobInfosCard from '@/modules/backup-job/components/list/panel/cards
 import type { FrontAnyXoBackupJob } from '@/modules/backup-job/remote-resources/use-xo-backup-job-collection.ts'
 import type { FrontXoSchedule } from '@/modules/schedule/remote-resources/use-xo-schedule-collection.ts'
 import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
+import { itShowsNameAndIdTitle } from '@/test/card-title.ts'
 import { createMetadataBackupJob, createVmBackupJob } from '@/test/create-backup-job.ts'
 import { createSchedule } from '@/test/create-schedule.ts'
 import { createSr } from '@/test/create-sr.ts'
@@ -11,15 +12,15 @@ import {
   findCardRowLinks,
   findCardRows,
 } from '@/test/find-rendered-values.ts'
+import { findPanelCardTitleLabel } from '@/test/find-titles.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { xoCollectionsMock, mockXoCollections } from '@/test/mock-xo-collections.ts'
 import { mockXoRoutes } from '@/test/mock-xo-routes.ts'
 import VtsCopyAllMenuItem from '@core/components/copy-all-menu-item/VtsCopyAllMenuItem.vue'
-import VtsStatus from '@core/components/status/VtsStatus.vue'
-import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
+import { findStatuses } from '@core-test/find-statuses.ts'
 import type { XoSchedule } from '@vates/types'
-import { mount, type VueWrapper } from '@vue/test-utils'
+import { mount } from '@vue/test-utils'
 
 mockXoRoutes()
 
@@ -42,30 +43,21 @@ function mountInfosCard(backupJob: FrontAnyXoBackupJob, schedules: FrontXoSchedu
   })
 }
 
-function findStatuses(wrapper: ReturnType<typeof mountInfosCard>) {
-  return (wrapper.findAllComponents(VtsStatus) as VueWrapper<InstanceType<typeof VtsStatus>>[]).map(status =>
-    status.props('status')
-  )
-}
+const namedBackupJob = createVmBackupJob({ name: 'Nightly backup' })
 
-it('titles the card with the backup job, linked to the XO 5 backup overview', () => {
-  const backupJob = createVmBackupJob({ name: 'Nightly backup' })
-  const title = mountInfosCard(backupJob).getComponent(UiPanelCardTitle)
-
-  expect(title.props()).toMatchObject({
-    id: backupJob.id,
+itShowsNameAndIdTitle(
+  () => mountInfosCard(namedBackupJob),
+  {
+    id: namedBackupJob.id,
     label: 'Nightly backup',
     href: 'https://xo5.example.com/#/backup/overview',
     icon: 'object:backup-job',
-  })
-})
+  },
+  'titles the card with the backup job, linked to the XO 5 backup overview'
+)
 
 it('names a backup job without name as untitled', () => {
-  expect(
-    mountInfosCard(createVmBackupJob({ name: undefined }))
-      .getComponent(UiPanelCardTitle)
-      .props('label')
-  ).toBe(t('untitled'))
+  expect(findPanelCardTitleLabel(mountInfosCard(createVmBackupJob({ name: undefined })))).toBe(t('untitled'))
 })
 
 it('lists every type of the backup job, offering to copy them all', () => {

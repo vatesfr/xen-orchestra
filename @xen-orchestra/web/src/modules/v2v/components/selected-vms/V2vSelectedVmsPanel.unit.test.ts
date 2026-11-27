@@ -4,16 +4,15 @@ import V2vSelectedVmsPanel from '@/modules/v2v/components/selected-vms/V2vSelect
 import type { V2vAccentedLabel } from '@/modules/v2v/types/v2v-accented-label.type.ts'
 import { createV2vListPair, createV2vSelectedVm } from '@/test/create-v2v-selected-vms.ts'
 import { findParts } from '@/test/find-parts.ts'
-import { findButton, getButton } from '@/test/get-button.ts'
+import { findPanelCardCounter, findPanelCardTitleLabel } from '@/test/find-titles.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import type { TagAccent } from '@core/components/ui/tag/UiTag.vue'
 import VtsSidePanel from '@core/components/panel/VtsSidePanel.vue'
-import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 import UiPanelCard from '@core/components/ui/panel-card/UiPanelCard.vue'
-import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
 import { findAccentedTags } from '@core-test/find-accented-labels.ts'
 import { findStateHeroTypes } from '@core-test/find-state-hero-types.ts'
+import { findButton, getButton } from '@core-test/get-button.ts'
 import type { XoV2vVm } from '@vates/types'
 import { mount, type VueWrapper } from '@vue/test-utils'
 
@@ -54,15 +53,15 @@ function getSummaryCard(wrapper: VueWrapper) {
 }
 
 describe.each([
-  { state: 'with VMs', props: {}, count: '2' },
-  { state: 'busy', props: { isBusy: true }, count: '2' },
-  { state: 'empty', props: EMPTY, count: '0' },
+  { state: 'with VMs', props: {}, count: 2 },
+  { state: 'busy', props: { isBusy: true }, count: 2 },
+  { state: 'empty', props: EMPTY, count: 0 },
 ])('summary card, $state', ({ props, count }) => {
   it('titles the selected VMs with their count', () => {
-    const title = getSummaryCard(mountPanel(props)).getComponent(UiPanelCardTitle)
+    const summaryCard = getSummaryCard(mountPanel(props))
 
-    expect(title.props('label')).toBe(t('selected-vms'))
-    expect(title.getComponent(UiCounter).text()).toBe(count)
+    expect(findPanelCardTitleLabel(summaryCard)).toBe(t('selected-vms'))
+    expect(findPanelCardCounter(summaryCard)).toEqual({ value: count, accent: 'brand' })
   })
 
   it('tells where the list is kept', () => {

@@ -5,6 +5,7 @@ import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-colle
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { createBackupLog, createBackupLogVmTask } from '@/test/create-backup-log.ts'
 import { createVm } from '@/test/create-vm.ts'
+import { findTableCell } from '@/test/find-table-cells.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { vmCollectionMock, mockXoVmCollection } from '@/test/mock-xo-vm-collection.ts'
@@ -32,9 +33,7 @@ function findVirtualSizeCell(backupLog: FrontXoBackupLog) {
     global: createGlobalTestConfig(),
   })
 
-  const headers = wrapper.findAll('thead th').map(header => header.text())
-
-  return wrapper.findAll('tbody tr td')[headers.indexOf(t('virtual-size'))]
+  return findTableCell(wrapper, t('virtual-size'))
 }
 
 describe('virtual size', () => {

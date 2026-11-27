@@ -11,7 +11,6 @@ import { createV2vConnection } from '@/test/create-v2v-connection.ts'
 import { createV2vListPair } from '@/test/create-v2v-selected-vms.ts'
 import { getV2vVmIds, getV2vVmNames } from '@/test/create-v2v-vm-row.ts'
 import { findV2vRouteQuery, getV2vVmsQuery } from '@/test/create-v2v-wizard-router.ts'
-import { getButton, getUiButton } from '@/test/get-button.ts'
 import { t } from '@/test/i18n.ts'
 import { deleteModalMock, mockDeleteModal } from '@/test/mock-delete-modal.ts'
 import { mockXoCollections } from '@/test/mock-xo-collections.ts'
@@ -32,6 +31,7 @@ import {
 import { V2V_EMPTY_LIST } from '@/test/v2v-wizard-fixtures.ts'
 import VtsContentSidePanel from '@core/components/layout/VtsContentSidePanel.vue'
 import VtsQueryBuilder from '@core/components/query-builder/VtsQueryBuilder.vue'
+import { getButton, getUiButton } from '@core-test/get-button.ts'
 import { flushPromises, type VueWrapper } from '@vue/test-utils'
 
 mockXoV2vVmRowsCollections()

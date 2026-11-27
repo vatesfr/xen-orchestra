@@ -5,6 +5,7 @@ import { mockXoRoutes } from '@/test/mock-xo-routes.ts'
 import { vmCollectionMock, mockXoVmCollection } from '@/test/mock-xo-vm-collection.ts'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { findLinks } from '@core-test/find-links.ts'
+import { getButton } from '@core-test/get-button.ts'
 import { press } from '@core-test/keyboard.ts'
 import { clickMenuItem, openMoreActions } from '@core-test/menu.ts'
 import { mount, type VueWrapper } from '@vue/test-utils'
@@ -38,12 +39,12 @@ function findMenuLinks(wrapper: VueWrapper) {
   return findLinks(findPanel(wrapper), '.menu-item a')
 }
 
-function findBackButton(wrapper: VueWrapper) {
-  return findPanel(wrapper).get('.header button.ui-button-icon')
+function getBackButton(wrapper: VueWrapper, label: string) {
+  return getButton(findPanel(wrapper), label)
 }
 
-async function goBack(wrapper: VueWrapper) {
-  await findBackButton(wrapper).trigger('click')
+async function goBack(wrapper: VueWrapper, label: string) {
+  await getBackButton(wrapper, label).trigger('click')
   await nextTick()
 }
 
@@ -86,11 +87,11 @@ it('goes back from the third party apps to the menu, then closes', async () => {
   const wrapper = await mountOpenedMenu()
 
   await openThirdParties(wrapper)
-  await goBack(wrapper)
+  await goBack(wrapper, t('action:go-back'))
 
   expect(findTitle(wrapper)).toBe(t('more-actions'))
 
-  await goBack(wrapper)
+  await goBack(wrapper, t('action:close'))
 
   expect(wrapper.findComponent(UiPanel).exists()).toBe(false)
 })
@@ -111,11 +112,11 @@ it('goes back from the third party apps to the menu, then closes, on Escape', as
 it('names the back button after what it does', async () => {
   const wrapper = await mountOpenedMenu()
 
-  expect(findBackButton(wrapper).attributes('aria-label')).toBe(t('action:close'))
+  expect(getBackButton(wrapper, t('action:close')).text()).toBe('')
 
   await openThirdParties(wrapper)
 
-  expect(findBackButton(wrapper).attributes('aria-label')).toBe(t('action:go-back'))
+  expect(getBackButton(wrapper, t('action:go-back')).text()).toBe('')
 })
 
 it('is a dialog named after its title', async () => {

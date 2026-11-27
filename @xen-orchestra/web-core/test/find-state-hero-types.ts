@@ -5,3 +5,8 @@ import type { VueWrapper } from '@vue/test-utils'
 export function findStateHeroTypes(wrapper: Pick<VueWrapper, 'findAllComponents'>) {
   return wrapper.findAllComponents(VtsStateHero).map(stateHero => stateHero.props('type'))
 }
+
+// The text of each state hero the wrapper renders, in order
+export function findStateHeroTexts(wrapper: Pick<VueWrapper, 'findAllComponents'>) {
+  return wrapper.findAllComponents(VtsStateHero).map(stateHero => stateHero.text())
+}

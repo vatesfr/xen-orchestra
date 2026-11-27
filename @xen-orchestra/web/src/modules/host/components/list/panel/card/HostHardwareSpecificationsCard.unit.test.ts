@@ -1,11 +1,11 @@
 import HostHardwareSpecificationsCard from '@/modules/host/components/list/panel/card/HostHardwareSpecificationsCard.vue'
 import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
+import { itRendersCardTitle } from '@/test/card-title.ts'
 import { createHost } from '@/test/create-host.ts'
-import { findPanelCardTitleLabel } from '@/test/find-card-title.ts'
-import { findCardLabelledValues } from '@/test/find-rendered-values.ts'
+import { findCardCopiedValues, findCardLabelledValues } from '@/test/find-rendered-values.ts'
+import { findPanelCardTitleLabel } from '@/test/find-titles.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
-import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import { mount } from '@vue/test-utils'
 
 function mountCard(host: FrontXoHost = createHost()) {
@@ -15,11 +15,7 @@ function mountCard(host: FrontXoHost = createHost()) {
   })
 }
 
-it('renders the card title', () => {
-  const wrapper = mountCard()
-
-  expect(findPanelCardTitleLabel(wrapper)).toBe(t('hardware-specifications'))
-})
+itRendersCardTitle(mountCard, t('hardware-specifications'), findPanelCardTitleLabel)
 
 it('shows the manufacturer and the core layout of the host', () => {
   const wrapper = mountCard(
@@ -55,8 +51,5 @@ it('offers to copy each specification as it is shown', () => {
     })
   )
 
-  expect(wrapper.findAllComponents(VtsCopyButton).map(button => button.props('value'))).toEqual([
-    'Dell (PowerEdge R640)',
-    '16 (2)',
-  ])
+  expect(findCardCopiedValues(wrapper)).toEqual(['Dell (PowerEdge R640)', '16 (2)'])
 })

@@ -2,6 +2,7 @@ import BackupRepositoryFormRow from '@/modules/backup-repository/components/form
 import BackupRepositoryFormSelect from '@/modules/backup-repository/components/form/inputs/BackupRepositoryFormSelect.vue'
 import FormCheckbox from '@/shared/components/form/FormCheckbox.vue'
 import FormTextInput from '@/shared/components/form/FormTextInput.vue'
+import { findTitles } from '@/test/find-titles.ts'
 import { t } from '@/test/i18n.ts'
 import { proxyCollectionMock, mockXoProxyCollection } from '@/test/mock-xo-proxy-collection.ts'
 import { mountBrGeneralStep } from '@/test/mount-br-general-step.ts'
@@ -18,20 +19,16 @@ function findLabels(wrapper: VueWrapper, component: typeof BackupRepositoryFormS
   return wrapper.findAllComponents(component).map(input => input.props('label'))
 }
 
-function findSectionTitles(wrapper: VueWrapper) {
-  return wrapper.findAll('.section > .ui-title').map(title => title.text())
-}
-
 it('splits the fields into a general information section and an options section', () => {
   const { wrapper } = mountBrGeneralStep()
 
-  expect(findSectionTitles(wrapper)).toEqual([t('general-information'), t('options')])
+  expect(findTitles(wrapper)).toEqual([t('general-information'), t('options')])
 })
 
 it('hides the options section, and its encryption, when asked to', () => {
   const { wrapper } = mountBrGeneralStep({}, { hideEncryption: true })
 
-  expect(findSectionTitles(wrapper)).toEqual([t('general-information')])
+  expect(findTitles(wrapper)).toEqual([t('general-information')])
   expect(wrapper.findComponent(FormCheckbox).exists()).toBe(false)
 })
 

@@ -3,10 +3,10 @@ import BackupLogInfosCard from '@/modules/backup-log/components/list/panel/cards
 import type { FrontXoBackupLog } from '@/modules/backup-log/remote-resources/use-xo-backup-log-collection.ts'
 import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
+import { itShowsNameAndIdTitle } from '@/test/card-title.ts'
 import { createBackupLog, createBackupLogSrTask, createBackupLogVmTask } from '@/test/create-backup-log.ts'
 import { createSr } from '@/test/create-sr.ts'
 import { createVm } from '@/test/create-vm.ts'
-import { findPanelCardTitle, findPanelCardTitleLink } from '@/test/find-card-title.ts'
 import {
   findCardCopiedValues,
   findCardLabelledValues,
@@ -15,13 +15,13 @@ import {
   findCardRowLink,
   hasCardRowCopy,
 } from '@/test/find-rendered-values.ts'
+import { findPanelCardTitleLink } from '@/test/find-titles.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { xoCollectionsMock, mockXoCollections } from '@/test/mock-xo-collections.ts'
 import { mockXoRoutes } from '@/test/mock-xo-routes.ts'
 import { vmCollectionMock, mockXoVmCollection } from '@/test/mock-xo-vm-collection.ts'
 import { mockModule } from '@/test/spy-on-module.ts'
-import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
 import { objectIcon } from '@core/icons'
 import { formatDateTime } from '@core/utils/time.util.ts'
 import { mount } from '@vue/test-utils'
@@ -59,25 +59,16 @@ function mountCard(backupLog: FrontXoBackupLog = createBackupLog()) {
 }
 
 describe('title', () => {
-  it('names the log after its start date and shows its id', () => {
-    const backupLog = createBackupLog({ id: 'backup-log-42' as FrontXoBackupLog['id'] })
+  const titledLog = createBackupLog({ id: 'backup-log-42' as FrontXoBackupLog['id'] })
 
-    const title = findPanelCardTitle(mountCard(backupLog))
-
-    expect(title).toContain(t('log-name', { date: formatDateTime(backupLog.start) }))
-    expect(title).toContain('backup-log-42')
-  })
+  itShowsNameAndIdTitle(
+    () => mountCard(titledLog),
+    { label: t('log-name', { date: formatDateTime(titledLog.start) }), id: 'backup-log-42', icon: 'object:backup-run' },
+    'names the log after its start date, with the backup log icon, and shows its id'
+  )
 
   it('links to the detail page of the log', () => {
-    const wrapper = mountCard(createBackupLog({ id: 'backup-log-42' as FrontXoBackupLog['id'] }))
-
-    expect(findPanelCardTitleLink(wrapper)?.href).toBe('/admin/backup-log/backup-log-42/general')
-  })
-
-  it('shows the backup log icon', () => {
-    const wrapper = mountCard()
-
-    expect(wrapper.findComponent(UiPanelCardTitle).props('icon')).toBe('object:backup-run')
+    expect(findPanelCardTitleLink(mountCard(titledLog))?.href).toBe('/admin/backup-log/backup-log-42/general')
   })
 })
 
@@ -147,24 +138,6 @@ describe('VM', () => {
       icon: objectIcon('vm', 'running'),
     })
   })
-
-  it('leaves the VM empty and not copyable for a log of a job without VM', () => {
-    mockBackupJob({ name: 'QA metadata', type: 'metadataBackup' })
-
-    const wrapper = mountCard(createBackupLog({ tasks: [] }))
-
-    expect(findCardLabelledValues(wrapper)).toMatchObject({ [t('vm')]: '' })
-    expect(hasCardRowCopy(wrapper, t('vm'))).toBe(false)
-  })
-
-  it('shows a VM not found, without copy, for a log of a VM backup without VM', () => {
-    mockBackupJob({ name: 'QA delta', type: 'backup' })
-
-    const wrapper = mountCard(createBackupLog({ tasks: [] }))
-
-    expect(findCardLabelledValues(wrapper)).toMatchObject({ [t('vm')]: t('vm-not-found') })
-    expect(hasCardRowCopy(wrapper, t('vm'))).toBe(false)
-  })
 })
 
 describe('SR', () => {
@@ -195,13 +168,6 @@ describe('SR', () => {
 
     expect(findCardRowLink(wrapper, t('sr'))?.href).toBe('/sr/sr-1/general')
   })
-
-  it('leaves the SR empty and not copyable for a log without SR', () => {
-    const wrapper = mountCard(createBackupLog({ tasks: [] }))
-
-    expect(findCardLabelledValues(wrapper)).toMatchObject({ [t('sr')]: '' })
-    expect(hasCardRowCopy(wrapper, t('sr'))).toBe(false)
-  })
 })
 
 describe('job', () => {
@@ -210,20 +176,49 @@ describe('job', () => {
 
     expect(findCardRowLink(wrapper, t('job'))?.href).toBe('https://xo5.example.com/#/settings/remotes')
   })
-
-  it('shows an unknown job as untitled, without copy', () => {
-    mockBackupJob(undefined)
-
-    const wrapper = mountCard()
-
-    expect(findCardLabelledValues(wrapper)).toMatchObject({ [t('job')]: t('untitled') })
-    expect(hasCardRowCopy(wrapper, t('job'))).toBe(false)
-  })
 })
 
-it('leaves the duration empty and not copyable for a log that has not ended', () => {
-  const wrapper = mountCard(createBackupLog({ end: undefined }))
+it.each([
+  {
+    label: 'the VM empty for a log of a job without VM',
+    backupJob: { name: 'QA metadata', type: 'metadataBackup' },
+    backupLog: createBackupLog({ tasks: [] }),
+    row: t('vm'),
+    value: '',
+  },
+  {
+    label: 'a VM not found for a log of a VM backup without VM',
+    backupJob: { name: 'QA delta', type: 'backup' },
+    backupLog: createBackupLog({ tasks: [] }),
+    row: t('vm'),
+    value: t('vm-not-found'),
+  },
+  {
+    label: 'the SR empty for a log without SR',
+    backupJob: { name: 'QA delta' },
+    backupLog: createBackupLog({ tasks: [] }),
+    row: t('sr'),
+    value: '',
+  },
+  {
+    label: 'an unknown job as untitled',
+    backupJob: undefined,
+    backupLog: createBackupLog(),
+    row: t('job'),
+    value: t('untitled'),
+  },
+  {
+    label: 'the duration empty for a log that has not ended',
+    backupJob: { name: 'QA delta' },
+    backupLog: createBackupLog({ end: undefined }),
+    row: t('duration'),
+    value: '',
+  },
+])('shows $label, not copyable', ({ backupJob, backupLog, row, value }) => {
+  mockBackupJob(backupJob)
 
-  expect(findCardLabelledValues(wrapper)).toMatchObject({ [t('duration')]: '' })
-  expect(hasCardRowCopy(wrapper, t('duration'))).toBe(false)
+  const wrapper = mountCard(backupLog)
+
+  expect(findCardLabelledValues(wrapper)).toMatchObject({ [row]: value })
+  expect(hasCardRowCopy(wrapper, row)).toBe(false)
 })

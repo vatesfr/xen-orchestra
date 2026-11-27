@@ -5,6 +5,7 @@ import { findCardNumbers, findLegends } from '@/test/find-rendered-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import type { PoolDashboardCardProps } from '@/test/pool-dashboard-card.ts'
+import { findStateHeroTexts } from '@core-test/find-state-hero-types.ts'
 import { mount, type VueWrapper } from '@vue/test-utils'
 
 type HostsStatus = NonNullable<NonNullable<XoPoolDashboard['hosts']>['status']>
@@ -91,7 +92,7 @@ it('reports that no VM was detected for a pool without VM, and still breaks down
     }),
   })
 
-  expect(wrapper.get('.vts-state-hero').text()).toBe(t('no-vm-detected'))
+  expect(findStateHeroTexts(wrapper)).toEqual([t('no-vm-detected')])
   expect(findLegendSections(wrapper).map(([title]) => title)).toEqual([t('hosts')])
   expect(findCardNumbers(wrapper)).toEqual([[t('total'), '4']])
 })

@@ -3,11 +3,11 @@ import type { V2vSelectedVm } from '@/modules/v2v/types/v2v-selected-vm.type.ts'
 import { createV2vSelectedVm } from '@/test/create-v2v-selected-vms.ts'
 import { createV2vWizardRouter } from '@/test/create-v2v-wizard-router.ts'
 import { findParts } from '@/test/find-parts.ts'
-import { getButton } from '@/test/get-button.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { findAccentedInfos, findAccentedTags } from '@core-test/find-accented-labels.ts'
 import { findLink } from '@core-test/find-links.ts'
+import { getButton } from '@core-test/get-button.ts'
 import { mount } from '@vue/test-utils'
 
 const ITEM = createV2vSelectedVm()

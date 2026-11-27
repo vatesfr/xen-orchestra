@@ -24,3 +24,8 @@ export function findTableColumnCells(wrapper: QueryableWrapper, headerLabel: str
 export function findTableColumn(wrapper: QueryableWrapper, headerLabel: string): string[] {
   return findTableColumnCells(wrapper, headerLabel).map(cell => cell.text())
 }
+
+// The cell of the first row in the column headed `headerLabel`
+export function findTableCell(wrapper: QueryableWrapper, headerLabel: string): DOMWrapper<Element> {
+  return findTableColumnCells(wrapper, headerLabel)[0]
+}

@@ -1,6 +1,8 @@
 import type { XoPoolDashboard } from '@/modules/pool/types/xo-pool-dashboard.type.ts'
-import { type CardTitle, type DashboardCardProps, itRendersCardTitle } from '@/test/dashboard-card.ts'
+import { type CardTitle, itRendersCardTitle } from '@/test/card-title.ts'
+import type { DashboardCardProps } from '@/test/dashboard-card.ts'
 import { findProgressBarGroupLegends } from '@/test/find-rendered-values.ts'
+import { findCardSubtitles } from '@/test/find-titles.ts'
 import { t } from '@/test/i18n.ts'
 import { findProgressBarGroupStates } from '@core-test/find-progress-bar-group-states.ts'
 import type { VueWrapper } from '@vue/test-utils'
@@ -34,10 +36,7 @@ export function itShowsPoolTopFiveUsage(
   it('splits the card between the hosts and the VMs, each capped to the top five', () => {
     const wrapper = mountCard()
 
-    expect(wrapper.findAll('.ui-card-subtitle').map(subtitle => subtitle.text())).toEqual([
-      `${t('host')} ${t('top-#', 5)}`,
-      `${t('vms')} ${t('top-#', 5)}`,
-    ])
+    expect(findCardSubtitles(wrapper)).toEqual([`${t('host')} ${t('top-#', 5)}`, `${t('vms')} ${t('top-#', 5)}`])
   })
 
   it('shows the usage of the hosts and of the VMs in their own section', () => {

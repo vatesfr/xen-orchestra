@@ -1,9 +1,9 @@
+import JsonSchemaArrayItemDeleteButton from '@/modules/plugin/components/json-schema-form/JsonSchemaArrayItemDeleteButton.vue'
 import JsonSchemaField from '@/modules/plugin/components/json-schema-form/JsonSchemaField.vue'
 import type { JsonSchema } from '@/modules/plugin/utils/json-schema.util.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { OBFUSCATED_VALUE } from '@/shared/constants.ts'
 import { createVm } from '@/test/create-vm.ts'
-import { getButton } from '@/test/get-button.ts'
 import { getCheckbox } from '@/test/get-checkbox.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
@@ -12,8 +12,10 @@ import { xoCollectionsMock, mockXoCollections } from '@/test/mock-xo-collections
 import { vmCollectionMock, mockXoVmCollection } from '@/test/mock-xo-vm-collection.ts'
 import { mountJsonSchemaForm } from '@/test/mount-json-schema-form.ts'
 import VtsInputWrapper from '@core/components/input-wrapper/VtsInputWrapper.vue'
+import { hasLoader } from '@core-test/expect-loader.ts'
 import { setFieldValue } from '@core-test/field-events.ts'
 import { findInfoLabels } from '@core-test/find-accented-labels.ts'
+import { getButton } from '@core-test/get-button.ts'
 import { findSelectOptionLabels, findShownSelections, openSelect, pickSelectOption } from '@core-test/select.ts'
 import { mount, type VueWrapper } from '@vue/test-utils'
 import { h, nextTick } from 'vue'
@@ -59,6 +61,10 @@ async function findRequiredLabels(wrapper: VueWrapper) {
   await nextTick()
 
   return wrapper.findAll('label.required').map(label => label.text())
+}
+
+async function removeItem(wrapper: Pick<VueWrapper, 'findAllComponents'>, index = 0) {
+  await wrapper.findAllComponents(JsonSchemaArrayItemDeleteButton)[index].trigger('click')
 }
 
 function findSectionHeaders(wrapper: VueWrapper) {
@@ -356,14 +362,14 @@ describe('XO object field', () => {
   it('waits for the objects to load', () => {
     const wrapper = mountField({ schema: { type: 'string', $type: 'SR' } })
 
-    expect(wrapper.find('.ui-loader').exists()).toBe(true)
+    expect(hasLoader(wrapper)).toBe(true)
     expect(findShownSelections(wrapper)).toEqual([])
   })
 
   it('explains that the objects could not be loaded', () => {
     const wrapper = mountField({ schema: { type: 'string', $type: 'pool', description: 'The pool to watch' } })
 
-    expect(wrapper.find('.ui-loader').exists()).toBe(false)
+    expect(hasLoader(wrapper)).toBe(false)
     expect(wrapper.text()).toContain(t('error-no-data'))
     expect(wrapper.text()).not.toContain('The pool to watch')
   })
@@ -585,7 +591,7 @@ describe('array field', () => {
   it('removes an item', async () => {
     const wrapper = mountField({ schema, required: true, modelValue: ['a', 'b', 'c'] })
 
-    await wrapper.findAll('button.ui-button-icon')[1].trigger('click')
+    await removeItem(wrapper, 1)
 
     expect(lastEmittedValue(wrapper)).toEqual(['a', 'c'])
   })
@@ -597,7 +603,7 @@ describe('array field', () => {
       modelValue: [{ uri: 'a' }, { uri: 'b' }],
     })
 
-    await findSectionHeaders(wrapper)[0].get('button.ui-button-icon').trigger('click')
+    await removeItem(findSectionHeaders(wrapper)[0])
 
     expect(lastEmittedValue(wrapper)).toEqual([{ uri: 'b' }])
   })
@@ -605,7 +611,7 @@ describe('array field', () => {
   it('keeps the state of the following items when an item is removed', async () => {
     const wrapper = mountField({ schema, required: true, modelValue: ['a', OBFUSCATED_VALUE] })
 
-    await wrapper.findAll('button.ui-button-icon')[0].trigger('click')
+    await removeItem(wrapper)
     await wrapper.setProps({ modelValue: lastEmittedValue(wrapper) })
 
     expect(wrapper.findAll('input').map(input => input.element.type)).toEqual(['password'])

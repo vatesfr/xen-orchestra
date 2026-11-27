@@ -14,6 +14,7 @@ import { mockedExport } from '@/test/spy-on-module.ts'
 import { objectIcon } from '@core/icons'
 import { formatDateTime } from '@core/utils/time.util.ts'
 import { hasLoader } from '@core-test/expect-loader.ts'
+import { findStateHeroTexts } from '@core-test/find-state-hero-types.ts'
 import { mount } from '@vue/test-utils'
 import { computed } from 'vue'
 
@@ -68,13 +69,13 @@ it('shows an error message when the storage repositories failed to load', () => 
 
   const wrapper = mountReplication()
 
-  expect(wrapper.get('.vts-state-hero').text()).toBe(t('error-no-data'))
+  expect(findStateHeroTexts(wrapper)).toEqual([t('error-no-data')])
 })
 
 it('reports that the VM is not replicated when the replication is empty', () => {
   const wrapper = mountReplication({ vmDashboard: createDashboard({} as VmReplication) })
 
-  expect(wrapper.get('.vts-state-hero').text()).toBe(t('no-replicated-vm'))
+  expect(findStateHeroTexts(wrapper)).toEqual([t('no-replicated-vm')])
 })
 
 it('shows the replicated VM, its date and its storage repository', () => {

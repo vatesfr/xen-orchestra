@@ -4,12 +4,13 @@ import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collecti
 import { itShowsCpuProvisioningShare } from '@/test/cpu-provisioning-card.ts'
 import { createHost } from '@/test/create-host.ts'
 import { createVm } from '@/test/create-vm.ts'
-import { findCardNumbers, findProgressBarFillStyle } from '@/test/find-rendered-values.ts'
+import { findCardNumbers } from '@/test/find-rendered-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { itShowsHostDashboardCard } from '@/test/host-dashboard-card.ts'
 import { t } from '@/test/i18n.ts'
 import { xoCollectionsMock, mockXoCollections } from '@/test/mock-xo-collections.ts'
 import { vmCollectionMock, mockXoVmCollection } from '@/test/mock-xo-vm-collection.ts'
+import { findProgressBarFills } from '@core-test/find-progress-bars.ts'
 import { VM_POWER_STATE } from '@vates/types'
 import { mount } from '@vue/test-utils'
 
@@ -105,7 +106,7 @@ itShowsCpuProvisioningShare(() => mountWithSixVCpus(), {
 it('leaves the progress bar empty and the core count unknown when the host does not report its cores', () => {
   const wrapper = mountWithSixVCpus(createHost({ id: host.id, cpus: { sockets: 2 } }))
 
-  expect(findProgressBarFillStyle(wrapper)).toBe('width: 0%;')
+  expect(findProgressBarFills(wrapper)).toEqual(['0%'])
   expect(findCardNumbers(wrapper)).toEqual([
     [t('vcpus-assigned'), '6'],
     [t('total-cpus'), '-'],

@@ -6,16 +6,18 @@ import { createMetadataBackupJob, createMirrorBackupJob, createVmBackupJob } fro
 import { createBackupLog } from '@/test/create-backup-log.ts'
 import { createSchedule } from '@/test/create-schedule.ts'
 import { createTestRouter } from '@/test/create-test-router.ts'
-import { getButton } from '@/test/get-button.ts'
+import { findTableCell } from '@/test/find-table-cells.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { backupLogCollectionMock, mockXoBackupLogCollection } from '@/test/mock-xo-backup-log-collection.ts'
 import { mockXoRoutes } from '@/test/mock-xo-routes.ts'
 import { scheduleCollectionMock, mockXoScheduleCollection } from '@/test/mock-xo-schedule-collection.ts'
-import VtsStatus from '@core/components/status/VtsStatus.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
-import UiLoader from '@core/components/ui/loader/UiLoader.vue'
+import { hasLoader } from '@core-test/expect-loader.ts'
+import { findExtraCount } from '@core-test/find-extra-count.ts'
 import { findLink } from '@core-test/find-links.ts'
+import { findStatuses } from '@core-test/find-statuses.ts'
+import { getButton } from '@core-test/get-button.ts'
 import { pickSelectOption } from '@core-test/select.ts'
 import type { XoSchedule, XoSr } from '@vates/types'
 import { flushPromises, mount, type VueWrapper } from '@vue/test-utils'
@@ -72,15 +74,17 @@ async function pickFilterOption(wrapper: VueWrapper, filterLabel: string, option
   await pickSelectOption(wrapper, optionLabel)
 }
 
-function findCell(wrapper: VueWrapper, headerLabel: string) {
-  const headers = wrapper.findAll('thead th').map(header => header.text())
+function findJobCell(backupJob: FrontAnyXoBackupJob, headerLabel: string) {
+  return findTableCell(mountTable([backupJob]), headerLabel)
+}
 
-  return wrapper.findAll('tbody tr td')[headers.indexOf(headerLabel)]
+function findJobCellStatuses(backupJob: FrontAnyXoBackupJob, headerLabel: string) {
+  return findStatuses(findJobCell(backupJob, headerLabel))
 }
 
 describe('backup job', () => {
   it('links the backup job to the XO 5 backup overview, with the backup job icon', () => {
-    expect(findLink(findCell(mountTable([createVmBackupJob({ name: 'Nightly backup' })]), t('backup-job')))).toEqual({
+    expect(findLink(findJobCell(createVmBackupJob({ name: 'Nightly backup' }), t('backup-job')))).toEqual({
       text: 'Nightly backup',
       href: 'https://xo5.example.com/#/backup/overview',
       icon: 'object:backup-job',
@@ -88,7 +92,7 @@ describe('backup job', () => {
   })
 
   it('names a backup job without name as untitled', () => {
-    const cell = findCell(mountTable([createVmBackupJob({ name: undefined })]), t('backup-job'))
+    const cell = findJobCell(createVmBackupJob({ name: undefined }), t('backup-job'))
 
     expect(cell.text()).toBe(t('untitled'))
   })
@@ -100,27 +104,27 @@ describe('type', () => {
       srs: { id: 'sr-123' as XoSr['id'] },
       settings: { '': {}, ['schedule-1' as XoSchedule['id']]: { snapshotRetention: 1 } },
     })
-    const cell = findCell(mountTable([backupJob]), t('type'))
+    const cell = findJobCell(backupJob, t('type'))
 
     expect(cell.text()).toContain(t('backup:rolling-snapshot'))
-    expect(cell.get('.extra-count').text()).toBe('+2')
+    expect(findExtraCount(cell)).toBe(t('plus-n', { n: 2 }))
   })
 
   it('shows no count for a backup job of a single type', () => {
-    const cell = findCell(mountTable([createMirrorBackupJob()]), t('type'))
+    const cell = findJobCell(createMirrorBackupJob(), t('type'))
 
     expect(cell.text()).toBe(t('backup:vms-mirror'))
-    expect(cell.find('.extra-count').exists()).toBe(false)
+    expect(findExtraCount(cell)).toBeUndefined()
   })
 })
 
 describe('mode', () => {
   it('shows the mode of the backup job', () => {
-    expect(findCell(mountTable([createVmBackupJob({ mode: 'delta' })]), t('mode')).text()).toBe(t('incremental'))
+    expect(findJobCell(createVmBackupJob({ mode: 'delta' }), t('mode')).text()).toBe(t('incremental'))
   })
 
   it('leaves the mode empty for a metadata job', () => {
-    expect(findCell(mountTable([createMetadataBackupJob()]), t('mode')).text()).toBe('')
+    expect(findJobCell(createMetadataBackupJob(), t('mode')).text()).toBe('')
   })
 })
 
@@ -129,19 +133,15 @@ describe('last runs', () => {
     const backupJob = createVmBackupJob()
     setBackupLogs(backupJob, ['failure', 'success'])
 
-    const cell = findCell(mountTable([backupJob]), t('last-n-runs', { n: 3 }))
-
-    const statuses = cell.findAllComponents(VtsStatus) as VueWrapper<InstanceType<typeof VtsStatus>>[]
-
-    expect(statuses.map(status => status.props('status'))).toEqual(['failure', 'success'])
+    expect(findJobCellStatuses(backupJob, t('last-n-runs', { n: 3 }))).toEqual(['failure', 'success'])
   })
 
   it('shows a loader while the backup logs are loading', () => {
     backupLogCollectionMock.areBackupLogsReady.value = false
 
-    const cell = findCell(mountTable([createVmBackupJob()]), t('last-n-runs', { n: 3 }))
+    const cell = findJobCell(createVmBackupJob(), t('last-n-runs', { n: 3 }))
 
-    expect(cell.findComponent(UiLoader).exists()).toBe(true)
+    expect(hasLoader(cell)).toBe(true)
   })
 })
 
@@ -153,15 +153,11 @@ describe('status', () => {
       createSchedule({ id: 'schedule-2' as FrontXoSchedule['id'], jobId: backupJob.id, enabled: true }),
     ]
 
-    const cell = findCell(mountTable([backupJob]), t('status'))
-
-    expect(cell.getComponent(VtsStatus).props('status')).toBe(true)
+    expect(findJobCellStatuses(backupJob, t('status'))).toEqual([true])
   })
 
   it('shows a backup job without enabled schedule as disabled', () => {
-    const cell = findCell(mountTable([createVmBackupJob()]), t('status'))
-
-    expect(cell.getComponent(VtsStatus).props('status')).toBe(false)
+    expect(findJobCellStatuses(createVmBackupJob(), t('status'))).toEqual([false])
   })
 })
 
@@ -175,15 +171,11 @@ describe('health check', () => {
       },
     })
 
-    const cell = findCell(mountTable([backupJob]), t('health-check'))
-
-    expect(cell.getComponent(VtsStatus).props('status')).toBe('at-least-one-enabled')
+    expect(findJobCellStatuses(backupJob, t('health-check'))).toEqual(['at-least-one-enabled'])
   })
 
   it('leaves the health check empty for a metadata job', () => {
-    const cell = findCell(mountTable([createMetadataBackupJob()]), t('health-check'))
-
-    expect(cell.findComponent(VtsStatus).exists()).toBe(false)
+    expect(findJobCellStatuses(createMetadataBackupJob(), t('health-check'))).toEqual([])
   })
 })
 

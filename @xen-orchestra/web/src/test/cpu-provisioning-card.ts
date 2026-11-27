@@ -1,5 +1,6 @@
-import { findLegends, findProgressBarFillStyle } from '@/test/find-rendered-values.ts'
+import { findLegends } from '@/test/find-rendered-values.ts'
 import { t } from '@/test/i18n.ts'
+import { findProgressBarFills } from '@core-test/find-progress-bars.ts'
 import type { VueWrapper } from '@vue/test-utils'
 
 /**
@@ -8,7 +9,7 @@ import type { VueWrapper } from '@vue/test-utils'
  */
 export function itShowsCpuProvisioningShare(mountCard: () => VueWrapper, names: { fill: string; legend: string }) {
   it(names.fill, () => {
-    expect(findProgressBarFillStyle(mountCard())).toBe('width: 75%;')
+    expect(findProgressBarFills(mountCard())).toEqual(['75%'])
   })
 
   it(names.legend, () => {

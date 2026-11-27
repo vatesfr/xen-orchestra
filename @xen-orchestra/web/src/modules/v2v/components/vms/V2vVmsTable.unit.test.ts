@@ -5,7 +5,6 @@ import { createTableSelectionBindings } from '@/test/create-table-selection-bind
 import { createV2vImportVm, createV2vPartialImportSnapshot } from '@/test/create-v2v-import-vm.ts'
 import { createV2vVmRowsInput } from '@/test/create-v2v-vm-row.ts'
 import { findTableColumn, findTableColumnCells, findTableHeaders } from '@/test/find-table-cells.ts'
-import { getButton } from '@/test/get-button.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import {
@@ -22,6 +21,7 @@ import UiCheckbox from '@core/components/ui/checkbox/UiCheckbox.vue'
 import UiTableSelection from '@core/components/ui/table-selection/UiTableSelection.vue'
 import UiTag from '@core/components/ui/tag/UiTag.vue'
 import { formatDateTime } from '@core/utils/time.util.ts'
+import { getButton } from '@core-test/get-button.ts'
 import { mount } from '@vue/test-utils'
 import { ref } from 'vue'
 
