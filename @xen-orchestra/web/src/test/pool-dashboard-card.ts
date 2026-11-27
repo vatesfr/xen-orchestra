@@ -2,6 +2,7 @@ import type { XoPoolDashboard } from '@/modules/pool/types/xo-pool-dashboard.typ
 import { type CardTitle, type DashboardCardProps, itRendersCardTitle } from '@/test/dashboard-card.ts'
 import { findProgressBarGroupLegends } from '@/test/find-rendered-values.ts'
 import { t } from '@/test/i18n.ts'
+import { findProgressBarGroupStates } from '@core-test/find-progress-bar-group-states.ts'
 import type { VueWrapper } from '@vue/test-utils'
 
 // The props every card of the pool dashboard takes, for its local mount helper
@@ -49,26 +50,21 @@ export function itShowsPoolTopFiveUsage(
   ])('shows a loader in place of the %s while their usage has not arrived yet', (_, poolDashboard, remainingLegend) => {
     const wrapper = mountCard({ poolDashboard })
 
-    expect(wrapper.findAll('.ui-loader')).toHaveLength(1)
+    expect(findProgressBarGroupStates(wrapper).filter(({ busy }) => busy)).toHaveLength(1)
     expect(findProgressBarGroupLegends(wrapper)).toEqual([[remainingLegend]])
   })
 
-  it('reports that there is nothing to show in a section without host or VM', () => {
-    const wrapper = mountCard({ poolDashboard: empty })
+  it.each([
+    {
+      label: 'hands no item to a section without host or VM',
+      props: { poolDashboard: empty },
+      itemCount: 0,
+      hasError: false,
+    },
+    { label: 'passes the fetch error down to both sections', props: { hasError: true }, itemCount: 1, hasError: true },
+  ])('$label', ({ props, itemCount, hasError }) => {
+    const state = { busy: false, hasError, itemCount }
 
-    expect(wrapper.findAll('.vts-state-hero').map(hero => hero.text())).toEqual([
-      t('no-data-to-calculate'),
-      t('no-data-to-calculate'),
-    ])
-    expect(wrapper.findAll('.ui-progress-bar')).toEqual([])
-  })
-
-  it('passes the fetch error down to both sections', () => {
-    const wrapper = mountCard({ hasError: true })
-
-    expect(wrapper.findAll('.vts-state-hero').map(hero => hero.text())).toEqual([
-      t('error-no-data'),
-      t('error-no-data'),
-    ])
+    expect(findProgressBarGroupStates(mountCard(props))).toEqual([state, state])
   })
 }

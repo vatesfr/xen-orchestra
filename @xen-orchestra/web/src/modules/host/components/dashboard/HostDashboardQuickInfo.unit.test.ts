@@ -7,6 +7,7 @@ import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { xoCollectionsMock, mockXoCollections } from '@/test/mock-xo-collections.ts'
 import { vmCollectionMock, mockXoVmCollection } from '@/test/mock-xo-vm-collection.ts'
+import { findLink } from '@core-test/find-links.ts'
 import { HOST_POWER_STATE } from '@vates/types'
 import { mount } from '@vue/test-utils'
 
@@ -128,7 +129,7 @@ it('links to the master of the pool when the host is not it', () => {
   const wrapper = mountQuickInfo()
 
   expect(findLabelledValues(wrapper)).toMatchObject({ [t('master')]: 'Primary Host' })
-  expect(wrapper.get('.ui-link').attributes('href')).toBe('/host/host-1/dashboard')
+  expect(findLink(wrapper)?.href).toBe('/host/host-1/dashboard')
 })
 
 it('leaves the master row empty when the master of the pool is not known', () => {

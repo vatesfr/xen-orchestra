@@ -6,6 +6,7 @@ import { t } from '@/test/i18n.ts'
 import { xoCollectionsMock, mockXoCollections } from '@/test/mock-xo-collections.ts'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import { objectIcon } from '@core/icons'
+import { findLink } from '@core-test/find-links.ts'
 import { HOST_POWER_STATE } from '@vates/types'
 import { mount } from '@vue/test-utils'
 
@@ -29,7 +30,7 @@ it('shows the host name label and links to its dashboard', () => {
   const wrapper = mountHostLink(host)
 
   expect(wrapper.text()).toBe('Primary Host')
-  expect(wrapper.get('.ui-link').attributes('href')).toBe('/host/host-1/dashboard')
+  expect(findLink(wrapper)?.href).toBe('/host/host-1/dashboard')
 })
 
 it('links to the given route in place of the dashboard', () => {
@@ -40,7 +41,7 @@ it('links to the given route in place of the dashboard', () => {
     global: createGlobalTestConfig(),
   })
 
-  expect(wrapper.get('.ui-link').attributes('href')).toBe('/host/host-1/networks')
+  expect(findLink(wrapper)?.href).toBe('/host/host-1/networks')
 })
 
 it('renders the slot content in place of the host name label', () => {
@@ -49,22 +50,16 @@ it('renders the slot content in place of the host name label', () => {
   expect(wrapper.text()).toBe('Custom label')
 })
 
-it('picks the running icon for a running host', () => {
-  const host = createHost({ power_state: HOST_POWER_STATE.RUNNING, enabled: true })
-
-  expect(mountHostLink(host).getComponent(UiLink).props('icon')).toBe(objectIcon('host', 'running'))
-})
-
-it('picks the disabled icon for a running host that is not enabled', () => {
-  const host = createHost({ power_state: HOST_POWER_STATE.RUNNING, enabled: false })
-
-  expect(mountHostLink(host).getComponent(UiLink).props('icon')).toBe(objectIcon('host', 'disabled'))
-})
-
-it('picks the halted icon for a halted host', () => {
-  const host = createHost({ power_state: HOST_POWER_STATE.HALTED })
-
-  expect(mountHostLink(host).getComponent(UiLink).props('icon')).toBe(objectIcon('host', 'halted'))
+it.each([
+  { label: 'a running host', host: { power_state: HOST_POWER_STATE.RUNNING, enabled: true }, state: 'running' },
+  {
+    label: 'a running host that is not enabled',
+    host: { power_state: HOST_POWER_STATE.RUNNING, enabled: false },
+    state: 'disabled',
+  },
+  { label: 'a halted host', host: { power_state: HOST_POWER_STATE.HALTED }, state: 'halted' },
+] as const)('picks the $state icon for $label', ({ host, state }) => {
+  expect(findLink(mountHostLink(createHost(host)))?.icon).toBe(objectIcon('host', state))
 })
 
 it('flags the host as primary when it leads its pool', () => {

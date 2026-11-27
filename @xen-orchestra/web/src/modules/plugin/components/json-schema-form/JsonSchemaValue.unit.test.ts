@@ -7,7 +7,7 @@ import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { mockedExport } from '@/test/spy-on-module.ts'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
-import UiLink from '@core/components/ui/link/UiLink.vue'
+import { findLink } from '@core-test/find-links.ts'
 import { mount } from '@vue/test-utils'
 import { computed, toValue } from 'vue'
 
@@ -68,21 +68,22 @@ it('shows a boolean as a status', () => {
 })
 
 it.each([
-  { type: 'host', routeName: '/host/[id]/dashboard' },
-  { type: 'pool', routeName: '/pool/[id]/dashboard' },
-  { type: 'sr', routeName: '/sr/[id]/general' },
-  { type: 'vm', routeName: '/vm/[id]/dashboard' },
-])('links a $type to its page, by its name', ({ type, routeName }) => {
-  const link = mountValue({ object: { type: 'string', $type: type } }, { object: `${type}-1` }).getComponent(UiLink)
-
-  expect(link.text()).toBe(`Main ${type}`)
-  expect(link.props()).toMatchObject({ icon: `object:${type}`, to: { name: routeName, params: { id: `${type}-1` } } })
+  { type: 'host', href: '/host/host-1/dashboard' },
+  { type: 'pool', href: '/pool/pool-1/dashboard' },
+  { type: 'sr', href: '/sr/sr-1/general' },
+  { type: 'vm', href: '/vm/vm-1/dashboard' },
+])('links a $type to its page, by its name', ({ type, href }) => {
+  expect(findLink(mountValue({ object: { type: 'string', $type: type } }, { object: `${type}-1` }))).toEqual({
+    text: `Main ${type}`,
+    href,
+    icon: `object:${type}`,
+  })
 })
 
 it('shows the ID of an unknown XO object', () => {
   const wrapper = mountValue({ vm: { type: 'string', $type: 'VM' } }, { vm: 'vm-2' })
 
-  expect(wrapper.getComponent(UiLink).text()).toBe('vm-2')
+  expect(findLink(wrapper)?.text).toBe('vm-2')
 })
 
 it('shows the items of an array one per line', () => {
@@ -101,5 +102,5 @@ it('shows tags as tags', () => {
   const wrapper = mountValue({ tags: { type: 'array', items: { type: 'string', $type: 'Tag' } } }, { tags: ['prod'] })
 
   expect(findTags(wrapper)).toEqual(['prod'])
-  expect(wrapper.findComponent(UiLink).exists()).toBe(false)
+  expect(findLink(wrapper)).toBeUndefined()
 })

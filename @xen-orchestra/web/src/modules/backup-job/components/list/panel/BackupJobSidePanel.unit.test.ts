@@ -34,6 +34,7 @@ import { vmCollectionMock, mockXoVmCollection } from '@/test/mock-xo-vm-collecti
 import { mockXoVmDeviceCollections } from '@/test/mock-xo-vm-device-collections.ts'
 import { mockModule } from '@/test/spy-on-module.ts'
 import UiAlert from '@core/components/ui/alert/UiAlert.vue'
+import { openMoreActions } from '@core-test/menu.ts'
 import { mount } from '@vue/test-utils'
 import { ref } from 'vue'
 
@@ -154,7 +155,7 @@ it('offers the other actions of the backup job in the more actions menu', async 
 
   expect(wrapper.findComponent(BackupJobMoreActions).exists()).toBe(false)
 
-  await wrapper.get(`[aria-label="${t('more-actions')}"]`).trigger('click')
+  await openMoreActions(wrapper)
 
   expect(wrapper.getComponent(BackupJobMoreActions).props('backupJob')).toEqual(vmBackupJob)
 })

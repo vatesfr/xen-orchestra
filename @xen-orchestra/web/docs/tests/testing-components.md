@@ -27,21 +27,20 @@ it('shows VGA as enabled when the VM uses the "std" adapter', () => {
 
 A label/value row is read through one query covering every row a user sees ([Assert what the user reads](../../../web-core/docs/tests/testing-components.md#assert-what-the-user-reads-not-the-markup)). `src/test/find-rendered-values.ts` does that reduction, so a card test does not re-roll it:
 
-| Helper                       | Reads                                                              |
-| ---------------------------- | ------------------------------------------------------------------ |
-| `findLabelledValues`         | every `VtsTabularKeyValueRow` / `VtsKeyValueRow` of a card         |
-| `findCardLabelledValues`     | every `VtsCardRowKeyValue` of a side-panel card                    |
-| `findCardLabelledValueLists` | every `VtsCardRowKeyValue`, each value of a multi-value row listed |
-| `findRowLabels`              | the label of every `VtsTabularKeyValueRow` / `VtsKeyValueRow`      |
-| `findCardRowLabels`          | the label of every `VtsCardRowKeyValue`, in order                  |
-| `findCardRows`               | every `VtsCardRowKeyValue` as `[label, value]` pairs, in order     |
-| `getCardRow`                 | the `VtsCardRowKeyValue` with that label, to query its link / copy |
-| `hasCardRowCopy`             | whether the `VtsCardRowKeyValue` with that label offers a copy     |
-| `getCardRowLink`             | the link of the `VtsCardRowKeyValue` with that label               |
-| `findCardRowElements`        | every `VtsCardRowKeyValue` as its key and value elements           |
-| `findCardRowLinks`           | every link of the `VtsCardRowKeyValue` rows, as `[text, href]`     |
-| `findCopiedValues`           | what each copyable key/value row copies, keyed by label            |
-| `findCardCopiedValues`       | what each copyable `VtsCardRowKeyValue` copies, in order           |
+| Helper                       | Reads                                                                        |
+| ---------------------------- | ---------------------------------------------------------------------------- |
+| `findLabelledValues`         | every `VtsTabularKeyValueRow` / `VtsKeyValueRow` of a card                   |
+| `findCardLabelledValues`     | every `VtsCardRowKeyValue` of a side-panel card                              |
+| `findCardLabelledValueLists` | every `VtsCardRowKeyValue`, each value of a multi-value row listed           |
+| `findRowLabels`              | the label of every `VtsTabularKeyValueRow` / `VtsKeyValueRow`                |
+| `findCardRowLabels`          | the label of every `VtsCardRowKeyValue`, in order                            |
+| `findCardRows`               | every `VtsCardRowKeyValue` as `[label, value]` pairs, in order               |
+| `hasCardRowCopy`             | whether the `VtsCardRowKeyValue` with that label offers a copy               |
+| `findCardRowLink`            | the link of the `VtsCardRowKeyValue` with that label, as `findLink` reads it |
+| `findCardRowElements`        | every `VtsCardRowKeyValue` as its key and value elements                     |
+| `findCardRowLinks`           | every link of the `VtsCardRowKeyValue` rows, as `[text, href]`               |
+| `findCopiedValues`           | what each copyable key/value row copies, keyed by label                      |
+| `findCardCopiedValues`       | what each copyable `VtsCardRowKeyValue` copies, in order                     |
 
 ```typescript
 expect(findLabelledValues(wrapper)).toEqual({ [t('vga')]: t('disabled'), [t('video-ram')]: '8 B' })
@@ -97,7 +96,7 @@ A table is read **by header label**, never by column position: `src/test/find-ta
 ```typescript
 expect(findTableHeaders(wrapper)).toEqual(['', t('vm'), t('size')])
 expect(findTableColumn(wrapper, t('size'))).toEqual(['80GiB', '120GiB'])
-expect(findTableColumnCells(wrapper, t('vm'))[0].getComponent(UiLink).attributes('href')).toBe('/vm/vm-42/dashboard')
+expect(findLink(findTableColumnCells(wrapper, t('vm'))[0])?.href).toBe('/vm/vm-42/dashboard')
 ```
 
 A label missing from the header throws, naming the label, rather than reading an empty column.
@@ -202,7 +201,7 @@ Pushing before mounting is what makes the active tab assertable; without a push 
 How `VtsSelect` renders and opens its options belongs to the web-core tests, never to an XO 6 one; XO 6's `FormSelect` wraps it:
 
 - A component that only passes select bindings on is mounted with `createGlobalTestConfig({ stubs: { FormSelect: true } })`, given `createSelectBindings`, and read with `findSelectStubLabels`.
-- The options a form builds (their labels, their custom properties) are read by mounting the form with `mountWithSetup` (`mountWithSetupResult` when the test reads the form too; it takes the `createGlobalTestConfig` options, as `mountUnderNewVmForm` does), rendering its select with `renderSelect(id)` (`@core-test/mount-with-select.ts`), then `openSelect` and `findSelectOptionLabels`; `findShownSelections` reads the selection each select shows. Those readers live in web-core (`@core-test/select.ts`), beside the `mountWithSetup` (`@core-test/mount-with-setup.ts`) that XO 6's wraps.
+- The options a form builds (their labels, their custom properties) are read by mounting the form with `mountWithSetup` (`mountWithSetupResult` when the test reads the form too; it takes the `createGlobalTestConfig` options, as `mountUnderNewVmForm` does), rendering its select with `renderSelect(id)` (`@core-test/mount-with-select.ts`), then `openSelect` and `findSelectOptionLabels` (`findDetailedOptions` for options showing an icon or details); `findShownSelections` reads the selection each select shows. Those readers live in web-core (`@core-test/select.ts`), beside the `mountWithSetup` (`@core-test/mount-with-setup.ts`) that XO 6's wraps.
 
 ## Remote-resource collections
 

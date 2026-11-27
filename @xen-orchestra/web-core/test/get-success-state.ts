@@ -1,6 +1,6 @@
 import VtsSuccessStateHero from '@core/components/success-state-hero/VtsSuccessStateHero.vue'
 import UiAlert from '@core/components/ui/alert/UiAlert.vue'
-import UiLink from '@core/components/ui/link/UiLink.vue'
+import { findLink } from '@core-test/find-links.ts'
 import { findTitle } from '@core-test/find-title.ts'
 import type { VueWrapper } from '@vue/test-utils'
 
@@ -8,11 +8,10 @@ import type { VueWrapper } from '@vue/test-utils'
 // `undefined` without one
 export function getSuccessState(wrapper: Pick<VueWrapper, 'getComponent'>) {
   const hero = wrapper.getComponent(VtsSuccessStateHero)
-  const link = hero.findComponent(UiLink)
 
   return {
     title: findTitle(hero),
     message: hero.getComponent(UiAlert).text(),
-    link: link.exists() ? { label: link.text(), to: link.props('to') } : undefined,
+    link: findLink(hero),
   }
 }

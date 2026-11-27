@@ -5,6 +5,7 @@ import { findCardNumbers, findLegends } from '@/test/find-rendered-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import type { PoolDashboardCardProps } from '@/test/pool-dashboard-card.ts'
+import { findProgressBarGroupStates } from '@core-test/find-progress-bar-group-states.ts'
 import { mount } from '@vue/test-utils'
 
 type StorageUsage = NonNullable<NonNullable<XoPoolDashboard['srs']>['topFiveUsage']>[number]
@@ -39,10 +40,10 @@ itShowsDashboardCardStates(mountStoragesUsage, {
   hasErrorState: true,
 })
 
-it('reports that there is nothing to show when the pool has no storage', () => {
+it('hands no item to its progress bars when the pool has no storage', () => {
   const wrapper = mountStoragesUsage({ poolDashboard: withStorages([]) })
 
-  expect(wrapper.get('.vts-state-hero').text()).toBe(t('no-data-to-calculate'))
+  expect(findProgressBarGroupStates(wrapper)).toEqual([{ busy: false, hasError: false, itemCount: 0 }])
 })
 
 it('shows one progress bar per storage, the fullest first', () => {

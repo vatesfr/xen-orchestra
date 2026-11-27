@@ -8,11 +8,10 @@ import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { vmCollectionMock, mockXoVmCollection } from '@/test/mock-xo-vm-collection.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
-import MenuItem from '@core/components/menu/MenuItem.vue'
 import VtsRelativeTime from '@core/components/relative-time/VtsRelativeTime.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
-import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import { findTitle } from '@core-test/find-title.ts'
+import { clickMenuItem, findMoreActionLabels, openMoreActions } from '@core-test/menu.ts'
 import { mount } from '@vue/test-utils'
 import { omit } from 'lodash-es'
 
@@ -27,18 +26,6 @@ function mountItem(connection: V2vRememberedConnection = createV2vRememberedConn
     props: { connection, disabled },
     global: createGlobalTestConfig(),
   })
-}
-
-async function openMenu(wrapper: ReturnType<typeof mountItem>) {
-  await wrapper.getComponent(UiButtonIcon).trigger('click')
-
-  return wrapper.findAllComponents(MenuItem)
-}
-
-async function listMenuLabels(wrapper: ReturnType<typeof mountItem>) {
-  const items = await openMenu(wrapper)
-
-  return items.map(item => item.text())
 }
 
 it('shows the host with its platform', () => {
@@ -117,11 +104,15 @@ it('cannot connect when disabled', () => {
 })
 
 it('offers to edit, forget the password and forget the connection', async () => {
-  expect(await listMenuLabels(mountItem())).toEqual([t('action:edit'), t('action:forget-password'), t('action:forget')])
+  expect(await findMoreActionLabels(mountItem())).toEqual([
+    t('action:edit'),
+    t('action:forget-password'),
+    t('action:forget'),
+  ])
 })
 
 it('does not offer to forget a password that is not remembered', async () => {
-  const labels = await listMenuLabels(mountItem(omit(createV2vRememberedConnection(), 'password')))
+  const labels = await findMoreActionLabels(mountItem(omit(createV2vRememberedConnection(), 'password')))
 
   expect(labels).toEqual([t('action:edit'), t('action:forget')])
 })
@@ -133,9 +124,9 @@ it.each([
 ] as const)('emits the action of the menu item %i (%s) with the connection', async (index, event) => {
   const connection = createV2vRememberedConnection()
   const wrapper = mountItem(connection)
-  const items = await openMenu(wrapper)
+  const items = await openMoreActions(wrapper)
 
-  await items[index].get('.menu-trigger').trigger('click')
+  await clickMenuItem(items[index])
 
   expect(wrapper.emitted(event)).toEqual([[connection]])
 })

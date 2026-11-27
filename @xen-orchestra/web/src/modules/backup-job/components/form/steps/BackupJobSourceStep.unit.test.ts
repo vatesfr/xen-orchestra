@@ -23,6 +23,7 @@ import type { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { mockModule } from '@/test/spy-on-module.ts'
+import { findInfoLabels } from '@core-test/find-accented-labels.ts'
 import { mount, type VueWrapper } from '@vue/test-utils'
 import { defineComponent, h, reactive, ref } from 'vue'
 
@@ -115,10 +116,6 @@ function findSelection(wrapper: VueWrapper) {
   }
 }
 
-function findMessages(wrapper: VueWrapper) {
-  return wrapper.findAll('.ui-info').map(message => message.text())
-}
-
 function getEnableToggle(wrapper: VueWrapper) {
   return wrapper.get('.general .ui-toggle')
 }
@@ -164,13 +161,13 @@ it('selects no scope for a metadata backup saving the XO config only', () => {
 })
 
 it('tells that the replications are excluded from the VM selection', () => {
-  expect(findMessages(mountSourceStep())).toContain(t('replications-excluded-from-selection'))
+  expect(findInfoLabels(mountSourceStep())).toContain(t('replications-excluded-from-selection'))
 })
 
 it('asks for the source backup repository before selecting the backed up VMs', () => {
   const wrapper = mountSourceStep({ dataSource: 'mirror', scopeType: 'manual' })
 
-  expect(findMessages(wrapper)).toContain(t('select-source-backup-repository-first'))
+  expect(findInfoLabels(wrapper)).toContain(t('select-source-backup-repository-first'))
 })
 
 it('selects every object by default', () => {

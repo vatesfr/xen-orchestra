@@ -1,3 +1,4 @@
+import VtsDetailedOption from '@core/components/select/VtsDetailedOption.vue'
 import { isPlaceholderShown } from '@core-test/is-placeholder-shown.ts'
 import { flushPromises, type VueWrapper } from '@vue/test-utils'
 
@@ -20,6 +21,16 @@ export function findShownSelections(wrapper: QueryableWrapper) {
 
 export function findSelectOptionLabels(wrapper: QueryableWrapper) {
   return wrapper.findAll('.ui-dropdown').map(option => option.text())
+}
+
+// Every `VtsDetailedOption` of an open select, as what it shows: its label, its icon and its tooltip, its details
+export function findDetailedOptions(wrapper: Pick<VueWrapper, 'findAllComponents'>) {
+  return wrapper.findAllComponents(VtsDetailedOption).map(option => ({
+    label: option.props('option').properties.label,
+    icon: option.props('icon'),
+    iconTooltip: option.props('iconTooltip'),
+    details: option.props('details'),
+  }))
 }
 
 type PickOptions = {

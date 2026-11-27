@@ -4,8 +4,10 @@ import { createVm } from '@/test/create-vm.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { mockModule } from '@/test/spy-on-module.ts'
+import MenuTrigger from '@core/components/menu/MenuTrigger.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import { IK_HIDE_ACTION_BUTTON_BUSY, IK_IN_MENU } from '@core/utils/injection-keys.util.ts'
+import { clickMenuItem, getMenuTrigger } from '@core-test/menu.ts'
 import { mount } from '@vue/test-utils'
 import { ref } from 'vue'
 
@@ -45,16 +47,12 @@ function mountButton({ isInMenu = true, isBusyHidden = false } = {}) {
   })
 }
 
-function findTrigger(wrapper: ReturnType<typeof mountButton>) {
-  return wrapper.get('.menu-trigger')
-}
-
 it('opens the migration when the VM can be migrated', async () => {
   const wrapper = mountButton()
 
-  await findTrigger(wrapper).trigger('click')
+  await clickMenuItem(wrapper)
 
-  expect(findTrigger(wrapper).classes('disabled')).toBe(false)
+  expect(getMenuTrigger(wrapper).props('disabled')).toBe(false)
   expect(wrapper.find('.em-dash-prefix').exists()).toBe(false)
   expect(migrateVm).toHaveBeenCalledOnce()
 })
@@ -65,9 +63,9 @@ it('is disabled with the reason when the VM cannot be migrated', async () => {
 
   const wrapper = mountButton()
 
-  await findTrigger(wrapper).trigger('click')
+  await clickMenuItem(wrapper)
 
-  expect(findTrigger(wrapper).classes('disabled')).toBe(true)
+  expect(getMenuTrigger(wrapper).props('disabled')).toBe(true)
   expect(wrapper.get('.em-dash-prefix').text()).toBe(t('job:vm-migrate:paused'))
   expect(migrateVm).not.toHaveBeenCalled()
 })
@@ -79,9 +77,9 @@ it('stays enabled when the migration is blocked, so the blocked modal can open',
 
   const wrapper = mountButton()
 
-  await findTrigger(wrapper).trigger('click')
+  await clickMenuItem(wrapper)
 
-  expect(findTrigger(wrapper).classes('disabled')).toBe(false)
+  expect(getMenuTrigger(wrapper).props('disabled')).toBe(false)
   expect(wrapper.find('.em-dash-prefix').exists()).toBe(false)
   expect(migrateVm).toHaveBeenCalledOnce()
 })
@@ -93,10 +91,10 @@ it('is busy, not disabled, while the VM is being migrated', async () => {
 
   const wrapper = mountButton()
 
-  await findTrigger(wrapper).trigger('click')
+  await clickMenuItem(wrapper)
 
-  expect(findTrigger(wrapper).classes('disabled')).toBe(false)
-  expect(findTrigger(wrapper).classes('active')).toBe(true)
+  expect(getMenuTrigger(wrapper).props('disabled')).toBe(false)
+  expect(getMenuTrigger(wrapper).props('busy')).toBe(true)
   expect(wrapper.find('.em-dash-prefix').exists()).toBe(false)
   expect(migrateVm).not.toHaveBeenCalled()
 })
@@ -107,7 +105,7 @@ describe('outside of a menu', () => {
 
     await wrapper.getComponent(UiButton).trigger('click')
 
-    expect(wrapper.find('.menu-trigger').exists()).toBe(false)
+    expect(wrapper.findComponent(MenuTrigger).exists()).toBe(false)
     expect(wrapper.getComponent(UiButton).text()).toBe(t('action:migrate'))
     expect(migrateVm).toHaveBeenCalledOnce()
   })

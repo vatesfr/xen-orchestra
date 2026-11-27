@@ -8,6 +8,7 @@ import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { mockModule } from '@/test/spy-on-module.ts'
 import { formatDateTime } from '@core/utils/time.util.ts'
+import { findLink } from '@core-test/find-links.ts'
 import { mount } from '@vue/test-utils'
 
 const buildXo5VmSnapshotRoute = vi.fn()
@@ -53,9 +54,7 @@ it('links the snapshot to its XO 5 page', () => {
 
   const wrapper = mountSnapshotCard(snapshot)
 
-  expect(wrapper.get('a').attributes('href')).toBe(
-    'https://xo5.example.com/#/vms/vm-42/snapshots?s=1_0_asc-snapshot-42'
-  )
+  expect(findLink(wrapper)?.href).toBe('https://xo5.example.com/#/vms/vm-42/snapshots?s=1_0_asc-snapshot-42')
 })
 
 it('offers to copy the snapshot name', () => {

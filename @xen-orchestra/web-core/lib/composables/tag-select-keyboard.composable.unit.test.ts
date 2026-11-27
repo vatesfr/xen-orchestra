@@ -1,4 +1,5 @@
 import { useTagSelectKeyboard } from '@core/composables/tag-select-keyboard.composable.ts'
+import { getFocusedLabel, press } from '@core-test/keyboard.ts'
 import { mountWithSetup } from '@core-test/mount-with-setup.ts'
 import { h, nextTick, ref } from 'vue'
 
@@ -86,20 +87,6 @@ function getElement(label: string) {
 
 function waitForFocusCheck() {
   return new Promise(resolve => setTimeout(resolve))
-}
-
-function getFocusedLabel() {
-  const activeElement = document.activeElement
-
-  return activeElement?.getAttribute('aria-label') ?? activeElement?.textContent
-}
-
-function press(key: string, options: KeyboardEventInit = {}) {
-  const event = new KeyboardEvent('keydown', { key, bubbles: true, cancelable: true, ...options })
-
-  document.activeElement?.dispatchEvent(event)
-
-  return event
 }
 
 describe('Tab', () => {

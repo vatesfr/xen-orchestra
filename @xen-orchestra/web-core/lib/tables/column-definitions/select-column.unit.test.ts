@@ -1,9 +1,14 @@
-import VtsDetailedOption from '@core/components/select/VtsDetailedOption.vue'
 import type { IconName } from '@core/icons'
 import { useFormSelect } from '@core/packages/form-select'
 import { type SelectColumnConfig, useSelectColumn } from '@core/tables/column-definitions/select-column.ts'
 import { mountWithSetup } from '@core-test/mount-with-setup.ts'
-import { findSelectOptionLabels, findShownSelections, openSelect, pickSelectOption } from '@core-test/select.ts'
+import {
+  findDetailedOptions,
+  findSelectOptionLabels,
+  findShownSelections,
+  openSelect,
+  pickSelectOption,
+} from '@core-test/select.ts'
 import { h } from 'vue'
 
 const OPTIONS: { label: string; icon: IconName; details?: string }[] = [
@@ -30,46 +35,37 @@ describe('useSelectColumn', () => {
   it('renders the options by their label without an option icon', async () => {
     const wrapper = await mountOpenSelectCell()
 
-    expect(wrapper.findAllComponents(VtsDetailedOption)).toEqual([])
+    expect(findDetailedOptions(wrapper)).toEqual([])
     expect(findSelectOptionLabels(wrapper)).toEqual(['First', 'Second'])
   })
 
-  it('shows the same icon before every option', async () => {
-    const wrapper = await mountOpenSelectCell({ optionIcon: 'object:network' })
+  it.each([
+    {
+      label: 'shows the same icon before every option',
+      optionIcon: 'object:network',
+      icons: ['object:network', 'object:network'],
+    },
+    {
+      label: 'shows the icon each option is given by the option icon function',
+      optionIcon: option => option.properties.icon,
+      icons: ['fa:plus', 'fa:minus'],
+    },
+    {
+      label: 'shows an option without icon when the option icon function gives none',
+      optionIcon: () => undefined,
+      icons: [undefined, undefined],
+    },
+  ] satisfies { label: string; optionIcon: SelectColumnConfig['optionIcon']; icons: (IconName | undefined)[] }[])(
+    '$label, with the details an option is given after its label',
+    async ({ optionIcon, icons }) => {
+      const wrapper = await mountOpenSelectCell({ optionIcon })
 
-    expect(wrapper.findAllComponents(VtsDetailedOption).map(option => option.props('icon'))).toEqual([
-      'object:network',
-      'object:network',
-    ])
-  })
-
-  it('shows the icon each option is given by the option icon function', async () => {
-    const wrapper = await mountOpenSelectCell({ optionIcon: option => option.properties.icon })
-
-    expect(wrapper.findAllComponents(VtsDetailedOption).map(option => option.props('icon'))).toEqual([
-      'fa:plus',
-      'fa:minus',
-    ])
-  })
-
-  it('shows an option without icon when the option icon function gives none', async () => {
-    const wrapper = await mountOpenSelectCell({ optionIcon: () => undefined })
-
-    expect(wrapper.findAllComponents(VtsDetailedOption).map(option => option.props('icon'))).toEqual([
-      undefined,
-      undefined,
-    ])
-    expect(findSelectOptionLabels(wrapper)).toEqual(['First eth0', 'Second'])
-  })
-
-  it('shows the details an option is given after its label', async () => {
-    const wrapper = await mountOpenSelectCell({ optionIcon: 'object:network' })
-
-    expect(wrapper.findAllComponents(VtsDetailedOption).map(option => option.props('details'))).toEqual([
-      'eth0',
-      undefined,
-    ])
-  })
+      expect(findDetailedOptions(wrapper)).toEqual([
+        { label: 'First', icon: icons[0], iconTooltip: undefined, details: 'eth0' },
+        { label: 'Second', icon: icons[1], iconTooltip: undefined, details: undefined },
+      ])
+    }
+  )
 
   it('selects the option clicked among the options shown with an icon', async () => {
     const wrapper = await mountOpenSelectCell({ optionIcon: 'object:network' })

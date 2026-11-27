@@ -14,8 +14,8 @@ import { mockXoRoutes } from '@/test/mock-xo-routes.ts'
 import { scheduleCollectionMock, mockXoScheduleCollection } from '@/test/mock-xo-schedule-collection.ts'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
-import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiLoader from '@core/components/ui/loader/UiLoader.vue'
+import { findLink } from '@core-test/find-links.ts'
 import { pickSelectOption } from '@core-test/select.ts'
 import type { XoSchedule, XoSr } from '@vates/types'
 import { flushPromises, mount, type VueWrapper } from '@vue/test-utils'
@@ -50,7 +50,7 @@ function setBackupLogs(backupJob: FrontAnyXoBackupJob, statuses: FrontXoBackupLo
 }
 
 function findBackupJobNames(wrapper: VueWrapper) {
-  return wrapper.findAll('tbody tr').map(row => row.getComponent(UiLink).text())
+  return wrapper.findAll('tbody tr').map(row => findLink(row)?.text)
 }
 
 async function openFilter(wrapper: VueWrapper, label: string) {
@@ -80,13 +80,11 @@ function findCell(wrapper: VueWrapper, headerLabel: string) {
 
 describe('backup job', () => {
   it('links the backup job to the XO 5 backup overview, with the backup job icon', () => {
-    const link = findCell(mountTable([createVmBackupJob({ name: 'Nightly backup' })]), t('backup-job')).getComponent(
-      UiLink
-    )
-
-    expect(link.text()).toBe('Nightly backup')
-    expect(link.attributes('href')).toBe('https://xo5.example.com/#/backup/overview')
-    expect(link.props('icon')).toBe('object:backup-job')
+    expect(findLink(findCell(mountTable([createVmBackupJob({ name: 'Nightly backup' })]), t('backup-job')))).toEqual({
+      text: 'Nightly backup',
+      href: 'https://xo5.example.com/#/backup/overview',
+      icon: 'object:backup-job',
+    })
   })
 
   it('names a backup job without name as untitled', () => {

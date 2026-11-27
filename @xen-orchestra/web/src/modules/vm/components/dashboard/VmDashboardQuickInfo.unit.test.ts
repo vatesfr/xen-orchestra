@@ -16,6 +16,7 @@ import { vmCollectionMock, mockXoVmCollection } from '@/test/mock-xo-vm-collecti
 import { vmDeviceCollectionsMock, mockXoVmDeviceCollections } from '@/test/mock-xo-vm-device-collections.ts'
 import { seedVmDisks } from '@/test/seed-vm-disks.ts'
 import { itShowsVmCreator } from '@/test/vm-creator.ts'
+import { findLink, findLinks } from '@core-test/find-links.ts'
 import { VM_POWER_STATE } from '@vates/types'
 import { mount } from '@vue/test-utils'
 
@@ -142,52 +143,51 @@ describe('storages', () => {
     xoCollectionsMock.srs.value = [srA, srB, srC, srIso]
   })
 
-  function createVmWithDisksOn(srIds: FrontXoSr['id'][]) {
-    return createVm({ $VBDs: seedVmDisks(srIds.map(srId => ({ vdi: { $SR: srId } }))) })
+  const onSr = (sr: FrontXoSr) => ({ vdi: { $SR: sr.id } })
+
+  function mountWithDisks(disks: Parameters<typeof seedVmDisks>[0]) {
+    return mountQuickInfo(createVm({ $VBDs: seedVmDisks(disks) }))
   }
 
+  it.each([
+    {
+      label: 'shows the storage without a "+n" link when the disks of the VM are on a single storage',
+      disks: [onSr(srA), onSr(srA)],
+      expected: ['Local SR'],
+    },
+    {
+      label: 'shows the first storage followed by a "+n" link counting the others',
+      disks: [onSr(srA), onSr(srB), onSr(srC)],
+      expected: ['Local SR', t('plus-n', { n: 2 })],
+    },
+    {
+      label: 'lists each storage holding a disk of the VM once, even when it holds several disks',
+      disks: [onSr(srA), onSr(srA), onSr(srB)],
+      expected: ['Local SR', t('plus-n', { n: 1 })],
+    },
+    {
+      label: 'ignores the ISO mounted in a CD drive',
+      disks: [onSr(srA), { vbd: { is_cd_drive: true }, ...onSr(srIso) }],
+      expected: ['Local SR'],
+    },
+  ])('$label', ({ disks, expected }) => {
+    expect(
+      mountWithDisks(disks)
+        .findAll('.storage li')
+        .map(item => item.text())
+    ).toEqual(expected)
+  })
+
   it('links the displayed storage to its page', () => {
-    const hrefs = mountQuickInfo(createVmWithDisksOn([srA.id]))
-      .findAll('.storage li a')
-      .map(link => link.attributes('href'))
+    const links = findLinks(mountWithDisks([onSr(srA)]).get('.storage'))
 
-    expect(hrefs).toEqual(['/sr/sr-a/general'])
-  })
-
-  it('shows the storage without a "+n" link when the disks of the VM are on a single storage', () => {
-    const wrapper = mountQuickInfo(createVmWithDisksOn([srA.id, srA.id]))
-
-    expect(wrapper.findAll('.storage li').map(li => li.text())).toEqual(['Local SR'])
-  })
-
-  it('shows the first storage followed by a "+n" link counting the others', () => {
-    const wrapper = mountQuickInfo(createVmWithDisksOn([srA.id, srB.id, srC.id]))
-
-    expect(wrapper.findAll('.storage li').map(li => li.text())).toEqual(['Local SR', t('plus-n', { n: 2 })])
+    expect(links.map(([, href]) => href)).toEqual(['/sr/sr-a/general'])
   })
 
   it('links the "+n" to the disks of the VM', () => {
-    const href = mountQuickInfo(createVmWithDisksOn([srA.id, srB.id, srC.id]))
-      .get('.storage li:last-child a')
-      .attributes('href')
+    const link = findLink(mountWithDisks([onSr(srA), onSr(srB), onSr(srC)]).get('.storage li:last-child'))
 
-    expect(href).toBe('/vm/vm-123/vdis')
-  })
-
-  it('lists each storage holding a disk of the VM once, even when it holds several disks', () => {
-    const $VBDs = seedVmDisks([{ vdi: { $SR: srA.id } }, { vdi: { $SR: srA.id } }, { vdi: { $SR: srB.id } }])
-
-    const wrapper = mountQuickInfo(createVm({ $VBDs }))
-
-    expect(wrapper.findAll('.storage li').map(li => li.text())).toEqual(['Local SR', t('plus-n', { n: 1 })])
-  })
-
-  it('ignores the ISO mounted in a CD drive', () => {
-    const $VBDs = seedVmDisks([{ vdi: { $SR: srA.id } }, { vbd: { is_cd_drive: true }, vdi: { $SR: srIso.id } }])
-
-    const wrapper = mountQuickInfo(createVm({ $VBDs }))
-
-    expect(wrapper.findAll('.storage li').map(li => li.text())).toEqual(['Local SR'])
+    expect(link?.href).toBe('/vm/vm-123/vdis')
   })
 
   it('falls back to "None" when the VM has no disk', () => {

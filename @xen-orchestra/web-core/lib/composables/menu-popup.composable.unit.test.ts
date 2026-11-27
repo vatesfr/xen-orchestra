@@ -1,5 +1,6 @@
 import { useMenuPopup } from '@core/composables/menu-popup.composable.ts'
 import { useOverlayStore } from '@core/packages/overlay/use-overlay-store.ts'
+import { press } from '@core-test/keyboard.ts'
 import { mountWithSetupResult } from '@core-test/mount-with-setup.ts'
 import { h, nextTick, ref, useTemplateRef } from 'vue'
 
@@ -40,14 +41,6 @@ async function mountOpenPopup(options: PopupOptions = {}) {
   return { wrapper, onClosed, isOpen, popup }
 }
 
-function pressEscape() {
-  const event = new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true })
-
-  window.dispatchEvent(event)
-
-  return event
-}
-
 function registerModal() {
   useOverlayStore().register({
     key: Symbol('modal'),
@@ -70,7 +63,7 @@ describe('useMenuPopup', () => {
   it('closes on Escape and gives the focus back to its anchor', async () => {
     const { wrapper, onClosed, isOpen } = await mountOpenPopup()
 
-    const event = pressEscape()
+    const event = press('Escape', { target: window })
     await nextTick()
 
     expect(isOpen.value).toBe(false)
@@ -82,7 +75,7 @@ describe('useMenuPopup', () => {
   it('leaves Escape to its open submenu', async () => {
     const { isOpen } = await mountOpenPopup({ hasOpenSubmenu: true })
 
-    pressEscape()
+    press('Escape', { target: window })
     await nextTick()
 
     expect(isOpen.value).toBe(true)
@@ -93,7 +86,7 @@ describe('useMenuPopup', () => {
 
     registerModal()
 
-    const event = pressEscape()
+    const event = press('Escape', { target: window })
     await nextTick()
 
     expect(isOpen.value).toBe(true)

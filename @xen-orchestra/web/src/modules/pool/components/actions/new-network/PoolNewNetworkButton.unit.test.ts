@@ -4,7 +4,7 @@ import { createJobStub } from '@/test/create-job-result.ts'
 import { createPool } from '@/test/create-pool.ts'
 import { t } from '@/test/i18n.ts'
 import { itRunsJobFromButton } from '@/test/job-button.ts'
-import MenuTrigger from '@core/components/menu/MenuTrigger.vue'
+import { getMenuTrigger } from '@core-test/menu.ts'
 
 // The composable runs the creation job, which calls the REST API
 const newNetwork = createJobStub(useNewNetwork, result => ({
@@ -15,7 +15,7 @@ const newNetwork = createJobStub(useNewNetwork, result => ({
 itRunsJobFromButton(PoolNewNetworkButton, {
   targetProp: 'pool',
   createTarget: createPool,
-  getButton: wrapper => wrapper.getComponent(MenuTrigger),
+  getButton: getMenuTrigger,
   job: newNetwork,
   offer: { label: t('action:create-network'), icon: 'fa:plus' },
   // The composable receives the pool as a getter

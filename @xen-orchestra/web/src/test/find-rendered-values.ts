@@ -1,6 +1,5 @@
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
-import UiLink from '@core/components/ui/link/UiLink.vue'
-import { findLinks } from '@core-test/find-links.ts'
+import { findLink, findLinks } from '@core-test/find-links.ts'
 import type { VueWrapper } from '@vue/test-utils'
 
 type QueryableWrapper = Pick<VueWrapper, 'findAll'>
@@ -65,7 +64,7 @@ export function findCardRows(wrapper: QueryableWrapper): [string, string][] {
 }
 
 // The `VtsCardRowKeyValue` row labelled `label`, to query what it holds (a link, a copy button); throws without one
-export function getCardRow(wrapper: QueryableWrapper, label: string) {
+function getCardRow(wrapper: QueryableWrapper, label: string) {
   const row = wrapper.findAll(CARD_ROW.root).find(row => readCardRowLabel(row) === label)
 
   if (row === undefined) {
@@ -75,9 +74,9 @@ export function getCardRow(wrapper: QueryableWrapper, label: string) {
   return row
 }
 
-// The link the `VtsCardRowKeyValue` row labelled `label` holds; throws without one
-export function getCardRowLink(wrapper: QueryableWrapper, label: string) {
-  return getCardRow(wrapper, label).getComponent(UiLink)
+// The link the `VtsCardRowKeyValue` row labelled `label` holds, `undefined` without one; throws without the row
+export function findCardRowLink(wrapper: QueryableWrapper, label: string) {
+  return findLink(getCardRow(wrapper, label))
 }
 
 // Every `VtsCardRowKeyValue` row as its key and value elements, to read what they hold beyond their text

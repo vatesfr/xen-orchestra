@@ -6,7 +6,7 @@ import { createV2vMigratedVm } from '@/test/create-v2v-launch.ts'
 import { getCheckbox } from '@/test/get-checkbox.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
-import UiLink from '@core/components/ui/link/UiLink.vue'
+import { findLink } from '@core-test/find-links.ts'
 import { mount } from '@vue/test-utils'
 
 const DESTINATION_POOL_NAME = 'diskor'
@@ -51,10 +51,7 @@ it('tells where the VM is without its cutover date once unknown', () => {
 it('links to the dashboard of the existing VM', () => {
   const vm = createV2vMigratedVm()
 
-  expect(mountItem(vm).getComponent(UiLink).props('to')).toEqual({
-    name: '/vm/[id]/dashboard',
-    params: { id: vm.importVm.id },
-  })
+  expect(findLink(mountItem(vm))?.href).toBe(`/vm/${vm.importVm.id}/dashboard`)
 })
 
 it.each([false, true])('offers a second copy of the VM, confirmed: %s', isConfirmed => {

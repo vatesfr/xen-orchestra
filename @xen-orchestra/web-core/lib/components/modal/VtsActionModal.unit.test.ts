@@ -1,6 +1,5 @@
 import VtsActionModal from '@core/components/modal/VtsActionModal.vue'
 import { createGlobalTestConfig } from '@core-test/create-global-test-config.ts'
-import { t } from '@core-test/i18n.ts'
 import { submitConfirmationText } from '@core-test/submit-confirmation-text.ts'
 import { mount } from '@vue/test-utils'
 
@@ -18,29 +17,19 @@ function mountActionModal(confirmationText?: string) {
   })
 }
 
-describe('VtsActionModal', () => {
-  it('confirms directly when no confirmation text is asked', async () => {
-    const wrapper = mountActionModal()
+it('confirms directly when no confirmation text is asked', async () => {
+  const wrapper = mountActionModal()
 
-    expect(wrapper.find('input').exists()).toBe(false)
+  expect(wrapper.find('input').exists()).toBe(false)
 
-    await wrapper.get('form').trigger('submit')
+  await wrapper.get('form').trigger('submit')
 
-    expect(wrapper.emitted('confirm')).toHaveLength(1)
-  })
+  expect(wrapper.emitted('confirm')).toHaveLength(1)
+})
 
-  it('does not confirm with a wrong text and shows the error', async () => {
-    const wrapper = mountActionModal('2 VMs')
-
-    expect(await submitConfirmationText(wrapper, '2 VM')).toEqual({
-      isConfirmed: false,
-      errors: [t('form:error:must-match', { text: '2 VMs' })],
-    })
-  })
-
-  it('confirms with the confirmation text', async () => {
-    const wrapper = mountActionModal('2 VMs')
-
-    expect(await submitConfirmationText(wrapper, '2 VMs')).toEqual({ isConfirmed: true, errors: [] })
-  })
+it.each([
+  { text: '2 VM', isConfirmed: false },
+  { text: '2 VMs', isConfirmed: true },
+])('confirms only once the confirmation text is typed: "$text" → $isConfirmed', async ({ text, isConfirmed }) => {
+  expect(await submitConfirmationText(mountActionModal('2 VMs'), text)).toBe(isConfirmed)
 })

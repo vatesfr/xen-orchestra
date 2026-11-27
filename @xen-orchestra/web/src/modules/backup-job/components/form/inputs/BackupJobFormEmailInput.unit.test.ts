@@ -2,6 +2,7 @@ import BackupJobFormEmailInput from '@/modules/backup-job/components/form/inputs
 import { getButton } from '@/test/get-button.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
+import { findInfoLabels } from '@core-test/find-accented-labels.ts'
 import { mount, type VueWrapper } from '@vue/test-utils'
 
 function mountEmailInput(modelValue: string[] = []) {
@@ -9,10 +10,6 @@ function mountEmailInput(modelValue: string[] = []) {
     props: { label: 'Report recipients', modelValue },
     global: createGlobalTestConfig(),
   })
-}
-
-function findMessages(wrapper: VueWrapper) {
-  return wrapper.findAll('.ui-info').map(message => message.text())
 }
 
 async function addEmail(wrapper: VueWrapper, email: string) {
@@ -61,7 +58,7 @@ it.each([
   await addEmail(wrapper, email)
 
   expect(wrapper.emitted('update:modelValue')).toBeUndefined()
-  expect(findMessages(wrapper)).toEqual([t(errorKey)])
+  expect(findInfoLabels(wrapper)).toEqual([t(errorKey)])
 })
 
 it('clears the error once a valid email address is added', async () => {
@@ -70,7 +67,7 @@ it('clears the error once a valid email address is added', async () => {
 
   await addEmail(wrapper, 'ops@example.com')
 
-  expect(findMessages(wrapper)).toEqual([])
+  expect(findInfoLabels(wrapper)).toEqual([])
 })
 
 it('removes a recipient', async () => {

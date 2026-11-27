@@ -1,6 +1,7 @@
 import VmGuestToolsStatus from '@/modules/vm/components/VmGuestToolsStatus.vue'
 import type { GuestToolsDisplay } from '@/modules/vm/composables/xo-vm-utils.composable.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
+import { findLink } from '@core-test/find-links.ts'
 import { mount } from '@vue/test-utils'
 
 function mountGuestToolsStatus(guestToolsDisplay: GuestToolsDisplay) {
@@ -25,10 +26,10 @@ it('links to the guest tools documentation when they are missing', () => {
     tooltip: 'No Xen tools detected',
   })
 
-  const link = wrapper.get('a')
-
-  expect(link.text()).toBe('Install guest tools')
-  expect(link.attributes('href')).toBe('https://docs.xcp-ng.org/vms/#guest-tools')
+  expect(findLink(wrapper)).toMatchObject({
+    text: 'Install guest tools',
+    href: 'https://docs.xcp-ng.org/vms/#guest-tools',
+  })
 })
 
 it('shows the guest tools version as plain text when they are installed', () => {
@@ -40,7 +41,7 @@ it('shows the guest tools version as plain text when they are installed', () => 
   })
 
   expect(wrapper.text()).toBe('7.5.0')
-  expect(wrapper.find('a').exists()).toBe(false)
+  expect(findLink(wrapper)).toBeUndefined()
   expect(wrapper.find('.vts-icon').exists()).toBe(true)
 })
 

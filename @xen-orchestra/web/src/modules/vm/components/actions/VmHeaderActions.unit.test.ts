@@ -7,7 +7,6 @@ import {
   findMenuEntries,
   findMenuEntryIndex,
   itMeasuresAgainOnPowerStateChange,
-  openMoreActions,
 } from '@/test/head-bar-actions.ts'
 import { t } from '@/test/i18n.ts'
 import { collapseOnOverflowMock, mockCollapseOnOverflow } from '@/test/mock-collapse-on-overflow.ts'
@@ -15,6 +14,7 @@ import { xoCollectionsMock, mockXoCollections } from '@/test/mock-xo-collections
 import { mockXoRoutes } from '@/test/mock-xo-routes.ts'
 import { taskCollectionMock, mockXoTaskCollection } from '@/test/mock-xo-task-collection.ts'
 import UiDropdownButton from '@core/components/ui/dropdown-button/UiDropdownButton.vue'
+import { openMoreActions } from '@core-test/menu.ts'
 import { VM_POWER_STATE } from '@vates/types'
 import { mount } from '@vue/test-utils'
 

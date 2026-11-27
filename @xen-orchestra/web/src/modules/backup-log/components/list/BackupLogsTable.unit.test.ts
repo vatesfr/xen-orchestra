@@ -11,8 +11,8 @@ import { xoCollectionsMock, mockXoCollections } from '@/test/mock-xo-collections
 import { mockXoRoutes } from '@/test/mock-xo-routes.ts'
 import { vmCollectionMock, mockXoVmCollection } from '@/test/mock-xo-vm-collection.ts'
 import { mockModule } from '@/test/spy-on-module.ts'
-import UiLink from '@core/components/ui/link/UiLink.vue'
 import { objectIcon } from '@core/icons'
+import { findLink, findLinks } from '@core-test/find-links.ts'
 import { mount } from '@vue/test-utils'
 
 const getBackupJobById = vi.fn()
@@ -61,25 +61,23 @@ describe('VM', () => {
         })
       )
     )
-    const vmLink = vmCell.getComponent(UiLink)
 
-    expect(vmLink.text()).toBe('Alpha VM')
-    expect(vmLink.attributes('href')).toBe('/vm/vm-1/dashboard')
-    expect(vmLink.props('icon')).toBe(objectIcon('vm', 'running'))
+    expect(findLink(vmCell)).toEqual({
+      text: 'Alpha VM',
+      href: '/vm/vm-1/dashboard',
+      icon: objectIcon('vm', 'running'),
+    })
     expect(vmCell.get('.extra-count').text()).toBe('+2')
   })
 
-  it('shows a VM not found for an unknown VM', () => {
-    const vmCell = findVmCell(mountTable(createBackupLog({ tasks: [createBackupLogVmTask('vm-1')] })))
+  it.each([
+    { label: 'an unknown VM', tasks: [createBackupLogVmTask('vm-1')] },
+    { label: 'a log of a VM backup without VM', tasks: [] },
+  ])('shows a VM not found, without link, for $label', ({ tasks }) => {
+    const vmCell = findVmCell(mountTable(createBackupLog({ tasks })))
 
     expect(vmCell.text()).toBe(t('vm-not-found'))
-    expect(vmCell.find('a').exists()).toBe(false)
-  })
-
-  it('shows a VM not found for a log of a VM backup without VM', () => {
-    const vmCell = findVmCell(mountTable(createBackupLog({ tasks: [] })))
-
-    expect(vmCell.text()).toBe(t('vm-not-found'))
+    expect(findLinks(vmCell, 'a')).toEqual([])
   })
 
   it('leaves the VM empty for a log of a job without VM', () => {

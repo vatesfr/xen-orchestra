@@ -2,6 +2,7 @@ import BackupJobFormQueryInput from '@/modules/backup-job/components/form/inputs
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { useQueryBuilderSchema } from '@core/packages/query-builder/schema/use-query-builder-schema.ts'
 import { useStringSchema } from '@core/utils/query-builder/use-string-schema.ts'
+import { findInfoLabels } from '@core-test/find-accented-labels.ts'
 import { mount, type VueWrapper } from '@vue/test-utils'
 import { defineComponent, h, ref } from 'vue'
 
@@ -75,5 +76,5 @@ it('shows the error', () => {
     global: createGlobalTestConfig(),
   })
 
-  expect(wrapper.findAll('.ui-info').map(message => message.text())).toEqual(['Query is mandatory.'])
+  expect(findInfoLabels(wrapper)).toEqual(['Query is mandatory.'])
 })

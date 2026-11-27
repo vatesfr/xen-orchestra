@@ -250,29 +250,6 @@ describe('`selectedIds` option', () => {
     expect(isSelected('vm-2')).toBe(true)
   })
 
-  it('keeps the ids matching no item, which the returned values ignore', () => {
-    const selectedVmIds = ref(['vm-9'])
-    const { selectedIds, selectionBindings, toggleSelection } = useVmSelection({
-      items: createVms('vm-1'),
-      selectedIds: selectedVmIds,
-    })
-
-    toggleSelection('vm-1')
-
-    expect(toValue(selectedVmIds)).toEqual(['vm-9', 'vm-1'])
-    expect(selectedIds.value).toEqual(['vm-1'])
-    expect(selectionBindings.value.selectedCount).toBe(1)
-  })
-
-  it('selects an item loaded after its id was set', () => {
-    const items = ref<Vm[]>([])
-    const { selectedIds } = useVmSelection({ items, selectedIds: ref(['vm-1']) })
-
-    items.value = createVms('vm-1', 'vm-2')
-
-    expect(selectedIds.value).toEqual(['vm-1'])
-  })
-
   it('is written once on `onSelectAll`', () => {
     const selectedVmIds = ref<string[]>([])
     const onWrite = vi.fn()

@@ -17,6 +17,11 @@ export function findAccentedInfos(wrapper: AccentedComponents) {
   return findAccentedLabels(wrapper, UiInfo)
 }
 
+// The id of each `UiInfo`, the one a field points to with `aria-describedby`
+export function findInfoIds(wrapper: AccentedComponents) {
+  return wrapper.findAllComponents(UiInfo).map(info => info.attributes('id'))
+}
+
 // The messages of the `UiInfo`s alone, when their accent is not what the test checks
 export function findInfoLabels(wrapper: AccentedComponents) {
   return findAccentedInfos(wrapper).map(({ label }) => label)

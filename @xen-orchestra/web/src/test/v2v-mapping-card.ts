@@ -1,9 +1,9 @@
 import { DISKOR_POOL_NAME } from '@/test/create-pool.ts'
 import { findPanelCardTitleLabels } from '@/test/find-card-title.ts'
 import { findCardLabelledValues } from '@/test/find-rendered-values.ts'
-import { findStateHeroTypes } from '@/test/find-state-hero-types.ts'
 import { t } from '@/test/i18n.ts'
 import VtsDivider from '@core/components/divider/VtsDivider.vue'
+import { findStateHeroTypes } from '@core-test/find-state-hero-types.ts'
 import type { VueWrapper } from '@vue/test-utils'
 
 type V2vMappingCardLayoutCase = {

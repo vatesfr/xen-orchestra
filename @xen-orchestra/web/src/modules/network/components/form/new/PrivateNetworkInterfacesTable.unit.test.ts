@@ -9,10 +9,9 @@ import { getUiButton } from '@/test/get-button.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { xoCollectionsMock, mockXoCollections } from '@/test/mock-xo-collections.ts'
-import VtsDetailedOption from '@core/components/select/VtsDetailedOption.vue'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import { findAccentedInfos } from '@core-test/find-accented-labels.ts'
-import { openSelect } from '@core-test/select.ts'
+import { findDetailedOptions, openSelect } from '@core-test/select.ts'
 import { mount } from '@vue/test-utils'
 import { reactive } from 'vue'
 
@@ -75,12 +74,7 @@ describe('pif', () => {
 
     await openSelect(findTableColumnCells(wrapper, t('pif'))[0])
 
-    expect(
-      wrapper.findAllComponents(VtsDetailedOption).map(option => ({
-        icon: option.props('icon'),
-        details: option.props('details'),
-      }))
-    ).toEqual([
+    expect(findDetailedOptions(wrapper)).toMatchObject([
       { icon: 'object:network', details: 'eth0' },
       { icon: 'object:network', details: t('pif-device-vlan', { device: 'eth0', vlan: 10 }) },
     ])

@@ -12,3 +12,14 @@ export function findLinks(
 
   return links.map(link => [link.text(), link.attributes('href')])
 }
+
+// The first `UiLink` of a wrapper as its text, href and icon, `undefined` without one
+export function findLink(wrapper: Pick<VueWrapper, 'findComponent'>) {
+  const link = wrapper.findComponent(UiLink)
+
+  if (!link.exists()) {
+    return undefined
+  }
+
+  return { text: link.text(), href: link.attributes('href'), icon: link.props('icon') }
+}

@@ -1,6 +1,8 @@
 import BackupJobFormTextInput from '@/modules/backup-job/components/form/inputs/BackupJobFormTextInput.vue'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
-import { mount, type VueWrapper } from '@vue/test-utils'
+import { blurField, setFieldValue } from '@core-test/field-events.ts'
+import { findInfoLabels } from '@core-test/find-accented-labels.ts'
+import { mount } from '@vue/test-utils'
 
 type TextInputProps = InstanceType<typeof BackupJobFormTextInput>['$props']
 
@@ -11,22 +13,18 @@ function mountTextInput(props: Partial<TextInputProps> = {}) {
   })
 }
 
-function findMessages(wrapper: VueWrapper) {
-  return wrapper.findAll('.ui-info').map(message => message.text())
-}
-
 it('shows its label', () => {
   expect(mountTextInput().get('.ui-label').text()).toContain('Name')
 })
 
 it('shows no message without warning nor error', () => {
-  expect(findMessages(mountTextInput())).toEqual([])
+  expect(findInfoLabels(mountTextInput())).toEqual([])
 })
 
 it('shows the error', () => {
   const wrapper = mountTextInput({ error: { content: 'Name is required.', accent: 'danger' } })
 
-  expect(findMessages(wrapper)).toEqual(['Name is required.'])
+  expect(findInfoLabels(wrapper)).toEqual(['Name is required.'])
 })
 
 it('shows the warning along with the error', () => {
@@ -35,21 +33,13 @@ it('shows the warning along with the error', () => {
     error: { content: 'Name is required.', accent: 'danger' },
   })
 
-  expect(findMessages(wrapper)).toEqual(expect.arrayContaining(['This name is already used', 'Name is required.']))
+  expect(findInfoLabels(wrapper)).toEqual(expect.arrayContaining(['This name is already used', 'Name is required.']))
 })
 
 it('updates its model with the typed value', async () => {
-  const wrapper = mountTextInput()
-
-  await wrapper.get('input').setValue('Daily backup')
-
-  expect(wrapper.emitted('update:modelValue')).toEqual([['Daily backup']])
+  expect(await setFieldValue(mountTextInput(), 'input', 'Daily backup')).toEqual([['Daily backup']])
 })
 
 it('reports that the input lost the focus', async () => {
-  const wrapper = mountTextInput()
-
-  await wrapper.get('input').trigger('blur')
-
-  expect(wrapper.emitted('blur')).toHaveLength(1)
+  expect(await blurField(mountTextInput(), 'input')).toHaveLength(1)
 })

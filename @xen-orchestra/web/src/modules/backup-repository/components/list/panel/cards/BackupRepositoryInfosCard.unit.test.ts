@@ -2,11 +2,10 @@ import BackupRepositoryInfosCard from '@/modules/backup-repository/components/li
 import type { FrontXoBackupRepository } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
 import { itShowsBrGeneralInfo } from '@/test/br-general-info.ts'
 import { createBr } from '@/test/create-br.ts'
-import { findPanelCardTitle } from '@/test/find-card-title.ts'
+import { findPanelCardTitle, findPanelCardTitleLink } from '@/test/find-card-title.ts'
 import { findCardCopiedValues, findCardRowLabels } from '@/test/find-rendered-values.ts'
 import { t } from '@/test/i18n.ts'
 import { mockXoProxyCollection } from '@/test/mock-xo-proxy-collection.ts'
-import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiPanelCardTitle from '@core/components/ui/panel-card-title/UiPanelCardTitle.vue'
 import { objectIcon } from '@core/icons'
 
@@ -35,10 +34,7 @@ it('renders the name and the id of the repository as the card title', () => {
 it('links the title to the backup repository page', () => {
   const wrapper = mountCard(createBr({ id: 'br-42' as FrontXoBackupRepository['id'] }))
 
-  expect(wrapper.findComponent(UiPanelCardTitle).findComponent(UiLink).props('to')).toEqual({
-    name: '/admin/backup-repository/[id]/general',
-    params: { id: 'br-42' },
-  })
+  expect(findPanelCardTitleLink(wrapper)?.href).toBe('/admin/backup-repository/br-42/general')
 })
 
 it('picks the title icon from the status of the repository', () => {
