@@ -20,6 +20,7 @@ import type { Readable } from 'node:stream'
 import { json, type Request as ExRequest } from 'express'
 import { noSuchObject } from 'xo-common/api-errors.js'
 import type {
+  AnyXoBackupArchive,
   BackupArchiveDiskMount,
   XoBackupDiskPartition,
   XoBackupRepository,
@@ -51,7 +52,7 @@ import {
 } from '../open-api/oa-examples/backup-archive.oa-example.mjs'
 import { taskLocation } from '../open-api/oa-examples/task.oa-example.mjs'
 import { SendObjects } from '../helpers/helper.type.mjs'
-import { BackupArchiveService } from './backup-archive.service.mjs'
+import { BACKUP_ARCHIVE_TYPES, BackupArchiveService, type BackupArchiveType } from './backup-archive.service.mjs'
 import type { MountLiveDiskBody } from './backup-archive.type.mjs'
 import { acl, autoBindService } from '../middlewares/acl.middleware.mjs'
 
@@ -67,7 +68,7 @@ const DOWNLOAD_CONTENT_TYPES = {
 @Response(unauthorizedResp.status, unauthorizedResp.description)
 @Tags('backup-archives')
 @provide(BackupArchiveController)
-export class BackupArchiveController extends XoController<XoVmBackupArchive> {
+export class BackupArchiveController extends XoController<AnyXoBackupArchive> {
   #backupArchiveService: BackupArchiveService
 
   constructor(
@@ -80,7 +81,11 @@ export class BackupArchiveController extends XoController<XoVmBackupArchive> {
 
   async getAllCollectionObjects({
     backupRepositories = [],
-  }: { backupRepositories?: (XoBackupRepository['id'] | '*')[] } = {}): Promise<XoVmBackupArchive[]> {
+    types = BACKUP_ARCHIVE_TYPES,
+  }: {
+    backupRepositories?: (XoBackupRepository['id'] | '*')[]
+    types?: readonly BackupArchiveType[]
+  } = {}): Promise<AnyXoBackupArchive[]> {
     const backupRepositoryIds: XoBackupRepository['id'][] = []
 
     if (backupRepositories.includes('*')) {
@@ -93,16 +98,10 @@ export class BackupArchiveController extends XoController<XoVmBackupArchive> {
       }
     }
 
-    const backupArchivesByRemote = await this.restApi.xoApp.listVmBackupsNg(backupRepositoryIds)
-    const vmBackupArchives = Object.values(backupArchivesByRemote)
-      .filter(backupsByVm => backupsByVm !== null)
-      .map(backupsByVm => Object.values(backupsByVm))
-      .flat(2)
-
-    return vmBackupArchives
+    return this.#backupArchiveService.listBackupArchives(backupRepositoryIds, types)
   }
 
-  getCollectionObject(id: XoVmBackupArchive['id']): Promise<XoVmBackupArchive> {
+  getCollectionObject(id: AnyXoBackupArchive['id']): Promise<AnyXoBackupArchive> {
     return this.#backupArchiveService.getBackupArchive(id)
   }
 
@@ -112,9 +111,21 @@ export class BackupArchiveController extends XoController<XoVmBackupArchive> {
    *
    * You can use the alias "*" in "backup-repository" to select all backup repositories.
    *
+   * Archives of every type (`xo-vm-backup`, `xo-config-backup` and `xo-pool-metadata-backup`) are returned
+   * unless "type" restricts them. Only the requested types are read from the backup repositories.
+   *
+   * The fields depend on the type, and "filter" drops every archive that does not have the field it tests:
+   * - all types: `id`, `type`, `backupRepository`, `jobId`, `scheduleId`, `timestamp`
+   *   (e.g. `timestamp:>1735689600000`, `jobId:<job id>`)
+   * - `xo-vm-backup` only: `vm`, `disks`, `mode`, `size`, `withMemory`, `isImmutable`
+   *   (e.g. `disks:length:>0` for archives with at least one disk, `mode:delta`, `vm:uuid:<VM uuid>`)
+   * - `xo-config-backup` and `xo-pool-metadata-backup` only: `jobName`, `scheduleName`
+   * - `xo-pool-metadata-backup` only: `pool`, `poolMaster` (e.g. `pool:uuid:<pool uuid>`)
+   *
    * @example backupRepositories ["c4284e12-37c9-7967-b9e8-83ef229c3e03", "1af95910-01b4-4e87-9c2f-d895cafe0776"]
-   * @example fields "id,backupRepository,disks"
-   * @example filter "disks:length:>0"
+   * @example types ["xo-vm-backup", "xo-config-backup"]
+   * @example fields "id,type,backupRepository,timestamp"
+   * @example filter "timestamp:>1735689600000"
    * @example limit 42
    */
   @Example(backupArchiveIds)
@@ -126,13 +137,14 @@ export class BackupArchiveController extends XoController<XoVmBackupArchive> {
   async getBackupArchives(
     @Request() req: ExRequest,
     @Query('backup-repository') backupRepositories?: string[],
+    @Query('type') types?: BackupArchiveType[],
     @Query() fields?: string,
     @Query() ndjson?: boolean,
     @Query() markdown?: boolean,
     @Query() filter?: string,
     @Query() limit?: number
-  ): SendObjects<Partial<Unbrand<XoVmBackupArchive>>> {
-    const backupArchives = await this.getObjects({ backupRepositories, filter })
+  ): SendObjects<Partial<Unbrand<AnyXoBackupArchive>>> {
+    const backupArchives = await this.getObjects({ backupRepositories, types, filter })
     return this.sendObjects(Object.values(backupArchives), req, {
       limit,
       privilege: { action: 'read', resource: 'backup-archive' },
@@ -158,8 +170,8 @@ export class BackupArchiveController extends XoController<XoVmBackupArchive> {
   )
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
-  async getBackupArchive(@Path() id: string): Promise<Unbrand<XoVmBackupArchive>> {
-    const backupArchive = await this.getObject(id as XoVmBackupArchive['id'])
+  async getBackupArchive(@Path() id: string): Promise<Unbrand<AnyXoBackupArchive>> {
+    const backupArchive = await this.getObject(id as AnyXoBackupArchive['id'])
     return backupArchive
   }
 
@@ -269,7 +281,7 @@ export class BackupArchiveController extends XoController<XoVmBackupArchive> {
       resource: 'backup-archive',
       actions: ['mount', 'read'],
       objectId: 'params.id',
-      getObject: autoBindService(BackupArchiveService, 'getBackupArchive'),
+      getObject: autoBindService(BackupArchiveService, 'getVmBackupArchive'),
     })
   )
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
@@ -305,7 +317,7 @@ export class BackupArchiveController extends XoController<XoVmBackupArchive> {
       resource: 'backup-archive',
       actions: ['mount', 'read', 'export'],
       objectId: 'params.id',
-      getObject: autoBindService(BackupArchiveService, 'getBackupArchive'),
+      getObject: autoBindService(BackupArchiveService, 'getVmBackupArchive'),
     })
   )
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
@@ -354,7 +366,7 @@ export class BackupArchiveController extends XoController<XoVmBackupArchive> {
       resource: 'backup-archive',
       actions: ['mount', 'read'],
       objectId: 'params.id',
-      getObject: autoBindService(BackupArchiveService, 'getBackupArchive'),
+      getObject: autoBindService(BackupArchiveService, 'getVmBackupArchive'),
     })
   )
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
@@ -399,7 +411,7 @@ export class BackupArchiveController extends XoController<XoVmBackupArchive> {
       resource: 'backup-archive',
       actions: ['mount', 'read', 'export'],
       objectId: 'params.id',
-      getObject: autoBindService(BackupArchiveService, 'getBackupArchive'),
+      getObject: autoBindService(BackupArchiveService, 'getVmBackupArchive'),
     })
   )
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
@@ -445,7 +457,7 @@ export class BackupArchiveController extends XoController<XoVmBackupArchive> {
       resource: 'backup-archive',
       actions: ['mount', 'read'],
       objectId: 'params.id',
-      getObject: autoBindService(BackupArchiveService, 'getBackupArchive'),
+      getObject: autoBindService(BackupArchiveService, 'getVmBackupArchive'),
     })
   )
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
