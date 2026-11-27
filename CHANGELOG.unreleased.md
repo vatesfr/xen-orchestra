@@ -16,7 +16,7 @@
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
 
-- [XO5/Backup] The backup job list no longer crashes on metadata jobs created in XO 6 with all or dynamically selected pools, and shows the modes of jobs targeting all or dynamically selected repositories
+- [XO5/Backup] The backup job list no longer crashes on metadata jobs created in XO 6 with all or dynamically selected pools, and shows the modes of jobs targeting all or dynamically selected repositories (PR [#10933](https://github.com/vatesfr/xen-orchestra/pull/10933))
 
 ### Packages to release
 
