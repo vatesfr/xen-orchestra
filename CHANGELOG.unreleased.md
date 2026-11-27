@@ -13,6 +13,8 @@
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
 
+- [Backup/Merge worker] Fix the merge worker exiting with `ENOENT` when a queued task has already been removed (Issue [#10763](https://github.com/vatesfr/xen-orchestra/issues/10763))
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
