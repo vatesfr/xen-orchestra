@@ -28,22 +28,24 @@ export const HOLD_LOADING = {
 
 /**
  * Registers the tests of a ready flag: true once every collection it waits for is loaded, false while each one still
- * loads, held after the mount. `mountReady` mounts the code under test and returns a reader of the flag; `collections`
- * are the collections it waits for, each with its name in the test names.
+ * loads, held after the mount. With `busy`, the tests of a busy flag instead: the other way round. `mountFlag` mounts
+ * the code under test and returns a reader of the flag; `collections` are the collections it waits for, each with its
+ * name in the test names.
  */
 export function itIsReadyOnceLoaded(
-  mountReady: () => () => boolean,
-  collections: [name: string, collection: keyof typeof HOLD_LOADING][]
+  mountFlag: () => (() => boolean) | Promise<() => boolean>,
+  collections: [name: string, collection: keyof typeof HOLD_LOADING][],
+  { busy = false } = {}
 ) {
-  it('is true once every collection it waits for is loaded', () => {
-    expect(mountReady()()).toBe(true)
+  it(`is ${!busy} once every collection it waits for is loaded`, async () => {
+    expect((await mountFlag())()).toBe(!busy)
   })
 
-  it.each(collections)('is false while %s load', (_, collection) => {
-    const isReady = mountReady()
+  it.each(collections)(`is ${busy} while %s load`, async (_, collection) => {
+    const readFlag = await mountFlag()
 
     HOLD_LOADING[collection]()
 
-    expect(isReady()).toBe(false)
+    expect(readFlag()).toBe(busy)
   })
 }

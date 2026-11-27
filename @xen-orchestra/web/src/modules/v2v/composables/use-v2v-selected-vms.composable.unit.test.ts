@@ -13,7 +13,7 @@ import {
 } from '@/test/create-v2v-migration-list.ts'
 import { createV2vListPair } from '@/test/create-v2v-selected-vms.ts'
 import { getV2vVmIds } from '@/test/create-v2v-vm-row.ts'
-import { HOLD_LOADING } from '@/test/hold-loading.ts'
+import { itIsReadyOnceLoaded } from '@/test/hold-loading.ts'
 import { deleteModalMock, mockDeleteModal } from '@/test/mock-delete-modal.ts'
 import { xoCollectionsMock, mockXoCollections } from '@/test/mock-xo-collections.ts'
 import { v2vVmRowsCollectionsMock, mockXoV2vVmRowsCollections } from '@/test/mock-xo-v2v-vm-rows-collections.ts'
@@ -240,28 +240,24 @@ describe('count', () => {
 })
 
 describe('isBusy', () => {
-  it('is false once the rows are ready', async () => {
-    const { result } = await mountSelectedVms()
-
-    expect(result.isBusy).toBe(false)
-  })
-
   // The targets of the pool too: still loading, a target would read as gone from the pool, and the mapping of every
   // VM would read incomplete
-  it.each([
-    ['the XO VMs', HOLD_LOADING.VMs],
-    ['the XO tasks', HOLD_LOADING.tasks],
-    ['the XO snapshots', HOLD_LOADING.snapshots],
-    ['the SRs of the pool', HOLD_LOADING.SRs],
-    ['the networks of the pool', HOLD_LOADING.networks],
-    ['the templates of the pool', HOLD_LOADING.templates],
-  ])('is true while %s load', async (_, holdLoading) => {
-    holdLoading()
+  itIsReadyOnceLoaded(
+    async () => {
+      const { result } = await mountSelectedVms()
 
-    const { result } = await mountSelectedVms()
-
-    expect(result.isBusy).toBe(true)
-  })
+      return () => result.isBusy
+    },
+    [
+      ['the XO VMs', 'VMs'],
+      ['the XO tasks', 'tasks'],
+      ['the XO snapshots', 'snapshots'],
+      ['the SRs of the pool', 'SRs'],
+      ['the networks of the pool', 'networks'],
+      ['the templates of the pool', 'templates'],
+    ],
+    { busy: true }
+  )
 })
 
 describe('vms', () => {
