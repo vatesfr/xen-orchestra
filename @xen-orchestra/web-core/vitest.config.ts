@@ -19,6 +19,8 @@ export default defineConfig({
   test: {
     globals: true,
     setupFiles: ['./test/setup.ts'],
+    // From Node 25, the `localStorage` of Node hides the one of happy-dom, and is undefined in the tests
+    execArgv: ['--no-experimental-webstorage'],
     alias: {
       // `placement.js` only declares a `module` entry, which the Node-style resolution used by Vitest ignores
       'placement.js': fileURLToPath(new URL('../../node_modules/placement.js/dist/index.es.js', import.meta.url)),
