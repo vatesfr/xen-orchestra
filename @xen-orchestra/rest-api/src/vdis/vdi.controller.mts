@@ -33,7 +33,6 @@ import type {
 } from '@vates/types'
 
 import { SUPPORTED_ACTIONS_BY_RESOURCE, type SupportedActions } from '@xen-orchestra/acl'
-import { invalidParameters } from 'xo-common/api-errors.js'
 
 import { acl, actionsFromBody } from '../middlewares/acl.middleware.mjs'
 import { AlarmService } from '../alarms/alarm.service.mjs'
@@ -245,11 +244,7 @@ export class VdiController extends XapiXoController<XoVdi> {
       await $xapi.call('VDI.set_name_description', $ref, name_description)
     }
     if (size !== undefined) {
-      const currentSize = this.getObject(id as XoVdi['id']).size
-      if (size < currentSize) {
-        throw invalidParameters(`cannot set new size (${size}) below the current size (${currentSize})`)
-      }
-      await $xapi.callAsync('VDI.resize', $ref, size)
+      await $xapi.VDI_resize($ref, size)
     }
   }
 

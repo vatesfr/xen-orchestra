@@ -10,6 +10,7 @@
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
 - [i18n] Update Czech, Danish, Dutch, German, Korean, Portuguese, Portuguese (Brasil), Slovak, Spanish, Swedish and Turkish translations (PR [#10680](https://github.com/vatesfr/xen-orchestra/pull/10680))
+- [VDI] Disks of running VMs can be resized when XAPI supports online resize (PR [#10845](https://github.com/vatesfr/xen-orchestra/pull/10845))
 
 ### Bug fixes
 
@@ -31,6 +32,10 @@
 
 <!--packages-start-->
 
+- @vates/types minor
+- @xen-orchestra/rest-api patch
 - @xen-orchestra/web-core minor
+- @xen-orchestra/xapi minor
+- xo-server patch
 
 <!--packages-end-->

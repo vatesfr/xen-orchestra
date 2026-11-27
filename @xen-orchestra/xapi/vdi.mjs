@@ -4,6 +4,7 @@ import pRetry from 'promise-toolbox/retry'
 import { createLogger } from '@xen-orchestra/log'
 import { decorateClass } from '@vates/decorate-with'
 import { defer } from 'golike-defer'
+import { invalidParameters } from 'xo-common/api-errors.js'
 import { readChunk } from '@vates/read-chunk'
 import { strict as assert } from 'node:assert'
 
@@ -262,6 +263,49 @@ class Vdi {
     await checkVdiExport(stream)
 
     return stream
+  }
+
+  /**
+   * Grow a VDI to a new virtual size.
+   *
+   * If the VDI is attached to a running VM, the resize is done online when the
+   * XAPI and the SR support it.
+   *
+   * @param {string} vdiRef - reference of the VDI to resize
+   * @param {number} size - new virtual size in bytes, cannot be below the current one
+   * @returns {Promise<void>}
+   * @throws invalid parameters error if `size` is below the current virtual size
+   * @throws `VDI_IN_USE` if the VDI is attached to a running VM and the XAPI
+   * or the SR does not support online resize
+   */
+  async resize(vdiRef, size) {
+    // XAPI may return int64 fields as strings
+    const currentSize = Number(await this.getField('VDI', vdiRef, 'virtual_size'))
+    if (size < currentSize) {
+      throw invalidParameters(`cannot set new size (${size}) below the current size (${currentSize})`)
+    }
+    try {
+      await this.callAsync('VDI.resize', vdiRef, size)
+    } catch (resizeError) {
+      if (resizeError.code !== 'VDI_IN_USE') {
+        throw resizeError
+      }
+      // the VDI is attached to a running VM: resize_online only exists on recent XAPI versions
+      try {
+        await this.callAsync('VDI.resize_online', vdiRef, size)
+      } catch (resizeOnlineError) {
+        const knownFailureOnlineResize = [
+          'MESSAGE_METHOD_UNKNOWN', // older version , no suppport
+          'MESSAGE_REMOVED', // XCP-ng 8.3 still declares the method but marks it as removed
+          'SR_OPERATION_NOT_SUPPORTED', // xapi support it , but not this SR
+        ]
+        if (knownFailureOnlineResize.includes(resizeOnlineError.code)) {
+          // in this case the base error is more useful
+          throw resizeError
+        }
+        throw resizeOnlineError
+      }
+    }
   }
 
   /**
