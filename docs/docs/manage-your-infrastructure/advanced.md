@@ -361,6 +361,7 @@ In Netbox 2.x, custom fields can be created from the Admin panel > Custom fields
   - Pools: the pools you wish to automatically synchronize with Netbox
   - Synchronize users: enable this if you wish to synchronize XO users with Netbox tenants. Tenants will be assigned to the VMs the XO user _created_ within XO. Important: if you want to enable this feature, you also need to assign the custom field "uuid" that you created in the previous step to the type "Tenancy > tenant".
   - Interval: the time interval (in hours) between 2 auto-synchronizations. Leave empty if you don't want to synchronize automatically.
+  - Ignore IPs of VMs with these tags: list of VM tags whose IP addresses should not be synchronized. The VMs themselves are still synchronized, but their IP addresses are skipped. This is useful for Continuous Replication / Disaster Recovery replicas, which report the same IP addresses as their source VM and would otherwise conflict in Netbox. Tags must match exactly (case-sensitive), e.g. `Continuous Replication`, `Disaster Recovery`.
 - Load the plugin (button next to the plugin's name)
 - Manual synchronization: if you correctly configured and loaded the plugin, a "Synchronize with Netbox" button will appear in every pool's Advanced tab, which allows you to manually synchronize it with Netbox
 

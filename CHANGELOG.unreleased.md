@@ -9,6 +9,8 @@
 
 > Users must be able to say: "Nice enhancement, I'm eager to test it"
 
+- [Netbox] Add an option to exclude the IP addresses of VMs with specific tags from the synchronization, e.g. for Continuous Replication / Disaster Recovery replicas that would otherwise report duplicate IP addresses (PR [#10679](https://github.com/vatesfr/xen-orchestra/pull/10679))
+
 ### Bug fixes
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
@@ -28,5 +30,7 @@
 > Keep this list alphabetically ordered to avoid merge conflicts
 
 <!--packages-start-->
+
+- xo-server-netbox minor
 
 <!--packages-end-->

@@ -57,6 +57,7 @@ class Netbox {
   #token
   #xo
   #ignoreRfc1918
+  #ignoredIpVmTags
 
   constructor({ xo }) {
     this.#xo = xo
@@ -82,6 +83,7 @@ class Netbox {
     this.#xoPools = configuration.pools
     this.#syncInterval = configuration.syncInterval && configuration.syncInterval * 60 * 60 * 1e3
     this.#ignoreRfc1918 = configuration.ignoreRfc1918 ?? false
+    this.#ignoredIpVmTags = configuration.ignoredIpVmTags ?? []
 
     // We don't want to start the auto-sync if the plugin isn't loaded
     if (state.loaded) {
@@ -832,6 +834,12 @@ class Netbox {
       const xoVm = this.getObject(nbVm.custom_fields.uuid)
       if (xoVm === undefined) {
         log.warn('Synchronizing IPs: cannot find VM from UUID custom field', { vm: nbVm.custom_fields.uuid })
+        continue
+      }
+
+      // Do not synchronize IPs of VMs carrying an ignored tag (e.g. CR/DR replicas
+      // which report the same IPs as their source VM)
+      if (xoVm.tags.some(tag => this.#ignoredIpVmTags.includes(tag))) {
         continue
       }
 
