@@ -25,7 +25,7 @@
 - [XO6] A VM converted into a template no longer stays in the VM list and treeview, contribution by [@pcbeingused333](https://github.com/pcbeingused333), fixes issue [#10717](https://github.com/vatesfr/xen-orchestra/issues/10717) (PR [#10884](https://github.com/vatesfr/xen-orchestra/pull/10884))
 - [VDIs] The used space of a VDI now includes its whole snapshot chain instead of only its last layer, which was almost 0 for disks with snapshots (e.g. after backups). As it can exceed the disk size, it is shown as a size, without usage bar or free space (PR [#10902](https://github.com/vatesfr/xen-orchestra/pull/10902))
 - [Backup jobs] Remove the Target proxy field from the mirror backup job form (PR [#10914](https://github.com/vatesfr/xen-orchestra/pull/10914))
-- [Site] The site pages are no longer displayed below a loader while pools are loading (PR [#XXXXX](https://github.com/vatesfr/xen-orchestra/pull/XXXXX))
+- [Site] The site pages are no longer displayed below a loader while pools are loading (PR [#10923](https://github.com/vatesfr/xen-orchestra/pull/10923))
 
 ### Packages to release
 
