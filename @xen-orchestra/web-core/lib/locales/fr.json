@@ -305,6 +305,7 @@
   "appliance:upgrade-taking-snapshot": "Snapshot de la VM XOA en cours…",
   "appliance:whats-new": "Nouveautés",
   "appliance:whats-new-in": "Nouveautés de la {version}",
+  "appliance:xo-being-updated": "Xen Orchestra est en cours de mise à jour. Tout le monde sera déconnecté quelques minutes, puis la page se rechargera.",
   "appliance:you-run": "Vous utilisez",
   "archives": "Archives",
   "are-you-sure-to-continue": "Voulez-vous vraiment continuer ?",
