@@ -208,7 +208,9 @@ Let's Encrypt will automatically renew your certificate **30 days** before expir
 
 #### Prerequisites
 
-In order for XOA to work with Let's Encrypt, follow these prerequisites:
+By default, XOA proves that it owns the domain with an **HTTP-01** challenge: the certificate provider connects to your server on port 80. If your XOA is not publicly reachable, use the [DNS-01 challenge](#validating-with-a-dns-record-dns-01) instead.
+
+In order for XOA to work with Let's Encrypt using the default HTTP-01 challenge, follow these prerequisites:
 
 - Make sure your server is listening on HTTP on **port 80** and on **HTTPS 443**.
 
@@ -267,6 +269,80 @@ To configure your XOA with Let's Encrypt:
 2. Add an entry following this pattern: `acmeDomain = EXAMPLE`, where EXAMPLE is a [fully qualified domain name](https://en.wikipedia.org/wiki/Fully_qualified_domain_name) (FQDN) that points to your XOA environment.
 3. Load the FQDN in your browser.\
    After a few seconds, the certificate will be automatically generated and installed.
+
+#### Validating with a DNS record (DNS-01)
+
+If your XOA is **not publicly reachable on port 80** (for example, it is only accessible from your internal network), you can use the DNS-01 challenge instead. With this method, the certificate provider checks a DNS `TXT` record instead of connecting to your server.
+
+:::info
+XOA can't create DNS records by itself: it doesn't know your DNS provider or its credentials. It writes the challenge to a file, and you (or a script) create the `TXT` record from it.
+:::
+
+To enable DNS-01, add `acmeDnsChallengeFile` to the same HTTPS configuration block:
+
+```toml
+autoCert = true
+
+cert = 'path/to/cert.pem'
+key = 'path/to/key.pem'
+
+acmeDomain = 'my.domain.net'
+acmeEmail = 'admin@my.domain.net'
+
+# Path to a file where XO will write the DNS challenge.
+#
+# When set, DNS-01 is used instead of HTTP-01.
+# XO does not need to be publicly reachable on port 80.
+acmeDnsChallengeFile = '/etc/xo-server/dns-challenge.json'
+
+# How long XO will wait for the DNS record to be ready before giving up.
+#
+# Expressed in milliseconds. Default is 1800000 (30 minutes).
+# Increase this value if your DNS provider has slow propagation.
+# acmeDnsChallengeTimeout = 1800000
+```
+
+##### How it works
+
+Every time a certificate needs to be issued or renewed, XOA:
+
+1. Writes a JSON file at the path set in `acmeDnsChallengeFile`:
+   ```json
+   { "domain": "_acme-challenge.my.domain.net", "value": "<token>" }
+   ```
+2. Waits until a _done file_ named `<acmeDnsChallengeFile>.done` (e.g. `/etc/xo-server/dns-challenge.json.done`) is created.
+3. Deletes the done file and asks the certificate provider to validate the `TXT` record.
+4. Deletes the challenge file once validation is complete.
+
+On your side, you need to:
+
+1. Watch the challenge file (e.g. with `inotifywait` or a polling script).
+2. Create a `TXT` record named after `domain`, with `value` as its content, using your DNS provider's API or interface.
+3. Wait for the record to propagate.
+4. Create the done file to tell XOA that the record is ready.
+
+:::warning
+DNS propagation time varies a lot between providers: from a few seconds to several hours. Only create the done file once the `TXT` record is fully propagated, otherwise validation will fail.
+:::
+
+If the done file doesn't appear before `acmeDnsChallengeTimeout` (30 minutes by default), XOA logs a warning and aborts. It will try again on the next restart or incoming HTTPS request.
+
+##### Example scripts
+
+Template scripts are available in the Xen Orchestra repository:
+
+- **Shell** (Linux, requires `inotify-tools` and `jq`): [`dns-challenge.example.sh`](https://github.com/vatesfr/xen-orchestra/blob/master/%40xen-orchestra/mixins/docs/dns-challenge.example.sh)
+- **PowerShell** (Windows): [`dns-challenge.example.ps1`](https://github.com/vatesfr/xen-orchestra/blob/master/%40xen-orchestra/mixins/docs/dns-challenge.example.ps1)
+
+To use them:
+
+1. Copy the script for your platform, and remove the `.example` extension.
+2. Edit the `TODO` section to call your DNS provider's API.
+3. Run the script before or alongside `xo-server`.
+
+:::tip
+These scripts handle a single challenge, then exit. Since certificates are renewed automatically, make sure the script is running again when the next renewal happens (for example by running it in a loop, or as a service).
+:::
 
 ## Redis server
 
