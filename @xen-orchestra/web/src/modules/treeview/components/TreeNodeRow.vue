@@ -2,15 +2,17 @@
   <SiteTreeItem v-if="node.discriminator === 'site'" :branch="node as SiteBranch" />
   <PoolTreeItem v-else-if="node.discriminator === 'pool'" :branch="node as PoolBranch" />
   <HostTreeItem v-else-if="node.discriminator === 'host'" :branch="node as HostBranch" />
+  <GroupTreeItem v-else-if="node.discriminator === 'group'" :branch="node as GroupBranch" />
   <VmTreeItem v-else :leaf="node as VmLeaf" />
 </template>
 
 <script lang="ts" setup>
+import GroupTreeItem from '@/modules/treeview/components/GroupTreeItem.vue'
 import HostTreeItem from '@/modules/treeview/components/HostTreeItem.vue'
 import PoolTreeItem from '@/modules/treeview/components/PoolTreeItem.vue'
 import SiteTreeItem from '@/modules/treeview/components/SiteTreeItem.vue'
 import VmTreeItem from '@/modules/treeview/components/VmTreeItem.vue'
-import type { HostBranch, PoolBranch, SiteBranch, VmLeaf } from '@/modules/treeview/types/tree.type.ts'
+import type { GroupBranch, HostBranch, PoolBranch, SiteBranch, VmLeaf } from '@/modules/treeview/types/tree.type.ts'
 import type { TreeNode } from '@core/packages/tree/types.ts'
 import { IK_TREE_LIST_DEPTH } from '@core/utils/injection-keys.util.ts'
 import { computed, provide } from 'vue'

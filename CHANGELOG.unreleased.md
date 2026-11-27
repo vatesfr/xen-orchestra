@@ -34,7 +34,7 @@
 - [Groups] See the roles applied to a group in its side panel (PR [#10659](https://github.com/vatesfr/xen-orchestra/pull/10659))
 - [Groups] Delete a group, or several at once, from the groups list or its side panel in the user management page. Its members are kept, but lose the roles they inherited from it. A synchronized group cannot be deleted (PR [#10765](https://github.com/vatesfr/xen-orchestra/pull/10765))
 - [Roles] Create a role from a template: pick a role template from the roles list in the user management page, then adjust its name, description and privileges before creating the role (PR [#10788](https://github.com/vatesfr/xen-orchestra/pull/10788))
-- [Treeview] Users who cannot see every pool or host still find their own objects in the tree: a host whose pool they cannot see, or a VM whose host and pool they cannot see, is listed directly under the site
+- [Treeview] Users who cannot see every pool or host still find their own objects in the tree: hosts and VMs whose pool they cannot see are grouped under "Restricted pool(s)", and VMs whose host they cannot see under "Restricted host(s)". When they see no pool or no host at all, these objects are listed directly, without a group
 
 ### Bug fixes
 

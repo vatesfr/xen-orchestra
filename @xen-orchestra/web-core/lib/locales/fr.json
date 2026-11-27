@@ -1563,6 +1563,8 @@
   "resources": "Ressources",
   "resources-overview": "Vue d'ensemble des ressources",
   "rest-api": "API REST",
+  "restricted-host": "Hôte restreint | Hôtes restreints",
+  "restricted-pool": "Pool restreint | Pools restreints",
   "resulting-expression": "Expression résultante",
   "retention": "Rétention",
   "resume": "Reprise",

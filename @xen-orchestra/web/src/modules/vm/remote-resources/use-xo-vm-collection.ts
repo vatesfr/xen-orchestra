@@ -76,7 +76,6 @@ export const useXoVmCollection = defineRemoteResource({
     const runningVms = ref<FrontXoVm[]>([])
     const vmsByHost = ref(new Map<FrontXoHost['id'], FrontXoVm[]>())
     const vmsByPool = ref(new Map<FrontXoPool['id'], FrontXoVm[]>())
-    const hostLessVmsByPool = ref(new Map<FrontXoPool['id'], FrontXoVm[]>())
     const runningVmsCountByPool = ref(new Map<FrontXoPool['id'], number>())
     const runningVmsCountByContainer = ref(new Map<FrontXoHost['id'], number>())
 
@@ -84,7 +83,6 @@ export const useXoVmCollection = defineRemoteResource({
       const tmpRunningVms: FrontXoVm[] = []
       const tmpVmsByHost = new Map<FrontXoHost['id'], FrontXoVm[]>()
       const tmpVmsByPool = new Map<FrontXoPool['id'], FrontXoVm[]>()
-      const tmpHostLessVmsByPool = new Map<FrontXoPool['id'], FrontXoVm[]>()
       const tmpRunningVmsCountByPool = new Map<FrontXoPool['id'], number>()
       const tmpRunningVmsCountByContainer = new Map<FrontXoHost['id'], number>()
 
@@ -99,8 +97,6 @@ export const useXoVmCollection = defineRemoteResource({
         if (vm.$container !== vm.$pool) {
           const hostId = vm.$container as FrontXoHost['id']
           safePushInMap(tmpVmsByHost, hostId, vm)
-        } else {
-          safePushInMap(tmpHostLessVmsByPool, vm.$pool, vm)
         }
 
         safePushInMap(tmpVmsByPool, vm.$pool, vm)
@@ -108,7 +104,6 @@ export const useXoVmCollection = defineRemoteResource({
 
       runningVms.value = tmpRunningVms
       vmsByHost.value = tmpVmsByHost
-      hostLessVmsByPool.value = tmpHostLessVmsByPool
       vmsByPool.value = tmpVmsByPool
       runningVmsCountByPool.value = tmpRunningVmsCountByPool
       runningVmsCountByContainer.value = tmpRunningVmsCountByContainer
@@ -135,7 +130,6 @@ export const useXoVmCollection = defineRemoteResource({
       vmsByHost,
       vmsByPool,
       getVmHost,
-      hostLessVmsByPool,
     }
   },
 })
