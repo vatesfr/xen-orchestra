@@ -40,6 +40,7 @@ import { useXoBackupJobTypeLabels } from '@/modules/backup-job/composables/use-x
 import type { FrontAnyXoBackupJob } from '@/modules/backup-job/remote-resources/use-xo-backup-job-collection.ts'
 import { getBackupJobHealthCheckStatus } from '@/modules/backup-job/utils/xo-backup-job.util.ts'
 import { useXoBackupLogCollection } from '@/modules/backup-log/remote-resources/use-xo-backup-log-collection.ts'
+import { useXoScheduleCollection } from '@/modules/schedule/remote-resources/use-xo-schedule-collection.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import VtsQueryBuilder from '@core/components/query-builder/VtsQueryBuilder.vue'
 import VtsRow from '@core/components/table/VtsRow.vue'
@@ -72,6 +73,8 @@ const { t } = useI18n()
 const { buildXo5Route } = useXoRoutes()
 
 const { areBackupLogsReady } = useXoBackupLogCollection()
+
+const { schedulesByJobId } = useXoScheduleCollection()
 
 const { items: queryFilteredBackupJobs, searchBindings } = useQueryBuilderFilter('backup-jobs', () => backupJobs)
 
@@ -122,6 +125,7 @@ const { HeadCells, BodyCells } = useBackupJobColumns({
     const modeLabel = useXoBackupJobModeLabel(() => backupJob)
     const lastRuns = useXoBackupJobLastRuns(() => backupJob)
     const healthCheckStatus = computed(() => getBackupJobHealthCheckStatus(backupJob))
+    const hasMultipleSchedules = computed(() => (schedulesByJobId.value.get(backupJob.id)?.length ?? 0) > 1)
 
     const { isEnabled, moreActions, deleteAction } = useXoBackupJobActions(() => backupJob)
 
@@ -136,6 +140,9 @@ const { HeadCells, BodyCells } = useBackupJobColumns({
           label: backupJob.name ?? t('untitled'),
           href: jobOverviewHref.value,
           icon: 'object:backup-job',
+          rightIcon: hasMultipleSchedules.value
+            ? { icon: 'status:warning-circle', tooltip: t('multiple-schedules-split-in-xo5') }
+            : undefined,
         }),
       type: r => r(typeLabels.value[0] ?? '', { extraCount: typeLabels.value.length - 1 }),
       mode: r => r(modeLabel.value),

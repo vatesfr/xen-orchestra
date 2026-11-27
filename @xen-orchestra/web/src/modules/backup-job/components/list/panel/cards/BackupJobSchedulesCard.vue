@@ -1,6 +1,6 @@
 <template>
   <UiPanelCard class="backup-job-schedules-card">
-    <UiPanelCardTitle size="medium" :label="t('schedules')" :counter="schedules.length" />
+    <UiPanelCardTitle size="medium" :label="t('schedule')" />
     <VtsCardRowList class="content">
       <template v-for="({ schedule, nextRun }, index) in schedulesWithNextRun" :key="schedule.id">
         <VtsDivider v-if="index > 0" class="divider" type="stretch" />
