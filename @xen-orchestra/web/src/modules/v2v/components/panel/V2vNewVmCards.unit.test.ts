@@ -6,7 +6,7 @@ import V2vVmOptionsCard from '@/modules/v2v/components/panel/V2vVmOptionsCard.vu
 import { createV2vHost } from '@/test/create-v2v-inventory.ts'
 import { createV2vNewMappingStepVm } from '@/test/create-v2v-mapping-step-vm.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
-import { HOLD_LOADING } from '@/test/hold-loading.ts'
+import { itIsReadyOnceLoaded } from '@/test/hold-loading.ts'
 import { xoCollectionsMock, mockXoCollections } from '@/test/mock-xo-collections.ts'
 import { mountV2vVmMappingComponent } from '@/test/mount-v2v-vm-mapping.ts'
 import {
@@ -91,10 +91,14 @@ it('shows the options of the VM', async () => {
   })
 })
 
-it('shows the targets loading while the pool offers load', async () => {
-  HOLD_LOADING.templates()
+describe('the loading of the targets', () => {
+  itIsReadyOnceLoaded(
+    async () => {
+      const { wrapper } = await mountCards()
 
-  const { wrapper } = await mountCards()
-
-  expect(wrapper.getComponent(V2vDestinationMappingCard).props('loading')).toBe(true)
+      return () => wrapper.getComponent(V2vDestinationMappingCard).props('loading')
+    },
+    [['the templates of the pool', 'templates']],
+    { busy: true }
+  )
 })

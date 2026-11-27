@@ -3,7 +3,7 @@ import { taskCollectionMock } from '@/test/mock-xo-task-collection.ts'
 import { v2vVmRowsCollectionsMock } from '@/test/mock-xo-v2v-vm-rows-collections.ts'
 import { vmCollectionMock } from '@/test/mock-xo-vm-collection.ts'
 import { vmDeviceCollectionsMock } from '@/test/mock-xo-vm-device-collections.ts'
-import type { Ref } from 'vue'
+import { nextTick, type Ref } from 'vue'
 
 const holdLoading = (isReady: Ref<boolean>) => () => {
   isReady.value = false
@@ -45,6 +45,7 @@ export function itIsReadyOnceLoaded(
     const readFlag = await mountFlag()
 
     HOLD_LOADING[collection]()
+    await nextTick()
 
     expect(readFlag()).toBe(busy)
   })

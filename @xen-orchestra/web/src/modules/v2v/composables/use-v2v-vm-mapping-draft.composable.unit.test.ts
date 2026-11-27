@@ -1,6 +1,6 @@
 import { useV2vVmMappingDraft } from '@/modules/v2v/composables/use-v2v-vm-mapping-draft.composable.ts'
 import { createV2vMigrationListVm } from '@/test/create-v2v-migration-list.ts'
-import { HOLD_LOADING } from '@/test/hold-loading.ts'
+import { itIsReadyOnceLoaded } from '@/test/hold-loading.ts'
 import { xoCollectionsMock, mockXoCollections } from '@/test/mock-xo-collections.ts'
 import {
   mountV2vVmMapping,
@@ -222,10 +222,11 @@ describe('toOverrides', () => {
   })
 })
 
+// Forwarded from `useV2vVmMapping`, whose tests cover every offer it waits for
 describe('areOffersReady', () => {
-  it('is false while the offers load', () => {
-    HOLD_LOADING.SRs()
+  itIsReadyOnceLoaded(() => {
+    const draft = mountVmMappingDraft()
 
-    expect(mountVmMappingDraft().areOffersReady).toBe(false)
-  })
+    return () => draft.areOffersReady
+  }, [['the SRs', 'SRs']])
 })
