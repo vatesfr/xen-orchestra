@@ -10,7 +10,9 @@
       </UiCard>
     </div>
 
-    <VmBackupArchiveSidePanel :backup-archive="selectedBackupArchive" @close="selectedBackupArchive = undefined" />
+    <template #panel>
+      <VmBackupArchiveSidePanel :backup-archive="selectedBackupArchive" @close="selectedBackupArchive = undefined" />
+    </template>
   </VtsContentSidePanel>
 </template>
 
