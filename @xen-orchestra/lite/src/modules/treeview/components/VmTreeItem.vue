@@ -8,7 +8,7 @@
       <template #addons>
         <UiLoader v-if="isChangingState" v-tooltip="{ placement: 'top', content: currentOperation }" />
         <VtsActionsMenu placement="bottom-start">
-          <VmTreeActions :vm-opaque-ref="leaf.data.$ref" />
+          <VmActions :vm="leaf.data" />
         </VtsActionsMenu>
       </template>
     </UiTreeItemLabel>
@@ -17,7 +17,7 @@
 
 <script lang="ts" setup>
 import type { VmLeaf } from '@/modules/treeview/types/tree.type.ts'
-import VmTreeActions from '@/modules/vm/components/actions/VmTreeActions.vue'
+import VmActions from '@/modules/vm/components/actions/VmActions.vue'
 import { useVmOperation } from '@/modules/vm/composables/vm-operation.composable.ts'
 import { useVmUtils } from '@/modules/vm/composables/vm-utils.composable.ts'
 import VtsActionsMenu from '@core/components/menu/VtsActionsMenu.vue'
