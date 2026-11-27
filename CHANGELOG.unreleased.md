@@ -11,6 +11,7 @@
 
 - [i18n] Update Czech, Danish, Dutch, German, Korean, Portuguese, Portuguese (Brasil), Slovak, Spanish, Swedish and Turkish translations (PR [#10680](https://github.com/vatesfr/xen-orchestra/pull/10680))
 - [VDI] Disks of running VMs can be resized when XAPI supports online resize (PR [#10845](https://github.com/vatesfr/xen-orchestra/pull/10845))
+- [XO6/Backup repository] Add a _Reclaim space_ action to backup repositories (PR [#10939](https://github.com/vatesfr/xen-orchestra/pull/10939))
 
 ### Bug fixes
 
@@ -34,6 +35,7 @@
 
 - @vates/types minor
 - @xen-orchestra/rest-api patch
+- @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
 - @xen-orchestra/xapi minor
 - xo-server patch
