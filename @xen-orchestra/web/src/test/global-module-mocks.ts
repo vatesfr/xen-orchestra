@@ -5,6 +5,7 @@ import { resetModuleSpies } from '@/test/spy-on-module.ts'
 // replaces exports with `mockModule` (same arguments as `vi.mock`); they are back to the real ones before each test.
 const { spyOnOriginal } = await vi.hoisted(() => import('@/test/spy-on-module.ts'))
 
+vi.mock(import('@/modules/backup-archive/remote-resources/use-xo-vm-backup-archive-collection.ts'), spyOnOriginal)
 vi.mock(import('@/modules/backup-job/composables/use-backup-job-delete.composable.ts'), spyOnOriginal)
 vi.mock(import('@/modules/backup-job/jobs/xo-backup-job-change-state.job.ts'), spyOnOriginal)
 vi.mock(import('@/modules/backup-job/jobs/xo-backup-job-create.job.ts'), spyOnOriginal)
@@ -104,7 +105,6 @@ vi.mock(import('@/modules/vm/jobs/xo-vm-snapshot.job.ts'), spyOnOriginal)
 vi.mock(import('@/modules/vm/jobs/xo-vm-start.job.ts'), spyOnOriginal)
 vi.mock(import('@/modules/vm/jobs/xo-vm-suspend.jobs.ts'), spyOnOriginal)
 vi.mock(import('@/modules/vm/jobs/xo-vm-unpause.job.ts'), spyOnOriginal)
-vi.mock(import('@/modules/vm/remote-resources/use-xo-vm-backup-archive-collection.ts'), spyOnOriginal)
 vi.mock(import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'), spyOnOriginal)
 vi.mock(import('@/modules/vm/remote-resources/use-xo-vm-template-collection.ts'), spyOnOriginal)
 vi.mock(import('@/shared/composables/xo-task-utils.composable.ts'), spyOnOriginal)
