@@ -6,7 +6,7 @@ import { createPool } from '@/test/create-pool.ts'
 import { createSr } from '@/test/create-sr.ts'
 import { createVm } from '@/test/create-vm.ts'
 import { itShowsDashboardQuickInfo } from '@/test/dashboard-quick-info.ts'
-import { findLabelledValues, findTags } from '@/test/find-rendered-values.ts'
+import { findLabelledValues, findTags, findVmTagsLabel } from '@/test/find-rendered-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { xoCollectionsMock, mockXoCollections } from '@/test/mock-xo-collections.ts'
@@ -198,7 +198,7 @@ describe('storages', () => {
 it('renders the tags below their label', () => {
   const wrapper = mountQuickInfo(createVm({ tags: ['production'] }))
 
-  expect(wrapper.get('.vm-tags-editor > .header .label').text()).toBe(t('tags'))
+  expect(findVmTagsLabel(wrapper)).toBe(t('tags'))
   expect(wrapper.find('.vm-tags-editor > .ui-tags-list').exists()).toBe(true)
 })
 

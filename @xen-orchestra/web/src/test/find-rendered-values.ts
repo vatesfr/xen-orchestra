@@ -17,6 +17,8 @@ const CARD_ROW: PairSelectors = { root: CARD_KEY_VALUE_ROW_SELECTOR, label: '.ke
 
 const readCardRowLabel = (row: RowWrapper) => row.get(CARD_ROW.label).text()
 
+const VM_TAGS_LABEL = '.vm-tags-editor > .header .label'
+
 /**
  * The reading strategy every helper below shares. Selectors travel in an object
  * rather than positionally: transposing `label` and `value` would still
@@ -50,9 +52,14 @@ export function findRowLabels(wrapper: QueryableWrapper): string[] {
   return wrapper.findAll(KEY_VALUE_ROW_SELECTOR).map(row => row.get('dt.label').text())
 }
 
-// The label of every `VtsCardRowKeyValue` row of a side-panel card, in order
+// The label of every `VtsCardRowKeyValue` row of a side-panel card and of its `VmTagsEditor`, in order
 export function findCardRowLabels(wrapper: QueryableWrapper): string[] {
-  return wrapper.findAll(CARD_ROW.root).map(readCardRowLabel)
+  return wrapper.findAll(`${CARD_ROW.root} ${CARD_ROW.label}, ${VM_TAGS_LABEL}`).map(label => label.text())
+}
+
+// The label of the `VmTagsEditor`, shown above the tags
+export function findVmTagsLabel(wrapper: Pick<VueWrapper, 'get'>): string {
+  return wrapper.get(VM_TAGS_LABEL).text()
 }
 
 /**

@@ -77,6 +77,7 @@ it('lists every row of the card, in order', () => {
   expect(findCardRowLabels(wrapper)).toEqual([
     t('state'),
     t('description'),
+    t('tags'),
     t('pool'),
     t('host'),
     t('os-name'),
@@ -102,16 +103,6 @@ it('shows the power state, description and OS name of the VM', () => {
     [t('description')]: 'Serves the website',
     [t('os-name')]: 'Debian Bookworm',
   })
-})
-
-it('renders the tags between the description and the pool', () => {
-  const wrapper = mountInfoCard()
-
-  const rowLabels = wrapper
-    .findAll('.content > .vts-card-row-key-value .key, .content > .vm-tags-editor .label')
-    .map(label => label.text())
-
-  expect(rowLabels.slice(0, 4)).toEqual([t('state'), t('description'), t('tags'), t('pool')])
 })
 
 it('renders one tag per VM tag, in alphabetical order', () => {

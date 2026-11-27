@@ -33,7 +33,8 @@ A label/value row is read through one query covering every row a user sees ([Ass
 | `findCardLabelledValues`     | every `VtsCardRowKeyValue` of a side-panel card                              |
 | `findCardLabelledValueLists` | every `VtsCardRowKeyValue`, each value of a multi-value row listed           |
 | `findRowLabels`              | the label of every `VtsTabularKeyValueRow` / `VtsKeyValueRow`                |
-| `findCardRowLabels`          | the label of every `VtsCardRowKeyValue`, in order                            |
+| `findCardRowLabels`          | the label of every `VtsCardRowKeyValue` and of a `VmTagsEditor`, in order    |
+| `findVmTagsLabel`            | the label of a `VmTagsEditor`                                                |
 | `findCardRows`               | every `VtsCardRowKeyValue` as `[label, value]` pairs, in order               |
 | `hasCardRowCopy`             | whether the `VtsCardRowKeyValue` with that label offers a copy               |
 | `findCardRowLink`            | the link of the `VtsCardRowKeyValue` with that label, as `findLink` reads it |
