@@ -264,6 +264,7 @@ export class IncrementalRemoteWriter extends MixinRemoteWriter(AbstractIncrement
       vtpms: deltaExport.vtpms,
     }
     let size = 0
+    const vhdsSizeOnDisk = {}
     await Task.run({ properties: { name: 'transfer' } }, async () => {
       await asyncEach(
         Object.entries(deltaExport.disks),
@@ -281,7 +282,7 @@ export class IncrementalRemoteWriter extends MixinRemoteWriter(AbstractIncrement
             parentPath = relativeFromFile(path, parentDestPath)
           }
 
-          const transferred = await adapter.writeVhd(path, disk, {
+          const { size: transferred, sizeOnDisk } = await adapter.writeVhd(path, disk, {
             // no checksum for VHDs, because they will be invalidated by
             // merges and chains
             checksum: false,
@@ -292,6 +293,7 @@ export class IncrementalRemoteWriter extends MixinRemoteWriter(AbstractIncrement
             parentPath,
           })
           size += transferred
+          vhdsSizeOnDisk[diskRef] = sizeOnDisk
         },
         {
           concurrency: settings.diskPerVmConcurrency,
@@ -302,6 +304,7 @@ export class IncrementalRemoteWriter extends MixinRemoteWriter(AbstractIncrement
     })
     metadataContent.tags = await this.getLongTermRetentionTags(metadataContent)
     metadataContent.size = size // @todo return exactly the size written by this writer
+    metadataContent.vhdsSizeOnDisk = vhdsSizeOnDisk
     this._metadataFileName = await adapter.writeVmBackupMetadata(vm.uuid, metadataContent)
 
     // TODO: run cleanup?

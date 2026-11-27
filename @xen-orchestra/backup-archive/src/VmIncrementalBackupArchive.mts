@@ -6,9 +6,10 @@ import {
   VmBackupInterface,
   PartialBackupMetadata,
   DEFAULT_REMOVE_CONCURRENCY,
+  MergedDisk,
 } from './VmBackup.types.mjs'
 import { RemoteHandlerAbstract } from '@xen-orchestra/fs'
-import { basename, dirname, normalize } from '@xen-orchestra/fs/path'
+import { basename, dirname, normalize, resolveFromFile } from '@xen-orchestra/fs/path'
 import { RemoteDiskLineage } from './RemoteDiskLineage.mjs'
 import { asyncEach } from '@vates/async-each'
 
@@ -126,10 +127,13 @@ export class VmIncrementalBackupArchive implements VmBackupInterface {
 
   /**
    * Removes the metadata file if the backup is incomplete (missing disks).
-   * If mergedSizes is provided, updates metadata with the total merged size for this archive's disks.
+   * If mergedDisks is provided, records the size on disk of this archive's merged disks
+   * in vhdsSizeOnDisk (removed when unknown) and records whether they are still differencing.
+   * When the size on disk of a merged disk is unknown (chains started before it was recorded),
+   * size is set to the stream size of the merged disks, which the backup usage falls back to.
    * Actual disk merge/deletion is handled by RemoteDiskLineage.
    */
-  async clean({ remove = this.opts.remove ?? false, mergedSizes }: ArchiveCleanOptions = {}): Promise<CleanResult> {
+  async clean({ remove = this.opts.remove ?? false, mergedDisks }: ArchiveCleanOptions = {}): Promise<CleanResult> {
     if (!this.#isChecked) {
       await this.check()
     }
@@ -150,13 +154,18 @@ export class VmIncrementalBackupArchive implements VmBackupInterface {
     }
 
     const changedFiles: string[] = []
-    let mergedSize = 0
-    if (mergedSizes !== undefined) {
-      for (const diskPath of this.diskPaths) {
-        mergedSize += mergedSizes.get(diskPath) ?? 0
+    const updates: Record<string, MergedDisk> = {}
+    if (mergedDisks !== undefined) {
+      for (const [vdiRef, relPath] of Object.entries(this.metadata.vhds ?? {})) {
+        const vhdPath = normalize(resolveFromFile(this.metadataPath, relPath))
+        const mergedDisk = mergedDisks.get(vhdPath)
+        if (mergedDisk !== undefined) {
+          updates[vdiRef] = mergedDisk
+        }
       }
-      if (mergedSize > 0) {
-        await this.updateMetadata(mergedSize)
+
+      if (Object.keys(updates).length > 0) {
+        await this.updateMetadata(updates)
         changedFiles.push(this.metadataPath)
       }
     }
@@ -165,16 +174,28 @@ export class VmIncrementalBackupArchive implements VmBackupInterface {
   }
 
   /**
-   * Updates metadata.size after a merge and writes the updated metadata file to disk.
-   * Also resets isVhdDifferencing so all VDIs are marked as full (non-differencing).
+   * Updates the size on disk and the differencing status of the merged disks, then writes the metadata file.
    */
-  async updateMetadata(mergedSize: number): Promise<void> {
-    this.metadata.size = mergedSize
-    if (this.metadata.vdis !== undefined) {
-      this.metadata.isVhdDifferencing = {}
-      for (const id of Object.keys(this.metadata.vdis)) {
-        this.metadata.isVhdDifferencing[id] = false
+  async updateMetadata(updates: Record<string, MergedDisk>): Promise<void> {
+    const vhdsSizeOnDisk = { ...this.metadata.vhdsSizeOnDisk }
+    // Chain started before `sizeOnDisk` existed have no size on disk so `size` keeps the merged disks stream size,
+    // which the backup usage falls back to.
+    const totalStreamSize = Object.values(updates).reduce((total, { streamSize }) => {
+      return total + streamSize
+    }, 0)
+
+    for (const [vdiRef, { sizeOnDisk }] of Object.entries(updates)) {
+      if (sizeOnDisk === undefined) {
+        this.metadata.size = totalStreamSize
+        delete vhdsSizeOnDisk[vdiRef]
+      } else {
+        vhdsSizeOnDisk[vdiRef] = sizeOnDisk
       }
+    }
+    this.metadata.vhdsSizeOnDisk = vhdsSizeOnDisk
+    this.metadata.isVhdDifferencing = this.metadata.isVhdDifferencing ?? {}
+    for (const [vdiRef, { isDifferencing }] of Object.entries(updates)) {
+      this.metadata.isVhdDifferencing[vdiRef] = isDifferencing
     }
     await this.handler.writeFile(this.metadataPath, JSON.stringify(this.metadata), { flags: 'w' })
   }

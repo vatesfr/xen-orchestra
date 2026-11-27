@@ -23,6 +23,7 @@ type VmDashboardBackupArchive = {
   timestamp: XoVmBackupArchive['timestamp']
   backupRepository: XoVmBackupArchive['backupRepository']
   size: XoVmBackupArchive['size']
+  sizeOnDisk?: XoVmBackupArchive['sizeOnDisk']
 }
 
 export type VmDashboard = {

@@ -6,7 +6,12 @@ export interface PartialBackupMetadata {
   vhds?: Record<string, string>
   vdis?: Record<string, unknown>
   isVhdDifferencing?: Record<string, boolean>
+  // Transferred size, never modified by merge
   size?: number
+  // Space used by each disk, keyed by vdiRef, updated by merges
+  vhdsSizeOnDisk?: Record<string, number>
+  // Space used by the XVA of a full backup, .checksum included
+  sizeOnDisk?: number
   jobId: string
   scheduleId: string
   timestamp: number
@@ -38,7 +43,7 @@ export type ResolvedBackupCleanOptions = BackupCleanOptions & {
 export interface ArchiveCleanOptions {
   remove?: boolean
   merge?: boolean
-  mergedSizes?: Map<string, number>
+  mergedDisks?: Map<string, MergedDisk>
 }
 
 export interface CheckResult {
@@ -55,11 +60,11 @@ export interface CheckResult {
 
 export type CleanResult = {
   removedFiles: string[]
-  // Files rewritten in place (e.g. metadata whose size was updated after a merge)
+  // Files rewritten in place (e.g. metadata recording the size on disk of the disks a merge rewrote)
   changedFiles?: string[]
   merge?: boolean
   size?: number
-  mergedSizes?: Map<string, number>
+  mergedDisks?: Map<string, MergedDisk>
 }
 
 export interface VmBackupInterface {
@@ -73,4 +78,10 @@ export interface VmBackupInterface {
   check(): Promise<CheckResult>
   clean(opts?: ArchiveCleanOptions): Promise<CleanResult>
   getAssociatedFiles(opts: object): Array<string>
+}
+
+export type MergedDisk = {
+  sizeOnDisk: number | undefined
+  streamSize: number
+  isDifferencing: boolean
 }
