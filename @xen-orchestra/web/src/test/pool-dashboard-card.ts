@@ -1,5 +1,6 @@
 import type { XoPoolDashboard } from '@/modules/pool/types/xo-pool-dashboard.type.ts'
 import { type CardTitle, itRendersCardTitle } from '@/test/card-title.ts'
+import { createPoolTopFiveDashboard, type PoolTopFiveMetric } from '@/test/create-pool-dashboard.ts'
 import type { DashboardCardProps } from '@/test/dashboard-card.ts'
 import { findProgressBarGroupLegends } from '@/test/find-rendered-values.ts'
 import { findCardSubtitles } from '@/test/find-titles.ts'
@@ -15,11 +16,9 @@ type MountPoolDashboardCard = (props?: PoolDashboardCardProps) => VueWrapper
 
 type PoolTopFiveUsageCase = {
   title: CardTitle
-  // The dashboard the card mounts on by default, with one host and one VM in the top five it reads
-  dashboard: XoPoolDashboard
-  // The same top five, without host nor VM
-  empty: XoPoolDashboard
-  // The legend of that host and of that VM
+  // The metric of the top five the card reads; the card mounts by default on `createPoolTopFiveDashboard(metric)`
+  metric: PoolTopFiveMetric
+  // The legend of the host and of the VM of that dashboard
   legends: { host: [string, string]; vm: [string, string] }
 }
 
@@ -29,8 +28,10 @@ type PoolTopFiveUsageCase = {
  */
 export function itShowsPoolTopFiveUsage(
   mountCard: MountPoolDashboardCard,
-  { title, dashboard, empty, legends }: PoolTopFiveUsageCase
+  { title, metric, legends }: PoolTopFiveUsageCase
 ) {
+  const dashboard = createPoolTopFiveDashboard(metric)
+
   itRendersCardTitle(mountCard, title)
 
   it('splits the card between the hosts and the VMs, each capped to the top five', () => {
@@ -56,7 +57,7 @@ export function itShowsPoolTopFiveUsage(
   it.each([
     {
       label: 'hands no item to a section without host or VM',
-      props: { poolDashboard: empty },
+      props: { poolDashboard: createPoolTopFiveDashboard(metric, [], []) },
       itemCount: 0,
       hasError: false,
     },
