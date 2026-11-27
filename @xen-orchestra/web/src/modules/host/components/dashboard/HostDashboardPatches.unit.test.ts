@@ -5,13 +5,13 @@ import {
   useXoHostMissingPatchesCollection,
 } from '@/modules/host/remote-resources/use-xo-host-missing-patches-collection.ts'
 import { createHost } from '@/test/create-host.ts'
-import { findTableRows } from '@/test/find-rendered-values.ts'
+import { findCardTitleInfo } from '@/test/find-titles.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { itShowsHostDashboardCard } from '@/test/host-dashboard-card.ts'
 import { t } from '@/test/i18n.ts'
+import { findTablePatches, MISSING_PATCHES } from '@/test/missing-patches.ts'
 import { mockedExport } from '@/test/spy-on-module.ts'
 import { hasLoader } from '@core-test/expect-loader.ts'
-import { findStateHeroTexts } from '@core-test/find-state-hero-types.ts'
 import { mount } from '@vue/test-utils'
 import { ref } from 'vue'
 
@@ -40,48 +40,38 @@ function mountPatches() {
 itShowsHostDashboardCard(mountPatches, { title: t('patches') })
 
 it('counts the missing patches next to the title', () => {
-  givenMissingPatches([
-    { name: 'XSAPATCH-1', version: '1.0' },
-    { name: 'XSAPATCH-2', version: '2.0' },
-  ])
+  givenMissingPatches(MISSING_PATCHES)
 
   const wrapper = mountPatches()
 
-  expect(wrapper.get('.missing-patches-info').text()).toBe(t('n-missing', 2))
+  expect(findCardTitleInfo(wrapper)).toBe(t('n-missing', 2))
 })
 
 it('leaves out the count when the host misses no patch', () => {
   const wrapper = mountPatches()
 
-  expect(wrapper.find('.missing-patches-info').exists()).toBe(false)
+  expect(findCardTitleInfo(wrapper)).toBeUndefined()
 })
 
-it('lists one row per missing patch', () => {
-  givenMissingPatches([
-    { name: 'XSAPATCH-1', version: '1.0' },
-    { name: 'XSAPATCH-2', version: '2.0' },
-  ])
+it('hands each missing patch to the table', () => {
+  givenMissingPatches(MISSING_PATCHES)
 
   const wrapper = mountPatches()
 
-  expect(findTableRows(wrapper)).toEqual([
-    ['XSAPATCH-1', '1.0'],
-    ['XSAPATCH-2', '2.0'],
-  ])
+  expect(findTablePatches(wrapper)).toEqual(MISSING_PATCHES)
 })
 
-it('reports the host as up to date when it misses no patch', () => {
+it('hands no patch to the table when the host misses no patch', () => {
   const wrapper = mountPatches()
 
-  expect(findStateHeroTexts(wrapper)).toEqual([expect.stringContaining(t('patches-up-to-date'))])
-  expect(findTableRows(wrapper)).toEqual([])
+  expect(findTablePatches(wrapper)).toEqual([])
 })
 
-it('reports the host as up to date while its patches are still loading', () => {
+it('hands no patch to the table, without loader, while the patches of the host are still loading', () => {
   givenMissingPatches([], false)
 
   const wrapper = mountPatches()
 
-  expect(findStateHeroTexts(wrapper)).toEqual([expect.stringContaining(t('patches-up-to-date'))])
+  expect(findTablePatches(wrapper)).toEqual([])
   expect(hasLoader(wrapper)).toBe(false)
 })

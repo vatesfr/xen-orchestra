@@ -1,9 +1,12 @@
+import type { MissingPatch } from '@/modules/host/remote-resources/use-xo-host-missing-patches-collection.ts'
 import PoolDashboardHostsPatches from '@/modules/pool/components/dashboard/PoolDashboardHostsPatches.vue'
 import type { XoPoolDashboard } from '@/modules/pool/types/xo-pool-dashboard.type.ts'
 import { itShowsDashboardCardStates } from '@/test/dashboard-card.ts'
 import { findTableRows } from '@/test/find-rendered-values.ts'
+import { findCardTitleInfo } from '@/test/find-titles.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
+import { findTablePatches, MISSING_PATCHES } from '@/test/missing-patches.ts'
 import type { PoolDashboardCardProps } from '@/test/pool-dashboard-card.ts'
 import { findStateHeroTexts } from '@core-test/find-state-hero-types.ts'
 import { mount } from '@vue/test-utils'
@@ -14,7 +17,7 @@ function withMissingPatches(missingPatches: MissingPatches): XoPoolDashboard {
   return { hosts: { missingPatches } }
 }
 
-function withAuthorizedPatches(patches: { name: string; version: string }[]): XoPoolDashboard {
+function withAuthorizedPatches(patches: MissingPatch[]): XoPoolDashboard {
   return withMissingPatches({
     hasAuthorization: true,
     missingPatches: patches as unknown as Extract<MissingPatches, { hasAuthorization: true }>['missingPatches'],
@@ -38,34 +41,25 @@ itShowsDashboardCardStates(mountPatches, {
 
 it('counts the missing patches next to the title', () => {
   const wrapper = mountPatches({
-    poolDashboard: withAuthorizedPatches([
-      { name: 'XSAPATCH-1', version: '1.0' },
-      { name: 'XSAPATCH-2', version: '2.0' },
-    ]),
+    poolDashboard: withAuthorizedPatches(MISSING_PATCHES),
   })
 
-  expect(wrapper.get('.missing-patches-info').text()).toBe(t('n-missing', 2))
+  expect(findCardTitleInfo(wrapper)).toBe(t('n-missing', 2))
 })
 
-it('lists one row per missing patch', () => {
+it('hands each missing patch to the table', () => {
   const wrapper = mountPatches({
-    poolDashboard: withAuthorizedPatches([
-      { name: 'XSAPATCH-1', version: '1.0' },
-      { name: 'XSAPATCH-2', version: '2.0' },
-    ]),
+    poolDashboard: withAuthorizedPatches(MISSING_PATCHES),
   })
 
-  expect(findTableRows(wrapper)).toEqual([
-    ['XSAPATCH-1', '1.0'],
-    ['XSAPATCH-2', '2.0'],
-  ])
+  expect(findTablePatches(wrapper)).toEqual(MISSING_PATCHES)
 })
 
 it('reports the pool as up to date when its hosts miss no patch', () => {
   const wrapper = mountPatches({ poolDashboard: withAuthorizedPatches([]) })
 
   expect(findStateHeroTexts(wrapper)).toEqual([expect.stringContaining(t('patches-up-to-date'))])
-  expect(wrapper.find('.missing-patches-info').exists()).toBe(false)
+  expect(findCardTitleInfo(wrapper)).toBeUndefined()
 })
 
 it('reports the pool as up to date when the patches cannot be listed without a licence', () => {
