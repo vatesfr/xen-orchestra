@@ -2,6 +2,7 @@ import { timeFormat, utcParse } from 'd3-time-format'
 
 const dateFormatter = timeFormat('%Y-%m-%d')
 const dateTimeFormatter = timeFormat('%Y-%m-%d %H:%M:%S')
+const timeFormatter = timeFormat('%H:%M')
 
 export function parseDateTime(dateTime: Date | string | number): number {
   if (typeof dateTime === 'number') {
@@ -23,6 +24,8 @@ export function parseDateTime(dateTime: Date | string | number): number {
 export const formatDate = (date: Date | number | string) => dateFormatter(new Date(parseDateTime(date)))
 
 export const formatDateTime = (date: Date | number | string) => dateTimeFormatter(new Date(parseDateTime(date)))
+
+export const formatTime = (date: Date | number | string) => timeFormatter(new Date(parseDateTime(date)))
 
 /**
  * Formats a timeout value (in milliseconds) into a human-readable format using locale-aware formatting

@@ -25,7 +25,16 @@ it('lists the V2V migration between backups and user management', () => {
     t('backup-and-replication'),
     t('v2v'),
     t('user-management'),
+    t('appliance'),
     t('settings'),
+  ])
+})
+
+it('links the appliance section to the update page', () => {
+  const section = findSection(mountMenu(), t('appliance'))
+
+  expect(section === undefined ? undefined : findLinks(section, 'a')).toEqual([
+    [t('update'), '/admin/appliance/update'],
   ])
 })
 

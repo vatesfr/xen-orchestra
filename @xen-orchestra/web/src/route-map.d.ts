@@ -83,6 +83,20 @@ declare module 'vue-router/auto-routes' {
       { path: ParamValue<false> },
       | never
     >,
+    '/admin/appliance': RouteRecordInfo<
+      '/admin/appliance',
+      '/admin/appliance',
+      Record<never, never>,
+      Record<never, never>,
+      | '/admin/appliance/update'
+    >,
+    '/admin/appliance/update': RouteRecordInfo<
+      '/admin/appliance/update',
+      '/admin/appliance/update',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
     '/admin/backup-and-replication': RouteRecordInfo<
       '/admin/backup-and-replication',
       '/admin/backup-and-replication',
@@ -580,6 +594,19 @@ declare module 'vue-router/auto-routes' {
     'src/pages/[...path].vue': {
       routes:
         | '/[...path]'
+      views:
+        | never
+    }
+    'src/pages/admin/appliance.vue': {
+      routes:
+        | '/admin/appliance'
+        | '/admin/appliance/update'
+      views:
+        | 'default'
+    }
+    'src/pages/admin/appliance/update.vue': {
+      routes:
+        | '/admin/appliance/update'
       views:
         | never
     }

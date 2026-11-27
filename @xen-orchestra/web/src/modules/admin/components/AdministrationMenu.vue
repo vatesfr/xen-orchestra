@@ -76,6 +76,10 @@ const sections = computed<AdminMenuSection[]>(() => [
     ],
   },
   {
+    title: t('appliance'),
+    items: [{ label: t('update'), href: undefined, to: { name: '/admin/appliance/update' } }],
+  },
+  {
     title: t('settings'),
     items: [{ label: t('plugins'), href: undefined, to: { name: '/admin/plugins' } }],
   },
