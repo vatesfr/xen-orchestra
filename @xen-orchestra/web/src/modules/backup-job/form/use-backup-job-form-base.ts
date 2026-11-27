@@ -25,6 +25,7 @@ import {
 } from '@/modules/backup-job/utils/backup-job-payload.util.ts'
 import { DEFAULT_CRON } from '@/modules/schedule/utils/cron.util.ts'
 import type { StepDefinition } from '@core/components/ui/stepper/UiStepper.vue'
+import { cloneDeep } from 'lodash-es'
 import { computed, reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -149,6 +150,8 @@ export function useBackupJobFormBase(
 ) {
   const { t } = useI18n()
 
+  const savedFormDataSet = isEditing ? cloneDeep(initialFormDataSet) : undefined
+
   const source = useBackupJobSourceForm(reactive(initialFormDataSet.source), { isEditing })
 
   const { isIncremental, isMirror, isMetadata } = source
@@ -238,6 +241,7 @@ export function useBackupJobFormBase(
     isIncremental,
     isMirror,
     isMetadata,
+    savedFormDataSet,
     currentStep,
     currentStepIndex,
     steps,

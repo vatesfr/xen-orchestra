@@ -21,6 +21,7 @@
           :transfer="isMetadata ? undefined : transfer"
           :target
           :planning
+          :saved-form-data-set
           @edit="step => goToStep(step)"
         />
       </UiStepper>
@@ -76,6 +77,7 @@ const {
   isIncremental,
   isMirror,
   isMetadata,
+  savedFormDataSet,
   currentStep,
   currentStepIndex,
   steps,
