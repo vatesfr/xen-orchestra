@@ -50,7 +50,10 @@
 - @xen-orchestra/vmware-explorer minor
 - @xen-orchestra/web patch
 - @xen-orchestra/web-core patch
+- @xen-orchestra/xapi-pg major
+- xen-api minor
 - xo-collection patch
 - xo-server patch
+- xo-web minor
 
 <!--packages-end-->

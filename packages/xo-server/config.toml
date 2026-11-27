@@ -346,3 +346,16 @@ xvaImportFromUrlTimeout = '6s'
 # When a snapshot is taken before an upgrade, the oldest ones are rotated out so
 # that at most this many remain. Must be >= 1.
 numberOfUpgradeSnapshots = 4
+
+[xo-pg]
+# parameters for a JSON-RPC transport proxy caching XAPI results to a PostgreSQL database
+
+# having this parameter set will activate the proxy, and will force the transport to be json-rpc
+# leave falsish or undefined to unplug entire pg subsystem
+# pgUrl = 'postgres://user:pass@pg/data'
+# tell the system to clear the tables it might have found for the pool before starting (ONLY the schemas relevant to the pool)
+# default false
+pgDropSchemaTables = false
+# try to respond to RPC queries from the DB as much as possible, otherwise just load the RPC result in the db
+# default true
+pgReadRpcFromDB = true
