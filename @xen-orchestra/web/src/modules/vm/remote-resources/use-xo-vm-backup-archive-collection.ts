@@ -21,7 +21,7 @@ export const useXoVmBackupArchiveCollection = defineRemoteResource({
       .map(backupRepositoryId => `backup-repository=${backupRepositoryId}`)
       .join('&')
 
-    return `${BASE_URL}/backup-archives?fields=${vmBackupArchiveFields.join(',')}&ndjson=true&${queryParamBackupRepositoriesIds}`
+    return `${BASE_URL}/backup-archives?type=xo-vm-backup&fields=${vmBackupArchiveFields.join(',')}&ndjson=true&${queryParamBackupRepositoriesIds}`
   },
   stream: true,
   initWatchCollection: () =>

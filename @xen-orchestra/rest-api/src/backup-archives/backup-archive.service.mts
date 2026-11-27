@@ -1,11 +1,29 @@
 import { noSuchObject } from 'xo-common/api-errors.js'
 import type { Readable } from 'node:stream'
-import type { XoApp, XoBackupDiskPartition, XoBackupRepository, XoVm, XoVmBackupArchive } from '@vates/types'
+import type {
+  AnyXoBackupArchive,
+  XoApp,
+  XoBackupDiskPartition,
+  XoBackupRepository,
+  XoConfigBackupArchive,
+  XoPool,
+  XoPoolBackupArchive,
+  XoVm,
+  XoVmBackupArchive,
+} from '@vates/types'
 
 import type { RestApi } from '../rest-api/rest-api.mjs'
 
+export const BACKUP_ARCHIVE_TYPES = ['xo-vm-backup', 'xo-config-backup', 'xo-pool-metadata-backup'] as const
+export type BackupArchiveType = AnyXoBackupArchive['type']
+
 // BR uuid/xo-vm-backups/VM uuid/(ISO 8601 compact).json
 const BACKUP_ARCHIVE_ID_REGEX = /^([0-9a-fA-F-]{36})\/+xo-vm-backups\/+([0-9a-fA-F-]{36})\/+(\d{8}T\d{6}Z)\.json$/
+// BR uuid/xo-config-backups/schedule uuid/(ISO 8601 compact)
+const CONFIG_BACKUP_ARCHIVE_ID_REGEX = /^([0-9a-fA-F-]{36})\/+xo-config-backups\/+([0-9a-fA-F-]{36})\/+(\d{8}T\d{6}Z)$/
+// BR uuid/xo-pool-metadata-backups/schedule uuid/pool uuid/(ISO 8601 compact)
+const POOL_BACKUP_ARCHIVE_ID_REGEX =
+  /^([0-9a-fA-F-]{36})\/+xo-pool-metadata-backups\/+([0-9a-fA-F-]{36})\/+([0-9a-fA-F-]{36})\/+(\d{8}T\d{6}Z)$/
 
 // Fold a free-form label (VM/disk/partition name) into a portion safe for both a filesystem
 // name and an HTTP Content-Disposition header: diacritics are stripped to ASCII and every
@@ -45,7 +63,76 @@ export class BackupArchiveService {
     this.#restApi = restApi
   }
 
-  async getBackupArchive(id: XoVmBackupArchive['id']): Promise<XoVmBackupArchive> {
+  /**
+   * Lists the archives of the given types stored on the given backup repositories.
+   * A backup repository that cannot be read is skipped (see `listVmBackupsNg` and `listMetadataBackups`).
+   */
+  async listBackupArchives(
+    backupRepositoryIds: XoBackupRepository['id'][],
+    types: readonly BackupArchiveType[] = BACKUP_ARCHIVE_TYPES
+  ): Promise<AnyXoBackupArchive[]> {
+    const wantVm = types.includes('xo-vm-backup')
+    const wantConfig = types.includes('xo-config-backup')
+    const wantPool = types.includes('xo-pool-metadata-backup')
+
+    const [vmBackupsByBr, metadataBackups] = await Promise.all([
+      wantVm ? this.#restApi.xoApp.listVmBackupsNg(backupRepositoryIds) : undefined,
+      wantConfig || wantPool ? this.#restApi.xoApp.listMetadataBackups(backupRepositoryIds) : undefined,
+    ])
+
+    const archives: AnyXoBackupArchive[] = []
+    if (vmBackupsByBr !== undefined) {
+      for (const backupsByVm of Object.values(vmBackupsByBr)) {
+        if (backupsByVm !== null) {
+          archives.push(...Object.values(backupsByVm).flat())
+        }
+      }
+    }
+    if (metadataBackups !== undefined) {
+      if (wantConfig) {
+        archives.push(...Object.values(metadataBackups.xo).flat())
+      }
+      if (wantPool) {
+        for (const backupsByPool of Object.values(metadataBackups.pool)) {
+          archives.push(...Object.values(backupsByPool).flat())
+        }
+      }
+    }
+
+    return archives
+  }
+
+  /**
+   * Returns a backup archive of any type (VM, XO config or pool metadata).
+   */
+  async getBackupArchive(id: AnyXoBackupArchive['id']): Promise<AnyXoBackupArchive> {
+    let match = id.match(BACKUP_ARCHIVE_ID_REGEX)
+    if (match !== null) {
+      return this.getVmBackupArchive(id as XoVmBackupArchive['id'])
+    }
+
+    match = id.match(CONFIG_BACKUP_ARCHIVE_ID_REGEX)
+    if (match !== null) {
+      const brId = match[1] as XoBackupRepository['id']
+      const { xo } = await this.#restApi.xoApp.listMetadataBackups([brId])
+      return this.#findArchive<XoConfigBackupArchive>(xo[brId], id)
+    }
+
+    match = id.match(POOL_BACKUP_ARCHIVE_ID_REGEX)
+    if (match !== null) {
+      const brId = match[1] as XoBackupRepository['id']
+      const poolId = match[3] as XoPool['id']
+      const { pool } = await this.#restApi.xoApp.listMetadataBackups([brId])
+      return this.#findArchive<XoPoolBackupArchive>(pool[brId]?.[poolId], id)
+    }
+
+    throw noSuchObject(id, 'backup-archive')
+  }
+
+  /**
+   * Returns a VM backup archive, the only type that has disks (needed by the mount/files routes).
+   */
+  async getVmBackupArchive(id: XoVmBackupArchive['id']): Promise<XoVmBackupArchive> {
     const match = id.match(BACKUP_ARCHIVE_ID_REGEX)
     if (match === null) {
       throw noSuchObject(id, 'backup-archive')
@@ -53,12 +140,16 @@ export class BackupArchiveService {
 
     const [, brId, vmId] = match as [XoVmBackupArchive['id'], XoBackupRepository['id'], XoVm['id'], string]
 
-    const backupArchive = (await this.#restApi.xoApp.listVmBackupsNg([brId]))[brId]?.[vmId]?.find(ba => ba.id === id)
-    if (backupArchive === undefined) {
+    const backupArchives = (await this.#restApi.xoApp.listVmBackupsNg([brId]))[brId]?.[vmId]
+    return this.#findArchive(backupArchives ?? undefined, id)
+  }
+
+  #findArchive<T extends AnyXoBackupArchive>(archives: T[] | undefined, id: string): T {
+    const archive = archives?.find(archive => archive.id === id)
+    if (archive === undefined) {
       throw noSuchObject(id, 'backup-archive')
     }
-
-    return backupArchive
+    return archive
   }
 
   #getBackupRepositoryId(archiveId: XoVmBackupArchive['id']): XoBackupRepository['id'] {
@@ -70,7 +161,7 @@ export class BackupArchiveService {
   }
 
   async listPartitions(archiveId: XoVmBackupArchive['id'], diskId: string): Promise<XoBackupDiskPartition[]> {
-    const archive = await this.getBackupArchive(archiveId)
+    const archive = await this.getVmBackupArchive(archiveId)
     // archive.disks is an array of { id, name, uuid } (see formatVmBackups), so look up by id
     if (archive.disks.find(disk => disk.id === diskId) === undefined) {
       throw noSuchObject(diskId, 'backup-archive-disk')
@@ -110,7 +201,7 @@ export class BackupArchiveService {
     readonly paths: string[]
     readonly format: 'tgz' | 'zip'
   }): Promise<{ stream: Readable; filename: string }> {
-    const archive = await this.getBackupArchive(archiveId)
+    const archive = await this.getVmBackupArchive(archiveId)
 
     const disk = archive.disks.find(disk => disk.id === diskId)
     if (disk === undefined) {
