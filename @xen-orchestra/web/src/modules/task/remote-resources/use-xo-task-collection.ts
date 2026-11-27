@@ -1,9 +1,11 @@
 import { useXoTaskNameResolver } from '@/modules/task/composables/xo-task-name-resolver.composable.ts'
 import { convertXoTaskToCore } from '@/modules/task/utils/convert-xo-task-to-core.util.ts'
+import { reuseUnchangedTasks } from '@/modules/task/utils/reuse-unchanged-tasks.util.ts'
 import { findTaskById, getTaskRoute } from '@/modules/task/utils/xo-task.util.ts'
 import { useWatchCollection } from '@/shared/composables/watch-collection.composable.ts'
 import { useXoCollectionState } from '@/shared/composables/xo-collection-state/use-xo-collection-state.ts'
 import { BASE_URL } from '@/shared/utils/fetch.util.ts'
+import type { Task } from '@core/components/ui/task-item/UiTaskItem.vue'
 import type { ResourceContext } from '@core/packages/remote-resource/types.ts'
 import { defineRemoteResource } from '@core/packages/remote-resource/define-remote-resource.ts'
 import type { XoTask } from '@vates/types'
@@ -34,10 +36,10 @@ export function createTaskCollectionState<TArgs extends any[] = []>(
   const sortedTasks = useSorted(tasks, (task1, task2) => task2.start - task1.start)
   const { resolveTaskName } = useXoTaskNameResolver()
 
-  const lastDayTasks = computed(() => {
+  const lastDayTasks = computed<Task[]>(previousTasks => {
     const now = Date.now()
 
-    return sortedTasks.value
+    const tasks = sortedTasks.value
       .filter(task => now - task.start < ONE_DAY)
       .map(task =>
         convertXoTaskToCore(task, {
@@ -45,6 +47,8 @@ export function createTaskCollectionState<TArgs extends any[] = []>(
           nameResolver: resolveTaskName,
         })
       )
+
+    return reuseUnchangedTasks(previousTasks, tasks)
   })
 
   const getTaskById = (taskId: FrontXoTask['id']) => {
