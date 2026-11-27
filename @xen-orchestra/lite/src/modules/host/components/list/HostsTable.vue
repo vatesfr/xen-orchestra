@@ -98,6 +98,9 @@ function getMasterIcon(host: XenApiHost) {
 
 const getIpAddresses = (host: XenApiHost) => getHostIpAddresses(host.address, pifsByHost.value.get(host.$ref))
 
+// Computed once per host, so that a sort doesn't gather the PIF addresses on each comparison
+const ipAddressesByHost = computed(() => new Map(filteredHosts.value.map(host => [host, getIpAddresses(host)])))
+
 const { HeadCells, BodyCells, sortItems } = useHostColumns({
   id: 'hosts',
   exclude: ['checkbox', 'srStatus', 'actions'],
@@ -123,7 +126,8 @@ const { HeadCells, BodyCells, sortItems } = useHostColumns({
   sort: {
     host: sortByNameLabel,
     description: sortByNameDescription,
-    ipAddresses: (host1, host2) => compareFirstStrings(getIpAddresses(host1), getIpAddresses(host2)),
+    ipAddresses: (host1, host2) =>
+      compareFirstStrings(ipAddressesByHost.value.get(host1) ?? [], ipAddressesByHost.value.get(host2) ?? []),
     tags: (host1, host2) => compareFirstStrings(host1.tags, host2.tags),
   },
   initialSort: { id: 'host', direction: 'asc' },

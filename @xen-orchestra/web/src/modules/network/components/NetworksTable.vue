@@ -129,6 +129,18 @@ const { compareStatuses } = useStatusLabel()
 
 const getStatus = (network: FrontXoNetwork) => getNetworkStatus(getPifsByIds(network.PIFs))
 
+// Computed once per network, so that a sort doesn't look up the PIFs on each comparison
+const statusByNetwork = computed(() => new Map(filteredNetworks.value.map(network => [network, getStatus(network)])))
+
+const vlanNumberByNetwork = computed(
+  () => new Map(filteredNetworks.value.map(network => [network, getNetworkVlanNumber(network)]))
+)
+
+const getSortStatus = (network: FrontXoNetwork) => statusByNetwork.value.get(network) ?? getStatus(network)
+
+const getSortVlanNumber = (network: FrontXoNetwork) =>
+  vlanNumberByNetwork.value.get(network) ?? getNetworkVlanNumber(network)
+
 const { HeadCells, BodyCells, sortItems } = useNetworkColumns({
   id: tableConfig.paginationId,
   exclude: type === 'internal' ? ['vlan', 'status', 'selectItem'] : ['selectItem'],
@@ -168,8 +180,8 @@ const { HeadCells, BodyCells, sortItems } = useNetworkColumns({
   sort: {
     network: sortByNameLabel,
     description: sortByNameDescription,
-    status: (network1, network2) => compareStatuses(getStatus(network1), getStatus(network2)),
-    vlan: (network1, network2) => getNetworkVlanNumber(network1) - getNetworkVlanNumber(network2),
+    status: (network1, network2) => compareStatuses(getSortStatus(network1), getSortStatus(network2)),
+    vlan: (network1, network2) => getSortVlanNumber(network1) - getSortVlanNumber(network2),
     mtu: (network1, network2) => network1.MTU - network2.MTU,
     defaultLockingMode: (network1, network2) =>
       compareStrings(getDefaultLockingMode(network1), getDefaultLockingMode(network2)),

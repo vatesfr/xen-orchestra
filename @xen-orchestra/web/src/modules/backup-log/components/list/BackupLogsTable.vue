@@ -124,6 +124,11 @@ const getFirstSrName = (log: BackupLogFilterableData) => {
   return getSrById(firstSrId)?.name_label ?? firstSrId
 }
 
+// Computed once per log, so that a sort doesn't walk the log tasks on each comparison
+const vmNameByLog = computed(() => new Map(filteredBackupLogs.value.map(log => [log, getFirstVmName(log)])))
+
+const srNameByLog = computed(() => new Map(filteredBackupLogs.value.map(log => [log, getFirstSrName(log)])))
+
 const { HeadCells, BodyCells, sortItems } = useBackupLogColumns({
   id: 'backup-logs',
   body: (log: BackupLogFilterableData) => {
@@ -177,8 +182,8 @@ const { HeadCells, BodyCells, sortItems } = useBackupLogColumns({
   sort: {
     job: (log1, log2) => compareStrings(log1.jobName ?? t('untitled'), log2.jobName ?? t('untitled')),
     backupDate: (log1, log2) => log1.start - log2.start,
-    vm: (log1, log2) => compareStrings(getFirstVmName(log1), getFirstVmName(log2)),
-    sr: (log1, log2) => compareStrings(getFirstSrName(log1), getFirstSrName(log2)),
+    vm: (log1, log2) => compareStrings(vmNameByLog.value.get(log1) ?? '', vmNameByLog.value.get(log2) ?? ''),
+    sr: (log1, log2) => compareStrings(srNameByLog.value.get(log1) ?? '', srNameByLog.value.get(log2) ?? ''),
     status: (log1, log2) => compareStatuses(log1.status, log2.status),
   },
   initialSort: { id: 'backupDate', direction: 'desc' },

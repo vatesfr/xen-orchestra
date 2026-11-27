@@ -87,6 +87,9 @@ const getIpAddresses = (vif: FrontXoVif) => {
   return getUniqueIpAddressesForDevice(addresses, vif.device)
 }
 
+// Computed once per VIF, so that a sort doesn't look up the VM addresses on each comparison
+const ipAddressesByVif = computed(() => new Map(filteredVifs.value.map(vif => [vif, getIpAddresses(vif)])))
+
 const getStatus = (vif: FrontXoVif) => (vif.attached ? CONNECTION_STATUS.CONNECTED : CONNECTION_STATUS.DISCONNECTED)
 
 const compareDevices = (vif1: FrontXoVif, vif2: FrontXoVif) => compareStrings(vif1.device, vif2.device)
@@ -188,7 +191,8 @@ const { HeadCells, BodyCells, sortItems } = useVifNetworkColumns({
     network: (vif1, vif2) => compareStrings(getNetworkName(vif1), getNetworkName(vif2)),
     device: compareDevices,
     status: (vif1, vif2) => compareStatuses(getStatus(vif1), getStatus(vif2)),
-    ipsAddresses: (vif1, vif2) => compareFirstStrings(getIpAddresses(vif1), getIpAddresses(vif2)),
+    ipsAddresses: (vif1, vif2) =>
+      compareFirstStrings(ipAddressesByVif.value.get(vif1) ?? [], ipAddressesByVif.value.get(vif2) ?? []),
     macAddresses: (vif1, vif2) => compareStrings(vif1.MAC, vif2.MAC),
     mtu: (vif1, vif2) => vif1.MTU - vif2.MTU,
     lockingMode: (vif1, vif2) => compareStrings(vif1.lockingMode, vif2.lockingMode),

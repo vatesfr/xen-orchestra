@@ -96,9 +96,20 @@ function getIpAddresses(host: FrontXoHost) {
   return getHostIpAddresses(host.address, pifsByHost.value.get(host.id))
 }
 
+// Computed once per host, so that a sort doesn't gather the PIF addresses on each comparison
+const ipAddressesByHost = computed(() => new Map(filteredHosts.value.map(host => [host, getIpAddresses(host)])))
+
 function getHostSrConnectionStatus(host: FrontXoHost) {
   return sr === undefined ? CONNECTION_STATUS.DISCONNECTED : getSrConnectionStatus(sr, host)
 }
+
+// Computed once per host, so that a sort doesn't look up the PBDs on each comparison
+const srConnectionStatusByHost = computed(
+  () => new Map(filteredHosts.value.map(host => [host, getHostSrConnectionStatus(host)]))
+)
+
+const getSortSrConnectionStatus = (host: FrontXoHost) =>
+  srConnectionStatusByHost.value.get(host) ?? getHostSrConnectionStatus(host)
 
 function getMasterIcon(host: FrontXoHost) {
   if (!isMasterHost(host.id)) {
@@ -144,9 +155,10 @@ const { HeadCells, BodyCells, sortItems } = useHostColumns({
   sort: {
     host: sortByNameLabel,
     description: sortByNameDescription,
-    ipAddresses: (host1, host2) => compareFirstStrings(getIpAddresses(host1), getIpAddresses(host2)),
+    ipAddresses: (host1, host2) =>
+      compareFirstStrings(ipAddressesByHost.value.get(host1) ?? [], ipAddressesByHost.value.get(host2) ?? []),
     tags: (host1, host2) => compareFirstStrings(host1.tags, host2.tags),
-    srStatus: (host1, host2) => compareStatuses(getHostSrConnectionStatus(host1), getHostSrConnectionStatus(host2)),
+    srStatus: (host1, host2) => compareStatuses(getSortSrConnectionStatus(host1), getSortSrConnectionStatus(host2)),
   },
   initialSort: { id: 'host', direction: 'asc' },
 })

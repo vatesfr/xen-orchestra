@@ -97,6 +97,20 @@ const state = useTableState({
 
 const { compareStatuses } = useStatusLabel()
 
+// Computed once per network, so that a sort doesn't scan the PIFs on each comparison
+const statusByNetwork = computed(
+  () => new Map(filteredNetworks.value.map(network => [network, getNetworkStatus(network)]))
+)
+
+const vlanNumberByNetwork = computed(
+  () => new Map(filteredNetworks.value.map(network => [network, getNetworkVlanNumber(network)]))
+)
+
+const getSortStatus = (network: XenApiNetwork) => statusByNetwork.value.get(network) ?? getNetworkStatus(network)
+
+const getSortVlanNumber = (network: XenApiNetwork) =>
+  vlanNumberByNetwork.value.get(network) ?? getNetworkVlanNumber(network)
+
 const { HeadCells, BodyCells, sortItems } = useNetworkColumns({
   id: 'networks',
   exclude: ['actions'],
@@ -118,8 +132,8 @@ const { HeadCells, BodyCells, sortItems } = useNetworkColumns({
   sort: {
     network: sortByNameLabel,
     description: sortByNameDescription,
-    status: (network1, network2) => compareStatuses(getNetworkStatus(network1), getNetworkStatus(network2)),
-    vlan: (network1, network2) => getNetworkVlanNumber(network1) - getNetworkVlanNumber(network2),
+    status: (network1, network2) => compareStatuses(getSortStatus(network1), getSortStatus(network2)),
+    vlan: (network1, network2) => getSortVlanNumber(network1) - getSortVlanNumber(network2),
     mtu: (network1, network2) => network1.MTU - network2.MTU,
     defaultLockingMode: (network1, network2) =>
       compareStrings(getLockingMode(network1.default_locking_mode), getLockingMode(network2.default_locking_mode)),

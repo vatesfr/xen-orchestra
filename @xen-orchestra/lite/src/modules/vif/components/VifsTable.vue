@@ -87,6 +87,9 @@ const state = useTableState({
     vifs.length === 0 ? t('no-vif-detected') : filteredVifs.value.length === 0 ? { type: 'no-result' } : false,
 })
 
+// Computed once per VIF, so that a sort doesn't look up the guest metrics on each comparison
+const ipAddressesByVif = computed(() => new Map(filteredVifs.value.map(vif => [vif, getIpAddresses(vif)])))
+
 const getStatus = (vif: XenApiVif) =>
   vif.currently_attached ? CONNECTION_STATUS.CONNECTED : CONNECTION_STATUS.DISCONNECTED
 
@@ -157,7 +160,8 @@ const { HeadCells, BodyCells, sortItems } = useVifColumns({
     network: (vif1, vif2) => compareStrings(getNetworkName(vif1.network), getNetworkName(vif2.network)),
     device: (vif1, vif2) => compareStrings(vif1.device, vif2.device),
     status: (vif1, vif2) => compareStatuses(getStatus(vif1), getStatus(vif2)),
-    ipsAddresses: (vif1, vif2) => compareFirstStrings(getIpAddresses(vif1), getIpAddresses(vif2)),
+    ipsAddresses: (vif1, vif2) =>
+      compareFirstStrings(ipAddressesByVif.value.get(vif1) ?? [], ipAddressesByVif.value.get(vif2) ?? []),
     macAddresses: (vif1, vif2) => compareStrings(vif1.MAC, vif2.MAC),
     mtu: (vif1, vif2) => vif1.MTU - vif2.MTU,
     lockingMode: (vif1, vif2) => compareStrings(vif1.locking_mode, vif2.locking_mode),

@@ -125,6 +125,13 @@ function getHealthCheckLabel(backupJob: FrontAnyXoBackupJob) {
   return status === undefined ? '' : getStatusLabel(status)
 }
 
+// Computed once per backup job, so that a sort doesn't resolve the job targets on each comparison
+const typeLabelsByBackupJob = computed(
+  () => new Map(filteredBackupJobs.value.map(backupJob => [backupJob, getBackupJobTypeLabels(backupJob)]))
+)
+
+const getTypeLabels = (backupJob: FrontAnyXoBackupJob) => typeLabelsByBackupJob.value.get(backupJob) ?? []
+
 const { HeadCells, BodyCells, sortItems } = useBackupJobColumns({
   id: 'backup-jobs',
   head: () => ({
@@ -165,8 +172,7 @@ const { HeadCells, BodyCells, sortItems } = useBackupJobColumns({
   sort: {
     backupJob: (backupJob1, backupJob2) =>
       compareStrings(backupJob1.name ?? t('untitled'), backupJob2.name ?? t('untitled')),
-    type: (backupJob1, backupJob2) =>
-      compareFirstStrings(getBackupJobTypeLabels(backupJob1), getBackupJobTypeLabels(backupJob2)),
+    type: (backupJob1, backupJob2) => compareFirstStrings(getTypeLabels(backupJob1), getTypeLabels(backupJob2)),
     mode: (backupJob1, backupJob2) =>
       compareStrings(getBackupJobModeLabel(backupJob1), getBackupJobModeLabel(backupJob2)),
     status: (backupJob1, backupJob2) => compareStatuses(getEnabled(backupJob1), getEnabled(backupJob2)),
