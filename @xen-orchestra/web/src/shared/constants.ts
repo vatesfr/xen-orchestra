@@ -5,6 +5,7 @@ export const IS_XOA_BUILD = import.meta.env.VITE_XOA_BUILD === 'true'
 
 export const XO_LINKS = {
   BLOG: 'https://xen-orchestra.com/blog/',
+  CHANGELOG: 'https://github.com/vatesfr/xen-orchestra/blob/master/CHANGELOG.md',
   COMMUNITY: 'https://xcp-ng.org/forum/category/12/xen-orchestra',
   DOC: 'https://docs.xen-orchestra.com',
   DOC_SDN_CONTROLLER_MIGRATION:
