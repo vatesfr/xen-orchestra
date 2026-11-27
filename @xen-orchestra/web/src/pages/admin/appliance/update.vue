@@ -18,6 +18,7 @@
         />
       </div>
       <div class="column">
+        <ApplianceUpdateSettingsCard :channel="channelLabel" />
         <ApplianceConnectionCard :proxy />
         <ApplianceRegistrationCard :registered />
       </div>
@@ -30,6 +31,7 @@
 import ApplianceConnectionCard from '@/modules/appliance/components/connection/ApplianceConnectionCard.vue'
 import AppliancePackagesCard from '@/modules/appliance/components/packages/AppliancePackagesCard.vue'
 import ApplianceRegistrationCard from '@/modules/appliance/components/registration/ApplianceRegistrationCard.vue'
+import ApplianceUpdateSettingsCard from '@/modules/appliance/components/settings/ApplianceUpdateSettingsCard.vue'
 import ApplianceVersionCard from '@/modules/appliance/components/version/ApplianceVersionCard.vue'
 import { useXoaUpgrade } from '@/modules/appliance/composables/use-xoa-upgrade.composable.ts'
 import { useXoaPackages } from '@/modules/appliance/remote-resources/use-xoa-packages.ts'
