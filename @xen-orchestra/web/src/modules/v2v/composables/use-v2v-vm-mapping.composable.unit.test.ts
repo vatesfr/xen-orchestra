@@ -3,6 +3,7 @@ import { useV2vVmMapping } from '@/modules/v2v/composables/use-v2v-vm-mapping.co
 import type { V2vAccentedLabel } from '@/modules/v2v/types/v2v-accented-label.type.ts'
 import { createV2vDisk, createV2vVm } from '@/test/create-v2v-inventory.ts'
 import { createV2vMigrationListVm } from '@/test/create-v2v-migration-list.ts'
+import { HOLD_LOADING } from '@/test/hold-loading.ts'
 import { xoCollectionsMock, mockXoCollections } from '@/test/mock-xo-collections.ts'
 import { mountV2vVmMapping, type MountV2vVmMappingOptions, V2V_OTHER_LIST_VM } from '@/test/mount-v2v-vm-mapping.ts'
 import {
@@ -66,14 +67,15 @@ describe('areOffersReady', () => {
     expect(mountVmMapping().areOffersReady).toBe(true)
   })
 
-  it.each(['areSrsReady', 'areNetworksReady', 'areTemplatesReady'] as const)(
-    'is false while %s is false',
-    readyFlag => {
-      xoCollectionsMock[readyFlag].value = false
+  it.each([
+    ['SRs', HOLD_LOADING.SRs],
+    ['networks', HOLD_LOADING.networks],
+    ['templates', HOLD_LOADING.templates],
+  ])('is false while the %s load', (_, holdLoading) => {
+    holdLoading()
 
-      expect(mountVmMapping().areOffersReady).toBe(false)
-    }
-  )
+    expect(mountVmMapping().areOffersReady).toBe(false)
+  })
 })
 
 describe('poolName', () => {

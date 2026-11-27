@@ -115,7 +115,7 @@ describe('areRowsReady', () => {
   it.each([
     ['VMs', HOLD_LOADING.VMs],
     ['tasks', HOLD_LOADING.tasks],
-    ['snapshots', () => (v2vVmRowsCollectionsMock.areSnapshotsReady.value = false)],
+    ['snapshots', HOLD_LOADING.snapshots],
   ])('is false while the %s are loading', (_, startLoading) => {
     startLoading()
 
