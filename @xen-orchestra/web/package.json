@@ -37,7 +37,7 @@
     "@vueuse/shared": "^14.0.0",
     "@xen-orchestra/backups": "^1.0.1",
     "@xen-orchestra/cron": "^1.0.7",
-    "@xen-orchestra/web-core": "^0.66.0",
+    "@xen-orchestra/web-core": "^0.66.1",
     "complex-matcher": "^1.1.1",
     "d3-time-format": "^4.1.0",
     "happy-dom": "^20.0.0",
