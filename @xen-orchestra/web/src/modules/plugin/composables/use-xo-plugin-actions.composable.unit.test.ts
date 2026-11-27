@@ -80,56 +80,62 @@ function findTargetedState(useJob: typeof useChangeStateJob) {
   return toValue(state)
 }
 
-type StateActionCase = {
-  action: 'loadAction' | 'autoloadAction'
-  field: 'loaded' | 'autoload'
-  target: string
-  targets: { value: boolean | undefined; label: string; icon: string; targetedState: boolean }[]
-  useJob: typeof useChangeStateJob
-  run: typeof changeState
-  setJobState: (state: JobResultState) => void
-  errorMessage: string
-  disabledWhile: Record<string, () => void>
-}
-
-const STATE_ACTIONS: StateActionCase[] = [
+type StateActionCase = [
+  action: 'loadAction' | 'autoloadAction',
   {
-    action: 'loadAction',
-    field: 'loaded',
-    target: 'state',
-    targets: [
-      { value: true, label: 'action:unload', icon: 'action:disconnect', targetedState: false },
-      { value: false, label: 'action:load', icon: 'action:connect', targetedState: true },
-      { value: undefined, label: 'action:load', icon: 'action:connect', targetedState: true },
-    ],
-    useJob: useChangeStateJob,
-    run: changeState,
-    setJobState: mockChangeStateJob,
-    errorMessage: 'not configured',
-    disabledWhile: {
-      'the autoload is being updated': () => mockAutoloadJob(RUNNING),
-      'the plugin is being tested': () => mockDrawerJob(useXoPluginTestJob, testPlugin, RUNNING),
-    },
-  },
-  {
-    action: 'autoloadAction',
-    field: 'autoload',
-    target: 'autoload',
-    targets: [
-      { value: true, label: 'action:disable-load-at-startup', icon: 'action:change-state', targetedState: false },
-      { value: false, label: 'action:enable-load-at-startup', icon: 'action:change-state', targetedState: true },
-    ],
-    useJob: useAutoloadJob,
-    run: updateAutoload,
-    setJobState: mockAutoloadJob,
-    errorMessage: 'missing plugin',
-    disabledWhile: { 'the plugin is being loaded or unloaded': () => mockChangeStateJob(RUNNING) },
+    field: 'loaded' | 'autoload'
+    target: string
+    targets: { value: boolean | undefined; label: string; icon: string; targetedState: boolean }[]
+    useJob: typeof useChangeStateJob
+    run: typeof changeState
+    setJobState: (state: JobResultState) => void
+    errorMessage: string
+    disabledWhile: Record<string, () => void>
   },
 ]
 
-// Not `describe.each`: its `$action` would quote the name
-for (const { action, field, target, targets, useJob, run, setJobState, errorMessage, disabledWhile } of STATE_ACTIONS) {
-  describe(action, () => {
+const STATE_ACTIONS: StateActionCase[] = [
+  [
+    'loadAction',
+    {
+      field: 'loaded',
+      target: 'state',
+      targets: [
+        { value: true, label: 'action:unload', icon: 'action:disconnect', targetedState: false },
+        { value: false, label: 'action:load', icon: 'action:connect', targetedState: true },
+        { value: undefined, label: 'action:load', icon: 'action:connect', targetedState: true },
+      ],
+      useJob: useChangeStateJob,
+      run: changeState,
+      setJobState: mockChangeStateJob,
+      errorMessage: 'not configured',
+      disabledWhile: {
+        'the autoload is being updated': () => mockAutoloadJob(RUNNING),
+        'the plugin is being tested': () => mockDrawerJob(useXoPluginTestJob, testPlugin, RUNNING),
+      },
+    },
+  ],
+  [
+    'autoloadAction',
+    {
+      field: 'autoload',
+      target: 'autoload',
+      targets: [
+        { value: true, label: 'action:disable-load-at-startup', icon: 'action:change-state', targetedState: false },
+        { value: false, label: 'action:enable-load-at-startup', icon: 'action:change-state', targetedState: true },
+      ],
+      useJob: useAutoloadJob,
+      run: updateAutoload,
+      setJobState: mockAutoloadJob,
+      errorMessage: 'missing plugin',
+      disabledWhile: { 'the plugin is being loaded or unloaded': () => mockChangeStateJob(RUNNING) },
+    },
+  ],
+]
+
+describe.each(STATE_ACTIONS)(
+  '%s',
+  (action, { field, target, targets, useJob, run, setJobState, errorMessage, disabledWhile }) => {
     it.each(targets)(
       `targets the opposite ${target} of a plugin with $value as ${field}`,
       ({ value, label, icon, targetedState }) => {
@@ -147,8 +153,8 @@ for (const { action, field, target, targets, useJob, run, setJobState, errorMess
       click: { run },
       disabledWhile,
     })
-  })
-}
+  }
+)
 
 describe('drawers', () => {
   it.each([
@@ -163,48 +169,52 @@ describe('drawers', () => {
   })
 })
 
-type DrawerActionCase = {
-  action: 'configureAction' | 'testAction'
-  useJob: unknown
-  openDrawer: typeof configurePlugin
-  drawer: string
-  item: Partial<LeafActionItem>
-  errorMessage: string
-  disabledWhile: Record<string, () => void>
-}
-
-const DRAWER_ACTIONS: DrawerActionCase[] = [
+type DrawerActionCase = [
+  action: 'configureAction' | 'testAction',
   {
-    action: 'configureAction',
-    useJob: useXoPluginConfigureJob,
-    openDrawer: configurePlugin,
-    drawer: 'configuration',
-    item: { label: t('action:configure'), icon: 'action:edit' },
-    errorMessage: 'not configurable',
-    disabledWhile: { 'the configuration is being deleted': () => mockDelete(RUNNING) },
-  },
-  {
-    action: 'testAction',
-    useJob: useXoPluginTestJob,
-    openDrawer: testPlugin,
-    drawer: 'test',
-    item: { label: t('action:test-plugin'), icon: 'action:scan' },
-    errorMessage: 'not loaded',
-    disabledWhile: { 'the plugin is being loaded or unloaded': () => mockChangeStateJob(RUNNING) },
+    useJob: unknown
+    openDrawer: typeof configurePlugin
+    drawer: string
+    item: Partial<LeafActionItem>
+    errorMessage: string
+    disabledWhile: Record<string, () => void>
   },
 ]
 
-for (const { action, useJob, openDrawer, drawer, item, errorMessage, disabledWhile } of DRAWER_ACTIONS) {
-  describe(action, () => {
-    itRunsJobFromAction({
-      getAction: () => mountActions()[action],
-      setJobState: state => mockDrawerJob(useJob, openDrawer, state),
-      errorMessage,
-      click: { run: openDrawer, name: `opens the ${drawer} drawer on click`, item },
-      disabledWhile,
-    })
+const DRAWER_ACTIONS: DrawerActionCase[] = [
+  [
+    'configureAction',
+    {
+      useJob: useXoPluginConfigureJob,
+      openDrawer: configurePlugin,
+      drawer: 'configuration',
+      item: { label: t('action:configure'), icon: 'action:edit' },
+      errorMessage: 'not configurable',
+      disabledWhile: { 'the configuration is being deleted': () => mockDelete(RUNNING) },
+    },
+  ],
+  [
+    'testAction',
+    {
+      useJob: useXoPluginTestJob,
+      openDrawer: testPlugin,
+      drawer: 'test',
+      item: { label: t('action:test-plugin'), icon: 'action:scan' },
+      errorMessage: 'not loaded',
+      disabledWhile: { 'the plugin is being loaded or unloaded': () => mockChangeStateJob(RUNNING) },
+    },
+  ],
+]
+
+describe.each(DRAWER_ACTIONS)('%s', (action, { useJob, openDrawer, drawer, item, errorMessage, disabledWhile }) => {
+  itRunsJobFromAction({
+    getAction: () => mountActions()[action],
+    setJobState: state => mockDrawerJob(useJob, openDrawer, state),
+    errorMessage,
+    click: { run: openDrawer, name: `opens the ${drawer} drawer on click`, item },
+    disabledWhile,
   })
-}
+})
 
 describe('deleteConfigurationAction', () => {
   itRunsJobFromAction({

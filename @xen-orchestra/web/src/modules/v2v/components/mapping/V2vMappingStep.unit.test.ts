@@ -2,10 +2,11 @@ import V2vMappingStep from '@/modules/v2v/components/mapping/V2vMappingStep.vue'
 import V2vMappingTable from '@/modules/v2v/components/mapping/V2vMappingTable.vue'
 import V2vVmSidePanel from '@/modules/v2v/components/panel/V2vVmSidePanel.vue'
 import { findV2vRouteQuery } from '@/test/create-v2v-wizard-router.ts'
+import { HOLD_LOADING } from '@/test/hold-loading.ts'
 import { t } from '@/test/i18n.ts'
 import { deleteModalMock, mockDeleteModal } from '@/test/mock-delete-modal.ts'
 import { xoCollectionsMock, mockXoCollections } from '@/test/mock-xo-collections.ts'
-import { v2vVmRowsCollectionsMock, mockXoV2vVmRowsCollections } from '@/test/mock-xo-v2v-vm-rows-collections.ts'
+import { mockXoV2vVmRowsCollections } from '@/test/mock-xo-v2v-vm-rows-collections.ts'
 import { mountComponentOnV2vWizard } from '@/test/mount-on-v2v-wizard.ts'
 import { mountV2vListStep } from '@/test/mount-v2v-list-step.ts'
 import { readV2vStoredListVm } from '@/test/mount-v2v-vm-mapping.ts'
@@ -75,7 +76,7 @@ describe('table', () => {
   })
 
   it('shows the step busy, without table, while the VMs load', async () => {
-    v2vVmRowsCollectionsMock.areVmsReady.value = false
+    HOLD_LOADING.VMs()
 
     const { wrapper } = await mountStep(V2V_WEB_VM.id)
 

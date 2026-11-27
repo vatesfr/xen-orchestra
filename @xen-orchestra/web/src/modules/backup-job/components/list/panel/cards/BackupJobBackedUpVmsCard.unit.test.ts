@@ -11,7 +11,7 @@ import { t } from '@/test/i18n.ts'
 import { xoCollectionsMock, mockXoCollections } from '@/test/mock-xo-collections.ts'
 import { vmCollectionMock, mockXoVmCollection } from '@/test/mock-xo-vm-collection.ts'
 import { mockXoVmDeviceCollections } from '@/test/mock-xo-vm-device-collections.ts'
-import VtsTag from '@core/components/tag/VtsTag.vue'
+import { findTagProps } from '@core-test/find-accented-labels.ts'
 import { findLinks } from '@core-test/find-links.ts'
 import { mount } from '@vue/test-utils'
 
@@ -69,13 +69,13 @@ it('shows the filters of the smart mode', () => {
     [t('resident-on')]: 'First pool',
     [t('not-resident-on')]: 'Second pool',
   })
-  expect(wrapper.findAllComponents(VtsTag).map(tag => tag.props('value'))).toEqual(['test', 'skip', 'xo:no-bak'])
+  expect(findTagProps(wrapper, 'value')).toEqual(['test', 'skip', 'xo:no-bak'])
 })
 
 it('shows the smart mode of a job excluding no tag', () => {
   const wrapper = mountBackedUpVmsCard({ type: 'VM', tags: { __or: [['test']] } })
 
-  expect(wrapper.findAllComponents(VtsTag).map(tag => tag.props('value'))).toEqual(['test', 'xo:no-bak'])
+  expect(findTagProps(wrapper, 'value')).toEqual(['test', 'xo:no-bak'])
 })
 
 it('shows the first backed up VMs, offering to see the other ones', () => {

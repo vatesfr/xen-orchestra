@@ -1,6 +1,7 @@
 import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import { useV2vIsUnknownPool } from '@/modules/v2v/composables/use-v2v-is-unknown-pool.composable.ts'
 import { createPool, UNKNOWN_POOL_ID } from '@/test/create-pool.ts'
+import { HOLD_LOADING } from '@/test/hold-loading.ts'
 import { xoCollectionsMock, mockXoCollections } from '@/test/mock-xo-collections.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
 import { ref } from 'vue'
@@ -28,7 +29,7 @@ it('knows a pool of this XO', () => {
 })
 
 it('trusts the pool while the pools load', () => {
-  xoCollectionsMock.arePoolsReady.value = false
+  HOLD_LOADING.pools()
 
   expect(mountIsUnknownPool().isUnknownPool).toBe(false)
 })
@@ -47,7 +48,7 @@ it('follows the pool', () => {
 })
 
 it('tells the pool unknown once the pools are loaded', () => {
-  xoCollectionsMock.arePoolsReady.value = false
+  HOLD_LOADING.pools()
   const result = mountIsUnknownPool()
 
   xoCollectionsMock.arePoolsReady.value = true

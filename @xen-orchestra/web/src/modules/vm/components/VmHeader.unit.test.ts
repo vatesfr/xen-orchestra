@@ -2,8 +2,7 @@ import VmHeader from '@/modules/vm/components/VmHeader.vue'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { createTestRouter } from '@/test/create-test-router.ts'
 import { createVm } from '@/test/create-vm.ts'
-import { findHeadBarLabel, findHeadBarLoader, getHeadBarActions, getHeadBarIcon } from '@/test/find-header.ts'
-import { findTooltipContent } from '@/test/find-tooltip-content.ts'
+import { findHeadBarIconTooltip, findHeadBarLabel, findHeadBarState, getHeadBarActions } from '@/test/find-header.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { xoCollectionsMock, mockXoCollections } from '@/test/mock-xo-collections.ts'
@@ -11,6 +10,7 @@ import { mockXoRoutes } from '@/test/mock-xo-routes.ts'
 import { taskCollectionMock, mockXoTaskCollection } from '@/test/mock-xo-task-collection.ts'
 import { objectIcon } from '@core/icons'
 import { findLink } from '@core-test/find-links.ts'
+import { findTab, findTabs } from '@core-test/find-tabs.ts'
 import { findButton } from '@core-test/get-button.ts'
 import { VM_OPERATIONS, VM_POWER_STATE } from '@vates/types'
 import { mount } from '@vue/test-utils'
@@ -37,10 +37,6 @@ async function mountHeader(vm: FrontXoVm = createVm({ id: 'vm-42' as FrontXoVm['
     props: { vm },
     global: createGlobalTestConfig({ router }),
   })
-}
-
-function findTabs(wrapper: Awaited<ReturnType<typeof mountHeader>>) {
-  return wrapper.findAll('.ui-tab-item')
 }
 
 it('shows the name of the VM', async () => {
@@ -87,7 +83,7 @@ it('points every in-app tab at the page of that VM', async () => {
 it('sends the stats tab to XO 5 rather than to an in-app page', async () => {
   const wrapper = await mountHeader()
 
-  const statsTab = findTabs(wrapper).find(tab => tab.text() === t('stats'))!
+  const statsTab = findTab(wrapper, t('stats'))!
 
   expect(statsTab.element.tagName).not.toBe('A')
   expect(findLink(statsTab)?.href).toBe('https://xo5.example.com/#/vms/vm-42/stats')
@@ -120,14 +116,13 @@ it('offers the quick actions of the VM and the more-actions menu', async () => {
 it('shows the icon matching the power state of the VM', async () => {
   const wrapper = await mountHeader(createVm({ power_state: VM_POWER_STATE.PAUSED, current_operations: {} }))
 
-  expect(getHeadBarIcon(wrapper).props('name')).toBe(objectIcon('vm', 'paused'))
-  expect(findHeadBarLoader(wrapper).exists()).toBe(false)
+  expect(findHeadBarState(wrapper)).toEqual({ icon: objectIcon('vm', 'paused'), loader: 'none' })
 })
 
 it('shows the pending operation in the tooltip of the busy icon', async () => {
   const wrapper = await mountHeader(createVm({ current_operations: { 'task-1': VM_OPERATIONS.CLEAN_REBOOT } }))
 
-  expect(await findTooltipContent(getHeadBarIcon(wrapper).element)).toBe(
+  expect(await findHeadBarIconTooltip(wrapper)).toBe(
     t('operation-in-progress', { operation: t('operation:clean-reboot') })
   )
 })
@@ -135,28 +130,22 @@ it('shows the pending operation in the tooltip of the busy icon', async () => {
 it('shows no tooltip on the icon while another operation is pending', async () => {
   const wrapper = await mountHeader(createVm({ current_operations: { 'task-1': VM_OPERATIONS.SNAPSHOT } }))
 
-  expect(await findTooltipContent(getHeadBarIcon(wrapper).element)).toBeUndefined()
+  expect(await findHeadBarIconTooltip(wrapper)).toBeUndefined()
 })
 
-const PENDING_OPERATION_CASES = [
-  {
-    name: 'shows the busy icon while the VM is changing state',
-    vm: () => createVm({ current_operations: { 'task-1': VM_OPERATIONS.CLEAN_REBOOT } }),
-    icon: objectIcon('vm', 'busy'),
-  },
-  {
-    name: 'keeps the power state icon and shows a loader next to the title while another operation is pending',
-    vm: () =>
-      createVm({ power_state: VM_POWER_STATE.RUNNING, current_operations: { 'task-1': VM_OPERATIONS.SNAPSHOT } }),
-    icon: objectIcon('vm', 'running'),
-  },
-]
+it.each<[string, FrontXoVm, string]>([
+  [
+    'shows the busy icon while the VM is changing state',
+    createVm({ current_operations: { 'task-1': VM_OPERATIONS.CLEAN_REBOOT } }),
+    objectIcon('vm', 'busy'),
+  ],
+  [
+    'keeps the power state icon and shows a loader next to the title while another operation is pending',
+    createVm({ power_state: VM_POWER_STATE.RUNNING, current_operations: { 'task-1': VM_OPERATIONS.SNAPSHOT } }),
+    objectIcon('vm', 'running'),
+  ],
+])('%s', async (_, vm, icon) => {
+  const wrapper = await mountHeader(vm)
 
-for (const { name, vm, icon } of PENDING_OPERATION_CASES) {
-  it(name, async () => {
-    const wrapper = await mountHeader(vm())
-
-    expect(getHeadBarIcon(wrapper).props('name')).toBe(icon)
-    expect(findHeadBarLoader(wrapper, { nextToLabel: true }).exists()).toBe(true)
-  })
-}
+  expect(findHeadBarState(wrapper)).toEqual({ icon, loader: 'next-to-label' })
+})

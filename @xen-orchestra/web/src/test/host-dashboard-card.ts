@@ -1,18 +1,7 @@
 import { itRendersCardTitle } from '@/test/card-title.ts'
-import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
-import { vmCollectionMock } from '@/test/mock-xo-vm-collection.ts'
+import { HOLD_LOADING } from '@/test/hold-loading.ts'
 import { expectLoaderInsteadOf } from '@core-test/expect-loader.ts'
 import type { VueWrapper } from '@vue/test-utils'
-
-// Holds a mocked collection as still loading (`mock-xo-collections.ts`, `mock-xo-vm-collection.ts`), by its name
-export const HOLD_LOADING = {
-  hosts: () => {
-    xoCollectionsMock.areHostsReady.value = false
-  },
-  VMs: () => {
-    vmCollectionMock.areVmsReady.value = false
-  },
-}
 
 type HostDashboardCardCase = {
   title: string
@@ -32,11 +21,12 @@ export function itShowsHostDashboardCard(mountCard: () => VueWrapper, { title, l
     return
   }
 
-  for (const collection of loading.collections) {
-    it(`shows a loader instead of ${loading.content} while the ${collection} are still loading`, () => {
+  it.each(loading.collections)(
+    `shows a loader instead of ${loading.content} while the %s are still loading`,
+    collection => {
       HOLD_LOADING[collection]()
 
       expectLoaderInsteadOf(mountCard(), loading.find)
-    })
-  }
+    }
+  )
 }

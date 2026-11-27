@@ -93,29 +93,18 @@ it('offers to edit, to test the speed and to forget the repository in the more a
 })
 
 const ICON_CASES = [
-  {
-    name: 'shows a connected icon for an enabled repository without error',
-    br: { enabled: true, error: undefined },
-    state: 'connected',
-  },
-  {
-    name: 'shows a disconnected icon for an enabled repository with an error',
-    br: { error: { code: 'ENOENT' } },
-    state: 'disconnected',
-  },
-  { name: 'shows a disabled icon for a disabled repository', br: { enabled: false }, state: 'disabled' },
-  {
-    name: 'shows an unknown icon for a repository with an unrecognized url',
-    br: { url: 'ftp://192.168.100.225/backup' },
-    state: 'unknown',
-  },
+  ['shows a connected icon for an enabled repository without error', { enabled: true, error: undefined }, 'connected'],
+  ['shows a disconnected icon for an enabled repository with an error', { error: { code: 'ENOENT' } }, 'disconnected'],
+  ['shows a disabled icon for a disabled repository', { enabled: false }, 'disabled'],
+  [
+    'shows an unknown icon for a repository with an unrecognized url',
+    { url: 'ftp://192.168.100.225/backup' },
+    'unknown',
+  ],
 ] as const
 
-// Not `it.each`: its `$name` would quote and truncate the name
-for (const { name, br, state } of ICON_CASES) {
-  it(name, () => {
-    const wrapper = mountHeader(createBr(br))
+it.each(ICON_CASES)('%s', (_, br, state) => {
+  const wrapper = mountHeader(createBr(br))
 
-    expect(findIcons(wrapper)).toEqual({ breadcrumb: objectIcon('br', state), headBar: objectIcon('br', state) })
-  })
-}
+  expect(findIcons(wrapper)).toEqual({ breadcrumb: objectIcon('br', state), headBar: objectIcon('br', state) })
+})

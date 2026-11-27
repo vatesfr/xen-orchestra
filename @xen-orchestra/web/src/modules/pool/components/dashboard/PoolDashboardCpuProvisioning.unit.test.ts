@@ -29,25 +29,24 @@ itShowsDashboardCardStates(mountProvisioning, {
   hasErrorState: true,
 })
 
-it('splits the CPUs of the pool between what is assigned and what it holds', () => {
-  const wrapper = mountProvisioning()
+it.each<[string, PoolDashboardCardProps, string, string]>([
+  ['splits the CPUs of the pool between what is assigned and what it holds', {}, '6', '8'],
+  [
+    'reports no CPU for a pool provisioning nothing',
+    { poolDashboard: withCpuProvisioning({ assigned: 0, total: 0, percent: 0 }) },
+    '0',
+    '0',
+  ],
+])('%s', (_, props, assigned, total) => {
+  const wrapper = mountProvisioning(props)
 
   expect(findCardNumbers(wrapper)).toEqual([
-    [t('vcpus-assigned'), '6'],
-    [t('total-cpus'), '8'],
+    [t('vcpus-assigned'), assigned],
+    [t('total-cpus'), total],
   ])
 })
 
 itShowsCpuProvisioningShare(mountProvisioning, {
   fill: 'fills the progress bar with the share of the CPUs assigned',
   legend: 'labels the progress bar with the share of the CPUs assigned',
-})
-
-it('reports no CPU for a pool provisioning nothing', () => {
-  const wrapper = mountProvisioning({ poolDashboard: withCpuProvisioning({ assigned: 0, total: 0, percent: 0 }) })
-
-  expect(findCardNumbers(wrapper)).toEqual([
-    [t('vcpus-assigned'), '0'],
-    [t('total-cpus'), '0'],
-  ])
 })

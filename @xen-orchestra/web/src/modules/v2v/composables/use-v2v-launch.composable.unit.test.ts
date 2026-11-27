@@ -11,7 +11,8 @@ import {
   V2V_START_TASK_ID,
 } from '@/test/create-v2v-launch.ts'
 import { hasRequested } from '@/test/fetch-requests.ts'
-import { xoCollectionsMock, mockXoCollections } from '@/test/mock-xo-collections.ts'
+import { HOLD_LOADING } from '@/test/hold-loading.ts'
+import { mockXoCollections } from '@/test/mock-xo-collections.ts'
 import { mountV2vListStepComposable, type MountV2vListStepOptions } from '@/test/mount-v2v-list-step.ts'
 import { resetV2vCollectionMocks } from '@/test/reset-v2v-collection-mocks.ts'
 import { silenceConsoleError } from '@/test/silence-console-error.ts'
@@ -175,9 +176,7 @@ describe('launch', () => {
     { case: 'without a connected source', options: { isSourceConnected: false } },
     {
       case: 'while the destination pool loads',
-      prepare: () => {
-        xoCollectionsMock.pools.value = []
-      },
+      prepare: HOLD_LOADING.pools,
       errorKey: 'job:arg:pool-id-required',
     },
     {

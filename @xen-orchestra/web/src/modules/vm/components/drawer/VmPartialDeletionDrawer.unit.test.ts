@@ -4,6 +4,7 @@ import { createVm } from '@/test/create-vm.ts'
 import { findTableRows } from '@/test/find-rendered-values.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
+import { findTab } from '@core-test/find-tabs.ts'
 import { mount } from '@vue/test-utils'
 
 const webServer = createVm({ id: 'vm-1' as FrontXoVm['id'], name_label: 'Web server' })
@@ -18,9 +19,7 @@ function mountDrawer(deletableVms: FrontXoVm[] = [webServer, database], protecte
 }
 
 async function openProtectedTab(wrapper: ReturnType<typeof mountDrawer>) {
-  const protectedTab = wrapper.findAll('.ui-tab-item').find(tab => tab.text() === t('protected-vms'))
-
-  await protectedTab?.trigger('click')
+  await findTab(wrapper, t('protected-vms'))?.trigger('click')
 }
 
 it('explains how many VMs are protected and how many will be deleted', () => {

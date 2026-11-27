@@ -11,7 +11,7 @@ import {
   V2V_TARGET_OPTIONS,
   createV2vOfferedTarget,
 } from '@/test/v2v-mapping-fixtures.ts'
-import VtsTag from '@core/components/tag/VtsTag.vue'
+import { findTagProps } from '@core-test/find-accented-labels.ts'
 import { mount } from '@vue/test-utils'
 
 const TEMPLATE = createV2vOfferedTarget(V2V_DEBIAN_TEMPLATE.id, 'overridden')
@@ -46,13 +46,9 @@ it('names the template among the offered ones, and where it comes from', () => {
 })
 
 it('lists the tags of the VM', () => {
-  const tags = mountCard({ tags: ['web', 'prod'] })
-    .findAllComponents(VtsTag)
-    .map(tag => tag.props('value'))
-
-  expect(tags).toEqual(['web', 'prod'])
+  expect(findTagProps(mountCard({ tags: ['web', 'prod'] }), 'value')).toEqual(['web', 'prod'])
 })
 
 it('lists no tag for a VM without any', () => {
-  expect(mountCard({ tags: [] }).findAllComponents(VtsTag)).toEqual([])
+  expect(findTagProps(mountCard({ tags: [] }), 'value')).toEqual([])
 })

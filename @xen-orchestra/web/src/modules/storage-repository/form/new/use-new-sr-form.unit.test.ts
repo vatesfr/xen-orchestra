@@ -5,6 +5,7 @@ import type { NewSrType } from '@/modules/storage-repository/types/xo-sr-create.
 import { createHost } from '@/test/create-host.ts'
 import { createPool, DISKOR_POOL_NAME, OTHER_POOL_ID, UNKNOWN_POOL_ID } from '@/test/create-pool.ts'
 import { dangerMessage, requiredMessage } from '@/test/form-messages.ts'
+import { HOLD_LOADING } from '@/test/hold-loading.ts'
 import { t } from '@/test/i18n.ts'
 import { mockOverlay, overlayMock } from '@/test/mock-overlay.ts'
 import { mockXoCollections, xoCollectionsMock } from '@/test/mock-xo-collections.ts'
@@ -190,7 +191,7 @@ describe('submit', () => {
   })
 
   it('selects the pool and its master once the pools are loaded', async () => {
-    xoCollectionsMock.startLoadingPools()
+    HOLD_LOADING.pools()
     const form = mountNewSrForm()
 
     seedPools()

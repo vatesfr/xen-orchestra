@@ -1,12 +1,16 @@
 import VmInfoCard from '@/modules/vm/components/list/panel/cards/VmInfoCard.vue'
-import VmTagsEditor from '@/modules/vm/components/tags/VmTagsEditor.vue'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import type { FrontXoVmTemplate } from '@/modules/vm/remote-resources/use-xo-vm-template-collection.ts'
 import { itShowsNameAndIdTitle } from '@/test/card-title.ts'
 import { createHost } from '@/test/create-host.ts'
 import { createPool } from '@/test/create-pool.ts'
 import { createVm } from '@/test/create-vm.ts'
-import { findCardLabelledValues, findCardRowLabels, findTags } from '@/test/find-rendered-values.ts'
+import {
+  findCardLabelledValues,
+  findCardRowLabels,
+  findVmTagsCopiedValue,
+  findVmTagsEditorProps,
+} from '@/test/find-rendered-values.ts'
 import { findPanelCardTitleIcon } from '@/test/find-titles.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
@@ -105,46 +109,47 @@ it('shows the power state, description and OS name of the VM', () => {
   })
 })
 
-it('renders one tag per VM tag, in alphabetical order', () => {
-  const wrapper = mountInfoCard(createVm({ tags: ['production', 'billing'] }))
-
-  expect(findTags(wrapper)).toEqual(['billing', 'production'])
-})
-
 it('edits the tags of the VM from an icon-only button', () => {
-  expect(mountInfoCard().getComponent(VmTagsEditor).props('iconOnly')).toBe(true)
+  const vm = createVm()
+
+  expect(findVmTagsEditorProps(mountInfoCard(vm))).toMatchObject({ vm, iconOnly: true })
 })
 
-const POOL_AND_HOST_CASES = [
-  {
-    name: 'shows the name of the pool hosting the VM',
-    seed: () => {
+it.each<[string, string[], string | undefined]>([
+  ['offers to copy the tags of the VM, in alphabetical order', ['production', 'billing'], 'billing, production'],
+  ['offers no tag to copy for a VM without tag', [], undefined],
+])('%s', (_, tags, copiedTags) => {
+  expect(findVmTagsCopiedValue(mountInfoCard(createVm({ tags })))).toBe(copiedTags)
+})
+
+const POOL_AND_HOST_CASES: [name: string, label: string, value: string, seed?: () => void][] = [
+  [
+    'shows the name of the pool hosting the VM',
+    t('pool'),
+    'Production Pool',
+    () => {
       xoCollectionsMock.pools.value = [createPool({ name_label: 'Production Pool' })]
     },
-    label: t('pool'),
-    value: 'Production Pool',
-  },
-  { name: 'leaves the pool row empty when the pool is unknown', label: t('pool'), value: '' },
-  {
-    name: 'shows the name of the host running the VM',
-    seed: () => {
+  ],
+  ['leaves the pool row empty when the pool is unknown', t('pool'), ''],
+  [
+    'shows the name of the host running the VM',
+    t('host'),
+    'Primary Host',
+    () => {
       xoCollectionsMock.hosts.value = [
         createHost({ name_label: 'Primary Host', power_state: HOST_POWER_STATE.RUNNING }),
       ]
     },
-    label: t('host'),
-    value: 'Primary Host',
-  },
-  { name: 'leaves the host row empty when the VM runs on no host', label: t('host'), value: '' },
+  ],
+  ['leaves the host row empty when the VM runs on no host', t('host'), ''],
 ]
 
-for (const { name, seed, label, value } of POOL_AND_HOST_CASES) {
-  it(name, () => {
-    seed?.()
+it.each(POOL_AND_HOST_CASES)('%s', (_, label, value, seed) => {
+  seed?.()
 
-    expect(findCardLabelledValues(mountInfoCard())).toMatchObject({ [label]: value })
-  })
-}
+  expect(findCardLabelledValues(mountInfoCard())).toMatchObject({ [label]: value })
+})
 
 it('shows the name of the template the VM was created from', () => {
   xoCollectionsMock.templates.value = [createTemplate()]

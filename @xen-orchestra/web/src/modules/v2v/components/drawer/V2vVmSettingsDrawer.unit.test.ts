@@ -6,6 +6,7 @@ import type { V2vMigrationListVm } from '@/modules/v2v/types/v2v-migration-list.
 import { cancelDrawer, findDrawerButtonLabels, submitDrawer } from '@/test/drawer.ts'
 import { findTitles } from '@/test/find-titles.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
+import { HOLD_LOADING } from '@/test/hold-loading.ts'
 import { t } from '@/test/i18n.ts'
 import { xoCollectionsMock, mockXoCollections } from '@/test/mock-xo-collections.ts'
 import {
@@ -113,7 +114,7 @@ it('offers to cancel or to save', async () => {
 })
 
 it('shows the targets loading and cannot be saved while the pool offers load', async () => {
-  xoCollectionsMock.areSrsReady.value = false
+  HOLD_LOADING.SRs()
 
   const wrapper = await mountDrawer()
 

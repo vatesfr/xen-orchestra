@@ -29,6 +29,13 @@ export function findCardTitleLabel(wrapper: TitleWrapper) {
   return readTitleLabel(wrapper, CARD_TITLE)
 }
 
+// What a card title shows in its `info` slot, next to its label, `undefined` without it
+export function findCardTitleInfo(wrapper: Pick<VueWrapper, 'find'>) {
+  const info = wrapper.find(`${CARD_TITLE} .info`)
+
+  return info.exists() ? info.text() : undefined
+}
+
 export function findPanelCardTitle(wrapper: TitleWrapper) {
   return readTitle(wrapper, PANEL_CARD_TITLE)
 }

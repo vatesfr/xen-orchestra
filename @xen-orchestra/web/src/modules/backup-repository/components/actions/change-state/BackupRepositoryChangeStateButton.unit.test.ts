@@ -26,39 +26,28 @@ function findJobArgs() {
 }
 
 const STATE_CASES = [
-  {
-    state: 'an enabled',
-    enabled: true,
-    action: 'disable',
-    label: 'action:disable',
-    icon: 'action:disable',
-    targetedState: false,
-  },
-  {
-    state: 'a disabled',
-    enabled: false,
-    action: 'connect',
-    label: 'action:connect',
-    icon: 'action:connect',
-    targetedState: true,
-  },
+  [
+    'an enabled',
+    { enabled: true, action: 'disable', label: 'action:disable', icon: 'action:disable', targetedState: false },
+  ],
+  [
+    'a disabled',
+    { enabled: false, action: 'connect', label: 'action:connect', icon: 'action:connect', targetedState: true },
+  ],
 ] as const
 
-// Not `describe.each`: its `$state` would quote the name
-for (const { state, enabled, action, label, icon, targetedState } of STATE_CASES) {
-  describe(`on ${state} repository`, () => {
-    it(`offers to ${action} it`, () => {
-      const button = mountButton(createBr({ enabled })).getComponent(UiButton)
+describe.each(STATE_CASES)('on %s repository', (_, { enabled, action, label, icon, targetedState }) => {
+  it(`offers to ${action} it`, () => {
+    const button = mountButton(createBr({ enabled })).getComponent(UiButton)
 
-      expect(button.text()).toBe(t(label))
-      expect(button.props('leftIcon')).toBe(icon)
-    })
-
-    it(`runs the job to ${action} it`, () => {
-      const br = createBr({ enabled })
-      mountButton(br)
-
-      expect(findJobArgs()).toEqual({ brs: [br], enabled: targetedState })
-    })
+    expect(button.text()).toBe(t(label))
+    expect(button.props('leftIcon')).toBe(icon)
   })
-}
+
+  it(`runs the job to ${action} it`, () => {
+    const br = createBr({ enabled })
+    mountButton(br)
+
+    expect(findJobArgs()).toEqual({ brs: [br], enabled: targetedState })
+  })
+})

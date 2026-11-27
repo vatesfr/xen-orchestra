@@ -16,15 +16,12 @@ type CannotRunCase<TJob extends ValidatedJob> = {
  * message.
  */
 export function itCannotRun<TJob extends ValidatedJob>(cases: CannotRunCase<TJob>[]) {
-  // Not `it.each`: its `$name` would quote and truncate the name
-  for (const { name, mountJob, errorMessage } of cases) {
-    it(name, () => {
-      const job = mountJob()
+  it.each(cases.map(({ name, ...rest }) => [name, rest] as const))('%s', (_, { mountJob, errorMessage }) => {
+    const job = mountJob()
 
-      expect(job.canRun).toBe(false)
-      expect(job.errorMessage).toBe(typeof errorMessage === 'function' ? errorMessage(job) : errorMessage)
-    })
-  }
+    expect(job.canRun).toBe(false)
+    expect(job.errorMessage).toBe(typeof errorMessage === 'function' ? errorMessage(job) : errorMessage)
+  })
 }
 
 type CanRunCase = {
@@ -35,14 +32,12 @@ type CanRunCase = {
 
 // Registers one test per case where a job (a mounted `defineJob` composable) can run, without error message
 export function itCanRun(cases: CanRunCase[]) {
-  for (const { name, mountJob } of cases) {
-    it(name, () => {
-      const job = mountJob()
+  it.each(cases.map(({ name, mountJob }) => [name, mountJob] as const))('%s', (_, mountJob) => {
+    const job = mountJob()
 
-      expect(job.canRun).toBe(true)
-      expect(job.errorMessage).toBeUndefined()
-    })
-  }
+    expect(job.canRun).toBe(true)
+    expect(job.errorMessage).toBeUndefined()
+  })
 }
 
 type RequestErrorCase = {

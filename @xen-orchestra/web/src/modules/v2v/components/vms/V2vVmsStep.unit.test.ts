@@ -11,10 +11,11 @@ import { createV2vConnection } from '@/test/create-v2v-connection.ts'
 import { createV2vListPair } from '@/test/create-v2v-selected-vms.ts'
 import { getV2vVmIds, getV2vVmNames } from '@/test/create-v2v-vm-row.ts'
 import { findV2vRouteQuery, getV2vVmsQuery } from '@/test/create-v2v-wizard-router.ts'
+import { HOLD_LOADING, itIsReadyOnceLoaded } from '@/test/hold-loading.ts'
 import { t } from '@/test/i18n.ts'
 import { deleteModalMock, mockDeleteModal } from '@/test/mock-delete-modal.ts'
 import { mockXoCollections } from '@/test/mock-xo-collections.ts'
-import { v2vVmRowsCollectionsMock, mockXoV2vVmRowsCollections } from '@/test/mock-xo-v2v-vm-rows-collections.ts'
+import { mockXoV2vVmRowsCollections } from '@/test/mock-xo-v2v-vm-rows-collections.ts'
 import { mountComponentOnV2vWizard } from '@/test/mount-on-v2v-wizard.ts'
 import { mountV2vVmsStep } from '@/test/mount-v2v-vms-step.ts'
 import { resetV2vCollectionMocks } from '@/test/reset-v2v-collection-mocks.ts'
@@ -154,7 +155,7 @@ describe('VMs', () => {
   })
 
   it('hands the table its state and pagination', async () => {
-    v2vVmRowsCollectionsMock.areVmsReady.value = false
+    HOLD_LOADING.VMs()
     const { wrapper } = await mountStep()
     const table = getTable(wrapper)
 
@@ -224,18 +225,22 @@ describe('selected VMs', () => {
     const { wrapper } = await mountStep()
 
     expect(getPanel(wrapper).props()).toMatchObject({
-      isBusy: false,
       readinessTags: [{ label: t('n-ready', { n: 1 }), accent: 'success' }],
       listPair: createV2vListPair(),
     })
     expect(findPanelItemIds(wrapper)).toEqual([V2V_LISTED_VM.id])
   })
 
-  it('shows the panel busy while the rows load', async () => {
-    v2vVmRowsCollectionsMock.areTasksReady.value = false
-    const { wrapper } = await mountStep()
+  describe('the busy flag of the panel', () => {
+    itIsReadyOnceLoaded(
+      async () => {
+        const { wrapper } = await mountStep()
 
-    expect(getPanel(wrapper).props('isBusy')).toBe(true)
+        return () => getPanel(wrapper).props('isBusy')
+      },
+      [['the XO tasks', 'tasks']],
+      { busy: true }
+    )
   })
 
   it.each([

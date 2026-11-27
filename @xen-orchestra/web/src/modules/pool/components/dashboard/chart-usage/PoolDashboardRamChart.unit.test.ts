@@ -1,11 +1,8 @@
 import PoolDashboardRamChart from '@/modules/pool/components/dashboard/chart-usage/PoolDashboardRamChart.vue'
-import { createPoolStats } from '@/test/create-pool-stats.ts'
-import { findCardTitle } from '@/test/find-titles.ts'
+import { createPoolStats, POOL_STATS_WITH_MEMORY_ONLY, POOL_STATS_WITHOUT_SAMPLES } from '@/test/create-pool-stats.ts'
 import { t } from '@/test/i18n.ts'
-import { findLinearChart, formatChartValue } from '@/test/linear-chart-stub.ts'
-import { mountChartCard, type ChartCardProps } from '@/test/mount-chart-card.ts'
-import { hasLoader } from '@core-test/expect-loader.ts'
-import { findStateHeroTexts } from '@core-test/find-state-hero-types.ts'
+import { findLinearChart } from '@/test/linear-chart-stub.ts'
+import { itShowsChartCard, mountChartCard, type ChartCardProps } from '@/test/mount-chart-card.ts'
 import type { XapiPoolStats } from '@vates/types/common'
 
 function mountChart(props: ChartCardProps<XapiPoolStats>) {
@@ -16,53 +13,18 @@ const statsWithSamples = createPoolStats({
   'host-1': { stats: { memory: [2048, 4096], memoryFree: [1024, 2048] } },
 })
 
-it('renders the card title and the period it covers', () => {
-  const wrapper = mountChart({ data: statsWithSamples })
-
-  expect(findCardTitle(wrapper)).toContain(t('pool-ram-usage'))
-  expect(findCardTitle(wrapper)).toContain(t('last-week'))
-})
-
-it('shows a loader while the stats are loading', () => {
-  const wrapper = mountChart({ data: null, loading: true })
-
-  expect(hasLoader(wrapper)).toBe(true)
-})
-
-it('shows a loader while the stats have not arrived yet', () => {
-  const wrapper = mountChart({ data: null })
-
-  expect(hasLoader(wrapper)).toBe(true)
-})
-
-it('shows an error message when the stats could not be fetched', () => {
-  const wrapper = mountChart({ data: statsWithSamples, error: true })
-
-  expect(findStateHeroTexts(wrapper)).toEqual([t('error-no-data')])
-})
-
-it('reports that there is nothing to plot for a pool without host', () => {
-  const wrapper = mountChart({ data: createPoolStats() })
-
-  expect(findStateHeroTexts(wrapper)).toEqual([t('no-data-to-calculate')])
-})
-
-it('reports that there is nothing to plot when the free memory of every host is missing', () => {
-  const wrapper = mountChart({ data: createPoolStats({ 'host-1': { stats: { memory: [2048, 4096] } } }) })
-
-  expect(findStateHeroTexts(wrapper)).toEqual([t('no-data-to-calculate')])
-})
-
-it('reports that there is nothing to plot when the memory of every host holds no sample', () => {
-  const wrapper = mountChart({ data: createPoolStats({ 'host-1': { stats: { memory: [], memoryFree: [] } } }) })
-
-  expect(findStateHeroTexts(wrapper)).toEqual([t('no-data-to-calculate')])
-})
-
-it('reports that there is nothing to plot when the stats of every host failed', () => {
-  const wrapper = mountChart({ data: createPoolStats({ 'host-1': { error: { code: 'boom' } } }) })
-
-  expect(findStateHeroTexts(wrapper)).toEqual([t('no-data-to-calculate')])
+itShowsChartCard(mountChart, {
+  title: t('pool-ram-usage'),
+  stats: statsWithSamples,
+  nullStats: 'loader',
+  nothingToPlot: {
+    ...POOL_STATS_WITHOUT_SAMPLES,
+    'when the free memory of every host is missing': POOL_STATS_WITH_MEMORY_ONLY,
+    'when the memory of every host holds no sample': createPoolStats({
+      'host-1': { stats: { memory: [], memoryFree: [] } },
+    }),
+  },
+  formatsAs: 'bytes',
 })
 
 it('plots the memory used, stacked across every host of the pool', () => {
@@ -93,10 +55,4 @@ it('scales the axis to the total memory of the pool', () => {
   })
 
   expect(findLinearChart(wrapper).props('maxValue')).toBe(5120)
-})
-
-it('formats the plotted values as bytes', () => {
-  const wrapper = mountChart({ data: statsWithSamples })
-
-  expect(formatChartValue(wrapper, 1024)).toBe('1 KiB')
 })

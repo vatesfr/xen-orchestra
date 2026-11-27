@@ -1,11 +1,8 @@
 import VmDashboardRamUsageChart from '@/modules/vm/components/dashboard/VmDashboardRamUsageChart.vue'
 import { createVmStats } from '@/test/create-vm-stats.ts'
-import { findCardTitle } from '@/test/find-titles.ts'
 import { t } from '@/test/i18n.ts'
-import { findLinearChart, formatChartValue } from '@/test/linear-chart-stub.ts'
-import { mountChartCard, type ChartCardProps } from '@/test/mount-chart-card.ts'
-import { hasLoader } from '@core-test/expect-loader.ts'
-import { findStateHeroTexts } from '@core-test/find-state-hero-types.ts'
+import { findLinearChart } from '@/test/linear-chart-stub.ts'
+import { itShowsChartCard, mountChartCard, type ChartCardProps } from '@/test/mount-chart-card.ts'
 import type { XapiVmStats } from '@vates/types/common'
 
 function mountChart(props: ChartCardProps<XapiVmStats>) {
@@ -14,41 +11,14 @@ function mountChart(props: ChartCardProps<XapiVmStats>) {
 
 const statsWithSamples = createVmStats({ stats: { memory: [1000, 2000], memoryFree: [400, 500] } })
 
-it('renders the card title and the period it covers', () => {
-  const wrapper = mountChart({ data: statsWithSamples })
-
-  expect(findCardTitle(wrapper)).toContain(t('ram-usage'))
-  expect(findCardTitle(wrapper)).toContain(t('last-week'))
-})
-
-it('shows a loader while the stats are loading', () => {
-  const wrapper = mountChart({ data: null, loading: true })
-
-  expect(hasLoader(wrapper)).toBe(true)
-})
-
-it('shows an error message when the stats could not be fetched', () => {
-  const wrapper = mountChart({ data: null, error: true })
-
-  expect(findStateHeroTexts(wrapper)).toEqual([t('error-no-data')])
-})
-
-it('prefers the error message over the missing stats', () => {
-  const wrapper = mountChart({ data: statsWithSamples, error: true })
-
-  expect(findStateHeroTexts(wrapper)).toEqual([t('error-no-data')])
-})
-
-it('reports that there is nothing to plot when the VM has no memory sample', () => {
-  const wrapper = mountChart({ data: createVmStats() })
-
-  expect(findStateHeroTexts(wrapper)).toEqual([t('no-data-to-calculate')])
-})
-
-it('reports that there is nothing to plot for null stats', () => {
-  const wrapper = mountChart({ data: null })
-
-  expect(findStateHeroTexts(wrapper)).toEqual([t('no-data-to-calculate')])
+itShowsChartCard(mountChart, {
+  title: t('ram-usage'),
+  stats: statsWithSamples,
+  nullStats: 'nothing-to-plot',
+  nothingToPlot: {
+    'when the VM has no memory sample': createVmStats(),
+  },
+  formatsAs: 'bytes',
 })
 
 it('plots the memory the VM actually uses', () => {
@@ -69,10 +39,4 @@ it('scales the axis to the memory allocated to the VM', () => {
   const wrapper = mountChart({ data: statsWithSamples })
 
   expect(findLinearChart(wrapper).props('maxValue')).toBe(2000)
-})
-
-it('formats the plotted values as bytes', () => {
-  const wrapper = mountChart({ data: statsWithSamples })
-
-  expect(formatChartValue(wrapper, 1024)).toBe('1 KiB')
 })

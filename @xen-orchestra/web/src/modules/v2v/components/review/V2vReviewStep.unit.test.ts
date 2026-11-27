@@ -9,10 +9,11 @@ import { stubV2vStartAccepted, stubV2vStartProblems, V2V_START_TASK_ID } from '@
 import { findV2vRouteQuery } from '@/test/create-v2v-wizard-router.ts'
 import { findInlineParts } from '@/test/find-parts.ts'
 import { findCardTitleLabel } from '@/test/find-titles.ts'
+import { HOLD_LOADING } from '@/test/hold-loading.ts'
 import { t } from '@/test/i18n.ts'
 import { mockDeleteModal } from '@/test/mock-delete-modal.ts'
 import { mockXoCollections } from '@/test/mock-xo-collections.ts'
-import { v2vVmRowsCollectionsMock, mockXoV2vVmRowsCollections } from '@/test/mock-xo-v2v-vm-rows-collections.ts'
+import { mockXoV2vVmRowsCollections } from '@/test/mock-xo-v2v-vm-rows-collections.ts'
 import { mockXoVmDeviceCollections } from '@/test/mock-xo-vm-device-collections.ts'
 import { mountComponentOnV2vWizard } from '@/test/mount-on-v2v-wizard.ts'
 import { mountV2vListStep, type MountV2vListStepOptions } from '@/test/mount-v2v-list-step.ts'
@@ -75,7 +76,7 @@ beforeEach(() => {
 it('shows the step busy while the VMs load', async () => {
   const { wrapper } = await mountStep()
 
-  v2vVmRowsCollectionsMock.areVmsReady.value = false
+  HOLD_LOADING.VMs()
   await flushPromises()
 
   expect(findStateHeroTypes(wrapper)).toEqual(['busy'])

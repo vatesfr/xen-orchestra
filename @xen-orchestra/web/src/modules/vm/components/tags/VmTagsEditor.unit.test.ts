@@ -7,9 +7,9 @@ import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
 import { vmCollectionMock, mockXoVmCollection } from '@/test/mock-xo-vm-collection.ts'
 import { mockedExport } from '@/test/spy-on-module.ts'
-import VtsTag from '@core/components/tag/VtsTag.vue'
 import VtsTagSelect, { type TagSelectChanges } from '@core/components/tag-select/VtsTagSelect.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
+import { findTagProps } from '@core-test/find-accented-labels.ts'
 import { flushPromises, mount, type VueWrapper } from '@vue/test-utils'
 
 const put = mockedExport(fetchPut)
@@ -38,10 +38,6 @@ function mountTagsEditor({
   })
 }
 
-function findVmTags(wrapper: VueWrapper) {
-  return wrapper.getComponent(UiTagsList).findAllComponents(VtsTag)
-}
-
 function findTagSelect(wrapper: VueWrapper) {
   return wrapper.getComponent(VtsTagSelect)
 }
@@ -58,16 +54,13 @@ describe('tags of the VM', () => {
     expect(findTags(wrapper)).toEqual(['production', 'web'])
   })
 
-  it('displays the tags of the VM with the brand accent', () => {
+  it.each([
+    ['displays the tags of the VM with the brand accent', 'accent', ['brand', 'brand']],
+    ['does not offer to remove the tags outside of the tag select', 'removable', [false, false]],
+  ] as const)('%s', (_, prop, values) => {
     const wrapper = mountTagsEditor()
 
-    expect(findVmTags(wrapper).map(tag => tag.props('accent'))).toEqual(['brand', 'brand'])
-  })
-
-  it('does not offer to remove the tags outside of the tag select', () => {
-    const wrapper = mountTagsEditor()
-
-    expect(findVmTags(wrapper).map(tag => tag.props('removable'))).toEqual([false, false])
+    expect(findTagProps(wrapper.getComponent(UiTagsList), prop)).toEqual(values)
   })
 
   it('lists no tag when the VM has none', () => {

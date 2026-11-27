@@ -2,6 +2,7 @@ import { useV2vSourceStats } from '@/modules/v2v/composables/use-v2v-source-stat
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { createV2vColdAndWarmImportVms, createV2vImportVm } from '@/test/create-v2v-import-vm.ts'
 import { V2V_TEST_SOURCE } from '@/test/create-v2v-inventory.ts'
+import { HOLD_LOADING } from '@/test/hold-loading.ts'
 import { vmCollectionMock, mockXoVmCollection } from '@/test/mock-xo-vm-collection.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
 import { type MaybeRefOrGetter, nextTick, ref } from 'vue'
@@ -30,7 +31,7 @@ it('has no stats for a source never connected to', () => {
 })
 
 it('has no stats while the VMs are loading', () => {
-  vmCollectionMock.areVmsReady.value = false
+  HOLD_LOADING.VMs()
 
   expect(mountSourceStats(V2V_TEST_SOURCE.instanceUuid).stats).toBeUndefined()
 })

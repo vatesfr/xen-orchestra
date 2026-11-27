@@ -78,11 +78,6 @@ export const xoCollectionsMock = {
   seedMasterHost(host: FrontXoHost) {
     this.pools.value = [createPool({ id: host.$pool, master: host.id })]
   },
-  // The pools of a loading collection: none yet, and not ready
-  startLoadingPools() {
-    this.pools.value = []
-    this.arePoolsReady.value = false
-  },
 }
 
 type CollectionOptions = { isEnabled?: MaybeRefOrGetter<boolean> }

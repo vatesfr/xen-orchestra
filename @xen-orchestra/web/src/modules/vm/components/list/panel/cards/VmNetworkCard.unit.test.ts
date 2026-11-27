@@ -45,14 +45,11 @@ it('shows an empty address row when the VM has no IP address', () => {
   expect(findCardCopiedValues(wrapper)).toEqual([])
 })
 
-it('links to the networks page when the VM has at least one IP address', () => {
-  const wrapper = mountNetworkCard(createVm({ addresses: { '0/ipv4/0': '10.0.0.1' } }))
+it.each<[string, Partial<FrontXoVm>['addresses'], boolean]>([
+  ['links to the networks page when the VM has at least one IP address', { '0/ipv4/0': '10.0.0.1' }, true],
+  ['hides the networks page link when the VM has no IP address', undefined, false],
+])('%s', (_, addresses, hasLink) => {
+  const wrapper = mountNetworkCard(createVm({ addresses }))
 
-  expect(findPanelCardTitle(wrapper)).toContain(t('see-details'))
-})
-
-it('hides the networks page link when the VM has no IP address', () => {
-  const wrapper = mountNetworkCard(createVm({ addresses: undefined }))
-
-  expect(findPanelCardTitle(wrapper)).not.toContain(t('see-details'))
+  expect(findPanelCardTitle(wrapper).includes(t('see-details'))).toBe(hasLink)
 })

@@ -1,11 +1,8 @@
 import HostDashboardCpuUsageChart from '@/modules/host/components/dashboard/HostDashboardCpuUsageChart.vue'
 import { createHostStats } from '@/test/create-host-stats.ts'
-import { findCardTitle } from '@/test/find-titles.ts'
-import { n, t } from '@/test/i18n.ts'
-import { findLinearChart, formatChartValue } from '@/test/linear-chart-stub.ts'
-import { mountChartCard, type ChartCardProps } from '@/test/mount-chart-card.ts'
-import { hasLoader } from '@core-test/expect-loader.ts'
-import { findStateHeroTexts } from '@core-test/find-state-hero-types.ts'
+import { t } from '@/test/i18n.ts'
+import { findLinearChart } from '@/test/linear-chart-stub.ts'
+import { itShowsChartCard, mountChartCard, type ChartCardProps } from '@/test/mount-chart-card.ts'
 import type { XapiHostStats } from '@vates/types/common'
 
 function mountChart(props: ChartCardProps<XapiHostStats>) {
@@ -14,41 +11,15 @@ function mountChart(props: ChartCardProps<XapiHostStats>) {
 
 const statsWithSamples = createHostStats({ stats: { cpus: { '0': [10, 20] } } })
 
-it('renders the card title and the period it covers', () => {
-  const wrapper = mountChart({ data: statsWithSamples })
-
-  expect(findCardTitle(wrapper)).toContain(t('cpu-usage'))
-  expect(findCardTitle(wrapper)).toContain(t('last-week'))
-})
-
-it('shows a loader while the stats are loading', () => {
-  const wrapper = mountChart({ data: null, loading: true })
-
-  expect(hasLoader(wrapper)).toBe(true)
-})
-
-it('shows a loader while the stats have not arrived yet', () => {
-  const wrapper = mountChart({ data: null })
-
-  expect(hasLoader(wrapper)).toBe(true)
-})
-
-it('shows an error message when the stats could not be fetched', () => {
-  const wrapper = mountChart({ data: statsWithSamples, error: true })
-
-  expect(findStateHeroTexts(wrapper)).toEqual([t('error-no-data')])
-})
-
-it('reports that there is nothing to plot when the host has no cpu sample', () => {
-  const wrapper = mountChart({ data: createHostStats() })
-
-  expect(findStateHeroTexts(wrapper)).toEqual([t('no-data-to-calculate')])
-})
-
-it('reports that there is nothing to plot when the host reports no cpu at all', () => {
-  const wrapper = mountChart({ data: createHostStats({ stats: { cpus: {} } }) })
-
-  expect(findStateHeroTexts(wrapper)).toEqual([t('no-data-to-calculate')])
+itShowsChartCard(mountChart, {
+  title: t('cpu-usage'),
+  stats: statsWithSamples,
+  nullStats: 'loader',
+  nothingToPlot: {
+    'when the host has no cpu sample': createHostStats(),
+    'when the host reports no cpu at all': createHostStats({ stats: { cpus: {} } }),
+  },
+  formatsAs: 'percentages',
 })
 
 it('plots the average usage across the vcpus of the host', () => {
@@ -69,10 +40,4 @@ it('rounds the axis up to the next hundred percent', () => {
   const wrapper = mountChart({ data: createHostStats({ stats: { cpus: { '0': [10, 120] } } }) })
 
   expect(findLinearChart(wrapper).props('maxValue')).toBe(200)
-})
-
-it('formats the plotted values as percentages', () => {
-  const wrapper = mountChart({ data: statsWithSamples })
-
-  expect(formatChartValue(wrapper, 4200)).toBe(n(42, 'percent'))
 })

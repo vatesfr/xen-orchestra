@@ -1,3 +1,4 @@
+import VtsTag from '@core/components/tag/VtsTag.vue'
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import UiTag from '@core/components/ui/tag/UiTag.vue'
 import type { VueWrapper } from '@vue/test-utils'
@@ -11,6 +12,12 @@ function findAccentedLabels(wrapper: AccentedComponents, component: typeof UiTag
 
 export function findAccentedTags(wrapper: AccentedComponents) {
   return findAccentedLabels(wrapper, UiTag)
+}
+
+// What each `VtsTag` of the wrapper is handed as `prop`, in order. A `term:label` tag renders its value in two parts:
+// read its `value` here, not its text
+export function findTagProps(wrapper: AccentedComponents, prop: 'accent' | 'removable' | 'value') {
+  return wrapper.findAllComponents(VtsTag).map(tag => tag.props(prop))
 }
 
 export function findAccentedInfos(wrapper: AccentedComponents) {

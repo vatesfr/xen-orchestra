@@ -5,6 +5,7 @@ import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collecti
 import { createHost } from '@/test/create-host.ts'
 import { createSr } from '@/test/create-sr.ts'
 import { createVm } from '@/test/create-vm.ts'
+import { HOLD_LOADING } from '@/test/hold-loading.ts'
 import { xoCollectionsMock, mockXoCollections } from '@/test/mock-xo-collections.ts'
 import { vmCollectionMock, mockXoVmCollection } from '@/test/mock-xo-vm-collection.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
@@ -73,20 +74,20 @@ describe('collections', () => {
 
 describe('isReady', () => {
   it('waits for the collection of the referenced type only', () => {
-    xoCollectionsMock.areSrsReady.value = false
+    HOLD_LOADING.SRs()
 
     expect(mountOptions('vm').isReady).toBe(true)
     expect(mountOptions('sr').isReady).toBe(false)
   })
 
   it('waits for every collection for the tags', () => {
-    xoCollectionsMock.arePoolsReady.value = false
+    HOLD_LOADING.pools()
 
     expect(mountOptions('tag').isReady).toBe(false)
   })
 
   it('is ready without type', () => {
-    vmCollectionMock.areVmsReady.value = false
+    HOLD_LOADING.VMs()
 
     expect(mountOptions(undefined).isReady).toBe(true)
   })

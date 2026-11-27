@@ -1,6 +1,7 @@
 import { useNetworkPoolPrefill } from '@/modules/network/form/use-network-pool-prefill.ts'
 import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import { createPool, OTHER_POOL_ID, UNKNOWN_POOL_ID } from '@/test/create-pool.ts'
+import { HOLD_LOADING } from '@/test/hold-loading.ts'
 import { xoCollectionsMock, mockXoCollections } from '@/test/mock-xo-collections.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
 import { nextTick, ref } from 'vue'
@@ -36,7 +37,7 @@ it('leaves the model empty when no pool has the given id', () => {
 })
 
 it('prefills the model once the pools are loaded', async () => {
-  xoCollectionsMock.startLoadingPools()
+  HOLD_LOADING.pools()
   const model = mountPrefill(POOL.id)
 
   xoCollectionsMock.pools.value = [POOL]
@@ -57,7 +58,7 @@ it('keeps the pool chosen after the prefill when the pools update', async () => 
 })
 
 it('replaces a pool chosen before the pools are loaded', async () => {
-  xoCollectionsMock.startLoadingPools()
+  HOLD_LOADING.pools()
   const model = mountPrefill(POOL.id, ref(OTHER_POOL_ID))
 
   xoCollectionsMock.pools.value = [POOL]

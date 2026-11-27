@@ -1,29 +1,14 @@
-import type {
-  FrontXoBackupLog,
-  useXoBackupLogCollection,
-} from '@/modules/backup-log/remote-resources/use-xo-backup-log-collection.ts'
 import { useVmLastBackupDates } from '@/modules/vm/composables/use-vm-last-backup-dates.composable.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { createBackupLog, createBackupLogSrTask, createBackupLogVmTask } from '@/test/create-backup-log.ts'
+import { HOLD_LOADING } from '@/test/hold-loading.ts'
+import { backupLogCollectionMock, mockXoBackupLogCollection } from '@/test/mock-xo-backup-log-collection.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
-import { mockModule } from '@/test/spy-on-module.ts'
-import { ref } from 'vue'
 
-const { backupLogs, areBackupLogsReady } = {
-  backupLogs: { value: [] as FrontXoBackupLog[] },
-  areBackupLogsReady: { value: true },
-}
-
-mockModule(import('@/modules/backup-log/remote-resources/use-xo-backup-log-collection.ts'), () => ({
-  useXoBackupLogCollection: (() => ({
-    backupLogs: ref(backupLogs.value),
-    areBackupLogsReady: ref(areBackupLogsReady.value),
-  })) as unknown as typeof useXoBackupLogCollection,
-}))
+mockXoBackupLogCollection()
 
 beforeEach(() => {
-  backupLogs.value = []
-  areBackupLogsReady.value = true
+  backupLogCollectionMock.reset()
 })
 
 const VM_ID = 'vm-1' as FrontXoVm['id']
@@ -38,7 +23,7 @@ function mountLastBackupDates() {
 
 describe('getVmLastBackupDate', () => {
   it('gives the start of the last successful backup of the VM', () => {
-    backupLogs.value = [
+    backupLogCollectionMock.backupLogs.value = [
       createBackupLog({ tasks: [createVmTask(VM_ID, 1000)] }),
       createBackupLog({ tasks: [createVmTask(VM_ID, 3000), createVmTask('vm-2', 5000)] }),
     ]
@@ -47,19 +32,23 @@ describe('getVmLastBackupDate', () => {
   })
 
   it('ignores the failed backups', () => {
-    backupLogs.value = [createBackupLog({ tasks: [createVmTask(VM_ID, 1000), createVmTask(VM_ID, 3000, 'failure')] })]
+    backupLogCollectionMock.backupLogs.value = [
+      createBackupLog({ tasks: [createVmTask(VM_ID, 1000), createVmTask(VM_ID, 3000, 'failure')] }),
+    ]
 
     expect(mountLastBackupDates().getVmLastBackupDate(VM_ID)).toBe(1000)
   })
 
   it('ignores the tasks of other objects than VMs', () => {
-    backupLogs.value = [createBackupLog({ tasks: [{ ...createBackupLogSrTask(VM_ID), start: 1000 }] })]
+    backupLogCollectionMock.backupLogs.value = [
+      createBackupLog({ tasks: [{ ...createBackupLogSrTask(VM_ID), start: 1000 }] }),
+    ]
 
     expect(mountLastBackupDates().getVmLastBackupDate(VM_ID)).toBeUndefined()
   })
 
   it('has no date for a VM never backed up', () => {
-    backupLogs.value = [createBackupLog({ tasks: undefined })]
+    backupLogCollectionMock.backupLogs.value = [createBackupLog({ tasks: undefined })]
 
     expect(mountLastBackupDates().getVmLastBackupDate(VM_ID)).toBeUndefined()
   })
@@ -67,7 +56,7 @@ describe('getVmLastBackupDate', () => {
 
 describe('areBackupLogsReady', () => {
   it('waits for the backup logs', () => {
-    areBackupLogsReady.value = false
+    HOLD_LOADING.backupLogs()
 
     expect(mountLastBackupDates().areBackupLogsReady).toBe(false)
   })

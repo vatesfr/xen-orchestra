@@ -1,3 +1,4 @@
+import { findTooltipContent } from '@/test/find-tooltip-content.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import UiHeadBar from '@core/components/ui/head-bar/UiHeadBar.vue'
 import { findLink } from '@core-test/find-links.ts'
@@ -21,6 +22,25 @@ export function findHeadBarStatus(wrapper: Pick<VueWrapper, 'find'>) {
 // A loader of the `UiHeadBar` of a page header: the one next to its label with `nextToLabel`, else any
 export function findHeadBarLoader(wrapper: Pick<VueWrapper, 'find'>, { nextToLabel = false } = {}) {
   return wrapper.find(nextToLabel ? '.ui-head-bar .status .ui-loader' : '.ui-head-bar .ui-loader')
+}
+
+// The tooltip of the icon the `UiHeadBar` of a page header shows before its label, `undefined` without one
+export function findHeadBarIconTooltip(wrapper: Pick<VueWrapper, 'getComponent'>) {
+  return findTooltipContent(getHeadBarIcon(wrapper).element)
+}
+
+// Where the `UiHeadBar` of a page header shows a loader: next to its label, elsewhere, or nowhere
+function findHeadBarLoaderPlace(wrapper: Pick<VueWrapper, 'find'>) {
+  if (findHeadBarLoader(wrapper, { nextToLabel: true }).exists()) {
+    return 'next-to-label'
+  }
+
+  return findHeadBarLoader(wrapper).exists() ? 'elsewhere' : 'none'
+}
+
+// The state the `UiHeadBar` of a page header shows for its object: its icon, and where it shows a loader
+export function findHeadBarState(wrapper: Pick<VueWrapper, 'getComponent' | 'find'>) {
+  return { icon: getHeadBarIcon(wrapper).props('name'), loader: findHeadBarLoaderPlace(wrapper) }
 }
 
 // The actions of the `UiHeadBar` of a page header

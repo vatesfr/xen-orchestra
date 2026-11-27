@@ -13,6 +13,7 @@ import {
 } from '@/test/create-v2v-migration-list.ts'
 import { createV2vListPair } from '@/test/create-v2v-selected-vms.ts'
 import { getV2vVmIds } from '@/test/create-v2v-vm-row.ts'
+import { HOLD_LOADING, itIsReadyOnceLoaded } from '@/test/hold-loading.ts'
 import { deleteModalMock, mockDeleteModal } from '@/test/mock-delete-modal.ts'
 import { xoCollectionsMock, mockXoCollections } from '@/test/mock-xo-collections.ts'
 import { v2vVmRowsCollectionsMock, mockXoV2vVmRowsCollections } from '@/test/mock-xo-v2v-vm-rows-collections.ts'
@@ -239,36 +240,24 @@ describe('count', () => {
 })
 
 describe('isBusy', () => {
-  it('is false once the rows are ready', async () => {
-    const { result } = await mountSelectedVms()
+  // The targets of the pool too: still loading, a target would read as gone from the pool, and the mapping of every
+  // VM would read incomplete
+  itIsReadyOnceLoaded(
+    async () => {
+      const { result } = await mountSelectedVms()
 
-    expect(result.isBusy).toBe(false)
-  })
-
-  it.each([
-    ['VMs', 'areVmsReady'],
-    ['tasks', 'areTasksReady'],
-    ['snapshots', 'areSnapshotsReady'],
-  ] as const)('is true while the XO %s load', async (_, readyFlag) => {
-    v2vVmRowsCollectionsMock[readyFlag].value = false
-
-    const { result } = await mountSelectedVms()
-
-    expect(result.isBusy).toBe(true)
-  })
-
-  // Still loading, a target would read as gone from the pool: the mapping of every VM would read incomplete
-  it.each([
-    ['SRs', 'areSrsReady'],
-    ['networks', 'areNetworksReady'],
-    ['templates', 'areTemplatesReady'],
-  ] as const)('is true while the %s of the pool load', async (_, readyFlag) => {
-    xoCollectionsMock[readyFlag].value = false
-
-    const { result } = await mountSelectedVms()
-
-    expect(result.isBusy).toBe(true)
-  })
+      return () => result.isBusy
+    },
+    [
+      ['the XO VMs', 'VMs'],
+      ['the XO tasks', 'tasks'],
+      ['the XO snapshots', 'snapshots'],
+      ['the SRs of the pool', 'SRs'],
+      ['the networks of the pool', 'networks'],
+      ['the templates of the pool', 'templates'],
+    ],
+    { busy: true }
+  )
 })
 
 describe('vms', () => {
@@ -337,7 +326,7 @@ describe('listPair', () => {
   it('names the pool by its id while the pools load', async () => {
     const { result } = await mountSelectedVms()
 
-    xoCollectionsMock.startLoadingPools()
+    HOLD_LOADING.pools()
 
     expect(result.listPair.poolName).toBe(V2V_LIST_POOL.id)
     expect(findItemIds(result)).toEqual(LIST_IDS)

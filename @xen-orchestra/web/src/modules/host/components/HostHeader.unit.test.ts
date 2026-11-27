@@ -3,7 +3,13 @@ import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-co
 import { createHost } from '@/test/create-host.ts'
 import { createTestRouter } from '@/test/create-test-router.ts'
 import { createVm } from '@/test/create-vm.ts'
-import { findHeadBarLabel, findHeadBarLoader, findHeadBarStatus, getHeadBarIcon } from '@/test/find-header.ts'
+import {
+  findHeadBarIconTooltip,
+  findHeadBarLabel,
+  findHeadBarLoader,
+  findHeadBarState,
+  findHeadBarStatus,
+} from '@/test/find-header.ts'
 import { findTooltipContent } from '@/test/find-tooltip-content.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
@@ -45,6 +51,20 @@ function createRebootingHost() {
   })
 }
 
+function createHostSuspendingItsVms() {
+  const host = createHost({
+    power_state: HOST_POWER_STATE.RUNNING,
+    enabled: false,
+    current_operations: {},
+  })
+
+  vmCollectionMock.vms.value = [
+    createVm({ $container: host.id, current_operations: { 'task-1': VM_OPERATIONS.SUSPEND } }),
+  ]
+
+  return host
+}
+
 it('shows the name of the host', () => {
   const wrapper = mountHeader(createHost({ name_label: 'Primary Host' }))
 
@@ -56,70 +76,40 @@ it('shows the icon matching the state of the host and no loader', () => {
     createHost({ power_state: HOST_POWER_STATE.RUNNING, enabled: true, current_operations: {} })
   )
 
-  expect(getHeadBarIcon(wrapper).props('name')).toBe(objectIcon('host', 'running'))
-  expect(findHeadBarLoader(wrapper).exists()).toBe(false)
+  expect(findHeadBarState(wrapper)).toEqual({ icon: objectIcon('host', 'running'), loader: 'none' })
 })
 
-const PENDING_OPERATION_TOOLTIP_CASES = [
-  {
-    name: 'shows the pending operation in the tooltip of the loader',
-    findElement: (wrapper: ReturnType<typeof mountHeader>) => findHeadBarLoader(wrapper, { nextToLabel: true }).element,
-  },
-  {
-    name: 'shows the pending operation in the tooltip of the busy icon',
-    findElement: (wrapper: ReturnType<typeof mountHeader>) => getHeadBarIcon(wrapper).element,
-  },
-]
+it.each<[string, (wrapper: ReturnType<typeof mountHeader>) => Promise<unknown>]>([
+  ['loader', wrapper => findTooltipContent(findHeadBarLoader(wrapper, { nextToLabel: true }).element)],
+  ['busy icon', findHeadBarIconTooltip],
+])('shows the pending operation in the tooltip of the %s', async (_, findTooltip) => {
+  const wrapper = mountHeader(createRebootingHost())
 
-for (const { name, findElement } of PENDING_OPERATION_TOOLTIP_CASES) {
-  it(name, async () => {
-    const wrapper = mountHeader(createRebootingHost())
-
-    expect(await findTooltipContent(findElement(wrapper))).toBe(
-      t('operation-in-progress', { operation: t('operation:clean-reboot') })
-    )
-  })
-}
+  expect(await findTooltip(wrapper)).toBe(t('operation-in-progress', { operation: t('operation:clean-reboot') }))
+})
 
 it('shows no tooltip on the icon while the host is not changing state', async () => {
   const wrapper = mountHeader(createHost({ current_operations: {} }))
 
-  expect(await findTooltipContent(getHeadBarIcon(wrapper).element)).toBeUndefined()
+  expect(await findHeadBarIconTooltip(wrapper)).toBeUndefined()
 })
 
-const LOADER_CASES = [
-  {
-    name: 'shows the busy icon and a loader next to the title while the host is changing state',
-    host: createRebootingHost,
-    icon: objectIcon('host', 'busy'),
-  },
-  {
-    name: 'keeps the host state icon but shows a loader while its resident VMs are suspended for a smart reboot',
-    host: () => {
-      const host = createHost({
-        power_state: HOST_POWER_STATE.RUNNING,
-        enabled: false,
-        current_operations: {},
-      })
+it.each<[string, () => FrontXoHost, string]>([
+  [
+    'shows the busy icon and a loader next to the title while the host is changing state',
+    createRebootingHost,
+    objectIcon('host', 'busy'),
+  ],
+  [
+    'keeps the host state icon but shows a loader while its resident VMs are suspended for a smart reboot',
+    createHostSuspendingItsVms,
+    objectIcon('host', 'disabled'),
+  ],
+])('%s', (_, createHeaderHost, icon) => {
+  const wrapper = mountHeader(createHeaderHost())
 
-      vmCollectionMock.vms.value = [
-        createVm({ $container: host.id, current_operations: { 'task-1': VM_OPERATIONS.SUSPEND } }),
-      ]
-
-      return host
-    },
-    icon: objectIcon('host', 'disabled'),
-  },
-]
-
-for (const { name, host, icon } of LOADER_CASES) {
-  it(name, () => {
-    const wrapper = mountHeader(host())
-
-    expect(getHeadBarIcon(wrapper).props('name')).toBe(icon)
-    expect(findHeadBarLoader(wrapper, { nextToLabel: true }).exists()).toBe(true)
-  })
-}
+  expect(findHeadBarState(wrapper)).toEqual({ icon, loader: 'next-to-label' })
+})
 
 it('shows the master icon next to the title when the host is the pool master', () => {
   const host = createHost({ current_operations: {} })

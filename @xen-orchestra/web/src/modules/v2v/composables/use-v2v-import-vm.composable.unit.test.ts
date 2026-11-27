@@ -1,6 +1,7 @@
 import { useV2vImportVm } from '@/modules/v2v/composables/use-v2v-import-vm.composable.ts'
 import { createV2vImportVm } from '@/test/create-v2v-import-vm.ts'
-import { vmDeviceCollectionsMock, mockXoVmDeviceCollections } from '@/test/mock-xo-vm-device-collections.ts'
+import { itIsReadyOnceLoaded } from '@/test/hold-loading.ts'
+import { mockXoVmDeviceCollections } from '@/test/mock-xo-vm-device-collections.ts'
 import { mountComposable } from '@/test/mount-composable.ts'
 import { resetV2vCollectionMocks } from '@/test/reset-v2v-collection-mocks.ts'
 import { seedV2vResumedVmCollections } from '@/test/seed-v2v-resumed-vm.ts'
@@ -57,20 +58,13 @@ describe('getImportActiveMapping', () => {
 })
 
 describe('areImportDevicesReady', () => {
-  it('is true once the VBDs, the VDIs and the VIFs are loaded', () => {
-    expect(mountImportVm().areImportDevicesReady).toBe(true)
-  })
-
-  const READY_FLAGS = {
-    areVbdsReady: vmDeviceCollectionsMock.areVbdsReady,
-    areVdisReady: vmDeviceCollectionsMock.areVdisReady,
-    areVifsReady: vmDeviceCollectionsMock.areVifsReady,
-  }
-
-  it.each(Object.keys(READY_FLAGS) as (keyof typeof READY_FLAGS)[])('is false while %s is false', readyFlag => {
+  itIsReadyOnceLoaded(() => {
     const importVm = mountImportVm()
-    READY_FLAGS[readyFlag].value = false
 
-    expect(importVm.areImportDevicesReady).toBe(false)
-  })
+    return () => importVm.areImportDevicesReady
+  }, [
+    ['the VBDs', 'VBDs'],
+    ['the VDIs', 'VDIs'],
+    ['the VIFs', 'VIFs'],
+  ])
 })
