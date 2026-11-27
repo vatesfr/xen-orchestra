@@ -83,15 +83,14 @@ function findCurrentTags(wrapper: VueWrapper) {
 }
 
 async function removeCurrentTag(wrapper: VueWrapper, tag: string) {
-  const currentTag = wrapper
-    .findAllComponents(VtsTag)
-    .find(currentTag => currentTag.element.closest('.current-tags') !== null && currentTag.props('value') === tag)
+  const currentTags = wrapper.get('.current-tags')
+  const index = findTagProps(currentTags, 'value').indexOf(tag)
 
-  if (currentTag === undefined) {
+  if (index === -1) {
     throw new Error(`No current tag "${tag}"`)
   }
 
-  await currentTag.get('button.remove').trigger('click')
+  await currentTags.findAllComponents(VtsTag)[index].get('button.remove').trigger('click')
   await flushPromises()
 }
 
@@ -469,10 +468,10 @@ describe('empty tag', () => {
 
     await openTagSelect(wrapper)
 
-    const emptyTag = wrapper.get('.current-tags').getComponent(VtsTag)
+    const currentTags = wrapper.get('.current-tags')
 
-    expect(emptyTag.props('value')).toBe('')
-    expect(emptyTag.props('removable')).toBe(false)
+    expect(findTagProps(currentTags, 'value')[0]).toBe('')
+    expect(findTagProps(currentTags, 'removable')[0]).toBe(false)
   })
 
   it('keeps the empty tag when deselecting all the tags', async () => {

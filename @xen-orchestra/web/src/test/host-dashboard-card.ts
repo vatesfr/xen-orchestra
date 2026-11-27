@@ -21,11 +21,12 @@ export function itShowsHostDashboardCard(mountCard: () => VueWrapper, { title, l
     return
   }
 
-  for (const collection of loading.collections) {
-    it(`shows a loader instead of ${loading.content} while the ${collection} are still loading`, () => {
+  it.each(loading.collections)(
+    `shows a loader instead of ${loading.content} while the %s are still loading`,
+    collection => {
       HOLD_LOADING[collection]()
 
       expectLoaderInsteadOf(mountCard(), loading.find)
-    })
-  }
+    }
+  )
 }

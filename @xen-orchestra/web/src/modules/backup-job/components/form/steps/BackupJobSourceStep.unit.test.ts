@@ -9,59 +9,27 @@ import {
   type BackupJobSourceFormData,
   useBackupJobSourceForm,
 } from '@/modules/backup-job/form/use-backup-job-source-form.ts'
-import type { useXoBackupLogCollection } from '@/modules/backup-log/remote-resources/use-xo-backup-log-collection.ts'
 import type {
   FrontXoBackupRepository,
   useXoBackupRepositoryCollection,
 } from '@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'
-import type { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
-import type { useXoProxyCollection } from '@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'
-import type { useXoVbdCollection } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
-import type { useXoVdiCollection } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
 import type { useXoVmBackupArchiveCollection } from '@/modules/vm/remote-resources/use-xo-vm-backup-archive-collection.ts'
-import type { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
+import { backupLogCollectionMock, mockXoBackupLogCollection } from '@/test/mock-xo-backup-log-collection.ts'
+import { mockXoCollections, xoCollectionsMock } from '@/test/mock-xo-collections.ts'
+import { mockXoProxyCollection, proxyCollectionMock } from '@/test/mock-xo-proxy-collection.ts'
+import { mockXoVmCollection, vmCollectionMock } from '@/test/mock-xo-vm-collection.ts'
+import { mockXoVmDeviceCollections, vmDeviceCollectionsMock } from '@/test/mock-xo-vm-device-collections.ts'
 import { mockModule } from '@/test/spy-on-module.ts'
 import { findInfoLabels } from '@core-test/find-accented-labels.ts'
 import { mount, type VueWrapper } from '@vue/test-utils'
 import { defineComponent, h, reactive, ref } from 'vue'
 
-mockModule(import('@/modules/proxy/remote-resources/use-xo-proxy-collection.ts'), () => ({
-  useXoProxyCollection: (() => ({ proxies: ref([]) })) as unknown as typeof useXoProxyCollection,
-}))
-
 mockModule(import('@/modules/backup-repository/remote-resources/use-xo-backup-repository-collection.ts'), () => ({
   useXoBackupRepositoryCollection: (() => ({
     backupRepositories: ref([]),
   })) as unknown as typeof useXoBackupRepositoryCollection,
-}))
-
-mockModule(import('@/modules/vm/remote-resources/use-xo-vm-collection.ts'), () => ({
-  useXoVmCollection: (() => ({
-    vms: ref([]),
-    areVmsReady: ref(true),
-    getVmById: () => undefined,
-  })) as unknown as typeof useXoVmCollection,
-}))
-
-mockModule(import('@/modules/pool/remote-resources/use-xo-pool-collection.ts'), () => ({
-  useXoPoolCollection: (() => ({ pools: ref([]), arePoolsReady: ref(true) })) as unknown as typeof useXoPoolCollection,
-}))
-
-mockModule(import('@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'), () => ({
-  useXoVbdCollection: (() => ({ getVbdsByIds: () => [] })) as unknown as typeof useXoVbdCollection,
-}))
-
-mockModule(import('@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'), () => ({
-  useXoVdiCollection: (() => ({ getVdiById: () => undefined })) as unknown as typeof useXoVdiCollection,
-}))
-
-mockModule(import('@/modules/backup-log/remote-resources/use-xo-backup-log-collection.ts'), () => ({
-  useXoBackupLogCollection: (() => ({
-    backupLogs: ref([]),
-    areBackupLogsReady: ref(true),
-  })) as unknown as typeof useXoBackupLogCollection,
 }))
 
 mockModule(import('@/modules/vm/remote-resources/use-xo-vm-backup-archive-collection.ts'), () => ({
@@ -70,6 +38,20 @@ mockModule(import('@/modules/vm/remote-resources/use-xo-vm-backup-archive-collec
     areBackupArchivesReady: ref(true),
   })) as unknown as typeof useXoVmBackupArchiveCollection,
 }))
+
+mockXoProxyCollection()
+mockXoVmCollection()
+mockXoCollections('pool')
+mockXoVmDeviceCollections('vbd', 'vdi')
+mockXoBackupLogCollection()
+
+beforeEach(() => {
+  proxyCollectionMock.reset()
+  vmCollectionMock.reset()
+  xoCollectionsMock.reset()
+  vmDeviceCollectionsMock.reset()
+  backupLogCollectionMock.reset()
+})
 
 function mountSourceStep(formData: Partial<BackupJobSourceFormData> = {}) {
   const data = reactive<BackupJobSourceFormData>({
