@@ -6,8 +6,8 @@ import { asyncEach } from '@vates/async-each'
 
 // The "Stream size" column is only shown with --size: computing it requires
 // reading the block allocation table of every disk, which is costly.
-function buildHeaders(streamSize: boolean): string[] {
-  return ['File', 'UID', ...(streamSize ? ['Stream size'] : []), 'Virtual size', 'Differencing', 'Parent UID']
+function buildHeaders(showSize: boolean): string[] {
+  return ['File', 'UID', ...(showSize ? ['Stream size'] : []), 'Virtual size', 'Differencing', 'Parent UID']
 }
 
 export type OkDiskInfo = {

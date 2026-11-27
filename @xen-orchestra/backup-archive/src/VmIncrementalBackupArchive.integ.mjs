@@ -14,7 +14,8 @@ import { RemoteVhdDisk } from '../dist/disks/RemoteVhdDisk.mjs'
 import { MergeRemoteDisk } from '../dist/disks/MergeRemoteDisk.mjs'
 /* eslint-enable n/no-missing-import */
 import { VHDFOOTER, VHDHEADER } from './tests.fixtures.mjs'
-import { VhdFile, Constants, VhdDirectory, VhdAbstract } from 'vhd-lib'
+import { VhdFile, Constants, VhdDirectory, VhdAbstract, openVhd } from 'vhd-lib'
+import Disposable from 'promise-toolbox/Disposable'
 import { dirname, basename } from 'node:path'
 import { promisify } from 'node:util'
 import zlib from 'node:zlib'
@@ -79,6 +80,13 @@ async function getDiskSizeOnDisk(diskPath) {
   }
 
   return getFullSize(diskPath)
+}
+
+async function getDiskStreamSize(diskPath) {
+  return Disposable.use(openVhd(handler, diskPath), async vhd => {
+    await vhd.readBlockAllocationTable()
+    return vhd.streamSize()
+  })
 }
 
 async function generateVhd(path, opts = {}) {
@@ -506,6 +514,17 @@ test('it forgets the size on disk of a merged disk whose size is unknown', async
   )
 })
 
+test('it records the stream size of the merged disks in size when a size on disk is unknown', async () => {
+  // a chain started before the size on disk was recorded: the backup usage falls back to `size`
+  const metadata = await writeBackupWithOneDiskToMerge({}, { mode: 'directory' })
+
+  assert.equal(
+    metadata.size,
+    await getDiskStreamSize(`${basePath}/child.vhd.alias.vhd`),
+    'metadata.size should be the stream size of the merged disk, which now contains the blocks of its parent'
+  )
+})
+
 test('it keeps differencing a disk merged in the middle of a chain', async () => {
   // ancestor -> orphan -> child: the ancestor is still used by an older backup, only the orphan is merged
   const ancestor = await generateVhd(`${basePath}/ancestor.vhd`, { blocks: [0] })
@@ -891,9 +910,15 @@ describe('tests multiple combination ', { concurrency: 1 }, () => {
         await VmBackupDirectory.cleanVm(handler, rootPath, { remove: true, merge: true, logWarn: () => {} })
 
         const metadata = JSON.parse(await handler.readFile(`${rootPath}/metadata.json`))
-        // merges never change size: they record the size on disk of the disks they merged into, child and clean.
-        // Directory disks without `size.json` stay unknown
-        assert.equal(metadata.size, undefined)
+        // merges record the size on disk of the disks they merged into, child and clean.
+        // Directory disks without `size.json` stay unknown, so size falls back to their stream size
+        assert.equal(
+          metadata.size,
+          vhdMode === 'directory'
+            ? (await getDiskStreamSize(`${basePath}/child.vhd.alias.vhd`)) +
+                (await getDiskStreamSize(`${basePath}/clean.vhd.alias.vhd`))
+            : undefined
+        )
         assert.equal(
           metadata.vhdsSizeOnDisk['1'],
           vhdMode === 'directory'

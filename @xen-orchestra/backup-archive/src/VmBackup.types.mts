@@ -82,5 +82,6 @@ export interface VmBackupInterface {
 
 export type MergedDisk = {
   sizeOnDisk: number | undefined
+  streamSize: number
   isDifferencing: boolean
 }

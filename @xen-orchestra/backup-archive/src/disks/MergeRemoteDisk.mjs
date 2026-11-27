@@ -25,6 +25,7 @@ const { warn } = createLogger('remote-disk:merge')
  * @property {number} mergedDataSize
  * @property {'mergeBlocks' | 'cleanup'} step
  * @property {number} [sizeOnDisk]
+ * @property {number} [streamSize]
  * @property {boolean} [isDifferencing]
  * @typedef {(message: string, data?: Record<string, unknown>) => void} Logger
  */
@@ -314,6 +315,7 @@ export class MergeRemoteDisk {
     }
 
     this.#state.sizeOnDisk = await this.#getFinalSizeOnDisk(parentDisk, mergeTargetPath)
+    this.#state.streamSize = parentDisk.getStreamSize()
     // The merged disk keeps the ancestors of the parent: it is differencing if the parent was.
     this.#state.isDifferencing = parentDisk.isDifferencing()
   }
@@ -342,10 +344,11 @@ export class MergeRemoteDisk {
    * @param {RemoteDisk} childDisk
    * @param {boolean} cleanStateFile
    *
-   * @returns {Promise<{mergedDataSize: number, finalSizeOnDisk: number | undefined, isDifferencing: boolean}>} result
+   * @returns {Promise<{mergedDataSize: number, finalSizeOnDisk: number | undefined, streamSize: number, isDifferencing: boolean}>} result
    */
   async #cleanup(parentDisk, childDisk, cleanStateFile) {
     const finalSizeOnDisk = this.#state?.sizeOnDisk
+    const streamSize = this.#state?.streamSize ?? 0
     const mergedDataSize = this.#state?.mergedDataSize ?? 0
     const isDifferencing = this.#state?.isDifferencing ?? false
     await parentDisk.close().catch(warn)
@@ -355,7 +358,7 @@ export class MergeRemoteDisk {
       await this.#handler.unlink(this.#statePath).catch(warn)
     }
 
-    return { mergedDataSize, finalSizeOnDisk, isDifferencing }
+    return { mergedDataSize, finalSizeOnDisk, streamSize, isDifferencing }
   }
 
   /**

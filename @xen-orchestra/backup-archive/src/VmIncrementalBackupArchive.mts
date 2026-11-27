@@ -129,6 +129,8 @@ export class VmIncrementalBackupArchive implements VmBackupInterface {
    * Removes the metadata file if the backup is incomplete (missing disks).
    * If mergedDisks is provided, records the size on disk of this archive's merged disks
    * in vhdsSizeOnDisk (removed when unknown) and records whether they are still differencing.
+   * When the size on disk of a merged disk is unknown (chains started before it was recorded),
+   * size is set to the stream size of the merged disks, which the backup usage falls back to.
    * Actual disk merge/deletion is handled by RemoteDiskLineage.
    */
   async clean({ remove = this.opts.remove ?? false, mergedDisks }: ArchiveCleanOptions = {}): Promise<CleanResult> {
@@ -176,8 +178,15 @@ export class VmIncrementalBackupArchive implements VmBackupInterface {
    */
   async updateMetadata(updates: Record<string, MergedDisk>): Promise<void> {
     const vhdsSizeOnDisk = { ...this.metadata.vhdsSizeOnDisk }
+    // Chain started before `sizeOnDisk` existed have no size on disk so `size` keeps the merged disks stream size,
+    // which the backup usage falls back to.
+    const totalStreamSize = Object.values(updates).reduce((total, { streamSize }) => {
+      return total + streamSize
+    }, 0)
+
     for (const [vdiRef, { sizeOnDisk }] of Object.entries(updates)) {
       if (sizeOnDisk === undefined) {
+        this.metadata.size = totalStreamSize
         delete vhdsSizeOnDisk[vdiRef]
       } else {
         vhdsSizeOnDisk[vdiRef] = sizeOnDisk

@@ -434,8 +434,11 @@ export class RemoteDiskLineage {
         await asyncEach(
           toMerge,
           async ({ chain, isResuming }) => {
-            const { finalSizeOnDisk, mergeTargetPath, isDifferencing } = await limitedMergeChain([...chain], isResuming)
-            mergedDisks.set(mergeTargetPath, { sizeOnDisk: finalSizeOnDisk, isDifferencing })
+            const { finalSizeOnDisk, mergeTargetPath, streamSize, isDifferencing } = await limitedMergeChain(
+              [...chain],
+              isResuming
+            )
+            mergedDisks.set(mergeTargetPath, { sizeOnDisk: finalSizeOnDisk, streamSize, isDifferencing })
             // parentPath alias deleted by parentDisk.rename(mergeTargetPath)
             // intermediates deleted by childDisk.unlink() when removeUnused=true
             // Unregister so #cleanOrphanDataFiles does not read already-deleted aliases
@@ -473,7 +476,12 @@ export class RemoteDiskLineage {
   async #mergeChain(
     chain: string[],
     isResuming: boolean
-  ): Promise<{ finalSizeOnDisk: number | undefined; mergeTargetPath: string; isDifferencing: boolean }> {
+  ): Promise<{
+    finalSizeOnDisk: number | undefined
+    mergeTargetPath: string
+    streamSize: number
+    isDifferencing: boolean
+  }> {
     assert.ok(chain.length >= 2, `look to merge a chain shorter than 2 ${JSON.stringify(chain)}`)
     const parentPath = chain[0]
     this.#opts.logInfo('merging disk chain', { chain: [...chain] }) // need a copy here to log full chain
@@ -497,8 +505,8 @@ export class RemoteDiskLineage {
         force: isResuming,
       })
 
-      const { finalSizeOnDisk, isDifferencing } = (await merger.merge(parentDisk, childDisk!))!
-      return { finalSizeOnDisk, mergeTargetPath, isDifferencing }
+      const { finalSizeOnDisk, streamSize, isDifferencing } = (await merger.merge(parentDisk, childDisk!))!
+      return { finalSizeOnDisk, mergeTargetPath, streamSize, isDifferencing }
     } finally {
       await parentDisk?.close().catch(error => {
         this.#opts.logWarn('Error closing parent Disk', error)
