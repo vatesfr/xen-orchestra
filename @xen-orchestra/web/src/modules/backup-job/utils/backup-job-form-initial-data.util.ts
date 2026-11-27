@@ -75,6 +75,16 @@ function toScope<TId extends string>(pattern: unknown, expressionKey: string): S
   return { scopeType: 'all', ids: [], filter: '' }
 }
 
+function hasTarget(pattern: unknown): boolean {
+  if (pattern === undefined) {
+    return false
+  }
+
+  const { scopeType, ids } = toScope(pattern, '')
+
+  return scopeType !== 'manual' || ids.length > 0
+}
+
 function parseExpression(expression: string): Node | undefined {
   try {
     return parse(expression)
@@ -303,11 +313,11 @@ function getVmBackupJobFormInitialData(
   const srs = toScope<FrontXoSr['id']>(backupJob.srs, STORAGE_REPOSITORY_EXPRESSION_KEY)
   const storageTargets: BackupJobStorageTarget[] = []
 
-  if (backupJob.remotes !== undefined) {
+  if (hasTarget(backupJob.remotes)) {
     storageTargets.push('backup-repository')
   }
 
-  if (backupJob.srs !== undefined) {
+  if (hasTarget(backupJob.srs)) {
     storageTargets.push('storage-repository')
   }
 
@@ -379,7 +389,7 @@ function getMetadataBackupJobFormInitialData(
   Object.assign(formDataSet.source, {
     dataSource: 'metadata',
     saveXoConfig: backupJob.xoMetadata === true,
-    savePoolsMetadata: backupJob.pools !== undefined,
+    savePoolsMetadata: hasTarget(backupJob.pools),
     scopeType: pools.scopeType,
     poolIds: pools.ids,
     poolFilter: pools.filter,

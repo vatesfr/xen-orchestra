@@ -24,7 +24,8 @@ import {
   toBackupJobPayload,
 } from '@/modules/backup-job/utils/backup-job-payload.util.ts'
 import { DEFAULT_CRON } from '@/modules/schedule/utils/cron.util.ts'
-import { computed, reactive } from 'vue'
+import type { StepDefinition } from '@core/components/ui/stepper/UiStepper.vue'
+import { computed, reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const STEPS: BackupJobFormStep[] = ['source', 'transfer', 'target', 'planning', 'review']
@@ -173,7 +174,7 @@ export function useBackupJobFormBase(
 
   const forms = { source, transfer, target, planning }
 
-  const steps = computed(() => (isMetadata.value ? METADATA_STEPS : STEPS))
+  const stepKeys = computed(() => (isMetadata.value ? METADATA_STEPS : STEPS))
 
   const stepLabels = computed<Record<BackupJobFormStep, string>>(() => ({
     source: t('source'),
@@ -183,26 +184,50 @@ export function useBackupJobFormBase(
     review: t('review-and-confirm'),
   }))
 
+  const currentStepIndex = ref(0)
+
+  const currentStep = computed(() => stepKeys.value[currentStepIndex.value])
+
+  const steps = computed<StepDefinition[]>(() => stepKeys.value.map(step => ({ label: stepLabels.value[step] })))
+
   function validateStep(step: BackupJobFormDataStep): Promise<boolean> {
     return forms[step].validate()
   }
 
   async function getInvalidSteps(): Promise<BackupJobFormDataStep[]> {
-    const dataSteps = steps.value.filter((step): step is BackupJobFormDataStep => step !== 'review')
+    const dataSteps = stepKeys.value.filter((step): step is BackupJobFormDataStep => step !== 'review')
 
     const results = await Promise.all(dataSteps.map(step => validateStep(step)))
 
     return dataSteps.filter((_, index) => !results[index])
   }
 
-  function buildPayload(): BackupJobPayload {
-    return toBackupJobPayload(formDataSet, scheduleKey)
+  async function validateCurrentStep(): Promise<boolean> {
+    return currentStep.value === 'review' ? true : validateStep(currentStep.value)
+  }
+
+  function goToStep(step: BackupJobFormStep): void {
+    currentStepIndex.value = stepKeys.value.indexOf(step)
+  }
+
+  async function next(): Promise<void> {
+    const isValid = await validateCurrentStep()
+
+    if (isValid && currentStepIndex.value < stepKeys.value.length - 1) {
+      currentStepIndex.value++
+    }
+  }
+
+  function back(): void {
+    if (currentStepIndex.value > 0) {
+      currentStepIndex.value--
+    }
   }
 
   async function validateAndBuildPayload(): Promise<BackupJobPayload | undefined> {
     const invalidSteps = await getInvalidSteps()
 
-    return invalidSteps.length === 0 ? buildPayload() : undefined
+    return invalidSteps.length === 0 ? toBackupJobPayload(formDataSet, scheduleKey, isEditing) : undefined
   }
 
   return {
@@ -213,12 +238,12 @@ export function useBackupJobFormBase(
     isIncremental,
     isMirror,
     isMetadata,
-    formDataSet,
+    currentStep,
+    currentStepIndex,
     steps,
-    stepLabels,
-    validateStep,
-    getInvalidSteps,
-    buildPayload,
+    goToStep,
+    next,
+    back,
     validateAndBuildPayload,
   }
 }

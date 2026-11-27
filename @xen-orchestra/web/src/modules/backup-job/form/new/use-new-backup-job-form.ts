@@ -8,9 +8,7 @@ import {
   createTransferFormData,
   useBackupJobFormBase,
 } from '@/modules/backup-job/form/use-backup-job-form-base.ts'
-import type { BackupJobFormStep } from '@/modules/backup-job/types/backup-job-form.type.ts'
-import type { StepDefinition } from '@core/components/ui/stepper/UiStepper.vue'
-import { computed, ref, watch } from 'vue'
+import { watch } from 'vue'
 
 export function useNewBackupJobForm() {
   const {
@@ -21,9 +19,12 @@ export function useNewBackupJobForm() {
     isIncremental,
     isMirror,
     isMetadata,
-    steps: stepKeys,
-    stepLabels,
-    validateStep,
+    currentStep,
+    currentStepIndex,
+    steps,
+    goToStep,
+    next,
+    back,
     validateAndBuildPayload,
   } = useBackupJobFormBase(createBackupJobFormDataSet())
 
@@ -49,34 +50,6 @@ export function useNewBackupJobForm() {
       planning.reset()
     }
   )
-
-  const currentStepIndex = ref(0)
-
-  const currentStep = computed(() => stepKeys.value[currentStepIndex.value])
-
-  const steps = computed<StepDefinition[]>(() => stepKeys.value.map(step => ({ label: stepLabels.value[step] })))
-
-  async function validateCurrentStep(): Promise<boolean> {
-    return currentStep.value === 'review' ? true : validateStep(currentStep.value)
-  }
-
-  function goToStep(step: BackupJobFormStep): void {
-    currentStepIndex.value = stepKeys.value.indexOf(step)
-  }
-
-  async function next(): Promise<void> {
-    const isValid = await validateCurrentStep()
-
-    if (isValid && currentStepIndex.value < stepKeys.value.length - 1) {
-      currentStepIndex.value++
-    }
-  }
-
-  function back(): void {
-    if (currentStepIndex.value > 0) {
-      currentStepIndex.value--
-    }
-  }
 
   return {
     source,

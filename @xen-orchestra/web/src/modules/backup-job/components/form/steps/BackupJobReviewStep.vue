@@ -1,19 +1,10 @@
 <template>
   <div class="backup-job-review-step">
-    <BackupJobReviewSection
-      :title="t('source')"
-      :has-error="invalidSteps?.includes('source')"
-      @edit="emit('edit', 'source')"
-    >
+    <BackupJobReviewSection :title="t('source')" @edit="emit('edit', 'source')">
       <BackupJobReviewSource :form="source" />
     </BackupJobReviewSection>
 
-    <BackupJobReviewSection
-      v-if="transfer"
-      :title="t('transfer')"
-      :has-error="invalidSteps?.includes('transfer')"
-      @edit="emit('edit', 'transfer')"
-    >
+    <BackupJobReviewSection v-if="transfer" :title="t('transfer')" @edit="emit('edit', 'transfer')">
       <BackupJobReviewTransfer
         :form="transfer"
         :is-incremental="source.isIncremental.value"
@@ -21,19 +12,11 @@
       />
     </BackupJobReviewSection>
 
-    <BackupJobReviewSection
-      :title="t('target')"
-      :has-error="invalidSteps?.includes('target')"
-      @edit="emit('edit', 'target')"
-    >
+    <BackupJobReviewSection :title="t('target')" @edit="emit('edit', 'target')">
       <BackupJobReviewTarget :form="target" />
     </BackupJobReviewSection>
 
-    <BackupJobReviewSection
-      :title="t('planning')"
-      :has-error="invalidSteps?.includes('planning')"
-      @edit="emit('edit', 'planning')"
-    >
+    <BackupJobReviewSection :title="t('planning')" @edit="emit('edit', 'planning')">
       <BackupJobReviewPlanning :form="planning" :is-metadata="source.isMetadata.value" />
     </BackupJobReviewSection>
   </div>
@@ -49,7 +32,6 @@ import type { BackupJobPlanningForm } from '@/modules/backup-job/form/use-backup
 import type { BackupJobSourceForm } from '@/modules/backup-job/form/use-backup-job-source-form.ts'
 import type { BackupJobTargetForm } from '@/modules/backup-job/form/use-backup-job-target-form.ts'
 import type { BackupJobTransferForm } from '@/modules/backup-job/form/use-backup-job-transfer-form.ts'
-import type { BackupJobFormDataStep } from '@/modules/backup-job/types/backup-job-form.type.ts'
 import { useI18n } from 'vue-i18n'
 
 defineProps<{
@@ -57,11 +39,10 @@ defineProps<{
   transfer: BackupJobTransferForm | undefined
   target: BackupJobTargetForm
   planning: BackupJobPlanningForm
-  invalidSteps?: BackupJobFormDataStep[]
 }>()
 
 const emit = defineEmits<{
-  edit: [step: BackupJobFormDataStep]
+  edit: [step: 'source' | 'transfer' | 'target' | 'planning']
 }>()
 
 const { t } = useI18n()

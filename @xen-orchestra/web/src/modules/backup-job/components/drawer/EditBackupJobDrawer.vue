@@ -5,35 +5,54 @@
     </template>
 
     <template #content>
-      <EditBackupJobForm
-        ref="form"
-        :key="currentStep"
-        :applied-form-data-set
-        :schedule-id="schedule.id"
-        :step="currentStep"
-        :has-removed-target-backup-repository
-        @edit="step => openStep(step)"
-      />
+      <UiStepper ref="stepper" :steps :current-step="currentStepIndex">
+        <BackupJobSourceStep v-if="currentStep === 'source'" :form="source" />
+        <BackupJobTransferStep
+          v-else-if="currentStep === 'transfer'"
+          :bindings="transfer.bindings"
+          :is-incremental
+          :is-mirror
+        />
+        <BackupJobTargetStep v-else-if="currentStep === 'target'" :form="target" />
+        <BackupJobPlanningStep v-else-if="currentStep === 'planning'" :bindings="planning.bindings" :is-metadata />
+        <BackupJobReviewStep
+          v-else
+          :source
+          :transfer="isMetadata ? undefined : transfer"
+          :target
+          :planning
+          @edit="step => goToStep(step)"
+        />
+      </UiStepper>
     </template>
 
     <template #buttons>
-      <VtsOverlayCancelButton @click="handleCancel()" />
+      <VtsOverlayCancelButton v-if="currentStep !== 'source'" @click="back()">
+        {{ t('action:back') }}
+      </VtsOverlayCancelButton>
+      <VtsOverlayCancelButton v-else @click="emit('cancel')" />
       <VtsOverlayConfirmButton>
-        {{ currentStep === 'review' ? t('action:save') : t('action:apply') }}
+        {{ currentStep === 'review' ? t('action:save') : t('action:continue') }}
       </VtsOverlayConfirmButton>
     </template>
   </UiDrawer>
 </template>
 
 <script lang="ts" setup>
-import EditBackupJobForm from '@/modules/backup-job/components/form/edit/EditBackupJobForm.vue'
-import { useEditBackupJobSteps } from '@/modules/backup-job/form/edit/use-edit-backup-job-steps.ts'
+import BackupJobPlanningStep from '@/modules/backup-job/components/form/steps/BackupJobPlanningStep.vue'
+import BackupJobReviewStep from '@/modules/backup-job/components/form/steps/BackupJobReviewStep.vue'
+import BackupJobSourceStep from '@/modules/backup-job/components/form/steps/BackupJobSourceStep.vue'
+import BackupJobTargetStep from '@/modules/backup-job/components/form/steps/BackupJobTargetStep.vue'
+import BackupJobTransferStep from '@/modules/backup-job/components/form/steps/BackupJobTransferStep.vue'
+import { useEditBackupJobForm } from '@/modules/backup-job/form/edit/use-edit-backup-job-form.ts'
 import type { EditBackupJobPayload } from '@/modules/backup-job/jobs/xo-backup-job-edit.job.ts'
 import type { FrontAnyXoBackupJob } from '@/modules/backup-job/remote-resources/use-xo-backup-job-collection.ts'
 import type { FrontXoSchedule } from '@/modules/schedule/remote-resources/use-xo-schedule-collection.ts'
 import VtsOverlayCancelButton from '@core/components/overlay/VtsOverlayCancelButton.vue'
 import VtsOverlayConfirmButton from '@core/components/overlay/VtsOverlayConfirmButton.vue'
 import UiDrawer from '@core/components/ui/drawer/UiDrawer.vue'
+import UiStepper from '@core/components/ui/stepper/UiStepper.vue'
+import { unrefElement } from '@vueuse/core'
 import { useTemplateRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -49,36 +68,34 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 
-const { appliedFormDataSet, currentStep, hasRemovedTargetBackupRepository, openStep, cancelStep, applyStep } =
-  useEditBackupJobSteps(backupJob, schedule)
+const {
+  source,
+  transfer,
+  target,
+  planning,
+  isIncremental,
+  isMirror,
+  isMetadata,
+  currentStep,
+  currentStepIndex,
+  steps,
+  next,
+  back,
+  goToStep,
+  validateAndBuildPayload,
+} = useEditBackupJobForm(backupJob, schedule)
 
-const form = useTemplateRef('form')
+const stepper = useTemplateRef('stepper')
 
-watch(currentStep, () => form.value?.$el.scrollIntoView(), { flush: 'post' })
-
-function handleCancel() {
-  if (currentStep.value === 'review') {
-    emit('cancel')
-    return
-  }
-
-  cancelStep()
-}
+watch(currentStepIndex, () => unrefElement(stepper)?.scrollIntoView())
 
 async function handleConfirm() {
-  const step = currentStep.value
-
-  if (step !== 'review') {
-    const formDataSet = await form.value?.validateStepAndCopyFormDataSet(step)
-
-    if (formDataSet !== undefined) {
-      applyStep(formDataSet)
-    }
-
+  if (currentStep.value !== 'review') {
+    await next()
     return
   }
 
-  const payload = await form.value?.validateAndBuildPayload()
+  const payload = await validateAndBuildPayload()
 
   if (payload !== undefined) {
     emit('confirm', payload)

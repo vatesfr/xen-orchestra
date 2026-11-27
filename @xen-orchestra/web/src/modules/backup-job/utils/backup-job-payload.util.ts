@@ -51,7 +51,7 @@ export type MirrorBackupJobPayload = BackupJobBasePayload & {
   type: 'mirrorBackup'
   mode: 'delta' | 'full'
   sourceRemote: string | undefined
-  filter: BackupJobPattern | undefined
+  filter: BackupJobPattern | null | undefined
 }
 
 export type MetadataBackupJobPayload = BackupJobBasePayload & {
@@ -71,6 +71,10 @@ export type BackupJobFormDataSet = {
 
 function toIdsPattern(ids: string[]): BackupJobPattern {
   return { id: { __or: ids } }
+}
+
+function getRemovedTargetPattern(isEditing: boolean): BackupJobPattern | undefined {
+  return isEditing ? toIdsPattern([]) : undefined
 }
 
 function toPattern(
@@ -144,7 +148,14 @@ function getSynchronizedSnapshot(transfer: BackupJobTransferFormData): boolean |
   return transfer.snapshotSync === 'smart' ? transfer.snapshotSyncTag : true
 }
 
-function getRetentionSettings(backupRepository: BackupJobTargetBackupRepositoryFormData): BackupJobSettings {
+function getRetentionSettings(
+  backupRepository: BackupJobTargetBackupRepositoryFormData,
+  isActive = true
+): BackupJobSettings {
+  if (!isActive) {
+    return { longTermRetention: undefined, mergeBackupsSynchronously: undefined, distributeBackups: undefined }
+  }
+
   const longTermRetention = Object.fromEntries(
     LONG_TERM_RETENTION_FIELDS.map(
       ({ period, retention, keep }) => [period, backupRepository[retention], backupRepository[keep]] as const
@@ -187,7 +198,10 @@ function getHealthCheckVmsWithTags(healthCheck: BackupJobTargetHealthCheckFormDa
 
 function getHealthCheck(healthCheck: BackupJobTargetHealthCheckFormData) {
   if (!healthCheck.healthCheckEnabled) {
-    return { global: {}, schedule: {} }
+    return {
+      global: { healthCheckTimeout: undefined },
+      schedule: { healthCheckSr: undefined, healthCheckVmsWithTags: undefined },
+    }
   }
 
   return {
@@ -228,9 +242,9 @@ function getSchedules(
   }
 }
 
-function getMirrorFilter(source: BackupJobSourceFormData): BackupJobPattern | undefined {
+function getMirrorFilter(source: BackupJobSourceFormData, isEditing: boolean): BackupJobPattern | null | undefined {
   if (source.scopeType !== 'manual') {
-    return undefined
+    return isEditing ? null : undefined
   }
 
   return { vm: { uuid: { __or: source.vmIds } } }
@@ -246,7 +260,8 @@ function getMirrorVmFilter(source: BackupJobSourceFormData): string | undefined 
 
 function toVmBackupJobPayload(
   { source, transfer, target, planning }: BackupJobFormDataSet,
-  scheduleKey: string
+  scheduleKey: string,
+  isEditing: boolean
 ): VmBackupJobPayload {
   const isIncremental = source.mode === 'delta'
   const hasBackupRepository = target.storageTargets.includes('backup-repository')
@@ -261,7 +276,9 @@ function toVmBackupJobPayload(
     compression: isIncremental ? undefined : transfer.compression,
     proxy: hasBackupRepository ? target.backupRepository.targetProxy : undefined,
     vms: toPattern(source.scopeType, source.vmIds, toContextExpression(VM_EXPRESSION_KEY, source.vmFilter)),
-    remotes: hasBackupRepository ? getBackupRepositoryPattern(target.backupRepository, ALL_EXPRESSION) : undefined,
+    remotes: hasBackupRepository
+      ? getBackupRepositoryPattern(target.backupRepository, ALL_EXPRESSION)
+      : getRemovedTargetPattern(isEditing),
     srs: hasStorageRepository
       ? toPattern(
           target.storageRepository.storageRepositoryScopeType,
@@ -269,7 +286,7 @@ function toVmBackupJobPayload(
           toContextExpression(STORAGE_REPOSITORY_EXPRESSION_KEY, target.storageRepository.storageRepositoryFilter),
           ALL_EXPRESSION
         )
-      : undefined,
+      : getRemovedTargetPattern(isEditing),
     schedules: getSchedules(source, planning, scheduleKey),
     settings: {
       '': {
@@ -281,7 +298,7 @@ function toVmBackupJobPayload(
         checkpointSnapshot: !transfer.offlineBackup && transfer.snapshotMode === 'with-memory' ? true : undefined,
         offlineSnapshot: !transfer.offlineBackup && transfer.snapshotMode === 'offline' ? true : undefined,
         synchronizedSnapshot: getSynchronizedSnapshot(transfer),
-        ...(hasBackupRepository ? getRetentionSettings(target.backupRepository) : {}),
+        ...getRetentionSettings(target.backupRepository, hasBackupRepository),
         distributeReplications:
           hasStorageRepository && target.storageRepository.replicaDistribution === 'distribute' ? true : undefined,
         timezone: planning.timezone,
@@ -302,7 +319,8 @@ function toVmBackupJobPayload(
 
 function toMirrorBackupJobPayload(
   { source, transfer, target, planning }: BackupJobFormDataSet,
-  scheduleKey: string
+  scheduleKey: string,
+  isEditing: boolean
 ): MirrorBackupJobPayload {
   const healthCheck = getHealthCheck(target.healthCheck)
 
@@ -312,7 +330,7 @@ function toMirrorBackupJobPayload(
     mode: source.mode,
     proxy: source.proxy,
     sourceRemote: source.sourceBackupRepository,
-    filter: getMirrorFilter(source),
+    filter: getMirrorFilter(source, isEditing),
     remotes: getBackupRepositoryPattern(target.backupRepository, ALL_EXPRESSION),
     schedules: getSchedules(source, planning, scheduleKey),
     settings: {
@@ -335,7 +353,8 @@ function toMirrorBackupJobPayload(
 
 function toMetadataBackupJobPayload(
   { source, target, planning }: BackupJobFormDataSet,
-  scheduleKey: string
+  scheduleKey: string,
+  isEditing: boolean
 ): MetadataBackupJobPayload {
   return {
     type: 'metadataBackup',
@@ -349,7 +368,7 @@ function toMetadataBackupJobPayload(
           toContextExpression(POOL_EXPRESSION_KEY, source.poolFilter),
           ALL_EXPRESSION
         )
-      : undefined,
+      : getRemovedTargetPattern(isEditing),
     remotes: getBackupRepositoryPattern(target.backupRepository, ALL_EXPRESSION),
     schedules: getSchedules(source, planning, scheduleKey),
     settings: {
@@ -374,14 +393,15 @@ export function mergeBackupJobSettings(
 
 export function toBackupJobPayload(
   formDataSet: BackupJobFormDataSet,
-  scheduleKey: string = SCHEDULE_KEY
+  scheduleKey: string = SCHEDULE_KEY,
+  isEditing = false
 ): BackupJobPayload {
   switch (formDataSet.source.dataSource) {
     case 'mirror':
-      return toMirrorBackupJobPayload(formDataSet, scheduleKey)
+      return toMirrorBackupJobPayload(formDataSet, scheduleKey, isEditing)
     case 'metadata':
-      return toMetadataBackupJobPayload(formDataSet, scheduleKey)
+      return toMetadataBackupJobPayload(formDataSet, scheduleKey, isEditing)
     default:
-      return toVmBackupJobPayload(formDataSet, scheduleKey)
+      return toVmBackupJobPayload(formDataSet, scheduleKey, isEditing)
   }
 }
