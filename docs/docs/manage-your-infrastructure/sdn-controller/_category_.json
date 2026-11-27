@@ -1,0 +1,9 @@
+{
+  "label": "SDN controller",
+  "position": 4,
+  "link": {
+    "type": "generated-index",
+    "slug": "/category/sdn-controller",
+    "description": "Pool-wide and cross-pool private networks, and traffic rules, with the SDN controller plugin. Start with how it works, then set it up."
+  }
+}
