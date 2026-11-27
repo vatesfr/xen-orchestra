@@ -24,6 +24,7 @@ export const constructPattern = values =>
 export const usesExpressions = job =>
   typeof job.srs === 'string' ||
   typeof job.remotes === 'string' ||
+  typeof job.pools === 'string' ||
   Object.values(job.settings ?? {}).some(settings =>
     ['healthCheckVmsWithTags', 'fullInterval', 'vmFilter'].some(key => typeof settings?.[key] === 'string')
   )

@@ -56,6 +56,8 @@ const isMirrorBackupType = item => item?.type === 'mirrorBackup'
 
 const isBackupType = item => item?.type === 'backup'
 
+const isPatternNotEmpty = pattern => typeof pattern === 'string' || !isEmpty(get(() => destructPattern(pattern)))
+
 const MODES = [
   {
     label: 'mirrorFullBackup',
@@ -71,23 +73,23 @@ const MODES = [
   },
   {
     label: 'backup',
-    test: job => isBackupType(job) && job.mode === 'full' && !isEmpty(get(() => destructPattern(job.remotes))),
+    test: job => isBackupType(job) && job.mode === 'full' && isPatternNotEmpty(job.remotes),
   },
   {
     label: 'deltaBackup',
-    test: job => isBackupType(job) && job.mode === 'delta' && !isEmpty(get(() => destructPattern(job.remotes))),
+    test: job => isBackupType(job) && job.mode === 'delta' && isPatternNotEmpty(job.remotes),
   },
   {
     label: 'continuousReplication',
-    test: job => isBackupType(job) && job.mode === 'delta' && !isEmpty(get(() => destructPattern(job.srs))),
+    test: job => isBackupType(job) && job.mode === 'delta' && isPatternNotEmpty(job.srs),
   },
   {
     label: 'disasterRecovery',
-    test: job => isBackupType(job) && job.mode === 'full' && !isEmpty(get(() => destructPattern(job.srs))),
+    test: job => isBackupType(job) && job.mode === 'full' && isPatternNotEmpty(job.srs),
   },
   {
     label: 'poolMetadata',
-    test: job => !isEmpty(destructPattern(job.pools)),
+    test: job => isPatternNotEmpty(job.pools),
   },
   {
     label: 'xoConfig',
