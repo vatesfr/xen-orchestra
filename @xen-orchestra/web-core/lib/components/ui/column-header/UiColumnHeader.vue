@@ -8,7 +8,7 @@
       class="button"
       type="button"
       v-bind="buttonAttrs"
-      @click="emit('click', $event)"
+      @click="event => emit('click', event)"
     >
       <slot />
       <VtsIcon :name="icon" size="small" />

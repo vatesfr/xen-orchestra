@@ -9,7 +9,7 @@
         class="vts-header-cell"
         interactive
         v-bind="attrs"
-        @click="open($event)"
+        @click="event => open(event)"
       >
         <slot />
       </UiColumnHeader>
@@ -59,7 +59,7 @@ const sortDirection = computed(() => columnSort?.direction.value)
 
 const sortOptions = computed((): { direction: ColumnSortDirection; icon: IconName; label: string }[] => [
   { direction: 'asc', icon: 'table:arrow-down-a-z', label: t('action:sort-ascending') },
-  { direction: 'desc', icon: 'table:arrow-up-a-z', label: t('action:sort-descending') },
+  { direction: 'desc', icon: 'table:arrow-up-z-a', label: t('action:sort-descending') },
 ])
 
 const sortIcon = computed(() => {

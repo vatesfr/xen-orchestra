@@ -182,6 +182,39 @@ describe('with an id', () => {
     expect(readOrder()).toEqual(['Web', 'Database', 'Backup'])
   })
 
+  it('falls back to the initial sort on the sort of a hidden column', async () => {
+    const { wrapper, readOrder } = mountVmColumns({ id: 'vms', initialSort: { id: 'vcpus', direction: 'asc' } })
+
+    wrapper.vm.toggle('name', false)
+    await wrapper.vm.router.push({ query: { 'vms.sort': 'name,asc' } })
+
+    expect(readOrder()).toEqual(['Backup', 'Web', 'Database'])
+  })
+
+  it('removes the sort from the route query when hiding the sorted column', async () => {
+    const { wrapper } = mountVmColumns({ id: 'vms' })
+
+    await selectSort(wrapper, 'Name', 0)
+
+    wrapper.vm.toggle('name', false)
+    await flushPromises()
+
+    expect(wrapper.vm.route.query['vms.sort']).toBeUndefined()
+  })
+
+  it('stores the initial sort when hiding the sorted column while the initial sort column is hidden', async () => {
+    const { wrapper, readOrder } = mountVmColumns({ id: 'vms', initialSort: { id: 'vcpus', direction: 'asc' } })
+
+    await selectSort(wrapper, 'Name', 0)
+
+    wrapper.vm.toggle('vcpus', false)
+    wrapper.vm.toggle('name', false)
+    await flushPromises()
+
+    expect(readOrder()).toEqual(['Web', 'Database', 'Backup'])
+    expect(wrapper.vm.route.query['vms.sort']).toBeUndefined()
+  })
+
   it('ignores the sort of an excluded column', async () => {
     const { wrapper } = mountComposable(() => ({
       ...useVmColumns({

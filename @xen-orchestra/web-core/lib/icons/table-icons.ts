@@ -12,6 +12,7 @@ import {
   faArrowDownAZ,
   faArrowUp,
   faArrowUpAZ,
+  faArrowUpZA,
   faCalendar,
   faCircle,
   faCirclePlus,
@@ -41,6 +42,7 @@ export const tableIcons = defineIconPack({
   time: constructIcon(faClock),
   'arrow-up-a-z': constructIcon(faArrowUpAZ),
   'arrow-down-a-z': constructIcon(faArrowDownAZ),
+  'arrow-up-z-a': constructIcon(faArrowUpZA),
   filter: constructIcon(faFilter),
   'filter-add': [
     constructIcon(faFilter),
