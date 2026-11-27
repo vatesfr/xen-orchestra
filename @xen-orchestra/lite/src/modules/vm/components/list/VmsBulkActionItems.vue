@@ -1,10 +1,7 @@
 <template>
-  <MenuItem accent="brand" icon="fa:power-off">
-    {{ t('action:change-state') }}
-    <template #submenu>
-      <VmActionPowerStateItems :vm-refs="selectedRefs" />
-    </template>
-  </MenuItem>
+  <VtsChangeStateMenuItem>
+    <VmActionPowerStateItems :vm-refs="selectedRefs" />
+  </VtsChangeStateMenuItem>
   <VmActionMigrateItem :selected-refs />
   <VmActionCopyItem :selected-refs />
   <VmActionSnapshotItem :vm-refs="selectedRefs" />
@@ -20,12 +17,9 @@ import VmActionMigrateItem from '@/components/vm/VmActionItems/VmActionMigrateIt
 import VmActionPowerStateItems from '@/components/vm/VmActionItems/VmActionPowerStateItems.vue'
 import VmActionSnapshotItem from '@/components/vm/VmActionItems/VmActionSnapshotItem.vue'
 import type { XenApiVm } from '@/libs/xen-api/xen-api.types.ts'
-import MenuItem from '@core/components/menu/MenuItem.vue'
-import { useI18n } from 'vue-i18n'
+import VtsChangeStateMenuItem from '@core/components/menu/VtsChangeStateMenuItem.vue'
 
 defineProps<{
   selectedRefs: XenApiVm['$ref'][]
 }>()
-
-const { t } = useI18n()
 </script>

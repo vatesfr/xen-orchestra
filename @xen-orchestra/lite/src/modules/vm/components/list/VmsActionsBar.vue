@@ -26,8 +26,8 @@
 </template>
 
 <script lang="ts" setup>
-import VmsBulkActionItems from '@/components/vm/VmsBulkActionItems.vue'
 import type { XenApiVm } from '@/libs/xen-api/xen-api.types.ts'
+import VmsBulkActionItems from '@/modules/vm/components/list/VmsBulkActionItems.vue'
 import MenuList from '@core/components/menu/MenuList.vue'
 import VtsMobileMenu from '@core/components/menu/VtsMobileMenu.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'

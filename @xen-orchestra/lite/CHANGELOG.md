@@ -19,6 +19,8 @@
 - [New/VM] Fix the storage table overflowing horizontally, which hid part of the delete button (PR [#10851](https://github.com/vatesfr/xen-orchestra/pull/10851))
 - [New/VM] Fix template disk settings being applied to every disk of the new VM: each disk now keeps its own name, description and SR (PR [#10898](https://github.com/vatesfr/xen-orchestra/pull/10898))
 - [VM/System] Display the default 4 MiB video RAM for HVM VMs that don't define it, as XO 6 does (PR [#10901](https://github.com/vatesfr/xen-orchestra/pull/10901))
+- [Pool/Host/VMs] Add a side panel and a per-VM actions menu to the VMs tables, add "Migrate" to the VM actions menu of the treeview, show the vCPUs of halted VMs, and fix the VMs actions bar no longer being displayed, on desktop and on mobile (PR [#XXXXX](https://github.com/vatesfr/xen-orchestra/pull/XXXXX))
+- [VM/SR] Add "Delete" to the "More actions" menu of the VM header and show the master host in the hosts card of the SR side panel, as XO 6 does (PR [#XXXXX](https://github.com/vatesfr/xen-orchestra/pull/XXXXX))
 
 ## **0.27.0** (2026-10-29)
 
