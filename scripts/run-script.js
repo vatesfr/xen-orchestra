@@ -40,7 +40,7 @@ async function run(command, opts, verbose) {
 // run a script for each package (also run pre and post)
 //
 // TODO: https://docs.npmjs.com/misc/scripts#environment
-require('exec-promise')(args => {
+async function main(args) {
   const {
     bail,
     concurrency,
@@ -91,4 +91,10 @@ require('exec-promise')(args => {
         throw errors
       }
     })
+}
+
+// don't use process.exit() to avoid closing before the reader reads all the output
+main(process.argv.slice(2)).catch(error => {
+  console.error('✖', error)
+  process.exitCode = 1
 })
