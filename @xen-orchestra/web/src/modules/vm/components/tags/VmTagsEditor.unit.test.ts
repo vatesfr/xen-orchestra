@@ -54,16 +54,13 @@ describe('tags of the VM', () => {
     expect(findTags(wrapper)).toEqual(['production', 'web'])
   })
 
-  it('displays the tags of the VM with the brand accent', () => {
+  it.each([
+    ['displays the tags of the VM with the brand accent', 'accent', ['brand', 'brand']],
+    ['does not offer to remove the tags outside of the tag select', 'removable', [false, false]],
+  ] as const)('%s', (_, prop, values) => {
     const wrapper = mountTagsEditor()
 
-    expect(findTagProps(wrapper.getComponent(UiTagsList), 'accent')).toEqual(['brand', 'brand'])
-  })
-
-  it('does not offer to remove the tags outside of the tag select', () => {
-    const wrapper = mountTagsEditor()
-
-    expect(findTagProps(wrapper.getComponent(UiTagsList), 'removable')).toEqual([false, false])
+    expect(findTagProps(wrapper.getComponent(UiTagsList), prop)).toEqual(values)
   })
 
   it('lists no tag when the VM has none', () => {
