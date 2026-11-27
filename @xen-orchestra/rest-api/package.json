@@ -40,7 +40,7 @@
     "@vates/task": "^0.7.0",
     "@vates/types": "^3.1.0",
     "@xen-orchestra/acl": "^1.9.0",
-    "@xen-orchestra/backups": "^1.0.0",
+    "@xen-orchestra/backups": "^1.0.1",
     "@xen-orchestra/cron": "^1.0.7",
     "@xen-orchestra/log": "^1.0.0",
     "@xen-orchestra/qcow2": "^1.4.1",

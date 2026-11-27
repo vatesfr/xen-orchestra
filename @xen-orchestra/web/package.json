@@ -35,7 +35,7 @@
     "@vueuse/integrations": "^14.0.0",
     "@vueuse/math": "^14.0.0",
     "@vueuse/shared": "^14.0.0",
-    "@xen-orchestra/backups": "^1.0.0",
+    "@xen-orchestra/backups": "^1.0.1",
     "@xen-orchestra/cron": "^1.0.7",
     "@xen-orchestra/web-core": "^0.66.0",
     "complex-matcher": "^1.1.1",
