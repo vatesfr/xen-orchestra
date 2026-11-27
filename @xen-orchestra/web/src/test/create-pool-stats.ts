@@ -17,3 +17,9 @@ export function createPoolStats(hosts: Record<string, PoolStatsEntry> = {}): Xap
     ])
   )
 }
+
+// The pool stats no pool chart card can plot, keyed by what they lack, as the end of a test name
+export const POOL_STATS_WITHOUT_SAMPLES = {
+  'for a pool without host': createPoolStats(),
+  'when the stats of every host failed': createPoolStats({ 'host-1': { error: { code: 'boom' } } }),
+}

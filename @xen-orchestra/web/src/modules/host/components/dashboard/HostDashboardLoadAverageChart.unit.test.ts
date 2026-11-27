@@ -1,11 +1,8 @@
 import HostDashboardLoadAverageChart from '@/modules/host/components/dashboard/HostDashboardLoadAverageChart.vue'
 import { createHostStats } from '@/test/create-host-stats.ts'
-import { findCardTitle } from '@/test/find-titles.ts'
 import { t } from '@/test/i18n.ts'
 import { findLinearChart } from '@/test/linear-chart-stub.ts'
-import { mountChartCard, type ChartCardProps } from '@/test/mount-chart-card.ts'
-import { hasLoader } from '@core-test/expect-loader.ts'
-import { findStateHeroTexts } from '@core-test/find-state-hero-types.ts'
+import { itShowsChartCard, mountChartCard, type ChartCardProps } from '@/test/mount-chart-card.ts'
 import type { XapiHostStats } from '@vates/types/common'
 
 function mountChart(props: ChartCardProps<XapiHostStats>) {
@@ -14,35 +11,13 @@ function mountChart(props: ChartCardProps<XapiHostStats>) {
 
 const statsWithSamples = createHostStats({ stats: { load: [1.5, 2.5] } })
 
-it('renders the card title and the period it covers', () => {
-  const wrapper = mountChart({ data: statsWithSamples })
-
-  expect(findCardTitle(wrapper)).toContain(t('load-average'))
-  expect(findCardTitle(wrapper)).toContain(t('last-week'))
-})
-
-it('shows a loader while the stats are loading', () => {
-  const wrapper = mountChart({ data: null, loading: true })
-
-  expect(hasLoader(wrapper)).toBe(true)
-})
-
-it('shows a loader while the stats have not arrived yet', () => {
-  const wrapper = mountChart({ data: null })
-
-  expect(hasLoader(wrapper)).toBe(true)
-})
-
-it('shows an error message when the stats could not be fetched', () => {
-  const wrapper = mountChart({ data: statsWithSamples, error: true })
-
-  expect(findStateHeroTexts(wrapper)).toEqual([t('error-no-data')])
-})
-
-it('reports that there is nothing to plot when the host has no load sample', () => {
-  const wrapper = mountChart({ data: createHostStats() })
-
-  expect(findStateHeroTexts(wrapper)).toEqual([t('no-data-to-calculate')])
+itShowsChartCard(mountChart, {
+  title: t('load-average'),
+  stats: statsWithSamples,
+  nullStats: 'loader',
+  nothingToPlot: {
+    'when the host has no load sample': createHostStats(),
+  },
 })
 
 it('plots the load average of the host', () => {

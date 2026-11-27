@@ -129,21 +129,25 @@ it('plots the load average of the host', () => {
 
 Stubbing with `true` instead would push the props into attributes, where they arrive stringified — which is why `mountChartCard` owns that wiring rather than each test repeating it.
 
+`itShowsChartCard(mountChart, case)` from the same file registers the tests every chart card shares: its title and the period it covers, its loader, its error message, what it shows for `null` stats (`nullStats`: a loader on a host or pool card, nothing to plot on a VM card), the stats it has nothing to plot from (`nothingToPlot`, `POOL_STATS_WITHOUT_SAMPLES` for the cases every pool card shares) and the format of the plotted values (`formatsAs`). The card test keeps only what is its own: the plotted series and the `maxValue`.
+
+```typescript
+itShowsChartCard(mountChart, {
+  title: t('cpu-usage'),
+  stats: statsWithSamples,
+  nullStats: 'loader',
+  nothingToPlot: { 'when the host has no cpu sample': createHostStats() },
+  formatsAs: 'percentages',
+})
+```
+
 Assert the plotted series, not the absence of a state hero. Every card guards on the series it built, so an empty series does reach the "no data" hero — but a hero-only test still passes over a series plotting the wrong samples. That is how the pool CPU card came to size its series off `stats.memory` unnoticed.
 
 The `maxValue` is worth its own assertion: it is where the card's own axis choice lives (`{ step: 5, fallback: 10 }` for the host load average, `step: 50` for host network throughput, `headroom: 1.2` for the stacked pool cpu usage), and nothing else covers it.
 
-So is the `valueFormatter`, which decides whether the axis and the tooltips read `1 KiB` or `1024%`. `formatChartValue(wrapper, value)` runs a value through the formatter the card handed over, and returns `undefined` when it handed none — so one assertion covers both the choice of formatter and the wiring:
+So is the `valueFormatter`, which decides whether the axis and the tooltips read `1 KiB` or `1024%`. `formatsAs` checks it: `formatChartValue(wrapper, value)` runs a value through the formatter the card handed over, and returns `undefined` when it handed none — so one assertion covers both the choice of formatter and the wiring. Leave `formatsAs` out for a card that hands no formatter.
 
-```typescript
-it('formats the plotted values as bytes', () => {
-  const wrapper = mountChart({ data: statsWithSamples })
-
-  expect(formatChartValue(wrapper, 1024)).toBe('1 KiB')
-})
-```
-
-Keep it to one representative value: how the formatter handles the whole range, `null` included, belongs to the formatter's own test — `chart-stats.util.unit.test.ts` for `formatChartBytes`, `chart-percent-formatter.composable.unit.test.ts` for `useChartPercentFormatter`.
+The registrar keeps it to one representative value: how the formatter handles the whole range, `null` included, belongs to the formatter's own test — `chart-stats.util.unit.test.ts` for `formatChartBytes`, `chart-percent-formatter.composable.unit.test.ts` for `useChartPercentFormatter`.
 
 ## Legend cards
 
