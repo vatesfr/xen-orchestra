@@ -1,3 +1,4 @@
+import type { useXoVmBackupArchiveCollection } from '@/modules/backup-archive/remote-resources/use-xo-vm-backup-archive-collection.ts'
 import NewBackupJobDrawer from '@/modules/backup-job/components/drawer/NewBackupJobDrawer.vue'
 import BackupJobPlanningStep from '@/modules/backup-job/components/form/steps/BackupJobPlanningStep.vue'
 import BackupJobReviewStep from '@/modules/backup-job/components/form/steps/BackupJobReviewStep.vue'
@@ -12,7 +13,6 @@ import type { useXoProxyCollection } from '@/modules/proxy/remote-resources/use-
 import type { useXoSrCollection } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import type { useXoVbdCollection } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
 import type { useXoVdiCollection } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
-import type { useXoVmBackupArchiveCollection } from '@/modules/vm/remote-resources/use-xo-vm-backup-archive-collection.ts'
 import type { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { cancelDrawer, findDrawerButtonLabels, submitDrawer } from '@/test/drawer.ts'
 import { getButton } from '@/test/get-button.ts'
@@ -80,7 +80,7 @@ mockModule(import('@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'), ()
   useXoVdiCollection: (() => ({ getVdiById: () => undefined })) as unknown as typeof useXoVdiCollection,
 }))
 
-mockModule(import('@/modules/vm/remote-resources/use-xo-vm-backup-archive-collection.ts'), () => ({
+mockModule(import('@/modules/backup-archive/remote-resources/use-xo-vm-backup-archive-collection.ts'), () => ({
   useXoVmBackupArchiveCollection: (() => ({
     backupArchives: ref([]),
     areBackupArchivesReady: ref(true),
