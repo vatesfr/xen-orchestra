@@ -13,6 +13,8 @@
 
 > Users must be able to say: "I had this issue, happy to know it's fixed"
 
+- [REST API] Fix Basic authentication when the password contains a colon, contribution by [@pcbeingused333](https://github.com/pcbeingused333) [#10782](https://github.com/vatesfr/xen-orchestra/issues/10782) (PR [#10801](https://github.com/vatesfr/xen-orchestra/pull/10801))
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
