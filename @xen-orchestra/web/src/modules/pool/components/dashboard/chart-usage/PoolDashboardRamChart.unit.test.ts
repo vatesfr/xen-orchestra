@@ -1,5 +1,5 @@
 import PoolDashboardRamChart from '@/modules/pool/components/dashboard/chart-usage/PoolDashboardRamChart.vue'
-import { createPoolStats, POOL_STATS_WITHOUT_SAMPLES } from '@/test/create-pool-stats.ts'
+import { createPoolStats, POOL_STATS_WITH_MEMORY_ONLY, POOL_STATS_WITHOUT_SAMPLES } from '@/test/create-pool-stats.ts'
 import { t } from '@/test/i18n.ts'
 import { findLinearChart } from '@/test/linear-chart-stub.ts'
 import { itShowsChartCard, mountChartCard, type ChartCardProps } from '@/test/mount-chart-card.ts'
@@ -19,7 +19,7 @@ itShowsChartCard(mountChart, {
   nullStats: 'loader',
   nothingToPlot: {
     ...POOL_STATS_WITHOUT_SAMPLES,
-    'when the free memory of every host is missing': createPoolStats({ 'host-1': { stats: { memory: [2048, 4096] } } }),
+    'when the free memory of every host is missing': POOL_STATS_WITH_MEMORY_ONLY,
     'when the memory of every host holds no sample': createPoolStats({
       'host-1': { stats: { memory: [], memoryFree: [] } },
     }),

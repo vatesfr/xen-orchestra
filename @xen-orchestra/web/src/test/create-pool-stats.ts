@@ -18,6 +18,9 @@ export function createPoolStats(hosts: Record<string, PoolStatsEntry> = {}): Xap
   )
 }
 
+// The stats of a pool whose host reports its memory only, without free memory
+export const POOL_STATS_WITH_MEMORY_ONLY = createPoolStats({ 'host-1': { stats: { memory: [2048, 4096] } } })
+
 // The pool stats no pool chart card can plot, keyed by what they lack, as the end of a test name
 export const POOL_STATS_WITHOUT_SAMPLES = {
   'for a pool without host': createPoolStats(),
