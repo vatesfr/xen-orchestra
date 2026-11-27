@@ -6,6 +6,7 @@ import V2vVmOptionsCard from '@/modules/v2v/components/panel/V2vVmOptionsCard.vu
 import { createV2vHost } from '@/test/create-v2v-inventory.ts'
 import { createV2vNewMappingStepVm } from '@/test/create-v2v-mapping-step-vm.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
+import { HOLD_LOADING } from '@/test/hold-loading.ts'
 import { xoCollectionsMock, mockXoCollections } from '@/test/mock-xo-collections.ts'
 import { mountV2vVmMappingComponent } from '@/test/mount-v2v-vm-mapping.ts'
 import {
@@ -91,7 +92,7 @@ it('shows the options of the VM', async () => {
 })
 
 it('shows the targets loading while the pool offers load', async () => {
-  xoCollectionsMock.areTemplatesReady.value = false
+  HOLD_LOADING.templates()
 
   const { wrapper } = await mountCards()
 

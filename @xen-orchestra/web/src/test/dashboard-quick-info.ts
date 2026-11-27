@@ -1,5 +1,5 @@
 import { findCopiedValues, findLabelledValues, findRowLabels, findTags } from '@/test/find-rendered-values.ts'
-import { HOLD_LOADING } from '@/test/host-dashboard-card.ts'
+import { HOLD_LOADING } from '@/test/hold-loading.ts'
 import { t } from '@/test/i18n.ts'
 import type { VueWrapper } from '@vue/test-utils'
 

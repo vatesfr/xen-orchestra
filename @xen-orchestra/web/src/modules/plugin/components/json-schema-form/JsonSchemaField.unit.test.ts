@@ -6,6 +6,7 @@ import { OBFUSCATED_VALUE } from '@/shared/constants.ts'
 import { createVm } from '@/test/create-vm.ts'
 import { getCheckbox } from '@/test/get-checkbox.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
+import { HOLD_LOADING } from '@/test/hold-loading.ts'
 import { t } from '@/test/i18n.ts'
 import { getNumberedItemLabel } from '@/test/json-schema-item-label.ts'
 import { xoCollectionsMock, mockXoCollections } from '@/test/mock-xo-collections.ts'
@@ -29,10 +30,10 @@ beforeEach(() => {
   vmCollectionMock.reset()
   vmCollectionMock.vms.value = [createVm({ id: 'vm-1' as FrontXoVm['id'], name_label: 'Web server' })]
   // The pools fail to load, to test a field without options
-  xoCollectionsMock.arePoolsReady.value = false
+  HOLD_LOADING.pools()
   xoCollectionsMock.hasPoolFetchError.value = true
   // The SRs never load, to test a field waiting for its options
-  xoCollectionsMock.areSrsReady.value = false
+  HOLD_LOADING.SRs()
 })
 
 function mountField(props: {

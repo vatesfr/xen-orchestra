@@ -5,6 +5,7 @@ import { createV2vConnection } from '@/test/create-v2v-connection.ts'
 import { createV2vMigrationListVmsOf, createV2vMigrationList } from '@/test/create-v2v-migration-list.ts'
 import { getV2vVmIds } from '@/test/create-v2v-vm-row.ts'
 import { findV2vRouteQuery } from '@/test/create-v2v-wizard-router.ts'
+import { HOLD_LOADING } from '@/test/hold-loading.ts'
 import { deleteModalMock, mockDeleteModal } from '@/test/mock-delete-modal.ts'
 import { xoCollectionsMock, mockXoCollections } from '@/test/mock-xo-collections.ts'
 import { v2vVmRowsCollectionsMock, mockXoV2vVmRowsCollections } from '@/test/mock-xo-v2v-vm-rows-collections.ts'
@@ -142,7 +143,7 @@ describe('selectedVm', () => {
 
   it.each([
     ['the XO VMs', () => (v2vVmRowsCollectionsMock.areVmsReady.value = false)],
-    ['the SRs of the pool', () => (xoCollectionsMock.areSrsReady.value = false)],
+    ['the SRs of the pool', HOLD_LOADING.SRs],
   ])('is undefined, busy, without rows, while %s load', async (_, holdLoading) => {
     const { result } = await mountMappingStep({ vm: V2V_DB_VM.id })
 

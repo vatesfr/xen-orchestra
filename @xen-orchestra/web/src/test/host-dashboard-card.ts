@@ -1,21 +1,7 @@
 import { itRendersCardTitle } from '@/test/card-title.ts'
-import { xoCollectionsMock } from '@/test/mock-xo-collections.ts'
-import { vmCollectionMock } from '@/test/mock-xo-vm-collection.ts'
+import { HOLD_LOADING } from '@/test/hold-loading.ts'
 import { expectLoaderInsteadOf } from '@core-test/expect-loader.ts'
 import type { VueWrapper } from '@vue/test-utils'
-
-// Holds a mocked collection as still loading (`mock-xo-collections.ts`, `mock-xo-vm-collection.ts`), by its name
-export const HOLD_LOADING = {
-  hosts: () => {
-    xoCollectionsMock.areHostsReady.value = false
-  },
-  VMs: () => {
-    vmCollectionMock.areVmsReady.value = false
-  },
-  SRs: () => {
-    xoCollectionsMock.areSrsReady.value = false
-  },
-}
 
 type HostDashboardCardCase = {
   title: string
