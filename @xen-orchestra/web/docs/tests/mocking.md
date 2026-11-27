@@ -1,6 +1,6 @@
 # Mocking (XO 6)
 
-The typed mock form, the partial-mock cast and shared mock modules are in [Mocking dependencies](../../../web-core/docs/tests/mocking.md); XO 6 test files use `mockModule` in place of `vi.mock` and `vi.hoisted`, as below. In XO 6, **mock only the remote-resource collections / stores** a composable depends on.
+The typed mock form, the partial-mock cast and shared mock modules are in [Mocking dependencies](../../../web-core/docs/tests/mocking.md); XO 6 test files use `mockModule` in place of `vi.mock` and `vi.hoisted`, as below.
 
 A test file never calls `vi.mock`. Every module a test replaces is mocked once, in `src/test/global-module-mocks.ts`, for every test file: each function it exports becomes a spy calling the real one. The module then exists once whatever file loads it first, so the test files can share their modules (no test isolation) without one file's mock leaking into another. Mocking a new module adds its line there. ESLint rejects `vi.mock`, `vi.doMock`, `vi.unmock`, `vi.doUnmock`, `vi.hoisted`, `vi.resetModules()` and `vi.resetAllMocks()` in a test file.
 
@@ -80,7 +80,7 @@ The same goes for `mock-xo-v2v-vm-rows-collections.ts`, the VM, task and VM snap
 
 `mock-xo-plugin-actions.ts` stands for `useXoPluginActions`, which runs the plugin jobs: `pluginActionsMock.useXoPluginActions` is the spy to read the plugin it was asked for, `pluginActionsMock.setActions(overrides?)` makes it return the `createPluginActions(overrides)` actions and returns them, and `pluginActionsMock.reset()` (back to the default actions) goes in `beforeEach`.
 
-A job a single test file mocks needs no shared module: `createJobStub(useXJob)` gives its `use` spy (`mockedExport(useXJob)`, no `mockModule` needed), its `run` spy and `setState` / `reset`; `createJobStub(useBackupJobDelete, result => toJobComposableResult(result, 'deleteBackupJobs', 'isDeletingBackupJobs'))` does the same for a composable wrapping a job. Without a job, `createJobStub()` gives a fresh `use` spy, for a `mockModule` factory that picks between several stubs.
+A job that only one test file mocks needs no shared module and no `mockModule`: stub it with `createJobStub` ([Mock and stub](./helpers.md#mock-and-stub)).
 
 `mock-xo-routes.ts` stands for `useXoRoutes`, the XO 5 routes the app fetches: an XO 5 link reads `https://xo5.example.com/#<path>`.
 

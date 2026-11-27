@@ -21,6 +21,7 @@ An XO 6 test covers what the app decides, never what `@xen-orchestra/web-core` d
 ## Shared conventions (web-core docs)
 
 - [Assert behavior, not implementation](../../web-core/docs/tests/assert-behavior.md)
+- [Design the test file first](../../web-core/docs/tests/design-test-file.md) — what to do before the first `it`, and a reference file for each kind of test
 - [File layout and structure](../../web-core/docs/tests/file-structure.md)
 - [Shared test helpers](../../web-core/docs/tests.md#shared-test-helpers) — generic helpers in `web-core/test/` (`@core-test`), domain-aware ones in `src/test/`
 
@@ -28,7 +29,8 @@ An XO 6 test covers what the app decides, never what `@xen-orchestra/web-core` d
 
 - [Test runner](./tests/running-tests.md) — Vitest setup and the commands to run a suite
 - [Setup helpers](./tests/setup-helpers.md) — local storage, the shared `use<X>EnhancedData` helpers
-- [Test data factories](./tests/factories.md) — the `src/test/create*` factories and helpers
+- [Test data factories](./tests/factories.md) — the `src/test/create*` factories of the XO objects
+- [Shared helpers by need](./tests/helpers.md) — every `src/test/` helper, grouped by what a test needs
 - [Utilities](./tests/testing-utilities.md) — where XO 6 keeps shared utils
 - [Composables](./tests/testing-composables.md) — `mountComposable`, `mountComposableWithI18n`
 - [Components](./tests/testing-components.md) — the `src/test/` readers, tables, charts, legends, routing, selects, pages

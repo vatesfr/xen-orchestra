@@ -31,7 +31,7 @@ A web-core component is tested for its **contract with its consumers**: what eac
 
 - A variant is asserted through the class `toVariants` gives it, since that class is the contract the CSS reads — never through a style.
 - A child web-core component is asserted through its props (`getComponent(UiAlert).props('accent')`), not the DOM it renders: that child has its own test.
-- A responsive state is driven with `(window as unknown as HappyDomWindow).happyDOM.setViewport({ width })` before mounting (`import type { Window as HappyDomWindow } from 'happy-dom'`).
+- A responsive state is driven with `setViewportWidth(width)` (`@core-test/set-viewport-width.ts`) before mounting.
 
 ## Keep components thin
 
@@ -68,7 +68,7 @@ Prefer this shape, one assertion covering every row a user sees: it fails loudly
 
 The class must exist for the component's own CSS: **never add a class only for a test**, and remove one whose CSS is gone. Without a styled class, query the component (`getComponent`), a styled class of a child component, or the text the user reads.
 
-A query a second test file needs becomes a shared reader (see [Shared test helpers](../tests.md#shared-test-helpers)); XO 6 already has many, listed in [XO 6 components](../../../web/docs/tests/testing-components.md).
+Before writing a query, look for a shared reader in [Shared test helpers](../tests.md#shared-test-helpers) and, for XO 6, in [Read what a component renders](../../../web/docs/tests/helpers.md#read-what-a-component-renders).
 
 ### Never spell out a translation
 

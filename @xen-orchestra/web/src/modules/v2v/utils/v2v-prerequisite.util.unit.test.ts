@@ -5,42 +5,50 @@ const VECTURA_OK: XoV2vStatus = { vectura: { status: 'success' } }
 
 const VECTURA_ERROR: XoV2vStatus = { vectura: { status: 'error', error: 'vectura is not runnable' } }
 
-function getState(status: XoV2vStatus | undefined, hasError = false) {
-  return getV2vPrerequisiteState({ status, hasError })
-}
-
 describe('getV2vPrerequisiteState', () => {
-  it('is checking until the status is received', () => {
-    expect(getState(undefined)).toEqual({ state: 'checking' })
-  })
-
-  it('is an error without detail when the status cannot be fetched', () => {
-    expect(getState(undefined, true)).toEqual({ state: 'error', error: undefined })
-  })
-
-  it('is an error with the reason when vectura reports one', () => {
-    expect(getState(VECTURA_ERROR)).toEqual({ state: 'error', error: 'vectura is not runnable' })
-  })
-
-  it('is ok when vectura reports a success', () => {
-    expect(getState(VECTURA_OK)).toEqual({ state: 'ok' })
-  })
-
-  it('keeps the received status when a later refresh fails', () => {
-    expect(getState(VECTURA_OK, true)).toEqual({ state: 'ok' })
-    expect(getState(VECTURA_ERROR, true)).toEqual({ state: 'error', error: 'vectura is not runnable' })
+  it.each([
+    {
+      label: 'is checking until the status is received',
+      status: undefined,
+      hasError: false,
+      expected: { state: 'checking' },
+    },
+    {
+      label: 'is an error without detail when the status cannot be fetched',
+      status: undefined,
+      hasError: true,
+      expected: { state: 'error', error: undefined },
+    },
+    {
+      label: 'is an error with the reason when vectura reports one',
+      status: VECTURA_ERROR,
+      hasError: false,
+      expected: { state: 'error', error: 'vectura is not runnable' },
+    },
+    { label: 'is ok when vectura reports a success', status: VECTURA_OK, hasError: false, expected: { state: 'ok' } },
+    {
+      label: 'keeps a received success when a later refresh fails',
+      status: VECTURA_OK,
+      hasError: true,
+      expected: { state: 'ok' },
+    },
+    {
+      label: 'keeps a received error when a later refresh fails',
+      status: VECTURA_ERROR,
+      hasError: true,
+      expected: { state: 'error', error: 'vectura is not runnable' },
+    },
+  ])('$label', ({ status, hasError, expected }) => {
+    expect(getV2vPrerequisiteState({ status, hasError })).toEqual(expected)
   })
 })
 
 describe('isV2vPrerequisiteOk', () => {
-  it('is true only once the prerequisite check is ok', () => {
-    expect(isV2vPrerequisiteOk({ state: 'ok' })).toBe(true)
+  it.each([
+    { prerequisite: { state: 'ok' }, expected: true },
+    { prerequisite: { state: 'checking' }, expected: false },
+    { prerequisite: { state: 'error', error: undefined }, expected: false },
+  ] as const)('is $expected while the prerequisite is $prerequisite.state', ({ prerequisite, expected }) => {
+    expect(isV2vPrerequisiteOk(prerequisite)).toBe(expected)
   })
-
-  it.each([{ state: 'checking' }, { state: 'error', error: undefined }] as const)(
-    'is false while the prerequisite is $state',
-    prerequisite => {
-      expect(isV2vPrerequisiteOk(prerequisite)).toBe(false)
-    }
-  )
 })
