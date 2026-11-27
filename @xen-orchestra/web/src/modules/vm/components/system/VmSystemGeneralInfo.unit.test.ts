@@ -6,8 +6,7 @@ import { findCopiedValues, findLabelledValues, findTags } from '@/test/find-rend
 import { findTitleLabel } from '@/test/find-titles.ts'
 import { createGlobalTestConfig } from '@/test/global-test-config.ts'
 import { t } from '@/test/i18n.ts'
-import { itShowsVmTagsSorted } from '@/test/vm-tags.ts'
-import { findAccentedTags } from '@core-test/find-accented-labels.ts'
+import { findTagAccents } from '@core-test/find-accented-labels.ts'
 import { VM_POWER_STATE } from '@vates/types'
 import { mount } from '@vue/test-utils'
 
@@ -60,15 +59,16 @@ it('leaves the operating system rows empty when the VM reports no OS version', (
   expect(findLabelledValues(wrapper)).toMatchObject({ [t('os-name')]: '', [t('os-kernel')]: '' })
 })
 
-itShowsVmTagsSorted(mountGeneralInfo)
+it('renders one tag per VM tag, in alphabetical order', () => {
+  const wrapper = mountGeneralInfo(createVm({ tags: ['production', 'billing'] }))
+
+  expect(findTags(wrapper)).toEqual(['billing', 'production'])
+})
 
 it('renders the VM tags with the brand accent', () => {
   const wrapper = mountGeneralInfo(createVm({ tags: ['production', 'billing'] }))
 
-  expect(findAccentedTags(wrapper)).toEqual([
-    { label: 'billing', accent: 'brand' },
-    { label: 'production', accent: 'brand' },
-  ])
+  expect(findTagAccents(wrapper)).toEqual(['brand', 'brand'])
 })
 
 it('renders no tag when the VM has none', () => {

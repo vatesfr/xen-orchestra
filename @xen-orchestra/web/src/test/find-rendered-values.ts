@@ -1,3 +1,4 @@
+import VmTagsEditor from '@/modules/vm/components/tags/VmTagsEditor.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import { findLink, findLinks } from '@core-test/find-links.ts'
 import type { VueWrapper } from '@vue/test-utils'
@@ -55,6 +56,13 @@ export function findRowLabels(wrapper: QueryableWrapper): string[] {
 // The label of every `VtsCardRowKeyValue` row of a side-panel card and of its `VmTagsEditor`, in order
 export function findCardRowLabels(wrapper: QueryableWrapper): string[] {
   return wrapper.findAll(`${CARD_ROW.root} ${CARD_ROW.label}, ${VM_TAGS_LABEL}`).map(label => label.text())
+}
+
+// What the copy button of the `VmTagsEditor` copies, `undefined` without one
+export function findVmTagsCopiedValue(wrapper: Pick<VueWrapper, 'findComponent'>) {
+  const button = wrapper.findComponent(VmTagsEditor).findComponent(VtsCopyButton)
+
+  return button.exists() ? button.props('value') : undefined
 }
 
 // The label of the `VmTagsEditor`, shown above the tags

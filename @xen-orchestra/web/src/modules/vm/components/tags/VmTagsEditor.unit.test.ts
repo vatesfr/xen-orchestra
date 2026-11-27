@@ -10,6 +10,7 @@ import { mockedExport } from '@/test/spy-on-module.ts'
 import VtsTag from '@core/components/tag/VtsTag.vue'
 import VtsTagSelect, { type TagSelectChanges } from '@core/components/tag-select/VtsTagSelect.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
+import { findTagAccents } from '@core-test/find-accented-labels.ts'
 import { flushPromises, mount, type VueWrapper } from '@vue/test-utils'
 
 const put = mockedExport(fetchPut)
@@ -61,7 +62,7 @@ describe('tags of the VM', () => {
   it('displays the tags of the VM with the brand accent', () => {
     const wrapper = mountTagsEditor()
 
-    expect(findVmTags(wrapper).map(tag => tag.props('accent'))).toEqual(['brand', 'brand'])
+    expect(findTagAccents(wrapper.getComponent(UiTagsList))).toEqual(['brand', 'brand'])
   })
 
   it('does not offer to remove the tags outside of the tag select', () => {

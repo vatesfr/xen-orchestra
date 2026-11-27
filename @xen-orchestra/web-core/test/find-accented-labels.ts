@@ -1,3 +1,4 @@
+import VtsTag from '@core/components/tag/VtsTag.vue'
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import UiTag from '@core/components/ui/tag/UiTag.vue'
 import type { VueWrapper } from '@vue/test-utils'
@@ -11,6 +12,11 @@ function findAccentedLabels(wrapper: AccentedComponents, component: typeof UiTag
 
 export function findAccentedTags(wrapper: AccentedComponents) {
   return findAccentedLabels(wrapper, UiTag)
+}
+
+// The accent each `VtsTag` of the wrapper is handed, in order
+export function findTagAccents(wrapper: AccentedComponents) {
+  return wrapper.findAllComponents(VtsTag).map(tag => tag.props('accent'))
 }
 
 export function findAccentedInfos(wrapper: AccentedComponents) {

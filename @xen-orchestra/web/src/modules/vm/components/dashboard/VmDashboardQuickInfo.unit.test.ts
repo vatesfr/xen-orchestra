@@ -1,5 +1,6 @@
 import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import VmDashboardQuickInfo from '@/modules/vm/components/dashboard/VmDashboardQuickInfo.vue'
+import VmTagsEditor from '@/modules/vm/components/tags/VmTagsEditor.vue'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { createHost } from '@/test/create-host.ts'
 import { createPool } from '@/test/create-pool.ts'
@@ -16,7 +17,6 @@ import { vmCollectionMock, mockXoVmCollection } from '@/test/mock-xo-vm-collecti
 import { vmDeviceCollectionsMock, mockXoVmDeviceCollections } from '@/test/mock-xo-vm-device-collections.ts'
 import { seedVmDisks } from '@/test/seed-vm-disks.ts'
 import { itShowsVmCreator } from '@/test/vm-creator.ts'
-import { itShowsVmTagsSorted } from '@/test/vm-tags.ts'
 import { findLink, findLinks } from '@core-test/find-links.ts'
 import { VM_POWER_STATE } from '@vates/types'
 import { mount } from '@vue/test-utils'
@@ -202,4 +202,8 @@ it('labels the tags', () => {
   expect(findVmTagsLabel(wrapper)).toBe(t('tags'))
 })
 
-itShowsVmTagsSorted(mountQuickInfo)
+it('edits the tags of the VM', () => {
+  const vm = createVm()
+
+  expect(mountQuickInfo(vm).getComponent(VmTagsEditor).props('vm')).toEqual(vm)
+})
