@@ -1,4 +1,4 @@
-import { useTimestamp } from '@vueuse/core'
+import { createSharedComposable, useTimestamp } from '@vueuse/core'
 import { computed, type MaybeRefOrGetter, toValue } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -23,12 +23,15 @@ const timeThresholds: TimeThreshold[] = [
   [Infinity, 'year'],
 ]
 
+// One timer for all the users, which can be a list of a thousand items. It stops when the last user is unmounted
+const useSharedTimestamp = createSharedComposable(() => useTimestamp({ interval: 1000 }))
+
 export function useTimeAgo(referenceDate: MaybeRefOrGetter<Date | number | string>) {
   const { locale } = useI18n()
 
   const formatter = computed(() => new Intl.RelativeTimeFormat(locale.value, { numeric: 'auto' }))
 
-  const now = useTimestamp({ interval: 1000 })
+  const now = useSharedTimestamp()
 
   const referenceTime = computed(() => new Date(toValue(referenceDate)).getTime())
 
